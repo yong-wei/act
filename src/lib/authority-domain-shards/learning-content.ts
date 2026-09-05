@@ -11,12 +11,6 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import {
-  resolveActiveTeachingProjection,
-  resolveTeachingProjectionStorePaths,
-} from '@/lib/teaching-projection/store';
-import { resolveConfiguredTeachingProjectionRoot } from '@/lib/layered-graph/course-page-context';
-
 import type {
   AuthorityNodeDetailShard,
   AuthorityNodeLearningContent,
@@ -181,40 +175,13 @@ function cardContent(value: string, canonicalId: string): Extract<AuthorityNodeL
   };
 }
 
-function activeProjectionCardIds(
-  shard: AuthorityNodeDetailShard,
-  paths: RuntimePaths,
-): ReadonlySet<string> | null {
+function envelopeTeachingAvailable(shard: AuthorityNodeDetailShard): boolean {
   const teaching = shard.envelope.teaching;
-  if (
-    shard.envelope.match.teaching !== true
-    || teaching.status !== 'available'
-    || !teaching.projectionId
-    || !teaching.projectionHash
-  ) {
-    return null;
-  }
-
-  const active = resolveActiveTeachingProjection(
-    resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
-  );
-  if (active.status !== 'available' || !active.staged?.artifacts.gate.passed) return null;
-  if (
-    active.staged.projectionId !== teaching.projectionId
-    || active.staged.projectionHash !== teaching.projectionHash
-  ) return null;
-  const manifest = active.staged.artifacts.manifest;
-  const authority = shard.envelope.authority;
-  if (!(
-    manifest.authorityReleaseId === authority.releaseId
-    && manifest.authorityReleaseSetId === authority.releaseSetId
-    && manifest.authoritySnapshotId === authority.snapshotId
-    && manifest.authoritySnapshotHash === authority.snapshotHash
-  )) return null;
-  return new Set(
-    active.staged.artifacts.cardsIndex.cards
-      .filter((card) => card.active)
-      .map((card) => card.canonicalId),
+  return (
+    shard.envelope.match.teaching === true
+    && teaching.status === 'available'
+    && Boolean(teaching.projectionId)
+    && Boolean(teaching.projectionHash)
   );
 }
 
@@ -235,9 +202,15 @@ function resolveNodeLearningContent(
   shard: AuthorityNodeDetailShard,
   paths = runtimePaths(),
 ): ResolvedLearningContent {
-  const activeCards = activeProjectionCardIds(shard, paths);
-  if (!activeCards) return { content: unavailableContent(), infograph: null };
-  if (!activeCards.has(shard.node.id)) {
+  if (!envelopeTeachingAvailable(shard)) {
+    return { content: unavailableContent(), infograph: null };
+  }
+  const manifest = readManifest(paths);
+  if (!manifest || !matchesShardAuthority(manifest, shard)) {
+    return { content: unavailableContent(), infograph: null };
+  }
+  const entry = manifest.nodes.find((node) => node.canonicalId === shard.node.id);
+  if (!entry) {
     return {
       content: {
         card: { state: 'missing', message: '当前节点暂无已发布学习卡片。' },
@@ -246,12 +219,6 @@ function resolveNodeLearningContent(
       infograph: null,
     };
   }
-  const manifest = readManifest(paths);
-  if (!manifest || !matchesShardAuthority(manifest, shard)) {
-    return { content: unavailableContent(), infograph: null };
-  }
-  const entry = manifest.nodes.find((node) => node.canonicalId === shard.node.id);
-  if (!entry) return { content: unavailableContent(), infograph: null };
 
   const card = (() => {
     if (entry.card.state === 'blocked') {

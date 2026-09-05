@@ -17,7 +17,7 @@ Selecting a presentable Authority object SHALL open or update the established st
 - **AND** every displayed field SHALL resolve from the active composite release's matched ACT projections rather than from any old, inactive, candidate, or mismatched catalog
 
 ### Requirement: Accepted Knowledge Cards and infographs load on demand
-The inspector SHALL request eligible Knowledge Card content and accepted infograph metadata only after node selection. Accepted cards and infographs SHALL be presented as learning content; missing cards, blocked drafts and unavailable media SHALL be omitted without a placeholder panel. The resolver SHALL accept only a v2 learning-content manifest whose sealed Authority release, release-set, snapshot and snapshot-hash exactly match the selected Authority shard envelope; legacy, malformed, duplicate-entry or mismatched manifests SHALL omit all optional media before any asset bytes are read.
+The inspector SHALL request eligible Knowledge Card content and accepted infograph metadata only after node selection. Accepted cards and infographs SHALL be presented as learning content when the v2 learning-content manifest, sealed Authority identity, and Teaching overlay identity match the selected shard envelope. Missing files, hash drift and unmapped objects SHALL fail the learning-content package rather than silently omitting coverage. Draft-blocked cards SHALL be omitted from the product panel without a placeholder that looks reviewed, but they SHALL remain counted as linked in the coverage ledger. Legacy, malformed or duplicate-entry manifests SHALL fail closed before any asset bytes are read.
 
 #### Scenario: Node has an accepted card and infograph
 - **WHEN** the selected node resolves to an authorized published card and accepted infograph
@@ -34,14 +34,19 @@ The inspector SHALL request eligible Knowledge Card content and accepted infogra
 - **THEN** the card and semantic node detail SHALL remain usable
 - **AND** the infograph panel SHALL be omitted without exposing a path, object key or hash
 
+#### Scenario: Teaching overlay identity matches the shard
+- **WHEN** the current Authority shard envelope reports a passed teaching overlay
+- **THEN** the resolver SHALL read the v2 manifest sealed to that Authority identity and overlay
+- **AND** it SHALL keep semantic detail usable while omitting only assets that are genuinely missing or blocked
+
 #### Scenario: Teaching binding is unavailable
-- **WHEN** the current Authority shard envelope does not report a passed, matching Teaching Projection
+- **WHEN** the current Authority shard envelope does not report a passed teaching overlay
 - **THEN** the inspector SHALL not read independently current projection or card inputs
 - **AND** it SHALL keep semantic detail usable while omitting card and infograph panels
 
 #### Scenario: Learning export belongs to another Authority identity
-- **WHEN** an otherwise active Teaching Projection selects a canonical object but the learning-content manifest was exported for another Authority identity
-- **THEN** the resolver SHALL omit all optional card and infograph content before reading their files
+- **WHEN** the learning-content manifest was exported for another Authority snapshot or release
+- **THEN** the resolver SHALL fail closed for optional card and infograph content before reading their files
 - **AND** the selected node's semantic detail SHALL remain usable
 
 ### Requirement: Inspector content hides system identity

@@ -10,6 +10,8 @@ import {
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
+import { spawnSync } from 'node:child_process';
+
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import * as teachingProjectionStore from '@/lib/teaching-projection/store';
@@ -152,14 +154,19 @@ function expectUnavailable(detail: ReturnType<typeof alignedDetail>) {
 describe('Authority learning-content delivery', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('rejects the checked-in v1 export even when a Teaching fixture aligns', () => {
-    const detail = attachActiveAuthorityLearningContent(alignedDetail(ACCEPTED_NODE));
-
-    expect(detail.node.learningContent).toEqual({
-      card: { state: 'unavailable', message: '当前学习卡片暂时不可用。' },
-      infograph: { state: 'unavailable', message: '当前信息图暂时不可用。' },
-    });
-    expect(readActiveAuthorityInfograph(alignedDetail(ACCEPTED_NODE))).toBeNull();
+  it('renders an accepted card from the checked-in v2 export without matching the course pointer', () => {
+    const live = loadNodeDetailShard(ACCEPTED_NODE);
+    const resolved = attachActiveAuthorityLearningContent(live);
+    expect(live.envelope.teaching.projectionId).not.toBe(
+      teachingProjectionStore.readCurrentTeachingProjectionPointer(
+        teachingProjectionStore.resolveTeachingProjectionStorePaths(
+          join(REPO_ROOT, 'course-content/runtime/knowledge/projection'),
+        ),
+      )?.projectionId,
+    );
+    expect(resolved.node.learningContent?.card.state).toBe('available');
+    expect(resolved.node.learningContent?.infograph.state).toBe('available');
+    expect(readActiveAuthorityInfograph(live)?.byteLength).toBeGreaterThan(1000);
   });
 
   it('binds an aligned v2 export before reading accepted card and infograph bytes', () => {
@@ -225,9 +232,47 @@ describe('Authority learning-content delivery', () => {
     });
   });
 
-  it('does not read an independently current projection when the shard Teaching binding is unavailable', () => {
+  it('renders typical inspector nodes from the v2 ledger', () => {
+    const cases: Array<[string, 'available' | 'blocked']> = [
+      ['ctc:modeling-865eb1c8824e157c2f05a903', 'available'],
+      ['ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38', 'available'],
+      ['ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4', 'available'],
+      ['ctkg:v3e-canonical-7147bc2427dae1863e06ef77', 'available'],
+      ['ctkg:domainconcept:80cea7656ffd01203a570296', 'blocked'],
+      ['ctc:v11g-076d3bf7d03f4a7a06d5371a', 'available'],
+    ];
+    for (const [nodeId, cardState] of cases) {
+      const resolved = attachActiveAuthorityLearningContent(loadNodeDetailShard(nodeId));
+      expect(resolved.node.learningContent?.card.state, nodeId).toBe(cardState);
+      expect(resolved.node.label, nodeId).toBeTruthy();
+    }
+  });
+
+  it('keeps the runtime card/infograph/resource linkage gate green', () => {
+    const result = spawnSync(process.execPath, ['scripts/knowledge/check-authority-surface-linkage.mjs'], {
+      encoding: 'utf8',
+      cwd: REPO_ROOT,
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('cards=1236');
+  });
+
+  it('does not read the course teaching pointer when shard teaching is unavailable', () => {
     const projectionResolver = vi.spyOn(teachingProjectionStore, 'resolveActiveTeachingProjection');
-    const detail = attachActiveAuthorityLearningContent(loadNodeDetailShard(ACCEPTED_NODE));
+    const live = loadNodeDetailShard(ACCEPTED_NODE);
+    const detail = attachActiveAuthorityLearningContent({
+      ...live,
+      envelope: {
+        ...live.envelope,
+        teaching: {
+          status: 'unavailable',
+          projectionId: null,
+          projectionHash: null,
+          teachingCacheFamily: null,
+        },
+        match: { ...live.envelope.match, teaching: false },
+      },
+    });
 
     expect(projectionResolver).not.toHaveBeenCalled();
     expect(detail.node.learningContent?.card).toEqual({

@@ -39,6 +39,29 @@ const ROLE_LABEL: Record<TeachingProjectionRole, ActiveResourceBindingRole> = {
 
 const ROLE_ORDER: readonly ActiveResourceBindingRole[] = ['讲解', '练习', '评价', '引用'];
 
+export function humanTitleFromResourceId(resourceId: string): string | null {
+  const match = resourceId.match(/^act:(audio|video|handout|exercise|card|simulation|lesson):(.+)$/);
+  if (!match) return null;
+  const kind = match[1];
+  const rest = match[2];
+  const unit = rest.match(/(\d+-\d+)/)?.[1];
+  const labels: Record<string, string> = {
+    audio: '音频',
+    video: '视频',
+    handout: '讲义',
+    exercise: '练习',
+    card: '知识卡',
+    simulation: '仿真',
+    lesson: '课程',
+  };
+  if (kind === 'card') {
+    const name = rest.replace(/_\d+_[0-9a-f]+$/i, '').replace(/_/g, ' ').trim();
+    return name || labels.card;
+  }
+  if (unit) return `${unit} ${labels[kind] ?? '教学资源'}`;
+  return `${rest} ${labels[kind] ?? '教学资源'}`;
+}
+
 function resourceKindLabel(resourceType: TeachingResourceType | null): string {
   switch (resourceType) {
     case 'lesson':
@@ -87,7 +110,8 @@ export function projectAuthorityNodeResourceBindings(input: {
   const items: ActiveResourceBinding[] = [];
   for (const binding of matched) {
     const resource = resources.find((entry) => entry.resourceId === binding.resourceId);
-    const title = resource?.title?.trim() || null;
+    const title = resource?.title?.trim()
+      || (resource ? humanTitleFromResourceId(resource.resourceId) : null);
     if (!title) continue;
     const candidateHref = launchMaps.resourceLaunchTargets[binding.resourceId] ?? null;
     const resolved = resolveSafeLaunchTarget(candidateHref);
@@ -140,20 +164,19 @@ function matchActiveTeachingProjection(shard: AuthorityNodeDetailShard): {
   const authority = shard.envelope.authority;
   const manifest = active.staged.artifacts.manifest;
   if (
-    active.staged.projectionId !== teaching.projectionId
-    || active.staged.projectionHash !== teaching.projectionHash
-    || manifest.authorityReleaseId !== authority.releaseId
+    manifest.authorityReleaseId !== authority.releaseId
     || manifest.authorityReleaseSetId !== authority.releaseSetId
     || manifest.authoritySnapshotId !== authority.snapshotId
     || manifest.authoritySnapshotHash !== authority.snapshotHash
   ) {
     return { status: 'mismatch', authoringRevision: null };
   }
+  const boundIds = new Set(active.staged.artifacts.bindings.map((binding) => binding.resourceId));
   return {
     status: 'available',
     authoringRevision: manifest.authoringRevision,
     bindings: active.staged.artifacts.bindings,
-    resources: active.staged.artifacts.resources,
+    resources: active.staged.artifacts.resources.filter((resource) => boundIds.has(resource.resourceId)),
   };
 }
 
