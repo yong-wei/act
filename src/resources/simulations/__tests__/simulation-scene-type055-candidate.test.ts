@@ -12,7 +12,7 @@ import {
 import { TYPE055_NANCHANG_101_V2, matchActivatedType055Package } from '../model-packages/type055-nanchang-101-v2';
 
 /**
- * issue #1996 生产切换守卫：destroyer 默认走 v2.1.1 版本化模型包、
+ * issue #1996 生产切换守卫：destroyer 默认走 v2.1.2 版本化模型包、
  * 旧链仅作回退、武器/交互角色不进入首屏、七模型 registry 与受保护旧式场景不变。
  */
 
@@ -54,7 +54,8 @@ describe('type055 production activation keeps legacy fallback', () => {
     expect(source).toContain('resolveVersionedDefault');
     expect(source).toContain('matchActivatedType055Package');
     expect(source).toContain('<VersionedShipModel');
-    // 有序回退链：激活版 → 上一已验收版（v2.1.0）→ 旧单文件 registry 链
+    // 有序回退链：激活版 → v2.1.1 → v2.1.0 → 旧单文件 registry 链
+    expect(source).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier)');
     expect(source).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier)');
     expect(source).toContain('...MODEL.candidates');
     expect(source).toContain('legacyCandidates={orderedFallback}');

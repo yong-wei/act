@@ -18,6 +18,7 @@ import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulation
 import {
   TYPE055_NANCHANG_101_V2,
   TYPE055_NANCHANG_101_V2_1_0,
+  TYPE055_NANCHANG_101_V2_1_1,
   TYPE055_V2_BASIS_YAW_RAD,
   isType055VersionedAssetUrl,
   matchActivatedType055Package,
@@ -583,8 +584,12 @@ function DestroyerModel({
     );
   }
 
-  // 有序回退：激活版（v2.1.1）→ 上一已验收版（v2.1.0）→ 旧单文件链。
-  const orderedFallback = [shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier), ...MODEL.candidates];
+  // 有序回退：激活版（v2.1.2）→ v2.1.1 → v2.1.0 → 旧单文件链。
+  const orderedFallback = [
+    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier),
+    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier),
+    ...MODEL.candidates,
+  ];
 
   return (
     <VersionedShipModel
@@ -601,8 +606,9 @@ function DestroyerModel({
           basisYawRad={isType055VersionedAssetUrl(url) ? TYPE055_V2_BASIS_YAW_RAD : 0}
           descriptor={
             url.startsWith(descriptor.baseUrl) ? descriptor
-              : url.startsWith(TYPE055_NANCHANG_101_V2_1_0.baseUrl) ? TYPE055_NANCHANG_101_V2_1_0
-                : null
+              : url.startsWith(TYPE055_NANCHANG_101_V2_1_1.baseUrl) ? TYPE055_NANCHANG_101_V2_1_1
+                : url.startsWith(TYPE055_NANCHANG_101_V2_1_0.baseUrl) ? TYPE055_NANCHANG_101_V2_1_0
+                  : null
           }
         />
       )}

@@ -45,6 +45,14 @@ const RELEASES = {
     validationStatuses: ['PASS', 'PASS_WITH_BUDGET_WARNING'],
     defaultSource: '/Users/YW/Documents/Project/3DModels/assets/type_055_destroyer/exports/v2.1.1',
   },
+  '2.1.2': {
+    schema: 'type055-versioned-model-release/2',
+    roles: ['ship_lod0', 'ship_lod1', 'ship_lod2', 'collision', 'payload', 'demo', 'interactive'],
+    expectedManifestSha: 'e56460aae95234157fb738b36ba5e09e0165353e68f53e70c093f7f325989eb5',
+    expectedBlendSha: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
+    validationStatuses: ['PASS', 'PASS_WITH_BUDGET_WARNING'],
+    defaultSource: '/Users/YW/Documents/Project/3DModels/assets/type_055_destroyer/exports/v2.1.2',
+  },
 };
 
 const PACKAGE_RELATIVE = 'public/assets/model-releases/type055-nanchang-101';

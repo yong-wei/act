@@ -16,6 +16,7 @@ import {
 import { resolveEmitterAnchors } from '../scene/wake/wake-trail';
 import {
   TYPE055_NANCHANG_101_V2_1_0,
+  TYPE055_NANCHANG_101_V2_1_1,
   isType055VersionedAssetUrl,
   shipLodUrlForQualityTier,
 } from '../model-packages/type055-nanchang-101-v2';
@@ -27,7 +28,7 @@ import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
  * #1996 Codex review 整改回归：
  * F1 共享波面坐标/振幅基准；F2 达标门（机动段才评估）；F3 双桨逐帧节点绑定；
  * F4 v2.1.0 运行时有序回退；F5 水面网格轴约定（复审 P1）；F6 达标门 maxSettlingTime（复审 P2）；
- * F7 L0 clip 绑定进 useEffect（用户报告：螺旋桨不转）。
+ * F7 L0 clip 绑定进 useEffect（用户报告：螺旋桨不转）；F8 v2.1.2 红旗伪 scale 轨道剔除。
  */
 
 describe('F1: visible water sampling shares the mesh-local coordinate basis', () => {
@@ -155,16 +156,19 @@ describe('F4: v2.1.0 stays in the runtime ordered fallback chain', () => {
     expect(Object.keys(receipt.roles)).toHaveLength(7);
   });
 
-  it('places the v2.1.0 LOD between the activated package and the legacy single-file chain', () => {
+  it('places the received fallback LODs between the activated package and the legacy single-file chain', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf-8');
-    const fallbackLine = source.split('\n').find((line) => line.includes('orderedFallback'));
-    expect(fallbackLine).toBeDefined();
-    expect(fallbackLine).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier)');
-    expect(fallbackLine).toContain('MODEL.candidates');
+    const fallbackBlock = source.match(/orderedFallback = \[[\s\S]*?\];/);
+    expect(fallbackBlock).not.toBeNull();
+    expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier)');
+    expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier)');
+    expect(fallbackBlock![0]).toContain('MODEL.candidates');
+    expect(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, 'high')).toContain('/v2.1.1/');
     expect(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, 'high')).toContain('/v2.1.0/');
   });
 
   it('applies the coordinate basis to every received package asset url', () => {
+    expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.2/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.1/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.0/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/models-opt/destroyer.glb')).toBe(false);
@@ -279,4 +283,33 @@ describe('F7: L0 clip-loop bindings mount inside useEffect (StrictMode-safe)', (
       expect(block).not.toContain('clipAction');
     }
   });
+});
+
+describe('F8: v2.1.2 flag clip has no spurious mirrored scale channel', () => {
+  const V212_PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.2');
+
+  function glbJsonOf(file: string) {
+    const bytes = readFileSync(path.join(V212_PACKAGE_DIR, file));
+    const jsonLength = bytes[12] | (bytes[13] << 8) | (bytes[14] << 16) | (bytes[15] << 24);
+    return JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength))) as {
+      animations?: { name?: string; channels: { target: { node: number; path: string } }[] }[];
+      nodes?: { name?: string }[];
+    };
+  }
+
+  // 上游 Blender 5.2 多骨架导出缺陷曾给 FLAG_BONE_00 写入常量 (-1,-1,-1) scale，
+  // 播放时整面国旗点反演到舰艏；v2.1.2 管线 sanitize 必须剔净全部三档 LOD。
+  it.each(['type055-nanchang-101-ship-lod0.glb', 'type055-nanchang-101-ship-lod1.glb', 'type055-nanchang-101-ship-lod2.glb'])(
+    'strips FLAG_BONE scale channels from national_flag_wind in %s',
+    (file) => {
+      const json = glbJsonOf(file);
+      const clip = (json.animations ?? []).find((animation) => animation.name === 'national_flag_wind');
+      expect(clip, 'national_flag_wind clip missing').toBeDefined();
+      const flagScaleChannels = clip!.channels.filter(
+        (channel) => channel.target.path === 'scale'
+          && (json.nodes?.[channel.target.node]?.name ?? '').startsWith('FLAG_BONE'),
+      );
+      expect(flagScaleChannels).toHaveLength(0);
+    },
+  );
 });
