@@ -15,12 +15,17 @@ The system SHALL publish Teaching Projection content as immutable, versioned dom
 - **THEN** the candidate projection SHALL fail closed and the prior published projection SHALL remain unchanged
 
 ### Requirement: Teaching coverage is independent from Authority readiness
-The system SHALL represent domain teaching coverage as `available`, `partial`, `empty` or `unavailable` independently from Engineering Authority readiness. Low edge counts, uncovered Authority objects and an empty valid domain SHALL NOT fail the fragment/composition gate or require Authority reactivation.
+The system SHALL represent domain teaching coverage as `available`, `partial`, `empty` or `unavailable` independently from Engineering Authority readiness. Authority objects outside the domain-default overview MAY remain uncovered without failing Authority activation. The default DomainConcept overview teaching-prerequisite graph SHALL NOT be published as `empty` or `partial` when any overview concept is isolated; that overview coverage gate is defined by `domain-teaching-order-coverage` and SHALL fail closed. An unresolved teaching service SHALL still be distinguished from empty published coverage and SHALL NOT fabricate a teaching relation or alter the Authority binding.
 
 #### Scenario: Domain has partial teaching coverage
-- **WHEN** some reviewed direct teaching relations are published and other objects remain uncovered
-- **THEN** the composed artifact SHALL retain those relations and record partial coverage
+- **WHEN** reviewed teaching relations exist but Authority objects outside the domain-default overview remain uncovered
+- **THEN** the composed artifact SHALL retain the overview teaching-order graph and MAY record partial coverage for non-overview objects
 - **AND** the Authority binding SHALL remain valid for the independent activation contract
+
+#### Scenario: Overview teaching order is incomplete
+- **WHEN** a registered domain's default DomainConcept overview is not weakly connected under published teaching prerequisites
+- **THEN** the candidate Teaching Projection SHALL fail closed
+- **AND** the prior published projection SHALL remain unchanged
 
 #### Scenario: Teaching service is unavailable
 - **WHEN** the optional teaching layer cannot be resolved
@@ -34,3 +39,4 @@ A future direct teaching relation SHALL enter its matching composed Teaching Pro
 - **WHEN** a later projection version adds a valid registered direct prerequisite
 - **THEN** the next composed projection SHALL include the relation according to its declared domain membership
 - **AND** unchanged engineering facts and prior teaching evidence SHALL not require re-review
+

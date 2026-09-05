@@ -145,7 +145,7 @@ export function buildDomainCoverageReport(
   input: DomainCoverageInput,
 ): DomainCoverageReportEntry[] {
   const declared = new Set(input.declaredDomainKeys);
-  return [...REGISTERED_PEER_DOMAIN_IDS]
+  return [...new Set([...REGISTERED_PEER_DOMAIN_IDS, ...input.declaredDomainKeys])]
     .sort(compareCodePoint)
     .map((domainId) =>
       evaluateDomainCoverage(domainId, {

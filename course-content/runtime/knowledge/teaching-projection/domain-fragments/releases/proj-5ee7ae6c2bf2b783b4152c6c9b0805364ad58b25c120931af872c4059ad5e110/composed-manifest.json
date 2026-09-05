@@ -1,0 +1,184 @@
+{
+  "contract": "act-domain-teaching-composed-manifest/v1",
+  "builderVersion": "act-domain-teaching-composition-builder/v1",
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+    },
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+    "nodeIndexDigest": "76dd52d899dc2c9b34caf0c33780226f496637c2f927fffeaca72296fcd7663d"
+  },
+  "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+  "sourceInventoryDigest": "9b1b377e9a5ad2916e9b70c8a0f604dfac62b2af3d03ee56830ace84ff82e969",
+  "authorityDigest": "a23214c685bbb56d21c89c027c53b3c4157607e8d5ad5fe290a5e092756fe7cc",
+  "fragments": [
+    {
+      "order": 0,
+      "fragmentId": "dtf-e83c9cadadab9a5a95d866e2915a48ad5ab344b4d2f32ba37fc39b19a8c64c74",
+      "fragmentKey": "overview-teaching-order-v1",
+      "fragmentVersion": "1",
+      "fragmentDigest": "e83c9cadadab9a5a95d866e2915a48ad5ab344b4d2f32ba37fc39b19a8c64c74",
+      "sourceInventoryDigest": "45c3569b6f2fc79669640fd42ed614c784217c0c64712e58587d3a63ce513820",
+      "domainKeys": [
+        "classical-control-design",
+        "discrete-time-control-analysis",
+        "discrete-time-control-design",
+        "frequency-domain-analysis",
+        "lyapunov-stability",
+        "nonlinear-control-design",
+        "nonlinear-system-analysis",
+        "optimal-control-foundations-and-linear-quadratic-design",
+        "robust-control-analysis-and-design",
+        "robustness-sensitivity-analysis",
+        "root-locus",
+        "stability-analysis",
+        "state-space-control-analysis-and-design",
+        "system-modeling",
+        "time-domain-analysis"
+      ]
+    }
+  ],
+  "domainCoverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "available",
+      "coreNodeCount": 103,
+      "relationCount": 102,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "available",
+      "coreNodeCount": 126,
+      "relationCount": 125,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "discrete-time-control-design",
+      "coverage": "available",
+      "coreNodeCount": 118,
+      "relationCount": 117,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "available",
+      "coreNodeCount": 124,
+      "relationCount": 123,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "lyapunov-stability",
+      "coverage": "available",
+      "coreNodeCount": 45,
+      "relationCount": 44,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "nonlinear-control-design",
+      "coverage": "available",
+      "coreNodeCount": 12,
+      "relationCount": 11,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "nonlinear-system-analysis",
+      "coverage": "available",
+      "coreNodeCount": 78,
+      "relationCount": 77,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+      "coverage": "available",
+      "coreNodeCount": 68,
+      "relationCount": 67,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "robust-control-analysis-and-design",
+      "coverage": "available",
+      "coreNodeCount": 103,
+      "relationCount": 102,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "robustness-sensitivity-analysis",
+      "coverage": "available",
+      "coreNodeCount": 81,
+      "relationCount": 80,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "available",
+      "coreNodeCount": 85,
+      "relationCount": 84,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "available",
+      "coreNodeCount": 35,
+      "relationCount": 34,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "available",
+      "coreNodeCount": 151,
+      "relationCount": 150,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "available",
+      "coreNodeCount": 273,
+      "relationCount": 272,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "available",
+      "coreNodeCount": 153,
+      "relationCount": 152,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    }
+  ],
+  "coreNodeCount": 1555,
+  "relationCount": 1540,
+  "gateStatus": "PUBLISHED",
+  "gatePassed": true,
+  "sourceHashes": {
+    "fragments": "d78633d55f3f8719407a3ced57e324c3e719f651be14a83d3860c3ffdf41b048",
+    "sourceInventory": "9b1b377e9a5ad2916e9b70c8a0f604dfac62b2af3d03ee56830ace84ff82e969",
+    "body": "5e217bf9a19360fb8b6eebd52a42d77a059fbee6ca577a55efa0ef75a4a291a0"
+  },
+  "projectionId": "proj-5ee7ae6c2bf2b783b4152c6c9b0805364ad58b25c120931af872c4059ad5e110",
+  "projectionHash": "5ee7ae6c2bf2b783b4152c6c9b0805364ad58b25c120931af872c4059ad5e110"
+}

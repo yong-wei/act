@@ -3,6 +3,7 @@
  */
 
 export * from './activation';
+export * from './adopt-engineering-prerequisites';
 export * from './builder';
 export * from './compose';
 export * from './contracts';

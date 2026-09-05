@@ -8,6 +8,11 @@ A domain's initial relation view SHALL enable every available published ACT_TEAC
 - **THEN** its available containment, prerequisite, and pedagogical-association families SHALL be visible by default with registered direction and layer meaning
 - **AND** every engineering family SHALL remain off until the viewer enables it
 
+#### Scenario: Domain has no published teaching edge
+- **WHEN** the domain teaching coverage is empty, partial, or unavailable
+- **THEN** primary Authority objects SHALL remain visible and selectable and the product SHALL show only valid published teaching edges that are actually present
+- **AND** the workspace SHALL not infer order from live engineering relations, object names, course order, layout, or repository review candidates
+
 #### Scenario: Domain teaching overlay is unavailable
 - **WHEN** the domain teaching coverage cannot be resolved as a published overlay
 - **THEN** primary Authority objects SHALL remain visible and selectable

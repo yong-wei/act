@@ -1,9 +1,9 @@
 {
   "contract": "act-domain-teaching-projection-current/v1",
-  "projectionId": "proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
-  "projectionHash": "eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe",
+  "projectionId": "proj-5ee7ae6c2bf2b783b4152c6c9b0805364ad58b25c120931af872c4059ad5e110",
+  "projectionHash": "5ee7ae6c2bf2b783b4152c6c9b0805364ad58b25c120931af872c4059ad5e110",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
-  "authorityDigest": "c15b740eb21b036cd36e059b2fda2f57cba3776609f5297f34593cd3179a2530",
-  "teachingCacheFamily": "teaching-domain-proj:proj-eb4d2d63aca6f3cca74fa18d3d1b548c44a34047442680a259386499ebff14fe:eb4d2d63aca6f3cc",
-  "activatedAt": "2026-08-30T05:18:28.334Z"
+  "authorityDigest": "a23214c685bbb56d21c89c027c53b3c4157607e8d5ad5fe290a5e092756fe7cc",
+  "teachingCacheFamily": "teaching-domain-proj:proj-5ee7ae6c2bf2b783b4152c6c9b0805364ad58b25c120931af872c4059ad5e110:5ee7ae6c2bf2b783",
+  "activatedAt": "2026-09-05T11:58:28.667Z"
 }
