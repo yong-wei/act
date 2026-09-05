@@ -21,8 +21,8 @@ import {
 import { cloneSkinnedScene, skinnedBindingsIntact } from '../model-packages/clone-skinned-scene';
 import { findAnimationIndex, listLoadedInstanceNames, listMunitionTemplateNames } from '../model-packages/model-interface';
 
-const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.2');
-const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.2/receipt.json');
+const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.3');
+const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.3/receipt.json');
 
 function realIo(): ModelPackageFileIo {
   return {
@@ -46,11 +46,11 @@ function tamperedIo(mutate: (files: Map<string, { bytes: Uint8Array }>) => void)
   };
 }
 
-describe('type055-nanchang-101 v2.1.2 received package integrity', () => {
+describe('type055-nanchang-101 v2.1.3 received package integrity', () => {
   it('verifies the complete seven-role denominator, hashes, sizes and manifest identity', () => {
     const receipt = validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, realIo());
     expect(receipt.packageId).toBe('type055-nanchang-101');
-    expect(receipt.modelVersion).toBe('2.1.2');
+    expect(receipt.modelVersion).toBe('2.1.3');
     expect(Object.keys(receipt.roles)).toHaveLength(7);
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
   });
@@ -97,7 +97,7 @@ describe('type055-nanchang-101 v2.1.2 received package integrity', () => {
     let headTree = '';
     try {
       headTree = execSync(
-        'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.1.2',
+        'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.1.3',
         { encoding: 'utf-8' },
       ).trim();
     } catch {
@@ -144,7 +144,7 @@ describe('type055-nanchang-101 v2.1.2 received package integrity', () => {
   });
 });
 
-describe('type055-nanchang-101 v2.1.2 semantic interface contract', () => {
+describe('type055-nanchang-101 v2.1.3 semantic interface contract', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     return parseGlb(bytes);
@@ -203,7 +203,7 @@ describe('type055-nanchang-101 v2.1.2 semantic interface contract', () => {
   });
 });
 
-describe('v2.1.2 declared waterline anchor, propulsors and semantic bindings', () => {
+describe('v2.1.3 declared waterline anchor, propulsors and semantic bindings', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     const jsonLength = bytes[12] | (bytes[13] << 8) | (bytes[14] << 16) | (bytes[15] << 24);
