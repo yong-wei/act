@@ -8,7 +8,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import type {
@@ -34,6 +34,8 @@ interface AuthorityLearningContentManifest {
   authorityReleaseSetId: string;
   authoritySnapshotId: string;
   authoritySnapshotHash: string;
+  teachingProjectionId?: string;
+  teachingProjectionHash?: string;
   nodes: Array<{
     canonicalId: string;
     safeId: string;
@@ -84,6 +86,49 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function buildManifestFromDisk(
+  paths: RuntimePaths,
+  shard: AuthorityNodeDetailShard,
+): AuthorityLearningContentManifest | null {
+  if (!existsSync(paths.cardRoot) || !existsSync(paths.infographRoot)) return null;
+  const teaching = shard.envelope.teaching;
+  const authority = shard.envelope.authority;
+  const nodes: AuthorityLearningContentManifest['nodes'] = [];
+  const seen = new Set<string>();
+  for (const name of readdirSync(paths.cardRoot)) {
+    if (!name.endsWith('.md')) continue;
+    const safeId = name.slice(0, -3);
+    if (!isSafeId(safeId)) return null;
+    const raw = readFileSync(join(paths.cardRoot, name), 'utf8');
+    const canonicalId = frontmatterCanonicalId(raw);
+    if (!canonicalId || seen.has(canonicalId)) return null;
+    seen.add(canonicalId);
+    const infographPath = join(paths.infographRoot, `${safeId}.png`);
+    if (!existsSync(infographPath)) return null;
+    const blocked = /^status:\s*draft-blocked\s*$/m.test(raw);
+    nodes.push({
+      canonicalId,
+      safeId,
+      card: {
+        state: blocked ? 'blocked' : 'available',
+        sha256: blocked ? null : sha256(raw),
+      },
+      infograph: { state: 'available', sha256: sha256(readFileSync(infographPath)) },
+    });
+  }
+  if (nodes.length === 0) return null;
+  return {
+    contract: LEARNING_CONTENT_MANIFEST_CONTRACT,
+    authorityReleaseId: authority.releaseId,
+    authorityReleaseSetId: authority.releaseSetId,
+    authoritySnapshotId: authority.snapshotId,
+    authoritySnapshotHash: authority.snapshotHash,
+    teachingProjectionId: teaching.projectionId ?? undefined,
+    teachingProjectionHash: teaching.projectionHash ?? undefined,
+    nodes,
+  };
+}
+
 function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | null {
   if (!existsSync(/*turbopackIgnore: true*/ paths.manifestPath)) return null;
   try {
@@ -115,6 +160,8 @@ function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | n
       authorityReleaseSetId: parsed.authorityReleaseSetId,
       authoritySnapshotId: parsed.authoritySnapshotId,
       authoritySnapshotHash: parsed.authoritySnapshotHash,
+      teachingProjectionId: isNonEmptyString(parsed.teachingProjectionId) ? parsed.teachingProjectionId : undefined,
+      teachingProjectionHash: isSha256(parsed.teachingProjectionHash) ? parsed.teachingProjectionHash : undefined,
       nodes,
     };
   } catch {
@@ -205,8 +252,19 @@ function resolveNodeLearningContent(
   if (!envelopeTeachingAvailable(shard)) {
     return { content: unavailableContent(), infograph: null };
   }
-  const manifest = readManifest(paths);
+  const written = readManifest(paths);
+  const manifest = written ?? (existsSync(paths.manifestPath) ? null : buildManifestFromDisk(paths, shard));
   if (!manifest || !matchesShardAuthority(manifest, shard)) {
+    return { content: unavailableContent(), infograph: null };
+  }
+  if (
+    manifest.teachingProjectionId
+    && manifest.teachingProjectionHash
+    && (
+      manifest.teachingProjectionId !== shard.envelope.teaching.projectionId
+      || manifest.teachingProjectionHash !== shard.envelope.teaching.projectionHash
+    )
+  ) {
     return { content: unavailableContent(), infograph: null };
   }
   const entry = manifest.nodes.find((node) => node.canonicalId === shard.node.id);

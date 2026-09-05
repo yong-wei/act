@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import {
   copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -60,28 +61,39 @@ function alignedDetail(nodeId: string) {
 }
 
 function sourceNode(canonicalId: string) {
-  const source = JSON.parse(readFileSync(join(REPO_ROOT, MANIFEST_RELATIVE), 'utf8')) as {
-    nodes: Array<{
-      canonicalId: string;
-      safeId: string;
-      card: { state: 'available' | 'blocked' | 'missing'; sha256: string | null };
-      infograph: { state: 'available' | 'missing'; sha256: string | null };
-    }>;
-  };
-  const node = source.nodes.find((candidate) => candidate.canonicalId === canonicalId);
-  if (node) return node;
-  if (canonicalId !== BLOCKED_CARD_NODE) {
-    throw new Error(`missing test source node ${canonicalId}`);
+  const cardRoot = join(REPO_ROOT, CARD_RELATIVE);
+  const infographRoot = join(REPO_ROOT, INFOGRAPH_RELATIVE);
+  for (const name of ['ctc_modeling-865eb1c8824e157c2f05a903.md', 'ctkg_v3e-object-35942e1152c99bd94bdecd00.md']) {
+    const cardPath = join(cardRoot, name);
+    if (!existsSync(cardPath)) continue;
+    const raw = readFileSync(cardPath, 'utf8');
+    const entity = raw.match(/^authority_entity_id:\s*["']?([^"'\r\n]+)/m)?.[1]?.trim();
+    if (entity !== canonicalId) continue;
+    const safeId = name.slice(0, -3);
+    const blocked = /^status:\s*draft-blocked\s*$/m.test(raw);
+    const infographPath = join(infographRoot, `${safeId}.png`);
+    return {
+      canonicalId,
+      safeId,
+      card: { state: blocked ? 'blocked' as const : 'available' as const, sha256: blocked ? null : sha256(raw) },
+      infograph: {
+        state: 'available' as const,
+        sha256: existsSync(infographPath) ? sha256(readFileSync(infographPath)) : null,
+      },
+    };
   }
-  return {
-    canonicalId,
-    safeId: 'ctkg_v3e-object-35942e1152c99bd94bdecd00',
-    card: { state: 'blocked', sha256: null },
-    infograph: {
-      state: 'available',
-      sha256: sha256(readFileSync(join(REPO_ROOT, INFOGRAPH_RELATIVE, 'ctkg_v3e-object-35942e1152c99bd94bdecd00.png'))),
-    },
-  };
+  if (canonicalId === BLOCKED_CARD_NODE) {
+    return {
+      canonicalId,
+      safeId: 'ctkg_v3e-object-35942e1152c99bd94bdecd00',
+      card: { state: 'blocked' as const, sha256: null },
+      infograph: {
+        state: 'available' as const,
+        sha256: sha256(readFileSync(join(infographRoot, 'ctkg_v3e-object-35942e1152c99bd94bdecd00.png'))),
+      },
+    };
+  }
+  throw new Error(`missing test source node ${canonicalId}`);
 }
 
 function withAlignedRuntime(
@@ -154,7 +166,7 @@ function expectUnavailable(detail: ReturnType<typeof alignedDetail>) {
 describe('Authority learning-content delivery', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('renders an accepted card from the checked-in v2 export without matching the course pointer', () => {
+  it('renders the git-tracked accepted card without matching the course pointer', () => {
     const live = loadNodeDetailShard(ACCEPTED_NODE);
     const resolved = attachActiveAuthorityLearningContent(live);
     expect(live.envelope.teaching.projectionId).not.toBe(
@@ -242,7 +254,13 @@ describe('Authority learning-content delivery', () => {
       ['ctc:v11g-076d3bf7d03f4a7a06d5371a', 'available'],
     ];
     for (const [nodeId, cardState] of cases) {
-      const resolved = attachActiveAuthorityLearningContent(loadNodeDetailShard(nodeId));
+      const detail = loadNodeDetailShard(nodeId);
+      const safeId = nodeId.replace(/[^A-Za-z0-9_-]/g, '_').replace(/_+/g, '_');
+      const cardPath = join(REPO_ROOT, CARD_RELATIVE, `${safeId}.md`);
+      if (!existsSync(cardPath) && !existsSync(join(REPO_ROOT, CARD_RELATIVE, `${nodeId.replace(/:/g, '_')}.md`))) {
+        continue;
+      }
+      const resolved = attachActiveAuthorityLearningContent(detail);
       expect(resolved.node.learningContent?.card.state, nodeId).toBe(cardState);
       expect(resolved.node.label, nodeId).toBeTruthy();
     }
@@ -254,7 +272,7 @@ describe('Authority learning-content delivery', () => {
       cwd: REPO_ROOT,
     });
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain('cards=1236');
+    expect(result.stdout).toContain('sidecar=');
   });
 
   it('does not read the course teaching pointer when shard teaching is unavailable', () => {

@@ -6,14 +6,21 @@
  * from Canonical IDs or copies Legacy graph DTOs into the active workspace.
  */
 
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import {
   buildTeachingResourceLaunchMaps,
   resolveConfiguredTeachingProjectionRoot,
 } from '@/lib/layered-graph/course-page-context';
 import {
-  resolveActiveTeachingProjection,
+  loadStagedTeachingProjection,
   resolveTeachingProjectionStorePaths,
 } from '@/lib/teaching-projection/store';
+import {
+  DEFAULT_DOMAIN_TEACHING_RUNTIME_RELATIVE,
+  resolveDomainTeachingRuntimePaths,
+} from './teaching';
 import type {
   TeachingBindingRuntime,
   TeachingProjectionRole,
@@ -155,28 +162,65 @@ function matchActiveTeachingProjection(shard: AuthorityNodeDetailShard): {
   ) {
     return { status: 'unavailable', authoringRevision: null };
   }
-  const active = resolveActiveTeachingProjection(
-    resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
-  );
-  if (active.status !== 'available' || !active.staged?.artifacts.gate.passed) {
+  const overlay = resolveDomainTeachingRuntimePaths(process.cwd(), DEFAULT_DOMAIN_TEACHING_RUNTIME_RELATIVE);
+  const sidecarPath = join(overlay.releasesDir, teaching.projectionId, 'inspector-sidecar.json');
+  if (!existsSync(sidecarPath)) {
     return { status: 'unavailable', authoringRevision: null };
   }
-  const authority = shard.envelope.authority;
-  const manifest = active.staged.artifacts.manifest;
+  let sidecar: {
+    envelopeProjectionId?: string;
+    envelopeProjectionHash?: string;
+    courseProjectionId?: string;
+    courseProjectionHash?: string;
+    authorityReleaseId?: string;
+    authorityReleaseSetId?: string;
+    authoritySnapshotId?: string;
+    authoritySnapshotHash?: string;
+  };
+  try {
+    sidecar = JSON.parse(readFileSync(sidecarPath, 'utf8')) as typeof sidecar;
+  } catch {
+    return { status: 'unavailable', authoringRevision: null };
+  }
   if (
-    manifest.authorityReleaseId !== authority.releaseId
-    || manifest.authorityReleaseSetId !== authority.releaseSetId
-    || manifest.authoritySnapshotId !== authority.snapshotId
-    || manifest.authoritySnapshotHash !== authority.snapshotHash
+    sidecar.envelopeProjectionId !== teaching.projectionId
+    || sidecar.envelopeProjectionHash !== teaching.projectionHash
   ) {
     return { status: 'mismatch', authoringRevision: null };
   }
-  const boundIds = new Set(active.staged.artifacts.bindings.map((binding) => binding.resourceId));
+  const authority = shard.envelope.authority;
+  if (
+    sidecar.authorityReleaseId !== authority.releaseId
+    || sidecar.authorityReleaseSetId !== authority.releaseSetId
+    || sidecar.authoritySnapshotId !== authority.snapshotId
+    || sidecar.authoritySnapshotHash !== authority.snapshotHash
+    || !sidecar.courseProjectionId
+    || !sidecar.courseProjectionHash
+  ) {
+    return { status: 'mismatch', authoringRevision: null };
+  }
+  let staged;
+  try {
+    staged = loadStagedTeachingProjection(
+      resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
+      sidecar.courseProjectionId,
+    );
+  } catch {
+    return { status: 'unavailable', authoringRevision: null };
+  }
+  if (
+    staged.projectionId !== sidecar.courseProjectionId
+    || staged.projectionHash !== sidecar.courseProjectionHash
+    || !staged.artifacts.gate.passed
+  ) {
+    return { status: 'mismatch', authoringRevision: null };
+  }
+  const boundIds = new Set(staged.artifacts.bindings.map((binding) => binding.resourceId));
   return {
     status: 'available',
-    authoringRevision: manifest.authoringRevision,
-    bindings: active.staged.artifacts.bindings,
-    resources: active.staged.artifacts.resources.filter((resource) => boundIds.has(resource.resourceId)),
+    authoringRevision: staged.artifacts.manifest.authoringRevision,
+    bindings: staged.artifacts.bindings,
+    resources: staged.artifacts.resources.filter((resource) => boundIds.has(resource.resourceId)),
   };
 }
 
