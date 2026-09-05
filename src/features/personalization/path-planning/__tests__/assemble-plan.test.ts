@@ -9100,4 +9100,36 @@ describe('portrait-driven path personalization availability (#1984)', () => {
     }]);
     expect(personalized[0].reason).toContain('当前薄弱项');
   });
+
+  it('prefers generic-route copy when the portrait is unavailable even alongside real knowledge deficits', async () => {
+    const { buildAdaptivePathOptionDisplays } = await import(
+      '@/features/personalization/path-planning/adaptive-path-option-display'
+    );
+    const displays = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '通用路线',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [
+        { targetId: 'kn-bode', kind: 'knowledge', value: 0.32, confidence: 0.7, evidenceCount: 3, reasonCode: 'knowledge-deficit' },
+        { targetId: 'parameterDesign', kind: 'competency', value: 0, confidence: 0, evidenceCount: 0, reasonCode: 'competency-no-portrait-evidence' },
+      ],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      limitations: [],
+      recommendationProvenance: {
+        summary: '当前无法个性化推荐：能力画像暂不可用，本路径按通用学习路线生成。',
+        confidence: 'low',
+        entries: [],
+        personalizationState: 'portrait-unavailable',
+        evidenceReviewHref: '/profile/evidence',
+        limitations: [],
+        nextAction: null,
+      },
+    }]);
+    expect(displays[0].reason).toBe('能力画像暂不可用，按通用学习路线安排资源。');
+    expect(displays[0].reason).not.toContain('薄弱项');
+  });
 });

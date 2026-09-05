@@ -183,14 +183,14 @@ export function buildAdaptivePathOptionDisplays(
     readiness: formatReadiness(option),
     scenario: formatScenario(option.evidenceBasis, option.recommendationProvenance?.confidence),
     reason: (() => {
+      if (option.recommendationProvenance?.personalizationState === 'portrait-unavailable') {
+        return '能力画像暂不可用，按通用学习路线安排资源。';
+      }
       const citedDeficits = option.targetDeficits.filter(
         (deficit) => deficit.reasonCode !== 'competency-no-portrait-evidence',
       );
       if (citedDeficits.length > 0) return `面向 ${citedDeficits.length} 个当前薄弱项安排资源。`;
-      if (option.targetDeficits.length > 0
-        || option.recommendationProvenance?.personalizationState === 'portrait-unavailable') {
-        return '能力画像暂不可用，按通用学习路线安排资源。';
-      }
+      if (option.targetDeficits.length > 0) return '能力画像暂不可用，按通用学习路线安排资源。';
       return '按当前学习证据安排资源组合。';
     })(),
     outcome: option.terminalValidationNodeIds.length > 0
