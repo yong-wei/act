@@ -1120,6 +1120,9 @@ const KONLING_NORMATIVE_QUERY_MARKERS = [
   '法律', '法条', '法规', '法律要求', '官方规定', '官方要求', '官方限值',
   '国家标准', '行业标准', '标准格式', '规范书写', '规范格式', '国标格式', '化学方程式',
   '必须写', '才算合格', '操作规程', '考核办法', '认证',
+  // #2015：实验安全规范是规范诉求（旋转机械/功率电源等实验规程类问题），
+  // 不得因缺少「报告/大纲」类来源词回落开放讲解兜底。
+  '安全规范', '安全规程',
   'official rule', 'official requirement', 'official limit', 'legal requirement',
   'standard format', 'certification', 'certified', 'must not', 'shall not',
 ] as const;
@@ -1130,7 +1133,15 @@ const KONLING_NORMATIVE_QUERY_MARKERS = [
 // （报告/论文/学校/教务/大纲等），不含「课程」这类泛学习上下文（review：课
 // 程要求我们比较 A 和 B」不得触发规范门禁）。
 const KONLING_NORMATIVE_COMBO_TERMS = ['规范', '要求', '格式', '封面', '模板', '书写', '排版'] as const;
-const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准'] as const;
+// #2015：「教材」与报告/论文/大纲同为权威出处本身（教材附录引用标准、
+// 教材规定的验收结论等），不含「课程」这类泛学习上下文。
+const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准', '教材'] as const;
+
+// #2015 组合信号：代码片段 ×（排障动作或缺陷词）。存在代码围栏或显式代码
+// 指称，且要求定位/修复/找缺陷时判代码调试（覆盖标定/单位缺陷等无经典异
+// 常现象词的输入）；无排障动作的「缺陷/代码」类概念问题不被该信号吞并。
+const KONLING_DEBUG_CODE_PRESENT_MARKERS = ['```', '代码'] as const;
+const KONLING_DEBUG_DEFECT_MARKERS = ['缺陷'] as const;
 
 // #1948 组合信号：控制系统异常现象 × 定位/修复动作。现象词必须搭配排障动
 // 作才判代码调试，「解释超调」「什么是超调量」等仅含现象词的问题不被吞并。
@@ -1142,10 +1153,31 @@ function hasNormativeComboSignal(normalized: string): boolean {
     && includesAny(normalized, KONLING_NORMATIVE_SOURCE_TERMS);
 }
 
+// #2015：规范时效类信号 = 标准编号（GB/T、IEC 等，与 hasIndependentNormativeRisk
+// 共享同一正则）× 时效措辞。标准编号单独出现不改变分类（「GB/T 6113 是什么？」
+// 仍是 fact-explanation，#1903 分层：分类与 fail-closed 门禁各司其职），仅当
+// 询问当前/现行/作废等时效结论时才判规范内容。
+const KONLING_NORMATIVE_CURRENCY_MARKERS = ['当前', '现行', '最新', '仍有效', '作废', '过期'] as const;
+
+function hasNormativeCurrencySignal(normalized: string): boolean {
+  return NORMATIVE_STANDARD_ID.test(normalized)
+    && includesAny(normalized, KONLING_NORMATIVE_CURRENCY_MARKERS);
+}
+
+function hasCodeFenceDebugSignal(normalized: string): boolean {
+  return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS)
+    && (includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS)
+      || includesAny(normalized, KONLING_DEBUG_DEFECT_MARKERS));
+}
+
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return 'fact-explanation';
-  if (includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS) || hasNormativeComboSignal(normalized)) {
+  if (
+    includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
+    || hasNormativeComboSignal(normalized)
+    || hasNormativeCurrencySignal(normalized)
+  ) {
     return 'normative-content';
   }
   if (
@@ -1165,6 +1197,7 @@ function classifyGenericStudyQuestionIntent(query: string | null | undefined): K
       includesAny(normalized, KONLING_DEBUG_PHENOMENON_MARKERS)
       && includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS)
     )
+    || hasCodeFenceDebugSignal(normalized)
   ) {
     return 'code-debugging';
   }
