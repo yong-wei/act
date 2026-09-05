@@ -135,6 +135,8 @@ export interface UserProfileResponse {
   };
   personalizedReinforcement: {
     resources: PersonalizedResourceCard[];
+    availability: 'ready' | 'unavailable';
+    ownerUserId: string;
     adaptivePractice: AdaptivePracticeSummary;
   };
   arenaPortfolio: ArenaStudentPortfolio;
@@ -365,20 +367,34 @@ function inferInteractionHref(
   return '/interactive-learning';
 }
 
+interface GovernedReinforcementRead {
+  resources: PersonalizedResourceCard[];
+  availability: 'ready' | 'unavailable';
+  ownerUserId: string;
+}
+
 async function readGovernedReinforcementResources(
   userId: string,
   role: string,
-): Promise<PersonalizedResourceCard[]> {
+): Promise<GovernedReinforcementRead> {
   try {
-    const { recommendations } = await recommendLearning({
+    const result = await recommendLearning({
       actorUserId: userId,
       subjectUserId: userId,
       role,
     });
-    return mapRecommendationsToResourceCards(recommendations);
+    if (result.ownerUserId !== userId) {
+      console.error('个性化补强推荐归属不一致:', result.ownerUserId, userId);
+      return { resources: [], availability: 'unavailable', ownerUserId: userId };
+    }
+    return {
+      resources: mapRecommendationsToResourceCards(result.recommendations),
+      availability: 'ready',
+      ownerUserId: result.ownerUserId,
+    };
   } catch (error) {
     console.error('读取个性化补强推荐失败:', error);
-    return [];
+    return { resources: [], availability: 'unavailable', ownerUserId: userId };
   }
 }
 
@@ -730,7 +746,9 @@ export async function GET() {
         locked: totalMissions - missionProgress.length,
       },
       personalizedReinforcement: {
-        resources: reinforcementResources,
+        resources: reinforcementResources.resources,
+        availability: reinforcementResources.availability,
+        ownerUserId: reinforcementResources.ownerUserId,
         adaptivePractice: buildAdaptivePracticeSummary({
           estimatedAbility: adaptiveReport?.estimatedAbility ?? null,
           confidenceInterval: adaptiveReport?.confidenceInterval ?? null,

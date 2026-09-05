@@ -897,6 +897,8 @@ describe('GET /api/user/profile', () => {
       subjectUserId: 'student-1',
       role: 'STUDENT',
     });
+    expect(body.personalizedReinforcement.availability).toBe('ready');
+    expect(body.personalizedReinforcement.ownerUserId).toBe('student-1');
     expect(body.personalizedReinforcement.adaptivePractice).toMatchObject({
       estimatedAbility: 0.64,
       weakAreas: ['phase-margin', 'controller-tuning'],
@@ -1022,6 +1024,7 @@ describe('GET /api/user/profile', () => {
 
     expect(response.status).toBe(200);
     expect(body.personalizedReinforcement.resources).toEqual([]);
+    expect(body.personalizedReinforcement.availability).toBe('ready');
     expect(body.personalizedReinforcement.adaptivePractice.actionUrl).toBe(
       '/assessment/adaptive-practice?intent=practice',
     );
@@ -1035,11 +1038,42 @@ describe('GET /api/user/profile', () => {
 
     expect(response.status).toBe(200);
     expect(body.personalizedReinforcement.resources).toEqual([]);
+    expect(body.personalizedReinforcement.availability).toBe('unavailable');
+    expect(body.personalizedReinforcement.ownerUserId).toBe('student-1');
     expect(body.statistics).toMatchObject({
       totalSimulations: expect.any(Number),
       completedMissions: expect.any(Number),
     });
     expect(body.competency.model).toBe('portrait-v2-cumulative');
+  });
+
+  it('degrades to unavailable when the governed recommendation owner does not match the student', async () => {
+    mocks.recommendLearning.mockResolvedValue({
+      recommendations: [
+        {
+          id: 'rec-foreign',
+          type: 'immediate',
+          title: '他人推荐',
+          description: '不应进入当前学生画像。',
+          reason: '归属不一致',
+          actionUrl: '/missions',
+          actionLabel: '进入',
+          priority: 50,
+          tags: [],
+        },
+      ],
+      policyRevision: 'personalization-recommendations.v1',
+      ownerUserId: 'student-other',
+      grantsMastery: false,
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.personalizedReinforcement.resources).toEqual([]);
+    expect(body.personalizedReinforcement.availability).toBe('unavailable');
+    expect(body.personalizedReinforcement.ownerUserId).toBe('student-1');
   });
 
   it('reads Arena training count and bounded runs from one RepeatableRead transaction snapshot', async () => {
