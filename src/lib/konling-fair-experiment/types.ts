@@ -102,6 +102,20 @@ export interface KonlingFairExperimentGenerateAttempt {
   error: { code: KonlingFairExperimentErrorCode; message: string };
 }
 
+/**
+ * #1951：生成阶段持久化的 citation 快照——引用精确率与追溯覆盖率的
+ * 确定性审计输入。字段是生产 KonlingCitation 的审计子集，与回答快照
+ * 同文件冻结（first-writer-wins）。
+ */
+export interface KonlingFairExperimentCitationSnapshot {
+  id: string;
+  citationTargetId: string | null;
+  verified: boolean;
+  displayNumber: number | null;
+  sourceType: string;
+  href: string | null;
+}
+
 export interface KonlingFairExperimentAnswerRecord {
   taskKey: string;
   arm: KonlingFairExperimentArm;
@@ -117,6 +131,8 @@ export interface KonlingFairExperimentAnswerRecord {
   startedAt: string;
   finishedAt: string;
   answer: string;
+  /** #1951：生成阶段核验过的引用快照；旧 run 冻结记录无此字段（审计 fail closed）。 */
+  citations?: readonly KonlingFairExperimentCitationSnapshot[];
   elapsedMs: number;
   /** full-feature 臂实际生效的运行时合同意图（与题库标注意图的差异单独报告）。 */
   contractIntent?: string;
@@ -153,7 +169,7 @@ export interface KonlingFairExperimentScoreRecord {
 }
 
 export type KonlingFairExperimentGenerateResponse =
-  | { ok: true; result: { answer: string; elapsedMs: number } }
+  | { ok: true; result: { answer: string; elapsedMs: number; citations?: readonly KonlingFairExperimentCitationSnapshot[] } }
   | { ok: false; error: { code: KonlingFairExperimentErrorCode; message: string } };
 
 export interface KonlingFairExperimentGenerateTask {
@@ -214,6 +230,44 @@ export interface KonlingFairExperimentIntentConfusion {
   routedCounts: Record<string, number>;
 }
 
+/** #1951：比率型指标（分子/分母计数），如引用精确率与单元覆盖率。 */
+export interface KonlingFairExperimentRatioMetric {
+  numerator: number;
+  denominator: number;
+  ratio: number;
+}
+
+/** #1951：单条回答的确定性 citation 审计记录。 */
+export interface KonlingFairExperimentCitationAuditRecord {
+  taskKey: string;
+  arm: KonlingFairExperimentArm;
+  itemId: string;
+  replicate: number;
+  intent: StudyQuestionIntent;
+  presentedCitationCount: number;
+  verifiedSupportingCount: number;
+  requiredUnitCount: number;
+  coveredUnitCount: number;
+  citationClasses: {
+    realVerifiedSupporting: number;
+    markerUnassigned: number;
+    citationUnverified: number;
+    citationNoTarget: number;
+  };
+  missReasons: Partial<Record<string, number>>;
+  driftedMarkerCount: number;
+}
+
+export interface KonlingFairExperimentPairedRatioDifference {
+  metric: string;
+  direction: 'higher-is-better';
+  baseline: { label: string; metric: KonlingFairExperimentRatioMetric };
+  comparison: { label: string; metric: KonlingFairExperimentRatioMetric };
+  percentagePointDifference: number;
+  pairedCi95: { low: number; high: number };
+  pairedN: number;
+}
+
 export interface KonlingFairExperimentPairedDifference {
   metric: string;
   direction: 'higher-is-better';
@@ -248,6 +302,16 @@ export interface KonlingFairExperimentOfficialSummary {
       ceilingProportion: number;
       floorProportion: number;
     };
+    /** #1951：确定性 citation 审计（引用精确率 + 答案单元追溯覆盖率）。 */
+    citationAudit: {
+      precision: KonlingFairExperimentRatioMetric;
+      coverage: KonlingFairExperimentRatioMetric;
+      byIntent: ReadonlyArray<{
+        intent: StudyQuestionIntent;
+        precision: KonlingFairExperimentRatioMetric;
+        coverage: KonlingFairExperimentRatioMetric;
+      }>;
+    };
   }>;
   /** #1952：难度×意图分层结果与分层配对差值；V1 题库（无分层标注）为空数组。 */
   stratified: {
@@ -274,10 +338,14 @@ export interface KonlingFairExperimentOfficialSummary {
   };
   /** #1952：合成数据声明——合成实验结果不得表述为真人学习效果或教学因果结论。 */
   syntheticDisclaimer: string;
+  /** #1951：逐回答 citation 审计记录（分子/分母与失败原因分桶）。 */
+  citationAuditRecords: readonly KonlingFairExperimentCitationAuditRecord[];
   /** 生成行为差值：同口径、跨臂。 */
   generationDeltas: KonlingFairExperimentPairedDifference[];
   /** 评分器口径差值：同臂快照、跨口径。 */
   caliberDeltas: KonlingFairExperimentPairedDifference[];
+  /** #1951：引用精确率与追溯覆盖率的臂间配对差（百分点 + 95% CI）。 */
+  citationAuditDeltas: KonlingFairExperimentPairedRatioDifference[];
 }
 
 export const KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS = [
@@ -344,7 +412,7 @@ export interface KonlingFairExperimentAggregateResult {
   expected: number;
   officialSummary: KonlingFairExperimentOfficialSummary | null;
   incompleteDetail?: {
-    phase: 'generate' | 'score' | 'audit';
+    phase: 'generate' | 'score' | 'audit' | 'citation-audit';
     arm?: KonlingFairExperimentArm;
     missingTaskKeys?: string[];
     unexpectedKeys?: string[];

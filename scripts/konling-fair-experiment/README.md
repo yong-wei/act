@@ -28,13 +28,21 @@ npx tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs \
   `manifest.snapshot.json`（生成修订、评分器修订、题库哈希、模型、采样
   参数、各臂 prompt 版本）、`answers/<arm>/`（冻结回答快照）、
   `scores/<caliber>/<arm>/`（确定性结构评分）、`failures/`（逐 attempt
-  失败史）、`summary/official.json` 与 `summary/replay-*.json`。
+  失败史）、`summary/official.json` 与 `summary/replay-*.json`。回答冻结时
+  一并持久化引用快照（`citations`：id/citationTargetId/verified/displayNumber/
+  sourceType/href，first-writer-wins，永不重新生成）；`summary/official.csv`、
+  `summary/official.xlsx` 与 `summary/official-slides.md` 由 `official.json`
+  同源派生，写前校验真源 complete 与规范哈希，漂移即拒写。
 - 断点续跑：同一 `runId` 重复执行即从断点继续；已完成回答永不重新生成
   或覆盖；失败项每轮至多重试一次，累计 attempt 超过一次的留待人工裁决。
 - fail closed：缺键/多键、混配置（模型/采样/prompt 版本/修订不一致）、
-  manifest 漂移或盲审不完整时，不产出正式汇总，脚本以非零码退出。
+  manifest 漂移、盲审不完整或引用审计不完整（phase `citation-audit`，含
+  citation 快照缺失或非数组）时，不产出正式汇总，脚本以非零码退出。
 - 指标：每臂结构通过率（按口径）、盲审判定率与均分、综合（结构∧盲审，
-  必列分项）；臂间差值输出绝对值、百分点差、配对 bootstrap 95% CI
+  必列分项）、引用精确率（已核验直接支撑数 / 已呈现引用数）与答案单元
+  追溯覆盖率（已覆盖单元数 / 应引用单元数，model-derived 章节不入分母；
+  逐回答输出四类失败分桶：无标记/标记未分配/引用未核验/引用无锚点）；
+  臂间差值输出绝对值、百分点差、配对 bootstrap 95% CI
   （种子记入 manifest，结果可复现）与方向；生成行为差值与评分器口径
   差值分节报告。
 - 盲审阶段产物落在 `artifacts/konling-blind-audit/<runId>--audit--<arm>--r<n>/`，

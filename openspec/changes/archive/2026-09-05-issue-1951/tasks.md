@@ -1,0 +1,8 @@
+- [x] 1.1 `generateProvider` 契约扩展为可返回 `{ text, citations }`（旧 string 兼容）；runner 在回答冻结时一并持久化 citation 快照（id/citationTargetId/verified/displayNumber/sourceType，first-writer-wins）
+- [x] 1.2 导出 #1902 扫描助手（`scanKonlingAnswerUnits`、`isBindableAnswerUnitCitation`、结构行过滤与 missReason 语义）；新增 `citation-audit.ts` 纯函数：按回答输出已呈现引用数、已核验直接支撑数、应引用单元数、已覆盖单元数与四类失败分桶；model-derived 章节不入分母
+- [x] 1.3 `metrics.ts` 新增比率型配对差（百分点差 + 配对 bootstrap 95% CI），种子派生机制与既有 `pairedBootstrapCi95` 一致
+- [x] 1.4 `aggregate.ts` 组装按回答/意图/实验组的引用精确率与追溯覆盖率、三臂绝对值 + 配对差 + CI；per-answer 审计记录入 official；citation 快照缺失或审计不完整 fail closed（phase `citation-audit`）
+- [x] 1.5 同源导出：CSV（`toCsv`）、xlsx（`write-excel-file`）、markdown 幻灯片从 `official.json` 派生，写前校验真源 complete 与哈希
+- [x] 1.6 `run-live.ts` provider 产出 citation 快照；`run-fixture.ts` fixture 回答带 `[n]` 标记（含未分配/未核验/无锚点变体）
+- [x] 1.7 测试：分子分母语义（占位符/未知编号/不可访问目标/仅相关不支撑不计覆盖）、意图×citation policy 对齐、fail-closed、CI 确定性、导出同源；typecheck 与 konling 相关套件通过
+- [x] 1.8 `openspec validate issue-1951 --type change --strict` 通过后实施；完成时归档

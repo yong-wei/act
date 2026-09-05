@@ -126,7 +126,9 @@ async function main() {
         }
         return {
           ok: true,
-          result: { answer: response.text, elapsedMs: Date.now() - started },
+          // #1951：live 管线无 citationContext，显式落空快照（审计如实
+          // 统计未分配标记，不触发 fail closed）。
+          result: { answer: response.text, citations: [], elapsedMs: Date.now() - started },
         };
       } catch (error) {
         return { ok: false, error: { code: classifyProviderError(error), message: error instanceof Error ? error.message : String(error) } };

@@ -1,0 +1,250 @@
+/**
+ * #1951：公平实验引用精确率与答案单元追溯覆盖率的确定性审计。
+ */
+
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('server-only', () => ({}));
+
+import {
+  aggregateKonlingFairCitationAudit,
+  auditKonlingFairCitationRecord,
+  exportKonlingFairExperimentArtifacts,
+  runKonlingFairExperiment,
+  type KonlingFairExperimentCitationSnapshot,
+  type KonlingFairExperimentConfig,
+} from '@/lib/konling-fair-experiment';
+import { KONLING_FAIR_EXPERIMENT_BANK_V1 } from '@/lib/konling-fair-experiment';
+import { STUDY_QUESTION_SECTIONS } from '@/lib/konling-study-question-structure';
+
+let root: string;
+
+beforeEach(() => {
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'konling-fair-citation-1951-'));
+});
+
+afterEach(() => {
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+function citation(overrides: Partial<KonlingFairExperimentCitationSnapshot> & { id: string }): KonlingFairExperimentCitationSnapshot {
+  return {
+    citationTargetId: 'kb:target',
+    verified: true,
+    displayNumber: 1,
+    sourceType: 'knowledge-graph',
+    href: 'https://act.example/kb/target',
+    ...overrides,
+  };
+}
+
+function audited(answer: string, citations: readonly KonlingFairExperimentCitationSnapshot[], intent: 'formula-derivation' = 'formula-derivation') {
+  return auditKonlingFairCitationRecord({
+    taskKey: 'test--full-feature--item--1',
+    arm: 'full-feature',
+    itemId: 'item',
+    replicate: 1,
+    intent,
+    answer,
+    citations,
+  });
+}
+
+function canonicalBodyWithMarkers(intent: 'formula-derivation', marker: (sectionId: string) => string): string {
+  return STUDY_QUESTION_SECTIONS[intent]
+    .map((section) => `## ${section.title}\n按参考材料作答。${marker(section.id)}`)
+    .join('\n');
+}
+
+describe('auditKonlingFairCitationRecord', () => {
+  it('verified bound citations cover all evidence-required units', () => {
+    const answer = canonicalBodyWithMarkers('formula-derivation', (section) => (
+      STUDY_QUESTION_SECTIONS['formula-derivation'].find((candidate) => candidate.id === section)?.citationPolicy === 'evidence-required' ? ' [1]' : ''
+    ));
+    const record = audited(answer, [citation({ id: 'cit-1' })]);
+
+    const evidenceSections = STUDY_QUESTION_SECTIONS['formula-derivation'].filter((section) => section.citationPolicy === 'evidence-required');
+    expect(record.presentedCitationCount).toBe(1);
+    expect(record.verifiedSupportingCount).toBe(1);
+    expect(record.requiredUnitCount).toBe(evidenceSections.length);
+    expect(record.coveredUnitCount).toBe(evidenceSections.length);
+    expect(record.citationClasses.realVerifiedSupporting).toBe(1);
+    expect(record.missReasons).toEqual({});
+  });
+
+  it('unverified citations do not count as coverage and are bucketed separately', () => {
+    const answer = canonicalBodyWithMarkers('formula-derivation', () => ' [2]');
+    const record = audited(answer, [
+      citation({ id: 'cit-2', displayNumber: 2, verified: false, href: null }),
+    ]);
+
+    expect(record.presentedCitationCount).toBe(1);
+    expect(record.verifiedSupportingCount).toBe(0);
+    expect(record.coveredUnitCount).toBe(0);
+    expect(record.requiredUnitCount).toBeGreaterThan(0);
+    expect(record.citationClasses.citationUnverified).toBe(1);
+    expect(record.missReasons['citation-unverified']).toBe(record.requiredUnitCount);
+  });
+
+  it('markers without an assigned citation and no-target citations are bucketed', () => {
+    const unassigned = audited(canonicalBodyWithMarkers('formula-derivation', () => ' [3]'), []);
+    expect(unassigned.citationClasses.markerUnassigned).toBe(1);
+    expect(unassigned.verifiedSupportingCount).toBe(0);
+
+    const noTarget = audited(
+      canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
+      [citation({ id: 'cit-1', citationTargetId: null })],
+    );
+    expect(noTarget.citationClasses.citationNoTarget).toBe(1);
+    expect(noTarget.coveredUnitCount).toBe(0);
+  });
+
+  it('model-derived sections never enter the coverage denominator', () => {
+    const answer = canonicalBodyWithMarkers('formula-derivation', (section) => (
+      STUDY_QUESTION_SECTIONS['formula-derivation'].find((candidate) => candidate.id === section)?.citationPolicy === 'model-derived' ? ' [1]' : ''
+    ));
+    const record = audited(answer, [citation({ id: 'cit-1' })]);
+
+    const evidenceCount = STUDY_QUESTION_SECTIONS['formula-derivation']
+      .filter((section) => section.citationPolicy === 'evidence-required').length;
+    expect(record.requiredUnitCount).toBe(evidenceCount);
+    expect(record.coveredUnitCount).toBe(0);
+    expect(record.verifiedSupportingCount).toBe(0);
+    expect(record.driftedMarkerCount).toBeGreaterThan(0);
+  });
+});
+
+describe('aggregateKonlingFairCitationAudit', () => {
+  it('pools numerators and denominators across records', () => {
+    const recordA = audited(canonicalBodyWithMarkers('formula-derivation', () => ' [1]'), [citation({ id: 'cit-1' })]);
+    const recordB = audited(canonicalBodyWithMarkers('formula-derivation', () => ' [2]'), [
+      citation({ id: 'cit-2', displayNumber: 2, verified: false }),
+    ]);
+    const aggregate = aggregateKonlingFairCitationAudit([recordA, recordB]);
+
+    expect(aggregate.precision).toEqual({ numerator: 1, denominator: 2, ratio: 0.5 });
+    expect(aggregate.coverage.numerator).toBe(recordA.coveredUnitCount);
+    expect(aggregate.coverage.denominator).toBe(recordA.requiredUnitCount + recordB.requiredUnitCount);
+    expect(aggregate.byIntent).toHaveLength(1);
+    expect(aggregate.byIntent[0]!.intent).toBe('formula-derivation');
+  });
+});
+
+describe('端到端：official 汇总与同源导出', () => {
+  function fixtureConfig(): KonlingFairExperimentConfig {
+    return {
+      model: 'fixture-generator',
+      provider: 'deterministic-fixture-stub',
+      sampling: { seed: 20260903, temperature: 0.2, topP: 1, maxOutputTokens: 2048 },
+      armPromptVersions: {
+        'plain-baseline': 'fair-experiment-plain.v1',
+        'enhanced-baseline': 'fair-experiment-enhanced.v1',
+        'full-feature': 'konling-generic-chat.v1',
+      },
+      gitRevision: 'test-revision',
+      scorerRevision: 'test-revision',
+      bootstrapIterations: 200,
+      audit: { enabled: true, promptVersion: 'konling-blind-audit.v1', scoreVersion: 'rubric.v1' },
+    };
+  }
+
+  function fullAnswerWithCitations(intent: string): { answer: string; citations: readonly KonlingFairExperimentCitationSnapshot[] } {
+    const sections = STUDY_QUESTION_SECTIONS[intent as 'formula-derivation'];
+    return {
+      answer: sections
+        .map((section) => `## ${section.title}\n正文表述。${section.citationPolicy === 'evidence-required' ? ' [1]' : ''}`)
+        .join('\n'),
+      citations: [citation({ id: 'cit-1' })],
+    };
+  }
+
+  async function runFullExperiment(runId: string) {
+    return runKonlingFairExperiment({
+      root,
+      runId,
+      bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      config: fixtureConfig(),
+      calibers: ['structure-alias.v1'],
+      generateProvider: async (task) => {
+        if (task.arm !== 'full-feature') {
+          return { ok: true as const, result: { answer: '连贯段落，无小标题。', citations: [], elapsedMs: 1 } };
+        }
+        const full = fullAnswerWithCitations(task.item.intent);
+        return { ok: true as const, result: { answer: full.answer, citations: full.citations, elapsedMs: 1 } };
+      },
+      auditProvider: async () => ({ ok: true as const, result: { verdict: 'pass', ruleScore: 0.9, notes: 'fixture' } }),
+    });
+  }
+
+  it('official 汇总含两指标、逐回答记录与配对差', async () => {
+    const summary = await runFullExperiment('e2e-1951');
+    expect(summary.aggregateStatus).toBe('complete');
+    const official = summary.aggregate.officialSummary!;
+
+    const full = official.perArm['full-feature'].citationAudit;
+    expect(full.precision.ratio).toBeGreaterThan(0);
+    expect(full.coverage.ratio).toBeGreaterThan(0);
+    expect(official.perArm['plain-baseline'].citationAudit.precision.denominator).toBe(0);
+
+    expect(official.citationAuditRecords.length).toBe(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length * KONLING_FAIR_EXPERIMENT_BANK_V1.replicates * 3);
+    const delta = official.citationAuditDeltas.find(
+      (entry) => entry.metric === 'citation-coverage' && entry.comparison.label === 'full-feature',
+    );
+    expect(delta).toBeDefined();
+    expect(delta!.percentagePointDifference).toBeGreaterThan(0);
+    expect(delta!.pairedCi95.low).toBeLessThanOrEqual(delta!.percentagePointDifference + 1e-9);
+    expect(delta!.pairedCi95.high).toBeGreaterThanOrEqual(delta!.percentagePointDifference - 1e-9);
+  });
+
+  it('冻结回答缺失 citation 快照时 fail closed', async () => {
+    const summary = await runFullExperiment('legacy-1951');
+    expect(summary.aggregateStatus).toBe('complete');
+
+    // 模拟旧 run：抹掉一条冻结回答的 citations 字段后重新聚合。
+    const runDir = path.join(root, 'artifacts/konling-fair-experiment', 'legacy-1951');
+    const answerFiles: string[] = [];
+    const plainDir = path.join(runDir, 'answers/plain-baseline');
+    for (const entry of fs.readdirSync(plainDir)) answerFiles.push(path.join(plainDir, entry));
+    const first = JSON.parse(fs.readFileSync(answerFiles[0]!, 'utf8'));
+    delete first.citations;
+    fs.writeFileSync(answerFiles[0]!, JSON.stringify(first, null, 2));
+
+    const { aggregateKonlingFairExperiment } = await import('@/lib/konling-fair-experiment');
+    const replayed = aggregateKonlingFairExperiment({
+      root,
+      runId: 'legacy-1951',
+      bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      arms: ['plain-baseline', 'enhanced-baseline', 'full-feature'],
+      config: fixtureConfig(),
+      calibers: ['structure-alias.v1'],
+      writeOfficial: false,
+    });
+    expect(replayed.status).toBe('incomplete');
+    expect(replayed.incompleteDetail?.phase).toBe('citation-audit');
+    expect(replayed.officialSummary).toBeNull();
+  });
+
+  it('导出与冻结真源同源，真源漂移即拒绝', async () => {
+    const summary = await runFullExperiment('export-1951');
+    const official = summary.aggregate.officialSummary!;
+    const runDir = path.join(root, 'artifacts/konling-fair-experiment', 'export-1951');
+
+    const exported = await exportKonlingFairExperimentArtifacts(runDir, official);
+    expect(fs.existsSync(exported.csv)).toBe(true);
+    expect(fs.existsSync(exported.workbook)).toBe(true);
+    expect(fs.existsSync(exported.slides)).toBe(true);
+    const csv = fs.readFileSync(exported.csv, 'utf8');
+    expect(csv).toContain('"citation-precision","full-feature"');
+    expect(csv).toContain('"citation-coverage"');
+    const slides = fs.readFileSync(exported.slides, 'utf8');
+    expect(slides).toContain('引用精确率');
+    expect(slides).toContain('追溯覆盖率');
+
+    const tampered = { ...official, runId: 'tampered' };
+    await expect(exportKonlingFairExperimentArtifacts(runDir, tampered as never)).rejects.toThrow(/drifted/);
+  });
+});

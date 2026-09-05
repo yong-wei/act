@@ -21,6 +21,7 @@ import {
   buildKonlingFairExperimentManifestPayload,
   konlingFairExperimentManifestHash,
 } from './aggregate';
+import { exportKonlingFairExperimentArtifacts } from './export';
 import {
   appendKonlingFairExperimentFailure,
   assertKonlingFairExperimentLockHeld,
@@ -153,6 +154,9 @@ export async function runKonlingFairExperiment(input: {
               startedAt,
               finishedAt,
               answer: response.result.answer,
+              // #1951：citation 快照与回答同文件冻结，供确定性审计；
+              // provider 未返回（旧实现/无引用上下文臂）时显式落空数组。
+              citations: response.result.citations ?? [],
               elapsedMs: response.result.elapsedMs,
               ...(contractIntent ? { contractIntent } : {}),
             };
@@ -245,6 +249,11 @@ export async function runKonlingFairExperiment(input: {
       calibers: input.calibers,
       writeOfficial: true,
     });
+
+    // #1951：official 真源冻结后立即派生 CSV/工作簿/幻灯片，四载体同源。
+    if (aggregate.officialSummary) {
+      await exportKonlingFairExperimentArtifacts(runDir, aggregate.officialSummary);
+    }
 
     return {
       runId: input.runId,

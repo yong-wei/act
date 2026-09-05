@@ -4,6 +4,8 @@ export * from './bank-v2';
 export * from './prompts';
 export * from './store';
 export * from './metrics';
+export * from './citation-audit';
+export * from './export';
 export * from './judge';
 export * from './expert-review';
 export * from './aggregate';

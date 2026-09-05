@@ -2,7 +2,9 @@ import { createHash } from 'node:crypto';
 
 import type {
   KonlingFairExperimentPairedDifference,
+  KonlingFairExperimentPairedRatioDifference,
   KonlingFairExperimentRateMetric,
+  KonlingFairExperimentRatioMetric,
 } from './types';
 
 /**
@@ -41,6 +43,15 @@ export function pairedBootstrapCi95(
 ): { low: number; high: number } | null {
   if (pairedOutcomes.length === 0) return null;
   const diffs = pairedOutcomes.map((pair) => (pair.comparison ? 1 : 0) - (pair.baseline ? 1 : 0));
+  return bootstrapCi95ForDiffs(diffs, seedParts, iterations);
+}
+
+function bootstrapCi95ForDiffs(
+  diffs: readonly number[],
+  seedParts: readonly string[],
+  iterations: number,
+): { low: number; high: number } | null {
+  if (diffs.length === 0) return null;
   const random = mulberry32(derivedSeed(...seedParts));
   const samples: number[] = [];
   for (let i = 0; i < iterations; i += 1) {
@@ -87,5 +98,46 @@ export function buildPairedDifference(input: {
     percentagePointDifference: (comparison.rate - baseline.rate) * 100,
     pairedCi95: { low: ci.low * 100, high: ci.high * 100 },
     pairedN: paired.length,
+  };
+}
+
+/**
+ * #1951：比率型配对差（百分点 + 配对 bootstrap 95% CI）。
+ * 绝对值用池化比率（Σ分子/Σ分母）；配对单位是题项级比率，差值数组
+ * 进入与布尔版同一确定性 bootstrap 内核。
+ */
+export function buildPairedRatioDifference(input: {
+  metric: string;
+  baselineLabel: string;
+  comparisonLabel: string;
+  baselinePairedRatios: ReadonlyArray<{ numerator: number; denominator: number }>;
+  comparisonPairedRatios: ReadonlyArray<{ numerator: number; denominator: number }>;
+  seedParts: readonly string[];
+  iterations: number;
+}): KonlingFairExperimentPairedRatioDifference | null {
+  const paired = input.baselinePairedRatios.length;
+  if (paired === 0 || paired !== input.comparisonPairedRatios.length) return null;
+  const pooled = (values: ReadonlyArray<{ numerator: number; denominator: number }>) => ({
+    numerator: values.reduce((sum, value) => sum + value.numerator, 0),
+    denominator: values.reduce((sum, value) => sum + value.denominator, 0),
+  });
+  const baselinePooled = pooled(input.baselinePairedRatios);
+  const comparisonPooled = pooled(input.comparisonPairedRatios);
+  const ratio = ({ numerator, denominator }: { numerator: number; denominator: number }) => (
+    denominator === 0 ? 0 : numerator / denominator
+  );
+  const diffs = input.baselinePairedRatios.map((baseline, index) => (
+    ratio(input.comparisonPairedRatios[index]!) - ratio(baseline)
+  ));
+  const ci = bootstrapCi95ForDiffs(diffs, input.seedParts, input.iterations);
+  if (!ci) return null;
+  return {
+    metric: input.metric,
+    direction: 'higher-is-better',
+    baseline: { label: input.baselineLabel, metric: { ...baselinePooled, ratio: ratio(baselinePooled) } },
+    comparison: { label: input.comparisonLabel, metric: { ...comparisonPooled, ratio: ratio(comparisonPooled) } },
+    percentagePointDifference: (ratio(comparisonPooled) - ratio(baselinePooled)) * 100,
+    pairedCi95: { low: ci.low * 100, high: ci.high * 100 },
+    pairedN: paired,
   };
 }
