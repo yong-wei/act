@@ -1138,7 +1138,9 @@ const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', 
 // #2015：「教材」仅在规范语境下作为来源信号（教材附录引用标准、教材规定的
 // 验收/时效结论），不得与「要求」这类泛教学任务措辞组合——「教材要求我们
 // 比较/推导…」是教学任务不是规范诉求（review P2）。
-const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '标准', '验收', '规程', '现行', '最新', '作废', '过期', '时效', '仍有效'] as const;
+// 「标准」裸词不作教材语境信号（「标准二阶系统」是普通课程术语）；标准
+// 时效由 NORMATIVE_STANDARD_ID × 时效措辞覆盖。
+const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '验收', '规程', '现行', '最新', '作废', '过期', '时效', '仍有效'] as const;
 
 // #2015 组合信号：代码片段 × 排障请求。真实代码围栏出现时定位/修复/缺陷
 // 任一即判调试（覆盖标定/单位缺陷等无经典异常现象词的输入）；仅有代码指称
@@ -1148,7 +1150,10 @@ const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '标准', '验收'
 const KONLING_DEBUG_CODE_FENCE_MARKER = '```';
 const KONLING_DEBUG_CODE_PRESENT_MARKERS = ['```', '代码'] as const;
 const KONLING_DEBUG_DEFECT_MARKERS = ['缺陷'] as const;
-const KONLING_DEBUG_EXPLICIT_ACTION_MARKERS = ['定位', '排查', '修复', '排除故障', '找出缺陷', '找 bug', 'debug'] as const;
+const KONLING_DEBUG_EXPLICIT_ACTION_MARKERS = ['排查', '修复', '排除故障', '找出缺陷', '找 bug', 'debug'] as const;
+// 无围栏时排障上下文证据：必须同时存在故障/异常症状词，多义动作（如
+// 「定位」极点位置=计算语义）不得单独构成排障请求（review R4）。
+const KONLING_DEBUG_TROUBLE_MARKERS = ['故障', '异常', '报错', '不工作', '不输出', '失效', '缺陷', '崩溃', '卡死', '发散', '不收敛', '抖动', '振荡', '震荡', '饱和', '超调', '失效'] as const;
 
 // #1948 组合信号：控制系统异常现象 × 定位/修复动作。现象词必须搭配排障动
 // 作才判代码调试，「解释超调」「什么是超调量」等仅含现象词的问题不被吞并。
@@ -1176,9 +1181,10 @@ function hasCodeFenceDebugSignal(normalized: string): boolean {
   if (normalized.includes(KONLING_DEBUG_CODE_FENCE_MARKER)) {
     return hasDefect || includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS);
   }
-  // 无围栏：代码指称 × 专属排障动作（泛化「解决」不计入）。
+  // 无围栏：代码指称 × 专属排障动作 × 故障/异常证据（三重必需）。
   return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS)
-    && includesAny(normalized, KONLING_DEBUG_EXPLICIT_ACTION_MARKERS);
+    && includesAny(normalized, KONLING_DEBUG_EXPLICIT_ACTION_MARKERS)
+    && includesAny(normalized, KONLING_DEBUG_TROUBLE_MARKERS);
 }
 
 function hasTextbookNormativeSignal(normalized: string): boolean {

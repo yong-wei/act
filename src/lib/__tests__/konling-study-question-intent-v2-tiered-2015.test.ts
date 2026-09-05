@@ -177,6 +177,11 @@ describe('konling study question intent routing on the V2 tiered bank (#2015)', 
     // review R3 正例：教材验收规程的时效结论判规范（主分类器与 #1901 风险
     // 门禁消费同一 hasTextbookNormativeSignal helper，平价由共享实现保证）。
     expect(classify('教材中的验收规程是否还是现行版本？')).toBe('normative-content');
+    // review R4 反例：裸「标准」是普通课程术语（标准二阶系统），不触发教材规范信号。
+    expect(classify('教材中的标准二阶系统是什么意思？')).toBe('fact-explanation');
+    // review R4 反例：无围栏「定位」可能是计算语义，需故障证据才判调试。
+    expect(classify('请写代码定位闭环极点的位置')).not.toBe('code-debugging');
+    expect(classify('帮我看看这段代码，排查输出异常的原因。')).toBe('code-debugging');
     expect(classify('这个设计的缺陷在哪里？')).toBe('open-ended-explanation');
     // review P2 反例：无围栏、无排障动作的「缺陷」概念题不得判为代码调试。
     expect(classify('代码设计缺陷是什么意思？')).toBe('fact-explanation');
