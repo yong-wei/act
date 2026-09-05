@@ -1,4 +1,7 @@
-import { diagnosisClassMetricDataSchema, type DiagnosisClassMetricData } from '@/lib/diagnosis-metrics';
+import {
+  diagnosisClassMetricDataSchema,
+  type DiagnosisClassMetricData,
+} from '@/lib/diagnosis-metric-schema';
 
 import type { DiagnosisEvolutionApiItem } from '../public-api';
 

@@ -152,4 +152,21 @@ describe('DiagnosisReportEvolutionBoardView', () => {
       expect(source, `${relativePath} must not reference the evolution board`).not.toContain('evolution');
     }
   });
+
+  it('keeps the client evolution chain free of server-only dependencies', () => {
+    const repoRoot = process.cwd();
+    const clientChainSources = [
+      'src/features/teacher/diagnosis-report-evolution-board.tsx',
+      'src/features/teacher/diagnosis/application/project-report-evolution.ts',
+      'src/lib/diagnosis-metric-schema.ts',
+    ];
+    for (const relativePath of clientChainSources) {
+      const source = readFileSync(join(repoRoot, relativePath), 'utf8');
+      expect(source, `${relativePath} must not import the server metric computation`).not.toContain('@/lib/diagnosis-metrics');
+      expect(source, `${relativePath} must stay out of node builtins`).not.toContain('node:crypto');
+      expect(source, `${relativePath} must stay out of the persistence layer`).not.toContain('@/lib/diagnosis-persistence');
+    }
+    const schemaSource = readFileSync(join(repoRoot, 'src/lib/diagnosis-metric-schema.ts'), 'utf8');
+    expect(schemaSource.match(/from '@\//g) ?? []).toHaveLength(0);
+  });
 });

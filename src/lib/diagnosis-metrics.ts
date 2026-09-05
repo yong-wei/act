@@ -1,7 +1,5 @@
 import { createHash } from 'node:crypto';
 
-import { z } from 'zod';
-
 import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
 import {
   buildKnowledgeNodeWeaknessStats,
@@ -12,74 +10,32 @@ import {
 import { CURRENT_RISK_FLAG_TYPES, type CurrentRiskFlagType, type RiskFlagSeverity } from '@/lib/risk-scanner';
 
 /**
- * 班级诊断报告指标快照（Issue #1963）。
+ * 班级诊断报告指标快照的服务端计算（Issue #1963）。
  *
  * 指标由服务端在生成任务冻结的 governed input 与 evidenceCutoff 内确定性
  * 计算；模型输出只写报告文字，永不生成或修改本模块产出的指标值。缺失
  * 维度保留 unavailable/null，不补零，不从报告摘要反推。
+ *
+ * JSON 合同（schema 与类型）在 diagnosis-metric-schema.ts——该模块被
+ * 客户端投影加载，本模块含 Node 内置加密依赖，绝不能进入客户端依赖图。
  */
-export const DIAGNOSIS_METRIC_SCHEMA_VERSION = 'diagnosis-metric-snapshot.v1';
-export const DIAGNOSIS_METRIC_COMPUTATION_VERSION = 'class-metrics.v1';
-/** 证据覆盖口径标识：成员集合来自任务冻结的班级名册，画像取 cutoff 内最新 native 快照。 */
-export const DIAGNOSIS_METRIC_COVERAGE_BASIS = 'class-roster@v1';
+import {
+  DIAGNOSIS_METRIC_COMPUTATION_VERSION,
+  DIAGNOSIS_METRIC_COVERAGE_BASIS,
+  DIAGNOSIS_METRIC_SCHEMA_VERSION,
+  diagnosisClassMetricDataSchema,
+  type DiagnosisClassMetricData,
+} from '@/lib/diagnosis-metric-schema';
+
+export {
+  DIAGNOSIS_METRIC_COMPUTATION_VERSION,
+  DIAGNOSIS_METRIC_COVERAGE_BASIS,
+  DIAGNOSIS_METRIC_SCHEMA_VERSION,
+  diagnosisClassMetricDataSchema,
+} from '@/lib/diagnosis-metric-schema';
+export type { DiagnosisClassMetricData } from '@/lib/diagnosis-metric-schema';
 
 const METRIC_ROUND_DIGITS = 2;
-
-const metricAvailabilitySchema = z.enum(['available', 'unavailable']);
-
-const abilityDimensionMetricSchema = z.object({
-  id: z.string().min(1),
-  label: z.string().min(1),
-  availability: metricAvailabilitySchema,
-  mean: z.number().nullable(),
-  averageConfidence: z.number().nullable(),
-  includedStudents: z.number().int().nonnegative(),
-  missingStudents: z.number().int().nonnegative(),
-}).strict();
-
-const scoreOutcomeMetricSchema = z.object({
-  availability: metricAvailabilitySchema,
-  mean: z.number().nullable(),
-  includedStudents: z.number().int().nonnegative(),
-  missingStudents: z.number().int().nonnegative(),
-  evidenceCount: z.number().int().nonnegative(),
-  scoredCount: z.number().int().nonnegative(),
-}).strict();
-
-const riskDistributionMetricSchema = z.object({
-  availability: metricAvailabilitySchema,
-  flaggedStudents: z.number().int().nonnegative(),
-  byType: z.object({
-    stagnation: z.number().int().nonnegative(),
-    constraint: z.number().int().nonnegative(),
-    cross_domain: z.number().int().nonnegative(),
-  }).strict(),
-  bySeverity: z.object({
-    low: z.number().int().nonnegative(),
-    medium: z.number().int().nonnegative(),
-    high: z.number().int().nonnegative(),
-  }).strict(),
-}).strict();
-
-const weakKnowledgePointMetricSchema = z.object({
-  nodeId: z.string().min(1),
-  weakStudentCount: z.number().int().nonnegative(),
-  coveredStudentCount: z.number().int().nonnegative(),
-  minimumWeakStudents: z.number().int().nonnegative(),
-  eligible: z.boolean(),
-}).strict();
-
-export const diagnosisClassMetricDataSchema = z.object({
-  memberCount: z.number().int().nonnegative(),
-  coverageBasis: z.string().min(1),
-  abilityDimensions: z.array(abilityDimensionMetricSchema),
-  assignmentOutcomes: scoreOutcomeMetricSchema,
-  assessmentOutcomes: scoreOutcomeMetricSchema,
-  riskDistribution: riskDistributionMetricSchema,
-  weakKnowledgePoints: z.array(weakKnowledgePointMetricSchema),
-}).strict();
-
-export type DiagnosisClassMetricData = z.output<typeof diagnosisClassMetricDataSchema>;
 
 export function parseGovernedDiagnosisInput(value: unknown): GovernedDiagnosisInput {
   return governedInputSchema.parse(value);
@@ -143,7 +99,7 @@ function abilityDimensionMetrics(
 function scoreOutcomeMetrics(
   memberCount: number,
   rows: ReadonlyArray<{ userId: string; scorePercent: number }>,
-): z.output<typeof scoreOutcomeMetricSchema> {
+): DiagnosisClassMetricData['assignmentOutcomes'] {
   const scored = rows.filter((row) => Number.isFinite(row.scorePercent));
   const includedStudents = new Set(scored.map((row) => row.userId)).size;
   return {
@@ -159,7 +115,7 @@ function scoreOutcomeMetrics(
 function riskDistributionMetrics(
   memberCount: number,
   riskFlags: ReadonlyArray<{ userId: string; type: string; severity: string }>,
-): z.output<typeof riskDistributionMetricSchema> {
+): DiagnosisClassMetricData['riskDistribution'] {
   const byType: Record<CurrentRiskFlagType, number> = { stagnation: 0, constraint: 0, cross_domain: 0 };
   const bySeverity: Record<RiskFlagSeverity, number> = { low: 0, medium: 0, high: 0 };
   const flaggedStudents = new Set<string>();
