@@ -97,6 +97,18 @@ export interface CourseTeachingContent {
   }>;
 }
 
+export function readCatalogDomainKeys(repoRoot: string): Map<string, RegisteredPeerDomainId[]> {
+  const catalog = readJson<{
+    memberships?: Array<{ canonicalId: string; domainIds?: string[] }>;
+  }>(join(repoRoot, 'course-content/runtime/knowledge/authority-domain-catalog/catalog.json'));
+  const map = new Map<string, RegisteredPeerDomainId[]>();
+  for (const membership of catalog.memberships ?? []) {
+    const keys = (membership.domainIds ?? []).filter((id): id is RegisteredPeerDomainId => id.length > 0);
+    if (keys.length > 0) map.set(membership.canonicalId, keys);
+  }
+  return map;
+}
+
 export function readCourseTeachingContent(repoRoot: string): CourseTeachingContent {
   const projectionPointer = readJson<{ projectionId: string }>(
     join(repoRoot, COURSE_PROJECTION_CURRENT_RELATIVE),
@@ -195,6 +207,7 @@ export function authorOverviewTeachingOrderFragment(input: {
   overviews: Array<{ domainId: RegisteredPeerDomainId; nodeIds: readonly string[] }>;
   contentNodeIds: readonly string[];
   nodeUnits?: ReadonlyMap<string, string>;
+  catalogDomainKeys?: ReadonlyMap<string, RegisteredPeerDomainId[]>;
   existingTeaching: CourseTeachingContent['existingTeaching'];
   envelope: DomainTeachingAuthorityEnvelope;
 }): { authoring: DomainTeachingFragmentAuthoring; plan: ReturnType<typeof planOverviewTeachingOrder> } {
@@ -220,9 +233,13 @@ export function authorOverviewTeachingOrderFragment(input: {
     }
     const domainKeys = edge.domainKeys && edge.domainKeys.length > 0
       ? edge.domainKeys
-      : input.overviews
-        .filter((overview) => overview.nodeIds.includes(edge.sourceNodeId) || overview.nodeIds.includes(edge.targetNodeId))
-        .map((overview) => overview.domainId);
+      : [
+        ...input.overviews
+          .filter((overview) => overview.nodeIds.includes(edge.sourceNodeId) || overview.nodeIds.includes(edge.targetNodeId))
+          .map((overview) => overview.domainId),
+        ...(input.catalogDomainKeys?.get(edge.sourceNodeId) ?? []),
+        ...(input.catalogDomainKeys?.get(edge.targetNodeId) ?? []),
+      ].filter((key, index, all) => all.indexOf(key) === index);
     if (domainKeys.length === 0) continue;
     published.push({
       sourceNodeId: edge.sourceNodeId,
@@ -321,7 +338,9 @@ function relationAuthoring(
       ? [edge.engineeringRelationId]
       : [...(edge.evidenceRefs ?? [])],
     curatorId: edge.curatorId ?? 'overview-teaching-order',
-    curatorRationale: rationale,
+    curatorRationale: edge.provenance === 'unscheduled-extension'
+      ? 'Unscheduled content-related connection; not syllabus unit order'
+      : rationale,
     authorDecisionId: edge.authorDecisionId
       ?? edge.engineeringRelationId
       ?? `extension:${edge.sourceNodeId}->${edge.targetNodeId}`,
@@ -385,6 +404,7 @@ export function stageOverviewTeachingOrder(repoRoot: string): {
     overviews,
     contentNodeIds,
     nodeUnits: course.nodeUnits,
+    catalogDomainKeys: readCatalogDomainKeys(repoRoot),
     existingTeaching: [...course.existingTeaching, ...priorTeaching],
     envelope,
   });

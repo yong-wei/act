@@ -36,7 +36,7 @@ export interface PlannedTeachingOrderEdge {
   relationType: 'PREREQUISITE';
   strength: PrerequisiteStrength;
   domainKeys: RegisteredPeerDomainId[];
-  provenance: 'engineering-post-requisite' | 'course-prerequisite' | 'teaching-extension';
+  provenance: 'engineering-post-requisite' | 'course-prerequisite' | 'teaching-extension' | 'unscheduled-extension';
   engineeringRelationId: string | null;
 }
 
@@ -158,8 +158,11 @@ export function planOverviewTeachingOrder(input: {
     if (emitted.has(key)) return;
     emitted.add(key);
     planned.set(key, edge);
-    if (edge.provenance === 'teaching-extension') extensions.push(edge);
-    else adopted.push(edge);
+    if (edge.provenance === 'teaching-extension' || edge.provenance === 'unscheduled-extension') {
+      extensions.push(edge);
+    } else {
+      adopted.push(edge);
+    }
   };
 
   const existingPrereq = input.existingTeaching.filter(
@@ -195,14 +198,13 @@ export function planOverviewTeachingOrder(input: {
       });
     }
 
-    const sortedRelated = [...related].sort((left, right) => {
-      const rankDelta = unitRank(nodeUnits.get(left)) - unitRank(nodeUnits.get(right));
-      if (rankDelta !== 0) return rankDelta;
-      return related.indexOf(left) - related.indexOf(right);
-    });
+    const sortedRelated = [...related].sort((left, right) => (
+      unitRank(nodeUnits.get(left)) - unitRank(nodeUnits.get(right))
+    ));
     for (let index = 1; index < sortedRelated.length; index += 1) {
       const sourceNodeId = sortedRelated[index - 1]!;
       const targetNodeId = sortedRelated[index]!;
+      if (unitRank(nodeUnits.get(sourceNodeId)) >= unitRank(nodeUnits.get(targetNodeId))) continue;
       if (forest.find(sourceNodeId) === forest.find(targetNodeId)) continue;
       forest.union(sourceNodeId, targetNodeId);
       mark({
@@ -214,6 +216,31 @@ export function planOverviewTeachingOrder(input: {
         provenance: 'teaching-extension',
         engineeringRelationId: null,
       });
+    }
+    const leftover = new Map<string, string[]>();
+    for (const nodeId of related) {
+      const root = forest.find(nodeId);
+      const membersOfRoot = leftover.get(root) ?? [];
+      membersOfRoot.push(nodeId);
+      leftover.set(root, membersOfRoot);
+    }
+    if (leftover.size > 1) {
+      const scheduled = sortedRelated.filter((id) => unitRank(nodeUnits.get(id)) < COURSE_UNIT_ORDER.length);
+      const anchor = (scheduled.length > 0 ? scheduled[scheduled.length - 1] : related[0])!;
+      for (const membersOfRoot of leftover.values()) {
+        if (membersOfRoot.includes(anchor)) continue;
+        const targetNodeId = membersOfRoot[0]!;
+        forest.union(anchor, targetNodeId);
+        mark({
+          sourceNodeId: anchor,
+          targetNodeId,
+          relationType: 'PREREQUISITE',
+          strength: 'RECOMMENDED',
+          domainKeys: [overview.domainId],
+          provenance: 'unscheduled-extension',
+          engineeringRelationId: null,
+        });
+      }
     }
 
     const roots = new Set(related.map((id) => forest.find(id)));

@@ -1,9 +1,9 @@
 {
   "contract": "act-domain-teaching-projection-current/v1",
-  "projectionId": "proj-52d10744562df6930f4bff89057e85ccadd53f347abfefbc19a9624e4818411a",
-  "projectionHash": "52d10744562df6930f4bff89057e85ccadd53f347abfefbc19a9624e4818411a",
+  "projectionId": "proj-611658043cdf9a893fca65cba68d21cf80703e5cdaa09f7b9fdeac133840fd25",
+  "projectionHash": "611658043cdf9a893fca65cba68d21cf80703e5cdaa09f7b9fdeac133840fd25",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
   "authorityDigest": "742ab03ee32f9ebfcfa02865de29e51ec1bfc32179ccef435be637a9c6cd32ba",
-  "teachingCacheFamily": "teaching-domain-proj:proj-52d10744562df6930f4bff89057e85ccadd53f347abfefbc19a9624e4818411a:52d10744562df693",
-  "activatedAt": "2026-09-05T13:27:23.367Z"
+  "teachingCacheFamily": "teaching-domain-proj:proj-611658043cdf9a893fca65cba68d21cf80703e5cdaa09f7b9fdeac133840fd25:611658043cdf9a89",
+  "activatedAt": "2026-09-05T16:22:16.758Z"
 }

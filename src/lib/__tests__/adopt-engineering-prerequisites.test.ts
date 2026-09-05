@@ -17,6 +17,7 @@ describe('planOverviewTeachingOrder', () => {
     const plan = planOverviewTeachingOrder({
       overviews: [{ domainId: 'system-modeling', nodeIds: ['a', 'b', 'c'] }],
       contentNodeIds: ['a', 'b', 'c'],
+      nodeUnits: new Map([['a', '2-1'], ['b', '2-2'], ['c', '2-3']]),
       engineeringRelations: [
         { id: 'eng-1', predicate: 'prerequisite', sourceId: 'a', targetId: 'b' },
         { id: 'eng-2', predicate: 'association', sourceId: 'b', targetId: 'c' },
@@ -84,6 +85,15 @@ describe('planOverviewTeachingOrder', () => {
         provenance: 'teaching-extension',
       }),
     ]);
+  });
+
+  it('does not claim syllabus order between two unscheduled nodes', () => {
+    const plan = planOverviewTeachingOrder({
+      overviews: [{ domainId: 'system-modeling', nodeIds: ['a', 'b'] }],
+      contentNodeIds: ['a', 'b'],
+      existingTeaching: [],
+    });
+    expect(plan.extensions.every((edge) => edge.provenance === 'unscheduled-extension')).toBe(true);
   });
 
   it('omits overview members that are not course-content-related', () => {
@@ -218,6 +228,43 @@ describe('planOverviewTeachingOrder', () => {
     const relatedDomains = overviews.filter((overview) => overview.nodeIds.some((id) => related.includes(id)));
     expect(relatedDomains.length).toBeGreaterThanOrEqual(8);
     expect(result.extensions.every((edge) => edge.strength === 'RECOMMENDED')).toBe(true);
+    const {
+      authorOverviewTeachingOrderFragment,
+      readCatalogDomainKeys,
+    } = await import('../teaching-projection/domain-fragments/build-overview-teaching-order');
+    const commit = 'a'.repeat(40);
+    const envelopeNodes = [...new Set([
+      ...related,
+      ...course.existingTeaching.flatMap((edge) => [edge.sourceNodeId, edge.targetNodeId]),
+    ])].sort().map((canonicalId) => ({ canonicalId, lifecycleStatus: 'active' }));
+    const envelope = createDomainTeachingAuthorityEnvelope({
+      binding: {
+        releaseId: 'ctr:release:eng-domain-teaching-fixture-v1',
+        releaseSetId: 'set-fixture-domain-teaching-v1',
+        snapshotId: `snap-${'b'.repeat(64)}`,
+        snapshotHash: 'b'.repeat(64),
+      },
+      sourceDatasetHash: 'd'.repeat(64),
+      captureRevision: commit,
+      authoringRevision: commit,
+      nodes: envelopeNodes,
+    });
+    const { authoring } = authorOverviewTeachingOrderFragment({
+      overviews,
+      contentNodeIds: related,
+      nodeUnits: course.nodeUnits,
+      catalogDomainKeys: readCatalogDomainKeys(process.cwd()),
+      existingTeaching: course.existingTeaching,
+      envelope,
+    });
+    const published = new Set(authoring.relations.map((edge) => `${edge.sourceNodeId}\u001f${edge.targetNodeId}`));
+    for (const edge of course.existingTeaching) {
+      expect(published.has(`${edge.sourceNodeId}\u001f${edge.targetNodeId}`)).toBe(true);
+    }
+    expect(authoring.relations.filter((edge) => (
+      (edge.curatorRationale ?? '').includes('follows syllabus unit order')
+      && (edge.curatorRationale ?? '').includes('Unscheduled')
+    ))).toEqual([]);
   });
 
   it('does not let the shard loader infer teaching edges from engineering families', () => {
