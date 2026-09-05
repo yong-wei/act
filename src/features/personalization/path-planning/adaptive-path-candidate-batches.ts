@@ -188,7 +188,8 @@ export function buildGatedCandidateSnapshots(
   if (candidates.length === 0) {
     throw new AdaptivePathCandidateBatchValidationError('Candidate batch requires at least one executable candidate');
   }
-  const ungated = candidates.map((candidate, ordinal) => {
+  const ungated = candidates.map((candidate, index) => {
+    const ordinal = index + 1;
     const snapshot = candidate.snapshot as Record<string, unknown>;
     return {
       id: stableId('path-candidate', `${batchId}:${candidate.styleId}:${ordinal}`),
@@ -201,7 +202,7 @@ export function buildGatedCandidateSnapshots(
         ...snapshot,
         optionId: typeof snapshot.optionId === 'string'
           ? snapshot.optionId
-          : `path-option-${ordinal + 1}`,
+          : `path-option-${ordinal}`,
       }),
     };
   });
@@ -222,7 +223,7 @@ export function gateMateriallyDistinctCandidates(
     seen.add(candidate.fingerprint);
     kept.push({
       ...candidate,
-      ordinal: kept.length,
+      ordinal: kept.length + 1,
     });
   }
   const limitations = limitationsForReduction(duplicateCount, candidates.length, kept.length);

@@ -169,6 +169,34 @@ describe('adaptive path candidate batches', () => {
     expect(learningPathUpdate).not.toHaveBeenCalled();
   });
 
+  it('persists a starter batch with exactly three candidates and consecutive ordinals', async () => {
+    const { db, create } = dbFixture();
+    const starterPlan = plan();
+    starterPlan.policyBundle!.families = [
+      'foundation-remediation',
+      'simulation-driven',
+      'preference-matched',
+    ];
+    starterPlan.policyBundle!.paths = [
+      candidate('foundation-remediation', 'foundation-remediation', '稳步掌握', ['node-1']),
+      candidate('arena-simulation-sprint', 'simulation-driven', '快速复习', ['node-2']),
+      candidate('preference-matched-route', 'preference-matched', '偏好匹配', ['node-3']),
+    ];
+
+    const batch = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'request-starter',
+      plan: starterPlan,
+    });
+
+    expect(create.mock.calls[0][0].data.candidateCount).toBe(3);
+    expect(batch.candidates.map((candidate) => candidate.ordinal)).toEqual([1, 2, 3]);
+    expect(batch.candidates.map((candidate) => candidate.snapshot.optionId)).toEqual([
+      'path-option-1',
+      'path-option-2',
+      'path-option-3',
+    ]);
+  });
+
   it('freezes generation-time decision evidence onto batch metadata and candidate snapshots', async () => {
     const { db } = dbFixture();
     const generated = plan();
