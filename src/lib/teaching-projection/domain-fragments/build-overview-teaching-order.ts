@@ -24,6 +24,7 @@ import {
   LIVE_AUTHORITY_DOMAIN_TEACHING_AUTHORING_REVISION,
   LIVE_AUTHORITY_DOMAIN_TEACHING_BINDING,
   LIVE_AUTHORITY_DOMAIN_TEACHING_CAPTURE_REVISION,
+  LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE,
   LIVE_AUTHORITY_DOMAIN_TEACHING_SOURCE_DATASET_HASH,
   type DomainTeachingAuthorityEnvelope,
   type DomainTeachingFragment,
@@ -61,47 +62,42 @@ export function readDomainOverviews(repoRoot: string): Array<{
   return overviews;
 }
 
-export function readEngineeringRelationsFromFamilyShards(repoRoot: string): Array<{
+export function readEngineeringRelationsFromAuthoritySnapshot(repoRoot: string): Array<{
   id: string;
   predicate: string;
   sourceId: string;
   targetId: string;
 }> {
-  const pointer = readJson<{ shardSetId: string }>(
-    join(repoRoot, DEFAULT_AUTHORITY_DOMAIN_SHARD_RUNTIME_RELATIVE, 'current.json'),
-  );
-  const domainsDir = join(
-    repoRoot,
-    DEFAULT_AUTHORITY_DOMAIN_SHARD_RUNTIME_RELATIVE,
-    'sets',
-    pointer.shardSetId,
-    'domains',
-  );
-  const relations: Array<{ id: string; predicate: string; sourceId: string; targetId: string }> = [];
-  const seen = new Set<string>();
-  for (const domainId of readdirSync(domainsDir)) {
-    const familiesDir = join(domainsDir, domainId, 'families');
-    for (const file of readdirSync(familiesDir)) {
-      const body = readJson<{ relations?: Array<{
-        id: string;
-        predicate: string;
-        sourceId: string;
-        targetId: string;
-      }> }>(join(familiesDir, file));
-      for (const relation of body.relations ?? []) {
-        if (seen.has(relation.id)) continue;
-        seen.add(relation.id);
-        relations.push(relation);
-      }
-    }
-  }
-  return relations;
+  const snapshot = readJson<{
+    relations?: Array<{
+      relationId: string;
+      relationType: string;
+      sourceId: string;
+      targetId: string;
+    }>;
+  }>(join(repoRoot, LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE));
+  return (snapshot.relations ?? []).map((relation) => ({
+    id: relation.relationId,
+    predicate: relation.relationType,
+    sourceId: relation.sourceId,
+    targetId: relation.targetId,
+  }));
 }
 
 export function authorOverviewTeachingOrderFragment(input: {
   overviews: Array<{ domainId: RegisteredPeerDomainId; nodeIds: readonly string[] }>;
   engineeringRelations: Array<{ id: string; predicate: string; sourceId: string; targetId: string }>;
-  existingTeaching: Array<{ sourceNodeId: string; targetNodeId: string; relationType: string }>;
+  existingTeaching: Array<{
+    sourceNodeId: string;
+    targetNodeId: string;
+    relationType: string;
+    strength?: PlannedTeachingOrderEdge['strength'];
+    domainKeys?: RegisteredPeerDomainId[];
+    evidenceRefs?: string[];
+    curatorId?: string | null;
+    curatorRationale?: string | null;
+    authorDecisionId?: string | null;
+  }>;
   envelope: DomainTeachingAuthorityEnvelope;
 }): { authoring: DomainTeachingFragmentAuthoring; plan: ReturnType<typeof planOverviewTeachingOrder> } {
   const plan = planOverviewTeachingOrder({
@@ -110,26 +106,29 @@ export function authorOverviewTeachingOrderFragment(input: {
     existingTeaching: input.existingTeaching,
   });
   const planned = [...plan.adopted, ...plan.extensions];
-  const retained = input.existingTeaching
-    .filter((edge) => edge.relationType === 'PREREQUISITE' && edge.sourceNodeId !== edge.targetNodeId)
-    .map((edge) => ({
-      sourceNodeId: edge.sourceNodeId,
-      targetNodeId: edge.targetNodeId,
-      relationType: 'PREREQUISITE' as const,
-      strength: 'REQUIRED' as const,
-      domainKeys: input.overviews
-        .filter((overview) => overview.nodeIds.includes(edge.sourceNodeId) && overview.nodeIds.includes(edge.targetNodeId))
-        .map((overview) => overview.domainId),
-      provenance: 'teaching-extension' as const,
-      engineeringRelationId: null,
-    }))
-    .filter((edge) => edge.domainKeys.length > 0);
-  const published = [...planned];
-  for (const edge of retained) {
+  const published: Array<PlannedTeachingOrderEdge & { evidenceRefs?: string[]; curatorId?: string | null; curatorRationale?: string | null; authorDecisionId?: string | null }> = [...planned];
+  for (const edge of input.existingTeaching) {
+    if (edge.relationType !== 'PREREQUISITE' || edge.sourceNodeId === edge.targetNodeId) continue;
     if (published.some((row) => row.sourceNodeId === edge.sourceNodeId && row.targetNodeId === edge.targetNodeId)) {
       continue;
     }
-    published.push(edge);
+    published.push({
+      sourceNodeId: edge.sourceNodeId,
+      targetNodeId: edge.targetNodeId,
+      relationType: 'PREREQUISITE',
+      strength: edge.strength === 'RECOMMENDED' ? 'RECOMMENDED' : 'REQUIRED',
+      domainKeys: edge.domainKeys && edge.domainKeys.length > 0
+        ? edge.domainKeys
+        : input.overviews
+          .filter((overview) => overview.nodeIds.includes(edge.sourceNodeId) || overview.nodeIds.includes(edge.targetNodeId))
+          .map((overview) => overview.domainId),
+      provenance: 'teaching-extension',
+      engineeringRelationId: null,
+      evidenceRefs: edge.evidenceRefs,
+      curatorId: edge.curatorId,
+      curatorRationale: edge.curatorRationale,
+      authorDecisionId: edge.authorDecisionId,
+    });
   }
   const coreIds = new Set<string>();
   const domainByNode = new Map<string, Set<RegisteredPeerDomainId>>();
@@ -160,7 +159,7 @@ export function authorOverviewTeachingOrderFragment(input: {
       nodeIndexDigest: input.envelope.nodeIndexDigest,
     },
     authoringRevision: input.envelope.authoringRevision,
-    evidenceRefs: ['openspec/changes/adopt-engineering-prerequisites-into-domain-teaching/proposal.md'],
+    evidenceRefs: ['openspec/specs/domain-teaching-order-coverage/spec.md'],
     coreNodes: [...coreIds].sort().map((canonicalId) => ({
       canonicalId,
       domainKeys: [...(domainByNode.get(canonicalId) ?? domainKeys)].sort() as RegisteredPeerDomainId[],
@@ -176,19 +175,32 @@ export function authorOverviewTeachingOrderFragment(input: {
   return { authoring, plan };
 }
 
-function relationAuthoring(edge: PlannedTeachingOrderEdge) {
+function relationAuthoring(
+  edge: PlannedTeachingOrderEdge & {
+    evidenceRefs?: string[];
+    curatorId?: string | null;
+    curatorRationale?: string | null;
+    authorDecisionId?: string | null;
+  },
+) {
   return {
     sourceNodeId: edge.sourceNodeId,
     targetNodeId: edge.targetNodeId,
     relationType: edge.relationType,
     strength: edge.strength,
     domainKeys: edge.domainKeys,
-    evidenceRefs: edge.engineeringRelationId ? [edge.engineeringRelationId] : [],
-    curatorId: 'overview-teaching-order',
-    curatorRationale: edge.provenance === 'engineering-post-requisite'
-      ? 'Adopted from engineering post-requisite knowledge order'
-      : 'Extension edge that weakly connects the domain-default overview',
-    authorDecisionId: edge.engineeringRelationId ?? `extension:${edge.sourceNodeId}->${edge.targetNodeId}`,
+    evidenceRefs: edge.engineeringRelationId
+      ? [edge.engineeringRelationId]
+      : [...(edge.evidenceRefs ?? [])],
+    curatorId: edge.curatorId ?? 'overview-teaching-order',
+    curatorRationale: edge.curatorRationale ?? (
+      edge.provenance === 'engineering-post-requisite'
+        ? 'Adopted from engineering post-requisite knowledge order'
+        : 'Extension edge that weakly connects the domain-default overview'
+    ),
+    authorDecisionId: edge.authorDecisionId
+      ?? edge.engineeringRelationId
+      ?? `extension:${edge.sourceNodeId}->${edge.targetNodeId}`,
   };
 }
 
@@ -224,6 +236,12 @@ export function stageOverviewTeachingOrder(repoRoot: string): {
     sourceNodeId: relation.sourceNodeId,
     targetNodeId: relation.targetNodeId,
     relationType: relation.relationType,
+    strength: relation.strength,
+    domainKeys: relation.domainKeys,
+    evidenceRefs: relation.evidenceRefs,
+    curatorId: relation.curatorId,
+    curatorRationale: relation.curatorRationale,
+    authorDecisionId: relation.authorDecisionId,
   })));
   const overviews = readDomainOverviews(repoRoot);
   const envelopeNodes = [...new Set([
@@ -239,7 +257,7 @@ export function stageOverviewTeachingOrder(repoRoot: string): {
   });
   const { authoring } = authorOverviewTeachingOrderFragment({
     overviews,
-    engineeringRelations: readEngineeringRelationsFromFamilyShards(repoRoot),
+    engineeringRelations: readEngineeringRelationsFromAuthoritySnapshot(repoRoot),
     existingTeaching,
     envelope,
   });

@@ -19,16 +19,16 @@
     "nodeIndexDigest": "76dd52d899dc2c9b34caf0c33780226f496637c2f927fffeaca72296fcd7663d"
   },
   "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
-  "sourceInventoryDigest": "9b1b377e9a5ad2916e9b70c8a0f604dfac62b2af3d03ee56830ace84ff82e969",
+  "sourceInventoryDigest": "5d2bc6141ba278944c2e329499ef6af36885bcde5944bb0547ef9810615049ff",
   "authorityDigest": "a23214c685bbb56d21c89c027c53b3c4157607e8d5ad5fe290a5e092756fe7cc",
   "fragments": [
     {
       "order": 0,
-      "fragmentId": "dtf-e83c9cadadab9a5a95d866e2915a48ad5ab344b4d2f32ba37fc39b19a8c64c74",
+      "fragmentId": "dtf-9963204dcefeb028514ba18f9a6fa6d4c203b24e636924bc869b3e539665ebdb",
       "fragmentKey": "overview-teaching-order-v1",
       "fragmentVersion": "1",
-      "fragmentDigest": "e83c9cadadab9a5a95d866e2915a48ad5ab344b4d2f32ba37fc39b19a8c64c74",
-      "sourceInventoryDigest": "45c3569b6f2fc79669640fd42ed614c784217c0c64712e58587d3a63ce513820",
+      "fragmentDigest": "9963204dcefeb028514ba18f9a6fa6d4c203b24e636924bc869b3e539665ebdb",
+      "sourceInventoryDigest": "d11a89519382580e8309dc6d18c816b0c61ba90242718a12bd071d5b78a204c8",
       "domainKeys": [
         "classical-control-design",
         "discrete-time-control-analysis",
@@ -53,7 +53,7 @@
       "domainId": "classical-control-design",
       "coverage": "available",
       "coreNodeCount": 103,
-      "relationCount": 102,
+      "relationCount": 104,
       "uncoveredCoreNodeCount": 0,
       "note": "该领域已发布可用的教学关系覆盖"
     },
@@ -77,7 +77,7 @@
       "domainId": "frequency-domain-analysis",
       "coverage": "available",
       "coreNodeCount": 124,
-      "relationCount": 123,
+      "relationCount": 124,
       "uncoveredCoreNodeCount": 0,
       "note": "该领域已发布可用的教学关系覆盖"
     },
@@ -133,7 +133,7 @@
       "domainId": "root-locus",
       "coverage": "available",
       "coreNodeCount": 85,
-      "relationCount": 84,
+      "relationCount": 85,
       "uncoveredCoreNodeCount": 0,
       "note": "该领域已发布可用的教学关系覆盖"
     },
@@ -141,7 +141,7 @@
       "domainId": "stability-analysis",
       "coverage": "available",
       "coreNodeCount": 35,
-      "relationCount": 34,
+      "relationCount": 37,
       "uncoveredCoreNodeCount": 0,
       "note": "该领域已发布可用的教学关系覆盖"
     },
@@ -157,7 +157,7 @@
       "domainId": "system-modeling",
       "coverage": "available",
       "coreNodeCount": 273,
-      "relationCount": 272,
+      "relationCount": 274,
       "uncoveredCoreNodeCount": 0,
       "note": "该领域已发布可用的教学关系覆盖"
     },
@@ -165,20 +165,20 @@
       "domainId": "time-domain-analysis",
       "coverage": "available",
       "coreNodeCount": 153,
-      "relationCount": 152,
+      "relationCount": 153,
       "uncoveredCoreNodeCount": 0,
       "note": "该领域已发布可用的教学关系覆盖"
     }
   ],
   "coreNodeCount": 1555,
-  "relationCount": 1540,
+  "relationCount": 1545,
   "gateStatus": "PUBLISHED",
   "gatePassed": true,
   "sourceHashes": {
-    "fragments": "d78633d55f3f8719407a3ced57e324c3e719f651be14a83d3860c3ffdf41b048",
-    "sourceInventory": "9b1b377e9a5ad2916e9b70c8a0f604dfac62b2af3d03ee56830ace84ff82e969",
-    "body": "5e217bf9a19360fb8b6eebd52a42d77a059fbee6ca577a55efa0ef75a4a291a0"
+    "fragments": "7d3f024755495f1ed7424d88e82150efe19b93ed1e87a2e437470b193c1f6b34",
+    "sourceInventory": "5d2bc6141ba278944c2e329499ef6af36885bcde5944bb0547ef9810615049ff",
+    "body": "62f139142d47a5273cd6bf22df189846b07b1ee3150460acf6693d0f89889455"
   },
-  "projectionId": "proj-5ee7ae6c2bf2b783b4152c6c9b0805364ad58b25c120931af872c4059ad5e110",
-  "projectionHash": "5ee7ae6c2bf2b783b4152c6c9b0805364ad58b25c120931af872c4059ad5e110"
+  "projectionId": "proj-9a6cf81646400fcb8d84ec04daaff7c81207f0ebd0befd1f1cbfade6901c7e6d",
+  "projectionHash": "9a6cf81646400fcb8d84ec04daaff7c81207f0ebd0befd1f1cbfade6901c7e6d"
 }

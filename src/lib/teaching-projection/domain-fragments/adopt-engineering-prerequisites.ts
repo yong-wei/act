@@ -94,6 +94,17 @@ function edgeKey(sourceNodeId: string, targetNodeId: string): string {
   return `${sourceNodeId}\u001f${targetNodeId}`;
 }
 
+function uniquePreserveOrder(ids: readonly string[]): string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const id of ids) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ordered.push(id);
+  }
+  return ordered;
+}
+
 export function planOverviewTeachingOrder(input: {
   overviews: ReadonlyArray<{ domainId: RegisteredPeerDomainId; nodeIds: readonly string[] }>;
   engineeringRelations: ReadonlyArray<{
@@ -134,9 +145,10 @@ export function planOverviewTeachingOrder(input: {
   );
 
   for (const overview of input.overviews) {
-    const nodeIds = [...new Set(overview.nodeIds)].sort();
+    const nodeIds = uniquePreserveOrder(overview.nodeIds);
     if (nodeIds.length === 0) continue;
     const members = new Set(nodeIds);
+    const catalogIndex = new Map(nodeIds.map((id, index) => [id, index]));
     const forest = createUnionFind(nodeIds);
 
     for (const edge of existingPrereq) {
@@ -170,8 +182,7 @@ export function planOverviewTeachingOrder(input: {
       components.set(root, membersOfRoot);
     }
     const orderedComponents = [...components.values()]
-      .map((ids) => ids.sort())
-      .sort((left, right) => (left[0] < right[0] ? -1 : left[0] > right[0] ? 1 : 0));
+      .sort((left, right) => (catalogIndex.get(left[0]) ?? 0) - (catalogIndex.get(right[0]) ?? 0));
     for (let index = 1; index < orderedComponents.length; index += 1) {
       const sourceNodeId = orderedComponents[index - 1][0]!;
       const targetNodeId = orderedComponents[index][0]!;
@@ -204,6 +215,25 @@ export function planOverviewTeachingOrder(input: {
         `domain ${overview.domainId} overview is not weakly connected`,
       );
     }
+  }
+
+  const overviewUnion = new Set(input.overviews.flatMap((overview) => overview.nodeIds));
+  for (const relation of input.engineeringRelations) {
+    if (!isEngineeringPostRequisitePredicate(relation.predicate)) continue;
+    if (relation.sourceId === relation.targetId) continue;
+    if (!overviewUnion.has(relation.sourceId) || !overviewUnion.has(relation.targetId)) continue;
+    requiredPairs.push({ sourceNodeId: relation.sourceId, targetNodeId: relation.targetId });
+    mark({
+      sourceNodeId: relation.sourceId,
+      targetNodeId: relation.targetId,
+      relationType: 'PREREQUISITE',
+      strength: 'REQUIRED',
+      domainKeys: input.overviews
+        .filter((overview) => overview.nodeIds.includes(relation.sourceId) || overview.nodeIds.includes(relation.targetId))
+        .map((overview) => overview.domainId),
+      provenance: 'engineering-post-requisite',
+      engineeringRelationId: relation.id,
+    });
   }
 
   const requiredNodes = [...new Set(requiredPairs.flatMap((edge) => [edge.sourceNodeId, edge.targetNodeId]))];

@@ -66,6 +66,68 @@ describe('planOverviewTeachingOrder', () => {
     })).toThrow(OverviewTeachingOrderError);
   });
 
+  it('orients extension edges along domain-default catalog order, not canonical id sort', () => {
+    const plan = planOverviewTeachingOrder({
+      overviews: [{ domainId: 'system-modeling', nodeIds: ['z', 'a'] }],
+      engineeringRelations: [],
+      existingTeaching: [],
+    });
+    expect(plan.extensions).toEqual([
+      expect.objectContaining({
+        sourceNodeId: 'z',
+        targetNodeId: 'a',
+        strength: 'RECOMMENDED',
+        provenance: 'teaching-extension',
+      }),
+    ]);
+  });
+
+  it('keeps existing recommended teaching strength and cross-domain endpoints', () => {
+    const commit = 'a'.repeat(40);
+    const binding = {
+      releaseId: 'ctr:release:eng-domain-teaching-fixture-v1',
+      releaseSetId: 'set-fixture-domain-teaching-v1',
+      snapshotId: `snap-${'b'.repeat(64)}`,
+      snapshotHash: 'b'.repeat(64),
+    };
+    const nodes = ['a', 'b', 'c'].map((canonicalId) => ({ canonicalId, lifecycleStatus: 'active' }));
+    const envelope = createDomainTeachingAuthorityEnvelope({
+      binding,
+      sourceDatasetHash: 'd'.repeat(64),
+      captureRevision: commit,
+      authoringRevision: commit,
+      nodes,
+    });
+    const { authoring } = authorOverviewTeachingOrderFragment({
+      overviews: [
+        { domainId: 'system-modeling', nodeIds: ['a', 'b'] },
+        { domainId: 'root-locus', nodeIds: ['c'] },
+      ],
+      engineeringRelations: [],
+      existingTeaching: [{
+        sourceNodeId: 'a',
+        targetNodeId: 'c',
+        relationType: 'PREREQUISITE',
+        strength: 'RECOMMENDED',
+        domainKeys: ['system-modeling', 'root-locus'],
+        evidenceRefs: ['prior-edge'],
+        curatorId: 'prior-curator',
+        curatorRationale: 'reviewed prior teaching edge',
+        authorDecisionId: 'prior-1',
+      }],
+      envelope,
+    });
+    expect(authoring.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        sourceNodeId: 'a',
+        targetNodeId: 'c',
+        strength: 'RECOMMENDED',
+        evidenceRefs: ['prior-edge'],
+        curatorId: 'prior-curator',
+      }),
+    ]));
+  });
+
   it('connects a previously empty overview with extension edges', () => {
     const plan = planOverviewTeachingOrder({
       overviews: [{
@@ -118,13 +180,13 @@ describe('planOverviewTeachingOrder', () => {
     } = await import('../teaching-projection/domain-fragments/adopt-engineering-prerequisites');
     const {
       readDomainOverviews,
-      readEngineeringRelationsFromFamilyShards,
+      readEngineeringRelationsFromAuthoritySnapshot,
     } = await import('../teaching-projection/domain-fragments/build-overview-teaching-order');
     const overviews = readDomainOverviews(process.cwd());
     expect(overviews.length).toBeGreaterThanOrEqual(15);
     const result = plan({
       overviews,
-      engineeringRelations: readEngineeringRelationsFromFamilyShards(process.cwd()),
+      engineeringRelations: readEngineeringRelationsFromAuthoritySnapshot(process.cwd()),
       existingTeaching: [],
     });
     const emptyDomains = ['discrete-time-control-analysis', 'state-space-control-analysis-and-design'];
@@ -169,11 +231,22 @@ describe('planOverviewTeachingOrder', () => {
       && row.relationCount > 0
       && row.uncoveredCoreNodeCount === 0
     ))).toBe(true);
+    const fragmentRef = JSON.parse(
+      readFileSync(path.join(overlayRoot, 'releases', pointer.projectionId, 'composed-manifest.json'), 'utf8'),
+    ) as { fragments: Array<{ fragmentId: string }> };
+    const published = JSON.parse(
+      readFileSync(
+        path.join(overlayRoot, 'releases', pointer.projectionId, 'fragments', `${fragmentRef.fragments[0]!.fragmentId}.json`),
+        'utf8',
+      ),
+    ) as { relations: Array<{ strength: string; evidenceRefs: string[] }> };
+    expect(published.relations.some((row) => row.strength === 'RECOMMENDED')).toBe(true);
     const builder = readFileSync(
       path.resolve(process.cwd(), 'src/lib/teaching-projection/domain-fragments/build-overview-teaching-order.ts'),
       'utf8',
     );
-    expect(builder).toContain('readEngineeringRelationsFromFamilyShards');
+    expect(builder).toContain('LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE');
+    expect(builder).not.toContain('readEngineeringRelationsFromFamilyShards');
     expect(builder).not.toMatch(/writeFileSync\(/);
     const stageRuntime = readFileSync(
       path.resolve(process.cwd(), 'src/lib/authority-domain-shards/stage-domain-teaching-runtime.ts'),
