@@ -9,7 +9,6 @@ import {
   PROTECTED_LEGACY_PATHS,
   RAW_BUSINESS_LOADER_DENOMINATOR,
   RETIRED_RAW_BUSINESS_LOADERS,
-  RETIRED_SERVER_COMPATIBILITY_LOADERS,
   RETIRED_TS_STEPPER_EXPORTS,
   RETIRED_TS_STEPPER_MODULES,
   ROLLBACK_COMMIT,
@@ -26,8 +25,13 @@ function readRepo(relative: string) {
 describe('legacy practice numeric retirement', () => {
   it('represents all nine raw loaders and deletes the retired paths', () => {
     expect(RAW_BUSINESS_LOADER_DENOMINATOR).toHaveLength(9);
+    // 三个 server compatibility loader 的退役路径是固定测试事实（登记表已删除）。
     expect(RETIRED_RAW_BUSINESS_LOADERS.map((item) => item.path)).toEqual(
-      expect.arrayContaining(RETIRED_SERVER_COMPATIBILITY_LOADERS),
+      expect.arrayContaining([
+        'src/resources/control-system/analysis/control-engine-server-runtime.ts',
+        'src/resources/simulations/rust/control-engine-server-runtime.ts',
+        'src/resources/interactive-learning/control-odyssey/engine/control-engine-server-runtime.ts',
+      ]),
     );
     for (const item of RETIRED_RAW_BUSINESS_LOADERS) {
       expect(existsSync(path.join(repoRoot, item.path)), item.path).toBe(false);
