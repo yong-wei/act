@@ -334,26 +334,15 @@ describe('判别力报告（#1952 fixture 端到端）', () => {
     expect(review.disagreements).toEqual([]);
   });
 
-  it('双人复核记录：一致率与分歧（pending-teacher）；无效条目忽略', async () => {
+  it('双人复核记录：完整子集才 reported；重复行不加权；不完整或非法记录保持 pending', async () => {
     await runGradedFixture('expert-reported');
     const runDir = konlingFairExperimentRunDir(root, 'expert-reported');
     const subset = selectKonlingFairExperimentExpertSubset({
       bank: KONLING_FAIR_EXPERIMENT_BANK_V2, seed: 20260903,
     });
     fs.mkdirSync(path.join(runDir, 'expert-review'), { recursive: true });
-    fs.writeFileSync(path.join(runDir, 'expert-review', 'records.json'), JSON.stringify({
-      records: [
-        { itemId: subset[0], reviewerA: 'correct', reviewerB: 'correct' },
-        { itemId: subset[1], reviewerA: 'correct', reviewerB: 'minor-flaw' },
-        { itemId: subset[2], reviewerA: 'major-error', reviewerB: 'major-error' },
-        // 清单外与非法 verdict 的条目不参与统计。
-        { itemId: 'not-in-subset', reviewerA: 'correct', reviewerB: 'correct' },
-        { itemId: subset[3], reviewerA: 'correct', reviewerB: 123 },
-        // 重复行（人工录入错误）按题项只计一次，不得加权一致率。
-        { itemId: subset[0], reviewerA: 'correct', reviewerB: 'correct' },
-      ],
-    }));
-    const reaggregated = aggregateKonlingFairExperiment({
+    const recordsPath = path.join(runDir, 'expert-review', 'records.json');
+    const reaggregate = () => aggregateKonlingFairExperiment({
       root,
       runId: 'expert-reported',
       bank: KONLING_FAIR_EXPERIMENT_BANK_V2,
@@ -362,16 +351,45 @@ describe('判别力报告（#1952 fixture 端到端）', () => {
       calibers: ['structure-alias.v2'],
       writeOfficial: false,
     });
-    expect(reaggregated.status).toBe('complete');
-    const review = reaggregated.officialSummary!.expertReview;
-    expect(review.status).toBe('reported');
-    expect(review.agreementProportion).toBe(2 / 3);
-    expect(review.disagreements).toEqual([{
-      itemId: subset[1],
-      reviewerA: 'correct',
-      reviewerB: 'minor-flaw',
-      resolution: 'pending-teacher',
-    }]);
+
+    // 完整子集（6 题）：2 分歧 + 4 一致；重复行与清单外条目不加权。
+    const full = subset.map((itemId, index) => ({
+      itemId,
+      reviewerA: 'correct' as const,
+      reviewerB: index < 2 ? ('minor-flaw' as const) : ('correct' as const),
+    }));
+    fs.writeFileSync(recordsPath, JSON.stringify({
+      records: [
+        ...full,
+        { itemId: subset[0], reviewerA: 'correct', reviewerB: 'correct' },
+        { itemId: 'not-in-subset', reviewerA: 'correct', reviewerB: 'correct' },
+      ],
+    }));
+    const reported = reaggregate();
+    expect(reported.status).toBe('complete');
+    expect(reported.officialSummary!.expertReview.status).toBe('reported');
+    expect(reported.officialSummary!.expertReview.agreementProportion).toBe(4 / 6);
+    expect(reported.officialSummary!.expertReview.disagreements).toEqual(
+      subset.slice(0, 2).map((itemId) => ({
+        itemId, reviewerA: 'correct', reviewerB: 'minor-flaw', resolution: 'pending-teacher',
+      })),
+    );
+
+    // 子集不完整（缺一题）：不发布部分一致率，保持 pending。
+    fs.writeFileSync(recordsPath, JSON.stringify({ records: full.slice(0, 5) }));
+    const partial = reaggregate();
+    expect(partial.status).toBe('complete');
+    expect(partial.officialSummary!.expertReview.status).toBe('pending');
+    expect(partial.officialSummary!.expertReview.agreementProportion).toBeNull();
+    expect(partial.officialSummary!.expertReview.disagreements).toEqual([]);
+
+    // 某题 verdict 非法被过滤 → 子集不完整，同样 pending。
+    fs.writeFileSync(recordsPath, JSON.stringify({
+      records: [...full.slice(0, 5), { itemId: subset[5], reviewerA: 'correct', reviewerB: 123 }],
+    }));
+    const invalid = reaggregate();
+    expect(invalid.officialSummary!.expertReview.status).toBe('pending');
+    expect(invalid.officialSummary!.expertReview.agreementProportion).toBeNull();
   });
 
   it('二元 rubric 向后兼容：V1 运行 auditDimensions 为 null、分层为空', async () => {

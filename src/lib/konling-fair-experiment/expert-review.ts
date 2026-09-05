@@ -86,8 +86,10 @@ export function buildKonlingFairExperimentExpertReviewReport(input: {
   for (const entry of entries as unknown[]) {
     if (isValidEntry(entry) && !byItem.has(entry.itemId)) byItem.set(entry.itemId, entry);
   }
+  // 一致率以完整子集为前提（spec scenario：双人判定 exist for the subset）：
+  // 题项缺失或记录非法被过滤 → 子集不完整 → pending，不发布部分一致率。
+  if (byItem.size < input.subsetItemIds.length) return pending;
   const valid = [...byItem.values()];
-  if (valid.length === 0) return pending;
 
   const disagreements = valid
     .filter((entry) => entry.reviewerA !== entry.reviewerB)
