@@ -2905,12 +2905,19 @@ async function captureActiveAuthorityVisualMatrix(
       const apiLog = await probe.readLog();
       const activeSummary = latestApiSummary(apiLog, '/api/knowledge/shards/active');
       assertActiveApiSummary(activeSummary, `${state.name}:visual-matrix`);
+      // Legacy 视图常驻隐藏挂载，root 预载属于预期；其余 legacy/候选 graph API 仍被禁止。
       if (apiLog.some((entry) => (
         entry.path === '/api/knowledge/graph/active'
-        || entry.path === '/api/knowledge/graph'
         || entry.path === '/api/knowledge/graph/v2'
+        || (entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root'))
       ))) {
-        throw new Error(`active visual matrix requested a non-shard graph API in ${state.name}`);
+        const observed = apiLog
+          .filter((entry) => entry.path === '/api/knowledge/graph/active'
+            || entry.path === '/api/knowledge/graph/v2'
+            || (entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root')))
+          .map((entry) => `${entry.path}${entry.search}`)
+          .join(', ');
+        throw new Error(`active visual matrix requested a non-shard graph API in ${state.name}: ${observed}`);
       }
       const interactionEvidence = state.beforeShot
         ? await state.beforeShot(page, probe) ?? undefined
