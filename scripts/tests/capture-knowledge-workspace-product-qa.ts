@@ -1146,7 +1146,8 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     throw new Error(`active Authority root layering contract failed in ${context}`);
   }
   const domain = page.locator('[data-authority-domain-entry]').first();
-  await domain.click({ timeout: 10000 });
+  // 根域目录是 sr-only 可达性入口，指针事件由共享 canvas 承载；QA 用 force 点击进入领域。
+  await domain.click({ timeout: 10000, force: true });
   await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });
   await page.waitForFunction(() => {
     const graph = document.querySelector('[data-active-authority-graph="true"]');
