@@ -2,11 +2,11 @@
   "change": "redesign-knowledge-workspace-tools-and-inspector",
   "issue": 487,
   "refreshedBy": "standardize-knowledge-graph-floating-panels",
-  "capturedAt": "2026-09-05T11:34:35.005Z",
-  "headCommit": "d5b893bd8af2c97edf5da9ffea0ada8ab6294736",
+  "capturedAt": "2026-09-05T12:24:47.428Z",
+  "headCommit": "980d06730e4f9fd8e49c615f6f8c8e11f7a9c77e",
   "captureRevision": {
-    "commitSha": "d5b893bd8af2c97edf5da9ffea0ada8ab6294736",
-    "treeSha": "289c6da253333a6aa67e6df3cccf5269efb62df5"
+    "commitSha": "980d06730e4f9fd8e49c615f6f8c8e11f7a9c77e",
+    "treeSha": "26473bad17460a376815e4ad643e2b055e24daa6"
   },
   "baseUrl": "http://127.0.0.1:3002",
   "selectedNodeId": "稳定性_1_7288b4ea",
@@ -40,7 +40,7 @@
       }
     ],
     "mobileInspector": {
-      "focusTrapped": true,
+      "focusTrapped": false,
       "escapeClosed": false,
       "focusReturnedToCanvas": false,
       "dockSafeArea": "bottom-padding"
@@ -161,84 +161,6 @@
         "width": 1440,
         "height": 960,
         "htmlClass": "light"
-      }
-    },
-    {
-      "name": "mobile-320-selected-sheet-dark",
-      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-selected-sheet-dark.png",
-      "url": "http://127.0.0.1:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
-      "state": "mobile selected node sheet with graph reachable above collapsed tools",
-      "theme": "dark",
-      "viewport": "320x800",
-      "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
-      "concept": "knowledge graph floating panel standardization",
-      "markers": {
-        "commandSystemState": "closed",
-        "activeDesktopTool": "closed",
-        "activeMobileTool": "chapter-directory",
-        "desktopToolPanel": null,
-        "inspectorMode": "floating-right-edge",
-        "inspectorResponsive": "desktop-floating-mobile-sheet",
-        "inspectorFocusContract": "mobile-initial-focus-escape-return",
-        "inspectorDockSafeArea": "bottom-padding",
-        "inspectorSections": [
-          "header",
-          "semantic-metadata",
-          "summary",
-          "domain-membership",
-          "evidence-sources",
-          "learning-actions"
-        ],
-        "inspectorAccordion": [
-          {
-            "section": "learning-actions",
-            "expanded": "false"
-          }
-        ],
-        "mobileToolState": "closed",
-        "mobileLayoutControls": [],
-        "selectedNodeId": "",
-        "visibleNodeCount": "",
-        "visibleLinkCount": "",
-        "width": 320,
-        "height": 800,
-        "htmlClass": "dark"
-      }
-    },
-    {
-      "name": "mobile-320-view-layout-dark",
-      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
-      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
-      "state": "mobile view and layout tool opened with graph controls available",
-      "theme": "dark",
-      "viewport": "320x800",
-      "handoff": "design-handoff.md#Knowledge Workspace Floating Panels",
-      "concept": "knowledge graph floating panel standardization",
-      "markers": {
-        "commandSystemState": "closed",
-        "activeDesktopTool": "closed",
-        "activeMobileTool": "view-layout",
-        "desktopToolPanel": null,
-        "inspectorMode": null,
-        "inspectorResponsive": null,
-        "inspectorFocusContract": null,
-        "inspectorDockSafeArea": null,
-        "inspectorSections": [],
-        "inspectorAccordion": [],
-        "mobileToolState": "open",
-        "mobileLayoutControls": [
-          "fit-view",
-          "relayout",
-          "pin-selected",
-          "set-focus-node",
-          "clear-pins"
-        ],
-        "selectedNodeId": "",
-        "visibleNodeCount": "",
-        "visibleLinkCount": "",
-        "width": 320,
-        "height": 800,
-        "htmlClass": "dark"
       }
     }
   ]
