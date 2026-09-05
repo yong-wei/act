@@ -61,6 +61,8 @@ export interface KonlingCitationWhitelistEnforcementResult {
 export function enforceKonlingCitationNumberWhitelist(input: {
   answer: string;
   citations: ReadonlyArray<{ displayNumber: number | null }>;
+  /** 删除伪编号后对所在断言行原地降级（#2017 review：仅删标记不构成待核验呈现）。 */
+  demoteClaim?: (line: string) => string;
 }): KonlingCitationWhitelistEnforcementResult {
   const assigned = new Set(
     input.citations
@@ -70,16 +72,36 @@ export function enforceKonlingCitationNumberWhitelist(input: {
   const codeRanges = markdownCodeRanges(input.answer);
   const removedMarkers: string[] = [];
   let demotedClaimCount = 0;
+  const lineRewrites = new Map<number, { end: number; text: string }>();
 
-  const body = input.answer.replace(CITATION_NUMBER_MARKER, (raw, value: string, offset: number) => {
+  let body = input.answer.replace(CITATION_NUMBER_MARKER, (raw, value: string, offset: number) => {
     const number = Number(value);
     if (assigned.has(number)) return raw;
     if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return raw;
     if (isTechnicalIndexContext(input.answer, offset, assigned.has(number))) return raw;
     if (!removedMarkers.includes(raw)) removedMarkers.push(raw);
     demotedClaimCount += 1;
+    if (input.demoteClaim) {
+      // 记录标记所在行区间，替换后统一对该行断言原地降级（两遍法，
+      // 避免 replace 回调内嵌套改写导致索引漂移）。
+      const lineStart = input.answer.lastIndexOf('\n', offset) + 1;
+      const lineEnd = input.answer.indexOf('\n', offset) === -1
+        ? input.answer.length
+        : input.answer.indexOf('\n', offset);
+      if (!lineRewrites.has(lineStart)) {
+        const line = input.answer.slice(lineStart, lineEnd);
+        // 先剥除本行内全部伪编号标记再交 demoteClaim，避免标注后残留 [9]。
+        lineRewrites.set(lineStart, {
+          end: lineEnd,
+          text: input.demoteClaim(line.replace(/\s*\[\d+\]/g, '')),
+        });
+      }
+    }
     return '';
   });
+  for (const [start, rewrite] of [...lineRewrites.entries()].sort((left, right) => right[0] - left[0])) {
+    body = body.slice(0, start) + rewrite.text + body.slice(rewrite.end);
+  }
 
   return {
     body,
@@ -95,9 +117,9 @@ export interface KonlingAnswerUnitCoverageEnforcementResult {
   coverageRepaired: boolean;
 }
 
-const COVERAGE_REPAIR_NOTICE = [
-  '> 证据缺口说明：以下结论缺少可核验引用，按待核验处理，不作为已核验事实。',
-].join('\n');
+const COVERAGE_REPAIR_NOTICE = '[引用缺口：本节存在缺少可核验引用的结论，按待核验处理，不作为已核验事实。]';
+const NORMATIVE_COVERAGE_REPAIR_NOTICE = '[引用缺口：本节存在缺少可核验引用的规范类结论，按待核验处理；缺失的引用不构成核验，不得作为已核验结论使用。]';
+const DEMOTED_CLAIM_SUFFIX = '[引用缺口：待核验]';
 
 /**
  * 答案单元覆盖的有界修复（一次、确定性）：必需证据单元存在覆盖缺口时
@@ -116,7 +138,7 @@ export function enforceAnswerUnitCitationCoverage(input: {
     return { body: input.answer, coverageRepaired: false };
   }
   const notice = input.normativeGuidance === 'verification-required'
-    ? `${COVERAGE_REPAIR_NOTICE}\n> 规范类结论须经权威来源核验后才能作为已核验结论使用；当前缺失的引用不构成核验。`
+    ? NORMATIVE_COVERAGE_REPAIR_NOTICE
     : COVERAGE_REPAIR_NOTICE;
   return {
     body: `${input.answer.trimEnd()}\n\n${notice}`,

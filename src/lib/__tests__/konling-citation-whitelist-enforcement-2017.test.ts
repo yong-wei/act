@@ -95,7 +95,7 @@ describe('enforceAnswerUnitCitationCoverage (#2017)', () => {
     });
 
     expect(result.coverageRepaired).toBe(true);
-    expect(result.body).toContain('证据缺口');
+    expect(result.body).toContain('[引用缺口：');
     expect(result.body).toContain('待核验');
   });
 
@@ -151,5 +151,40 @@ describe('snapshot-missing fail-open guard (#2017 review)', () => {
     expect(isDirectVerifiedSupportCitation({
       citationTargetId: 't1', verified: true, href: '/x', answerRelevanceBasis: 'query-exact',
     })).toBe(true);
+  });
+});
+
+describe('claim demotion and scan-exempt annotation (#2017 review R2)', () => {
+  it('demotes the claim line in place when a fake number is removed', () => {
+    const result = enforceKonlingCitationNumberWhitelist({
+      answer: '根一定在左半平面[9]。',
+      citations: [citation()],
+      demoteClaim: (line) => `${line.trimEnd()}[引用缺口：待核验]`,
+    });
+
+    expect(result.downgraded).toBe(true);
+    expect(result.body).toBe('根一定在左半平面。[引用缺口：待核验]');
+    expect(result.body).not.toContain('[9]');
+    // 标注行可被 scan 识别为结构单元（不进覆盖分母）。
+    expect(result.body).toContain('[引用缺口：');
+  });
+
+  it('coverage repair notice is exempt from the evidence-required denominator', async () => {
+    const result = enforceAnswerUnitCitationCoverage({
+      answer: '闭环结论缺少引用支撑。',
+      requiredUnitCount: 1,
+      coveredUnitCount: 0,
+    });
+    expect(result.coverageRepaired).toBe(true);
+    // 说明行以 [引用缺口： 开头——scanKonlingAnswerUnits 的结构行判定
+    // 显式豁免该前缀，修复不会人为抬高 requiredUnitCount。
+    expect(result.body).toContain('[引用缺口：');
+    const { scanKonlingAnswerUnits } = await import('@/lib/konling-answer-unit-scan');
+    const scan = scanKonlingAnswerUnits(result.body, [citation()], 'fact-explanation');
+    // 标注行可以被 scan 收集为结构单元，但必须 substantive=false——
+    // 不进入 evidence-required 分母（修复不会人为抬高 requiredUnitCount）。
+    const annotatedUnits = scan.units.filter((unit) => unit.unit.includes('[引用缺口：'));
+    expect(annotatedUnits.length).toBe(1);
+    expect(annotatedUnits[0].substantive).toBe(false);
   });
 });

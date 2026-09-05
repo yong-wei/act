@@ -94,6 +94,9 @@ function stripTrailingCitationMarkers(value: string): string {
 
 function isStructuralAnswerUnitLine(trimmedUnit: string): boolean {
   const withoutMarkers = stripTrailingCitationMarkers(trimmedUnit);
+  // #2017：引用缺口降级说明是机器标注（非学习者内容），不得进入
+  // evidence-required 分母——否则每次修复都会人为压低覆盖率。
+  if (withoutMarkers.startsWith('[引用缺口：')) return true;
   if (/^-{3,}$/.test(withoutMarkers) || /^\*{3,}$/.test(withoutMarkers) || /^_{3,}$/.test(withoutMarkers)) {
     return true;
   }

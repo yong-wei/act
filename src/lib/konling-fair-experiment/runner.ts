@@ -169,6 +169,9 @@ export async function runKonlingFairExperiment(input: {
               const whitelist = enforceKonlingCitationNumberWhitelist({
                 answer: response.result.answer,
                 citations: finalCitations,
+                // 删除伪编号后对所在断言行原地降级——仅删标记不构成
+                // 「按待核验呈现」（#2017 review P1）。
+                demoteClaim: (line) => `${line.trimEnd()}[引用缺口：待核验]`,
               });
               finalAnswer = whitelist.body;
               if (whitelist.downgraded) {
