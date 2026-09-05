@@ -701,6 +701,22 @@ describe('policy bundle core diversity fixture', () => {
     expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-count-below-target');
   });
 
+  it('rejects policy family requests exceeding the target option count', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    expect(() => planLearningPath({
+      ...input,
+      policyBundle: {
+        families: [
+          'foundation-remediation',
+          'simulation-driven',
+          'preference-matched',
+          'sprint-correction',
+        ],
+        overlapThreshold: 0.6,
+      },
+    })).toThrow(/exceeding targetOptionCount 3/);
+  });
+
   it('keeps three policy options meaningfully distinct when alternative core teaching resources exist', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
     let plannerInvocationCount = 0;

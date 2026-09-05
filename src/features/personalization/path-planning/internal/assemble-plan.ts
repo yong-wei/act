@@ -5031,6 +5031,12 @@ function buildPolicyBundle(
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const omittedPolicyReasons: string[] = [];
   const targetOptionCount = registeredGoal?.starterPathPolicy.targetOptionCount;
+  if (targetOptionCount !== undefined && families.length > targetOptionCount) {
+    throw new Error(
+      `Adaptive path goal "${input.goal.id}" requested ${families.length} policy families, ` +
+      `exceeding targetOptionCount ${targetOptionCount}.`,
+    );
+  }
   if (targetOptionCount !== undefined && families.length < targetOptionCount) {
     omittedPolicyReasons.push('policy-option-count-below-target');
   }
