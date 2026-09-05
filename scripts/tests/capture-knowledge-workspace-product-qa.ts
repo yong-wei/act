@@ -1134,7 +1134,12 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
   }
 }
 
-async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
+async function waitForActiveReady(
+  page: Page,
+  probe: KnowledgeApiProbe,
+  context: string,
+  options: { allowLegacyGraphRequests?: boolean } = {},
+) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
   const root = page.locator('[data-authority-shard-root="true"]');
   await root.waitFor({ state: 'visible', timeout: 30000 });
@@ -1182,7 +1187,7 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     );
   }, undefined, { timeout: 30000 });
   const completedLog = await probe.readLog();
-  const forbiddenLegacyRequests = completedLog.filter((entry) => (
+  const forbiddenLegacyRequests = options.allowLegacyGraphRequests ? [] : completedLog.filter((entry) => (
     entry.path === '/api/knowledge/graph/active'
     || entry.path === '/api/knowledge/graph/v2'
     // Legacy 视图常驻隐藏挂载，active 模式仍会预载 legacy root；域展开与候选 API 仍被禁止。
@@ -1528,7 +1533,10 @@ async function openStatePage(browser: Browser, state: CaptureState, storageState
     : '[data-commercial-workspace="adaptive-path-center"]';
   await page.waitForSelector(readySelector, { timeout: 30000 });
   if (route === '/knowledge') {
-    await waitForActiveReady(page, probe, `${state.name}:active-default`);
+    await waitForActiveReady(page, probe, `${state.name}:active-default`, {
+      // legacy 目标状态通过 ?node= 深链预载 legacy 域数据属于预期行为。
+      allowLegacyGraphRequests: (state.knowledgeMode ?? 'active') === 'legacy',
+    });
     const requestedKnowledgeMode = state.knowledgeMode ?? 'active';
     if (requestedKnowledgeMode !== 'active') {
       await switchKnowledgeMode(page, requestedKnowledgeMode, state.name);
