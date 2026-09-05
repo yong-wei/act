@@ -30,7 +30,30 @@ export interface KonlingFairExperimentBankItem {
   intent: StudyQuestionIntent;
   question: string;
   referenceAnswer: string;
+  /** 分层标注（#1952，题库 V2）：难度、知识点与对抗风险类型；V1 条目缺省。 */
+  difficulty?: KonlingFairExperimentBankDifficulty;
+  topic?: string;
+  riskType?: KonlingFairExperimentBankRiskType;
 }
+
+export const KONLING_FAIR_EXPERIMENT_BANK_DIFFICULTIES = [
+  'foundational',
+  'integrative',
+  'adversarial',
+] as const;
+
+export type KonlingFairExperimentBankDifficulty = (typeof KONLING_FAIR_EXPERIMENT_BANK_DIFFICULTIES)[number];
+
+export const KONLING_FAIR_EXPERIMENT_BANK_RISK_TYPES = [
+  'false-premise',
+  'evidence-conflict',
+  'normative-currency',
+  'hidden-defect',
+  'boundary-condition',
+  'insufficient-info',
+] as const;
+
+export type KonlingFairExperimentBankRiskType = (typeof KONLING_FAIR_EXPERIMENT_BANK_RISK_TYPES)[number];
 
 export interface KonlingFairExperimentBank {
   bankVersion: string;
@@ -218,12 +241,102 @@ export interface KonlingFairExperimentOfficialSummary {
     classificationAgreement: null | (KonlingFairExperimentRateMetric & {
       byIntent: readonly KonlingFairExperimentIntentConfusion[];
     });
+    /** #1952：分级盲审五子分与天花板/地板（graded rubric 记录缺省为 null）。 */
+    auditDimensions: null | {
+      verdictDistribution: Record<KonlingFairExperimentGradedVerdictName, number>;
+      meanSubscores: Record<KonlingFairExperimentAuditDimension, number>;
+      ceilingProportion: number;
+      floorProportion: number;
+    };
   }>;
+  /** #1952：难度×意图分层结果与分层配对差值；V1 题库（无分层标注）为空数组。 */
+  stratified: {
+    layers: Array<{
+      difficulty: KonlingFairExperimentBankDifficulty;
+      intent: StudyQuestionIntent;
+      itemCount: number;
+      structure: Record<string, KonlingFairExperimentRateMetric>;
+      meanSubscores: Record<KonlingFairExperimentAuditDimension, number> | null;
+    }>;
+    stratifiedDeltas: KonlingFairExperimentPairedDifference[];
+  };
+  /** #1952：教师双人复核校准（记录缺失时 pending，不阻塞正式摘要）。 */
+  expertReview: {
+    status: 'reported' | 'pending';
+    subsetItemIds: readonly string[];
+    agreementProportion: number | null;
+    disagreements: ReadonlyArray<{
+      itemId: string;
+      reviewerA: KonlingFairExperimentGradedVerdictName;
+      reviewerB: KonlingFairExperimentGradedVerdictName;
+      resolution: 'pending-teacher';
+    }>;
+  };
+  /** #1952：合成数据声明——合成实验结果不得表述为真人学习效果或教学因果结论。 */
+  syntheticDisclaimer: string;
   /** 生成行为差值：同口径、跨臂。 */
   generationDeltas: KonlingFairExperimentPairedDifference[];
   /** 评分器口径差值：同臂快照、跨口径。 */
   caliberDeltas: KonlingFairExperimentPairedDifference[];
 }
+
+export const KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS = [
+  'correct',
+  'minor-flaw',
+  'major-error',
+] as const;
+
+export type KonlingFairExperimentGradedVerdictName = (typeof KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS)[number];
+
+export const KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS = [
+  'accuracy',
+  'evidenceFaithfulness',
+  'pedagogy',
+  'structureCompliance',
+  'traceCoverage',
+] as const;
+
+export type KonlingFairExperimentAuditDimension = (typeof KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS)[number];
+
+/** #1952：分级盲审判定（rubric-graded.v2）。 */
+export interface KonlingFairExperimentGradedVerdict {
+  verdict: KonlingFairExperimentGradedVerdictName;
+  /** 0-1 总分（与 rubric.v1 的 ruleScore 同尺度，供天花板/地板统计）。 */
+  ruleScore: number;
+  subscores: Record<KonlingFairExperimentAuditDimension, number>;
+  notes: string | null;
+}
+
+/** #1952：盲审记录 result 的分级形态（judge 输出经解析器校验后落盘）。 */
+export interface KonlingFairExperimentGradedAuditResult extends KonlingFairExperimentGradedVerdict {}
+
+/**
+ * 冻结记录的分级结果守卫：verdict 枚举、ruleScore 与五子分全部为合法
+ * 0-1 有限数值才认定为 graded 记录；否则按记录现状回退二元语义或
+ * fail closed（混合形态运行视为不完整）。
+ */
+export function isKonlingFairExperimentGradedAuditResult(value: unknown): value is KonlingFairExperimentGradedAuditResult {
+  if (typeof value !== 'object' || value === null) return false;
+  const record = value as { verdict?: unknown; ruleScore?: unknown; subscores?: unknown };
+  if (!(KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS as readonly string[]).includes(String(record.verdict))) {
+    return false;
+  }
+  if (typeof record.ruleScore !== 'number' || !Number.isFinite(record.ruleScore)
+    || record.ruleScore < 0 || record.ruleScore > 1) {
+    return false;
+  }
+  if (typeof record.subscores !== 'object' || record.subscores === null) return false;
+  const subscores = record.subscores as Record<string, unknown>;
+  return KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS.every((dimension) => {
+    const score = subscores[dimension];
+    return typeof score === 'number' && Number.isFinite(score) && score >= 0 && score <= 1;
+  });
+}
+
+/** #1952：合成实验边界声明——正式摘要固定携带，禁止表述为真人学习效果或教学因果结论。 */
+export const KONLING_FAIR_EXPERIMENT_SYNTHETIC_DISCLAIMER
+  = '本实验基于合成题库与模型生成的回答进行离线评测，盲审与专家复核均为离线判定；'
+    + '结果仅描述评测配置下的系统行为差异，不得表述为真人学习者的学习效果或任何教学因果结论。';
 
 export interface KonlingFairExperimentAggregateResult {
   runId: string;
