@@ -215,8 +215,13 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
     top: center(node).y - node.bodyRadius * nodeScale(node),
     bottom: center(node).y + node.bodyRadius * nodeScale(node),
   }));
-  const viewportCenterX = input.width / 2;
-  const viewportCenterY = input.height / 2;
+  const usesScreen = input.nodes.some((node) => node.screenX != null && node.screenY != null);
+  const originX = usesScreen
+    ? input.width / 2
+    : input.nodes.reduce((sum, node) => sum + node.x * input.scale, 0) / Math.max(1, input.nodes.length);
+  const originY = usesScreen
+    ? input.height / 2
+    : input.nodes.reduce((sum, node) => sum + node.y * input.scale, 0) / Math.max(1, input.nodes.length);
   const priority = (node: KnowledgeViewportNode) => {
     if (node.id === input.selectedNodeId) return 0;
     if (node.id === input.hoveredNodeId) return 1;
@@ -224,7 +229,7 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
   };
   const distanceToCenter = (node: KnowledgeViewportNode) => {
     const point = center(node);
-    return Math.hypot(point.x - viewportCenterX, point.y - viewportCenterY);
+    return Math.hypot(point.x - originX, point.y - originY);
   };
   const ordered = [...input.nodes].sort((left, right) => priority(left) - priority(right)
     || distanceToCenter(left) - distanceToCenter(right)
@@ -360,8 +365,14 @@ function projectedBounds(input: KnowledgeViewportFitInput, scale: number) {
   const items = input.nodes.map((node) => {
     const label = placements.get(node.id)!;
     const body = node.bodyRadius * scale;
-    const labelHalfWidth = label.visible ? node.labelBounds.halfWidth * scale * label.scale : 0;
-    const labelHalfHeight = label.visible ? node.labelBounds.halfHeight * scale * label.scale : 0;
+    const includeLabel = Boolean(label.visible) && (
+      node.id === input.selectedNodeId
+      || Boolean(node.isRootBubble)
+      || Boolean(node.isKeyNode)
+      || (node.importance ?? 0) >= 4
+    );
+    const labelHalfWidth = includeLabel ? node.labelBounds.halfWidth * scale * label.scale : 0;
+    const labelHalfHeight = includeLabel ? node.labelBounds.halfHeight * scale * label.scale : 0;
     const bodyCenterX = node.x * scale;
     const bodyCenterY = node.y * scale;
     const bodyRect = {
@@ -372,7 +383,7 @@ function projectedBounds(input: KnowledgeViewportFitInput, scale: number) {
     };
     const labelCenterX = bodyCenterX + label.offsetX;
     const labelCenterY = bodyCenterY + label.offsetY;
-    const labelRect = label.visible ? {
+    const labelRect = includeLabel ? {
       left: labelCenterX - labelHalfWidth,
       right: labelCenterX + labelHalfWidth,
       top: labelCenterY - labelHalfHeight,

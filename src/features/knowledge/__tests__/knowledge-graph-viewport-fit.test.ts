@@ -422,6 +422,48 @@ describe('knowledge graph viewport fit', () => {
     expect(placed.get('edge')?.visible).toBe(false);
   });
 
+  it('ranks world-space labels by graph centroid so a translation does not change priority', () => {
+    const make = (shift: number) => ([
+      { id: 'near', x: shift, y: shift, bodyRadius: 8 },
+      { id: 'mid-a', x: shift + 20, y: shift, bodyRadius: 8 },
+      { id: 'mid-b', x: shift, y: shift + 20, bodyRadius: 8 },
+      { id: 'mid-c', x: shift - 20, y: shift, bodyRadius: 8 },
+      { id: 'far', x: shift + 400, y: shift + 400, bodyRadius: 8 },
+    ].map((node) => ({
+      ...node,
+      labelBounds: getKnowledgeNodeLabelBounds({ name: node.id, bodyRadius: node.bodyRadius }),
+    })));
+    const place = (nodes: ReturnType<typeof make>) => placeKnowledgeGraphLabels({
+      nodes, width: 96, height: 26, padding: 0, scale: 1, labelMode: 'all',
+    });
+    const origin = place(make(0));
+    const shifted = place(make(800));
+    expect(origin.get('near')?.visible).toBe(true);
+    expect(origin.get('far')?.visible).toBe(false);
+    expect(shifted.get('near')?.visible).toBe(true);
+    expect(shifted.get('far')?.visible).toBe(false);
+  });
+
+  it('does not let a far ordinary label enlarge the camera fit', () => {
+    const selected = {
+      id: 'selected', x: 0, y: 0, bodyRadius: 10, isKeyNode: true,
+      labelBounds: getKnowledgeNodeLabelBounds({ name: 'selected', bodyRadius: 10 }),
+    };
+    const ordinary = {
+      id: 'ordinary', x: 0, y: 0, bodyRadius: 10,
+      labelBounds: { halfWidth: 400, halfHeight: 200 },
+    };
+    const compact = getKnowledgeGraphViewportFit({
+      nodes: [selected], width: 320, height: 270, padding: 16, labelMode: 'all',
+      selectedNodeId: 'selected',
+    });
+    const withOrdinary = getKnowledgeGraphViewportFit({
+      nodes: [selected, ordinary], width: 320, height: 270, padding: 16, labelMode: 'all',
+      selectedNodeId: 'selected',
+    });
+    expect(withOrdinary.scale).toBeCloseTo(compact.scale, 5);
+  });
+
   it('defers compact-priority labels when no collision-free viewport placement remains', () => {
     // #1739：keyNode 钳位回退移除后，放不下的重点标签必须延迟而不是
     // 堆叠；selected/hovered 仍保留钳位兜底。
