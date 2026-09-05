@@ -43,8 +43,10 @@ const mocks = vi.hoisted(() => {
       learnerPortraitCurrentState: {
         findUnique: vi.fn(),
       },
+      simulationRun: {
+        findMany: vi.fn(),
+      },
       simulationLog: {
-        aggregate: vi.fn(),
         findMany: vi.fn(),
       },
       ethicalLog: {
@@ -532,20 +534,39 @@ describe('GET /api/user/profile', () => {
       recentTrend: '近两周稳步提升',
     });
 
+    mocks.prisma.simulationRun.findMany.mockResolvedValue([
+      {
+        id: 'run-1',
+        ownerUserId: 'student-1',
+        runKind: 'scene_simulation',
+        sourceDomain: 'simulation_scene',
+        sourceRefId: 'control-workbench:hash-1',
+        resourceId: null,
+        status: 'completed',
+        summary: {
+          metrics: { overshoot: 8.2, settlingTime: 12, valid: true },
+          evaluation: { passed: true, meetsQualityTarget: true },
+          qualityTargetMet: true,
+          runContract: { evaluationVisibility: 'preview', officialEligible: false },
+        },
+        completedAt: new Date('2026-03-20T10:00:00.000Z'),
+        createdAt: new Date('2026-03-20T10:00:00.000Z'),
+      },
+    ]);
     mocks.prisma.simulationLog.findMany.mockResolvedValue([
       {
         id: 'sim-1',
+        userId: 'student-1',
         controlMode: 'pid',
+        inputParams: { kp: 1.2 },
         createdAt: new Date('2026-03-18T09:30:00.000Z'),
         score: 89,
         duration: 1200,
+        isEthicalViolation: false,
+        odysseyRunId: null,
+        odysseyCompletedAt: null,
       },
     ]);
-    mocks.prisma.simulationLog.aggregate.mockResolvedValue({
-      _count: { _all: 25 },
-      _sum: { duration: 72000 },
-      _avg: { score: 84.4 },
-    });
 
     mocks.prisma.ethicalLog.findMany.mockResolvedValue([]);
 
@@ -793,10 +814,18 @@ describe('GET /api/user/profile', () => {
     });
     expect(body.profile.studentNumber).toBe('2023001001');
     expect(body.statistics).toMatchObject({
-      totalSimulations: 25,
-      totalSimulationTime: 72000,
-      averageScore: 84,
+      // 统一投影口径（Issue #1991）：canonical run 与 legacy log 合并计数；
+      // canonical 无 duration、无 score 时只贡献计数，不伪造时长或得分。
+      totalSimulations: 2,
+      totalSimulationTime: 1200,
+      averageScore: 89,
+      simulationEvidenceState: 'available',
     });
+    expect(
+      body.latestActivity.preview.some(
+        (item: { title: string }) => item.title === '控制工作台分析',
+      ),
+    ).toBe(true);
     expect(body.competency.dimensions).toHaveLength(7);
     expect(body.competency.dimensions.map((item: { key: string }) => item.key)).toEqual([
       'controlModelingRepresentation',

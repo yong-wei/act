@@ -48,6 +48,10 @@ import {
   type ArenaStudentEvidenceSummary,
 } from '@/features/arena/evidence-summary';
 import { ensureUserProfile, initializeUserProgress } from '@/lib/user-sync';
+import {
+  readProfileSimulationEvidence,
+  type ProfileSimulationEvidenceProjection,
+} from '@/lib/data-governance/profile-simulation-evidence';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,11 +73,12 @@ export interface UserProfileResponse {
     ethicsScore: number;
   } | null;
   statistics: {
-    totalSimulations: number;
+    totalSimulations: number | null;
     completedMissions: number;
     ethicalViolations: number;
-    totalSimulationTime: number;
-    averageScore: number;
+    totalSimulationTime: number | null;
+    averageScore: number | null;
+    simulationEvidenceState: ProfileSimulationEvidenceProjection['state'];
   };
   competency: {
     model: 'portrait-v2-cumulative';
@@ -363,6 +368,21 @@ function inferInteractionHref(
   return '/interactive-learning';
 }
 
+function describeSimulationEvidence(item: {
+  sourceLabel: string;
+  score: number | null;
+  durationSeconds: number | null;
+}) {
+  if (item.score !== null && item.durationSeconds !== null) {
+    return `得分 ${Math.round(item.score)} · 用时 ${Math.max(1, Math.round(item.durationSeconds / 60))} 分钟`;
+  }
+  if (item.score !== null) return `得分 ${Math.round(item.score)}`;
+  if (item.durationSeconds !== null) {
+    return `用时 ${Math.max(1, Math.round(item.durationSeconds / 60))} 分钟`;
+  }
+  return `${item.sourceLabel}完成一次训练`;
+}
+
 export async function GET() {
   try {
     const session = await getServerAuthSession();
@@ -396,8 +416,7 @@ export async function GET() {
     const [
       profile,
       evidencePort,
-      simulationLogs,
-      simulationStats,
+      simulationEvidence,
       ethicalLogs,
       missionProgress,
       interactionLogs,
@@ -421,30 +440,9 @@ export async function GET() {
         viewer: { role: 'student', subjectUserId: userId },
         targetUserId: userId,
       }),
-      prisma.simulationLog.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: {
-          id: true,
-          controlMode: true,
-          createdAt: true,
-          score: true,
-          duration: true,
-        },
-      }),
-      prisma.simulationLog.aggregate({
-        where: { userId },
-        _count: {
-          _all: true,
-        },
-        _sum: {
-          duration: true,
-        },
-        _avg: {
-          score: true,
-        },
-      }),
+      // 仿真统计、最近活动与 /profile/portfolio 仿真档案共用同一学生安全
+      // 投影（Issue #1991）：canonical SimulationRun + 旧日志兼容去重。
+      readProfileSimulationEvidence(prisma, userId),
       prisma.ethicalLog.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
@@ -565,14 +563,11 @@ export async function GET() {
       portraitSummary?.dimensions.map((dimension) => [dimension.id, dimension.label]) ?? []
     );
 
-    const totalSimulations = simulationStats._count._all;
+    const totalSimulations = simulationEvidence.total;
     const completedMissions = missionProgress.filter((item) => item.status === 'COMPLETED').length;
     const ethicalViolations = ethicalLogs.length;
-    const totalSimulationTime = simulationStats._sum.duration ?? 0;
-    const averageScore =
-      totalSimulations > 0
-        ? Math.round(simulationStats._avg.score ?? 0)
-        : 0;
+    const totalSimulationTime = simulationEvidence.totalDurationSeconds;
+    const averageScore = simulationEvidence.averageScore;
 
     const totalMissions = await prisma.mission.count();
 
@@ -590,13 +585,13 @@ export async function GET() {
       };
     });
 
-    const simulationActivities: ProfileActivityItem[] = simulationLogs.map((log) => ({
-      id: log.id,
+    const simulationActivities: ProfileActivityItem[] = simulationEvidence.items.map((item) => ({
+      id: item.id,
       category: 'simulation',
-      title: `完成仿真：${log.controlMode?.toUpperCase() ?? 'PID'} 模式`,
-      description: `得分 ${Math.round(log.score ?? 0)} · 用时 ${Math.max(1, Math.round((log.duration ?? 0) / 60))} 分钟`,
-      timestamp: log.createdAt.toISOString(),
-      href: '/simulations/destroyer',
+      title: item.title,
+      description: describeSimulationEvidence(item),
+      timestamp: item.occurredAt,
+      href: item.href ?? '/simulations/destroyer',
       badge: '仿真',
     }));
 
@@ -672,6 +667,7 @@ export async function GET() {
         ethicalViolations,
         totalSimulationTime,
         averageScore,
+        simulationEvidenceState: simulationEvidence.state,
       },
       competency: {
         model: 'portrait-v2-cumulative',

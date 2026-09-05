@@ -93,11 +93,12 @@ interface UserProfile {
     ethicsScore: number;
   } | null;
   statistics: {
-    totalSimulations: number;
+    totalSimulations: number | null;
     completedMissions: number;
     ethicalViolations: number;
-    totalSimulationTime: number;
-    averageScore: number;
+    totalSimulationTime: number | null;
+    averageScore: number | null;
+    simulationEvidenceState: 'available' | 'empty' | 'unavailable';
   };
   competency: {
     model: 'portrait-v2-cumulative';
@@ -545,16 +546,16 @@ export default function ProfilePage() {
             <div className="surface-card p-6">
               <h3 className="mb-4 text-lg font-semibold text-foreground">学习统计</h3>
               <div className="space-y-4">
-                <StatItem label="完成仿真" value={profile.statistics.totalSimulations} unit="次" color="text-blue-500" />
+                <StatItem label="完成仿真" value={profile.statistics.totalSimulations ?? '—'} unit="次" color="text-blue-500" />
                 <StatItem label="完成任务" value={profile.statistics.completedMissions} unit="个" color="text-emerald-500" />
                 <StatItem label="伦理违规" value={profile.statistics.ethicalViolations} unit="次" color="text-red-500" />
                 <StatItem
                   label="仿真时长"
-                  value={Math.round(profile.statistics.totalSimulationTime / 60)}
+                  value={profile.statistics.totalSimulationTime === null ? '—' : Math.round(profile.statistics.totalSimulationTime / 60)}
                   unit="分钟"
                   color="text-amber-500"
                 />
-                <StatItem label="平均得分" value={profile.statistics.averageScore} unit="分" color="text-violet-500" />
+                <StatItem label="平均得分" value={profile.statistics.averageScore ?? '—'} unit="分" color="text-violet-500" />
               </div>
             </div>
 
@@ -926,7 +927,7 @@ function StatItem({
   color,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   unit: string;
   color: string;
 }) {
