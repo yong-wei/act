@@ -21,8 +21,40 @@ import type {
 
 const SUMMARY_DIR = 'summary';
 
+// #2016：composite 指标的人类可见名称与公式在全部载体统一。内部 schema key
+// `composite` 保持不变以兼容冻结历史数据，不改写 official.json 真源。
+const COMPOSITE_DISPLAY_NAME = '结构与质量联合通过率';
+const COMPOSITE_FORMULA = '结构通过且盲审质量非 major-error';
+const PLAIN_BASELINE_COMPOSITE_NOTE = '未启用结构合同；联合通过率 0% 不代表知识正确率 0%';
+
+function rateText(rate: number, passed: number, n: number): string {
+  // 0/0 的引用类指标显示 N/A，不显示成 0%（#2016）。
+  if (n === 0) return 'N/A';
+  return `${(rate * 100).toFixed(1)}% (${passed}/${n})`;
+}
+
 function canonicalJson(value: unknown): string {
   return JSON.stringify(value, null, 2);
+}
+
+
+function displayMetricName(metric: string): string {
+  return metric.startsWith('composite@')
+    ? metric.replace('composite@', `${COMPOSITE_DISPLAY_NAME}@`)
+    : metric;
+}
+
+/** JSON 派生说明：composite 指标的统一名称、公式与普通基线结构性来源解释。 */
+function derivedNotes(official: KonlingFairExperimentOfficialSummary) {
+  return {
+    metricNames: {
+      composite: COMPOSITE_DISPLAY_NAME,
+      compositeFormula: COMPOSITE_FORMULA,
+    },
+    plainBaselineNote: PLAIN_BASELINE_COMPOSITE_NOTE,
+    zeroDenominatorPolicy: '0/0 的引用类指标显示 N/A，不显示成 0%',
+    runId: official.runId,
+  };
 }
 
 /** 指标表行：全部载体共用同一投影，防止 CSV 与工作簿口径漂移。 */
@@ -36,6 +68,10 @@ function summaryRows(official: KonlingFairExperimentOfficialSummary): Array<Arra
     }
     if (perArm.audit) {
       rows.push(['audit-verdict', arm, perArm.audit.rate, perArm.audit.passed, perArm.audit.n]);
+    }
+    for (const [caliber, composite] of Object.entries(perArm.composite ?? {})) {
+      // 人类可见 metric 名自解释；schema key 仍为 composite（冻结兼容）。
+      rows.push([`composite-structure-and-quality@${caliber}`, arm, composite.rate, composite.passed, composite.n]);
     }
     rows.push(['citation-precision', arm, perArm.citationAudit.precision.ratio, perArm.citationAudit.precision.numerator, perArm.citationAudit.precision.denominator]);
     rows.push(['citation-coverage', arm, perArm.citationAudit.coverage.ratio, perArm.citationAudit.coverage.numerator, perArm.citationAudit.coverage.denominator]);
@@ -51,7 +87,7 @@ function deltaRows(
   ];
   for (const delta of deltas) {
     rows.push([
-      delta.metric,
+      displayMetricName(delta.metric),
       delta.baseline.label,
       delta.comparison.label,
       Number(delta.percentagePointDifference.toFixed(4)),
@@ -79,11 +115,17 @@ function slidesMarkdown(official: KonlingFairExperimentOfficialSummary): string 
     for (const [caliber, structure] of Object.entries(perArm.structure)) {
       lines.push(`| 结构通过率@${caliber} | ${(structure.rate * 100).toFixed(1)}% (${structure.passed}/${structure.n}) |`);
     }
+    for (const [caliber, composite] of Object.entries(perArm.composite ?? {})) {
+      lines.push(`| ${COMPOSITE_DISPLAY_NAME}@${caliber}（${COMPOSITE_FORMULA}） | ${rateText(composite.rate, composite.passed, composite.n)} |`);
+    }
+    if (arm === 'plain-baseline') {
+      lines.push(`| 说明 | ${PLAIN_BASELINE_COMPOSITE_NOTE} |`);
+    }
     if (perArm.audit) {
       lines.push(`| 盲审通过率 | ${(perArm.audit.rate * 100).toFixed(1)}% (${perArm.audit.passed}/${perArm.audit.n}) |`);
     }
-    lines.push(`| 引用精确率 | ${(perArm.citationAudit.precision.ratio * 100).toFixed(1)}% (${perArm.citationAudit.precision.numerator}/${perArm.citationAudit.precision.denominator}) |`);
-    lines.push(`| 追溯覆盖率 | ${(perArm.citationAudit.coverage.ratio * 100).toFixed(1)}% (${perArm.citationAudit.coverage.numerator}/${perArm.citationAudit.coverage.denominator}) |`);
+    lines.push(`| 引用精确率 | ${rateText(perArm.citationAudit.precision.ratio, perArm.citationAudit.precision.numerator, perArm.citationAudit.precision.denominator)} |`);
+    lines.push(`| 追溯覆盖率 | ${rateText(perArm.citationAudit.coverage.ratio, perArm.citationAudit.coverage.numerator, perArm.citationAudit.coverage.denominator)} |`);
     lines.push('');
   }
   lines.push('## 配对差（百分点，95% CI）');
@@ -91,7 +133,7 @@ function slidesMarkdown(official: KonlingFairExperimentOfficialSummary): string 
   lines.push('| 指标 | 基线 → 对照 | 差 | CI |');
   lines.push('| --- | --- | --- | --- |');
   for (const delta of [...official.generationDeltas, ...official.citationAuditDeltas, ...official.caliberDeltas]) {
-    lines.push(`| ${delta.metric} | ${delta.baseline.label} → ${delta.comparison.label} | ${delta.percentagePointDifference.toFixed(1)} | [${delta.pairedCi95.low.toFixed(1)}, ${delta.pairedCi95.high.toFixed(1)}] |`);
+    lines.push(`| ${displayMetricName(delta.metric)} | ${delta.baseline.label} → ${delta.comparison.label} | ${delta.percentagePointDifference.toFixed(1)} | [${delta.pairedCi95.low.toFixed(1)}, ${delta.pairedCi95.high.toFixed(1)}] |`);
   }
   lines.push('');
   return lines.join('\n');
@@ -101,6 +143,7 @@ export interface KonlingFairExperimentExportResult {
   csv: string;
   workbook: string;
   slides: string;
+  notes: string;
 }
 
 /**
@@ -147,5 +190,7 @@ export async function exportKonlingFairExperimentArtifacts(
   fs.writeFileSync(csvPath, csv, 'utf8');
   fs.writeFileSync(workbookPath, new Uint8Array(workbookBuffer));
   fs.writeFileSync(slidesPath, slidesMarkdown(official), 'utf8');
-  return { csv: csvPath, workbook: workbookPath, slides: slidesPath };
+  const notesPath = path.join(runDir, SUMMARY_DIR, 'official-notes.json');
+  fs.writeFileSync(notesPath, canonicalJson(derivedNotes(official)), 'utf8');
+  return { csv: csvPath, workbook: workbookPath, slides: slidesPath, notes: notesPath };
 }
