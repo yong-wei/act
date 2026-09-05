@@ -9922,7 +9922,7 @@ describe('konling agent runtime', () => {
     ]));
   });
 
-  it('labels the system-default resource preference when the portrait is unavailable', async () => {
+  it('labels the system-default resource preference when the portrait is not available', async () => {
     const createdRun = {
       id: 'tool-run-path-portrait-unavailable',
       ownerUserId: 'student-1',
@@ -9972,7 +9972,8 @@ describe('konling agent runtime', () => {
 
     mocks.readPathPlannerLearnerStateForSubject.mockResolvedValue({
       ...createGraphLearnerState('student-1', 0.72),
-      primaryPortraitState: 'UNAVAILABLE',
+      primaryPortraitState: 'NO_EVIDENCE',
+      primaryPortraitAvailability: 'no-portrait-evidence',
       resourcePreference: {
         preferredModalities: ['media'],
         sourceCounts: { media: 6 },

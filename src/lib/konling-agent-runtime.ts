@@ -5085,7 +5085,11 @@ const ADAPTIVE_PATH_PORTRAIT_MODALITY_RESOURCE_TYPES: Record<string, AdaptiveLea
 function resolveAdaptivePathPortraitResourcePreference(
   learnerState: AdaptiveLearnerState | null | undefined,
 ): AdaptiveLearningPathPlanNode['type'][] | undefined {
-  if (!learnerState || learnerState.primaryPortraitState === 'UNAVAILABLE') return undefined;
+  // 仅在主画像快照可用（SNAPSHOT + available）时启用画像层；NO_EVIDENCE/UNAVAILABLE
+  // 一律按 delta spec 下落系统默认，即使偏好特征本身已有足量治理证据。
+  if (!learnerState
+    || learnerState.primaryPortraitState !== 'SNAPSHOT'
+    || learnerState.primaryPortraitAvailability !== 'available') return undefined;
   const preference = learnerState.resourcePreference;
   if (!preference || preference.confidence === 'none') return undefined;
   const evidenceCount = Object.values(preference.sourceCounts ?? {})
