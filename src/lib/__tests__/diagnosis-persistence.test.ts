@@ -1,8 +1,14 @@
 import {
+  DIAGNOSIS_METRIC_COMPUTATION_VERSION,
+  DIAGNOSIS_METRIC_SCHEMA_VERSION,
+  computeMemberSetFingerprint,
+} from '@/lib/diagnosis-metrics';
+import {
   DIAGNOSIS_REPORT_GENERATOR_VERSION,
   DiagnosisReportScopeError,
   diagnosisReportWriteSchema,
   persistDiagnosisReport,
+  readDiagnosisReportEvolution,
   readDiagnosisReports,
   type DiagnosisPersistenceDb,
 } from '@/lib/diagnosis-persistence';
@@ -470,5 +476,184 @@ describe('diagnosis report persistence', () => {
     }));
     expect(reports[0]?.reportBody.findings[0]).toMatchObject({ knowledgeNodeId: 'node-1' });
     expect(reports[0]?.reportBody.findings[0]).not.toHaveProperty('prepLink');
+  });
+});
+
+function governedInputFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    schemaVersion: 'teacher-diagnosis-governed-input.v1',
+    classId: 'class-1',
+    studentIds: ['student-1'],
+    riskFlags: [],
+    competencySnapshots: [],
+    knowledgeProgress: [
+      {
+        id: 'progress-1',
+        userId: 'student-1',
+        nodeId: 'node-1',
+        status: 'NOT_STARTED',
+        progress: 0,
+        timeSpent: 0,
+        lastVisited: '2026-07-30T07:00:00.000Z',
+      },
+    ],
+    ...overrides,
+  };
+}
+
+describe('class diagnosis metric snapshot persistence (issue-1963)', () => {
+  function readMetricSnapshotCreate(db: DiagnosisPersistenceDb) {
+    const call = vi.mocked(db.diagnosisReport.create).mock.calls[0]?.[0] as {
+      data: { metricSnapshot?: { create: Record<string, unknown> } };
+    };
+    return call?.data.metricSnapshot?.create;
+  }
+
+  it('freezes the metric snapshot in the same create boundary as the class report', async () => {
+    const db = createDb();
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody,
+      governedInput: governedInputFixture(),
+    }, db);
+
+    const snapshotCreate = readMetricSnapshotCreate(db);
+    expect(snapshotCreate).toMatchObject({
+      schemaVersion: DIAGNOSIS_METRIC_SCHEMA_VERSION,
+      computationVersion: DIAGNOSIS_METRIC_COMPUTATION_VERSION,
+      scopeType: 'class',
+      scopeId: 'class-1',
+      memberSetFingerprint: computeMemberSetFingerprint(['student-1']),
+      evidenceCutoff: new Date(reportBody.evidenceCutoff),
+    });
+    const metrics = snapshotCreate?.metrics as {
+      memberCount: number;
+      abilityDimensions: Array<{ availability: string; mean: number | null }>;
+    };
+    expect(metrics.memberCount).toBe(1);
+    expect(metrics.abilityDimensions).toHaveLength(7);
+    for (const dimension of metrics.abilityDimensions) {
+      expect(dimension.availability).toBe('unavailable');
+      expect(dimension.mean).toBeNull();
+    }
+  });
+
+  it('reads native portrait v2 snapshots within the frozen evidence cutoff', async () => {
+    const db = createDb({
+      studentPortraitV2Snapshot: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    });
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody,
+      governedInput: governedInputFixture(),
+    }, db);
+
+    expect(db.studentPortraitV2Snapshot?.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        userId: { in: ['student-1'] },
+        derivationKind: 'native',
+        snapshotAt: { lte: new Date(reportBody.evidenceCutoff) },
+      },
+      orderBy: [{ userId: 'asc' }, { snapshotAt: 'desc' }, { id: 'desc' }],
+    }));
+  });
+
+  it('computes identical metrics regardless of model narrative text', async () => {
+    const firstDb = createDb();
+    const secondDb = createDb();
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody,
+      governedInput: governedInputFixture(),
+    }, firstDb);
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody: {
+        ...reportBody,
+        summary: '完全不同的模型叙述文字，结论措辞完全改变。',
+      },
+      governedInput: governedInputFixture(),
+    }, secondDb);
+
+    expect(readMetricSnapshotCreate(firstDb)?.metrics)
+      .toEqual(readMetricSnapshotCreate(secondDb)?.metrics);
+  });
+
+  it('does not create a metric snapshot for student-scope reports', async () => {
+    const db = createDb();
+    await persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      targetStudentId: 'student-1',
+      reportBody,
+    }, db);
+
+    const call = vi.mocked(db.diagnosisReport.create).mock.calls[0]?.[0] as {
+      data: Record<string, unknown>;
+    };
+    expect(call.data).not.toHaveProperty('metricSnapshot');
+  });
+
+  it.each([
+    { label: 'missing', governedInput: null },
+    { label: 'structurally invalid', governedInput: { schemaVersion: 'teacher-diagnosis-governed-input.v1' } },
+    { label: 'bound to another class', governedInput: governedInputFixture({ classId: 'class-2' }) },
+  ])('fails closed for a $label governed input on class reports', async ({ governedInput }) => {
+    const db = createDb();
+    await expect(persistDiagnosisReport({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportBody,
+      governedInput,
+    }, db)).rejects.toBeInstanceOf(DiagnosisReportScopeError);
+    expect(db.diagnosisReport.create).not.toHaveBeenCalled();
+  });
+
+  it('reads class evolution rows with a bounded window of six reports', async () => {
+    const db = createDb();
+    await readDiagnosisReportEvolution({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      limit: 50,
+    }, db as never);
+
+    expect(db.diagnosisReport.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        classId: 'class-1',
+        scopeType: 'class',
+        targetUserId: null,
+      },
+      orderBy: { generatedAt: 'desc' },
+      take: 6,
+      select: expect.objectContaining({
+        metricSnapshot: expect.anything(),
+      }),
+    }));
+  });
+
+  it('rejects evolution reads for a teacher outside the class', async () => {
+    const db = createDb({
+      class: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'class-1',
+          teacherId: 'teacher-2',
+          isActive: true,
+        }),
+      },
+    });
+    await expect(readDiagnosisReportEvolution({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+    }, db as never)).rejects.toMatchObject({
+      status: 403,
+      message: 'diagnosis-class-forbidden',
+    });
+    expect(db.diagnosisReport.findMany).not.toHaveBeenCalled();
   });
 });

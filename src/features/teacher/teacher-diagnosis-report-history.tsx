@@ -24,6 +24,7 @@ import type {
 } from '@/features/teacher/diagnosis/public-api';
 import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
 import type { DiagnosisGenerationPreflightApiItem } from '@/lib/diagnosis-generation-preflight';
+import { DiagnosisReportEvolutionBoard } from '@/features/teacher/diagnosis-report-evolution-board';
 import {
   projectReportHistoryCard,
   type EvidenceCoverageGroup,
@@ -205,6 +206,7 @@ export function TeacherDiagnosisReportHistory({
   }, [generationJob, loadReports]);
 
   return (
+    <>
       <TeacherDiagnosisReportHistoryView
         classId={classId}
       state={state}
@@ -223,7 +225,11 @@ export function TeacherDiagnosisReportHistory({
       onClosePreflight={() => setGenerationPreflight(null)}
       onConfirmGeneration={(forceReason) => void submitGeneration(false, forceReason)}
       onRetryGeneration={() => void submitGeneration(true)}
-    />
+      />
+      {!targetStudentId ? (
+        <DiagnosisReportEvolutionBoard key={reports.length} classId={classId} />
+      ) : null}
+    </>
   );
 }
 

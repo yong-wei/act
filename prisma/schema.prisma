@@ -6012,12 +6012,33 @@ model DiagnosisReport {
   successorGenerationJobs DiagnosisGenerationJob[] @relation("DiagnosisGenerationPredecessor")
   exportArtifacts         DiagnosisReportExportArtifact[]
   dispositionEvents       DiagnosisReportDispositionEvent[]
+  metricSnapshot          DiagnosisMetricSnapshot?
 
   @@index([scopeType, scopeId, generatedAt])
   @@index([classId, generatedAt])
   @@index([userId, generatedAt])
   @@index([targetUserId, generatedAt])
   @@index([previousReportId])
+}
+
+// Class-scope metric snapshot frozen in the same persistence boundary as its
+// report (Issue #1963). Metric columns are written only by the deterministic
+// server computation; model output never touches them.
+model DiagnosisMetricSnapshot {
+  id                   String   @id @default(cuid())
+  reportId             String   @unique
+  schemaVersion        String
+  computationVersion   String
+  scopeType            String
+  scopeId              String
+  memberSetFingerprint String
+  evidenceCutoff       DateTime
+  metrics              Json
+  generatedAt          DateTime @default(now())
+
+  report DiagnosisReport @relation(fields: [reportId], references: [id], onDelete: Restrict)
+
+  @@index([scopeType, scopeId, generatedAt])
 }
 
 model DiagnosisReportExportArtifact {

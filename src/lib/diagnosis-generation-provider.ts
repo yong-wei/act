@@ -13,6 +13,27 @@ import {
 } from '@/lib/diagnosis-persistence';
 import { digestDiagnosisGovernedInput } from '@/lib/diagnosis-generation-preflight';
 import {
+  buildKnowledgeNodeWeaknessStats,
+  DIAGNOSIS_WEAK_MIN_STUDENTS,
+  DIAGNOSIS_WEAK_MIN_STUDENT_RATIO,
+  DIAGNOSIS_WEAK_PROGRESS_THRESHOLD,
+  governedInputSchema,
+  weaknessEligibility,
+  type DiagnosisNodeWeaknessStats,
+  type GovernedDiagnosisInput,
+  type GovernedInput,
+} from '@/lib/diagnosis-governed-input';
+
+export {
+  buildKnowledgeNodeWeaknessStats,
+  DIAGNOSIS_WEAK_MIN_STUDENTS,
+  DIAGNOSIS_WEAK_MIN_STUDENT_RATIO,
+  DIAGNOSIS_WEAK_PROGRESS_THRESHOLD,
+  governedInputSchema,
+  weaknessEligibility,
+} from '@/lib/diagnosis-governed-input';
+export type { DiagnosisNodeWeaknessStats, GovernedDiagnosisInput } from '@/lib/diagnosis-governed-input';
+import {
   getOrCreateKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -44,63 +65,6 @@ const DIAGNOSIS_PROVIDER_MAX_SUMMARY_LENGTH = 1_000;
 const DIAGNOSIS_PROVIDER_MAX_FINDINGS = 6;
 const DIAGNOSIS_PROVIDER_MAX_FINDING_SUMMARY_LENGTH = 280;
 const DIAGNOSIS_PROVIDER_MAX_EVIDENCE_REFS = 16;
-// 薄弱判定校准（Issue #1728）：弱势行的绝对分界与最小证据规模。
-const DIAGNOSIS_WEAK_PROGRESS_THRESHOLD = 40;
-const DIAGNOSIS_WEAK_MIN_STUDENTS = 3;
-const DIAGNOSIS_WEAK_MIN_STUDENT_RATIO = 0.2;
-
-const governedInputSchema = z.object({
-  schemaVersion: z.literal('teacher-diagnosis-governed-input.v1'),
-  classId: z.string(),
-  studentIds: z.array(z.string()),
-  assignmentSubmissions: z.array(z.object({
-    id: z.string(),
-    userId: z.string(),
-    assignmentRevisionId: z.string(),
-    contentHash: z.string(),
-    score: z.number(),
-    totalPoints: z.number().positive(),
-    reviewedAt: z.string(),
-  })).optional(),
-  assessmentSessions: z.array(z.object({
-    id: z.string(),
-    userId: z.string(),
-    assessmentId: z.string(),
-    contentDigest: z.string(),
-    itemCount: z.number().int().positive(),
-    correctCount: z.number().int().nonnegative(),
-    score: z.number(),
-    completedAt: z.string(),
-  })).optional(),
-  riskFlags: z.array(z.object({
-    id: z.string(),
-    userId: z.string(),
-    type: z.string(),
-    severity: z.string(),
-    description: z.string(),
-    evidenceSummary: z.record(z.string(), z.unknown()),
-    triggeredAt: z.string(),
-    observedAt: z.string(),
-  })),
-  competencySnapshots: z.array(z.object({
-    id: z.string(),
-    userId: z.string(),
-    snapshotAt: z.string(),
-    // portrait-v2-legacy-compatibility-adapter: validate frozen non-sovereign provider input.
-    competencyVector: z.record(z.string(), z.unknown()),
-    calculationVersion: z.string(),
-  })),
-  knowledgeProgress: z.array(z.object({
-    id: z.string(),
-    userId: z.string(),
-    nodeId: z.string(),
-    status: z.string(),
-    progress: z.number(),
-    timeSpent: z.number(),
-    lastVisited: z.string(),
-  })),
-}).strict();
-
 export class DiagnosisGenerationValidationError extends Error {
   readonly retryable = false;
 
@@ -238,52 +202,6 @@ export function enforceDiagnosisFindingNodeAttribution(
     }
   });
   return violations;
-}
-
-export type DiagnosisNodeWeaknessStats = ReadonlyMap<string, {
-  coveredStudents: ReadonlySet<string>;
-  weakStudents: ReadonlySet<string>;
-}>;
-
-function isWeakProgressRow(row: { status: string; progress: number }): boolean {
-  return row.status === 'NOT_STARTED'
-    || (row.progress < DIAGNOSIS_WEAK_PROGRESS_THRESHOLD && row.status !== 'COMPLETED');
-}
-
-/**
- * 节点薄弱资格的唯一判定真源（Issue #1728）：按诊断 scope 类型选择规则——
- * 学生诊断（targetStudentId 存在）要求目标学生该节点行本身弱势；班级诊断
- * 要求弱势学生数达到班级门槛，与班级实际人数无关（单人班级的班级级诊断
- * 同样受 max(3, 20%) 约束，fail-closed 而非降级为单学生规则）。
- */
-function weaknessEligibility(
-  stat: { coveredStudents: ReadonlySet<string>; weakStudents: ReadonlySet<string> },
-  targetStudentId: string | null | undefined,
-) {
-  const minimumWeakStudents = Math.max(
-    DIAGNOSIS_WEAK_MIN_STUDENTS,
-    Math.ceil(DIAGNOSIS_WEAK_MIN_STUDENT_RATIO * stat.coveredStudents.size),
-  );
-  const eligible = targetStudentId
-    ? stat.weakStudents.has(targetStudentId)
-    : stat.weakStudents.size >= minimumWeakStudents;
-  return { minimumWeakStudents, eligible };
-}
-
-export function buildKnowledgeNodeWeaknessStats(
-  knowledgeProgress: ReadonlyArray<{ userId: string; nodeId: string; status: string; progress: number }>,
-): DiagnosisNodeWeaknessStats {
-  const stats = new Map<string, { coveredStudents: Set<string>; weakStudents: Set<string> }>();
-  for (const row of knowledgeProgress) {
-    if (row.nodeId.length === 0) continue;
-    const entry = stats.get(row.nodeId) ?? { coveredStudents: new Set<string>(), weakStudents: new Set<string>() };
-    entry.coveredStudents.add(row.userId);
-    if (isWeakProgressRow(row)) {
-      entry.weakStudents.add(row.userId);
-    }
-    stats.set(row.nodeId, entry);
-  }
-  return stats;
 }
 
 /**
@@ -687,9 +605,6 @@ export async function generateGovernedDiagnosisReport(
     toolAudit,
   };
 }
-
-type GovernedInput = z.infer<typeof governedInputSchema>;
-export type GovernedDiagnosisInput = GovernedInput;
 
 const DIAGNOSIS_PROVIDER_SYSTEM_PROMPT_LINES = [
   '你是教师学情诊断生成器，只能依据给定的受治理工具结果生成结构化报告。',
