@@ -115,19 +115,18 @@ export interface KonlingFairExperimentCitationSnapshot {
   sourceType: string;
   href: string | null;
   /**
-   * 生产 KonlingCitation 的答案相关性匹配证据（非空＝生产端判定该来源
-   * 直接支撑回答）。缺失时审计按「仅相关/判据缺失」处理，不计入精确率
-   * 分子与单元覆盖（spec：仅相关但不直接支撑的来源不得计为覆盖）。
-   */
-  answerRelevanceMatch?: string | null;
-  /**
-   * 答案相关性的证据分级（生产 hybrid-retriever 的 basis）。直接支撑
-   * 判据要求显式引用或查询词直接命中（selected-node-ref / resource-ref
-   * / query-exact 等）；`semantic-score`（纯语义相似）只证明检索相关，
-   * 不证明支撑，审计按「仅相关」处理。主张级蕴含验证超出确定性审计
-   * 范围（非目标）。
+   * 答案相关性的证据分级（生产 hybrid-retriever 的 basis，student pack
+   * 脱敏后仍保留的非敏感证明类型）。直接支撑判据只依赖此字段：显式引用
+   * 或查询词直接命中才算；`semantic-score`（纯语义相似）与缺失/未知值
+   * 都按「仅相关」处理。主张级蕴含验证超出确定性审计范围（非目标）。
    */
   answerRelevanceBasis?: string | null;
+  /**
+   * 答案相关性匹配原文（可选证据留档）。student pack 脱敏
+   * （redactStudentItemMetadata）会删除该字段，生产引用不携带；
+   * 审计判据不依赖它。
+   */
+  answerRelevanceMatch?: string | null;
 }
 
 export interface KonlingFairExperimentAnswerRecord {

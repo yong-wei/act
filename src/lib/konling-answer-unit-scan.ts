@@ -193,7 +193,6 @@ export function scanKonlingAnswerUnits(
         perLineNumberCounts.set(markerNumber, (perLineNumberCounts.get(markerNumber) ?? 0) + 1);
         const citation = citations.find((candidate) => candidate.displayNumber === markerNumber);
         if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
-        perUnitCitationIds.add(citation.id);
         // 可绑定 marker 出现在 model-derived 章节或无章节区域时不服务于任何
         // 需证据单元的覆盖，计为漂移（#1902）
         if (intent && (!currentSection
@@ -205,6 +204,9 @@ export function scanKonlingAnswerUnits(
           .trim()
           .slice(0, 180);
         if (!unit) continue;
+        // 只有标记前存在可绑定文本（形成实质绑定）才计入单元的绑定引用，
+        // 行首标记（空前缀）不支撑任何主张（#1992 review P1）。
+        perUnitCitationIds.add(citation.id);
         if (!bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) {
           bindings.push({
             unit,

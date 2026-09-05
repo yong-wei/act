@@ -129,6 +129,17 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(record.coveredUnitCount).toBe(0);
   });
 
+  it('direct support survives student-pack redaction (match removed, basis retained)', () => {
+    // 生产 student pack 脱敏删除 answerRelevanceMatch、保留 basis——
+    // 判据只依赖 basis，脱敏后的真实引用不得被系统性拒绝。
+    const record = audited(
+      canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
+      [citation({ id: 'cit-1', answerRelevanceMatch: null })],
+    );
+    expect(record.verifiedSupportingCount).toBe(1);
+    expect(record.coveredUnitCount).toBe(record.requiredUnitCount);
+  });
+
   it('pure semantic relevance (semantic-score) is retrieval-level only and never counts as direct support', () => {
     const record = audited(
       canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
@@ -174,6 +185,23 @@ describe('auditKonlingFairCitationRecord', () => {
     // 归通用漂移（非 model-derived 章节），唯一编号口径。
     expect(record.driftedMarkerCount).toBe(1);
     expect(record.modelDerivedMarkerCount).toBe(0);
+  });
+
+  it('line-leading markers without preceding claim text never cover units', () => {
+    const answer = STUDY_QUESTION_SECTIONS['formula-derivation']
+      .map((section) => section.citationPolicy === 'evidence-required'
+        ? `## ${section.title}\n[1] 该事实来自材料。`
+        : `## ${section.title}\n按推导作答。`)
+      .join('\n');
+    const record = audited(answer, [citation({ id: 'cit-1' })]);
+
+    expect(record.presentedCitationCount).toBe(1);
+    expect(record.verifiedSupportingCount).toBe(0);
+    expect(record.coveredUnitCount).toBe(0);
+    expect(record.requiredUnitCount).toBeGreaterThan(0);
+    // 行首标记（空前缀）不形成实质绑定：bound=false，#1902 冻结语义下
+    // missReason 走 citation-no-target。
+    expect(record.missReasons['citation-no-target']).toBe(record.requiredUnitCount);
   });
 
   it('model-derived sections never enter the coverage denominator', () => {

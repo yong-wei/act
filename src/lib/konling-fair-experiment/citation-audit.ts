@@ -63,16 +63,18 @@ const DIRECT_SUPPORT_RELEVANCE_BASES: ReadonlySet<string> = new Set([
 /**
  * 直接支撑判据（spec：占位符、未知编号、无法访问的目标与仅相关但不
  * 直接支撑的来源不得计入分子/覆盖）：已核验 + 有锚点 + href 可访问 +
- * 快照冻结答案相关性证据且分级在白名单内（显式引用/查询直接命中）。
- * 任一信号缺失或分级未知即降级到对应失败桶，宁可低估也不高估。判据
- * 上限是生产端引用核验 + 直接选中证据；主张级蕴含验证超出确定性审计
- * 范围（非目标，#1992 review P1）。
+ * 答案相关性证据分级在白名单内（显式引用/查询直接命中）。判据只依赖
+ * `answerRelevanceBasis`——`answerRelevanceMatch` 原文在 student pack
+ * 脱敏（hybrid-retriever redactStudentItemMetadata）中被有意删除，
+ * 生产引用不携带；basis 是脱敏后仍保留的非敏感证明类型。任一信号
+ * 缺失或分级未知即降级到对应失败桶，宁可低估也不高估。判据上限是
+ * 生产端引用核验 + 直接选中证据；主张级蕴含验证超出确定性审计范围
+ * （非目标，#1992 review P1）。
  */
 function isDirectVerifiedSupport(citation: KonlingFairExperimentCitationInput): boolean {
   return citation.verified === true
     && Boolean(citation.citationTargetId)
     && Boolean(citation.href)
-    && Boolean(citation.answerRelevanceMatch)
     && DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '');
 }
 
@@ -140,7 +142,7 @@ export function auditKonlingFairCitationRecord(
       citationClasses.citationNoTarget += 1;
       continue;
     }
-    if (!citation.answerRelevanceMatch || !DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '')) {
+    if (!DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '')) {
       citationClasses.citationNoDirectSupport += 1;
       continue;
     }
