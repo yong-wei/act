@@ -72,36 +72,57 @@ export function enforceKonlingCitationNumberWhitelist(input: {
   const codeRanges = markdownCodeRanges(input.answer);
   const removedMarkers: string[] = [];
   let demotedClaimCount = 0;
-  const lineRewrites = new Map<number, { end: number; text: string }>();
-
-  let body = input.answer.replace(CITATION_NUMBER_MARKER, (raw, value: string, offset: number) => {
+  // 单遍行重建（#2017 review R3）：先按行聚合判定结果，再逐行生成输出——
+  // 不做「先 replace 后按原始偏移回写」（原始偏移在已缩短文本上失效），
+  // 也不对整行无差别剥 `[数字]`（会误删同行的合法引用与技术下标）。
+  interface LinePlan {
+    demoted: boolean;
+  }
+  const linePlans = new Map<number, LinePlan>();
+  input.answer.replace(CITATION_NUMBER_MARKER, (raw, value: string, offset: number) => {
     const number = Number(value);
     if (assigned.has(number)) return raw;
     if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return raw;
     if (isTechnicalIndexContext(input.answer, offset, assigned.has(number))) return raw;
     if (!removedMarkers.includes(raw)) removedMarkers.push(raw);
     demotedClaimCount += 1;
-    if (input.demoteClaim) {
-      // 记录标记所在行区间，替换后统一对该行断言原地降级（两遍法，
-      // 避免 replace 回调内嵌套改写导致索引漂移）。
-      const lineStart = input.answer.lastIndexOf('\n', offset) + 1;
-      const lineEnd = input.answer.indexOf('\n', offset) === -1
-        ? input.answer.length
-        : input.answer.indexOf('\n', offset);
-      if (!lineRewrites.has(lineStart)) {
-        const line = input.answer.slice(lineStart, lineEnd);
-        // 先剥除本行内全部伪编号标记再交 demoteClaim，避免标注后残留 [9]。
-        lineRewrites.set(lineStart, {
-          end: lineEnd,
-          text: input.demoteClaim(line.replace(/\s*\[\d+\]/g, '')),
-        });
-      }
-    }
+    const lineStart = input.answer.lastIndexOf('\n', offset) + 1;
+    if (!linePlans.has(lineStart)) linePlans.set(lineStart, { demoted: false });
+    linePlans.get(lineStart)!.demoted = true;
     return '';
   });
-  for (const [start, rewrite] of [...lineRewrites.entries()].sort((left, right) => right[0] - left[0])) {
-    body = body.slice(0, start) + rewrite.text + body.slice(rewrite.end);
+
+  const lines = input.answer.split('\n');
+  const rebuilt: string[] = [];
+  let cursor = 0;
+  for (const line of lines) {
+    const plan = linePlans.get(cursor);
+    if (plan?.demoted) {
+      // 只删除本行被判定为伪编号的具体 occurrence：重新在该行内逐标记
+      // 判定，合法引用与技术下标原样保留；有 demoteClaim 时整行降级，
+      // 无 demoteClaim 时仅删除伪编号标记（原有行为，#2017 review R3）。
+      const lineStart = cursor;
+      let rebuiltLine = '';
+      let lastIndex = 0;
+      for (const match of line.matchAll(CITATION_NUMBER_MARKER)) {
+        const markerOffset = lineStart + (match.index ?? 0);
+        const number = Number(match[1]);
+        const isFake = !assigned.has(number)
+          && !codeRanges.some((range) => markerOffset >= range.start && markerOffset < range.end)
+          && !isTechnicalIndexContext(input.answer, markerOffset, assigned.has(number));
+        if (isFake) {
+          rebuiltLine += line.slice(lastIndex, match.index);
+          lastIndex = (match.index ?? 0) + match[0].length;
+        }
+      }
+      rebuiltLine += line.slice(lastIndex);
+      rebuilt.push(input.demoteClaim ? input.demoteClaim(rebuiltLine) : rebuiltLine);
+    } else {
+      rebuilt.push(line);
+    }
+    cursor += line.length + 1;
   }
+  const body = rebuilt.join('\n');
 
   return {
     body,

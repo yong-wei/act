@@ -188,3 +188,32 @@ describe('claim demotion and scan-exempt annotation (#2017 review R2)', () => {
     expect(annotatedUnits[0].substantive).toBe(false);
   });
 });
+
+describe('mixed-marker lines and multi-line rewrites (#2017 review R3)', () => {
+  it('keeps legal citations and technical indexes when demoting a mixed line', () => {
+    const result = enforceKonlingCitationNumberWhitelist({
+      answer: 'a[2] 的结论由来源[1]支持，但另一断言[9]错误。',
+      citations: [citation()],
+      demoteClaim: (line) => `${line.trimEnd()}[引用缺口：待核验]`,
+    });
+
+    // 技术下标 a[2] 与合法引用 [1] 原样保留；只有伪编号 [9] 被删除。
+    expect(result.body).toBe('a[2] 的结论由来源[1]支持，但另一断言错误。[引用缺口：待核验]');
+    expect(result.removedMarkers).toEqual(['[9]']);
+  });
+
+  it('rewrites multiple demoted lines without offset corruption', () => {
+    const answer = '第一结论[9] 成立。\n第二结论[8] 也成立。\n第三结论[1] 正确。';
+    const result = enforceKonlingCitationNumberWhitelist({
+      answer,
+      citations: [citation()],
+      demoteClaim: (line) => `${line.trimEnd()}[引用缺口：待核验]`,
+    });
+
+    // 前两行各自降级、长度变化互不干扰；第三行合法引用不动。
+    expect(result.body).toBe(
+      '第一结论 成立。[引用缺口：待核验]\n第二结论 也成立。[引用缺口：待核验]\n第三结论[1] 正确。',
+    );
+    expect(result.removedMarkers.sort()).toEqual(['[8]', '[9]']);
+  });
+});
