@@ -69,7 +69,13 @@ export function DiagnosisSurfacePanel({
   const limitations = diagnosis?.limitations ?? [];
   const clusters = diagnosis?.rootCauseClusters ?? [];
   const evidenceCount = claims.reduce((sum, claim) => sum + claim.evidenceRefs.length, 0);
-  const hasSnapshot = diagnosis?.materialization.inputs.includes('control-correction-diagnosis-report-snapshot') ?? false;
+  // 诊断就绪性由其自身声明的 materialization 输入决定（Issue #2010）：
+  // 累计画像诊断以 canonical-cumulative-portrait 为输入，控制校正诊断
+  // 仍以专项报告快照为输入；不得用后者的存在性判定前者的降级状态。
+  const requiredMaterializationInput = diagnosis?.goalId === 'cumulative-portrait-overall'
+    ? 'canonical-cumulative-portrait'
+    : 'control-correction-diagnosis-report-snapshot';
+  const hasSnapshot = diagnosis?.materialization.inputs.includes(requiredMaterializationInput) ?? false;
   const degraded = !diagnosis || limitations.length > 0 || !hasSnapshot;
 
   return (
