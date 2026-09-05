@@ -34,13 +34,18 @@ describe('F1: visible water sampling shares the mesh-local coordinate basis', ()
   const waves = GERSTNER_WAVE_SETS.high;
   const scale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
 
-  it('samples at mesh-local coordinates with the shared amplitude scale', () => {
+  it('inverts the Gerstner horizontal displacement before sampling the world point height', () => {
     const originX = -6000;
     const originZ = 120;
     const t = 37.5;
-    const sampled = sampleVisibleWaterHeight(waves, scale, originX, originZ, originX + 50, originZ - 20, t);
-    const expected = GERSTNER_WATER_BASE_Y + scale * computeGerstnerDisplacement(waves, 50, -20, t).y;
-    expect(sampled).toBeCloseTo(expected, 9);
+    const paramX = 50;
+    const paramZ = -20;
+    const displacement = computeGerstnerDisplacement(waves, paramX, paramZ, t);
+    // GPU 顶点世界坐标 = 网格原点 + 参数点 + ampScale·水平位移；CPU 采样必须反解回参数点
+    const worldX = originX + paramX + scale * displacement.offsetX;
+    const worldZ = originZ + paramZ + scale * displacement.offsetZ;
+    const sampled = sampleVisibleWaterHeight(waves, scale, originX, originZ, worldX, worldZ, t);
+    expect(sampled).toBeCloseTo(GERSTNER_WATER_BASE_Y + scale * displacement.y, 6);
   });
 
   it('differs from naive world-coordinate sampling at a non-origin ship position', () => {
@@ -48,7 +53,7 @@ describe('F1: visible water sampling shares the mesh-local coordinate basis', ()
     const t = 12.3;
     const shipLocal = sampleVisibleWaterHeight(waves, scale, originX, 0, originX, 0, t);
     const naiveWorld = GERSTNER_WATER_BASE_Y + computeGerstnerDisplacement(waves, originX, 0, t).y;
-    // 非原点舰位：同一世界点的网格局部坐标是 (0,0)，朴素世界采样是另一波相
+    // 非原点舰位：同一世界点的网格局部坐标是 (0,0) 附近，朴素世界采样是另一波相
     expect(Math.abs(shipLocal - naiveWorld)).toBeGreaterThan(0.01);
   });
 
@@ -188,7 +193,7 @@ describe('F5: water geometry bakes the -90° X rotation into vertices', () => {
     expect(maxZ - minZ).toBeCloseTo(size, 6);
   });
 
-  it('GPU 顶点世界 Y（烘焙几何 + shader 位移）与 CPU 采样逐点一致', () => {
+  it('GPU 顶点世界 Y（烘焙几何 + shader 水平/垂向位移）与 CPU 采样逐点一致', () => {
     const waves = GERSTNER_WAVE_SETS.high;
     const scale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
     const geometry = createGerstnerWaterGeometry(600, 16);
@@ -196,13 +201,19 @@ describe('F5: water geometry bakes the -90° X rotation into vertices', () => {
     const originX = -6000;
     const originZ = 120;
     const t = 42.7;
-    // 抽查若干顶点：世界 Y = BASE_Y + ampScale · 垂向位移(网格局部 x,z)，即 sampleVisibleWaterHeight
+    // 抽查若干顶点：GPU 世界 XZ = 参数点 + ampScale·水平位移，世界 Y = BASE_Y + ampScale·垂向位移
     for (const index of [0, 37, 101, 200, positions.count - 1]) {
       const localX = positions.getX(index);
       const localZ = positions.getZ(index);
-      const gpuWorldY = GERSTNER_WATER_BASE_Y + scale * computeGerstnerDisplacement(waves, localX, localZ, t).y;
-      const cpuSample = sampleVisibleWaterHeight(waves, scale, originX, originZ, originX + localX, originZ + localZ, t);
-      expect(cpuSample).toBeCloseTo(gpuWorldY, 9);
+      const displacement = computeGerstnerDisplacement(waves, localX, localZ, t);
+      const gpuWorldY = GERSTNER_WATER_BASE_Y + scale * displacement.y;
+      const cpuSample = sampleVisibleWaterHeight(
+        waves, scale, originX, originZ,
+        originX + localX + scale * displacement.offsetX,
+        originZ + localZ + scale * displacement.offsetZ,
+        t,
+      );
+      expect(cpuSample).toBeCloseTo(gpuWorldY, 6);
     }
   });
 });

@@ -34,6 +34,11 @@ export function gerstnerAmplitudeScale(seaState: number): number {
  * 见 createGerstnerWaterGeometry），shader 以网格局部 position.xz 计算相位、position.y 写垂向位移；
  * 因此世界坐标必须先减去网格原点（舰位）再采样，并乘同一振幅倍率；
  * 否则非原点附近船体/尾迹/贴水线与可见水面采到不同波相。
+ *
+ * shader 的 Gerstner 水平位移（steepness 项，含振幅倍率）会真实作用于世界 XZ：
+ * 世界点 P 处可见水面的高度实际来自邻近参数点 p（P = p + offset(p)）。
+ * 采样必须不动点反解 p（offset 的 Lipschitz 常数 ≪1，4 轮迭代误差 <0.01mm），
+ * 否则陡峭度非零时船体/水线/尾迹与 GPU 水面存在分米级高度差。
  */
 export function sampleVisibleWaterHeight(
   waves: readonly GerstnerWave[],
@@ -44,8 +49,17 @@ export function sampleVisibleWaterHeight(
   worldZ: number,
   timeSeconds: number,
 ): number {
+  const targetX = worldX - originX;
+  const targetZ = worldZ - originZ;
+  let paramX = targetX;
+  let paramZ = targetZ;
+  for (let iteration = 0; iteration < 4; iteration += 1) {
+    const displacement = computeGerstnerDisplacement(waves, paramX, paramZ, timeSeconds);
+    paramX = targetX - amplitudeScale * displacement.offsetX;
+    paramZ = targetZ - amplitudeScale * displacement.offsetZ;
+  }
   return GERSTNER_WATER_BASE_Y
-    + amplitudeScale * computeGerstnerDisplacement(waves, worldX - originX, worldZ - originZ, timeSeconds).y;
+    + amplitudeScale * computeGerstnerDisplacement(waves, paramX, paramZ, timeSeconds).y;
 }
 
 /**
