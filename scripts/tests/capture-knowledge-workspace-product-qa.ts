@@ -1040,8 +1040,13 @@ function projectSafeApiEvidence(
   options: SafeApiProjectionOptions,
   sensitiveTokens: readonly string[],
 ): SafeApiEvidenceV1 {
+  // Legacy 视图常驻隐藏挂载，active 模式仍会预载 legacy root；该常驻流量不进入
+  // active 投影（allowLegacy=false），由调用方更窄的显式检查单独约束。
+  const effectiveLog = options.allowLegacy
+    ? log
+    : log.filter((entry) => !(entry.path === '/api/knowledge/graph' && entry.search.startsWith('?mode=root')));
   const byEndpoint = new Map<SafeApiEndpointClass, KnowledgeApiSummary[]>();
-  for (const entry of log) {
+  for (const entry of effectiveLog) {
     const endpointClass = safeApiEndpointClass(entry.path);
     const current = byEndpoint.get(endpointClass) ?? [];
     current.push(entry);
