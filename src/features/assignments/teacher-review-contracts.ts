@@ -188,13 +188,9 @@ export function normalizeTeacherSubmissionQueue(payload: unknown): {
   submissions: TeacherReviewSubmissionItem[];
 } {
   const root = asRecord(payload);
-  const assignment = asRecord(root.assignment);
-  const rawSubmissions = arrayFrom(root.submissions ?? root.items);
+  const rawSubmissions = arrayFrom(root.items);
   return {
-    assignmentTitle: stringFrom(
-      assignment.title ?? root.assignmentTitle,
-      "作业提交",
-    ),
+    assignmentTitle: "作业提交",
     submissions: rawSubmissions.map((raw, submissionIndex) =>
       normalizeSubmission(raw, submissionIndex),
     ),
@@ -356,19 +352,17 @@ export function normalizeTeacherReviewDetail(
   payload: unknown,
 ): TeacherReviewDetail | null {
   const root = asRecord(payload);
-  const review = asRecord(root.review ?? root.item);
+  // GET/PATCH 路由把 buildTeacherAssignmentReviewApiProjection 的投影包装为
+  // { review }：submission/assignment/gradingRun 都在 review 内部。
+  const review = asRecord(root.review);
   const gradingRun = asRecord(review.gradingRun);
   const questionSnapshot = asRecord(gradingRun.questionSnapshot);
-  const submission = asRecord(root.submission ?? review.submission);
-  const student = asRecord(submission.student ?? review.student);
+  const submission = asRecord(review.submission);
+  const student = asRecord(submission.student);
   const studentProfile = asRecord(student.profile);
-  const question = asRecord(
-    root.question ?? review.question ?? gradingRun.question ?? questionSnapshot,
-  );
+  const question = asRecord(gradingRun.question);
   const promptSnapshot = asRecord(question.promptSnapshot);
-  const rubric = asRecord(
-    review.rubric ?? question.rubric ?? questionSnapshot.rubric,
-  );
+  const rubric = asRecord(questionSnapshot.rubric);
   const teacherValues = new Map(
     arrayFrom(review.criterionValues).map((entry) => {
       const value = asRecord(entry);
@@ -381,17 +375,15 @@ export function normalizeTeacherReviewDetail(
       return [stringFrom(value.criterionId), value];
     }),
   );
-  const rawCriteria = review.criteria
-    ? arrayFrom(review.criteria)
-    : arrayFrom(rubric.criteria).map((entry) => {
-        const criterion = asRecord(entry);
-        const criterionId = stringFrom(criterion.id ?? criterion.criterionId);
-        return {
-          ...criterion,
-          teacher: teacherValues.get(criterionId),
-          aiDraft: aiValues.get(criterionId),
-        };
-      });
+  const rawCriteria = arrayFrom(rubric.criteria).map((entry) => {
+      const criterion = asRecord(entry);
+      const criterionId = stringFrom(criterion.id ?? criterion.criterionId);
+      return {
+        ...criterion,
+        teacher: teacherValues.get(criterionId),
+        aiDraft: aiValues.get(criterionId),
+      };
+    });
   const originalResponse = normalizeOriginalResponse(review.originalResponse);
   const omittedEvidence = arrayFrom(review.omittedEvidence).flatMap((entry) => {
     const row = asRecord(entry);
@@ -402,33 +394,27 @@ export function normalizeTeacherReviewDetail(
       displayName: safeDisplayBasename(row.displayName),
     }];
   });
-  const submissionId = stringFrom(submission.id ?? review.submissionId);
-  const questionId = stringFrom(question.id ?? review.questionId);
-  const reviewId = stringFrom(review.id ?? root.reviewId);
+  const submissionId = stringFrom(submission.id);
+  const questionId = stringFrom(question.id);
+  const reviewId = stringFrom(review.id);
   if (!reviewId || !submissionId || !questionId) return null;
 
   return {
     reviewId,
     assignmentTitle: stringFrom(
-      asRecord(root.assignment ?? review.assignment).title ??
-        root.assignmentTitle,
+      asRecord(review.assignment).title,
       "作业批阅",
     ),
     version: Math.max(0, Math.trunc(finiteNumber(review.version, 0))),
     submissionId,
-    studentName: stringFrom(student.name ?? submission.studentName, "未知学生"),
-    studentNumber: nullableString(
-      studentProfile.studentNumber ?? student.studentNumber ?? student.number ?? submission.studentNumber,
-    ),
+    studentName: stringFrom(student.name, "未知学生"),
+    studentNumber: nullableString(studentProfile.studentNumber),
     questionId,
-    questionTitle: stringFrom(question.title ?? question.label ?? promptSnapshot.title, "未命名题目"),
-    questionPrompt: stringFrom(question.prompt ?? promptSnapshot.prompt ?? promptSnapshot.text),
+    questionTitle: stringFrom(promptSnapshot.title, "未命名题目"),
+    questionPrompt: stringFrom(promptSnapshot.prompt ?? promptSnapshot.text),
     responseKind: normalizeQuestion(question, 0).responseKind,
-    status: statusFrom(review.status ?? review.state ?? question.status ?? submission.status),
-    questions: (arrayFrom(root.questions ?? submission.questions).length
-      ? arrayFrom(root.questions ?? submission.questions)
-      : [question]
-    ).map((entry, index) => {
+    status: statusFrom(review.state),
+    questions: [question].map((entry, index) => {
       const item = normalizeQuestion(entry, index);
       return item.id === questionId
         ? {
@@ -446,13 +432,11 @@ export function normalizeTeacherReviewDetail(
         rubric.schemaVersion === "assignment-scoring-rubric.v2" ? 0.1 : 0.01,
       ),
     ),
-    overallComment: stringFrom(review.overallComment ?? review.comment),
+    overallComment: stringFrom(review.overallComment),
     incompleteEvidence: review.incompleteEvidence === true,
     omittedEvidence,
     aiAnnotations: normalizeReviewAnnotations(gradingRun.annotations),
-    annotations: normalizeReviewAnnotations(
-      review.annotationValues ?? review.annotations,
-    ),
+    annotations: normalizeReviewAnnotations(review.annotationValues),
   };
 }
 
@@ -461,19 +445,16 @@ function normalizeSubmission(
   index: number,
 ): TeacherReviewSubmissionItem {
   const row = asRecord(value);
-  const student = asRecord(row.student);
-  const questions = arrayFrom(
-    row.questions ?? row.answers ?? row.reviewItems ?? row.runs,
-  ).map((entry, questionIndex) => normalizeQuestion(entry, questionIndex));
+  const questions = arrayFrom(row.questions).map((entry, questionIndex) =>
+    normalizeQuestion(entry, questionIndex),
+  );
   return {
-    id: stringFrom(row.id ?? row.submissionId, `submission-${index + 1}`),
-    studentId: stringFrom(student.id ?? row.studentId, `student-${index + 1}`),
-    studentName: stringFrom(student.name ?? row.studentName, "未知学生"),
-    studentNumber: nullableString(
-      student.studentNumber ?? student.number ?? row.studentNumber,
-    ),
-    submittedAt: nullableString(row.submittedAt ?? row.updatedAt),
-    status: statusFrom(row.status ?? row.state),
+    id: stringFrom(row.submissionId, `submission-${index + 1}`),
+    studentId: stringFrom(row.studentId, `student-${index + 1}`),
+    studentName: stringFrom(row.studentName, "未知学生"),
+    studentNumber: nullableString(row.studentNumber),
+    submittedAt: nullableString(row.updatedAt),
+    status: statusFrom(row.state),
     questions,
   };
 }
@@ -483,36 +464,22 @@ function normalizeQuestion(
   index: number,
 ): TeacherReviewQuestionItem {
   const row = asRecord(value);
-  const question = asRecord(row.question);
-  const id = stringFrom(
-    question.id ?? row.questionId ?? row.id,
-    `question-${index + 1}`,
-  );
-  const rawKind = stringFrom(
-    row.responseKind ?? row.answerKind ?? row.responseType ?? question.responseType,
-  ).toUpperCase();
+  const id = stringFrom(row.id ?? row.questionId, `question-${index + 1}`);
+  const rawKind = stringFrom(row.responseKind ?? row.responseType).toUpperCase();
   return {
     id,
-    stableQuestionId: stringFrom(
-      question.stableQuestionId ?? row.stableQuestionId,
-      id,
-    ),
-    title: stringFrom(
-      question.title ?? row.title ?? question.prompt,
-      `第 ${index + 1} 题`,
-    ),
-    orderIndex: finiteNumber(question.orderIndex ?? row.orderIndex, index),
-    status: statusFrom(row.status ?? row.reviewStatus ?? row.state),
+    stableQuestionId: stringFrom(row.stableQuestionId, id),
+    title: stringFrom(row.title, `第 ${index + 1} 题`),
+    orderIndex: finiteNumber(row.orderIndex, index),
+    status: statusFrom(row.status),
     responseKind:
       rawKind.includes("DOCUMENT") || rawKind.includes("FILE")
         ? "DOCUMENT"
         : rawKind.includes("TEXT")
           ? "TEXT"
           : "UNKNOWN",
-    reviewId: nullableString(row.reviewId ?? asRecord(row.review).id),
-    gradingRunId: nullableString(
-      row.gradingRunId ?? asRecord(row.gradingRun).id,
-    ),
+    reviewId: nullableString(row.reviewId),
+    gradingRunId: nullableString(row.gradingRunId),
   };
 }
 

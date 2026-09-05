@@ -92,6 +92,15 @@ export function TeacherReviewWorkspace({
   const [incompleteEvidenceConfirmed, setIncompleteEvidenceConfirmed] =
     useState(false);
 
+  const applyReviewSnapshot = useCallback(
+    (normalized: TeacherReviewDetail) => {
+      setDetail(normalized);
+      setCriteria(normalized.criteria);
+      setOverallComment(normalized.overallComment);
+    },
+    [],
+  );
+
   const loadQueue = useCallback(async () => {
     const response = await fetch(
       buildTeacherSubmissionQueueUrl(assignmentId, {
@@ -149,9 +158,7 @@ export function TeacherReviewWorkspace({
         setLoadState("missing");
         return;
       }
-      setDetail(normalized);
-      setCriteria(normalized.criteria);
-      setOverallComment(normalized.overallComment);
+      applyReviewSnapshot(normalized);
       setReturnResponseType(
         responseKindToSubmissionResponseType(normalized.responseKind),
       );
@@ -163,6 +170,7 @@ export function TeacherReviewWorkspace({
       setLoadState("error");
     }
   }, [
+    applyReviewSnapshot,
     assignmentId,
     initialGradingRunId,
     initialReviewId,
@@ -228,9 +236,7 @@ export function TeacherReviewWorkspace({
       const normalized = normalizeTeacherReviewDetail(await response.json());
       const nextVersion = normalized?.version ?? detail.version + 1;
       if (normalized) {
-        setDetail(normalized);
-        setCriteria(normalized.criteria);
-        setOverallComment(normalized.overallComment);
+        applyReviewSnapshot(normalized);
       } else {
         setDetail((current) =>
           current ? { ...current, version: current.version + 1 } : current,
@@ -242,7 +248,7 @@ export function TeacherReviewWorkspace({
       setMutationState("error");
       return null;
     }
-  }, [criteria, detail, overallComment, reviewUrl]);
+  }, [applyReviewSnapshot, criteria, detail, overallComment, reviewUrl]);
 
   const act = useCallback(
     async (action: "return" | "approve") => {
