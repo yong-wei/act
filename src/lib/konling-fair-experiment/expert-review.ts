@@ -74,12 +74,19 @@ export function buildKonlingFairExperimentExpertReviewReport(input: {
   if (!entries) return pending;
 
   const subset = new Set(input.subsetItemIds);
-  const valid = (entries as unknown[]).filter((entry): entry is KonlingFairExpertReviewRecordEntry => {
+  const isValidEntry = (entry: unknown): entry is KonlingFairExpertReviewRecordEntry => {
     if (typeof entry !== 'object' || entry === null) return false;
     const record = entry as { itemId?: unknown; reviewerA?: unknown; reviewerB?: unknown };
     return typeof record.itemId === 'string' && subset.has(record.itemId)
       && isValidVerdict(record.reviewerA) && isValidVerdict(record.reviewerB);
-  });
+  };
+  // 每题只计一次（spec：按子集题项形成双人记录）：重复行属人工录入
+  // 错误，按文件顺序取首条有效记录，不得对一致率加权。
+  const byItem = new Map<string, KonlingFairExpertReviewRecordEntry>();
+  for (const entry of entries as unknown[]) {
+    if (isValidEntry(entry) && !byItem.has(entry.itemId)) byItem.set(entry.itemId, entry);
+  }
+  const valid = [...byItem.values()];
   if (valid.length === 0) return pending;
 
   const disagreements = valid

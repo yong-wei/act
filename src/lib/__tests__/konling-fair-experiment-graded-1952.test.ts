@@ -349,6 +349,8 @@ describe('判别力报告（#1952 fixture 端到端）', () => {
         // 清单外与非法 verdict 的条目不参与统计。
         { itemId: 'not-in-subset', reviewerA: 'correct', reviewerB: 'correct' },
         { itemId: subset[3], reviewerA: 'correct', reviewerB: 123 },
+        // 重复行（人工录入错误）按题项只计一次，不得加权一致率。
+        { itemId: subset[0], reviewerA: 'correct', reviewerB: 'correct' },
       ],
     }));
     const reaggregated = aggregateKonlingFairExperiment({
