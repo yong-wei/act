@@ -39,6 +39,7 @@ function citation(overrides: Partial<KonlingFairExperimentCitationSnapshot> & { 
     sourceType: 'knowledge-graph',
     href: 'https://act.example/kb/target',
     answerRelevanceMatch: 'query-exact',
+    answerRelevanceBasis: 'query-exact',
     ...overrides,
   };
 }
@@ -119,11 +120,21 @@ describe('auditKonlingFairCitationRecord', () => {
   it('related-only citations without direct-support evidence never count toward precision or coverage', () => {
     const record = audited(
       canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
-      [citation({ id: 'cit-1', answerRelevanceMatch: null })],
+      [citation({ id: 'cit-1', answerRelevanceMatch: null, answerRelevanceBasis: null })],
     );
     expect(record.presentedCitationCount).toBe(1);
     expect(record.citationClasses.citationNoDirectSupport).toBe(1);
     expect(record.citationClasses.realVerifiedSupporting).toBe(0);
+    expect(record.verifiedSupportingCount).toBe(0);
+    expect(record.coveredUnitCount).toBe(0);
+  });
+
+  it('pure semantic relevance (semantic-score) is retrieval-level only and never counts as direct support', () => {
+    const record = audited(
+      canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
+      [citation({ id: 'cit-1', answerRelevanceMatch: 'semantic:strong', answerRelevanceBasis: 'semantic-score' })],
+    );
+    expect(record.citationClasses.citationNoDirectSupport).toBe(1);
     expect(record.verifiedSupportingCount).toBe(0);
     expect(record.coveredUnitCount).toBe(0);
   });
