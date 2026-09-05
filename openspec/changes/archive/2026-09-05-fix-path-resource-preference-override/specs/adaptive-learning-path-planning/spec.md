@@ -10,7 +10,7 @@
 - **AND** 对应资源类型在候选路径资源组合中的优先级 SHALL 可观察地提升。
 
 #### Scenario: Portrait unavailable falls through to system default
-- **WHEN** 生成请求不携带资源偏好且画像不可用或偏好特征未达门槛
+- **WHEN** 生成请求不携带资源偏好且画像不可用或偏好特征未达门槛，且自然语言意图为空或未映射出资源类型
 - **THEN** 规划器 SHALL 使用注册 goal 的系统默认资源类型
 - **AND** 生成结果 SHALL 标注偏好来源为系统默认，SHALL NOT 将默认值呈现为用户或画像选择。
 
