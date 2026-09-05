@@ -6,5 +6,6 @@
 
 ## 完成说明
 
-- Codex review P1 整改：CORRECT 事实的有效时间采用 transitionPayload.fact.startedAt（修正后时间），避免按不可变 LearningFact.startedAt 误判新旧。
+- Codex review P1 整改 1：CORRECT 事实的有效时间采用 transitionPayload.fact.startedAt（修正后时间），避免按不可变 LearningFact.startedAt 误判新旧。
+- Codex review P1 整改 2：查询范围改为全部未被最终 REVOKE 的事实（`id: { notIn }`），覆盖 ingestion 已写事实但 transition 尚未补建的窗口期；全撤销时不回退未过滤查询。
 - 撤销感知测试扩展至四场景（REVOKE 不触发过期 / UPSERT 仍过期 / 混合取有效时间 / CORRECT 修正时间参与比较），消费者域 19 用例通过。

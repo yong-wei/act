@@ -206,7 +206,7 @@ describe('learning-record consumers', () => {
     const db = {
       learningFact: {
         findFirst: vi.fn().mockResolvedValue(null),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       learnerFactTransition: {
         findMany: vi.fn().mockResolvedValue([
@@ -250,7 +250,7 @@ describe('learning-record consumers', () => {
     expect(stale.status).toBe(PROJECTION_STATUS.stale);
     expect(stale.reason).toBe('newer-learning-fact');
     expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { userId: 'student-1', id: { in: ['fact-active'] } },
+      where: { userId: 'student-1' },
     }));
   });
 
@@ -281,7 +281,39 @@ describe('learning-record consumers', () => {
     expect(stale.status).toBe(PROJECTION_STATUS.stale);
     expect(stale.reason).toBe('newer-learning-fact');
     expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { userId: 'student-1', id: { in: ['fact-active'] } },
+      where: { userId: 'student-1', id: { notIn: ['fact-revoked'] } },
+    }));
+  });
+
+  it('keeps facts without transitions in the latest governed fact window', async () => {
+    // ingestion 先写 LearningFact、transition 由画像 worker 异步补建；
+    // 窗口期无 transition 的事实仍是有效事实，不得被 in-active 过滤漏掉。
+    const db = {
+      learningFact: {
+        findFirst: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'fact-window', startedAt: '2026-08-21T00:00:00.000Z' },
+        ]),
+      },
+      learnerFactTransition: {
+        findMany: vi.fn().mockResolvedValue([
+          { factId: 'fact-old-revoked', operation: 'REVOKE', transitionPayload: null },
+        ]),
+      },
+      interactionLog: { findMany: vi.fn() },
+    };
+    mocks.readCurrentCumulativePortrait.mockResolvedValueOnce(snapshotPortrait({
+      evidenceAsOf: '2026-08-18T00:00:00.000Z',
+    }));
+    const stale = await readStudentEvidencePort({
+      db,
+      viewer: { role: 'student', subjectUserId: 'student-1' },
+      targetUserId: 'student-1',
+    });
+    expect(stale.status).toBe(PROJECTION_STATUS.stale);
+    expect(stale.reason).toBe('newer-learning-fact');
+    expect(db.learningFact.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { userId: 'student-1', id: { notIn: ['fact-old-revoked'] } },
     }));
   });
 

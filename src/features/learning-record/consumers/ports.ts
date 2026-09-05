@@ -34,9 +34,12 @@ import type {
 // - CORRECT → 事实时间以修正载荷 transitionPayload.fact.startedAt 为准
 //   （与 reduceLearnerFactTransitions 的有效事实语义一致）；
 // - UPSERT → 沿用事实自身 startedAt。
-// learnerFactTransition 接口不可用时 available=false，回退到旧的 findFirst 行为；
-// 接口可用但全部事实已撤销时 available=true 且 at=null（视为无较新事实）。
-async function readLatestValidGovernedFactAt(db: unknown, userId: string): Promise<{ available: boolean; at: string | null }> {
+// 查询范围是全部未被最终 REVOKE 的事实：ingestion 先写 LearningFact、transition
+// 由画像 worker 异步补建，因此尚无 transition 的新事实仍视为有效。
+async function readLatestValidGovernedFactAt(
+  db: unknown,
+  userId: string,
+): Promise<{ available: boolean; at: string | null }> {
   const transitions = (db as {
     learnerFactTransition?: {
       findMany?: (args: unknown) => Promise<Array<{
@@ -46,11 +49,6 @@ async function readLatestValidGovernedFactAt(db: unknown, userId: string): Promi
       }>>;
     };
   }).learnerFactTransition;
-  const learningFact = (db as {
-    learningFact?: {
-      findMany?: (args: unknown) => Promise<Array<{ id?: string | null; startedAt?: Date | string | null }>>;
-    };
-  }).learningFact;
   if (typeof transitions?.findMany !== 'function') return { available: false, at: null };
   const rows = await transitions.findMany({
     where: { userId },
@@ -58,41 +56,48 @@ async function readLatestValidGovernedFactAt(db: unknown, userId: string): Promi
     distinct: ['factId'],
     select: { factId: true, operation: true, transitionPayload: true },
   });
-  const finalStates = rows
-    .filter((row): row is { factId: string; operation: string; transitionPayload: unknown } =>
-      typeof row.factId === 'string' && row.factId.length > 0 && typeof row.operation === 'string')
-    .map((row) => ({ factId: row.factId, operation: row.operation, transitionPayload: row.transitionPayload }));
-  const activeStates = finalStates.filter((row) => row.operation !== 'REVOKE');
-  if (activeStates.length === 0) return { available: true, at: null };
+  const correctedStartedAtByFactId = new Map<string, string>();
+  const revokedFactIds: string[] = [];
+  for (const row of rows) {
+    if (typeof row.factId !== 'string' || row.factId.length === 0) continue;
+    if (row.operation !== 'REVOKE') continue;
+    revokedFactIds.push(row.factId);
+  }
+  for (const row of rows) {
+    if (row.operation !== 'CORRECT') continue;
+    if (typeof row.factId !== 'string' || row.factId.length === 0) continue;
+    const payload = row.transitionPayload;
+    const fact = payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>).fact
+      : null;
+    const correctedStartedAt = fact && typeof fact === 'object' && !Array.isArray(fact)
+      ? (fact as Record<string, unknown>).startedAt
+      : null;
+    if (typeof correctedStartedAt === 'string' && correctedStartedAt.length > 0) {
+      correctedStartedAtByFactId.set(row.factId, correctedStartedAt);
+    }
+  }
+  const learningFact = (db as {
+    learningFact?: {
+      findMany?: (args: unknown) => Promise<Array<{ id?: string | null; startedAt?: Date | string | null }>>;
+    };
+  }).learningFact;
   if (typeof learningFact?.findMany !== 'function') return { available: false, at: null };
-  const activeFactIds = activeStates.map((row) => row.factId);
   const factRows = await learningFact.findMany({
-    where: { userId, id: { in: activeFactIds } },
+    where: {
+      userId,
+      ...(revokedFactIds.length > 0 ? { id: { notIn: revokedFactIds } } : {}),
+    },
     select: { id: true, startedAt: true },
   });
-  const startedAtById = new Map(
-    factRows
-      .filter((row) => typeof row.id === 'string')
-      .map((row) => [row.id as string, row.startedAt]),
-  );
   const toIso = (value: Date | string | null | undefined): string | null => {
     if (value instanceof Date) return value.toISOString();
     return typeof value === 'string' ? value : null;
   };
   let latest: string | null = null;
-  for (const state of activeStates) {
-    let effectiveAt: string | null = null;
-    if (state.operation === 'CORRECT') {
-      const payload = state.transitionPayload;
-      const fact = payload && typeof payload === 'object' && !Array.isArray(payload)
-        ? (payload as Record<string, unknown>).fact
-        : null;
-      const correctedStartedAt = fact && typeof fact === 'object' && !Array.isArray(fact)
-        ? (fact as Record<string, unknown>).startedAt
-        : null;
-      effectiveAt = typeof correctedStartedAt === 'string' ? correctedStartedAt : null;
-    }
-    if (!effectiveAt) effectiveAt = toIso(startedAtById.get(state.factId));
+  for (const row of factRows) {
+    if (typeof row.id !== 'string') continue;
+    const effectiveAt = correctedStartedAtByFactId.get(row.id) ?? toIso(row.startedAt);
     if (effectiveAt && (latest === null || effectiveAt > latest)) latest = effectiveAt;
   }
   return { available: true, at: latest };
