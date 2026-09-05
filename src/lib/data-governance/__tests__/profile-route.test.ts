@@ -547,7 +547,7 @@ describe('GET /api/user/profile', () => {
           metrics: { overshoot: 8.2, settlingTime: 12, valid: true },
           evaluation: { passed: true, meetsQualityTarget: true },
           qualityTargetMet: true,
-          runContract: { evaluationVisibility: 'preview', officialEligible: false },
+          runContract: { evaluationVisibility: 'practice', officialEligible: false }, // 真实生产者写入 PRACTICE_DISPLAY_BOUNDARY
         },
         completedAt: new Date('2026-03-20T10:00:00.000Z'),
         createdAt: new Date('2026-03-20T10:00:00.000Z'),

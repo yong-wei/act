@@ -1,4 +1,8 @@
 import { sceneTraceSourceRefId } from '@/lib/data-governance/simulation-scene-run-persistence';
+import {
+  PRACTICE_DISPLAY_BOUNDARY,
+  PREVIEW_DISPLAY_BOUNDARY,
+} from '@/lib/practice-lab-run-contract/types';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 
 /**
@@ -98,14 +102,22 @@ function nonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
 
-/** canonical summary 的展示资格：完整 metrics + 显式 preview/非官方边界。 */
+/** 非官方展示边界值域：与运行合同真源绑定，preview（arena 预览）或
+ * practice（场景/工作台练习）均可进入个人学习记录，official 一律排除。 */
+const NON_OFFICIAL_DISPLAY_VISIBILITIES = new Set<string>([
+  PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility,
+  PRACTICE_DISPLAY_BOUNDARY.evaluationVisibility,
+]);
+
+/** canonical summary 的展示资格：完整 metrics + 显式非官方显示边界。 */
 function canonicalRunDisplayable(row: CanonicalRunRow): boolean {
   if (row.status !== 'completed') return false;
   if (row.runKind !== 'scene_simulation' || row.sourceDomain !== 'simulation_scene') return false;
   const summary = record(row.summary);
   if (Object.keys(record(summary.metrics)).length === 0) return false;
   const runContract = record(summary.runContract);
-  return runContract.evaluationVisibility === 'preview' && runContract.officialEligible === false;
+  return NON_OFFICIAL_DISPLAY_VISIBILITIES.has(String(runContract.evaluationVisibility))
+    && runContract.officialEligible === false;
 }
 
 /** 学生安全参数白名单：顶层或 odyssey snapshot 的嵌套 pidParams 均可，其余键不透出。 */
@@ -153,6 +165,16 @@ function canonicalRunItem(row: CanonicalRunRow): ProfileSimulationEvidenceItem {
 function legacyOdysseyRunId(log: LegacyLogRow): string | null {
   return nonEmptyString(log.odysseyRunId)
     ?? nonEmptyString(record(log.inputParams).runId);
+}
+
+/** 未完成的奥德赛日志不计入：saveScore 先落 pending 记录（odysseyRunId 已
+ * 写、odysseyCompletedAt 为空），积分与 Arena 桥接结束后才写完成时间。带
+ * 奥德赛身份且未完成的记录不是完成训练事实；无奥德赛身份的历史日志是
+ * 旧链路一次写入的完成记录，保持计入。 */
+function legacyLogDisplayable(log: LegacyLogRow): boolean {
+  const odysseyRunId = legacyOdysseyRunId(log);
+  if (!odysseyRunId) return true;
+  return log.odysseyCompletedAt !== null;
 }
 
 function legacyLogItem(log: LegacyLogRow): ProfileSimulationEvidenceItem {
@@ -245,7 +267,9 @@ export async function readProfileSimulationEvidence(
       ...runRows
         .filter((row) => row.ownerUserId === userId && canonicalRunDisplayable(row))
         .map(canonicalRunItem),
-      ...logRows.filter((row) => row.userId === userId).map(legacyLogItem),
+      ...logRows
+        .filter((row) => row.userId === userId && legacyLogDisplayable(row))
+        .map(legacyLogItem),
     ]).sort((left, right) =>
       Date.parse(right.occurredAt) - Date.parse(left.occurredAt)
       || left.id.localeCompare(right.id),

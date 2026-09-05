@@ -5,6 +5,10 @@ import {
   readProfileSimulationEvidence,
 } from '@/lib/data-governance/profile-simulation-evidence';
 import { sceneTraceSourceRefId } from '@/lib/data-governance/simulation-scene-run-persistence';
+import {
+  PRACTICE_DISPLAY_BOUNDARY,
+  PREVIEW_DISPLAY_BOUNDARY,
+} from '@/lib/practice-lab-run-contract/types';
 
 function runRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -19,7 +23,11 @@ function runRow(overrides: Record<string, unknown> = {}) {
       metrics: { score: 88, duration: 120, valid: true },
       evaluation: { passed: true, meetsQualityTarget: true },
       qualityTargetMet: true,
-      runContract: { evaluationVisibility: 'preview', officialEligible: false },
+      // 与持久化层同源的显示边界：场景/工作台运行写入的是 practice 合同。
+      runContract: {
+        evaluationVisibility: PRACTICE_DISPLAY_BOUNDARY.evaluationVisibility,
+        officialEligible: PRACTICE_DISPLAY_BOUNDARY.officialEligible,
+      },
     },
     completedAt: new Date('2026-09-01T00:00:00.000Z'),
     createdAt: new Date('2026-09-01T00:00:00.000Z'),
@@ -107,12 +115,19 @@ describe('readProfileSimulationEvidence', () => {
     }));
   });
 
-  it('excludes canonical runs without an explicit preview boundary or metrics', async () => {
+  it('excludes canonical runs without an explicit non-official boundary or metrics', async () => {
+    const officialBoundary = (id: string) => runRow({
+      id,
+      summary: {
+        metrics: { score: 1 },
+        runContract: { evaluationVisibility: 'official', officialEligible: true },
+      },
+    });
     const projection = await readProfileSimulationEvidence(
       makeDb([
-        runRow({ id: 'official', summary: { metrics: { score: 1 }, runContract: { evaluationVisibility: 'official', officialEligible: true } } }),
+        officialBoundary('official'),
         runRow({ id: 'no-contract', summary: { metrics: { score: 1 } } }),
-        runRow({ id: 'no-metrics', summary: { runContract: { evaluationVisibility: 'preview', officialEligible: false } } }),
+        runRow({ id: 'no-metrics', summary: { runContract: { evaluationVisibility: PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility, officialEligible: false } } }),
         runRow({ id: 'still-running', status: 'running' }),
         runRow({ id: 'foreign-kind', runKind: 'arena_preview', sourceDomain: 'arena_virtual_preview' }),
         runRow({ id: 'foreign-owner', ownerUserId: 'student-2' }),
@@ -125,6 +140,55 @@ describe('readProfileSimulationEvidence', () => {
     expect(projection.items).toHaveLength(0);
     expect(projection.averageScore).toBeNull();
     expect(projection.totalDurationSeconds).toBeNull();
+  });
+
+  it('accepts both non-official boundary values a real producer can write', async () => {
+    const projection = await readProfileSimulationEvidence(
+      makeDb([
+        runRow({ id: 'run-practice' }),
+        runRow({
+          id: 'run-preview',
+          summary: {
+            metrics: { score: 90 },
+            runContract: { evaluationVisibility: PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility, officialEligible: PREVIEW_DISPLAY_BOUNDARY.officialEligible },
+          },
+        }),
+      ], []),
+      'student-1',
+    );
+
+    expect(projection.total).toBe(2);
+  });
+
+  it('excludes pending odyssey logs until bridging completes them', async () => {
+    const projection = await readProfileSimulationEvidence(
+      makeDb([], [
+        logRow({
+          id: 'log-pending',
+          controlMode: 'GAME',
+          odysseyRunId: 'od-pending',
+          odysseyCompletedAt: null,
+        }),
+        logRow({
+          id: 'log-pending-legacy-shape',
+          controlMode: 'GAME',
+          odysseyRunId: null,
+          inputParams: { runId: 'od-pending-2' },
+          odysseyCompletedAt: null,
+        }),
+        logRow({
+          id: 'log-completed',
+          controlMode: 'GAME',
+          odysseyRunId: 'od-done',
+          odysseyCompletedAt: new Date('2026-08-21T00:00:00.000Z'),
+        }),
+      ]),
+      'student-1',
+    );
+
+    expect(projection.total).toBe(1);
+    expect(projection.items[0].id).toBe('simulation:log-completed');
+    expect(projection.items[0].resultAuthority).toBe('official');
   });
 
   it('keeps eligible legacy logs visible with odyssey and PID labeling', async () => {
@@ -166,7 +230,7 @@ describe('readProfileSimulationEvidence', () => {
     const projection = await readProfileSimulationEvidence(
       makeDb(
         [runRow({ id: 'run-bridged', sourceRefId: bridgedRefId })],
-        [logRow({ id: 'log-bridged', odysseyRunId: 'od-1' })],
+        [logRow({ id: 'log-bridged', odysseyRunId: 'od-1', odysseyCompletedAt: new Date('2026-08-21T00:00:00.000Z') })],
       ),
       'student-1',
     );
@@ -181,7 +245,7 @@ describe('readProfileSimulationEvidence', () => {
     const projection = await readProfileSimulationEvidence(
       makeDb(
         [runRow({ id: 'run-bridged', sourceRefId: bridgedRefId })],
-        [logRow({ id: 'log-bridged', odysseyRunId: null, inputParams: { runId: 'od-2' } })],
+        [logRow({ id: 'log-bridged', odysseyRunId: null, inputParams: { runId: 'od-2' }, odysseyCompletedAt: new Date('2026-08-21T00:00:00.000Z') })],
       ),
       'student-1',
     );
@@ -206,7 +270,7 @@ describe('readProfileSimulationEvidence', () => {
 
   it('averages scores only across records that carry one', async () => {
     const projection = await readProfileSimulationEvidence(
-      makeDb([runRow({ summary: { metrics: { score: 80 }, runContract: { evaluationVisibility: 'preview', officialEligible: false } } })], [
+      makeDb([runRow({ summary: { metrics: { score: 80 }, runContract: { evaluationVisibility: PRACTICE_DISPLAY_BOUNDARY.evaluationVisibility, officialEligible: PRACTICE_DISPLAY_BOUNDARY.officialEligible } } })], [
         logRow({ id: 'log-90', score: 90 }),
         logRow({ id: 'log-noscore', score: null, duration: null }),
       ]),
@@ -229,6 +293,7 @@ describe('readProfileSimulationEvidence', () => {
           id: 'log-nested',
           controlMode: 'GAME',
           odysseyRunId: 'od-nested',
+          odysseyCompletedAt: new Date('2026-08-21T00:00:00.000Z'),
           inputParams: { pidParams: { kp: 2.4, ki: 0.15, kd: 0.8 }, trajectoryData: 'private' },
         }),
       ]),

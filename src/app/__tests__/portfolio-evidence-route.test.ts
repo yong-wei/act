@@ -29,7 +29,7 @@ function canonicalRunRow(overrides: Record<string, unknown> = {}) {
       metrics: { score: 88, duration: 120, valid: true },
       evaluation: { passed: true, meetsQualityTarget: true },
       qualityTargetMet: true,
-      runContract: { evaluationVisibility: 'preview', officialEligible: false },
+      runContract: { evaluationVisibility: 'practice', officialEligible: false }, // 真实生产者写入 PRACTICE_DISPLAY_BOUNDARY
     },
     completedAt: new Date('2026-09-01T00:00:00.000Z'),
     createdAt: new Date('2026-09-01T00:00:00.000Z'),
