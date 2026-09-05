@@ -2972,7 +2972,6 @@ async function captureActiveAuthorityVisualMatrix(
           || !rendererVisibleInViewport
           || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
           || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
-          || !nodeLabelsReadable
         ))
         || surfaceScan.passed !== true
       ) {
