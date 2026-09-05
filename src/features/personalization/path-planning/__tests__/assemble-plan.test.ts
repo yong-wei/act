@@ -9067,3 +9067,171 @@ describe('adaptive learning path planner', () => {
     ]);
   });
 });
+
+describe('portrait-driven path personalization availability (#1984)', () => {
+  it('marks competency targets as no-portrait-evidence and surfaces unavailability when the portrait is fenced off', () => {
+    const plan = planLearningPath(plannerInput({
+      learnerState: {
+        primaryPortraitState: 'UNAVAILABLE',
+        primaryPortraitAvailability: 'migration-in-progress',
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.32, confidence: 0.7, evidenceCount: 3 },
+            'kn-cruise': { posteriorMastery: 0.2, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: { level: 'medium', score: 0.7, evidenceCount: 8, sourceCompleteness: 0.6 },
+        },
+      },
+      policyBundle: {
+        families: ['foundation-remediation', 'simulation-driven'],
+        overlapThreshold: 0.6,
+      },
+    }));
+    const persisted = serializeLearningPathPlan(plan);
+    const options = persisted.payload.pathOptions ?? [];
+    expect(options.length).toBeGreaterThan(0);
+    for (const option of options) {
+      const competencyDeficits = (option.targetDeficits ?? [])
+        .filter((deficit) => deficit.kind === 'competency');
+      for (const deficit of competencyDeficits) {
+        expect(deficit.reasonCode).toBe('competency-no-portrait-evidence');
+        expect(deficit.evidenceCount).toBe(0);
+      }
+      const provenance = option.recommendationProvenance;
+      expect(provenance?.personalizationState).toBe('portrait-unavailable');
+      expect(provenance?.summary).toContain('当前无法个性化推荐');
+      expect(provenance?.summary).toContain('通用学习路线');
+      expect(provenance?.entries.every((entry) => entry.targetKind !== 'competency')).toBe(true);
+      expect(provenance?.limitations.join(' ')).toContain('migration-in-progress');
+      expect(JSON.stringify(option)).not.toContain('matches-competency-deficit');
+    }
+    const bundleDecision = (persisted.payload.policyBundle as Record<string, unknown> | undefined)?.decisionEvidence as Record<string, unknown> | undefined;
+    const decisionSnapshot = (bundleDecision?.snapshot ?? bundleDecision) as Record<string, unknown> | undefined;
+    const decisionWeakTargets = (decisionSnapshot?.weakTargets ?? []) as Array<Record<string, unknown>>;
+    expect(decisionWeakTargets.length).toBeGreaterThan(0);
+    for (const weakTarget of decisionWeakTargets.filter((item) => item.kind === 'competency')) {
+      expect(weakTarget.reasonCode).toBe('competency-no-portrait-evidence');
+    }
+  });
+
+  it('keeps cited competency deficits aligned with an available trusted portrait', () => {
+    const plan = planLearningPath(plannerInput());
+    const persisted = serializeLearningPathPlan(plan);
+    const options = persisted.payload.pathOptions ?? [];
+    const provenance = options[0]?.recommendationProvenance;
+    expect(provenance?.personalizationState).toBeUndefined();
+    expect(provenance?.summary).not.toContain('当前无法个性化推荐');
+    const competencyEntries = provenance?.entries.filter((entry) => entry.targetKind === 'competency') ?? [];
+    for (const entry of competencyEntries) {
+      expect(entry.evidenceSummary).toMatch(/来自 \d+ 条有效证据/);
+    }
+  });
+
+  it('surfaces the portrait-unavailable degradation reason from the learner-state snapshot', async () => {
+    const { listPersonalizedPathDegradationReasons, degradationStudentText } = await import(
+      '@/features/personalization/path-planning/adaptive-path-decision-evidence'
+    );
+    const degraded = listPersonalizedPathDegradationReasons({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-09-05T00:00:00.000Z',
+      authority: 'server-owned',
+      sourceCoverage: {},
+      evidenceWindow: null,
+      freshness: 'current',
+      confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.6, evidenceCount: 8 },
+      missingEvidence: [],
+      preferredModalities: [],
+      preferredModalityConfidence: 'none',
+      primaryPortraitState: 'UNAVAILABLE',
+      primaryPortraitAvailability: 'migration-in-progress',
+    });
+    expect(degraded).toContain('portrait-unavailable');
+    expect(degradationStudentText('portrait-unavailable')).toContain('能力画像');
+    const available = listPersonalizedPathDegradationReasons({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-09-05T00:00:00.000Z',
+      authority: 'server-owned',
+      sourceCoverage: {},
+      evidenceWindow: null,
+      freshness: 'current',
+      confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.6, evidenceCount: 8 },
+      missingEvidence: [],
+      preferredModalities: [],
+      preferredModalityConfidence: 'none',
+      primaryPortraitState: 'SNAPSHOT',
+      primaryPortraitAvailability: 'available',
+    });
+    expect(available).not.toContain('portrait-unavailable');
+  });
+
+  it('labels option reason with generic-route semantics when every competency deficit lacks portrait evidence', async () => {
+    const { buildAdaptivePathOptionDisplays } = await import(
+      '@/features/personalization/path-planning/adaptive-path-option-display'
+    );
+    const displays = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '通用路线',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [
+        { targetId: 'parameterDesign', kind: 'competency', value: 0, confidence: 0, evidenceCount: 0, reasonCode: 'competency-no-portrait-evidence' },
+      ],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      limitations: [],
+    }]);
+    expect(displays[0].reason).toBe('能力画像暂不可用，按通用学习路线安排资源。');
+
+    const personalized = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '补强路线',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [
+        { targetId: 'kn-bode', kind: 'knowledge', value: 0.32, confidence: 0.7, evidenceCount: 3, reasonCode: 'knowledge-deficit' },
+      ],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      limitations: [],
+    }]);
+    expect(personalized[0].reason).toContain('当前薄弱项');
+  });
+
+  it('prefers generic-route copy when the portrait is unavailable even alongside real knowledge deficits', async () => {
+    const { buildAdaptivePathOptionDisplays } = await import(
+      '@/features/personalization/path-planning/adaptive-path-option-display'
+    );
+    const displays = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '通用路线',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [
+        { targetId: 'kn-bode', kind: 'knowledge', value: 0.32, confidence: 0.7, evidenceCount: 3, reasonCode: 'knowledge-deficit' },
+        { targetId: 'parameterDesign', kind: 'competency', value: 0, confidence: 0, evidenceCount: 0, reasonCode: 'competency-no-portrait-evidence' },
+      ],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      limitations: [],
+      recommendationProvenance: {
+        summary: '当前无法个性化推荐：能力画像暂不可用，本路径按通用学习路线生成。',
+        confidence: 'low',
+        entries: [],
+        personalizationState: 'portrait-unavailable',
+        evidenceReviewHref: '/profile/evidence',
+        limitations: [],
+        nextAction: null,
+      },
+    }]);
+    expect(displays[0].reason).toBe('能力画像暂不可用，按通用学习路线安排资源。');
+    expect(displays[0].reason).not.toContain('薄弱项');
+  });
+});

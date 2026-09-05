@@ -1983,6 +1983,9 @@ function getPathRecommendationProvenance(
     confidence,
     entries,
     personalizationNotes: getStringArray(provenance.personalizationNotes),
+    ...(provenance.personalizationState === 'portrait-unavailable'
+      ? { personalizationState: 'portrait-unavailable' as const }
+      : {}),
     evidenceReviewHref: '/profile/evidence',
     limitations: getStringArray(provenance.limitations),
     nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,
@@ -6035,6 +6038,20 @@ export default function AdaptivePracticePage() {
               >
                 当前可用资源有限，推荐方案差异较小。
               </p>
+            ) : null}
+            {visiblePathOptions.some((option) =>
+              option.recommendationProvenance?.personalizationState === 'portrait-unavailable') ? (
+              <section
+                className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3"
+                role="status"
+                data-learning-path-personalization-state="portrait-unavailable"
+              >
+                <p className="text-sm font-medium text-foreground">当前无法个性化推荐</p>
+                <p className="mt-1 break-words text-xs leading-5 text-subtle">
+                  能力画像暂不可用（画像更新或证据收集中），本次候选路径按通用学习路线生成，
+                  不构成基于你当前能力状态的个性化判断；画像恢复后重新生成即可获得个性化推荐。
+                </p>
+              </section>
             ) : null}
             {pathAdjustmentSummary ? (
               <section
