@@ -17,6 +17,7 @@ import {
   PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS,
   STUDENT_LEARNING_INTENT_GROUPS,
   STUDENT_CORE_ENTRY_IDS,
+  STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS,
   getCommercialStudentEntryIntentGroups,
   resolveCommercialEntryHref,
   getPlatformCockpitHref,
@@ -43,28 +44,28 @@ describe('platform role navigation', () => {
       '/arena',
       '/simulations',
       '/interactive-learning/control-workbench',
-      '/evaluation/prompt-assessment',
     ]);
     expect(entries.every((entry) => entry.group === 'student-core')).toBe(true);
     expect(entries.map((entry) => entry.id)).not.toContain('student-profile');
   });
 
-  it('keeps prompt assessment reachable and active in the student global navigation', () => {
-    expect(getStudentCoreNavigationEntries().map((entry) => entry.id)).toContain('student-prompt-assessment');
-    expect(getPlatformRouteNavigation('/evaluation/prompt-assessment', 'student')).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: 'student-prompt-assessment',
-          href: '/evaluation/prompt-assessment',
-          group: 'student-core',
-        }),
-      ]),
+  it('surfaces prompt assessment only from the personal center entry map, not the homepage or primary navigation', () => {
+    // 用户裁决（2026-09-05）：提示词复盘是个人中心级别的学习过程复盘工具，
+    // 不到首页一级入口的重要程度；入口收敛到个人中心学习入口地图。
+    const primaryIds = [...STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS];
+    expect(primaryIds).not.toContain('student-prompt-assessment');
+    expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).not.toContain(
+      '/evaluation/prompt-assessment',
     );
     expect(
-      getStudentLearningIntentNavigationGroups().find((group) => group.intent === 'practice')?.entries.map(
-        (entry) => entry.id,
-      ),
-    ).toContain('student-prompt-assessment');
+      getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries.map((entry) => entry.href)),
+    ).not.toContain('/evaluation/prompt-assessment');
+
+    const practiceGroup = COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'practice');
+    expect(practiceGroup?.hrefs).toContain('/evaluation/prompt-assessment');
+    // 路由与 AI 任务边界深链保持可用，只移除导航曝光。
+    expect(resolvePlatformRouteInventory('/evaluation/prompt-assessment')?.href).toBe('/evaluation/prompt-assessment');
+    expect(resolveCommercialEntryHref('account-profile', true)).toBe('/profile');
   });
 
   it('defines student, teacher, admin, and guest navigation groups', () => {

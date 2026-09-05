@@ -31,6 +31,10 @@ const personalCenterIntentBadges: Record<(typeof personalCenterIntentOrder)[numb
 type PersonalCenterIntent = (typeof personalCenterIntentOrder)[number];
 
 const personalCenterEntryOverrides: Record<string, { title: string; description: string }> = {
+  '/evaluation/prompt-assessment': {
+    title: '提示词复盘',
+    description: '回顾提示词质量与控制策略迭代的一致性结果。',
+  },
   '/profile/evidence': {
     title: '学习记录',
     description: '查看课堂作答、路径执行、仿真活动和学习事实的时间线。',

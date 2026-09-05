@@ -1412,7 +1412,7 @@ describe('platform UI contracts', () => {
   });
 
   it('keeps student primary navigation in canonical order across AppShell states', () => {
-    const expectedLabels = ['首页', '知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台', '提示词复盘', '个人中心'];
+    const expectedLabels = ['首页', '知识资源', '互动学习', '学习路径', '竞技场', '虚拟仿真', '控制工作台', '个人中心'];
     const representativeRoutes = [
       '/knowledge',
       '/interactive-learning',
