@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { Prisma } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth';
+import { runCompanionProactiveTurn } from '@/features/ai/companion/proactive-turn';
+import type { CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -11,15 +13,12 @@ export const dynamic = 'force-dynamic';
 const COMPANION_ORIGIN = 'companion';
 const MAX_RESOURCE_CARDS = 3;
 
-interface CompanionResourceCard {
-  resourceId: string;
-  versionHash: string;
-  reason: string;
-  kind: string;
-}
+type CompanionResourceCard = CompanionResourceCardInput;
 
+/** 资源卡可选（错题安慰等场景可为空）；提供时元素结构必须完整。 */
 function parseResourceCards(value: unknown): CompanionResourceCard[] | null {
-  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_RESOURCE_CARDS) return null;
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || value.length > MAX_RESOURCE_CARDS) return null;
   const cards: CompanionResourceCard[] = [];
   for (const item of value) {
     if (!item || typeof item !== 'object') return null;
@@ -35,6 +34,7 @@ function parseResourceCards(value: unknown): CompanionResourceCard[] | null {
       versionHash: card.versionHash,
       reason: card.reason,
       kind: card.kind,
+      ...(typeof card.caption === 'string' && card.caption ? { caption: card.caption } : {}),
     });
   }
   return cards;
@@ -62,6 +62,20 @@ function companionAssistantMessage(input: {
   };
 }
 
+/** 气泡文案为按事件类型的固定模板：不显示知识点、不含答案，错题场景安全。 */
+function companionBubbleMessage(eventType: string): string {
+  switch (eventType) {
+    case 'wrong-answer':
+      return '这题答错了没关系，控灵陪你看懂它。';
+    case 'progress-milestone':
+      return '有进步！控灵想给你点个赞。';
+    case 'resource-completed':
+      return '资源学完了，看看控灵建议的下一步。';
+    default:
+      return '需要控灵陪你看会儿这个页面吗？';
+  }
+}
+
 /**
  * 会话投递：复用最近匹配的学生私有控灵会话或创建新会话，
  * 写入 companion-origin 助手消息（不伪造用户消息），并以 Delivery 唯一约束兜底去重。
@@ -86,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
     const event = await prisma.konlingCompanionEvent.findFirst({
-      where: { id: eventId, userId, status: 'confirmed' },
+      where: { id: eventId, userId, status: { in: ['confirmed', 'delivered'] } },
     });
     if (!event) {
       return NextResponse.json({ error: 'Confirmed event not found' }, { status: 404 });
@@ -97,7 +111,11 @@ export async function POST(request: NextRequest) {
       select: { sessionId: true },
     });
     if (existingDelivery) {
-      return NextResponse.json({ sessionId: existingDelivery.sessionId, deduplicated: true }, { status: 200 });
+      return NextResponse.json({
+        sessionId: existingDelivery.sessionId,
+        message: companionBubbleMessage(event.eventType),
+        deduplicated: true,
+      }, { status: 200 });
     }
 
     // 复用最近匹配的学生私有会话（同课程同页面上下文），否则创建新会话。
@@ -153,7 +171,11 @@ export async function POST(request: NextRequest) {
         where: { eventId: event.id },
         select: { sessionId: true },
       });
-      return NextResponse.json({ sessionId: winner?.sessionId ?? sessionId, deduplicated: true }, { status: 200 });
+      return NextResponse.json({
+        sessionId: winner?.sessionId ?? sessionId,
+        message: companionBubbleMessage(event.eventType),
+        deduplicated: true,
+      }, { status: 200 });
     }
 
     await prisma.konlingCompanionEvent.update({
@@ -161,7 +183,52 @@ export async function POST(request: NextRequest) {
       data: { status: 'delivered' },
     });
 
-    return NextResponse.json({ sessionId, deduplicated: false }, { status: 201 });
+    // 主动回合：围绕 companion 上下文生成一条真实回复（不伪造用户消息）。
+    // 失败静默降级为静态文案消息，不影响投递结果。
+    const proactiveContent = await runCompanionProactiveTurn({
+      userId,
+      eventType: event.eventType,
+      pageKind: event.pageKind,
+      pageRef: event.pageRef,
+      reasons: resources.map((card) => card.reason),
+    });
+    if (proactiveContent) {
+      const proactiveMessage = {
+        id: `companion-turn-${deliveredAt.getTime()}-${Math.random().toString(36).slice(2, 10)}`,
+        role: 'assistant',
+        origin: COMPANION_ORIGIN,
+        content: proactiveContent,
+        metadata: {
+          companionProactiveTurn: { eventId: event.id, generatedAt: deliveredAt.toISOString() },
+        },
+        createdAt: new Date().toISOString(),
+      };
+      const current = await prisma.konlingSession.findUnique({
+        where: { id: sessionId },
+        select: { messages: true },
+      });
+      if (current) {
+        const history = Array.isArray(current.messages) ? current.messages : [];
+        // 仅当消息尾部仍是本事件的首条 companion 消息时追加，避免并发重复。
+        const lastMessage = history[history.length - 1];
+        if (lastMessage && typeof lastMessage === 'object' && !Array.isArray(lastMessage)
+          && (lastMessage as Record<string, unknown>).id === message.id) {
+          await prisma.konlingSession.update({
+            where: { id: sessionId },
+            data: {
+              messages: [...history, proactiveMessage] as unknown as Prisma.InputJsonValue,
+              lastActivityAt: new Date(),
+            },
+          });
+        }
+      }
+    }
+
+    return NextResponse.json({
+      sessionId,
+      message: companionBubbleMessage(event.eventType),
+      deduplicated: false,
+    }, { status: 201 });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('companion delivery failed', error);

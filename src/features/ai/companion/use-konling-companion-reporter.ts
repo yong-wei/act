@@ -9,7 +9,8 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 
-import type { CompanionEventType, CompanionPageKind, CompanionPauseSignals } from '@/features/ai/companion/trigger-engine';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
+import type { CompanionEventType, CompanionPageKind, CompanionPauseSignals, CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
 
 const IDLE_PAUSE_MS = 30_000;
 const CONFIRMATION_DELAY_MS = 12_000;
@@ -18,6 +19,11 @@ export interface UseKonlingCompanionReporterInput {
   enabled: boolean;
   pageKind: CompanionPageKind;
   pageRef: string;
+  /** 事件确认后的投递参数；不提供则只上报不投递（不弹气泡）。 */
+  delivery?: {
+    courseId: string;
+    resources?: CompanionResourceCardInput[];
+  };
 }
 
 interface PauseWatch {
@@ -39,14 +45,43 @@ export function useKonlingCompanionReporter({
   enabled,
   pageKind,
   pageRef,
+  delivery,
 }: UseKonlingCompanionReporterInput) {
   const watch = useRef<PauseWatch>({ timer: null, lastActionAt: Date.now(), mediaPlaying: false });
   const disabled = useRef(false);
   const pageKey = useRef({ pageKind, pageRef });
+  const { presentCompanionBubble } = useGlobalAI();
 
   useEffect(() => {
     pageKey.current = { pageKind, pageRef };
   }, [pageKind, pageRef]);
+
+  /** 事件确认后投递：成功则呈现气泡；flag 关闭或服务端异常时静默降级。 */
+  const deliver = useCallback(async (eventId: string) => {
+    if (disabled.current || !delivery) return;
+    try {
+      const response = await fetch('/api/ai/companion/delivery', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          courseId: delivery.courseId,
+          resources: delivery.resources ?? [],
+        }),
+      });
+      if (response.status === 404) {
+        disabled.current = true;
+        return;
+      }
+      if (!response.ok) return;
+      const result = await response.json() as { sessionId?: string; message?: string } | null;
+      if (result?.sessionId && result?.message) {
+        presentCompanionBubble({ eventId, message: result.message, sessionId: result.sessionId });
+      }
+    } catch {
+      // 服务端异常降级：不弹气泡，不影响学习流程。
+    }
+  }, [delivery, presentCompanionBubble]);
 
   const post = useCallback(async (body: Record<string, unknown>) => {
     if (disabled.current) return null;
@@ -76,11 +111,13 @@ export function useKonlingCompanionReporter({
         body: JSON.stringify({ eventId, signals: readSignals(watch.current) }),
       });
       if (!response.ok) return null;
-      return await response.json() as { status?: string } | null;
+      const result = await response.json() as { status?: string } | null;
+      if (result?.status === 'confirmed') await deliver(eventId);
+      return result;
     } catch {
       return null;
     }
-  }, []);
+  }, [deliver]);
 
   // 两阶段停顿：无操作 + 可见 + 聚焦 + 无媒体 → 候选；短延迟后二次确认。
   useEffect(() => {
@@ -112,15 +149,19 @@ export function useKonlingCompanionReporter({
     };
   }, [enabled, post, confirmCandidate]);
 
-  /** 有效学习操作：打断停顿计时并按需上报直发事件。 */
+  /** 有效学习操作：打断停顿计时并按需上报直发事件（确认后直接投递）。 */
   const reportActivity = useCallback((eventType?: Extract<CompanionEventType, 'wrong-answer' | 'progress-milestone' | 'resource-completed'>) => {
     watch.current.lastActionAt = Date.now();
     if (watch.current.timer !== null) {
       window.clearTimeout(watch.current.timer);
       watch.current.timer = null;
     }
-    if (eventType) void post({ eventType });
-  }, [post]);
+    if (eventType) {
+      void post({ eventType }).then((created) => {
+        if (created?.eventId && created.status === 'confirmed') void deliver(created.eventId);
+      });
+    }
+  }, [post, deliver]);
 
   /** 粗粒度媒体状态（仅播放/暂停，无逐秒轨迹）。 */
   const reportMediaState = useCallback((playing: boolean) => {

@@ -20,6 +20,16 @@ export type CompanionEventStatus =
 
 export type CompanionPageKind = 'resource-textbook' | 'adaptive-practice';
 
+/** 投递资源卡快照（治理注册表投影）：打开/恢复时按 resourceId + versionHash 重校验，失效仅降级对应卡片。 */
+export interface CompanionResourceCardInput {
+  resourceId: string;
+  versionHash: string;
+  reason: string;
+  kind: string;
+  /** 可选说明（预计用时/完成内容等），由布点页面按注册表元数据填充。 */
+  caption?: string;
+}
+
 /** 客户端上报的停顿窗口信号快照（服务端仅采信布尔状态，不采信客户端时刻）。 */
 export interface CompanionPauseSignals {
   visible: boolean;

@@ -16,6 +16,8 @@ const SEEN_PREFIX = 'konling-companion-seen:';
 export interface CompanionBubbleRequest {
   eventId: string;
   message: string;
+  /** 点击后要定位的控灵会话（投递返回）。 */
+  sessionId: string;
 }
 
 function acquireLease(userId: string, eventId: string): boolean {

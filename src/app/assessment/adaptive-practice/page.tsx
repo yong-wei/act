@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { useKonlingCompanionReporter } from '@/features/ai/companion/use-konling-companion-reporter';
 import {
   adaptiveGenerationReadinessFromHttp,
   adaptivePracticeGoalLabel,
@@ -3084,6 +3085,14 @@ export default function AdaptivePracticePage() {
   const sessionIdRef = useRef(sessionId);
   sessionIdRef.current = sessionId;
 
+  // 控灵主动陪伴布点（Issue #1966）：错题安慰 + 进步表扬；demo 模式与未登录不上报。
+  const { reportActivity: reportCompanionActivity } = useKonlingCompanionReporter({
+    enabled: authStatus === 'authenticated' && !isDemoMode,
+    pageKind: 'adaptive-practice',
+    pageRef: sessionId,
+    delivery: { courseId: 'adaptive-practice' },
+  });
+
   const [diagnostic, setDiagnostic] = useState<DiagnosticResponse | null>(null);
   const [questionState, setQuestionState] = useState<NextQuestionResponse | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>('');
@@ -5036,6 +5045,13 @@ export default function AdaptivePracticePage() {
       if (sessionIdRef.current !== requestedSessionId) return;
       setFeedback(data);
       setAttemptDiagnosisState('idle');
+      // 陪伴事件：错题安慰（气泡不显示知识点）；能力估计上升才算进步表扬，冷却期内服务端自动抑制。
+      if (!data.isCorrect) {
+        reportCompanionActivity('wrong-answer');
+      } else if (typeof data.estimatedAbility === 'number'
+        && data.estimatedAbility > questionState.estimatedAbility) {
+        reportCompanionActivity('progress-milestone');
+      }
       await syncAdaptiveAssessmentPathResult(data);
       await loadDiagnostic();
     } catch (submitError) {
