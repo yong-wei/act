@@ -119,11 +119,14 @@ describe('konling fair experiment export naming and interpretation (#2016)', () 
       precision: { numerator: 6, denominator: 6 },
       coverage: { numerator: 6, denominator: 6 },
     });
+    // 普通基线 composite 非零（未来可能出现的合规标题+盲审通过场景）。
+    (official.perArm['plain-baseline'].composite as Record<string, { rate: number; passed: number; n: number }>)['structure-alias.v1'] = { rate: 1, passed: 36, n: 36 };
     const frozenJson = JSON.stringify(official, null, 2);
     fs.writeFileSync(path.join(runDir, 'summary', 'official.json'), frozenJson, 'utf8');
 
     const result = await exportKonlingFairExperimentArtifacts(runDir, official);
     const slides = fs.readFileSync(result.slides, 'utf8');
+    const notes2 = JSON.parse(fs.readFileSync(result.notes, 'utf8'));
     const frozenAfter = fs.readFileSync(path.join(runDir, 'summary', 'official.json'), 'utf8');
 
     // 真源不被改写；有分母的引用指标仍显示百分比。
@@ -132,6 +135,14 @@ describe('konling fair experiment export naming and interpretation (#2016)', () 
     expect(slides).toContain('composite@structure-alias.v1'.replace('composite@', '结构与质量联合通过率@'));
     // JSON 中的 metric 字符串保持 composite 机器名（delta 来源冻结）。
     expect(frozenAfter).toContain('"composite@structure-alias.v1"');
+    // CSV/工作簿含独立显示名与公式列（R2：机器键保留 + 人类可读信息同步）。
+    const workbookRows = await import('xlsx').then(() => null).catch(() => null);
+    const csvText = fs.readFileSync(result.csv, 'utf8');
+    expect(csvText).toContain('"display_name","formula"');
+    expect(csvText).toContain('"结构与质量联合通过率"');
+    expect(csvText).toContain('"结构通过且盲审质量非 major-error"');
+    // 非零 composite：notes 与幻灯片用中性说明，不声称 0%。
+    expect(notes2.plainBaselineNote).not.toContain('0%');
 
     fs.rmSync(runDir, { recursive: true, force: true });
   });

@@ -46,12 +46,18 @@ function displayMetricName(metric: string): string {
 
 /** JSON 派生说明：composite 指标的统一名称、公式与普通基线结构性来源解释。 */
 function derivedNotes(official: KonlingFairExperimentOfficialSummary) {
+  const plain = official.perArm['plain-baseline'];
+  const compositeRows = Object.values(plain?.composite ?? {});
+  const allZero = compositeRows.length > 0 && compositeRows.every((composite) => composite.n > 0 && composite.passed === 0);
+  // 与幻灯片同逻辑：仅在联合通过率实际为 0 时声称 0%（review R2 P2）。
   return {
     metricNames: {
       composite: COMPOSITE_DISPLAY_NAME,
       compositeFormula: COMPOSITE_FORMULA,
     },
-    plainBaselineNote: PLAIN_BASELINE_COMPOSITE_NOTE,
+    plainBaselineNote: allZero
+      ? PLAIN_BASELINE_COMPOSITE_NOTE
+      : '普通基线未启用结构合同；结构率与联合率仅为能力指标',
     zeroDenominatorPolicy: '0/0 的引用类指标显示 N/A，不显示成 0%',
     runId: official.runId,
   };
@@ -60,21 +66,30 @@ function derivedNotes(official: KonlingFairExperimentOfficialSummary) {
 /** 指标表行：全部载体共用同一投影，防止 CSV 与工作簿口径漂移。 */
 function summaryRows(official: KonlingFairExperimentOfficialSummary): Array<Array<string | number>> {
   const rows: Array<Array<string | number>> = [
-    ['metric', 'arm', 'value', 'numerator', 'denominator'],
+    ['metric', 'arm', 'value', 'numerator', 'denominator', 'display_name', 'formula'],
   ];
   for (const [arm, perArm] of Object.entries(official.perArm)) {
     for (const [caliber, structure] of Object.entries(perArm.structure)) {
-      rows.push([`structure@${caliber}`, arm, structure.rate, structure.passed, structure.n]);
+      rows.push([`structure@${caliber}`, arm, structure.rate, structure.passed, structure.n, '', '']);
     }
     if (perArm.audit) {
-      rows.push(['audit-verdict', arm, perArm.audit.rate, perArm.audit.passed, perArm.audit.n]);
+      rows.push(['audit-verdict', arm, perArm.audit.rate, perArm.audit.passed, perArm.audit.n, '', '']);
     }
     for (const [caliber, composite] of Object.entries(perArm.composite ?? {})) {
-      // 人类可见 metric 名自解释；schema key 仍为 composite（冻结兼容）。
-      rows.push([`composite-structure-and-quality@${caliber}`, arm, composite.rate, composite.passed, composite.n]);
+      // 机器 metric 名自解释；schema key 仍为 composite（冻结兼容）。
+      // 显示名与公式作为独立列同步进 CSV 与工作簿（review R2 P2）。
+      rows.push([
+        `composite-structure-and-quality@${caliber}`,
+        arm,
+        composite.rate,
+        composite.passed,
+        composite.n,
+        COMPOSITE_DISPLAY_NAME,
+        COMPOSITE_FORMULA,
+      ]);
     }
-    rows.push(['citation-precision', arm, perArm.citationAudit.precision.denominator === 0 ? 'N/A' : perArm.citationAudit.precision.ratio, perArm.citationAudit.precision.numerator, perArm.citationAudit.precision.denominator]);
-    rows.push(['citation-coverage', arm, perArm.citationAudit.coverage.denominator === 0 ? 'N/A' : perArm.citationAudit.coverage.ratio, perArm.citationAudit.coverage.numerator, perArm.citationAudit.coverage.denominator]);
+    rows.push(['citation-precision', arm, perArm.citationAudit.precision.denominator === 0 ? 'N/A' : perArm.citationAudit.precision.ratio, perArm.citationAudit.precision.numerator, perArm.citationAudit.precision.denominator, '', '']);
+    rows.push(['citation-coverage', arm, perArm.citationAudit.coverage.denominator === 0 ? 'N/A' : perArm.citationAudit.coverage.ratio, perArm.citationAudit.coverage.numerator, perArm.citationAudit.coverage.denominator, '', '']);
   }
   return rows;
 }
