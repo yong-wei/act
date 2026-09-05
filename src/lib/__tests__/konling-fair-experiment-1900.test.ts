@@ -83,7 +83,13 @@ function armAnswer(arm: 'plain-baseline' | 'enhanced-baseline' | 'full-feature',
 
 const generateProvider = async (task: Parameters<Parameters<typeof runKonlingFairExperiment>[0]['generateProvider']>[0]) => ({
   ok: true as const,
-  result: { answer: armAnswer(task.arm, task.item.intent), elapsedMs: 1 },
+  // #1951 契约：full-feature 臂必须显式提供 citation 快照——缺字段＝快照
+  // 不可得，聚合会进入 citation-audit fail closed；确定性桩如实给空快照。
+  result: {
+    answer: armAnswer(task.arm, task.item.intent),
+    ...(task.arm === 'full-feature' ? { citations: [] as const } : {}),
+    elapsedMs: 1,
+  },
 });
 
 const auditProvider = async () => ({

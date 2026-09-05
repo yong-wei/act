@@ -25,6 +25,7 @@ import {
   type KonlingFairExperimentAuditDimension,
   type KonlingFairExperimentBank,
   type KonlingFairExperimentBankItem,
+  type KonlingFairExperimentCitationSnapshot,
   type KonlingFairExperimentErrorCode,
   type KonlingFairExperimentGradedVerdictName,
 } from '@/lib/konling-fair-experiment';
@@ -33,11 +34,62 @@ import { STUDY_QUESTION_SECTIONS } from '@/lib/konling-study-question-structure'
 
 import { defaultRunId, gitRevision, parseCliFlags } from '../konling-blind-audit/cli';
 
+/**
+ * #1951 fixture citation 快照：cit-1 已核验、可访问且冻结了答案相关性
+ * 直接证据（查询词精确命中）；cit-2 未核验；cit-3 已核验可访问但只有
+ * 纯语义相似证据（semantic-score，仅相关不直接支撑）；cit-4 已核验有
+ * 锚点但 href 为空（不可访问）。
+ * full-feature 臂每个 evidence-required 章节末行以 [1] 绑定 cit-1；
+ * itemId 确定性奇偶决定最后一个证据章节改标 [2]（未核验）或 [3]
+ * （仅相关）；偶数条目的第一个证据章节同时标 [1] [4]（同单元绑定
+ * 直接支撑与不可访问引用，覆盖由 [1] 达成、[4] 落不可访问桶）。
+ */
+const FIXTURE_CITATIONS: readonly KonlingFairExperimentCitationSnapshot[] = [
+  {
+    id: 'cit-1',
+    citationTargetId: 'kb:fixture-primary',
+    verified: true,
+    displayNumber: 1,
+    sourceType: 'knowledge-graph',
+    href: 'https://act.example/kb/fixture-primary',
+    answerRelevanceMatch: 'query-exact',
+    answerRelevanceBasis: 'query-exact',
+  },
+  {
+    id: 'cit-2',
+    citationTargetId: 'kb:fixture-secondary',
+    verified: false,
+    displayNumber: 2,
+    sourceType: 'knowledge-graph',
+    href: null,
+  },
+  {
+    id: 'cit-3',
+    citationTargetId: 'kb:fixture-related-only',
+    verified: true,
+    displayNumber: 3,
+    sourceType: 'knowledge-graph',
+    href: 'https://act.example/kb/fixture-related-only',
+    answerRelevanceMatch: 'semantic:strong',
+    answerRelevanceBasis: 'semantic-score',
+  },
+  {
+    id: 'cit-4',
+    citationTargetId: 'kb:fixture-inaccessible',
+    verified: true,
+    displayNumber: 4,
+    sourceType: 'knowledge-graph',
+    href: null,
+    answerRelevanceMatch: 'token:keyword',
+    answerRelevanceBasis: 'query-lexical',
+  },
+];
+
 function fixtureAnswer(
   arm: 'plain-baseline' | 'enhanced-baseline' | 'full-feature',
   item: KonlingFairExperimentBankItem,
   replicate: number,
-): string {
+): { answer: string; citations: readonly KonlingFairExperimentCitationSnapshot[] } {
   const sections = STUDY_QUESTION_SECTIONS[item.intent];
   const suffix = `（${item.itemId}#${replicate}）`;
   if (arm === 'plain-baseline') {
@@ -48,14 +100,39 @@ function fixtureAnswer(
     // 对抗题（题库 V2）：plain 臂未经核验直接接受题设前提，分级 fixture
     // judge 据此判定重大错误；V1 条目无分层标注，输出与冻结行为一致。
     if (item.difficulty === 'adversarial') lines.push('前提无需核验，按题设直接作答。');
-    return lines.join('\n');
+    return { answer: lines.join('\n'), citations: [] };
   }
   const headingOf = arm === 'enhanced-baseline'
     ? (section: (typeof sections)[number]) => section.aliases[0] ?? section.title
     : (section: (typeof sections)[number]) => section.title;
-  return sections
-    .map((section) => `## ${headingOf(section)}\n按参考材料作答${suffix}。`)
-    .join('\n');
+  if (arm !== 'full-feature') {
+    return {
+      answer: sections
+        .map((section) => `## ${headingOf(section)}\n按参考材料作答${suffix}。`)
+        .join('\n'),
+      citations: [],
+    };
+  }
+  const useUnverifiedOnLast = [...item.itemId].reduce((sum, ch) => sum + ch.codePointAt(0)!, 0) % 2 === 1;
+  const evidenceSections = sections.filter((section) => section.citationPolicy === 'evidence-required');
+  let evidenceIndex = 0;
+  return {
+    answer: sections
+      .map((section) => {
+        if (section.citationPolicy !== 'evidence-required') {
+          return `## ${headingOf(section)}\n按推导作答${suffix}。`;
+        }
+        evidenceIndex += 1;
+        const isLastEvidence = evidenceIndex === evidenceSections.length;
+        let marker = ' [1]';
+        if (isLastEvidence && useUnverifiedOnLast) marker = ' [2]';
+        if (isLastEvidence && !useUnverifiedOnLast) marker = ' [3]';
+        if (!useUnverifiedOnLast && evidenceIndex === 1 && evidenceSections.length > 1) marker = ' [1] [4]';
+        return `## ${headingOf(section)}\n按参考材料作答${suffix}。${marker}`;
+      })
+      .join('\n'),
+    citations: FIXTURE_CITATIONS,
+  };
 }
 
 /**
@@ -158,10 +235,12 @@ async function main() {
       if (injected) {
         return { ok: false, error: { code: injected, message: `injected ${injected} for ${taskKey}` } };
       }
+      const fixture = fixtureAnswer(task.arm, task.item, task.replicate);
       return {
         ok: true,
         result: {
-          answer: fixtureAnswer(task.arm, task.item, task.replicate),
+          answer: fixture.answer,
+          citations: fixture.citations,
           elapsedMs: 1,
         },
       };

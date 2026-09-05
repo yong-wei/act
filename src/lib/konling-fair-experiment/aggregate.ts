@@ -14,7 +14,8 @@ import {
   buildKonlingFairExperimentDerivedAuditManifest,
   derivedAuditRunId,
 } from './bank';
-import { buildPairedDifference, rateMetric } from './metrics';
+import { aggregateKonlingFairCitationAudit, auditKonlingFairCitationRecord } from './citation-audit';
+import { buildPairedDifference, buildPairedRatioDifference, rateMetric } from './metrics';
 import {
   buildKonlingFairExperimentExpertReviewReport,
   selectKonlingFairExperimentExpertSubset,
@@ -30,6 +31,7 @@ import {
 } from './store';
 import type {
   KonlingFairExperimentAggregateResult,
+  KonlingFairExperimentCitationAuditRecord,
   KonlingFairExperimentAggregateStatus,
   KonlingFairExperimentAnswerRecord,
   KonlingFairExperimentArm,
@@ -297,6 +299,8 @@ export function aggregateKonlingFairExperiment(input: {
 
   // —— 完整性门禁通过，组装指标 ——
   const perArm: KonlingFairExperimentOfficialSummary['perArm'] = {} as KonlingFairExperimentOfficialSummary['perArm'];
+  const allCitationAuditRecords: KonlingFairExperimentCitationAuditRecord[] = [];
+  const citationAuditByArm = new Map<KonlingFairExperimentArm, KonlingFairExperimentCitationAuditRecord[]>();
   const structureOutcomes = new Map<string, KonlingFairExperimentScoreRecord[]>();
   const auditOutcomes = new Map<KonlingFairExperimentArm, Array<{ auditKey: string; passed: boolean }>>();
   const compositeOutcomes = new Map<string, Array<{ taskKey: string; passed: boolean }>>();
@@ -359,6 +363,50 @@ export function aggregateKonlingFairExperiment(input: {
         byIntent,
       };
     }
+    // #1951：确定性 citation 审计。旧 run 冻结回答无 citations 字段时
+    // fail closed（phase 'citation-audit'），不写 official。
+    const answers = answersByArm.get(arm) ?? [];
+    const citationAuditRecords: KonlingFairExperimentCitationAuditRecord[] = [];
+    for (const record of answers) {
+      if (!Array.isArray(record.citations)) {
+        return {
+          runId: input.runId,
+          status: 'incomplete',
+          expected: expectedPerArm,
+          officialSummary: null,
+          incompleteDetail: {
+            phase: 'citation-audit',
+            arm,
+            missingTaskKeys: [record.taskKey],
+          },
+        } satisfies KonlingFairExperimentAggregateResult;
+      }
+      const item = input.bank.items.find((candidate) => candidate.itemId === record.itemId);
+      if (!item) {
+        return {
+          runId: input.runId,
+          status: 'incomplete',
+          expected: expectedPerArm,
+          officialSummary: null,
+          incompleteDetail: {
+            phase: 'citation-audit',
+            arm,
+            missingTaskKeys: [record.taskKey],
+          },
+        } satisfies KonlingFairExperimentAggregateResult;
+      }
+      citationAuditRecords.push(auditKonlingFairCitationRecord({
+        taskKey: record.taskKey,
+        arm,
+        itemId: record.itemId,
+        replicate: record.replicate,
+        intent: item.intent,
+        answer: record.answer,
+        citations: record.citations,
+      }));
+    }
+    allCitationAuditRecords.push(...citationAuditRecords);
+    citationAuditByArm.set(arm, citationAuditRecords);
     perArm[arm] = {
       structure,
       audit: audit
@@ -373,6 +421,7 @@ export function aggregateKonlingFairExperiment(input: {
       classificationAgreement,
       // #1952：graded rubric 记录才产出判别力维度；二元 rubric 保持 null。
       auditDimensions: audit?.graded ? gradedAuditDimensions(audit.graded) : null,
+      citationAudit: aggregateKonlingFairCitationAudit(citationAuditRecords),
     };
     if (audit) {
       auditOutcomes.set(arm, [...audit.verdicts.entries()]
@@ -499,6 +548,41 @@ export function aggregateKonlingFairExperiment(input: {
     if (delta) generationDeltas.push(delta);
   }
 
+  // #1951：两指标的臂间配对差，配对单位是题项（replicate 池化到 itemId）。
+  const citationAuditDeltas: KonlingFairExperimentOfficialSummary['citationAuditDeltas'] = [];
+  const itemIds = input.bank.items.map((item) => item.itemId);
+  for (const [baselineArm, comparisonArm] of armPairs) {
+    const baselineRecords = citationAuditByArm.get(baselineArm) ?? [];
+    const comparisonRecords = citationAuditByArm.get(comparisonArm) ?? [];
+    if (baselineRecords.length === 0 || comparisonRecords.length === 0) continue;
+    for (const metric of ['precision', 'coverage'] as const) {
+      const numeratorKey = metric === 'precision' ? 'verifiedSupportingCount' : 'coveredUnitCount';
+      const denominatorKey = metric === 'precision' ? 'presentedCitationCount' : 'requiredUnitCount';
+      const delta = buildPairedRatioDifference({
+        metric: `citation-${metric}`,
+        baselineLabel: baselineArm,
+        comparisonLabel: comparisonArm,
+        baselinePairedRatios: itemIds.map((itemId) => {
+          const records = baselineRecords.filter((record) => record.itemId === itemId);
+          return {
+            numerator: records.reduce((sum, record) => sum + record[numeratorKey], 0),
+            denominator: records.reduce((sum, record) => sum + record[denominatorKey], 0),
+          };
+        }),
+        comparisonPairedRatios: itemIds.map((itemId) => {
+          const records = comparisonRecords.filter((record) => record.itemId === itemId);
+          return {
+            numerator: records.reduce((sum, record) => sum + record[numeratorKey], 0),
+            denominator: records.reduce((sum, record) => sum + record[denominatorKey], 0),
+          };
+        }),
+        seedParts: [seed, 'citation-audit', metric, baselineArm, comparisonArm],
+        iterations,
+      });
+      if (delta) citationAuditDeltas.push(delta);
+    }
+  }
+
   const caliberDeltas: KonlingFairExperimentOfficialSummary['caliberDeltas'] = [];
   if (input.calibers.length >= 2) {
     const [referenceCaliber, ...otherCalibers] = input.calibers;
@@ -542,8 +626,10 @@ export function aggregateKonlingFairExperiment(input: {
     stratified: { layers: stratifiedLayers, stratifiedDeltas },
     expertReview,
     syntheticDisclaimer: KONLING_FAIR_EXPERIMENT_SYNTHETIC_DISCLAIMER,
+    citationAuditRecords: allCitationAuditRecords,
     generationDeltas,
     caliberDeltas,
+    citationAuditDeltas,
   };
 
   if (input.writeOfficial) {

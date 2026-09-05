@@ -21,6 +21,7 @@ import {
   buildKonlingFairExperimentManifestPayload,
   konlingFairExperimentManifestHash,
 } from './aggregate';
+import { exportKonlingFairExperimentArtifacts } from './export';
 import {
   appendKonlingFairExperimentFailure,
   assertKonlingFairExperimentLockHeld,
@@ -153,6 +154,14 @@ export async function runKonlingFairExperiment(input: {
               startedAt,
               finishedAt,
               answer: response.result.answer,
+              // #1951：citation 快照与回答同文件冻结，供确定性审计。
+              // 基线臂（plain/enhanced）无引用功能，provider 缺省即空快照；
+              // full-feature 臂透传——缺 citations 字段＝快照不可得（如
+              // live 未接入 citationContext），聚合进入 citation-audit
+              // incomplete，不得折叠成空数组伪造零值指标（#1992 review P1）。
+              citations: arm === 'full-feature'
+                ? response.result.citations
+                : (response.result.citations ?? []),
               elapsedMs: response.result.elapsedMs,
               ...(contractIntent ? { contractIntent } : {}),
             };
@@ -245,6 +254,11 @@ export async function runKonlingFairExperiment(input: {
       calibers: input.calibers,
       writeOfficial: true,
     });
+
+    // #1951：official 真源冻结后立即派生 CSV/工作簿/幻灯片，四载体同源。
+    if (aggregate.officialSummary) {
+      await exportKonlingFairExperimentArtifacts(runDir, aggregate.officialSummary);
+    }
 
     return {
       runId: input.runId,
