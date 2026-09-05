@@ -1,10 +1,13 @@
-## ADDED Requirements
+# student-profile-simulation-evidence Specification
 
+## Purpose
+TBD - created by archiving change student-profile-canonical-simulation-runs. Update Purpose after archive.
+## Requirements
 ### Requirement: Personal profile consumes canonical simulation runs
 The system SHALL build the student's ordinary profile simulation statistics and recent activity from student-owned, displayable `SimulationRun` summaries.
 
 #### Scenario: Completed standard run appears in profile
-- **WHEN** a student-owned `SimulationRun` has completed status, explicit preview visibility, valid quality metrics, and a stable source reference
+- **WHEN** a student-owned `SimulationRun` has completed status, an explicit non-official display boundary (preview or practice per the run contract), valid quality metrics, and a stable source reference
 - **THEN** `/profile` SHALL include it in simulation count, duration, quality aggregate, and recent simulation activity
 
 #### Scenario: Incomplete run is not presented as training evidence
@@ -15,7 +18,7 @@ The system SHALL build the student's ordinary profile simulation statistics and 
 The system SHALL include eligible historical `SimulationLog` records when no equivalent canonical `SimulationRun` is available, while preserving the same student ownership and displayability rules.
 
 #### Scenario: Eligible historical log remains visible
-- **WHEN** a legacy `SimulationLog` has confirmed student ownership, simulation semantics, completion information, and displayable summary metrics
+- **WHEN** a legacy `SimulationLog` has confirmed student ownership, simulation semantics, completion information (odyssey runs must have completed bridging), and displayable summary metrics
 - **THEN** the profile SHALL expose a student-safe simulation summary for that record
 
 #### Scenario: Legacy and canonical representations refer to one run
@@ -43,3 +46,4 @@ The system SHALL use the same canonical student-safe simulation projection for t
 #### Scenario: Portfolio and profile agree
 - **WHEN** a student opens both ordinary profile and simulation portfolio views after a displayable run is recorded
 - **THEN** both views SHALL refer to the same source identity and SHALL agree on the record's time, quality summary, and preview boundary
+

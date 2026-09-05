@@ -36,49 +36,55 @@ describe('profile portfolio evidence projections', () => {
     expect(JSON.stringify(rows)).not.toContain('private-answer');
   });
 
-  it('projects only approved numeric simulation parameters', () => {
+  it('projects simulation designs from the shared student-safe evidence items', () => {
     const rows = buildSimulationPortfolioDesigns([
       {
-        id: 'simulation-1',
-        controlMode: 'PID',
-        inputParams: { kp: 1.2, ki: 0.4, kd: 2.1, secret: 'do-not-expose' },
+        id: 'simulation-run:run-1',
+        sourceKind: 'canonical-run',
+        sourceRefId: 'control-workbench:hash',
+        title: '控制工作台分析',
+        sourceLabel: '控制工作台',
+        resultAuthority: 'preview',
         score: 86.4,
-        createdAt: new Date('2026-08-16T02:00:00.000Z'),
+        durationSeconds: null,
+        parameters: { kp: 1.2, ki: 0.4, kd: 2.1 },
+        occurredAt: '2026-08-16T02:00:00.000Z',
+        href: '/interactive-learning/control-workbench',
       },
     ]);
 
     expect(rows).toEqual([
       expect.objectContaining({
-        id: 'simulation-1',
-        name: 'PID 仿真设计',
+        id: 'simulation-run:run-1',
+        name: '控制工作台分析',
         score: 86,
         parameters: { kp: 1.2, ki: 0.4, kd: 2.1 },
+        createdAt: '2026-08-16T02:00:00.000Z',
       }),
     ]);
-    expect(JSON.stringify(rows)).not.toContain('do-not-expose');
-    expect(JSON.stringify(rows)).not.toContain('trajectoryData');
   });
 
-  it('projects PID parameters from the persisted Odyssey snapshot shape', () => {
+  it('keeps score-null semantics instead of fabricating a zero score', () => {
     const rows = buildSimulationPortfolioDesigns([
       {
-        id: 'simulation-odyssey-1',
-        controlMode: 'GAME',
-        inputParams: {
-          replaySnapshotVersion: 1,
-          pidParams: { kp: 2.4, ki: 0.15, kd: 0.8 },
-          trajectoryData: 'private-trajectory',
-        },
-        score: 91,
-        createdAt: new Date('2026-08-16T02:30:00.000Z'),
+        id: 'simulation:log-1',
+        sourceKind: 'legacy-log',
+        sourceRefId: null,
+        title: '仿真调参（PID）',
+        sourceLabel: '仿真训练',
+        resultAuthority: 'preview',
+        score: null,
+        durationSeconds: 600,
+        parameters: {},
+        occurredAt: '2026-08-16T02:30:00.000Z',
+        href: '/simulations/destroyer',
       },
     ]);
 
     expect(rows[0]).toEqual(expect.objectContaining({
-      id: 'simulation-odyssey-1',
-      parameters: { kp: 2.4, ki: 0.15, kd: 0.8 },
+      score: null,
+      parameters: {},
     }));
-    expect(JSON.stringify(rows)).not.toContain('private-trajectory');
   });
 
   it('keeps ethics remediation state visible', () => {

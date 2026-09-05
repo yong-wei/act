@@ -1,3 +1,5 @@
+import type { ProfileSimulationEvidenceItem } from '@/lib/data-governance/profile-simulation-evidence';
+
 export type PortfolioEvidenceSourceState = 'available' | 'empty' | 'unavailable';
 
 export interface ClassroomPortfolioWork {
@@ -41,14 +43,6 @@ interface ClassroomPortfolioWorkSource {
   session: { plan: { title: string } } | null;
 }
 
-interface SimulationPortfolioDesignSource {
-  id: string;
-  controlMode: string;
-  inputParams: unknown;
-  score: number | null;
-  createdAt: Date;
-}
-
 interface EthicsPortfolioCaseSource {
   id: string;
   violationType: string;
@@ -57,8 +51,6 @@ interface EthicsPortfolioCaseSource {
   isResolved: boolean;
   createdAt: Date;
 }
-
-const SAFE_SIMULATION_PARAMETER_KEYS = ['kp', 'ki', 'kd', 'targetHeading', 'targetSpeed'] as const;
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -105,27 +97,21 @@ export function buildClassroomPortfolioWorks(
   });
 }
 
+/**
+ * 仿真设计记录消费统一学生安全投影（Issue #1991）：条目来自
+ * `readProfileSimulationEvidence` 的 items，与普通个人中心统计同源同口径，
+ * 不再直接读取 `SimulationLog`。
+ */
 export function buildSimulationPortfolioDesigns(
-  rows: SimulationPortfolioDesignSource[],
+  rows: ProfileSimulationEvidenceItem[],
 ): SimulationPortfolioDesign[] {
-  return rows.slice(0, 5).map((row) => {
-    const inputParams = record(row.inputParams);
-    const pidParams = record(inputParams.pidParams);
-    const parameters = Object.fromEntries(
-      SAFE_SIMULATION_PARAMETER_KEYS.flatMap((key) => {
-        const value = numberValue(pidParams[key] ?? inputParams[key]);
-        return value === null ? [] : [[key, value] as const];
-      }),
-    );
-
-    return {
-      id: row.id,
-      name: `${row.controlMode.trim().toUpperCase() || '未知'} 仿真设计`,
-      score: row.score === null ? null : Math.round(row.score),
-      parameters,
-      createdAt: row.createdAt.toISOString(),
-    };
-  });
+  return rows.slice(0, 5).map((row) => ({
+    id: row.id,
+    name: row.title,
+    score: row.score === null ? null : Math.round(row.score),
+    parameters: row.parameters,
+    createdAt: row.occurredAt,
+  }));
 }
 
 export function buildEthicsPortfolioCases(
@@ -143,6 +129,5 @@ export function buildEthicsPortfolioCases(
 
 export type {
   ClassroomPortfolioWorkSource,
-  SimulationPortfolioDesignSource,
   EthicsPortfolioCaseSource,
 };
