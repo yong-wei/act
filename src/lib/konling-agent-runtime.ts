@@ -1120,6 +1120,9 @@ const KONLING_NORMATIVE_QUERY_MARKERS = [
   '法律', '法条', '法规', '法律要求', '官方规定', '官方要求', '官方限值',
   '国家标准', '行业标准', '标准格式', '规范书写', '规范格式', '国标格式', '化学方程式',
   '必须写', '才算合格', '操作规程', '考核办法', '认证',
+  // #2015：实验安全规范是规范诉求（旋转机械/功率电源等实验规程类问题），
+  // 不得因缺少「报告/大纲」类来源词回落开放讲解兜底。
+  '安全规范', '安全规程',
   'official rule', 'official requirement', 'official limit', 'legal requirement',
   'standard format', 'certification', 'certified', 'must not', 'shall not',
 ] as const;
@@ -1132,6 +1135,26 @@ const KONLING_NORMATIVE_QUERY_MARKERS = [
 const KONLING_NORMATIVE_COMBO_TERMS = ['规范', '要求', '格式', '封面', '模板', '书写', '排版'] as const;
 const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准'] as const;
 
+// #2015：「教材」仅在规范语境下作为来源信号（教材附录引用标准、教材规定的
+// 验收/时效结论），不得与「要求」这类泛教学任务措辞组合——「教材要求我们
+// 比较/推导…」是教学任务不是规范诉求（review P2）。
+// 「标准」裸词不作教材语境信号（「标准二阶系统」是普通课程术语）；标准
+// 时效由 NORMATIVE_STANDARD_ID × 时效措辞覆盖。
+const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '验收', '规程', '现行', '最新', '作废', '过期', '时效', '仍有效'] as const;
+
+// #2015 组合信号：代码片段 × 排障请求。真实代码围栏出现时定位/修复/缺陷
+// 任一即判调试（覆盖标定/单位缺陷等无经典异常现象词的输入）；仅有代码指称
+// 时必须搭配专属排障动作词（定位/排查/修复等）——不含泛化的「解决」（
+// 「请用代码解决这个优化问题」是请求写代码不是调试，review P2），「缺陷」
+// 单独也不构成排障请求（「代码设计缺陷是什么意思」不得被吞并）。
+const KONLING_DEBUG_CODE_FENCE_MARKER = '```';
+const KONLING_DEBUG_CODE_PRESENT_MARKERS = ['```', '代码'] as const;
+const KONLING_DEBUG_DEFECT_MARKERS = ['缺陷'] as const;
+const KONLING_DEBUG_EXPLICIT_ACTION_MARKERS = ['排查', '修复', '排除故障', '找出缺陷', '找 bug', 'debug'] as const;
+// 无围栏时排障上下文证据：必须同时存在故障/异常症状词，多义动作（如
+// 「定位」极点位置=计算语义）不得单独构成排障请求（review R4）。
+const KONLING_DEBUG_TROUBLE_MARKERS = ['故障', '异常', '报错', '不工作', '不输出', '失效', '缺陷', '崩溃', '卡死', '发散', '不收敛', '抖动', '振荡', '震荡', '饱和', '超调', '失效'] as const;
+
 // #1948 组合信号：控制系统异常现象 × 定位/修复动作。现象词必须搭配排障动
 // 作才判代码调试，「解释超调」「什么是超调量」等仅含现象词的问题不被吞并。
 const KONLING_DEBUG_PHENOMENON_MARKERS = ['饱和', '超调', '振荡', '震荡', '发散', '不收敛', '抖动', '失稳', '畸变', '溢出', '崩溃', '卡死'] as const;
@@ -1142,10 +1165,42 @@ function hasNormativeComboSignal(normalized: string): boolean {
     && includesAny(normalized, KONLING_NORMATIVE_SOURCE_TERMS);
 }
 
+// #2015：规范时效类信号 = 标准编号（GB/T、IEC 等，与 hasIndependentNormativeRisk
+// 共享同一正则）× 时效措辞。标准编号单独出现不改变分类（「GB/T 6113 是什么？」
+// 仍是 fact-explanation，#1903 分层：分类与 fail-closed 门禁各司其职），仅当
+// 询问当前/现行/作废等时效结论时才判规范内容。
+const KONLING_NORMATIVE_CURRENCY_MARKERS = ['当前', '现行', '最新', '仍有效', '作废', '过期'] as const;
+
+function hasNormativeCurrencySignal(normalized: string): boolean {
+  return NORMATIVE_STANDARD_ID.test(normalized)
+    && includesAny(normalized, KONLING_NORMATIVE_CURRENCY_MARKERS);
+}
+
+function hasCodeFenceDebugSignal(normalized: string): boolean {
+  const hasDefect = includesAny(normalized, KONLING_DEBUG_DEFECT_MARKERS);
+  if (normalized.includes(KONLING_DEBUG_CODE_FENCE_MARKER)) {
+    return hasDefect || includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS);
+  }
+  // 无围栏：代码指称 × 专属排障动作 × 故障/异常证据（三重必需）。
+  return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS)
+    && includesAny(normalized, KONLING_DEBUG_EXPLICIT_ACTION_MARKERS)
+    && includesAny(normalized, KONLING_DEBUG_TROUBLE_MARKERS);
+}
+
+function hasTextbookNormativeSignal(normalized: string): boolean {
+  return normalized.includes('教材')
+    && includesAny(normalized, KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS);
+}
+
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return 'fact-explanation';
-  if (includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS) || hasNormativeComboSignal(normalized)) {
+  if (
+    includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
+    || hasNormativeComboSignal(normalized)
+    || hasTextbookNormativeSignal(normalized)
+    || hasNormativeCurrencySignal(normalized)
+  ) {
     return 'normative-content';
   }
   if (
@@ -1165,6 +1220,7 @@ function classifyGenericStudyQuestionIntent(query: string | null | undefined): K
       includesAny(normalized, KONLING_DEBUG_PHENOMENON_MARKERS)
       && includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS)
     )
+    || hasCodeFenceDebugSignal(normalized)
   ) {
     return 'code-debugging';
   }
@@ -1197,6 +1253,7 @@ function hasIndependentNormativeRisk(query: string | null | undefined): boolean 
   return NORMATIVE_STANDARD_ID.test(normalized)
     || includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
     || hasNormativeComboSignal(normalized)
+    || hasTextbookNormativeSignal(normalized)
     || NORMATIVE_OBLIGATION.test(normalized);
 }
 
