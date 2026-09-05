@@ -83,7 +83,7 @@ export interface PersonalizationPluginPathPlanningPolicy {
   knowledgeTargetAliases?: Record<string, string[]>;
   starterPathPolicy: {
     policyFamilies: string[];
-    minOptions: number;
+    targetOptionCount: number;
     difficultyRhythm: 'gentle' | 'steady' | 'challenge';
     allowExternalResources: boolean;
     preferredResourceTypes: string[];

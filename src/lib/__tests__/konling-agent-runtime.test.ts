@@ -9436,7 +9436,7 @@ describe('konling agent runtime', () => {
         goalId: 'control-correction',
       }),
       comparison: expect.objectContaining({
-        optionCount: expect.any(Number),
+        optionCount: 3,
         message: expect.any(String),
       }),
       limitations: expect.arrayContaining(['learning-goal-baseline-incomplete']),
@@ -12546,7 +12546,8 @@ describe('konling agent runtime', () => {
         goalId: 'frequency-response-foundations',
       }),
     });
-    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBe(2);
+    expect((result as { limitations: string[] }).limitations).toContain('policy-option-diversity-unavailable');
     expect(JSON.stringify(result.pathOptions)).toContain('registry:frequency-precheck');
     const frequencyCandidateCounts = (result as {
       diagnostics: { candidatePool: { candidateCountsByFamily: Record<string, number> } };
@@ -12564,8 +12565,8 @@ describe('konling agent runtime', () => {
       }),
     }));
     const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
-    expect(createdPath.pathPayload.policyBundle.paths.length).toBeGreaterThanOrEqual(3);
-    expect(createdPath.pathPayload.pathOptions.length).toBeGreaterThanOrEqual(3);
+    expect(createdPath.pathPayload.policyBundle.paths.length).toBe(2);
+    expect(createdPath.pathPayload.pathOptions.length).toBe(2);
     expect(createdPath.pathPayload.pathOptions).toEqual(expect.arrayContaining([
       expect.objectContaining({
         optionId: 'path-option-1',
