@@ -1872,7 +1872,8 @@ async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
   const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
   if (await inspector.isVisible().catch(() => false)) return;
   await page.waitForFunction((expectedNodeId) => {
-    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
     const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
     const control = selectedNodeId
       ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
@@ -1896,7 +1897,8 @@ async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = se
     await page.waitForSelector(inspectorSelector, { state: 'detached', timeout: 5000 });
   }
   await page.waitForFunction((expectedNodeId) => {
-    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
     const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
     const control = selectedNodeId
       ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
@@ -1906,7 +1908,8 @@ async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = se
   }, nodeId, { timeout: 20000 });
   const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
   await control.focus();
-  await control.click({ timeout: 5000 });
+  // 画布节点控制可能被悬浮层拦截；用 DOM click 保证触发。
+  await control.evaluate((element) => (element as HTMLButtonElement).click());
   await page.waitForSelector(inspectorSelector, { timeout: 15000 });
 }
 
