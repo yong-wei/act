@@ -146,18 +146,22 @@ export function auditKonlingFairCitationRecord(
       citationClasses.citationNoDirectSupport += 1;
       continue;
     }
-    if (bindingCitationIds.has(citation.id)) {
-      citationClasses.realVerifiedSupporting += 1;
-      continue;
-    }
-    // 已核验有直接证据但未支撑任何 evidence-required substantive 单元：
-    // 标记（至少部分）落在 model-derived 章节归模型推导计数，其余
-    // （evidence-required 结构行 / 章节外）归通用漂移；均为唯一编号口径。
+    // 「是否支撑证据单元」与「是否（同时）出现在 model-derived 章节」是
+    // 正交事实：同一编号两边都出现时分别统计，不得由前者短路后者
+    // （#1992 review）。
     const touchesModelDerived = scan.bindings.some((binding) => (
       binding.citationId === citation.id
       && binding.sectionId != null
       && modelDerivedSectionIds.has(binding.sectionId)
     ));
+    if (bindingCitationIds.has(citation.id)) {
+      citationClasses.realVerifiedSupporting += 1;
+      if (touchesModelDerived) modelDerivedCount += 1;
+      continue;
+    }
+    // 未支撑任何 evidence-required substantive 单元：标记（至少部分）
+    // 落在 model-derived 章节归模型推导计数，其余（evidence-required
+    // 结构行 / 章节外）归通用漂移；均为唯一编号口径。
     if (touchesModelDerived) {
       modelDerivedCount += 1;
     } else {

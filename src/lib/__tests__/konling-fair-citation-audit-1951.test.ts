@@ -204,6 +204,21 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(record.missReasons['citation-no-target']).toBe(record.requiredUnitCount);
   });
 
+  it('a citation supporting evidence units and also shown in model-derived sections is counted in both', () => {
+    const answer = canonicalBodyWithMarkers('formula-derivation', (section) => (
+      STUDY_QUESTION_SECTIONS['formula-derivation'].find((candidate) => candidate.id === section) ? ' [1]' : ''
+    ));
+    const record = audited(answer, [citation({ id: 'cit-1' })]);
+
+    const evidenceCount = STUDY_QUESTION_SECTIONS['formula-derivation']
+      .filter((section) => section.citationPolicy === 'evidence-required').length;
+    expect(record.verifiedSupportingCount).toBe(1);
+    expect(record.coveredUnitCount).toBe(evidenceCount);
+    // 正交统计：同一编号同时出现在 model-derived 章节，两边都计，不短路。
+    expect(record.modelDerivedMarkerCount).toBe(1);
+    expect(record.driftedMarkerCount).toBe(0);
+  });
+
   it('model-derived sections never enter the coverage denominator', () => {
     const answer = canonicalBodyWithMarkers('formula-derivation', (section) => (
       STUDY_QUESTION_SECTIONS['formula-derivation'].find((candidate) => candidate.id === section)?.citationPolicy === 'model-derived' ? ' [1]' : ''
