@@ -22,6 +22,16 @@ export interface BindingTelemetrySource {
   readonly rudderDeg: number;
   readonly speedMps: number;
   readonly attainedCount: number;
+  /**
+   * 仿真时钟是否在推进：false 时速度类绑定（桨转速/天线倾角）的有效航速取 0
+   * （桨停转、天线回正、姿态保持），舵角等位置类绑定保持最后值。缺省视为推进中。
+   */
+  readonly advancing?: boolean;
+}
+
+/** 有效航速：仿真不推进（暂停/未就绪/播完）时归零，速度类视觉绑定随之静止。 */
+export function effectiveBindingSpeedMps(sim: BindingTelemetrySource): number {
+  return sim.advancing === false ? 0 : sim.speedMps;
 }
 
 const DEFAULT_TELEMETRY_SCALE = { designSpeedMps: 15, rudderLimitDeg: 35 };
@@ -80,15 +90,17 @@ export function SemanticBindingsRig({
   useFrame((_, delta) => {
     const sim = simRef.current;
     const scale = descriptor.telemetryScale ?? DEFAULT_TELEMETRY_SCALE;
+    // 有效航速：仿真不推进（暂停/未就绪/播完）时归零，桨停转、天线回正。
+    const effectiveSpeedMps = effectiveBindingSpeedMps(sim);
 
     for (const { action, rate } of speedCoupledRef.current) {
-      action.timeScale = rate * THREE.MathUtils.clamp(sim.speedMps / scale.designSpeedMps, 0, 1.2);
+      action.timeScale = rate * THREE.MathUtils.clamp(effectiveSpeedMps / scale.designSpeedMps, 0, 1.2);
     }
     for (const { binding, nodes } of procedural) {
       const angleDeg = binding.source === 'telemetry.rudderDeg'
         ? (THREE.MathUtils.clamp(sim.rudderDeg, -scale.rudderLimitDeg, scale.rudderLimitDeg)
             / scale.rudderLimitDeg) * binding.maxAngleDeg
-        : THREE.MathUtils.clamp(sim.speedMps / scale.designSpeedMps, 0, 1) * binding.maxAngleDeg;
+        : THREE.MathUtils.clamp(effectiveSpeedMps / scale.designSpeedMps, 0, 1) * binding.maxAngleDeg;
       const angleRad = THREE.MathUtils.degToRad(angleDeg * (binding.sign ?? 1));
       for (const node of nodes) node.rotation[binding.axis] = angleRad;
     }

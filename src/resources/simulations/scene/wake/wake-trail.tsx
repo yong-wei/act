@@ -35,7 +35,8 @@ export interface WakeTrailProps {
   };
   /** 质量档位：决定粒子容量上限。 */
   readonly qualityTier: WakeQualityTier;
-  /** 播放状态：暂停时冻结发射与老化（尾迹静止）。 */
+  /** 播放状态：暂停时停止发射（活跃度数零即不再产生新粒子）；
+   * 老化时钟持续推进，存量粒子经各自生命周期后完全消散。 */
   readonly playing: boolean;
   /** 世界坐标中的船长：默认取档案船长（1:1 世界）。 */
   readonly worldShipLength?: number;
@@ -220,52 +221,55 @@ export function WakeTrail({
   });
 
   useFrame((_, delta) => {
-    if (!playing || !buffer.style.enabled) {
+    if (!buffer.style.enabled) {
       return;
     }
     const state = frameState.current;
     const dt = Math.max(0, delta);
     state.simTime += dt;
 
-    const { position, heading } = shipTransform;
-    let worldSpeed = worldSpeedSampler?.() ?? 0;
-    if (worldSpeedSampler === undefined) {
+    if (playing) {
+      const { position, heading } = shipTransform;
+      let worldSpeed = worldSpeedSampler?.() ?? 0;
+      if (worldSpeedSampler === undefined) {
+        if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
+          const distance = Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
+          worldSpeed = distance / dt;
+        }
+      }
       if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
-        const distance = Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
-        worldSpeed = distance / dt;
+        state.pathLength += Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
+      }
+      state.lastX = position[0];
+      state.lastZ = position[2];
+
+      const activity = computeWakeSpeedActivity({
+        worldSpeed,
+        worldShipLength: worldShipLength ?? profile.shipLengthMeters,
+        profile,
+        speedCoupling: buffer.style.speedCoupling,
+        minLifetimeScale: buffer.style.minLifetimeScale,
+      });
+
+      state.emitAccumulator += dt;
+      if (state.emitAccumulator >= buffer.style.emitIntervalSeconds) {
+        state.emitAccumulator = 0;
+        const anchors = resolveEmitterAnchors(profile, [position[0], position[1], position[2]], heading, emitterWorldSampler?.() ?? null);
+        const snapshot: WakeAnchorSnapshot = {
+          stern: anchors.stern,
+          portShoulder: anchors.portShoulder,
+          starboardShoulder: anchors.starboardShoulder,
+          forwardX: Math.sin(heading),
+          forwardZ: Math.cos(heading),
+          waterY: waterYSampler?.() ?? waterY ?? anchors.stern[1],
+          worldShipLength: worldShipLength ?? profile.shipLengthMeters,
+          pathLength: state.pathLength,
+        };
+        buffer.emit({ now: state.simTime, activity, anchors: snapshot, includeKelvin });
       }
     }
-    if (state.lastX !== null && state.lastZ !== null && dt > 1e-6) {
-      state.pathLength += Math.hypot(position[0] - state.lastX, position[2] - state.lastZ);
-    }
-    state.lastX = position[0];
-    state.lastZ = position[2];
 
-    const activity = computeWakeSpeedActivity({
-      worldSpeed,
-      worldShipLength: worldShipLength ?? profile.shipLengthMeters,
-      profile,
-      speedCoupling: buffer.style.speedCoupling,
-      minLifetimeScale: buffer.style.minLifetimeScale,
-    });
-
-    state.emitAccumulator += dt;
-    if (state.emitAccumulator >= buffer.style.emitIntervalSeconds) {
-      state.emitAccumulator = 0;
-      const anchors = resolveEmitterAnchors(profile, [position[0], position[1], position[2]], heading, emitterWorldSampler?.() ?? null);
-      const snapshot: WakeAnchorSnapshot = {
-        stern: anchors.stern,
-        portShoulder: anchors.portShoulder,
-        starboardShoulder: anchors.starboardShoulder,
-        forwardX: Math.sin(heading),
-        forwardZ: Math.cos(heading),
-        waterY: waterYSampler?.() ?? waterY ?? anchors.stern[1],
-        worldShipLength: worldShipLength ?? profile.shipLengthMeters,
-        pathLength: state.pathLength,
-      };
-      buffer.emit({ now: state.simTime, activity, anchors: snapshot, includeKelvin });
-    }
-
+    // 老化与几何刷新不受播放门控：停发后存量粒子走完生命周期并完全消散。
     buffer.update(state.simTime, state.pathLength);
     updateWakeTrailGeometry(handle, buffer, state.simTime, waterYSampler);
   });

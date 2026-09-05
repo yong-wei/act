@@ -170,6 +170,12 @@ interface SimulationState {
   waveRoll: number;
   /** 视觉层彩蛋计数：任务达标次数（只读遥测派生，不回写驱动链）。 */
   attainedCount: number;
+  /**
+   * 仿真时钟是否在推进（运行中且未播完）：视觉层推进绑定（桨转速/天线倾角/
+   * 尾迹发射航速）的唯一门控。物理 speedMps 为定速模型语义，暂停与播完后不归零，
+   * 视觉绑定一律以 advancing × speedMps 为有效航速，禁止直接消费 speedMps。
+   */
+  advancing: boolean;
 }
 
 // ============ 常量 ============
@@ -529,7 +535,7 @@ function WakeTrailRig({
             qualityTier={tier}
             playing={playing}
             waterYSampler={waterYSampler}
-            worldSpeedSampler={() => simRef.current.speedMps}
+            worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
             emitterWorldSampler={() => {
               const world = id === 'prop-port' ? propWakeRef.current.port : propWakeRef.current.starboard;
               return world ? [world.x, world.y, world.z] : null;
@@ -548,7 +554,7 @@ function WakeTrailRig({
       qualityTier={tier}
       playing={playing}
       waterYSampler={waterYSampler}
-      worldSpeedSampler={() => simRef.current.speedMps}
+      worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
     />
   );
 }
@@ -793,6 +799,8 @@ function SimulationEngine({
   const errorSampleCountRef = useRef(0);
   const rustStateRef = useRef<DestroyerHifiState | null>(null);
   const attainmentRef = useRef<AttainmentState>(createAttainmentState());
+  /** 仿真时钟播完（simTime 超过 duration）：视觉推进门控随之为假。 */
+  const finishedRef = useRef(false);
   const [runtimeReady, setRuntimeReady] = useState(false);
 
   useEffect(() => {
@@ -818,6 +826,7 @@ function SimulationEngine({
     errorSampleCountRef.current = 0;
     rustStateRef.current = null;
     attainmentRef.current = createAttainmentState();
+    finishedRef.current = false;
     clockRef.current.reset();
   }, [resetToken]);
 
@@ -844,6 +853,8 @@ function SimulationEngine({
   );
 
   useFrame((state) => {
+    // 视觉推进门控每帧重算：暂停、未就绪、播完均为不推进（桨停转、尾迹停发）。
+    simRef.current.advancing = isRunning && runtimeReady && !finishedRef.current;
     if (!isRunning || !runtimeReady) {
       lastFrameTimeRef.current = state.clock.getElapsedTime();
       return;
@@ -859,7 +870,11 @@ function SimulationEngine({
       const previousTime = simTimeRef.current;
       const simTime = previousTime + dt;
 
-      if (simTime > duration) return;
+      if (simTime > duration) {
+        finishedRef.current = true;
+        simRef.current.advancing = false;
+        return;
+      }
 
       const sim = simRef.current;
       const targetHeading = interpolateHeading(simTime);
@@ -1407,6 +1422,7 @@ export default function DestroyerSimulation() {
     wavePitch: 0,
     waveRoll: 0,
     attainedCount: 0,
+    advancing: false,
   });
   const shipRef = useRef<THREE.Group | null>(null);
   // 双桨尾迹发射锚点：模型侧逐帧写入桨节点世界位置，尾迹侧逐帧读取。
@@ -1450,6 +1466,7 @@ export default function DestroyerSimulation() {
       wavePitch: 0,
       waveRoll: 0,
       attainedCount: 0,
+      advancing: false,
     };
 
     setHudState({
