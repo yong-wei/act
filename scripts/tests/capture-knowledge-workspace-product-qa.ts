@@ -1689,7 +1689,9 @@ async function captureMarkerSnapshot(page: Page) {
 async function captureThreeDimensionalSnapshot(page: Page) {
   return page.evaluate(`(() => {
     const renderer = document.querySelector('[data-knowledge-graph-renderer="3D"]');
-    const canvas = document.querySelector('[data-knowledge-canvas-primary="true"]');
+    // 3D fit/relayout 证据来自 legacy 视图；active 隐藏画布同名优先会掩盖 legacy 属性。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const webglCanvas = renderer?.querySelector('canvas');
     const rect = webglCanvas?.getBoundingClientRect();
     const nodeIds = Array.from(document.querySelectorAll('[data-knowledge-node-control]'))
@@ -1779,14 +1781,16 @@ async function captureThreeDimensionalFitRelayoutEvidence(page: Page) {
 
   await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
   await page.waitForFunction((previousVersion) => Number(
-    document.querySelector('[data-knowledge-canvas-primary="true"]')?.getAttribute('data-knowledge-layout-version') ?? -1,
+    document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?.getAttribute('data-knowledge-layout-version') ?? -1,
   ) === previousVersion + 1, afterFirstFit.layoutVersion, { timeout: 20_000 });
   await page.waitForTimeout(750);
   const afterFirstRelayout = await captureThreeDimensionalSnapshot(page);
 
   await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
   await page.waitForFunction((previousVersion) => Number(
-    document.querySelector('[data-knowledge-canvas-primary="true"]')?.getAttribute('data-knowledge-layout-version') ?? -1,
+    document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?.getAttribute('data-knowledge-layout-version') ?? -1,
   ) === previousVersion + 1, afterFirstRelayout.layoutVersion, { timeout: 20_000 });
   await page.waitForTimeout(750);
   const afterRepeatedRelayout = await captureThreeDimensionalSnapshot(page);
