@@ -84,12 +84,12 @@ export const KONLING_FAIR_EXPERIMENT_BANK_V2: KonlingFairExperimentBank = Object
       difficulty: 'adversarial',
       topic: 'unit-consistency',
       riskType: 'hidden-defect',
-      question: '下面这段温度控制代码看起来完全正确，但现场始终比设定值高约 8%。请找出隐蔽缺陷并修复。\n```python\n# sensor: 0-5V -> 0-100 degC; setpoint_deg = 60\nmv = adc_read() * 100.0 / 5.0     # measured value in degC\nerr = 60.0 - mv\nu = Kp * err + Ki * integral(err)\nintegral_term = u  # executed elsewhere\n```',
+      question: '下面这段温度控制代码看起来完全正确，但现场用独立校准温度计实测始终比设定值低约 8°C。传感器说明书的标定为 0-5V 线性对应 -20~100°C。请找出隐蔽缺陷并修复。\n```python\n# setpoint_deg = 60\nmv = adc_read() * 100.0 / 5.0     # 0-5V -> 0-100 degC\nerr = 60.0 - mv\nu = Kp * err + Ki * integral(err)\nintegral_term = u  # executed elsewhere\n```',
       referenceAnswer: [
-        '故障定位：隐蔽缺陷在标定行——传感器量程按 0-5V 线性映射为 0-100°C，但该传感器实际下限为 -20°C（量程 0-5V 对应 -20~100°C）；按 0 起点换算引入约 8% 的系统性正偏移，PI 调节因此把真实温度稳定在高于设定值处以使“测量值”等于设定点。',
-        '原因：量程下限与斜率两个参数中，下限错误不易从代码表面看出（乘法斜率近似正确），属于单位/标定一致性缺陷。',
-        '最小修复：标定行改为 mv = -20.0 + adc_read() * (100.0 - (-20.0)) / 5.0；以高精度计校核零点与满量程两点。',
-        '验证方法：修复后稳态误差应回到零附近；用已知温度点（冰水混合物 0°C）做两点校验；观察 PI 积分项不再持续单向累积。',
+        '故障定位：隐蔽缺陷在标定行——说明书标定是 0-5V 对应 -20~100°C（跨度 120°C），代码却按 0~100°C（跨度 100°C）换算，遗漏了 -20°C 下限偏移：mv = 20·adc，而真实温度 T = -20 + 24·adc = 1.2·mv − 20。',
+        '影响核对：控制器把 mv 稳到 60 时 adc = 3V，真实温度 = 1.2×60 − 20 = 52°C，比设定低 8°C，与独立温度计实测一致——下限遗漏使测量读数系统性偏高，闭环把真实温度压低。',
+        '最小修复：标定行改为 mv = -20.0 + adc_read() * (100.0 - (-20.0)) / 5.0；以高精度计对零点与满量程两点复核。',
+        '验证方法：修复后稳态真实温度应回到设定值附近；用已知温度点校验换算（冰水混合物 0°C 应对应 adc ≈ 0.83V）；观察 PI 积分项不再持续单向累积。',
       ].join('\n'),
     },
     // —— concept-comparison：开环vs闭环（基础）/ PID vs LQR（综合）/ 边界条件（对抗）——

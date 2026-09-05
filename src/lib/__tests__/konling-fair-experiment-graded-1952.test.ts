@@ -182,7 +182,7 @@ describe('题库 V2 结构契约（#1952）', () => {
     expect(konlingFairExperimentBankHash(KONLING_FAIR_EXPERIMENT_BANK_V1))
       .toBe('f486084cdce268ba6f04157a149affe48eb014edc70d0cdb5d155f137bf6d4f8');
     expect(konlingFairExperimentBankHash(KONLING_FAIR_EXPERIMENT_BANK_V2))
-      .toBe('27d18de22938bc2b212618be9bdae7dd78aacfc8bf0843d59dfec521b0ad58e8');
+      .toBe('66cd10a811212de129eb99de3da42e84c25ea734661bd83e48b06c25225196e2');
     // 哈希对同输入稳定（冻结是确定性的）。
     expect(konlingFairExperimentBankHash(KONLING_FAIR_EXPERIMENT_BANK_V2))
       .toBe(konlingFairExperimentBankHash(KONLING_FAIR_EXPERIMENT_BANK_V2));
@@ -401,11 +401,12 @@ describe('判别力报告（#1952 fixture 端到端）', () => {
     expect(official.syntheticDisclaimer).toBe(KONLING_FAIR_EXPERIMENT_SYNTHETIC_DISCLAIMER);
   });
 
-  it('混合 rubric 运行 fail closed：二元与分级记录拼接不产正式摘要', async () => {
-    await runGradedFixture('mixed-rubrics');
-    // 将一条 graded 盲审记录改写为二元形态，模拟跨 rubric 拼接。
+  it('rubric 形态门禁 fail closed：记录形态与 manifest 声明的 rubric 不符不产正式摘要', async () => {
+    await runGradedFixture('rubric-mismatch');
+    // 将一条 graded 盲审记录改写为二元形态，模拟 graded 配置误接二元
+    // 评审器（review finding：静默按 legacy 聚合并置 auditDimensions null）。
     const auditDir = path.join(
-      root, 'artifacts', 'konling-blind-audit', 'mixed-rubrics--audit--plain-baseline--r1', 'records', 'blind-audit',
+      root, 'artifacts', 'konling-blind-audit', 'rubric-mismatch--audit--plain-baseline--r1', 'records', 'blind-audit',
     );
     const firstRecord = fs.readdirSync(auditDir).sort()[0];
     const recordPath = path.join(auditDir, firstRecord);
@@ -415,10 +416,58 @@ describe('判别力报告（#1952 fixture 端到端）', () => {
 
     const result = aggregateKonlingFairExperiment({
       root,
-      runId: 'mixed-rubrics',
+      runId: 'rubric-mismatch',
       bank: KONLING_FAIR_EXPERIMENT_BANK_V2,
       arms: ['plain-baseline', 'enhanced-baseline', 'full-feature'],
       config: gradedConfig(),
+      calibers: ['structure-alias.v2'],
+      writeOfficial: false,
+    });
+    expect(result.status).toBe('incomplete');
+    expect(result.incompleteDetail?.phase).toBe('audit');
+    expect(result.officialSummary).toBeNull();
+  });
+
+  it('反向形态同样 fail closed：二元 rubric 配置混入分级记录', async () => {
+    const summary = await runKonlingFairExperiment({
+      root,
+      runId: 'rubric-mismatch-reverse',
+      bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      config: gradedConfig({
+        audit: { enabled: true, promptVersion: 'konling-blind-audit.v1', scoreVersion: 'rubric.v1' },
+      }),
+      calibers: ['structure-alias.v2'],
+      generateProvider: async (task) => ({
+        ok: true as const,
+        result: { answer: gradedAnswer(task.arm, task.item, task.replicate), elapsedMs: 1 },
+      }),
+      auditProvider: async () => ({
+        ok: true as const,
+        result: { verdict: 'pass', ruleScore: 0.9, notes: 'fixture' },
+      }),
+    });
+    expect(summary.aggregateStatus).toBe('complete');
+    const auditDir = path.join(
+      root, 'artifacts', 'konling-blind-audit', 'rubric-mismatch-reverse--audit--plain-baseline--r1', 'records', 'blind-audit',
+    );
+    const firstRecord = fs.readdirSync(auditDir).sort()[0];
+    const recordPath = path.join(auditDir, firstRecord);
+    const record = JSON.parse(fs.readFileSync(recordPath, 'utf8'));
+    record.result = {
+      verdict: 'correct', ruleScore: 0.9,
+      subscores: { accuracy: 0.9, evidenceFaithfulness: 0.9, pedagogy: 0.9, structureCompliance: 0.9, traceCoverage: 0.9 },
+      notes: 'spliced graded verdict',
+    };
+    fs.writeFileSync(recordPath, JSON.stringify(record, null, 2));
+
+    const result = aggregateKonlingFairExperiment({
+      root,
+      runId: 'rubric-mismatch-reverse',
+      bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      arms: ['plain-baseline', 'enhanced-baseline', 'full-feature'],
+      config: gradedConfig({
+        audit: { enabled: true, promptVersion: 'konling-blind-audit.v1', scoreVersion: 'rubric.v1' },
+      }),
       calibers: ['structure-alias.v2'],
       writeOfficial: false,
     });

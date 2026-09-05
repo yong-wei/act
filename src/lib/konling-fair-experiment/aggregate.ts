@@ -113,17 +113,27 @@ interface AuditArmEvidence {
   complete: boolean;
 }
 
+/**
+ * manifest 声明的 rubric 家族：`rubric-graded.*` 要求全部记录为分级形态，
+ * 其余（rubric.v1）要求二元形态。记录形态与配置不符（例如 graded 配置
+ * 误接二元评审器）按 parse-failure 语义 fail closed，不得进入正式指标。
+ */
+function expectsGradedRubric(config: KonlingFairExperimentConfig): boolean {
+  return config.audit.scoreVersion.startsWith('rubric-graded');
+}
+
 function auditArmEvidence(
   root: string,
   runId: string,
   bank: KonlingFairExperimentBank,
   arm: KonlingFairExperimentArm,
   answers: readonly KonlingFairExperimentAnswerRecord[],
+  expectedGraded: boolean,
 ): AuditArmEvidence {
   const verdicts = new Map<string, boolean>();
   const ruleScores: number[] = [];
   const graded = new Map<string, KonlingFairExperimentGradedAuditResult>();
-  let binaryCount = 0;
+  let rubricMismatch = false;
   for (let replicate = 1; replicate <= bank.replicates; replicate += 1) {
     const derivedRunId = derivedAuditRunId(runId, arm, replicate);
     const derivedManifest = buildKonlingFairExperimentDerivedAuditManifest({
@@ -144,6 +154,10 @@ function auditArmEvidence(
       const gradedResult = isKonlingFairExperimentGradedAuditResult(record.result)
         ? record.result
         : null;
+      if ((gradedResult !== null) !== expectedGraded) {
+        rubricMismatch = true;
+        continue;
+      }
       if (gradedResult) {
         graded.set(auditKey, gradedResult);
         // graded rubric 的 pass 等价：仅 major-error 视为不通过——correct 与
@@ -151,20 +165,17 @@ function auditArmEvidence(
         verdicts.set(auditKey, gradedResult.verdict !== 'major-error');
         ruleScores.push(gradedResult.ruleScore);
       } else {
-        binaryCount += 1;
         const result = record.result as { verdict?: unknown; ruleScore?: unknown } | undefined;
         verdicts.set(auditKey, result?.verdict === 'pass');
         if (typeof result?.ruleScore === 'number') ruleScores.push(result.ruleScore);
       }
     }
   }
-  // 单臂内二元/分级记录混合说明运行被拼接，fail closed（不产正式摘要）。
-  const mixedRubrics = graded.size > 0 && binaryCount > 0;
   return {
     verdicts,
     ruleScores,
-    graded: graded.size > 0 && !mixedRubrics ? graded : null,
-    complete: !mixedRubrics && verdicts.size >= bank.items.length * bank.replicates,
+    graded: graded.size > 0 && !rubricMismatch ? graded : null,
+    complete: !rubricMismatch && verdicts.size >= bank.items.length * bank.replicates,
   };
 }
 
@@ -273,7 +284,10 @@ export function aggregateKonlingFairExperiment(input: {
     }
 
     if (input.config.audit.enabled) {
-      const evidence = auditArmEvidence(input.root, input.runId, input.bank, arm, records);
+      const evidence = auditArmEvidence(
+        input.root, input.runId, input.bank, arm, records,
+        expectsGradedRubric(input.config),
+      );
       if (!evidence.complete) {
         return incomplete({ phase: 'audit', arm });
       }
