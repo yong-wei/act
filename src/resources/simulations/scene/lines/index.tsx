@@ -16,6 +16,7 @@ import {
   GERSTNER_WAVE_SETS,
   GERSTNER_WATER_BASE_Y,
   sampleVisibleWaterHeight,
+  gerstnerWaterMeshSpecForTier,
 } from '../water';
 
 export interface WaterHuggingLineProps {
@@ -58,11 +59,12 @@ export function WaterHuggingLine({
     const waveSet = GERSTNER_WAVE_SETS[params.waterTier];
     const origin = waterOriginSampler?.() ?? { x: 0, z: 0 };
     const amplitudeScale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
+    const meshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
     const stride = params.waterTier === 'low' ? 2 : 1;
     let lastY = GERSTNER_WATER_BASE_Y + epsilon;
     const next: [number, number, number][] = points.map((point, index) => {
       if (index % stride === 0) {
-        lastY = sampleVisibleWaterHeight(waveSet, amplitudeScale, origin.x, origin.z, point.x, point.z, time) + epsilon;
+        lastY = sampleVisibleWaterHeight(waveSet, amplitudeScale, meshSpec, origin.x, origin.z, point.x, point.z, time) + epsilon;
       }
       return [point.x, lastY, point.z];
     });

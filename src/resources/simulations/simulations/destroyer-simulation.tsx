@@ -59,6 +59,7 @@ import {
   gerstnerAmplitudeScale,
   GERSTNER_WAVE_SETS,
   GerstnerWater,
+  gerstnerWaterMeshSpecForTier,
   sampleVisibleWaterHeight,
 } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
@@ -495,11 +496,14 @@ function WakeTrailRig({
   });
 
   if (!wakeVisible) return null;
-  // 与可见水面同一坐标基准：水面网格跟随舰位，世界坐标须先减原点再采样。
+  // 与可见水面同一坐标基准、同一细分曲面：水面网格跟随舰位，世界坐标须先减原点，
+  // 再按位移后三角网格重心插值采样。
+  const waterMeshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
   const waterYSampler = (x?: number, z?: number) =>
     sampleVisibleWaterHeight(
       GERSTNER_WAVE_SETS[params.waterTier],
       gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+      waterMeshSpec,
       simRef.current.position.x,
       simRef.current.position.z,
       x ?? simRef.current.position.x,
@@ -900,14 +904,16 @@ function SimulationEngine({
       sim.integralDegS = stepResult.integralDegS ?? 0;
       sim.prevErrorDeg = stepResult.prevErrorDeg ?? 0;
 
-      // 波浪运动：与可视水面同一坐标基准（水面网格跟随舰位、shader 以网格局部
-      // 坐标计算相位，采样须先减舰位原点并乘同一振幅倍率），船随可见波浪起伏。
+      // 波浪运动：与可视水面同一坐标基准、同一细分曲面（水面网格跟随舰位，
+      // 采样先减舰位原点，再按位移后三角网格重心插值），船随可见波浪起伏。
       const posX = sim.position.x;
       const posZ = sim.position.z;
+      const waterMeshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
       const sampleWater = (x: number, z: number) =>
         sampleVisibleWaterHeight(
           GERSTNER_WAVE_SETS[params.waterTier],
           gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+          waterMeshSpec,
           posX,
           posZ,
           x,

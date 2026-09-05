@@ -12,6 +12,7 @@ import {
   sampleVisibleWaterHeight,
   computeGerstnerDisplacement,
   createGerstnerWaterGeometry,
+  gerstnerWaterMeshSpecForTier,
 } from '../scene/water';
 import { resolveEmitterAnchors } from '../scene/wake/wake-trail';
 import {
@@ -34,25 +35,73 @@ import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
 describe('F1: visible water sampling shares the mesh-local coordinate basis', () => {
   const waves = GERSTNER_WAVE_SETS.high;
   const scale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
+  const mesh = gerstnerWaterMeshSpecForTier('high');
 
-  it('inverts the Gerstner horizontal displacement before sampling the world point height', () => {
+  const displaced = (x: number, z: number, t: number) => {
+    const d = computeGerstnerDisplacement(waves, x, z, t);
+    return { x: x + scale * d.offsetX, y: scale * d.y, z: z + scale * d.offsetZ };
+  };
+
+  it('matches the displaced vertex height exactly at grid vertices', () => {
     const originX = -6000;
     const originZ = 120;
     const t = 37.5;
-    const paramX = 50;
-    const paramZ = -20;
-    const displacement = computeGerstnerDisplacement(waves, paramX, paramZ, t);
-    // GPU 顶点世界坐标 = 网格原点 + 参数点 + ampScale·水平位移；CPU 采样必须反解回参数点
-    const worldX = originX + paramX + scale * displacement.offsetX;
-    const worldZ = originZ + paramZ + scale * displacement.offsetZ;
-    const sampled = sampleVisibleWaterHeight(waves, scale, originX, originZ, worldX, worldZ, t);
-    expect(sampled).toBeCloseTo(GERSTNER_WATER_BASE_Y + scale * displacement.y, 6);
+    // 网格顶点的位移后世界位置：采样必须等于该顶点的位移高度
+    const cell = mesh.size / mesh.resolution;
+    const vx = -mesh.size / 2 + 130 * cell;
+    const vz = -mesh.size / 2 + 127 * cell;
+    const vertex = displaced(vx, vz, t);
+    const sampled = sampleVisibleWaterHeight(waves, scale, mesh, originX, originZ, originX + vertex.x, originZ + vertex.z, t);
+    expect(sampled).toBeCloseTo(GERSTNER_WATER_BASE_Y + vertex.y, 6);
+  });
+
+  it('interpolates the displaced triangle mesh instead of the analytic field between vertices', () => {
+    const originX = 0;
+    const originZ = 0;
+    const t = 1.2;
+    const localX = 90;
+    const localZ = 0;
+    // 复审案例：默认 60000/256 网格、局部 (90,0)、t=1.2s 处，解析场与网格插值相差数米
+    const cell = mesh.size / mesh.resolution;
+    const half = mesh.size / 2;
+    const lastCell = mesh.resolution - 1;
+    const baseI = Math.min(Math.max(Math.floor((localX + half) / cell), 0), lastCell);
+    const baseJ = Math.min(Math.max(Math.floor((localZ + half) / cell), 0), lastCell);
+    // 独立路径的期望：在 3×3 邻域内做位移后 XZ 包含测试，取首个命中的三角形
+    let expected: number | null = null;
+    const bary = (a: ReturnType<typeof displaced>, b: ReturnType<typeof displaced>, c: ReturnType<typeof displaced>) => {
+      const den = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+      if (Math.abs(den) < 1e-12) return null;
+      const u = ((localX - a.x) * (c.z - a.z) - (c.x - a.x) * (localZ - a.z)) / den;
+      const v = ((b.x - a.x) * (localZ - a.z) - (localX - a.x) * (b.z - a.z)) / den;
+      const w = 1 - u - v;
+      if (u < -1e-6 || v < -1e-6 || w < -1e-6) return null;
+      return w * a.y + u * b.y + v * c.y;
+    };
+    for (let di = -1; di <= 1 && expected === null; di += 1) {
+      for (let dj = -1; dj <= 1 && expected === null; dj += 1) {
+        const i = baseI + di;
+        const j = baseJ + dj;
+        if (i < 0 || j < 0 || i > lastCell || j > lastCell) continue;
+        const v00 = displaced(i * cell - half, j * cell - half, t);
+        const v10 = displaced((i + 1) * cell - half, j * cell - half, t);
+        const v01 = displaced(i * cell - half, (j + 1) * cell - half, t);
+        const v11 = displaced((i + 1) * cell - half, (j + 1) * cell - half, t);
+        expected = bary(v00, v01, v10) ?? bary(v01, v11, v10);
+      }
+    }
+    expect(expected).not.toBeNull();
+    const sampled = sampleVisibleWaterHeight(waves, scale, mesh, originX, originZ, localX, localZ, t);
+    expect(sampled).toBeCloseTo(GERSTNER_WATER_BASE_Y + expected!, 9);
+    // 与解析场（未插值）采样必须显著不同：证明走的是网格插值而非解析曲面
+    const analytic = GERSTNER_WATER_BASE_Y + computeGerstnerDisplacement(waves, localX, localZ, t).y;
+    expect(Math.abs(sampled - analytic)).toBeGreaterThan(0.5);
   });
 
   it('differs from naive world-coordinate sampling at a non-origin ship position', () => {
     const originX = -6000;
     const t = 12.3;
-    const shipLocal = sampleVisibleWaterHeight(waves, scale, originX, 0, originX, 0, t);
+    const shipLocal = sampleVisibleWaterHeight(waves, scale, mesh, originX, 0, originX, 0, t);
     const naiveWorld = GERSTNER_WATER_BASE_Y + computeGerstnerDisplacement(waves, originX, 0, t).y;
     // 非原点舰位：同一世界点的网格局部坐标是 (0,0) 附近，朴素世界采样是另一波相
     expect(Math.abs(shipLocal - naiveWorld)).toBeGreaterThan(0.01);
@@ -200,7 +249,8 @@ describe('F5: water geometry bakes the -90° X rotation into vertices', () => {
   it('GPU 顶点世界 Y（烘焙几何 + shader 水平/垂向位移）与 CPU 采样逐点一致', () => {
     const waves = GERSTNER_WAVE_SETS.high;
     const scale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
-    const geometry = createGerstnerWaterGeometry(600, 16);
+    const mesh = { size: 600, resolution: 16 };
+    const geometry = createGerstnerWaterGeometry(mesh.size, mesh.resolution);
     const positions = geometry.getAttribute('position');
     const originX = -6000;
     const originZ = 120;
@@ -212,12 +262,53 @@ describe('F5: water geometry bakes the -90° X rotation into vertices', () => {
       const displacement = computeGerstnerDisplacement(waves, localX, localZ, t);
       const gpuWorldY = GERSTNER_WATER_BASE_Y + scale * displacement.y;
       const cpuSample = sampleVisibleWaterHeight(
-        waves, scale, originX, originZ,
+        waves, scale, mesh, originX, originZ,
         originX + localX + scale * displacement.offsetX,
         originZ + localZ + scale * displacement.offsetZ,
         t,
       );
       expect(cpuSample).toBeCloseTo(gpuWorldY, 6);
+    }
+  });
+
+  it('非顶点位置与真实几何索引缓冲的位移三角网重心插值一致', () => {
+    const waves = GERSTNER_WAVE_SETS.high;
+    const scale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
+    const mesh = { size: 600, resolution: 16 };
+    const geometry = createGerstnerWaterGeometry(mesh.size, mesh.resolution);
+    const positions = geometry.getAttribute('position');
+    const indices = geometry.getIndex();
+    expect(indices).not.toBeNull();
+    const t = 42.7;
+    const displacedVertex = (vertexIndex: number) => {
+      const x = positions.getX(vertexIndex);
+      const z = positions.getZ(vertexIndex);
+      const d = computeGerstnerDisplacement(waves, x, z, t);
+      return { x: x + scale * d.offsetX, y: scale * d.y, z: z + scale * d.offsetZ };
+    };
+    // 直接用几何体索引缓冲中的三角形做重心插值（即 GPU 实际光栅化的曲面）
+    const heightAt = (x: number, z: number) => {
+      for (let tri = 0; tri < indices!.count; tri += 3) {
+        const a = displacedVertex(indices!.getX(tri));
+        const b = displacedVertex(indices!.getX(tri + 1));
+        const c = displacedVertex(indices!.getX(tri + 2));
+        const den = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+        if (Math.abs(den) < 1e-12) continue;
+        const u = ((x - a.x) * (c.z - a.z) - (c.x - a.x) * (z - a.z)) / den;
+        const v = ((b.x - a.x) * (z - a.z) - (x - a.x) * (b.z - a.z)) / den;
+        const w = 1 - u - v;
+        if (u >= -1e-6 && v >= -1e-6 && w >= -1e-6) {
+          return w * a.y + u * b.y + v * c.y;
+        }
+      }
+      return null;
+    };
+    // 抽查若干非顶点位置：CPU 采样必须等于索引缓冲三角网的插值
+    for (const [px, pz] of [[37.3, -12.8], [101.6, 55.2], [-250.4, 199.7], [0.5, -0.4]] as const) {
+      const expected = heightAt(px, pz);
+      expect(expected).not.toBeNull();
+      const sampled = sampleVisibleWaterHeight(waves, scale, mesh, 0, 0, px, pz, t);
+      expect(sampled).toBeCloseTo(GERSTNER_WATER_BASE_Y + expected!, 9);
     }
   });
 });
