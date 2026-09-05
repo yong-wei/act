@@ -5030,6 +5030,10 @@ function buildPolicyBundle(
   const deficits = inferDeficits(input.goal, input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const omittedPolicyReasons: string[] = [];
+  const targetOptionCount = registeredGoal?.starterPathPolicy.targetOptionCount;
+  if (targetOptionCount !== undefined && families.length < targetOptionCount) {
+    omittedPolicyReasons.push('policy-option-count-below-target');
+  }
   const avoidedDifferentiableCoreRefs = new Set<string>();
   const retainedCoreRefs = new Set<string>();
   const basePaths: AdaptiveLearningPathPolicyBundle['paths'] = [];

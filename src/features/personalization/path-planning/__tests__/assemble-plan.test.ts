@@ -683,6 +683,24 @@ describe('policy bundle core diversity fixture', () => {
     expectStarterThreeOptionContract(plan);
   });
 
+  it('marks revision requests below the target option count as explicit fallback', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    const plan = planLearningPath({
+      ...input,
+      policyBundle: {
+        families: ['foundation-remediation', 'sprint-correction'],
+        overlapThreshold: 0.6,
+      },
+    });
+
+    expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
+      'foundation-remediation',
+      'sprint-correction',
+    ]);
+    expect(plan.policyBundle?.status).toBe('low-resource-fallback');
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-count-below-target');
+  });
+
   it('keeps three policy options meaningfully distinct when alternative core teaching resources exist', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
     let plannerInvocationCount = 0;
