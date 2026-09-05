@@ -19,16 +19,16 @@
     "nodeIndexDigest": "c168eaec55a0fcd42fb48759315d92d064c75b307c34481bbfe125ea183e1d11"
   },
   "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
-  "sourceInventoryDigest": "68b02df0220614a4b536e942ed0766f7e1df6f2833c6585c6c5d1f60ea192cfe",
+  "sourceInventoryDigest": "9b4994cc0690836d2383e4aa29554fcc8c915e02022d52304dc627b7be6f7d83",
   "authorityDigest": "742ab03ee32f9ebfcfa02865de29e51ec1bfc32179ccef435be637a9c6cd32ba",
   "fragments": [
     {
       "order": 0,
-      "fragmentId": "dtf-eaca63939d225dd03d734789c23fa6dc7a3208a110713dbeedba36c5427ab578",
+      "fragmentId": "dtf-3257bf68f2f29dd9980fd33f258fb444db25f3a27417215b5552f1ab39658194",
       "fragmentKey": "overview-teaching-order-v1",
       "fragmentVersion": "2",
-      "fragmentDigest": "eaca63939d225dd03d734789c23fa6dc7a3208a110713dbeedba36c5427ab578",
-      "sourceInventoryDigest": "7d074d261642141b225be29e2ca8a17613cf0f02df242a0cdd328f521a1002f3",
+      "fragmentDigest": "3257bf68f2f29dd9980fd33f258fb444db25f3a27417215b5552f1ab39658194",
+      "sourceInventoryDigest": "7a628d077d7d52e175915fb2d108e5c4ca79ef07dd3eaf02015429c43d1f5d27",
       "domainKeys": [
         "classical-control-design",
         "discrete-time-control-analysis",
@@ -130,10 +130,10 @@
   "gateStatus": "PUBLISHED",
   "gatePassed": true,
   "sourceHashes": {
-    "fragments": "2f4b662c472e5f65639e9f25254396da56b5f939ce238d3f39abaca183610de2",
-    "sourceInventory": "68b02df0220614a4b536e942ed0766f7e1df6f2833c6585c6c5d1f60ea192cfe",
-    "body": "b693a18b66f717a2a6234d927aefe794d18627a7bb9a3b9a1432fb181b0733e4"
+    "fragments": "52f85fed176a50d6a03ae9f0a70904eddcfaa97affebcc5d9dd790a90a2ef319",
+    "sourceInventory": "9b4994cc0690836d2383e4aa29554fcc8c915e02022d52304dc627b7be6f7d83",
+    "body": "1179579031dcac9d2af5cfdbf77d832fe2d36ddf7cf882d5fd5c4da7f7f08c5c"
   },
-  "projectionId": "proj-611658043cdf9a893fca65cba68d21cf80703e5cdaa09f7b9fdeac133840fd25",
-  "projectionHash": "611658043cdf9a893fca65cba68d21cf80703e5cdaa09f7b9fdeac133840fd25"
+  "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+  "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de"
 }

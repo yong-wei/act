@@ -3,9 +3,11 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  COURSE_UNIT_ORDER,
   isEngineeringPostRequisitePredicate,
   OverviewTeachingOrderError,
   planOverviewTeachingOrder,
+  unitRank,
 } from '../teaching-projection/domain-fragments/adopt-engineering-prerequisites';
 import { authorOverviewTeachingOrderFragment } from '../teaching-projection/domain-fragments/build-overview-teaching-order';
 import { buildDomainTeachingFragment } from '../teaching-projection/domain-fragments/builder';
@@ -94,6 +96,41 @@ describe('planOverviewTeachingOrder', () => {
       existingTeaching: [],
     });
     expect(plan.extensions.every((edge) => edge.provenance === 'unscheduled-extension')).toBe(true);
+  });
+
+  it('does not claim syllabus order from a scheduled node to an unscheduled node', () => {
+    const plan = planOverviewTeachingOrder({
+      overviews: [{ domainId: 'system-modeling', nodeIds: ['a', 'b'] }],
+      contentNodeIds: ['a', 'b'],
+      nodeUnits: new Map([['a', '2-1']]),
+      existingTeaching: [],
+    });
+    expect(plan.extensions).toEqual([
+      expect.objectContaining({
+        sourceNodeId: 'a',
+        targetNodeId: 'b',
+        provenance: 'unscheduled-extension',
+      }),
+    ]);
+  });
+
+  it('orients leftover scheduled components from earlier units to later units', () => {
+    const plan = planOverviewTeachingOrder({
+      overviews: [{ domainId: 'system-modeling', nodeIds: ['early-a', 'early-b', 'late'] }],
+      contentNodeIds: ['early-a', 'early-b', 'late'],
+      nodeUnits: new Map([['early-a', '2-3'], ['early-b', '2-3'], ['late', '4-1']]),
+      existingTeaching: [],
+    });
+    expect(plan.extensions.some((edge) => (
+      edge.sourceNodeId === 'late' && edge.targetNodeId.startsWith('early')
+    ))).toBe(false);
+    expect(plan.extensions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        sourceNodeId: 'early-b',
+        targetNodeId: 'late',
+        provenance: 'teaching-extension',
+      }),
+    ]));
   });
 
   it('omits overview members that are not course-content-related', () => {
@@ -265,6 +302,16 @@ describe('planOverviewTeachingOrder', () => {
       (edge.curatorRationale ?? '').includes('follows syllabus unit order')
       && (edge.curatorRationale ?? '').includes('Unscheduled')
     ))).toEqual([]);
+    for (const edge of result.extensions) {
+      const sourceRank = unitRank(course.nodeUnits.get(edge.sourceNodeId));
+      const targetRank = unitRank(course.nodeUnits.get(edge.targetNodeId));
+      expect(sourceRank).toBeLessThanOrEqual(targetRank);
+      if (sourceRank < targetRank && targetRank < COURSE_UNIT_ORDER.length) {
+        expect(edge.provenance).toBe('teaching-extension');
+      } else {
+        expect(edge.provenance).toBe('unscheduled-extension');
+      }
+    }
   });
 
   it('does not let the shard loader infer teaching edges from engineering families', () => {

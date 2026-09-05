@@ -198,13 +198,15 @@ export function planOverviewTeachingOrder(input: {
       });
     }
 
-    const sortedRelated = [...related].sort((left, right) => (
-      unitRank(nodeUnits.get(left)) - unitRank(nodeUnits.get(right))
-    ));
+    const rankOf = (id: string) => unitRank(nodeUnits.get(id));
+    const scheduledLimit = COURSE_UNIT_ORDER.length;
+    const sortedRelated = [...related].sort((left, right) => rankOf(left) - rankOf(right));
     for (let index = 1; index < sortedRelated.length; index += 1) {
       const sourceNodeId = sortedRelated[index - 1]!;
       const targetNodeId = sortedRelated[index]!;
-      if (unitRank(nodeUnits.get(sourceNodeId)) >= unitRank(nodeUnits.get(targetNodeId))) continue;
+      const sourceRank = rankOf(sourceNodeId);
+      const targetRank = rankOf(targetNodeId);
+      if (sourceRank >= targetRank || targetRank >= scheduledLimit) continue;
       if (forest.find(sourceNodeId) === forest.find(targetNodeId)) continue;
       forest.union(sourceNodeId, targetNodeId);
       mark({
@@ -225,19 +227,31 @@ export function planOverviewTeachingOrder(input: {
       leftover.set(root, membersOfRoot);
     }
     if (leftover.size > 1) {
-      const scheduled = sortedRelated.filter((id) => unitRank(nodeUnits.get(id)) < COURSE_UNIT_ORDER.length);
-      const anchor = (scheduled.length > 0 ? scheduled[scheduled.length - 1] : related[0])!;
-      for (const membersOfRoot of leftover.values()) {
-        if (membersOfRoot.includes(anchor)) continue;
-        const targetNodeId = membersOfRoot[0]!;
-        forest.union(anchor, targetNodeId);
+      const components = [...leftover.values()].sort((left, right) => (
+        Math.min(...left.map(rankOf)) - Math.min(...right.map(rankOf))
+      ));
+      for (let index = 1; index < components.length; index += 1) {
+        const left = components[index - 1]!;
+        const right = components[index]!;
+        const leftMin = Math.min(...left.map(rankOf));
+        const rightMin = Math.min(...right.map(rankOf));
+        let sourceNodeId = left.find((id) => rankOf(id) === leftMin) ?? left[0]!;
+        let targetNodeId = right.find((id) => rankOf(id) === rightMin) ?? right[0]!;
+        if (rankOf(sourceNodeId) > rankOf(targetNodeId)) {
+          [sourceNodeId, targetNodeId] = [targetNodeId, sourceNodeId];
+        }
+        const sourceRank = rankOf(sourceNodeId);
+        const targetRank = rankOf(targetNodeId);
+        forest.union(sourceNodeId, targetNodeId);
         mark({
-          sourceNodeId: anchor,
+          sourceNodeId,
           targetNodeId,
           relationType: 'PREREQUISITE',
           strength: 'RECOMMENDED',
           domainKeys: [overview.domainId],
-          provenance: 'unscheduled-extension',
+          provenance: sourceRank < targetRank && targetRank < scheduledLimit
+            ? 'teaching-extension'
+            : 'unscheduled-extension',
           engineeringRelationId: null,
         });
       }
