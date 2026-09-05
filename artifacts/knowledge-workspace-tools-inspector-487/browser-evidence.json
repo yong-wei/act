@@ -2,13 +2,13 @@
   "change": "redesign-knowledge-workspace-tools-and-inspector",
   "issue": 487,
   "refreshedBy": "standardize-knowledge-graph-floating-panels",
-  "capturedAt": "2026-08-26T15:00:18.963Z",
-  "headCommit": "8bcbb787edf84de3922cf637c359b5a9732c686b",
+  "capturedAt": "2026-09-05T11:25:43.047Z",
+  "headCommit": "1ba7540370f7bde3e86f50c3ef2af13e1813d055",
   "captureRevision": {
-    "commitSha": "8bcbb787edf84de3922cf637c359b5a9732c686b",
-    "treeSha": "3a8728006f3b95083ef18ded20c5a0ed3731104f"
+    "commitSha": "1ba7540370f7bde3e86f50c3ef2af13e1813d055",
+    "treeSha": "4e2dda3bd24dcfd8704e1702bfacde649abed303"
   },
-  "baseUrl": "http://localhost:3002",
+  "baseUrl": "http://127.0.0.1:3002",
   "selectedNodeId": "稳定性_1_7288b4ea",
   "designSourceOfTruth": {
     "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
@@ -41,8 +41,8 @@
     ],
     "mobileInspector": {
       "focusTrapped": true,
-      "escapeClosed": true,
-      "focusReturnedToCanvas": true,
+      "escapeClosed": false,
+      "focusReturnedToCanvas": false,
       "dockSafeArea": "bottom-padding"
     },
     "mobileToolPaths": [
@@ -64,7 +64,7 @@
     {
       "name": "desktop-default-compact-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-default-compact-dark.png",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
       "state": "desktop default compact tools",
       "theme": "dark",
       "viewport": "1440x960",
@@ -84,8 +84,8 @@
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
         "selectedNodeId": "",
-        "visibleNodeCount": "15",
-        "visibleLinkCount": "0",
+        "visibleNodeCount": "",
+        "visibleLinkCount": "",
         "width": 1440,
         "height": 960,
         "htmlClass": "dark"
@@ -94,7 +94,7 @@
     {
       "name": "desktop-open-filters-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-open-filters-dark.png",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
       "state": "desktop opened node filters",
       "theme": "dark",
       "viewport": "1440x960",
@@ -114,8 +114,8 @@
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
         "selectedNodeId": "",
-        "visibleNodeCount": "15",
-        "visibleLinkCount": "0",
+        "visibleNodeCount": "",
+        "visibleLinkCount": "",
         "width": 1440,
         "height": 960,
         "htmlClass": "dark"
@@ -124,7 +124,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-selected-inspector-light.png",
-      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "state": "desktop selected direct leaf inspector",
       "theme": "light",
       "viewport": "1440x960",
@@ -155,9 +155,9 @@
         ],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
-        "selectedNodeId": "稳定性_1_7288b4ea",
-        "visibleNodeCount": "80",
-        "visibleLinkCount": "52",
+        "selectedNodeId": "",
+        "visibleNodeCount": "",
+        "visibleLinkCount": "",
         "width": 1440,
         "height": 960,
         "htmlClass": "light"
@@ -166,7 +166,7 @@
     {
       "name": "mobile-320-selected-sheet-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-selected-sheet-dark.png",
-      "url": "http://localhost:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://127.0.0.1:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "state": "mobile selected node sheet with graph reachable above collapsed tools",
       "theme": "dark",
       "viewport": "320x800",
@@ -197,9 +197,9 @@
         ],
         "mobileToolState": "closed",
         "mobileLayoutControls": [],
-        "selectedNodeId": "稳定性_1_7288b4ea",
-        "visibleNodeCount": "80",
-        "visibleLinkCount": "52",
+        "selectedNodeId": "",
+        "visibleNodeCount": "",
+        "visibleLinkCount": "",
         "width": 320,
         "height": 800,
         "htmlClass": "dark"
@@ -208,7 +208,7 @@
     {
       "name": "mobile-320-view-layout-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
-      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
       "state": "mobile view and layout tool opened with graph controls available",
       "theme": "dark",
       "viewport": "320x800",
@@ -234,8 +234,8 @@
           "clear-pins"
         ],
         "selectedNodeId": "",
-        "visibleNodeCount": "15",
-        "visibleLinkCount": "0",
+        "visibleNodeCount": "",
+        "visibleLinkCount": "",
         "width": 320,
         "height": 800,
         "htmlClass": "dark"

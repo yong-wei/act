@@ -1916,9 +1916,12 @@ async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = se
       && control?.getAttribute('aria-busy') === 'false';
   }, nodeId, { timeout: 20000 });
   const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
-  await control.focus();
-  // 画布节点控制可能被悬浮层拦截；用 DOM click 保证触发。
-  await control.evaluate((element) => (element as HTMLButtonElement).click());
+  // 画布节点控制可能被悬浮层拦截；DOM click 需先 focus 才能等价指针点击的焦点语义，
+  // 否则后续 Escape 关闭与焦点回画布的键盘证据失真。
+  await control.evaluate((element) => {
+    element.focus();
+    (element as HTMLButtonElement).click();
+  });
   await page.waitForSelector(inspectorSelector, { timeout: 15000 });
 }
 
