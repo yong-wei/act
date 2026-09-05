@@ -460,7 +460,7 @@ describe('DiagnosisSurfacePanel', () => {
     expect(html).toContain('data-diagnosis-state="ready"');
     expect(html).not.toContain('当前诊断处于降级状态');
     // 顶部引用计数与证据抽屉消费同一投影引用。
-    expect(html).toContain('data-diagnosis-evidence-count="1"');
+    expect(html).toContain('data-diagnosis-evidence-count="2"');
     expect(html).toContain('二阶对象诊断摘要');
     expect(html).not.toContain('当前角色没有可展示的证据引用');
   });

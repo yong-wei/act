@@ -68,7 +68,9 @@ export function DiagnosisSurfacePanel({
   const claims = diagnosis?.claims ?? [];
   const limitations = diagnosis?.limitations ?? [];
   const clusters = diagnosis?.rootCauseClusters ?? [];
-  const evidenceCount = claims.reduce((sum, claim) => sum + claim.evidenceRefs.length, 0);
+  // 总览证据计数与维度卡片消费同一治理摘要口径（confidence.evidenceCount），
+  // 证据抽屉展示的是同一读模型投影出的摘要引用（Issue #2010）。
+  const evidenceCount = claims.reduce((sum, claim) => sum + claim.confidence.evidenceCount, 0);
   // 诊断就绪性由其自身声明的 materialization 输入决定（Issue #2010）：
   // 累计画像诊断以 canonical-cumulative-portrait 为输入，控制校正诊断
   // 仍以专项报告快照为输入；不得用后者的存在性判定前者的降级状态。

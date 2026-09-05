@@ -348,5 +348,8 @@ describe('GET /api/student/competency-snapshot', () => {
         overallScore: 72.5,
       },
     });
+    // 陈旧累计画像的诊断继承显式 stale-evidence 限制，不伪装就绪（Issue #2010）。
+    const staleLimitations = body.diagnosis.limitations as Array<{ reason: string }>;
+    expect(staleLimitations.map((item) => item.reason)).toContain('stale-evidence');
   });
 });

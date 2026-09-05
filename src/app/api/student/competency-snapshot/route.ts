@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       evidenceSummary: buildSafeEvidenceSummary(state),
       riskFlags,
       recommendations: buildRecommendations(state),
-      diagnosis: buildCumulativeDiagnosis(state),
+      diagnosis: withCumulativeStaleness(buildCumulativeDiagnosis(state), labeledCurrent, evidence.status),
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -172,6 +172,25 @@ function buildRecommendations(state: CumulativePortraitReadModel) {
     });
   }
   return recommendations;
+}
+
+/** 累计画像陈旧时（之后有更新的学习证据）诊断继承显式限制，不伪装就绪（Issue #2010）。 */
+function withCumulativeStaleness(
+  diagnosis: RoleBasedLearningDiagnosis | null,
+  labeledCurrent: boolean,
+  portStatus: string,
+): RoleBasedLearningDiagnosis | null {
+  if (!diagnosis || labeledCurrent || portStatus !== 'stale') return diagnosis;
+  return {
+    ...diagnosis,
+    limitations: [
+      ...diagnosis.limitations,
+      {
+        reason: 'stale-evidence' as const,
+        detail: '累计画像之后有更新的学习证据，诊断结论待重新聚合。',
+      },
+    ],
+  };
 }
 
 function buildCumulativeDiagnosis(
