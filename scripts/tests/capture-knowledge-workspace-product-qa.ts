@@ -1492,6 +1492,10 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   };
 }
 
+// 模式控件指针不可达是现役产品缺陷信号（如移动端 legacy 按钮被页面容器遮挡），
+// 记录为 blocked 状态而不是以程序化点击掩盖。
+class ModeControlUnreachableError extends Error {}
+
 async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: string) {
   const button = page.locator(`[data-knowledge-mode="${mode}"]`);
   if (!(await button.isVisible().catch(() => false))) {
@@ -1499,7 +1503,7 @@ async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: str
   }
   const clickResult = await clickLocatorAtReachablePoint(page, button);
   if (clickResult.status !== 'clicked') {
-    throw new Error(
+    throw new ModeControlUnreachableError(
       `${mode} mode control is not reachable by a real pointer click in ${context}`
       + (clickResult.status === 'unreachable' ? ` occludedBy=${clickResult.occludedBy ?? 'unknown'}` : ''),
     );
@@ -2594,6 +2598,26 @@ async function captureMarkers(page: Page, stateName: string) {
 }
 
 async function captureState(browser: Browser, state: CaptureState, storageState: RoleSession['storageState']) {
+  try {
+    return await captureStateInner(browser, state, storageState);
+  } catch (error) {
+    if (error instanceof ModeControlUnreachableError) {
+      console.warn(`[knowledge-qa] state ${state.name} blocked: ${error.message}`);
+      return {
+        name: state.name,
+        result: 'blocked',
+        interactionState: state.interactionState,
+        theme: state.theme,
+        viewport: { width: state.width, height: state.height },
+        knowledgeMode: state.knowledgeMode ?? 'active',
+        blockedReason: error.message,
+      };
+    }
+    throw error;
+  }
+}
+
+async function captureStateInner(browser: Browser, state: CaptureState, storageState: RoleSession['storageState']) {
   const { context, page, url, probe } = await openStatePage(browser, state, storageState);
   try {
     let interactionEvidence: Record<string, unknown> | undefined;
