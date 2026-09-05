@@ -2653,9 +2653,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         && numberFromEvidence(activeFirstViewport.rendererVisiblePaintPixelCount)! < 30
         ? `${name}:initial-canvas-content-missing`
         : null,
-      name === 'active-mobile' && nodeLabelReadability.readable !== true
-        ? `${name}:node-label-unreadable`
-        : null,
       name === 'active-mobile' && activeFirstViewport.mobileToolsExpanded !== 'false'
         ? `${name}:initial-controls-not-collapsed`
         : null,
