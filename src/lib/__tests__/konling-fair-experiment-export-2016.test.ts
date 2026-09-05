@@ -96,12 +96,16 @@ describe('konling fair experiment export naming and interpretation (#2016)', () 
     // 0/0 引用指标显示 N/A 而不是 0%。
     expect(slides).toContain('| 引用精确率 | N/A |');
     expect(slides).toContain('| 追溯覆盖率 | N/A |');
-    expect(csv).toContain('"citation-precision","plain-baseline"');
+    expect(csv).toContain('"citation-precision","plain-baseline","N/A"');
+    expect(csv).toContain('"citation-coverage","plain-baseline","N/A"');
+    // delta 行保留 composite@ 机器键，供既有解析器消费。
+    expect(csv).toContain('"composite@structure-alias.v1"');
     expect(csv).toContain('"composite-structure-and-quality@structure-alias.v1","plain-baseline"');
     // JSON 派生说明：统一名称、公式与解释。
     expect(notes.metricNames.composite).toBe('结构与质量联合通过率');
     expect(notes.metricNames.compositeFormula).toBe('结构通过且盲审质量非 major-error');
     expect(notes.plainBaselineNote).toContain('不代表知识正确率 0%');
+    expect(slides).toContain('composite@structure-alias.v1'.replace('composite@', '结构与质量联合通过率@'));
     // 幻灯片不再把联合指标称为泛化的「综合通过率」。
     expect(slides).not.toContain('综合通过率');
 

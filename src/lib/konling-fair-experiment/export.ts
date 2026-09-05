@@ -73,8 +73,8 @@ function summaryRows(official: KonlingFairExperimentOfficialSummary): Array<Arra
       // 人类可见 metric 名自解释；schema key 仍为 composite（冻结兼容）。
       rows.push([`composite-structure-and-quality@${caliber}`, arm, composite.rate, composite.passed, composite.n]);
     }
-    rows.push(['citation-precision', arm, perArm.citationAudit.precision.ratio, perArm.citationAudit.precision.numerator, perArm.citationAudit.precision.denominator]);
-    rows.push(['citation-coverage', arm, perArm.citationAudit.coverage.ratio, perArm.citationAudit.coverage.numerator, perArm.citationAudit.coverage.denominator]);
+    rows.push(['citation-precision', arm, perArm.citationAudit.precision.denominator === 0 ? 'N/A' : perArm.citationAudit.precision.ratio, perArm.citationAudit.precision.numerator, perArm.citationAudit.precision.denominator]);
+    rows.push(['citation-coverage', arm, perArm.citationAudit.coverage.denominator === 0 ? 'N/A' : perArm.citationAudit.coverage.ratio, perArm.citationAudit.coverage.numerator, perArm.citationAudit.coverage.denominator]);
   }
   return rows;
 }
@@ -87,7 +87,7 @@ function deltaRows(
   ];
   for (const delta of deltas) {
     rows.push([
-      displayMetricName(delta.metric),
+      delta.metric,
       delta.baseline.label,
       delta.comparison.label,
       Number(delta.percentagePointDifference.toFixed(4)),
@@ -119,7 +119,10 @@ function slidesMarkdown(official: KonlingFairExperimentOfficialSummary): string 
       lines.push(`| ${COMPOSITE_DISPLAY_NAME}@${caliber}（${COMPOSITE_FORMULA}） | ${rateText(composite.rate, composite.passed, composite.n)} |`);
     }
     if (arm === 'plain-baseline') {
-      lines.push(`| 说明 | ${PLAIN_BASELINE_COMPOSITE_NOTE} |`);
+      const compositeRows = Object.entries(perArm.composite ?? {});
+      const allZero = compositeRows.length > 0 && compositeRows.every(([, composite]) => composite.n > 0 && composite.passed === 0);
+      // 仅在联合通过率实际为 0 时声称 0%，避免与未来非零实测值自相矛盾（review P2）。
+      lines.push(`| 说明 | ${allZero ? PLAIN_BASELINE_COMPOSITE_NOTE : '普通基线未启用结构合同；结构率与联合率仅为能力指标'}`);
     }
     if (perArm.audit) {
       lines.push(`| 盲审通过率 | ${(perArm.audit.rate * 100).toFixed(1)}% (${perArm.audit.passed}/${perArm.audit.n}) |`);
