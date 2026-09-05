@@ -9,20 +9,12 @@ import {
 } from '@/lib/governed-math';
 import type { GovernedMathSpan } from '@/lib/governed-math/types';
 
-async function copyText(value: string): Promise<void> {
-  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-  }
-}
-
 function MathSpanView({
   span,
   theme,
-  showCopy,
 }: {
   span: GovernedMathSpan;
   theme: 'light' | 'dark';
-  showCopy: boolean;
 }) {
   const html = useMemo(
     () => renderGovernedKatexHtml({
@@ -44,18 +36,6 @@ function MathSpanView({
         aria-label={span.accessibleLabel}
         dangerouslySetInnerHTML={{ __html: html }}
       />
-      {showCopy ? (
-        <button
-          type="button"
-          className="ml-1 align-middle text-[10px] text-platform-fg-muted underline"
-          data-governed-copy-latex="true"
-          onClick={() => {
-            void copyText(span.copyLatex);
-          }}
-        >
-          复制公式
-        </button>
-      ) : null}
     </span>
   );
 }
@@ -83,7 +63,6 @@ export function GovernedRichText({
       </span>
     );
   }
-  const showCopy = density === 'detail';
   return (
     <span
       className={className}
@@ -105,24 +84,11 @@ export function GovernedRichText({
                 key={`${projection.renderKey}:${blockIndex}:${spanIndex}:${span.renderKey}`}
                 span={span}
                 theme={theme}
-                showCopy={showCopy}
               />
             )
           ))}
         </span>
       ))}
-      {showCopy ? (
-        <button
-          type="button"
-          className="mt-1 block text-[10px] text-platform-fg-muted underline"
-          data-governed-copy-text="true"
-          onClick={() => {
-            void copyText(projection.copyText);
-          }}
-        >
-          复制全文
-        </button>
-      ) : null}
     </span>
   );
 }
@@ -154,7 +120,7 @@ export function GovernedBlockMath({
     copyLatex,
     renderKey: `${macroProfileId}:${display}:${latex}`,
   };
-  return <MathSpanView span={span} theme={theme} showCopy />;
+  return <MathSpanView span={span} theme={theme} />;
 }
 
 export function GovernedUnavailableMath({ message }: { message: string }) {

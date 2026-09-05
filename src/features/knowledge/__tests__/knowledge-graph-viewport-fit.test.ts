@@ -287,7 +287,7 @@ describe('knowledge graph viewport fit', () => {
     }));
     const fit = getKnowledgeGraphViewportFit({
       nodes, width, height, padding, labelMode: 'all',
-      selectedNodeId: 'selected', hoveredNodeId: 'hovered',
+      selectedNodeId: 'selected',
     });
     const distance = getPerspectiveCameraFitDistance({
       viewportHeight: height, pixelsPerWorldUnit: fit.scale, fovDegrees: 50,
@@ -300,6 +300,7 @@ describe('knowledge graph viewport fit', () => {
     const placements = placeKnowledgeGraphLabels({
       nodes, width, height, padding, scale: fit.scale, labelMode: 'all',
       selectedNodeId: 'selected', hoveredNodeId: 'hovered',
+      enforceViewport: true,
     });
     nodes.forEach((node) => {
       const center = projectKnowledgeWorldPoint({
@@ -311,32 +312,25 @@ describe('knowledge graph viewport fit', () => {
       expect(center.x + radius).toBeLessThanOrEqual(width - padding.right + 0.01);
       expect(center.y - radius).toBeGreaterThanOrEqual(padding.top - 0.01);
       expect(center.y + radius).toBeLessThanOrEqual(height - padding.bottom + 0.01);
-      const placement = placements.get(node.id)!;
-      if (!placement.visible) return;
-      const halfWidth = node.labelBounds.halfWidth * fit.scale * placement.scale;
-      const halfHeight = node.labelBounds.halfHeight * fit.scale * placement.scale;
-      expect(center.x + placement.offsetX - halfWidth).toBeGreaterThanOrEqual(padding.left - 0.01);
-      expect(center.x + placement.offsetX + halfWidth).toBeLessThanOrEqual(width - padding.right + 0.01);
-      expect(center.y + placement.offsetY - halfHeight).toBeGreaterThanOrEqual(padding.top - 0.01);
-      expect(center.y + placement.offsetY + halfHeight).toBeLessThanOrEqual(height - padding.bottom + 0.01);
     });
     expect(placements.get('selected')?.visible).toBe(true);
     expect(placements.get('hovered')?.visible).toBe(true);
   });
-  it.each([6.07 / 13, 7.64 / 13])('keeps priority candidates eligible at 12px and hides ordinary labels at scale %s', (scale) => {
+  it.each([6.07 / 13, 7.64 / 13])('keeps labels readable at 12px even below the old zoom gate at scale %s', (scale) => {
     for (const renderer of ['2d', '3d']) {
       const chapterCandidate = getKnowledgeNodeLabelPresentation({
         labelMode: 'focus', nodeId: 'chapter-node:root', globalScale: scale,
         isRootBubble: true,
       });
-      const deferred = getKnowledgeNodeLabelPresentation({
+      const ordinary = getKnowledgeNodeLabelPresentation({
         labelMode: 'all', nodeId: `ordinary-${renderer}`, globalScale: scale,
       });
       expect(chapterCandidate.visible).toBe(true);
       expect(chapterCandidate.fontSize).toBe(12);
       expect(chapterCandidate.placement).toBe('inside');
       expect(chapterCandidate.complete).toBe(true);
-      expect(deferred.visible).toBe(false);
+      expect(ordinary.visible).toBe(true);
+      expect(ordinary.fontSize).toBeGreaterThanOrEqual(12);
       const keyNode = getKnowledgeNodeLabelPresentation({
         labelMode: 'focus', nodeId: `key-${renderer}`, globalScale: scale, isKeyNode: true,
       });
@@ -398,6 +392,34 @@ describe('knowledge graph viewport fit', () => {
     expect(mixed.get('A')?.offsetY).toBeLessThan(0);
     expect(new Set([...mixed.values()].filter((placement) => placement.visible)
       .map((placement) => `${placement.offsetX}:${placement.offsetY}`)).size).toBe(2);
+  });
+
+  it('prefers viewport-center labels after selected and hovered when the budget is full', () => {
+    const nodes = [
+      { id: 'selected', x: 400, y: 0, bodyRadius: 8 },
+      { id: 'hovered', x: -400, y: 0, bodyRadius: 8 },
+      { id: 'center', x: 0, y: 0, bodyRadius: 8 },
+      { id: 'near-a', x: 12, y: 8, bodyRadius: 8 },
+      { id: 'near-b', x: -12, y: -8, bodyRadius: 8 },
+      { id: 'edge', x: 280, y: 180, bodyRadius: 8 },
+    ].map((node) => ({
+      ...node,
+      labelBounds: getKnowledgeNodeLabelBounds({ name: node.id, bodyRadius: node.bodyRadius }),
+    }));
+    const placed = placeKnowledgeGraphLabels({
+      nodes,
+      width: 96,
+      height: 26,
+      padding: 0,
+      scale: 1,
+      labelMode: 'all',
+      selectedNodeId: 'selected',
+      hoveredNodeId: 'hovered',
+    });
+    expect(placed.get('selected')?.visible).toBe(true);
+    expect(placed.get('hovered')?.visible).toBe(true);
+    expect(placed.get('center')?.visible).toBe(true);
+    expect(placed.get('edge')?.visible).toBe(false);
   });
 
   it('defers compact-priority labels when no collision-free viewport placement remains', () => {

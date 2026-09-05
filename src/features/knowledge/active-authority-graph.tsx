@@ -2093,21 +2093,6 @@ export function ActiveAuthorityGraph({
                   </button>
                 ) : null}
               </div>
-              {materializedNodeTypes.length > 0 ? (
-                <ActiveAuthorityFilterPanel
-                  locale={locale}
-                  materializedTypes={materializedNodeTypes}
-                  hiddenNodeTypes={hiddenNodeTypes}
-                  onToggleNodeType={toggleNodeTypeFilter}
-                  enabledFamilies={workspace.enabledFamilies}
-                  onToggleFamily={(family) => (workspace.enabledFamilies.includes(family) ? disableFamily(family) : enableFamily(family))}
-                  familyFailures={familyFailures}
-                  onRetryFamily={enableFamily}
-                  teachingCoverageNote={teachingCoverageNote}
-                  teachingRelationsVisible={teachingRelationsVisible}
-                  onToggleTeachingRelations={toggleTeachingRelations}
-                />
-              ) : null}
               </div>
               ) : null}
             </div>
@@ -2182,6 +2167,21 @@ export function ActiveAuthorityGraph({
                   layout={runtimeLayout}
                   sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
                 />
+                {materializedNodeTypes.length > 0 ? (
+                  <ActiveAuthorityFilterPanel
+                    locale={locale}
+                    materializedTypes={materializedNodeTypes}
+                    hiddenNodeTypes={hiddenNodeTypes}
+                    onToggleNodeType={toggleNodeTypeFilter}
+                    enabledFamilies={workspace.enabledFamilies}
+                    onToggleFamily={(family) => (workspace.enabledFamilies.includes(family) ? disableFamily(family) : enableFamily(family))}
+                    familyFailures={familyFailures}
+                    onRetryFamily={enableFamily}
+                    teachingCoverageNote={teachingCoverageNote}
+                    teachingRelationsVisible={teachingRelationsVisible}
+                    onToggleTeachingRelations={toggleTeachingRelations}
+                  />
+                ) : null}
               </div>
             ) : null}
             {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}

@@ -197,9 +197,10 @@ function compareUnicodeScalars(left: string, right: string): number {
 }
 
 export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
-  'nodes' | 'labelMode' | 'selectedNodeId' | 'hoveredNodeId' | 'width' | 'height' | 'padding'> & {
+  'nodes' | 'labelMode' | 'selectedNodeId' | 'width' | 'height' | 'padding'> & {
     scale: number;
     enforceViewport?: boolean;
+    hoveredNodeId?: string | null;
   }) {
   const safeInsets = normalizeSafeInsets(input.padding);
   const center = (node: KnowledgeViewportNode) => ({
@@ -214,14 +215,19 @@ export function placeKnowledgeGraphLabels(input: Pick<KnowledgeViewportFitInput,
     top: center(node).y - node.bodyRadius * nodeScale(node),
     bottom: center(node).y + node.bodyRadius * nodeScale(node),
   }));
+  const viewportCenterX = input.width / 2;
+  const viewportCenterY = input.height / 2;
   const priority = (node: KnowledgeViewportNode) => {
     if (node.id === input.selectedNodeId) return 0;
     if (node.id === input.hoveredNodeId) return 1;
-    if (node.isRootBubble) return 2;
-    if ((node.importance ?? 0) >= 4 || node.isKeyNode) return 3;
-    return 4;
+    return 2;
+  };
+  const distanceToCenter = (node: KnowledgeViewportNode) => {
+    const point = center(node);
+    return Math.hypot(point.x - viewportCenterX, point.y - viewportCenterY);
   };
   const ordered = [...input.nodes].sort((left, right) => priority(left) - priority(right)
+    || distanceToCenter(left) - distanceToCenter(right)
     || compareUnicodeScalars(left.id, right.id));
   const accepted: Array<{ id: string; left: number; right: number; top: number; bottom: number }> = [];
   // 可见上限由视口可读密度给出（标签占位约 96×26），不再武断封顶 24：
@@ -345,13 +351,11 @@ export interface KnowledgeViewportFitInput {
   padding?: number | KnowledgeViewportSafeInsets;
   labelMode: KnowledgeGraphLabelMode;
   selectedNodeId?: string | null;
-  hoveredNodeId?: string | null;
 }
 
 function projectedBounds(input: KnowledgeViewportFitInput, scale: number) {
-  // 取景只按节点结构与重点标签（selected/hovered/keyNode）估界：普通
-  // 标签的 LOD 可见性跟随缩放，若参与取景会把大规模概览的 fit 绑架到
-  // 蚂蚁图（#1739：fit 与渲染标签预算解耦）。
+  // 取景只按节点结构与选中/重点标签估界；hover 不得进入包围盒，否则
+  // 划过节点会带动相机缩放。
   const placements = placeKnowledgeGraphLabels({ ...input, scale, labelMode: 'focus' });
   const items = input.nodes.map((node) => {
     const label = placements.get(node.id)!;

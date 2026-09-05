@@ -80,8 +80,8 @@ export function RelationFamilyControl({
   onToggleFamily,
 }: RelationFamilyControlProps) {
   const canvasClassName = avoidExpandedKonling
-    ? 'absolute bottom-3 left-20 z-40 grid w-28 min-w-0 grid-cols-1 items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
-    : 'absolute bottom-3 left-3 z-40 grid w-[calc(100%-1.5rem)] min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:w-auto sm:grid-cols-none sm:grid-flow-col sm:p-1.5';
+    ? 'absolute bottom-0 left-20 z-40 grid w-28 min-w-0 grid-cols-1 items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
+    : 'absolute bottom-0 left-0 z-40 grid w-[calc(100%-1.5rem)] min-w-0 grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:w-auto sm:grid-cols-none sm:grid-flow-col sm:p-1.5';
 
   return (
     <div
