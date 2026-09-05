@@ -44,8 +44,6 @@ import {
 } from './layout-state';
 import {
   freezeKnowledgeGraphUnaffectedScope,
-  releaseKnowledgeGraphFrozenScope,
-  releaseKnowledgeGraphDragFrame,
   applyFocusedExpansionLayout,
   calculateFocusedExpansionRevealTranslation,
   commitKnowledgeGraphRelayoutVersion,
@@ -335,7 +333,6 @@ function getKnowledgeGraph3DSafeFitCameraDistance(input: {
   zoom: number;
   labelMode: KnowledgeGraphLabelMode;
   selectedNodeId?: string;
-  hoveredNodeId?: string;
   margin: number;
 }): number {
   const camera = new THREE.PerspectiveCamera(
@@ -391,7 +388,6 @@ function getKnowledgeGraph3DSafeFitCameraDistance(input: {
       padding: getKnowledgeGraphViewportSafeInsets({ width: input.width, height: input.height }),
       enforceViewport: true,
       selectedNodeId: input.selectedNodeId,
-      hoveredNodeId: input.hoveredNodeId,
     });
     return projectedNodes.every((node) => {
       const bodyBounds = getKnowledgeGraphProjectedSphereBounds({
@@ -1180,14 +1176,9 @@ export function KnowledgeGraphCanvas({
 
   const handleEngineStop = useCallback(() => {
     snapshotRuntimePositions();
-    if (unaffectedFrozenNodeIdsRef.current.size > 0) {
-      const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-      releaseKnowledgeGraphFrozenScope(graphNodes, {
-        frozenNodeIds: unaffectedFrozenNodeIdsRef.current,
-        pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
-      });
-      unaffectedFrozenNodeIdsRef.current = new Set();
-    }
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    freezeKnowledgeGraphUnaffectedScope(graphNodes, new Set());
+    unaffectedFrozenNodeIdsRef.current = new Set();
     if (settledLayoutSignatureRef.current === layoutSignature) return;
     settledLayoutSignatureRef.current = layoutSignature;
     setCameraProjectionRevision((revision) => revision + 1);
@@ -2263,7 +2254,6 @@ export function KnowledgeGraphCanvas({
       padding: getKnowledgeGraphViewportSafeInsets({ width: effectiveWidth, height: height ?? 600 }),
       labelMode,
       selectedNodeId: selectedNode?.id,
-      hoveredNodeId: hoveredNode?.id,
     });
     const effectiveFitScale = compactRootView
       ? Math.max(fit.scale, KNOWLEDGE_ROOT_MINIMUM_PROJECTION_SCALE)
@@ -2285,7 +2275,6 @@ export function KnowledgeGraphCanvas({
       zoom,
       labelMode,
       selectedNodeId: selectedNode?.id,
-      hoveredNodeId: hoveredNode?.id,
       margin: 8,
     });
     if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
@@ -2330,7 +2319,7 @@ export function KnowledgeGraphCanvas({
         projectionSettledTimerRef.current = null;
       }
     };
-  }, [autoFitConsumed, autoFitReady, autoFitScopeKey, compactRootView, fitViewRequest, flushCameraPose, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, nodes, onAutoFitConsumed, relayoutVersion, scheduleProjectionRefresh, selectedNode?.id, viewportRevision, width]);
+  }, [autoFitConsumed, autoFitReady, autoFitScopeKey, compactRootView, fitViewRequest, flushCameraPose, graphData.nodes, height, labelMode, layoutSettledRevision, layoutSignature, nodes, onAutoFitConsumed, relayoutVersion, scheduleProjectionRefresh, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;
@@ -2505,14 +2494,9 @@ export function KnowledgeGraphCanvas({
   const handleNodeDragEnd = useCallback((node: any) => {
     scheduleProjectionRefresh();
     rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
-    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-    releaseKnowledgeGraphDragFrame(graphNodes, {
-      draggedId: String(node?.id ?? ''),
-      pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
-    });
     onNodeDragEnd(node as KnowledgeNodeData);
     flushCameraPose(autoFitScopeKey);
-  }, [autoFitScopeKey, flushCameraPose, graphData.nodes, onNodeDragEnd, rememberRuntimeNodePosition, scheduleProjectionRefresh]);
+  }, [autoFitScopeKey, flushCameraPose, onNodeDragEnd, rememberRuntimeNodePosition, scheduleProjectionRefresh]);
 
   const handleNodeDrag = useCallback((node: any) => {
     scheduleProjectionRefresh();

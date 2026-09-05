@@ -240,6 +240,21 @@ describe('bounded force lifecycle (#1739)', () => {
     }
   });
 
+  it('keeps other settled nodes pinned after a drag isolation frame', () => {
+    const nodes: SimNode[] = [
+      { id: 'dragged', x: 1, y: 2 },
+      { id: 'other', x: 3, y: 4 },
+    ];
+    freezeKnowledgeGraphUnaffectedScope(nodes, new Set());
+    expect(nodes[1]!.fx).toBe(3);
+    nodes[0]!.x = 10;
+    nodes[0]!.y = 20;
+    nodes[0]!.fx = 10;
+    nodes[0]!.fy = 20;
+    expect(nodes[1]!.fx).toBe(3);
+    expect(nodes[1]!.fy).toBe(4);
+  });
+
   it('releases the drag-isolation frame without touching pins, roots or the dragged node', () => {
     const nodes: SimNode[] = [
       { id: 'dragged', x: 1, y: 2, fx: 1, fy: 2 },

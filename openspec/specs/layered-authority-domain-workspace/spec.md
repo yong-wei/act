@@ -173,17 +173,17 @@ Root, domain overview and selected semantic neighborhood SHALL each use a distin
 - **AND** search SHALL not promote every matching type into the domain overview
 
 ### Requirement: Active semantic filters live in one dedicated panel
-The active workspace SHALL provide one responsive filter panel containing reversible multi-select node-type and relation-family controls with registered visual samples. The global workspace toolbar SHALL contain only graph-version, language, dimension, fit, reflow and domain-return actions.
+The active workspace SHALL provide relation-family content filters as compact bottom-left canvas chips matching the old graph control: reversible multi-select labels with registered line samples, including the default teaching-order chip. The chips SHALL sit at the canvas corner (`bottom-0 left-0`, with the established Konling clearance when that launcher is expanded). The global workspace toolbar SHALL contain only graph-version, language, dimension, fit, reflow and domain-return actions and SHALL NOT host relation filters.
 
 #### Scenario: Viewer opens filters on desktop
-- **WHEN** the viewer opens the active filter control
-- **THEN** one bounded panel SHALL show node types and relation families with their current states and visual meanings
-- **AND** search or layout controls SHALL not be duplicated inside unrelated floating rows
+- **WHEN** an active domain canvas is visible on desktop
+- **THEN** teaching-order and engineering-family chips SHALL appear at the bottom-left canvas corner
+- **AND** search or layout controls SHALL not duplicate those chips in the top toolbar
 
 #### Scenario: Viewer opens filters on mobile
-- **WHEN** the same control is opened on a compact viewport
-- **THEN** an accessible drawer SHALL expose the same state and actions
-- **AND** closing it SHALL restore focus without changing the graph
+- **WHEN** the same canvas is opened on a compact viewport
+- **THEN** the same chip state SHALL remain available at the bottom-left corner or the established mobile equivalent
+- **AND** closing any compact overlay SHALL restore focus without changing the graph
 
 ### Requirement: Ordinary active graph has no visible all-node directory
 The active canvas SHALL NOT render a visible grid or list containing all materialized nodes as a fallback for missing Teaching relations, zero visible edges or formula availability. Semantic node controls SHALL remain screen-reader accessible and bounded discovery SHALL remain available through search.

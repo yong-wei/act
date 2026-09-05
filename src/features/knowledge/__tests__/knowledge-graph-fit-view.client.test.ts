@@ -956,7 +956,7 @@ it('3D refreshes projection in place without replacing the node factory or Objec
   await act(async () => root.unmount());
 });
 
-it('3D keeps authored teaching coordinates as soft seeds instead of claiming fixed ownership', async () => {
+it('3D pins settled teaching coordinates after the first engine stop', async () => {
   const container = document.createElement('div');
   document.body.append(container);
   const root = createRoot(container);
@@ -967,14 +967,11 @@ it('3D keeps authored teaching coordinates as soft seeds instead of claiming fix
   const graphData = forceGraph.threeDProps.graphData as {
     nodes: Array<{ x: number; y: number; z?: number; fx?: number; fy?: number; fz?: number }>;
   };
-  // #1739：教学序种子只是初始坐标，普通节点不再拥有 fx/fy/fz；
-  // 固定坐标只属于治理锚点与用户 pin。
   graphData.nodes.forEach((node) => {
     expect(Number.isFinite(node.x)).toBe(true);
     expect(Number.isFinite(node.y)).toBe(true);
-    expect(node.fx).toBeUndefined();
-    expect(node.fy).toBeUndefined();
-    expect(node.fz).toBeUndefined();
+    expect(node.fx).toBe(node.x);
+    expect(node.fy).toBe(node.y);
   });
   expect(forceGraph.threeDProps.warmupTicks).toBe(0);
   expect(forceGraph.threeDProps.cooldownTicks).toBe(0);
@@ -1076,6 +1073,34 @@ it('3D visual signature distinguishes same-id root packing state and collision g
     .not.toBe(getKnowledgeGraphNodeVisualDataSignature(rootNode));
   expect(getKnowledgeGraphNodeVisualDataSignature(relabeledRootNode))
     .not.toBe(getKnowledgeGraphNodeVisualDataSignature(rootNode));
+});
+
+it('hover does not call 2D zoom/centerAt or 3D cameraPosition', async () => {
+  const container = document.createElement('div');
+  document.body.append(container);
+  const root = createRoot(container);
+  const twoDProps = rendererProps(domainNodes, { id: 41, target: 'current' });
+  await act(async () => root.render(React.createElement(KnowledgeGraph2D, twoDProps)));
+  await act(async () => vi.runAllTimers());
+  const twoDZoom = forceGraph.twoDZoom.mock.calls.length;
+  const twoDCenter = forceGraph.twoDCenterAt.mock.calls.length;
+  await act(async () => root.render(React.createElement(KnowledgeGraph2D, {
+    ...twoDProps, hoveredNode: domainNodes[1],
+  })));
+  await act(async () => vi.runAllTimers());
+  expect(forceGraph.twoDZoom.mock.calls.length).toBe(twoDZoom);
+  expect(forceGraph.twoDCenterAt.mock.calls.length).toBe(twoDCenter);
+
+  const threeDProps = rendererProps(domainNodes, { id: 42, target: 'current' });
+  await act(async () => root.render(React.createElement(KnowledgeGraphCanvas, threeDProps)));
+  await act(async () => vi.runAllTimers());
+  const threeDCamera = forceGraph.threeDCameraPosition.mock.calls.length;
+  await act(async () => root.render(React.createElement(KnowledgeGraphCanvas, {
+    ...threeDProps, hoveredNode: domainNodes[1],
+  })));
+  await act(async () => vi.runAllTimers());
+  expect(forceGraph.threeDCameraPosition.mock.calls.length).toBe(threeDCamera);
+  await act(async () => root.unmount());
 });
 
 it('3D hover changes update retained objects without recreating or disposing node resources', async () => {

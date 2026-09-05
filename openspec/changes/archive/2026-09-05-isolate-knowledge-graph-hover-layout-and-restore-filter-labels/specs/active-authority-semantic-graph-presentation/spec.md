@@ -60,6 +60,11 @@ The bounded domain overview SHALL present governed names of ordinary DomainConce
 - **THEN** the center-priority budget SHALL still paint labels
 - **AND** hover SHALL NOT trigger a camera fit to keep those labels readable
 
+#### Scenario: Mobile large-domain overview stays identifiable
+- **WHEN** a bounded overview larger than the compact threshold is fitted on a mobile viewport
+- **THEN** the browsable node directory SHALL remain the selection-independent readable-name channel
+- **AND** a selected concept's canvas label SHALL stay visible through the viewport clamp fallback
+
 #### Scenario: Density prevents one label
 - **WHEN** one label cannot fit after force separation, camera fitting and the maximum visible count
 - **THEN** the policy MAY defer that label while preserving its accessible name

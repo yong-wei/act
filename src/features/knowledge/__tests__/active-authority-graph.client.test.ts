@@ -1288,6 +1288,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await enterModelingDomain({ families: false });
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-filter-placement="compact-bottom-left"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-toolbar="true"] [data-active-authority-filter-panel="true"]')).toBeNull();
     expect(container.querySelector('[data-authority-relation-legend="true"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();

@@ -887,10 +887,8 @@ export function freezeKnowledgeGraphDragFrame<T extends KnowledgeGraphPositioned
 }
 
 /**
- * Release the drag-isolation frame after a drag ends (#1739): every
- * non-dragged node that owns no pin and no governed root anchor returns to
- * force ownership; the dragged node keeps its coordinates as the basis for
- * the explicit pin the runtime layout stores.
+ * Release a drag-isolation frame. Settlement now keeps every visible node
+ * pinned, so drag-end no longer calls this; explicit reflow / unpin still may.
  */
 export function releaseKnowledgeGraphDragFrame<T extends KnowledgeGraphPositionedNode>(
   nodes: T[],
