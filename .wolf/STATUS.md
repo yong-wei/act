@@ -2,11 +2,13 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-05
+> Last updated: 2026-09-06
 
 ---
 
 ## ✅ Done
+
+- 2026-09-06：核实 #2002–#2004 已归档，在 act-dev1 对齐 integration 后完成 Buddy propose #2024（合并图谱交互 QA，删除旧 #485 reader/格式检查），作为 #1915 子项 ready。提案提交 37e835a0e 已推送；39 项活动 OpenSpec strict 通过，独立提案审查无阻断。未实施。DG 的零 caller 4 行包装、转换 helper 约 20–30 行收益及旧 census CLI 66 行均未单独立项；不为目录整齐搬动仍有跨域职责的模块。原 archive-fix-path-resource-preference-override 分支提交保留，当前提案分支 codex/propose-next-entropy-cuts。
 
 - 2026-09-05：在 act-dev1 对齐 integration 后完成下一批重构提案并推送，登记 #2002（删除旧 Active SVG 画布和几何测试）、#2003（删除仅测试使用的 Control Engine 登记表）、#2004（化简教师批阅输入与编辑状态），均为 #1915 子项且 ready。三项 OpenSpec 完整，43 项活动变更 strict 通过；仅文档提案，未实施。整体仍有 Data Governance 业务归属和仓库大文件处理，已写入 #1915。后续删除代码应同步删除仅约束旧实现的测试，不因测试引用保留无生产用途的实现。
 
