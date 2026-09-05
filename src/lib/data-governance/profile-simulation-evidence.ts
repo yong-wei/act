@@ -25,7 +25,10 @@ export interface ProfileSimulationEvidenceItem {
   title: string;
   sourceLabel: string;
   resultAuthority: 'preview' | 'official';
+  /** 单条记录的真实分数，量纲由 scoreScale 标记；跨记录平均仅用质量量纲。 */
   score: number | null;
+  /** canonical 质量分与历史百分制日志是 0-100；奥德赛 GAME 积分是万级游戏分。 */
+  scoreScale: 'quality-percent' | 'game-points';
   durationSeconds: number | null;
   parameters: Record<string, number>;
   occurredAt: string;
@@ -153,6 +156,7 @@ function canonicalRunItem(row: CanonicalRunRow): ProfileSimulationEvidenceItem {
     sourceLabel: isControlWorkbench ? '控制工作台' : '场景仿真',
     resultAuthority: 'preview',
     score: finiteNumber(metrics.score),
+    scoreScale: 'quality-percent',
     durationSeconds: finiteNumber(metrics.duration),
     parameters: pidParameters(metrics),
     occurredAt: occurredAt.toISOString(),
@@ -201,6 +205,7 @@ function legacyLogItem(log: LegacyLogRow): ProfileSimulationEvidenceItem {
         : '仿真训练',
     resultAuthority: log.odysseyCompletedAt ? 'official' : 'preview',
     score: finiteNumber(log.score),
+    scoreScale: mode.toUpperCase() === 'GAME' ? 'game-points' : 'quality-percent',
     durationSeconds: finiteNumber(log.duration),
     parameters: pidParameters(log.inputParams),
     occurredAt: log.createdAt.toISOString(),
@@ -275,7 +280,9 @@ export async function readProfileSimulationEvidence(
       || left.id.localeCompare(right.id),
     );
 
-    const scored = items.filter((item) => item.score !== null) as Array<{ score: number }>;
+    // 跨量纲分数不可直接平均：奥德赛万级积分与 0-100 质量分混算会伪造
+    // 数千分“平均得分”，质量聚合仅使用同量纲（quality-percent）记录。
+    const scored = items.filter((item) => item.scoreScale === 'quality-percent' && item.score !== null) as Array<{ score: number }>;
     const timed = items.filter((item) => item.durationSeconds !== null) as Array<{ durationSeconds: number }>;
     const total = items.length;
 

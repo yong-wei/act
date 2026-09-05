@@ -319,6 +319,27 @@ describe('readProfileSimulationEvidence', () => {
     });
   });
 
+  it('averages only quality-scale scores and keeps odyssey game points out of the mean', async () => {
+    // 奥德赛生产者以 10000/12000/15000 为基数写游戏积分（control-odyssey
+    // index.tsx saveScore），与 0-100 质量分混算会伪造数千分平均得分。
+    const projection = await readProfileSimulationEvidence(
+      makeDb([runRow({ summary: { metrics: { score: 80, duration: 120 }, runContract: { evaluationVisibility: PRACTICE_DISPLAY_BOUNDARY.evaluationVisibility, officialEligible: false } } })], [
+        logRow({ id: 'log-odyssey-points', controlMode: 'GAME', score: 12450, odysseyRunId: 'od-points', odysseyCompletedAt: new Date('2026-08-21T00:00:00.000Z') }),
+        logRow({ id: 'log-pid-percent', controlMode: 'PID', score: 90 }),
+      ]),
+      'student-1',
+    );
+
+    expect(projection.total).toBe(3);
+    expect(projection.averageScore).toBe(85);
+    const byId = new Map(projection.items.map((item) => [item.id, item]));
+    expect(byId.get('simulation:log-odyssey-points')).toEqual(expect.objectContaining({
+      score: 12450,
+      scoreScale: 'game-points',
+    }));
+    expect(byId.get('simulation:log-pid-percent')?.scoreScale).toBe('quality-percent');
+  });
+
   it('returns unavailable semantics without fabricated numbers when a source read fails', async () => {
     const db = {
       simulationRun: { findMany: vi.fn().mockRejectedValue(new Error('db down')) },
