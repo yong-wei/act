@@ -1366,7 +1366,7 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
 }
 
 async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
-  await page.waitForSelector('[data-active-graph-stage="authority"] [data-active-authority-node]', { timeout: 10000 });
+  await page.waitForSelector('[data-active-authority-runtime="force-graph"] [data-active-authority-node]', { timeout: 10000 });
   const beforeSelectionLog = await probe.readLog();
   const preSelectionDetailRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node').length;
   const preSelectionMediaRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node/infograph').length;
@@ -1376,13 +1376,13 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const teachingRelationsUnavailable = await page.locator('[data-authority-teaching-coverage="true"]')
     .filter({ hasText: '教学关系暂不可用' })
     .count() > 0;
-  const visibleNode = page.locator('[data-active-graph-stage="authority"] [data-active-authority-visible-node="true"]').first();
+  const visibleNode = page.locator('[data-active-authority-runtime="force-graph"] [data-active-authority-visible-node="true"]').first();
   if (teachingRelationsUnavailable && await visibleNode.count() !== 1) {
     throw new Error('active Authority unavailable Teaching state is missing a visible node directory');
   }
   const node = teachingRelationsUnavailable
     ? visibleNode
-    : page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]').first();
+    : page.locator('[data-active-authority-runtime="force-graph"] [data-active-authority-node]').first();
   const visibleNodeControl = await node.isVisible();
   if (teachingRelationsUnavailable && !visibleNodeControl) {
     throw new Error('active Authority unavailable Teaching node directory is not visible');
