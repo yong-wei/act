@@ -2751,7 +2751,11 @@ async function captureAuthenticatedRoleEvidence(
       const defaultScreenshot = path.join(outputDir, `role-${role}-default.png`);
       await page.screenshot({ path: defaultScreenshot, fullPage: false });
 
-      const legacyBeforeSwitch = initialLog.some((entry) => entry.path === '/api/knowledge/graph');
+      // 常驻隐藏 legacy 视图的 root 预载不属于显式 legacy 请求；
+      // 该字段只标记 root 预载之外的 legacy graph 调用。
+      const legacyBeforeSwitch = initialLog.some((entry) => (
+        entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root')
+      ));
       await switchKnowledgeMode(page, 'legacy', `role:${role}:legacy`);
       const legacyLog = await probe.readLog();
       const legacySummary = latestApiSummary(legacyLog, '/api/knowledge/graph');
