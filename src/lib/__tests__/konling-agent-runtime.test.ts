@@ -9849,6 +9849,218 @@ describe('konling agent runtime', () => {
     ]);
   });
 
+  it('resolves the portrait resource preference when the request omits one', async () => {
+    const createdRun = {
+      id: 'tool-run-path-portrait-preference',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-portrait-preference',
+      correlationId: 'corr-path-portrait-preference',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+      }),
+    });
+
+    mocks.readPathPlannerLearnerStateForSubject.mockResolvedValue({
+      ...createGraphLearnerState('student-1', 0.72),
+      resourcePreference: {
+        preferredModalities: ['media', 'simulation'],
+        sourceCounts: { media: 4, simulation: 2 },
+        confidence: 'low',
+      },
+    });
+
+    await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-portrait-preference',
+      goalId: 'control-correction',
+    });
+
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.inputSnapshot.request.resourcePreference).toEqual(['video', 'simulation']);
+    expect(createdPath.inputSnapshot.request.resourcePreferenceSource).toBe('profile');
+    expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'profile' }),
+    ]));
+  });
+
+  it('labels the system-default resource preference when the portrait is unavailable', async () => {
+    const createdRun = {
+      id: 'tool-run-path-portrait-unavailable',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-portrait-unavailable',
+      correlationId: 'corr-path-portrait-unavailable',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+      }),
+    });
+
+    mocks.readPathPlannerLearnerStateForSubject.mockResolvedValue({
+      ...createGraphLearnerState('student-1', 0.72),
+      primaryPortraitState: 'UNAVAILABLE',
+      resourcePreference: {
+        preferredModalities: ['media'],
+        sourceCounts: { media: 6 },
+        confidence: 'medium',
+      },
+    });
+
+    await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-portrait-unavailable',
+      goalId: 'control-correction',
+    });
+
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.inputSnapshot.request.resourcePreferenceSource).toBe('fallback');
+    expect(createdPath.inputSnapshot.request.resourcePreference).not.toContain('video');
+    expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'fallback' }),
+    ]));
+  });
+
+  it('keeps an explicit resource preference above the portrait layer', async () => {
+    const createdRun = {
+      id: 'tool-run-path-explicit-over-portrait',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-explicit-over-portrait',
+      correlationId: 'corr-path-explicit-over-portrait',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+      }),
+    });
+
+    mocks.readPathPlannerLearnerStateForSubject.mockResolvedValue({
+      ...createGraphLearnerState('student-1', 0.72),
+      resourcePreference: {
+        preferredModalities: ['media'],
+        sourceCounts: { media: 5 },
+        confidence: 'low',
+      },
+    });
+
+    await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-explicit-over-portrait',
+      goalId: 'control-correction',
+      resourcePreference: ['konling'],
+    });
+
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.inputSnapshot.request.resourcePreference).toEqual(['konling']);
+    expect(createdPath.inputSnapshot.request.resourcePreferenceSource).toBe('request');
+    expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'request' }),
+    ]));
+  });
+
   it('uses non-baseline blocked copy when path constraints exclude all candidates', async () => {
     const createdRun = {
       id: 'tool-run-path-excluded-resources',

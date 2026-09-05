@@ -481,7 +481,7 @@ export type AdaptiveLearningPathConfigurationKey =
   | 'natural-language-intent'
   | 'time-budget';
 
-export type AdaptiveLearningPathConfigurationSource = 'request' | 'intent' | 'fallback';
+export type AdaptiveLearningPathConfigurationSource = 'request' | 'profile' | 'intent' | 'fallback';
 
 export interface AdaptiveLearningPathConfigurationRequest {
   key: AdaptiveLearningPathConfigurationKey;
@@ -3478,15 +3478,22 @@ function buildConfigurationFulfillment(
   const fulfillmentByKey = new Map<AdaptiveLearningPathConfigurationKey, AdaptiveLearningPathConfigurationFulfillment>();
 
   for (const request of requests) {
-    if (request.source === 'fallback') continue;
+    if (request.source === 'fallback' && request.key !== 'resource-preferences') continue;
     let fulfilled = mainPath.length > 0;
     let effect = '';
     let message = '';
     if (request.key === 'resource-preferences') {
-      const requestedTypes = Array.isArray(request.value) ? request.value : [];
-      fulfilled = requestedTypes.some((type) => selectedTypes.has(type as ResourceNode['type']));
-      effect = fulfilled ? '已优先选择匹配的资源类型。' : '没有可满足的匹配资源类型。';
-      message = fulfilled ? effect : '当前目标和约束下没有可替代的匹配资源。';
+      if (request.source === 'fallback') {
+        // #1985：下落系统默认时同样标注来源，不得呈现为用户或画像选择。
+        fulfilled = mainPath.length > 0;
+        effect = '未提交资源偏好，已按目标默认资源类型组合路径。';
+        message = effect;
+      } else {
+        const requestedTypes = Array.isArray(request.value) ? request.value : [];
+        fulfilled = requestedTypes.some((type) => selectedTypes.has(type as ResourceNode['type']));
+        effect = fulfilled ? '已优先选择匹配的资源类型。' : '没有可满足的匹配资源类型。';
+        message = fulfilled ? effect : '当前目标和约束下没有可替代的匹配资源。';
+      }
     } else if (request.key === 'difficulty-rhythm') {
       const rhythm = typeof request.value === 'string' ? request.value : 'steady';
       fulfilled = selectedReasons.has(`matches-${rhythm}-rhythm`);

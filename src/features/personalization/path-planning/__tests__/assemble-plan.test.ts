@@ -4069,6 +4069,42 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('applies portrait-inferred resource preferences as an explicit ranking source and labels provenance', () => {
+    const registryInput = plannerInput();
+    const profilePlan = planLearningPath({
+      ...plannerInput({
+        resourcePreferences: ['simulation', 'arena_task'],
+        resourcePreferenceSource: 'profile',
+        configurationRequests: [
+          { key: 'resource-preferences', source: 'profile', value: ['simulation', 'arena_task'] },
+        ],
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const baselinePlan = planLearningPath({
+      ...plannerInput({
+        learnerState: null,
+        resourcePreferences: undefined,
+        resourcePreferenceSource: undefined,
+        configurationRequests: [
+          { key: 'resource-preferences', source: 'fallback', value: ['knowledge_card', 'adaptive_quiz', 'simulation'] },
+        ],
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const preferenceSelectedCount = (plan: ReturnType<typeof planLearningPath>) =>
+      plan.mainPath.filter((node) => node.reasonCodes.includes('matches-resource-preference')).length;
+
+    expect(profilePlan.explanations.selectedReasons).toContain('matches-resource-preference');
+    expect(preferenceSelectedCount(profilePlan)).toBeGreaterThan(preferenceSelectedCount(baselinePlan));
+    expect(profilePlan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'profile' }),
+    ]));
+    expect(baselinePlan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'fallback' }),
+    ]));
+  });
+
   it('does not let a light checkpoint preference lower the registered minimum checkpoint count', () => {
     const registeredGoal = {
       ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],

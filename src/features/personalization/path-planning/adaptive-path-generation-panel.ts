@@ -9,6 +9,8 @@ export interface PathGenerationPanelState {
   timeBudgetMinutes: number;
   difficultyRhythm: GenerationDifficultyRhythm;
   resourcePreference: AdaptivePathResourceKind[];
+  // #1985: 默认组合仅作展示态；只有 URL 参数或手动切换（user-selected）才随请求提交。
+  resourcePreferenceTouched: boolean;
   checkpointPreference: GenerationCheckpointPreference;
   allowExternalResources: boolean;
   naturalLanguageIntent: string;
@@ -29,6 +31,7 @@ export const defaultPathGenerationPanel: PathGenerationPanelState = {
   timeBudgetMinutes: 90,
   difficultyRhythm: 'steady',
   resourcePreference: ['knowledge_card', 'adaptive_quiz', 'simulation'],
+  resourcePreferenceTouched: false,
   checkpointPreference: 'standard',
   allowExternalResources: false,
   naturalLanguageIntent: '',
@@ -56,6 +59,7 @@ export function pathGenerationPanelFromSearchParams(
       ? difficultyRhythm
       : defaultPathGenerationPanel.difficultyRhythm,
     resourcePreference: hasResourcePreference ? resourcePreference : defaultPathGenerationPanel.resourcePreference,
+    resourcePreferenceTouched: hasResourcePreference,
     checkpointPreference: checkpointPreference === 'light' || checkpointPreference === 'standard' || checkpointPreference === 'dense'
       ? checkpointPreference
       : defaultPathGenerationPanel.checkpointPreference,
@@ -70,7 +74,7 @@ export function buildPathGenerationGoalHref(nextGoal: AdaptivePracticeGoalId, pa
     intent: 'contextual-recommendation',
     pathTime: String(panel.timeBudgetMinutes),
     pathRhythm: panel.difficultyRhythm,
-    pathResources: panel.resourcePreference.join(','),
+    ...(panel.resourcePreferenceTouched ? { pathResources: panel.resourcePreference.join(',') } : {}),
     pathCheckpoint: panel.checkpointPreference,
   });
   if (panel.allowExternalResources) query.set('pathExternal', '1');
