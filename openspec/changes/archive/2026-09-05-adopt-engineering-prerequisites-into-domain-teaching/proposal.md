@@ -1,27 +1,28 @@
 ## Why
 
-当前新版领域图默认「教学顺序」几乎没有边：已发布 Teaching Projection 只有 7 条 `PREREQUISITE`，概览两端过滤后只剩系统建模 2 条。这不是未执行，而是 2026-08-13 增量教学语义系列按当时合同故意做成稀疏审核包，并**禁止**从工程先后修推导教学边、允许覆盖不足不阻断。权威图谱中的先后修代表真实知识逻辑，教学顺序必须服从该认知规律，并在稀疏权威骨架上把本领域涉及的权威概念全部串联起来。
+v0.37 工程权威没有先后修谓词。领域 overlay 只有 7 条审核先修，课程先修出版物另有 139 条讲义边，课程投影还有 891 条资源绑定。三套节点几乎不重叠，默认画布读 overlay，课程序读不到。教学顺序必须以课程内容为准，并只保留一层教学投影。
 
 ## What Changes
 
-- **BREAKING**：废止「不得从工程关系推导教学先修」对先后修族的禁令。工程层 `post-requisite` / 等价先后修谓词 MUST 被采纳为 `ACT_TEACHING` `PREREQUISITE` 骨架，不得改写 Engineering Authority 字节。
-- 每个已注册领域的默认 DomainConcept 概览 MUST 在教学先修图上弱连通；孤立概念 MUST fail closed，不得再以 `partial`/`empty` 作为可发布默认教学顺序。
-- 在权威先后修骨架上增量补充教学层直接边，把本领域概览涉及的全部权威概念串联起来；补充边保留来源与审核记录，不把传递闭包存成新事实。
-- 重物化 domain-default `teachingRelations` 与 coverage，使默认画布画出教学顺序，而不是只靠用户打开工程族。
-- 不切换生产 selector，不改 Engineering 谓词真值。
+- **BREAKING**：领域默认教学顺序的骨架改为**课程内容相关 DomainConcept + 课次单元顺序**，不再把工程 `post-requisite` 当必选骨架（v0.37 中该族为空）。
+- 唯一活教学投影是 domain-fragments composed Teaching Projection。并入课程先修 139 条；课程先修出版物不再单独充当顺序真源。`/knowledge` 与后续资源绑定读这一层。
+- 第一波节点分母 = 领域概览 DomainConcept ∩（课程投影绑定 canonicalId ∪ 课程先修核心/端点）。未出现在教学内容中的概览点不进本层，不强制 1555 点全连通。
+- 在已发布课程先修之上，按 syllabus 单元顺序（`1-1`→…）把同一领域内尚未连通的内容相关节点用 `RECOMMENDED` 扩展边串联。不得用 Canonical ID 冒充教学顺序。
+- 其它教学资源覆盖保持增量：本层先钉内容相关领域概念，卡/信息图/其余资源按该分母后续挂接（#2008）。
+- 运行时仍不得从 live 工程分片推断教学边。不改 Engineering 字节，不切换生产 selector。
 
 ## Capabilities
 
 ### New Capabilities
 
-- `domain-teaching-order-coverage`：定义领域概览教学顺序覆盖门禁——权威先后修骨架、教学扩展串联、弱连通与 fail-closed。
+- `domain-teaching-order-coverage`：内容相关概览节点的教学顺序覆盖——课程先修并入、单元顺序扩展、相关子集弱连通、无关概览点允许 empty。
 
 ### Modified Capabilities
 
-- `incremental-domain-teaching-projection`：领域默认教学覆盖不足不再是可发布的诚实空白；概览教学顺序必须闭合。
-- `act-teaching-prerequisites`：允许并要求把工程先后修采纳为教学 `PREREQUISITE` 骨架；禁止仅因缺少单独 ACT 课文证据而丢掉权威先后修。
-- `layered-authority-domain-workspace`：默认教学顺序层必须展示已发布教学边；不得再把工程先后修排除在教学顺序之外。
+- `incremental-domain-teaching-projection`：默认教学层以课程内容相关子集为分母；无关概览点的 empty 不阻断。
+- `act-teaching-prerequisites`：必须并入已发布课程 `PREREQUISITE`；工程先后修若存在仍可采纳，但不得替代课程序。
+- `layered-authority-domain-workspace`：默认教学顺序层展示这一层已发布教学边。
 
 ## Impact
 
-影响 Teaching Projection 作者态/组合/激活、domain-fragments、authority-domain-shards 的 domain-default 教学边与 coverage。不改 Engineering JSON 真源、课程 runtime 路由、生产 selector。前端只消费新物化的教学边。
+重写 domain-fragments 组合与 overlay。课程 `prerequisites` 出版物仍可留作历史，但顺序真源迁到 domain-fragments。不改 Engineering JSON、生产 selector。

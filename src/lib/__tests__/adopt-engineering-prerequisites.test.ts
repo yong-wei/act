@@ -16,6 +16,7 @@ describe('planOverviewTeachingOrder', () => {
   it('adopts engineering post-requisites and ignores association/derived_from', () => {
     const plan = planOverviewTeachingOrder({
       overviews: [{ domainId: 'system-modeling', nodeIds: ['a', 'b', 'c'] }],
+      contentNodeIds: ['a', 'b', 'c'],
       engineeringRelations: [
         { id: 'eng-1', predicate: 'prerequisite', sourceId: 'a', targetId: 'b' },
         { id: 'eng-2', predicate: 'association', sourceId: 'b', targetId: 'c' },
@@ -44,6 +45,7 @@ describe('planOverviewTeachingOrder', () => {
   it('does not emit an adopted edge that already exists as teaching', () => {
     const plan = planOverviewTeachingOrder({
       overviews: [{ domainId: 'system-modeling', nodeIds: ['a', 'b'] }],
+      contentNodeIds: ['a', 'b'],
       engineeringRelations: [
         { id: 'eng-1', predicate: 'follows', sourceId: 'a', targetId: 'b' },
       ],
@@ -58,6 +60,7 @@ describe('planOverviewTeachingOrder', () => {
   it('fails closed on a REQUIRED cycle', () => {
     expect(() => planOverviewTeachingOrder({
       overviews: [{ domainId: 'root-locus', nodeIds: ['a', 'b'] }],
+      contentNodeIds: ['a', 'b'],
       engineeringRelations: [
         { id: 'eng-1', predicate: 'prerequisite', sourceId: 'a', targetId: 'b' },
         { id: 'eng-2', predicate: 'leads_to', sourceId: 'b', targetId: 'a' },
@@ -66,10 +69,11 @@ describe('planOverviewTeachingOrder', () => {
     })).toThrow(OverviewTeachingOrderError);
   });
 
-  it('orients extension edges along domain-default catalog order, not canonical id sort', () => {
+  it('orients extension edges along syllabus unit order, not canonical id sort', () => {
     const plan = planOverviewTeachingOrder({
       overviews: [{ domainId: 'system-modeling', nodeIds: ['z', 'a'] }],
-      engineeringRelations: [],
+      contentNodeIds: ['z', 'a'],
+      nodeUnits: new Map([['z', '1-1'], ['a', '2-1']]),
       existingTeaching: [],
     });
     expect(plan.extensions).toEqual([
@@ -80,6 +84,20 @@ describe('planOverviewTeachingOrder', () => {
         provenance: 'teaching-extension',
       }),
     ]);
+  });
+
+  it('omits overview members that are not course-content-related', () => {
+    const plan = planOverviewTeachingOrder({
+      overviews: [{ domainId: 'system-modeling', nodeIds: ['a', 'b', 'unrelated'] }],
+      contentNodeIds: ['a', 'b'],
+      nodeUnits: new Map([['a', '2-1'], ['b', '2-2']]),
+      existingTeaching: [],
+    });
+    expect(plan.extensions).toHaveLength(1);
+    expect(plan.extensions[0]).toEqual(expect.objectContaining({
+      sourceNodeId: 'a',
+      targetNodeId: 'b',
+    }));
   });
 
   it('keeps existing recommended teaching strength and cross-domain endpoints', () => {
@@ -103,14 +121,14 @@ describe('planOverviewTeachingOrder', () => {
         { domainId: 'system-modeling', nodeIds: ['a', 'b'] },
         { domainId: 'root-locus', nodeIds: ['c'] },
       ],
-      engineeringRelations: [],
+      contentNodeIds: ['a', 'b', 'c'],
       existingTeaching: [{
         sourceNodeId: 'a',
         targetNodeId: 'c',
         relationType: 'PREREQUISITE',
         strength: 'RECOMMENDED',
         domainKeys: ['system-modeling', 'root-locus'],
-        evidenceRefs: ['prior-edge'],
+        evidenceRefs: ['src:3-1#sample'],
         curatorId: 'prior-curator',
         curatorRationale: 'reviewed prior teaching edge',
         authorDecisionId: 'prior-1',
@@ -122,26 +140,28 @@ describe('planOverviewTeachingOrder', () => {
         sourceNodeId: 'a',
         targetNodeId: 'c',
         strength: 'RECOMMENDED',
-        evidenceRefs: ['prior-edge'],
+        evidenceRefs: ['src:3-1#sample'],
         curatorId: 'prior-curator',
       }),
     ]));
+    expect(authoring.coreNodes.map((node) => node.canonicalId).sort()).toEqual(['a', 'b', 'c']);
   });
 
-  it('connects a previously empty overview with extension edges', () => {
+  it('connects a previously empty related overview with unit-order extensions', () => {
     const plan = planOverviewTeachingOrder({
       overviews: [{
         domainId: 'discrete-time-control-analysis',
         nodeIds: ['n1', 'n2', 'n3'],
       }],
-      engineeringRelations: [],
+      contentNodeIds: ['n1', 'n2', 'n3'],
+      nodeUnits: new Map([['n1', '2-1'], ['n2', '2-2'], ['n3', '2-3']]),
       existingTeaching: [],
     });
     expect(plan.adopted).toEqual([]);
     expect(plan.extensions).toHaveLength(2);
   });
 
-  it('builds a fragment that weakly connects an empty overview', () => {
+  it('builds a fragment that weakly connects related overview members', () => {
     const commit = 'a'.repeat(40);
     const binding = {
       releaseId: 'ctr:release:eng-domain-teaching-fixture-v1',
@@ -159,7 +179,8 @@ describe('planOverviewTeachingOrder', () => {
     });
     const { authoring } = authorOverviewTeachingOrderFragment({
       overviews: [{ domainId: 'discrete-time-control-analysis', nodeIds: ['n1', 'n2', 'n3'] }],
-      engineeringRelations: [],
+      contentNodeIds: ['n1', 'n2', 'n3'],
+      nodeUnits: new Map([['n1', '2-1'], ['n2', '2-2'], ['n3', '2-3']]),
       existingTeaching: [],
       envelope,
     });
@@ -174,28 +195,29 @@ describe('planOverviewTeachingOrder', () => {
     expect(composed.manifest.coreNodeCount).toBe(3);
   });
 
-  it('connects every sealed domain-default overview including previously empty domains', async () => {
+  it('connects live course-content-related overviews and ingests published course prerequisites', async () => {
     const {
       planOverviewTeachingOrder: plan,
     } = await import('../teaching-projection/domain-fragments/adopt-engineering-prerequisites');
     const {
+      readCourseTeachingContent,
       readDomainOverviews,
-      readEngineeringRelationsFromAuthoritySnapshot,
     } = await import('../teaching-projection/domain-fragments/build-overview-teaching-order');
     const overviews = readDomainOverviews(process.cwd());
-    expect(overviews.length).toBeGreaterThanOrEqual(15);
+    const course = readCourseTeachingContent(process.cwd());
+    const overviewIds = new Set(overviews.flatMap((row) => row.nodeIds));
+    const related = course.contentNodeIds.filter((id) => overviewIds.has(id));
+    expect(related.length).toBeGreaterThan(200);
+    expect(course.existingTeaching.length).toBeGreaterThanOrEqual(139);
     const result = plan({
       overviews,
-      engineeringRelations: readEngineeringRelationsFromAuthoritySnapshot(process.cwd()),
-      existingTeaching: [],
+      contentNodeIds: related,
+      nodeUnits: course.nodeUnits,
+      existingTeaching: course.existingTeaching,
     });
-    const emptyDomains = ['discrete-time-control-analysis', 'state-space-control-analysis-and-design'];
-    for (const domainId of emptyDomains) {
-      const overview = overviews.find((row) => row.domainId === domainId);
-      expect(overview?.nodeIds.length).toBeGreaterThan(1);
-      const incident = [...result.adopted, ...result.extensions].filter((edge) => edge.domainKeys.includes(domainId as typeof edge.domainKeys[number]));
-      expect(incident.length).toBe(overview!.nodeIds.length - 1);
-    }
+    const relatedDomains = overviews.filter((overview) => overview.nodeIds.some((id) => related.includes(id)));
+    expect(relatedDomains.length).toBeGreaterThanOrEqual(8);
+    expect(result.extensions.every((edge) => edge.strength === 'RECOMMENDED')).toBe(true);
   });
 
   it('does not let the shard loader infer teaching edges from engineering families', () => {
@@ -207,7 +229,7 @@ describe('planOverviewTeachingOrder', () => {
     expect(loader).not.toContain('adopt-engineering-prerequisites');
   });
 
-  it('publishes 15 weakly-connected domain overviews without rewriting engineering shards', () => {
+  it('publishes course-related overlay coverage without rewriting engineering shards', () => {
     const overlayRoot = path.resolve(
       process.cwd(),
       'course-content/runtime/knowledge/teaching-projection/domain-fragments',
@@ -224,29 +246,17 @@ describe('planOverviewTeachingOrder', () => {
         relationCount: number;
         uncoveredCoreNodeCount: number;
       }>;
+      relationCount: number;
     };
-    expect(manifest.domainCoverage).toHaveLength(15);
-    expect(manifest.domainCoverage.every((row) => (
-      row.coverage === 'available'
-      && row.relationCount > 0
-      && row.uncoveredCoreNodeCount === 0
-    ))).toBe(true);
-    const fragmentRef = JSON.parse(
-      readFileSync(path.join(overlayRoot, 'releases', pointer.projectionId, 'composed-manifest.json'), 'utf8'),
-    ) as { fragments: Array<{ fragmentId: string }> };
-    const published = JSON.parse(
-      readFileSync(
-        path.join(overlayRoot, 'releases', pointer.projectionId, 'fragments', `${fragmentRef.fragments[0]!.fragmentId}.json`),
-        'utf8',
-      ),
-    ) as { relations: Array<{ strength: string; evidenceRefs: string[] }> };
-    expect(published.relations.some((row) => row.strength === 'RECOMMENDED')).toBe(true);
+    const related = manifest.domainCoverage.filter((row) => row.relationCount > 0);
+    expect(related.length).toBeGreaterThanOrEqual(8);
+    expect(related.every((row) => row.uncoveredCoreNodeCount === 0)).toBe(true);
+    expect(manifest.relationCount).toBeGreaterThanOrEqual(139);
     const builder = readFileSync(
       path.resolve(process.cwd(), 'src/lib/teaching-projection/domain-fragments/build-overview-teaching-order.ts'),
       'utf8',
     );
-    expect(builder).toContain('LIVE_AUTHORITY_DOMAIN_TEACHING_ENGINEERING_RELATIVE');
-    expect(builder).not.toContain('readEngineeringRelationsFromFamilyShards');
+    expect(builder).toContain('readCourseTeachingContent');
     expect(builder).not.toMatch(/writeFileSync\(/);
     const stageRuntime = readFileSync(
       path.resolve(process.cwd(), 'src/lib/authority-domain-shards/stage-domain-teaching-runtime.ts'),

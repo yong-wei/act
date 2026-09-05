@@ -1,12 +1,24 @@
 /**
  * Build-time teaching-order planner (#2007).
- * Adopts engineering post-requisites and spans remaining overview concepts.
+ * Ingests published course prerequisites and spans remaining
+ * course-content-related overview concepts by syllabus unit order.
  * Runtime loaders must not call this against live family shards.
  */
 
 import { getKnowledgeGraphRelationContract } from '@/features/knowledge/graph/relation-contract';
 import type { RegisteredPeerDomainId } from '@/lib/authority-domain-catalog/contracts';
 import type { PrerequisiteStrength } from '../contracts';
+
+/** Syllabus unit order from course-content/syllabus-refactor/blueprint.md. */
+export const COURSE_UNIT_ORDER = [
+  '1-1', '1-2', '1-3', '1-4', '1-5',
+  '2-1', '2-2', '2-3', '2-4',
+  '3-1', '3-2', '3-3', '3-4', '3-5', '3-6', '3-7', '3-8', '3-9',
+  '4-1', '4-2', '4-3', '4-4', '4-5', '4-6', '4-7',
+  '5-1', '5-2', '5-3', '5-4', '5-5', '5-6',
+] as const;
+
+const UNIT_RANK = new Map(COURSE_UNIT_ORDER.map((unit, index) => [unit, index]));
 
 export class OverviewTeachingOrderError extends Error {
   readonly code: string;
@@ -24,7 +36,7 @@ export interface PlannedTeachingOrderEdge {
   relationType: 'PREREQUISITE';
   strength: PrerequisiteStrength;
   domainKeys: RegisteredPeerDomainId[];
-  provenance: 'engineering-post-requisite' | 'teaching-extension';
+  provenance: 'engineering-post-requisite' | 'course-prerequisite' | 'teaching-extension';
   engineeringRelationId: string | null;
 }
 
@@ -90,6 +102,11 @@ export function isEngineeringPostRequisitePredicate(predicate: string): boolean 
   return getKnowledgeGraphRelationContract(predicate)?.family === 'post-requisite';
 }
 
+export function unitRank(unit: string | null | undefined): number {
+  if (!unit) return COURSE_UNIT_ORDER.length;
+  return UNIT_RANK.get(unit as typeof COURSE_UNIT_ORDER[number]) ?? COURSE_UNIT_ORDER.length;
+}
+
 function edgeKey(sourceNodeId: string, targetNodeId: string): string {
   return `${sourceNodeId}\u001f${targetNodeId}`;
 }
@@ -107,7 +124,9 @@ function uniquePreserveOrder(ids: readonly string[]): string[] {
 
 export function planOverviewTeachingOrder(input: {
   overviews: ReadonlyArray<{ domainId: RegisteredPeerDomainId; nodeIds: readonly string[] }>;
-  engineeringRelations: ReadonlyArray<{
+  contentNodeIds: readonly string[];
+  nodeUnits?: ReadonlyMap<string, string>;
+  engineeringRelations?: ReadonlyArray<{
     id: string;
     predicate: string;
     sourceId: string;
@@ -117,12 +136,15 @@ export function planOverviewTeachingOrder(input: {
     sourceNodeId: string;
     targetNodeId: string;
     relationType: string;
+    strength?: PrerequisiteStrength;
   }>;
 }): OverviewTeachingOrderPlan {
   const adopted: PlannedTeachingOrderEdge[] = [];
   const extensions: PlannedTeachingOrderEdge[] = [];
   const emitted = new Set<string>();
   const requiredPairs: Array<{ sourceNodeId: string; targetNodeId: string }> = [];
+  const content = new Set(input.contentNodeIds);
+  const nodeUnits = input.nodeUnits ?? new Map<string, string>();
 
   const planned = new Map<string, PlannedTeachingOrderEdge>();
   const mark = (edge: PlannedTeachingOrderEdge) => {
@@ -136,8 +158,8 @@ export function planOverviewTeachingOrder(input: {
     if (emitted.has(key)) return;
     emitted.add(key);
     planned.set(key, edge);
-    if (edge.provenance === 'engineering-post-requisite') adopted.push(edge);
-    else extensions.push(edge);
+    if (edge.provenance === 'teaching-extension') extensions.push(edge);
+    else adopted.push(edge);
   };
 
   const existingPrereq = input.existingTeaching.filter(
@@ -145,11 +167,10 @@ export function planOverviewTeachingOrder(input: {
   );
 
   for (const overview of input.overviews) {
-    const nodeIds = uniquePreserveOrder(overview.nodeIds);
-    if (nodeIds.length === 0) continue;
-    const members = new Set(nodeIds);
-    const catalogIndex = new Map(nodeIds.map((id, index) => [id, index]));
-    const forest = createUnionFind(nodeIds);
+    const related = uniquePreserveOrder(overview.nodeIds.filter((id) => content.has(id)));
+    if (related.length === 0) continue;
+    const members = new Set(related);
+    const forest = createUnionFind(related);
 
     for (const edge of existingPrereq) {
       if (!members.has(edge.sourceNodeId) || !members.has(edge.targetNodeId)) continue;
@@ -157,7 +178,7 @@ export function planOverviewTeachingOrder(input: {
       emitted.add(edgeKey(edge.sourceNodeId, edge.targetNodeId));
     }
 
-    for (const relation of input.engineeringRelations) {
+    for (const relation of input.engineeringRelations ?? []) {
       if (!isEngineeringPostRequisitePredicate(relation.predicate)) continue;
       if (relation.sourceId === relation.targetId) continue;
       if (!members.has(relation.sourceId) || !members.has(relation.targetId)) continue;
@@ -174,18 +195,16 @@ export function planOverviewTeachingOrder(input: {
       });
     }
 
-    const components = new Map<string, string[]>();
-    for (const nodeId of nodeIds) {
-      const root = forest.find(nodeId);
-      const membersOfRoot = components.get(root) ?? [];
-      membersOfRoot.push(nodeId);
-      components.set(root, membersOfRoot);
-    }
-    const orderedComponents = [...components.values()]
-      .sort((left, right) => (catalogIndex.get(left[0]) ?? 0) - (catalogIndex.get(right[0]) ?? 0));
-    for (let index = 1; index < orderedComponents.length; index += 1) {
-      const sourceNodeId = orderedComponents[index - 1][0]!;
-      const targetNodeId = orderedComponents[index][0]!;
+    const sortedRelated = [...related].sort((left, right) => {
+      const rankDelta = unitRank(nodeUnits.get(left)) - unitRank(nodeUnits.get(right));
+      if (rankDelta !== 0) return rankDelta;
+      return related.indexOf(left) - related.indexOf(right);
+    });
+    for (let index = 1; index < sortedRelated.length; index += 1) {
+      const sourceNodeId = sortedRelated[index - 1]!;
+      const targetNodeId = sortedRelated[index]!;
+      if (forest.find(sourceNodeId) === forest.find(targetNodeId)) continue;
+      forest.union(sourceNodeId, targetNodeId);
       mark({
         sourceNodeId,
         targetNodeId,
@@ -197,43 +216,13 @@ export function planOverviewTeachingOrder(input: {
       });
     }
 
-    const connected = createUnionFind(nodeIds);
-    for (const edge of existingPrereq) {
-      if (members.has(edge.sourceNodeId) && members.has(edge.targetNodeId)) {
-        connected.union(edge.sourceNodeId, edge.targetNodeId);
-      }
-    }
-    for (const edge of [...adopted, ...extensions]) {
-      if (!edge.domainKeys.includes(overview.domainId)) continue;
-      if (!members.has(edge.sourceNodeId) || !members.has(edge.targetNodeId)) continue;
-      connected.union(edge.sourceNodeId, edge.targetNodeId);
-    }
-    const roots = new Set(nodeIds.map((id) => connected.find(id)));
+    const roots = new Set(related.map((id) => forest.find(id)));
     if (roots.size > 1) {
       throw new OverviewTeachingOrderError(
         'overview-disconnected',
-        `domain ${overview.domainId} overview is not weakly connected`,
+        `domain ${overview.domainId} course-content-related overview is not weakly connected`,
       );
     }
-  }
-
-  const overviewUnion = new Set(input.overviews.flatMap((overview) => overview.nodeIds));
-  for (const relation of input.engineeringRelations) {
-    if (!isEngineeringPostRequisitePredicate(relation.predicate)) continue;
-    if (relation.sourceId === relation.targetId) continue;
-    if (!overviewUnion.has(relation.sourceId) || !overviewUnion.has(relation.targetId)) continue;
-    requiredPairs.push({ sourceNodeId: relation.sourceId, targetNodeId: relation.targetId });
-    mark({
-      sourceNodeId: relation.sourceId,
-      targetNodeId: relation.targetId,
-      relationType: 'PREREQUISITE',
-      strength: 'REQUIRED',
-      domainKeys: input.overviews
-        .filter((overview) => overview.nodeIds.includes(relation.sourceId) || overview.nodeIds.includes(relation.targetId))
-        .map((overview) => overview.domainId),
-      provenance: 'engineering-post-requisite',
-      engineeringRelationId: relation.id,
-    });
   }
 
   const requiredNodes = [...new Set(requiredPairs.flatMap((edge) => [edge.sourceNodeId, edge.targetNodeId]))];

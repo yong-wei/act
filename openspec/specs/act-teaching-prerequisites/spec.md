@@ -14,7 +14,7 @@ The system MUST derive core teaching nodes only from formal course objectives, p
 - **THEN** the core-node record SHALL retain its source evidence and explicit path/card policy
 
 ### Requirement: Published prerequisites are ACT_TEACHING direct edges
-Every published teaching prerequisite MUST use `layer: ACT_TEACHING`, `relationType: PREREQUISITE`, strength `REQUIRED` or `RECOMMENDED`, a declared scope, and provenance. Direct edges are stored; closure/order are deterministic derived views. An Engineering relation whose presentation family is `post-requisite` MUST be adopted as a REQUIRED teaching prerequisite with engineering provenance. Other engineering families (`association`, `derived_from`, `has_component`, and similar) MUST NOT publish as teaching prerequisites without separate ACT teaching evidence or curator rationale.
+Every published teaching prerequisite MUST use `layer: ACT_TEACHING`, `relationType: PREREQUISITE`, strength `REQUIRED` or `RECOMMENDED`, a declared scope, and provenance. Direct edges are stored; closure/order are deterministic derived views. Published course-scope prerequisites MUST be ingested into the single domain Teaching Projection. An Engineering relation whose presentation family is `post-requisite` MAY be adopted as a REQUIRED teaching prerequisite with engineering provenance when present. Other engineering families (`association`, `derived_from`, `has_component`, and similar) MUST NOT publish as teaching prerequisites without separate ACT teaching evidence or curator rationale.
 
 #### Scenario: Required edge has evidence
 - **WHEN** two current core nodes have an authored evidence-backed dependency
@@ -23,11 +23,16 @@ Every published teaching prerequisite MUST use `layer: ACT_TEACHING`, `relationT
 #### Scenario: Engineering post-requisite is the candidate
 - **WHEN** an ActKG relation in the `post-requisite` presentation family connects two current Authority objects
 - **THEN** the builder SHALL publish a matching `ACT_TEACHING` `PREREQUISITE` edge with that engineering relation as provenance
-- **AND** it SHALL NOT wait for a separate textbook sentence before adopting the knowledge-order skeleton
+- **AND** it SHALL NOT wait for a separate textbook sentence before adopting that knowledge-order edge
 
 #### Scenario: Engineering relation is the only candidate
 - **WHEN** an ActKG `association`, `derived_from`, `has_component`, or other non-post-requisite engineering relation has no ACT teaching evidence
 - **THEN** it SHALL remain a candidate and MUST NOT publish as a teaching prerequisite
+
+#### Scenario: Course prerequisite publication is the candidate
+- **WHEN** a published course-scope `PREREQUISITE` connects two current Authority objects
+- **THEN** the single domain Teaching Projection SHALL include that edge
+- **AND** it SHALL preserve the published strength and evidence references
 
 ### Requirement: Required prerequisite graph is acyclic and endpoint-closed
 The prerequisite builder MUST reject self-loops, dangling or out-of-scope endpoints, duplicate conflicting identities, and cycles in `REQUIRED` edges. `RECOMMENDED` edges MUST NOT be treated as hard path blockers.

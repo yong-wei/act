@@ -1,56 +1,42 @@
 ## Context
 
-2026-08-13 增量教学语义系列已经落地：`enable-incremental-domain-teaching-projection` 与 foundation/classical/modern/cross-domain 四个审核包。当时合同明确：只发已审核的直接教学边；**禁止从工程关系推导先修**；覆盖不足不阻断。结果当前 composed teaching overlay 只有 7 条 `PREREQUISITE`，domain-default 两端过滤后默认画布只剩系统建模 2 条。工程 family shard 里仍有大量先后修与其他关系，但默认 `enabledFamilies=[]`，用户看到「教学顺序没有关系」。
-
-权威先后修是知识逻辑真源。教学顺序必须服从它，并在稀疏骨架上把每个领域默认概览涉及的 DomainConcept 全部串联。
+v0.37 `engineering.json` 3047 条关系均无 `prerequisite`/`follows`/`leads_to`/`provides_foundation`。领域 overlay `proj-eb4d2d63` 仅 7 条先修；课程先修 `proj-d55c3ac4` 有 139 条 RECOMMENDED 讲义边与 162 核心；课程投影 `proj-c9a6f33e` 有 891 绑定 / 300 canonical，其中 237 个落在领域概览。默认画布只读 overlay。
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- 把工程 `post-requisite` 族采纳为 `ACT_TEACHING` `PREREQUISITE` 骨架，带工程关系 id 溯源。
-- 每个注册领域的默认 DomainConcept 概览在教学先修图上弱连通。
-- 用教学层直接边补骨架缺口，不把传递闭包存成新事实。
-- 重物化 domain-default `teachingRelations`，默认教学顺序层可见。
+- 一层教学投影：domain-fragments。
+- 第一波分母：概览 DomainConcept ∩（绑定 ∪ 课程先修核心/端点）。
+- 并入 139 条课程先修，保留原 strength/evidence。
+- 按 `course-content/syllabus-refactor/blueprint.md` 单元顺序补 RECOMMENDED 扩展边，使每个领域的**内容相关**概览点弱连通。
+- 资源绑定以该分母为后续增量输入。
 
 **Non-Goals:**
 
-- 不改写 Engineering Authority 字节或谓词。
-- 不在运行时从工程边推断教学边。
-- 不要求 7476 个次类型对象全部进入默认概览。
-- 不切换生产 selector、不 `deploy:runtime`。
-- 不在本变更修复卡/资源身份或 hover/过滤 UI。
+- 不把 1555 个概览点全部串进默认教学顺序。
+- 不从 Canonical ID 或 engineering family shard 推断顺序。
+- 不在本变更扫完全部非讲义资源（#2008 增量）。
+- 不切换生产 selector。
 
 ## Decisions
 
-1. **涉及节点 = 领域默认概览 DomainConcept**  
-   与 domain-default 画布一致。次类型仍走搜索/一跳。备选（全部 catalog 成员）会把公式/陈述拉进默认图，拒绝。
-
-2. **构建期采纳，运行时不推断**  
-   物化/组合时把工程先后修写成教学边。工作区仍只画已发布 `ACT_TEACHING` 边。这样默认层有边，且不破坏「工程族需显式打开」。
-
-3. **只采纳 post-requisite 族**  
-   与旧版教学顺序默认族对齐。`association` / `derived_from` / `has_component` 仍不得直接变成教学先修。
-
-4. **扩展边是教学层直接边**  
-   在不反向权威先后修的前提下，按课次目标、主 COVERS 绑定和领域目录顺序补边，使概览弱连通。扩展边 `RECOMMENDED` 或带 `extension` 来源；权威骨架 `REQUIRED`。REQUIRED 子图保持无环。
-
-5. **跨域工程先后修**  
-   保留在 composed teaching 中供一跳/边界使用；不因跨域而丢掉。默认领域画布仍只画两端都在本概览的边。
-
-6. **覆盖门禁**  
-   任一注册领域概览存在未覆盖孤立 DomainConcept 则候选投影 fail closed。废止「该领域默认教学顺序可以 empty/partial 仍发布」。
+1. **唯一顺序真源 = domain-fragments overlay。** 课程先修出版物不再作为第二套顺序。
+2. **内容相关才进分母。** 绑定或课程先修触及的概览 DomainConcept；其它概览点 coverage 可为 empty。
+3. **单元顺序。** 节点取资源 `sourcePath` / 先修 `evidenceRefs` 中最早课次号；无课次的内容相关点排在该领域已排课节点之后，扩展边标记 unscheduled，不得声称是讲义顺序。
+4. **139 条原样并入。** 跨域边保留。两端都在内容相关概览内的边进入默认画布。
+5. **弱连通范围。** 只要求内容相关子集弱连通；无内容相关点的领域允许 empty。
 
 ## Risks / Trade-offs
 
-- [扩展边引入认知错误] → 扩展边必须可追溯、不得反向权威骨架；REQUIRED 无环校验失败则整包拒绝。
-- [概览节点数大，弱连通需要很多扩展边] → 允许星形或生成树，不要求哈密顿路。
-- [与 2026-08-13 增量包字节冲突] → 新投影版本组合，不改已封印 fragment 字节；新 fragment 声明采纳与扩展。
+- [无课次的绑定节点] → 排在领域末尾并标注 unscheduled，不冒充课程序。
+- [课程先修与绑定节点重叠少] → 分母取并集。
+- [与已归档工程先后修 delta 冲突] → 本修订废止「工程先后修必选骨架」。
 
 ## Migration Plan
 
-作者态生成新 domain-fragments → 组合新 projection → 本地物化 domain-default → 验证 15 领域弱连通与默认画布边数。生产切换另授权。回滚：保留旧 composed pointer。
+从前任 overlay `proj-eb4d2d63` 读取 7 条已审边，并入 139 条，按课程序生成扩展边，写入新 domain-fragments release。回滚：指针拨回 `proj-eb4d2d63`。
 
 ## Open Questions
 
-无。次类型不进默认教学顺序已在 Goals 固定。
+无。第一波绑定概览节点、唯一 overlay、废止工程骨架已由用户选定。
