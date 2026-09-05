@@ -247,4 +247,75 @@ describe('端到端：official 汇总与同源导出', () => {
     const tampered = { ...official, runId: 'tampered' };
     await expect(exportKonlingFairExperimentArtifacts(runDir, tampered as never)).rejects.toThrow(/drifted/);
   });
+
+  it('full-feature 臂 citation 不可得（无 citations 字段）时 fail closed，不发布零值指标', async () => {
+    const summary = await runKonlingFairExperiment({
+      root,
+      runId: 'live-unavailable-1951',
+      bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+      config: fixtureConfig(),
+      calibers: ['structure-alias.v1'],
+      generateProvider: async (task) => {
+        if (task.arm !== 'full-feature') {
+          return { ok: true as const, result: { answer: '连贯段落，无小标题。', citations: [], elapsedMs: 1 } };
+        }
+        // live full-feature 语义：citationContext 不可得 → 不写 citations 字段
+        const full = fullAnswerWithCitations(task.item.intent);
+        return { ok: true as const, result: { answer: full.answer, elapsedMs: 1 } };
+      },
+      auditProvider: async () => ({ ok: true as const, result: { verdict: 'pass', ruleScore: 0.9, notes: 'fixture' } }),
+    });
+    expect(summary.aggregateStatus).toBe('incomplete');
+    expect(summary.aggregate.incompleteDetail?.phase).toBe('citation-audit');
+    expect(summary.aggregate.officialSummary).toBeNull();
+    const runDir = path.join(root, 'artifacts/konling-fair-experiment', 'live-unavailable-1951');
+    expect(fs.existsSync(path.join(runDir, 'summary/official.csv'))).toBe(false);
+  });
+});
+
+describe('buildPairedRatioDifference：CI 与点估计同为池化口径', () => {
+  it('分母悬殊时点估计落在配对 CI 内且同向（#1992 review P1 回归）', async () => {
+    const { buildPairedRatioDifference } = await import('@/lib/konling-fair-experiment');
+    // 1 对 baseline 分母 1000（全未通过）vs comparison 分母 1（通过）；
+    // 其余 19 对双方各 1/1。池化点估计 ≈ +98.1pp；旧逐题未加权均值
+    // 只有 1/20，CI 会远离甚至反号——池化重采样必须覆盖点估计。
+    const baselinePairedRatios = [
+      { numerator: 0, denominator: 1000 },
+      ...Array.from({ length: 19 }, () => ({ numerator: 1, denominator: 1 })),
+    ];
+    const comparisonPairedRatios = [
+      { numerator: 1, denominator: 1 },
+      ...Array.from({ length: 19 }, () => ({ numerator: 1, denominator: 1 })),
+    ];
+    const delta = buildPairedRatioDifference({
+      metric: 'citation-precision',
+      baselineLabel: 'plain-baseline',
+      comparisonLabel: 'full-feature',
+      baselinePairedRatios,
+      comparisonPairedRatios,
+      seedParts: ['test', 'citation-precision'],
+      iterations: 2000,
+    });
+    expect(delta).not.toBeNull();
+    expect(delta!.percentagePointDifference).toBeGreaterThan(90);
+    expect(delta!.pairedCi95.low).toBeLessThanOrEqual(delta!.percentagePointDifference + 1e-9);
+    expect(delta!.pairedCi95.high).toBeGreaterThanOrEqual(delta!.percentagePointDifference - 1e-9);
+    expect(delta!.pairedCi95.high).toBeGreaterThan(50);
+  });
+
+  it('同种子同数据 CI 可复现', async () => {
+    const { buildPairedRatioDifference } = await import('@/lib/konling-fair-experiment');
+    const input = {
+      metric: 'citation-coverage',
+      baselineLabel: 'plain-baseline',
+      comparisonLabel: 'full-feature',
+      baselinePairedRatios: Array.from({ length: 12 }, (_, index) => ({ numerator: index % 3, denominator: 4 })),
+      comparisonPairedRatios: Array.from({ length: 12 }, (_, index) => ({ numerator: index % 2, denominator: 3 })),
+      seedParts: ['test', 'citation-coverage'],
+      iterations: 500,
+    } as const;
+    const first = buildPairedRatioDifference(input);
+    const second = buildPairedRatioDifference(input);
+    expect(first).toEqual(second);
+  });
 });

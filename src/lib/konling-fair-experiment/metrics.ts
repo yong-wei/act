@@ -61,7 +61,11 @@ function bootstrapCi95ForDiffs(
     }
     samples.push(sum / diffs.length);
   }
-  samples.sort((a, b) => a - b);
+  return percentileCi95(samples);
+}
+
+function percentileCi95(sortedSamples: number[]): { low: number; high: number } {
+  const samples = [...sortedSamples].sort((a, b) => a - b);
   const percentile = (p: number): number => {
     const index = Math.min(samples.length - 1, Math.max(0, Math.ceil(p * samples.length) - 1));
     return samples[index];
@@ -103,9 +107,40 @@ export function buildPairedDifference(input: {
 
 /**
  * #1951：比率型配对差（百分点 + 配对 bootstrap 95% CI）。
- * 绝对值用池化比率（Σ分子/Σ分母）；配对单位是题项级比率，差值数组
- * 进入与布尔版同一确定性 bootstrap 内核。
+ * 点估计与 CI 同为池化口径（Σ分子/Σ分母）：每次配对重采样内对采到的
+ * 题项重新池化两臂分子分母再取差——对逐题未加权比率差取均值会在分母
+ * 悬殊时给出不包含点估计甚至反号的区间（#1992 review P1）。
  */
+function pairedRatioBootstrapCi95(
+  pairs: ReadonlyArray<{ baseline: { numerator: number; denominator: number }; comparison: { numerator: number; denominator: number } }>,
+  seedParts: readonly string[],
+  iterations: number,
+): { low: number; high: number } | null {
+  if (pairs.length === 0) return null;
+  const random = mulberry32(derivedSeed(...seedParts));
+  const pooledRatio = (values: ReadonlyArray<{ numerator: number; denominator: number }>) => {
+    let numerator = 0;
+    let denominator = 0;
+    for (const value of values) {
+      numerator += value.numerator;
+      denominator += value.denominator;
+    }
+    return denominator === 0 ? 0 : numerator / denominator;
+  };
+  const samples: number[] = [];
+  for (let i = 0; i < iterations; i += 1) {
+    const sampledBaseline: { numerator: number; denominator: number }[] = [];
+    const sampledComparison: { numerator: number; denominator: number }[] = [];
+    for (let j = 0; j < pairs.length; j += 1) {
+      const pair = pairs[Math.floor(random() * pairs.length)]!;
+      sampledBaseline.push(pair.baseline);
+      sampledComparison.push(pair.comparison);
+    }
+    samples.push(pooledRatio(sampledComparison) - pooledRatio(sampledBaseline));
+  }
+  return percentileCi95(samples);
+}
+
 export function buildPairedRatioDifference(input: {
   metric: string;
   baselineLabel: string;
@@ -126,10 +161,11 @@ export function buildPairedRatioDifference(input: {
   const ratio = ({ numerator, denominator }: { numerator: number; denominator: number }) => (
     denominator === 0 ? 0 : numerator / denominator
   );
-  const diffs = input.baselinePairedRatios.map((baseline, index) => (
-    ratio(input.comparisonPairedRatios[index]!) - ratio(baseline)
-  ));
-  const ci = bootstrapCi95ForDiffs(diffs, input.seedParts, input.iterations);
+  const pairs = input.baselinePairedRatios.map((baseline, index) => ({
+    baseline,
+    comparison: input.comparisonPairedRatios[index]!,
+  }));
+  const ci = pairedRatioBootstrapCi95(pairs, input.seedParts, input.iterations);
   if (!ci) return null;
   return {
     metric: input.metric,

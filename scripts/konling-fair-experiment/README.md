@@ -38,6 +38,9 @@ npx tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs \
 - fail closed：缺键/多键、混配置（模型/采样/prompt 版本/修订不一致）、
   manifest 漂移、盲审不完整或引用审计不完整（phase `citation-audit`，含
   citation 快照缺失或非数组）时，不产出正式汇总，脚本以非零码退出。
+  live 模式 full-feature 臂在接入真实 citation 冻结前不写 `citations`
+  字段（快照不可得≠空快照），同样进入 citation-audit incomplete；
+  plain/enhanced 臂无引用功能，空数组是如实快照。
 - 指标：每臂结构通过率（按口径）、盲审判定率与均分、综合（结构∧盲审，
   必列分项）、引用精确率（已核验直接支撑数 / 已呈现引用数）与答案单元
   追溯覆盖率（已覆盖单元数 / 应引用单元数，model-derived 章节不入分母；

@@ -154,9 +154,14 @@ export async function runKonlingFairExperiment(input: {
               startedAt,
               finishedAt,
               answer: response.result.answer,
-              // #1951：citation 快照与回答同文件冻结，供确定性审计；
-              // provider 未返回（旧实现/无引用上下文臂）时显式落空数组。
-              citations: response.result.citations ?? [],
+              // #1951：citation 快照与回答同文件冻结，供确定性审计。
+              // 基线臂（plain/enhanced）无引用功能，provider 缺省即空快照；
+              // full-feature 臂透传——缺 citations 字段＝快照不可得（如
+              // live 未接入 citationContext），聚合进入 citation-audit
+              // incomplete，不得折叠成空数组伪造零值指标（#1992 review P1）。
+              citations: arm === 'full-feature'
+                ? response.result.citations
+                : (response.result.citations ?? []),
               elapsedMs: response.result.elapsedMs,
               ...(contractIntent ? { contractIntent } : {}),
             };
