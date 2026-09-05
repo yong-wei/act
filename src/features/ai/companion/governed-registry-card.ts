@@ -2,9 +2,11 @@
  * 治理注册表资源卡身份与版本校验（服务端共用）。
  *
  * 静态治理注册表（registry:/arena-task: 资源节点）没有独立版本号字段，
- * 版本口径以治理元数据核心字段（类型/标签/跳转目标/知识节点）的稳定序列化
- * 内容哈希承载：内容或跳转目标随部署变更后，旧会话快照哈希不再匹配，
- * 对应卡片降级；注册表条目删除则解析失败降级。
+ * 真实版本契约（sourceHash/sourceVersionRef 等）分布在治理元数据投影的
+ * 各字段中（含 defaultConfig）。版本口径因此以注册表条目的**全量治理投影**
+ * （含 progression/operational/semantic patches 合并结果）做键排序稳定序列化
+ * 内容哈希：任何治理字段随部署变更后，旧会话快照哈希不再匹配、对应卡片降级；
+ * 注册表条目删除则解析失败降级。
  */
 
 import { createHash } from 'node:crypto';
@@ -24,16 +26,21 @@ export interface GovernedRegistryVerifyResult {
   href?: string;
 }
 
-function computeGovernedRegistryContentHash(metadata: NonNullable<ReturnType<typeof getRegisteredResourceMetadataByNodeId>>): string {
-  const canonical = JSON.stringify({
-    id: metadata.id,
-    type: metadata.type,
-    label: metadata.label,
-    launchTarget: metadata.launchTarget ?? null,
-    renderTarget: metadata.renderTarget ?? null,
-    knowledgeNodeIds: [...(metadata.knowledgeNodeIds ?? [])].sort(),
-  });
-  return `registry-sha256:${createHash('sha256').update(canonical, 'utf8').digest('hex')}`;
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, item]) => item !== undefined)
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
+    return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`).join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+function computeGovernedRegistryContentHash(
+  metadata: NonNullable<ReturnType<typeof getRegisteredResourceMetadataByNodeId>>,
+): string {
+  return `registry-sha256:${createHash('sha256').update(stableStringify(metadata), 'utf8').digest('hex')}`;
 }
 
 /** 按注册表资源节点身份解析资源卡快照；条目缺失（下架/未知身份）返回 null。 */
@@ -59,3 +66,4 @@ export function verifyGovernedRegistryCard(resourceId: string, versionHash: stri
   if (!href) return { status: 'unavailable', reason: 'not-found' };
   return { status: 'available', href };
 }
+
