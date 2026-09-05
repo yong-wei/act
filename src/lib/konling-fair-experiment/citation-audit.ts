@@ -121,6 +121,11 @@ export function auditKonlingFairCitationRecord(
     citationNoDirectSupport: 0,
   };
   let verifiedDrifted = 0;
+  let modelDerivedCount = 0;
+  // spec：模型推导章节单独统计，不与其他漂移混为一类（#1992 review）。
+  const modelDerivedSectionIds = new Set(
+    sections.filter((section) => section.citationPolicy === 'model-derived').map((section) => section.id),
+  );
   for (const number of presentedNumbers) {
     const citation = input.citations.find((candidate) => candidate.displayNumber === number);
     if (!citation) {
@@ -141,6 +146,18 @@ export function auditKonlingFairCitationRecord(
     }
     if (bindingCitationIds.has(citation.id)) {
       citationClasses.realVerifiedSupporting += 1;
+      continue;
+    }
+    // 已核验有直接证据但未支撑任何 evidence-required substantive 单元：
+    // 标记（至少部分）落在 model-derived 章节归模型推导计数，其余
+    // （evidence-required 结构行 / 章节外）归通用漂移；均为唯一编号口径。
+    const touchesModelDerived = scan.bindings.some((binding) => (
+      binding.citationId === citation.id
+      && binding.sectionId != null
+      && modelDerivedSectionIds.has(binding.sectionId)
+    ));
+    if (touchesModelDerived) {
+      modelDerivedCount += 1;
     } else {
       verifiedDrifted += 1;
     }
@@ -164,11 +181,12 @@ export function auditKonlingFairCitationRecord(
     coveredUnitCount: coveredUnits.length,
     citationClasses,
     missReasons,
-    // 唯一编号口径：已核验、可访问、有直接支撑证据、已呈现，但未绑定
-    // 任何 evidence-required 单元的引用数（多数落在 model-derived 章节）。
-    // 不叠加 scan.driftedMarkerCount（出现次数口径，供生产 guard）——
-    // 同一标记会被双计（#1992 review P2）。
+    // 两者均为唯一编号口径（不叠加 scan.driftedMarkerCount 的出现次数
+    // 口径，供生产 guard；同一标记不双计，#1992 review P2）：
+    // - modelDerivedMarkerCount：标记（至少部分）落在 model-derived 章节
+    // - driftedMarkerCount：其余漂移（evidence-required 结构行 / 章节外）
     driftedMarkerCount: verifiedDrifted,
+    modelDerivedMarkerCount: modelDerivedCount,
   };
 }
 

@@ -272,7 +272,10 @@ export interface KonlingFairExperimentCitationAuditRecord {
     citationNoDirectSupport: number;
   };
   missReasons: Partial<Record<string, number>>;
+  /** 已核验直接证据但未支撑实质单元、且标记（至少部分）落在 evidence-required 结构行/章节外的引用数（唯一编号口径）。 */
   driftedMarkerCount: number;
+  /** 标记（至少部分）落在 model-derived 章节的已核验直接引用数（唯一编号口径，spec 要求单独统计）。 */
+  modelDerivedMarkerCount: number;
 }
 
 export interface KonlingFairExperimentPairedRatioDifference {

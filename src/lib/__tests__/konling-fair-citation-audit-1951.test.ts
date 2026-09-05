@@ -171,8 +171,9 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(record.requiredUnitCount).toBeGreaterThan(0);
     expect(record.missReasons['no-marker']).toBe(record.requiredUnitCount);
     // 已核验可访问有直接证据，但只标在结构行上——未支撑任何实质单元，
-    // 按漂移计（唯一编号口径）。
+    // 归通用漂移（非 model-derived 章节），唯一编号口径。
     expect(record.driftedMarkerCount).toBe(1);
+    expect(record.modelDerivedMarkerCount).toBe(0);
   });
 
   it('model-derived sections never enter the coverage denominator', () => {
@@ -187,8 +188,10 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(record.coveredUnitCount).toBe(0);
     expect(record.verifiedSupportingCount).toBe(0);
     // 唯一编号口径：同一编号在多个 model-derived 章节出现也只计一次，
-    // 不得与 scan 的出现次数口径叠加（#1992 review P2 回归）。
-    expect(record.driftedMarkerCount).toBe(1);
+    // 且与通用漂移（结构行/章节外）分列，不与出现次数口径叠加
+    // （#1992 review P2 回归）。
+    expect(record.modelDerivedMarkerCount).toBe(1);
+    expect(record.driftedMarkerCount).toBe(0);
   });
 });
 
