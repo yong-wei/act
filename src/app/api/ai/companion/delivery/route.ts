@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { runCompanionProactiveTurn } from '@/features/ai/companion/proactive-turn';
 import { isExpired, type CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
+import { readAdaptiveAttemptContext, type AdaptiveAttemptContextDb } from '@/features/assessment/adaptive-attempt-context';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -40,17 +41,58 @@ function parseResourceCards(value: unknown): CompanionResourceCard[] | null {
   return cards;
 }
 
-/** 随事件携带的上下文提示（错题知识点等）：宽松解析并限幅，绝不包含答案载荷。 */
-function parseContextHints(value: unknown): { knowledgePoints: string[] } {
-  if (!value || typeof value !== 'object') return { knowledgePoints: [] };
-  const raw = (value as Record<string, unknown>).knowledgePoints;
-  if (!Array.isArray(raw)) return { knowledgePoints: [] };
-  return {
-    knowledgePoints: raw
+/** 随事件携带的上下文提示（错题知识点/答案 ID 等）：宽松解析并限幅，绝不包含答案载荷。 */
+function parseContextHints(value: unknown): { knowledgePoints: string[]; answerId: string } {
+  if (!value || typeof value !== 'object') return { knowledgePoints: [], answerId: '' };
+  const hints = value as Record<string, unknown>;
+  const raw = hints.knowledgePoints;
+  const knowledgePoints = Array.isArray(raw)
+    ? raw
       .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
       .map((item) => item.trim().slice(0, 64))
-      .slice(0, 5),
-  };
+      .slice(0, 5)
+    : [];
+  const answerId = typeof hints.answerId === 'string' ? hints.answerId.slice(0, 64) : '';
+  return { knowledgePoints, answerId };
+}
+
+/**
+ * 错题场景的治理资源由服务端从 answer-time 固化快照解析（不信任客户端直传）：
+ * 答题时 catalog reviewDecision 已把治理注册表资源固化为 remediationResources，
+ * 这里按 verify 端点同一 updatedAt 口径补齐 versionHash；解析失败降级为空卡列表。
+ */
+async function resolveWrongAnswerResourceCards(input: {
+  userId: string;
+  answerId: string;
+}): Promise<CompanionResourceCard[]> {
+  if (!input.answerId) return [];
+  try {
+    const context = await readAdaptiveAttemptContext({
+      // Prisma 委托与行投影类型存在窄化差异，按服务端消费先例以结构化 cast 交付。
+      db: prisma as unknown as AdaptiveAttemptContextDb,
+      authenticatedUserId: input.userId,
+      answerId: input.answerId,
+    });
+    const resources = context?.question?.remediationResources ?? [];
+    if (!Array.isArray(resources) || resources.length === 0) return [];
+    const cards: CompanionResourceCard[] = [];
+    for (const resource of resources.slice(0, MAX_RESOURCE_CARDS)) {
+      const row = await prisma.teachingResource.findUnique({
+        where: { id: resource.id },
+        select: { updatedAt: true, teacherOnly: true },
+      });
+      if (!row || row.teacherOnly) continue;
+      cards.push({
+        resourceId: resource.id,
+        versionHash: new Date(row.updatedAt).toISOString(),
+        reason: resource.title || '错题相关的治理资源',
+        kind: 'interactive-resource',
+      });
+    }
+    return cards;
+  } catch {
+    return [];
+  }
 }
 
 function companionAssistantMessage(input: {
@@ -121,15 +163,8 @@ export async function POST(request: NextRequest) {
     if (!event) {
       return NextResponse.json({ error: 'Confirmed event not found' }, { status: 404 });
     }
-    // 超过有效期的确认事件不再投递（标签页休眠/离线重试的陈旧提醒）。
-    if (isExpired(event, new Date())) {
-      await prisma.konlingCompanionEvent.update({
-        where: { id: event.id },
-        data: { status: 'expired' },
-      });
-      return NextResponse.json({ error: 'Confirmed event not found' }, { status: 404 });
-    }
 
+    // 已有投递优先收敛返回（即使事件已过有效期，也不把 delivered 终态改写为 expired）。
     const existingDelivery = await prisma.konlingCompanionDelivery.findUnique({
       where: { eventId: event.id },
       select: { sessionId: true },
@@ -142,12 +177,26 @@ export async function POST(request: NextRequest) {
       }, { status: 200 });
     }
 
+    // 超过有效期且尚未投递的确认事件不再投递（标签页休眠/离线重试的陈旧提醒）。
+    if (isExpired(event, new Date())) {
+      await prisma.konlingCompanionEvent.update({
+        where: { id: event.id },
+        data: { status: 'expired' },
+      });
+      return NextResponse.json({ error: 'Confirmed event not found' }, { status: 404 });
+    }
+
+    // 错题场景的治理资源以服务端快照解析为准（仅来自治理注册表），其余事件沿用布点页面提供的卡。
+    const effectiveResources = event.eventType === 'wrong-answer' && contextHints.answerId
+      ? await resolveWrongAnswerResourceCards({ userId, answerId: contextHints.answerId })
+      : resources;
+
     const deliveredAt = new Date();
     const message = companionAssistantMessage({
       eventType: event.eventType,
       pageKind: event.pageKind,
       pageRef: event.pageRef,
-      resources,
+      resources: effectiveResources,
       knowledgePoints: contextHints.knowledgePoints,
       deliveredAt,
     });
@@ -191,7 +240,7 @@ export async function POST(request: NextRequest) {
             eventId: event.id,
             userId,
             sessionId: targetId,
-            resources: resources as unknown as Prisma.InputJsonValue,
+            resources: effectiveResources as unknown as Prisma.InputJsonValue,
           },
           select: { id: true },
         });
@@ -224,7 +273,7 @@ export async function POST(request: NextRequest) {
       eventType: event.eventType,
       pageKind: event.pageKind,
       pageRef: event.pageRef,
-      reasons: resources.map((card) => card.reason),
+      reasons: effectiveResources.map((card) => card.reason),
       knowledgePoints: contextHints.knowledgePoints,
     });
     if (proactiveContent) {

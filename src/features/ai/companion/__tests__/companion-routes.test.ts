@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   runCompanionProactiveTurn: vi.fn(),
+  readAdaptiveAttemptContext: vi.fn(),
   prisma: {
     $transaction: vi.fn(),
     konlingCompanionEvent: {
@@ -21,6 +22,9 @@ const mocks = vi.hoisted(() => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    teachingResource: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -30,6 +34,9 @@ vi.mock('@/lib/prisma', () => ({ prisma: mocks.prisma }));
 vi.mock('@/lib/nextjs-dynamic-error', () => ({ rethrowIfNextDynamicError: vi.fn() }));
 vi.mock('@/features/ai/companion/proactive-turn', () => ({
   runCompanionProactiveTurn: mocks.runCompanionProactiveTurn,
+}));
+vi.mock('@/features/assessment/adaptive-attempt-context', () => ({
+  readAdaptiveAttemptContext: mocks.readAdaptiveAttemptContext,
 }));
 
 import { PATCH, POST as postEvent } from '@/app/api/ai/companion/events/route';
@@ -300,6 +307,69 @@ describe('POST /api/ai/companion/delivery', () => {
     expect(mocks.runCompanionProactiveTurn).toHaveBeenCalledWith(
       expect.objectContaining({ knowledgePoints: ['拉普拉斯变换', '二阶系统阻尼比'] }),
     );
+  });
+
+  it('resolves governed resources server-side for wrong-answer deliveries with an answer id', async () => {
+    mocks.prisma.konlingCompanionEvent.findFirst.mockResolvedValueOnce(confirmedEvent);
+    mocks.prisma.konlingCompanionDelivery.findUnique.mockResolvedValueOnce(null);
+    mocks.readAdaptiveAttemptContext.mockResolvedValueOnce({
+      question: {
+        remediationResources: [
+          { id: 'res-gov-1', title: '拉普拉斯变换专项练习', href: '/x', governanceState: 'reviewed' },
+          { id: 'res-gone', title: '已下架资源', href: '/y', governanceState: 'reviewed' },
+        ],
+      },
+    });
+    const updatedAt = new Date('2026-09-01T00:00:00.000Z');
+    mocks.prisma.teachingResource.findUnique.mockImplementation(async ({ where }: { where: { id: string } }) => {
+      if (where.id === 'res-gov-1') return { updatedAt, teacherOnly: false };
+      if (where.id === 'res-gone') return { updatedAt, teacherOnly: true };
+      return null;
+    });
+    mocks.prisma.konlingSession.findFirst.mockResolvedValueOnce(null);
+    mocks.prisma.konlingSession.create.mockResolvedValue({ id: 'session-gov' });
+    mocks.prisma.konlingCompanionDelivery.create.mockResolvedValue({ id: 'delivery-gov' });
+    mocks.prisma.konlingCompanionEvent.update.mockResolvedValue({ id: 'event-1' });
+
+    const response = await postDelivery(deliveryPost({
+      eventId: 'event-1',
+      courseId: 'course-1',
+      resources: [],
+      contextHints: { knowledgePoints: ['拉普拉斯变换'], answerId: 'answer-9' },
+    }));
+    expect(response.status).toBe(201);
+    expect(mocks.readAdaptiveAttemptContext).toHaveBeenCalledWith(
+      expect.objectContaining({ authenticatedUserId: 'student-1', answerId: 'answer-9' }),
+    );
+    const createCall = mocks.prisma.konlingSession.create.mock.calls[0][0];
+    // 服务端解析为准：学生可见的治理资源保留，教师专属/缺失资源被过滤。
+    expect(createCall.data.messages[0].companionContext.resources).toEqual([{
+      resourceId: 'res-gov-1',
+      versionHash: updatedAt.toISOString(),
+      reason: '拉普拉斯变换专项练习',
+      kind: 'interactive-resource',
+    }]);
+    expect(mocks.runCompanionProactiveTurn).toHaveBeenCalledWith(
+      expect.objectContaining({ reasons: ['拉普拉斯变换专项练习'] }),
+    );
+  });
+
+  it('returns the existing delivery before applying expiry to a delivered event', async () => {
+    mocks.prisma.konlingCompanionEvent.findFirst.mockResolvedValueOnce({
+      ...confirmedEvent,
+      status: 'delivered',
+      expiresAt: new Date(now.getTime() - 1_000),
+    });
+    mocks.prisma.konlingCompanionDelivery.findUnique.mockResolvedValueOnce({ sessionId: 'session-earlier' });
+
+    const response = await postDelivery(deliveryPost({
+      eventId: 'event-1', courseId: 'course-1', resources: resourceCards,
+    }));
+    await expect(response.json()).resolves.toMatchObject({
+      sessionId: 'session-earlier',
+      deduplicated: true,
+    });
+    expect(mocks.prisma.konlingCompanionEvent.update).not.toHaveBeenCalled();
   });
 
   it('rejects missing resource-card fields without touching sessions', async () => {

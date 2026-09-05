@@ -26,9 +26,10 @@ export interface UseKonlingCompanionReporterInput {
   };
 }
 
-/** 随事件携带的服务端上下文提示（错题知识点等，投递时写入会话）。 */
+/** 随事件携带的服务端上下文提示（错题知识点/答案 ID，供服务端解析治理资源）。 */
 export interface CompanionEventHints {
   knowledgePoints?: string[];
+  answerId?: string;
 }
 
 interface PauseWatch {
@@ -79,7 +80,14 @@ export function useKonlingCompanionReporter({
           eventId,
           courseId: target.courseId,
           resources: target.resources ?? [],
-          ...(hints?.knowledgePoints?.length ? { contextHints: { knowledgePoints: hints.knowledgePoints } } : {}),
+          ...(hints && (hints.knowledgePoints?.length || hints.answerId)
+            ? {
+              contextHints: {
+                ...(hints.knowledgePoints?.length ? { knowledgePoints: hints.knowledgePoints } : {}),
+                ...(hints.answerId ? { answerId: hints.answerId } : {}),
+              },
+            }
+            : {}),
         }),
       });
       if (response.status === 404) {
