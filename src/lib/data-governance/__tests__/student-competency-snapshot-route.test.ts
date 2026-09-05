@@ -195,6 +195,56 @@ describe('GET /api/student/competency-snapshot', () => {
     expect(JSON.stringify(body)).not.toContain('no-recent-evidence');
   });
 
+  it('projects student-safe evidence references from the governed cumulative summary (Issue #2010)', async () => {
+    const response = await GET(new NextRequest(
+      'http://localhost/api/student/competency-snapshot',
+    ));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.diagnosis.materialization.inputs).toEqual(['canonical-cumulative-portrait']);
+    const claims = body.diagnosis.claims as Array<{
+      dimensionId: string;
+      evidenceRefs: Array<{
+        chunkId: string;
+        sourceType: string;
+        displayHref: string | null;
+        capsule: string;
+        citationChip: { privacyVisibility: string; authorityLevel: string; freshnessBucket: string };
+      }>;
+      confidence: { evidenceCount: number };
+      limitations: Array<{ reason: string }>;
+    }>;
+    const evidenced = claims.filter((claim) => claim.confidence.evidenceCount > 0);
+    const missing = claims.filter((claim) => claim.confidence.evidenceCount === 0);
+
+    // 有证据维度：每维度一条学生安全摘要引用，与卡片证据计数同源。
+    expect(evidenced.length).toBe(6);
+    for (const claim of evidenced) {
+      expect(claim.evidenceRefs).toHaveLength(1);
+      const ref = claim.evidenceRefs[0];
+      expect(ref.chunkId).toBe(`cumulative-portrait:${claim.dimensionId}`);
+      expect(ref.sourceType).toBe('diagnosis');
+      expect(ref.displayHref).toBe('/profile/evidence');
+      expect(ref.capsule).toContain('累计 2 条合格学习证据');
+      expect(ref.citationChip.privacyVisibility).toBe('redacted');
+      expect(ref.citationChip.authorityLevel).toBe('learner-evidence');
+      expect(ref.citationChip.freshnessBucket).toBe('current');
+      expect(claim.limitations).toHaveLength(0);
+    }
+    // 缺失维度：不伪造引用，保留显式限制。
+    expect(missing.length).toBe(1);
+    for (const claim of missing) {
+      expect(claim.evidenceRefs).toHaveLength(0);
+      expect(claim.limitations.map((item) => item.reason)).toContain('missing-dimension-evidence');
+    }
+    // 不泄露 sourceLineage/citation 原始引用值。
+    const serialized = JSON.stringify(body);
+    expect(serialized).not.toContain('citation-target:sha256:');
+    expect(serialized).not.toContain('sar:evidence:sha256:');
+    expect(serialized).not.toContain('aggregate:sha256:');
+  });
+
   it('returns the current no-evidence tombstone without a zero-valued portrait', async () => {
     mocks.readCurrentCumulativePortrait.mockResolvedValue({
       ...cumulativeState(),
@@ -298,5 +348,8 @@ describe('GET /api/student/competency-snapshot', () => {
         overallScore: 72.5,
       },
     });
+    // 陈旧累计画像的诊断继承显式 stale-evidence 限制，不伪装就绪（Issue #2010）。
+    const staleLimitations = body.diagnosis.limitations as Array<{ reason: string }>;
+    expect(staleLimitations.map((item) => item.reason)).toContain('stale-evidence');
   });
 });
