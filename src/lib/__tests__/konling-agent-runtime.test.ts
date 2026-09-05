@@ -9906,15 +9906,18 @@ describe('konling agent runtime', () => {
       },
     });
 
-    await runtime.generateLearningPath({
+    const result = await runtime.generateLearningPath({
       idempotencyKey: 'path-gen-portrait-preference',
       goalId: 'control-correction',
-    });
+    }) as { configurationFulfillment: Array<{ key: string; source?: string }> };
 
     const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
     expect(createdPath.inputSnapshot.request.resourcePreference).toEqual(['video', 'simulation']);
     expect(createdPath.inputSnapshot.request.resourcePreferenceSource).toBe('profile');
     expect(createdPath.pathPayload.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'profile' }),
+    ]));
+    expect(result.configurationFulfillment).toEqual(expect.arrayContaining([
       expect.objectContaining({ key: 'resource-preferences', source: 'profile' }),
     ]));
   });

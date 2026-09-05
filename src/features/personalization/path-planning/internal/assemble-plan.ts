@@ -2230,7 +2230,9 @@ function assembleAdaptiveLearningPathPlanInternal(
     scene: 'path',
     targetGraphNodeIds,
     selectedGraphNodeIds: graphContext?.selectedGraphNodeIds ?? [],
-    learnerState: input.learnerState,
+    learnerState: preferenceContext.usesExplicitResourcePreferences
+      ? withoutLearnerStateResourceModalities(input.learnerState)
+      : input.learnerState,
     preferredResourceTypes: input.resourcePreferences,
     timeBudgetMinutes: input.constraints.timeBudgetMinutes,
     completedNodeIds: input.constraints.completedNodeIds ?? [],
@@ -5633,6 +5635,21 @@ function buildModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<stri
 
 function hasExplicitPlannerChoice(source: string | undefined, value: unknown): boolean {
   return source ? source !== 'fallback' : value !== undefined;
+}
+
+// #1985：显式来源（request/profile）下，解析后的 resourcePreferences 是唯一偏好权威，
+// learnerState 携带的画像/试学模态不得再进入排序加权，避免画像偏好压过用户显式选择。
+function withoutLearnerStateResourceModalities(
+  learnerState: AdaptiveLearningPathPlannerInput['learnerState'],
+): AdaptiveLearningPathPlannerInput['learnerState'] {
+  if (!learnerState) return learnerState;
+  return {
+    ...learnerState,
+    resourcePreference: {
+      ...learnerState.resourcePreference,
+      preferredModalities: [],
+    },
+  };
 }
 
 function deficitsForPath(

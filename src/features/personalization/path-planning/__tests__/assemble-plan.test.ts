@@ -4105,6 +4105,40 @@ describe('adaptive learning path planner', () => {
     ]));
   });
 
+  it('stops learner-state portrait modalities from weighting resources under an explicit request source', () => {
+    const registryInput = plannerInput();
+    const explicitOverrides = {
+      resourcePreferences: ['konling'],
+      resourcePreferenceSource: 'request' as const,
+      configurationRequests: [
+        { key: 'resource-preferences', source: 'request' as const, value: ['konling'] },
+      ],
+    };
+    const withPortraitModality = planLearningPath({
+      ...plannerInput({
+        ...explicitOverrides,
+        learnerState: {
+          ...plannerInput().learnerState,
+          resourcePreference: { preferredModalities: ['simulation'], confidence: 'medium' },
+        },
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const withoutPortraitModality = planLearningPath({
+      ...plannerInput({
+        ...explicitOverrides,
+        learnerState: {
+          ...plannerInput().learnerState,
+          resourcePreference: { preferredModalities: [], confidence: 'none' },
+        },
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+
+    expect(withPortraitModality.mainPath.map((node) => node.id))
+      .toEqual(withoutPortraitModality.mainPath.map((node) => node.id));
+  });
+
   it('does not let a light checkpoint preference lower the registered minimum checkpoint count', () => {
     const registeredGoal = {
       ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],
