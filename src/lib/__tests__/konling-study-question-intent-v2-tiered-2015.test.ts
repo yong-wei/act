@@ -168,9 +168,16 @@ describe('konling study question intent routing on the V2 tiered bank (#2015)', 
     expect(classify('车间设备维护手册要求上电前先检查哪些安全规程？')).toBe('normative-content');
     expect(classify('请说明依据 ISO 13849 给出安全功能等级结论的当前做法。')).toBe('normative-content');
     expect(classify('比较一下教材里的两种整定方法。')).toBe('concept-comparison');
+    // review R2 反例：「教材+要求」是教学任务措辞，不得触发规范门禁。
+    expect(classify('教材要求我们比较 PID 和 LQR，我该怎么选？')).toBe('concept-comparison');
+    expect(classify('教材要求推导单位负反馈闭环传递函数')).toBe('formula-derivation');
     expect(classify('这个设计的缺陷在哪里？')).toBe('open-ended-explanation');
     // review P2 反例：无围栏、无排障动作的「缺陷」概念题不得判为代码调试。
     expect(classify('代码设计缺陷是什么意思？')).toBe('fact-explanation');
+    // review R2 反例：无围栏的「代码+解决」是请求写代码，不是调试。
+    expect(classify('请用代码解决这个优化问题')).not.toBe('code-debugging');
+    expect(classify('请写一段代码解决 PID 参数整定问题')).not.toBe('code-debugging');
+    expect(classify('帮我看看这段贴出来的代码为什么 compensator 输出一直不变，找出缺陷并修复。')).toBe('code-debugging');
     expect(classify('帮我看看这段贴出来的代码为什么 compensator 输出一直不变，找出缺陷并修复。')).toBe('code-debugging');
   });
 

@@ -1133,17 +1133,22 @@ const KONLING_NORMATIVE_QUERY_MARKERS = [
 // （报告/论文/学校/教务/大纲等），不含「课程」这类泛学习上下文（review：课
 // 程要求我们比较 A 和 B」不得触发规范门禁）。
 const KONLING_NORMATIVE_COMBO_TERMS = ['规范', '要求', '格式', '封面', '模板', '书写', '排版'] as const;
-// #2015：「教材」与报告/论文/大纲同为权威出处本身（教材附录引用标准、
-// 教材规定的验收结论等），不含「课程」这类泛学习上下文。
-const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准', '教材'] as const;
+const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准'] as const;
+
+// #2015：「教材」仅在规范语境下作为来源信号（教材附录引用标准、教材规定的
+// 验收/时效结论），不得与「要求」这类泛教学任务措辞组合——「教材要求我们
+// 比较/推导…」是教学任务不是规范诉求（review P2）。
+const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '标准', '验收', '规程', '现行', '最新', '作废', '过期', '时效', '版本'] as const;
 
 // #2015 组合信号：代码片段 × 排障请求。真实代码围栏出现时定位/修复/缺陷
 // 任一即判调试（覆盖标定/单位缺陷等无经典异常现象词的输入）；仅有代码指称
-// 时必须搭配排障动作——「代码设计缺陷是什么意思」这类无围栏无动作的概念题
-// 不得被吞并（review P2）。
+// 时必须搭配专属排障动作词（定位/排查/修复等）——不含泛化的「解决」（
+// 「请用代码解决这个优化问题」是请求写代码不是调试，review P2），「缺陷」
+// 单独也不构成排障请求（「代码设计缺陷是什么意思」不得被吞并）。
 const KONLING_DEBUG_CODE_FENCE_MARKER = '```';
 const KONLING_DEBUG_CODE_PRESENT_MARKERS = ['```', '代码'] as const;
 const KONLING_DEBUG_DEFECT_MARKERS = ['缺陷'] as const;
+const KONLING_DEBUG_EXPLICIT_ACTION_MARKERS = ['定位', '排查', '修复', '排除故障', '找出缺陷', '找 bug', 'debug'] as const;
 
 // #1948 组合信号：控制系统异常现象 × 定位/修复动作。现象词必须搭配排障动
 // 作才判代码调试，「解释超调」「什么是超调量」等仅含现象词的问题不被吞并。
@@ -1167,10 +1172,18 @@ function hasNormativeCurrencySignal(normalized: string): boolean {
 }
 
 function hasCodeFenceDebugSignal(normalized: string): boolean {
-  const hasResolution = includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS);
   const hasDefect = includesAny(normalized, KONLING_DEBUG_DEFECT_MARKERS);
-  if (normalized.includes(KONLING_DEBUG_CODE_FENCE_MARKER)) return hasResolution || hasDefect;
-  return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS) && hasResolution;
+  if (normalized.includes(KONLING_DEBUG_CODE_FENCE_MARKER)) {
+    return hasDefect || includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS);
+  }
+  // 无围栏：代码指称 × 专属排障动作（泛化「解决」不计入）。
+  return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS)
+    && includesAny(normalized, KONLING_DEBUG_EXPLICIT_ACTION_MARKERS);
+}
+
+function hasTextbookNormativeSignal(normalized: string): boolean {
+  return normalized.includes('教材')
+    && includesAny(normalized, KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS);
 }
 
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
@@ -1179,6 +1192,7 @@ function classifyGenericStudyQuestionIntent(query: string | null | undefined): K
   if (
     includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
     || hasNormativeComboSignal(normalized)
+    || hasTextbookNormativeSignal(normalized)
     || hasNormativeCurrencySignal(normalized)
   ) {
     return 'normative-content';
