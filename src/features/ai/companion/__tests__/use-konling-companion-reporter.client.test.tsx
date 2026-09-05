@@ -97,6 +97,41 @@ describe('useKonlingCompanionReporter delivery flow', () => {
     });
   });
 
+  it('forwards knowledge-point hints to the delivery payload', async () => {
+    fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const body = init?.body ? JSON.parse(String(init.body)) as Record<string, unknown> : {};
+      if (url.includes('/api/ai/companion/events')) {
+        return jsonResponse({ eventId: 'event-kp', status: 'confirmed' }, 201);
+      }
+      if (url.includes('/api/ai/companion/delivery')) {
+        expect(body).toMatchObject({
+          eventId: 'event-kp',
+          contextHints: { knowledgePoints: ['拉普拉斯变换'] },
+        });
+        return jsonResponse({ sessionId: 'session-kp', message: '这题答错了没关系，控灵陪你看懂它。' }, 201);
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    const { reporter, root } = renderHook({
+      enabled: true,
+      pageKind: 'adaptive-practice',
+      pageRef: 'practice-1',
+      delivery: { courseId: 'adaptive-practice' },
+    });
+    roots.push(root);
+
+    await act(async () => {
+      reporter.reportActivity('wrong-answer', { knowledgePoints: ['拉普拉斯变换'] });
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(presentCompanionBubble).toHaveBeenCalledWith(expect.objectContaining({ eventId: 'event-kp' }));
+  });
+
   it('does not deliver when the event is suppressed by the server', async () => {
     fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
@@ -176,5 +211,43 @@ describe('useKonlingCompanionReporter delivery flow', () => {
     });
 
     expect(presentCompanionBubble).not.toHaveBeenCalled();
+  });
+
+  it('re-arms the pause watcher after a learning action so natural pauses stay reachable', async () => {
+    vi.useFakeTimers();
+    const hasFocusSpy = vi.spyOn(document, 'hasFocus').mockReturnValue(true);
+    try {
+      fetchMock.mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes('/api/ai/companion/events') && init?.method === 'POST') {
+          return jsonResponse({ eventId: `event-${fetchMock.mock.calls.length}`, status: 'candidate' }, 201);
+        }
+        return jsonResponse({ status: 'confirmed' });
+      });
+      const { reporter, root } = renderHook({
+        enabled: true,
+        pageKind: 'resource-textbook',
+        pageRef: 'res-1',
+        delivery: { courseId: 'interactive' },
+      });
+      roots.push(root);
+
+      const eventPosts = () => fetchMock.mock.calls.filter(([url, init]) => String(url).includes('/api/ai/companion/events') && init?.method === 'POST');
+
+      // 首个空闲窗口产生候选。
+      await act(async () => { await vi.advanceTimersByTimeAsync(30_500); });
+      expect(eventPosts().length).toBeGreaterThanOrEqual(1);
+
+      // 有效操作清掉计时器后必须重新布置：再等完整空闲窗口仍应产生新候选。
+      await act(async () => {
+        reporter.reportActivity();
+      });
+      expect(eventPosts().length).toBe(1);
+      await act(async () => { await vi.advanceTimersByTimeAsync(30_500); });
+      expect(eventPosts().length).toBeGreaterThanOrEqual(2);
+    } finally {
+      hasFocusSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });

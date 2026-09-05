@@ -145,11 +145,35 @@ export function extractCompanionResourceCards(message: unknown): CompanionResour
   });
 }
 
+/** 错题场景的知识点仅在会话内展示（气泡不直接显示知识点）。 */
+function extractCompanionKnowledgePoints(message: unknown): string[] {
+  if (!message || typeof message !== 'object') return [];
+  const context = (message as Record<string, unknown>).companionContext;
+  if (!context || typeof context !== 'object') return [];
+  const points = (context as Record<string, unknown>).knowledgePoints;
+  if (!Array.isArray(points)) return [];
+  return points.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+}
+
 export function CompanionResourceCards({ message }: { message: unknown }) {
   const cards = extractCompanionResourceCards(message);
-  if (cards.length === 0) return null;
+  const knowledgePoints = extractCompanionKnowledgePoints(message);
+  if (cards.length === 0 && knowledgePoints.length === 0) return null;
   return (
     <div className="mt-2 space-y-2" data-konling-companion-resource-cards>
+      {knowledgePoints.length > 0 ? (
+        <div
+          className="rounded-xl border border-border bg-card/60 p-3"
+          data-konling-companion-knowledge-points
+        >
+          <p className="text-xs font-medium text-subtle">本题主涉及的薄弱知识点</p>
+          <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm leading-6 text-foreground">
+            {knowledgePoints.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       {cards.map((card) => (
         <CompanionResourceCard key={`${card.kind}:${card.resourceId}`} card={card} />
       ))}

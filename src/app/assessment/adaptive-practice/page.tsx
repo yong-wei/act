@@ -5045,9 +5045,13 @@ export default function AdaptivePracticePage() {
       if (sessionIdRef.current !== requestedSessionId) return;
       setFeedback(data);
       setAttemptDiagnosisState('idle');
-      // 陪伴事件：错题安慰（气泡不显示知识点）；能力估计上升才算进步表扬，冷却期内服务端自动抑制。
+      // 陪伴事件：错题安慰（气泡不显示知识点，知识点随投递进会话内展示）；能力估计上升才算进步表扬。
       if (!data.isCorrect) {
-        reportCompanionActivity('wrong-answer');
+        reportCompanionActivity('wrong-answer', {
+          knowledgePoints: Array.isArray(data.recommendedFocus)
+            ? data.recommendedFocus.slice(0, 5)
+            : [],
+        });
       } else if (typeof data.estimatedAbility === 'number'
         && data.estimatedAbility > questionState.estimatedAbility) {
         reportCompanionActivity('progress-milestone');

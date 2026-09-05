@@ -20,11 +20,13 @@ export interface CompanionProactiveTurnInput {
   pageKind: string;
   pageRef: string;
   reasons: string[];
+  /** 错题场景随投递携带的薄弱知识点：仅在会话内（学生已点击）讲解，气泡文案不展示。 */
+  knowledgePoints?: string[];
 }
 
 const EVENT_INSTRUCTIONS: Record<string, string> = {
   'pause-candidate': '学生刚在页面上停留了一会儿，可能是遇到了困难或走神。请给一句轻量的关心，询问是否需要帮助，不要替学生总结页面内容。',
-  'wrong-answer': '学生刚在自适应练习中答错了一题。请先给一句简短的安慰与鼓励，不讲解具体知识点，也绝对不要给出答案或正确选项；告诉学生点击资源卡或回到对话可以看到讲解。',
+  'wrong-answer': '学生刚在自适应练习中答错了一题，并已点击进入会话。请先用一句简短共情，再针对提供的薄弱知识点各给一句讲解方向；不要给出答案或正确选项。',
   'progress-milestone': '学生刚在自适应练习中取得了进步。请给一句具体的表扬，并鼓励保持节奏。',
   'resource-completed': '学生刚完成一个学习资源。请给一句肯定，并用一句话建议下一步。',
 };
@@ -34,11 +36,15 @@ function buildProactivePrompt(input: CompanionProactiveTurnInput): string {
     ?? '请给学生一句简短、温暖的学习陪伴话语。';
   const reasonLines = input.reasons.length > 0
     ? input.reasons.map((reason) => `- ${reason}`).join('\n')
-    : '-（本页暂无附加资源说明）';
+    : '';
+  const knowledgeLines = input.knowledgePoints && input.knowledgePoints.length > 0
+    ? input.knowledgePoints.map((point) => `- ${point}`).join('\n')
+    : '';
   return [
     `触发场景：${input.eventType}（页面类型 ${input.pageKind}）。`,
     instruction,
-    input.reasons.length > 0 ? '可参考的治理资源说明（不得编造未列出的资源）：\n' + reasonLines : '',
+    reasonLines ? `可参考的治理资源说明（不得编造未列出的资源）：\n${reasonLines}` : '',
+    knowledgeLines ? `学生的薄弱知识点（会话内讲解使用，不得外泄到其他场景）：\n${knowledgeLines}` : '',
     '要求：1-2 句话、总共不超过 80 字；语气自然、不说教；不要使用列表格式；不要提及“系统”或“触发”。',
   ].filter(Boolean).join('\n');
 }

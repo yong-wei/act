@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   runCompanionProactiveTurn: vi.fn(),
   prisma: {
+    $transaction: vi.fn(),
     konlingCompanionEvent: {
       findFirst: vi.fn(),
       create: vi.fn(),
@@ -80,6 +81,8 @@ beforeEach(() => {
   process.env.KONLING_COMPANION_ENABLED = 'true';
   mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1' } });
   mocks.runCompanionProactiveTurn.mockResolvedValue(null);
+  // 事务默认透传到同一 mock prisma，让事务内调用落在可断言的 mock 上。
+  mocks.prisma.$transaction.mockImplementation(async (operation: (tx: unknown) => Promise<unknown>) => operation(mocks.prisma));
 });
 
 afterEach(() => {
@@ -200,6 +203,7 @@ describe('POST /api/ai/companion/delivery', () => {
     pageRef: 'practice-1',
     eventType: 'wrong-answer',
     status: 'confirmed',
+    expiresAt: new Date(now.getTime() + 60_000),
   };
 
   it('reuses the latest matching private session and writes a companion-origin assistant message', async () => {
@@ -243,17 +247,58 @@ describe('POST /api/ai/companion/delivery', () => {
   it('deduplicates by the unique delivery constraint on concurrent tabs', async () => {
     mocks.prisma.konlingCompanionEvent.findFirst.mockResolvedValueOnce(confirmedEvent);
     mocks.prisma.konlingCompanionDelivery.findUnique.mockResolvedValueOnce(null);
-    mocks.prisma.konlingSession.findFirst.mockResolvedValueOnce(null);
-    mocks.prisma.konlingSession.create.mockResolvedValue({ id: 'session-new' });
-    mocks.prisma.konlingCompanionDelivery.create.mockRejectedValueOnce(new Error('unique'));
+    // 模拟并发事务失败（唯一约束在事务内回滚了会话写入）。
+    mocks.prisma.$transaction.mockRejectedValueOnce(new Error('unique'));
     mocks.prisma.konlingCompanionDelivery.findUnique.mockResolvedValueOnce({ sessionId: 'session-winner' });
 
     const response = await postDelivery(deliveryPost({
       eventId: 'event-1', courseId: 'course-1', resources: resourceCards,
     }));
     await expect(response.json()).resolves.toMatchObject({ sessionId: 'session-winner', deduplicated: true });
+    // 失败方事务回滚，不再触碰会话与事件终态。
+    expect(mocks.prisma.konlingSession.create).not.toHaveBeenCalled();
     expect(mocks.prisma.konlingCompanionEvent.update).not.toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: 'delivered' } }),
+    );
+  });
+
+  it('rejects an expired confirmed event and marks it expired', async () => {
+    mocks.prisma.konlingCompanionEvent.findFirst.mockResolvedValueOnce({
+      ...confirmedEvent,
+      expiresAt: new Date(now.getTime() - 1_000),
+    });
+    mocks.prisma.konlingCompanionEvent.update.mockResolvedValue({ id: 'event-1' });
+
+    const response = await postDelivery(deliveryPost({
+      eventId: 'event-1', courseId: 'course-1', resources: resourceCards,
+    }));
+    expect(response.status).toBe(404);
+    expect(mocks.prisma.konlingCompanionEvent.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { status: 'expired' } }),
+    );
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('stores knowledge points into the conversation context and the proactive turn', async () => {
+    mocks.prisma.konlingCompanionEvent.findFirst.mockResolvedValueOnce(confirmedEvent);
+    mocks.prisma.konlingCompanionDelivery.findUnique.mockResolvedValueOnce(null);
+    mocks.prisma.konlingSession.findFirst.mockResolvedValueOnce(null);
+    mocks.prisma.konlingSession.create.mockResolvedValue({ id: 'session-kp' });
+    mocks.prisma.konlingCompanionDelivery.create.mockResolvedValue({ id: 'delivery-kp' });
+    mocks.prisma.konlingCompanionEvent.update.mockResolvedValue({ id: 'event-1' });
+
+    const response = await postDelivery(deliveryPost({
+      eventId: 'event-1',
+      courseId: 'course-1',
+      resources: [],
+      contextHints: { knowledgePoints: ['拉普拉斯变换', '二阶系统阻尼比'] },
+    }));
+    expect(response.status).toBe(201);
+    const createCall = mocks.prisma.konlingSession.create.mock.calls[0][0];
+    expect(createCall.data.messages[0].companionContext.knowledgePoints)
+      .toEqual(['拉普拉斯变换', '二阶系统阻尼比']);
+    expect(mocks.runCompanionProactiveTurn).toHaveBeenCalledWith(
+      expect.objectContaining({ knowledgePoints: ['拉普拉斯变换', '二阶系统阻尼比'] }),
     );
   });
 

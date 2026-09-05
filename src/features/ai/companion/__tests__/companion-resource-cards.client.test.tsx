@@ -84,6 +84,18 @@ describe('CompanionResourceCards', () => {
     expect(container.querySelector('[data-konling-companion-resource-cards]')).toBeNull();
   });
 
+  it('renders knowledge points in-conversation (bubble never shows them)', () => {
+    const container = track(renderCards({
+      companionContext: { knowledgePoints: ['拉普拉斯变换', '二阶系统阻尼比'] },
+    }));
+    const block = container.querySelector('[data-konling-companion-knowledge-points]');
+    expect(block?.textContent).toContain('本题主涉及的薄弱知识点');
+    expect(block?.textContent).toContain('拉普拉斯变换');
+    expect(block?.textContent).toContain('二阶系统阻尼比');
+    // 无资源卡时不应出现校验请求。
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('shows the resource identity first, then an in-app link after verification', async () => {
     fetchMock.mockImplementation(() => verifyResponse({
       status: 'available',

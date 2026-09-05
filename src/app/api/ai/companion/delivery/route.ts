@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth';
 import { runCompanionProactiveTurn } from '@/features/ai/companion/proactive-turn';
-import type { CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
+import { isExpired, type CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -40,11 +40,25 @@ function parseResourceCards(value: unknown): CompanionResourceCard[] | null {
   return cards;
 }
 
+/** 随事件携带的上下文提示（错题知识点等）：宽松解析并限幅，绝不包含答案载荷。 */
+function parseContextHints(value: unknown): { knowledgePoints: string[] } {
+  if (!value || typeof value !== 'object') return { knowledgePoints: [] };
+  const raw = (value as Record<string, unknown>).knowledgePoints;
+  if (!Array.isArray(raw)) return { knowledgePoints: [] };
+  return {
+    knowledgePoints: raw
+      .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      .map((item) => item.trim().slice(0, 64))
+      .slice(0, 5),
+  };
+}
+
 function companionAssistantMessage(input: {
   eventType: string;
   pageKind: string;
   pageRef: string;
   resources: CompanionResourceCard[];
+  knowledgePoints: string[];
   deliveredAt: Date;
 }) {
   return {
@@ -57,6 +71,7 @@ function companionAssistantMessage(input: {
       pageKind: input.pageKind,
       pageRef: input.pageRef,
       resources: input.resources,
+      ...(input.knowledgePoints.length > 0 ? { knowledgePoints: input.knowledgePoints } : {}),
     },
     createdAt: input.deliveredAt.toISOString(),
   };
@@ -94,6 +109,7 @@ export async function POST(request: NextRequest) {
     const eventId = String(body?.eventId ?? '');
     const courseId = String(body?.courseId ?? '').slice(0, 256);
     const resources = parseResourceCards(body?.resources);
+    const contextHints = parseContextHints(body?.contextHints);
     if (!eventId || !courseId || !resources) {
       return NextResponse.json({ error: 'Invalid delivery request' }, { status: 400 });
     }
@@ -103,6 +119,14 @@ export async function POST(request: NextRequest) {
       where: { id: eventId, userId, status: { in: ['confirmed', 'delivered'] } },
     });
     if (!event) {
+      return NextResponse.json({ error: 'Confirmed event not found' }, { status: 404 });
+    }
+    // 超过有效期的确认事件不再投递（标签页休眠/离线重试的陈旧提醒）。
+    if (isExpired(event, new Date())) {
+      await prisma.konlingCompanionEvent.update({
+        where: { id: event.id },
+        data: { status: 'expired' },
+      });
       return NextResponse.json({ error: 'Confirmed event not found' }, { status: 404 });
     }
 
@@ -118,70 +142,80 @@ export async function POST(request: NextRequest) {
       }, { status: 200 });
     }
 
-    // 复用最近匹配的学生私有会话（同课程同页面上下文），否则创建新会话。
-    const matched = await prisma.konlingSession.findFirst({
-      where: { userId, courseId, pageId: event.pageRef },
-      orderBy: { lastActivityAt: 'desc' },
-      select: { id: true, messages: true },
-    });
     const deliveredAt = new Date();
     const message = companionAssistantMessage({
       eventType: event.eventType,
       pageKind: event.pageKind,
       pageRef: event.pageRef,
       resources,
+      knowledgePoints: contextHints.knowledgePoints,
       deliveredAt,
     });
-    let sessionId: string;
-    if (matched) {
-      const history = Array.isArray(matched.messages) ? matched.messages : [];
-      await prisma.konlingSession.update({
-        where: { id: matched.id },
-        data: {
-          messages: [...history, message] as unknown as Prisma.InputJsonValue,
-          lastActivityAt: deliveredAt,
-        },
-      });
-      sessionId = matched.id;
-    } else {
-      sessionId = (await prisma.konlingSession.create({
-        data: {
-          userId,
-          courseId,
-          pageId: event.pageRef,
-          title: '控灵陪伴',
-          messages: [message] as unknown as Prisma.InputJsonValue,
-        },
-        select: { id: true },
-      })).id;
-    }
 
-    // 唯一约束兜底多标签页并发：重复投递以 409 收敛，客户端复用既有会话。
-    const delivery = await prisma.konlingCompanionDelivery.create({
-      data: {
-        eventId: event.id,
-        userId,
-        sessionId,
-        resources: resources as unknown as Prisma.InputJsonValue,
-      },
-      select: { id: true },
-    }).catch(() => null);
-    if (!delivery) {
+    // 事务内原子认领：会话写入、Delivery 唯一约束与事件终态同进同出，
+    // 并发投递的失败方整体回滚，不会留下孤立会话或重复 companion 消息。
+    let sessionId: string;
+    try {
+      sessionId = await prisma.$transaction(async (tx) => {
+        // 复用最近匹配的学生私有会话（同课程同页面上下文），否则创建新会话。
+        const matched = await tx.konlingSession.findFirst({
+          where: { userId, courseId, pageId: event.pageRef },
+          orderBy: { lastActivityAt: 'desc' },
+          select: { id: true, messages: true },
+        });
+        let targetId: string;
+        if (matched) {
+          const history = Array.isArray(matched.messages) ? matched.messages : [];
+          await tx.konlingSession.update({
+            where: { id: matched.id },
+            data: {
+              messages: [...history, message] as unknown as Prisma.InputJsonValue,
+              lastActivityAt: deliveredAt,
+            },
+          });
+          targetId = matched.id;
+        } else {
+          targetId = (await tx.konlingSession.create({
+            data: {
+              userId,
+              courseId,
+              pageId: event.pageRef,
+              title: '控灵陪伴',
+              messages: [message] as unknown as Prisma.InputJsonValue,
+            },
+            select: { id: true },
+          })).id;
+        }
+        await tx.konlingCompanionDelivery.create({
+          data: {
+            eventId: event.id,
+            userId,
+            sessionId: targetId,
+            resources: resources as unknown as Prisma.InputJsonValue,
+          },
+          select: { id: true },
+        });
+        await tx.konlingCompanionEvent.update({
+          where: { id: event.id },
+          data: { status: 'delivered' },
+        });
+        return targetId;
+      });
+    } catch {
+      // 唯一约束决出胜者：收敛返回胜者会话；无胜者说明事务因其他原因失败。
       const winner = await prisma.konlingCompanionDelivery.findUnique({
         where: { eventId: event.id },
         select: { sessionId: true },
       });
-      return NextResponse.json({
-        sessionId: winner?.sessionId ?? sessionId,
-        message: companionBubbleMessage(event.eventType),
-        deduplicated: true,
-      }, { status: 200 });
+      if (winner) {
+        return NextResponse.json({
+          sessionId: winner.sessionId,
+          message: companionBubbleMessage(event.eventType),
+          deduplicated: true,
+        }, { status: 200 });
+      }
+      throw new Error('companion delivery transaction failed');
     }
-
-    await prisma.konlingCompanionEvent.update({
-      where: { id: event.id },
-      data: { status: 'delivered' },
-    });
 
     // 主动回合：围绕 companion 上下文生成一条真实回复（不伪造用户消息）。
     // 失败静默降级为静态文案消息，不影响投递结果。
@@ -191,6 +225,7 @@ export async function POST(request: NextRequest) {
       pageKind: event.pageKind,
       pageRef: event.pageRef,
       reasons: resources.map((card) => card.reason),
+      knowledgePoints: contextHints.knowledgePoints,
     });
     if (proactiveContent) {
       const proactiveMessage = {

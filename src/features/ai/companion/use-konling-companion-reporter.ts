@@ -26,6 +26,11 @@ export interface UseKonlingCompanionReporterInput {
   };
 }
 
+/** 随事件携带的服务端上下文提示（错题知识点等，投递时写入会话）。 */
+export interface CompanionEventHints {
+  knowledgePoints?: string[];
+}
+
 interface PauseWatch {
   timer: number | null;
   lastActionAt: number;
@@ -50,23 +55,31 @@ export function useKonlingCompanionReporter({
   const watch = useRef<PauseWatch>({ timer: null, lastActionAt: Date.now(), mediaPlaying: false });
   const disabled = useRef(false);
   const pageKey = useRef({ pageKind, pageRef });
+  const deliveryRef = useRef(delivery);
   const { presentCompanionBubble } = useGlobalAI();
 
   useEffect(() => {
     pageKey.current = { pageKind, pageRef };
   }, [pageKind, pageRef]);
 
+  useEffect(() => {
+    deliveryRef.current = delivery;
+  }, [delivery]);
+
   /** 事件确认后投递：成功则呈现气泡；flag 关闭或服务端异常时静默降级。 */
-  const deliver = useCallback(async (eventId: string) => {
-    if (disabled.current || !delivery) return;
+  const deliver = useCallback(async (eventId: string, hints?: CompanionEventHints) => {
+    if (disabled.current) return;
+    const target = deliveryRef.current;
+    if (!target) return;
     try {
       const response = await fetch('/api/ai/companion/delivery', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           eventId,
-          courseId: delivery.courseId,
-          resources: delivery.resources ?? [],
+          courseId: target.courseId,
+          resources: target.resources ?? [],
+          ...(hints?.knowledgePoints?.length ? { contextHints: { knowledgePoints: hints.knowledgePoints } } : {}),
         }),
       });
       if (response.status === 404) {
@@ -81,7 +94,7 @@ export function useKonlingCompanionReporter({
     } catch {
       // 服务端异常降级：不弹气泡，不影响学习流程。
     }
-  }, [delivery, presentCompanionBubble]);
+  }, [presentCompanionBubble]);
 
   const post = useCallback(async (body: Record<string, unknown>) => {
     if (disabled.current) return null;
@@ -119,22 +132,29 @@ export function useKonlingCompanionReporter({
     }
   }, [deliver]);
 
+  /** 重新布置停顿检测：清掉旧计时器并按完整空闲窗口重新计时。 */
+  const armPause = useCallback(() => {
+    const watchRef = watch.current;
+    if (watchRef.timer !== null) window.clearTimeout(watchRef.timer);
+    watchRef.timer = window.setTimeout(async () => {
+      const signals = readSignals(watchRef);
+      if (signals.recentActionCount > 0 || !signals.visible || !signals.focused || signals.mediaPlaying) {
+        watchRef.timer = null;
+        return;
+      }
+      const created = await post({ eventType: 'pause-candidate', signals });
+      watchRef.timer = null;
+      if (!created?.eventId || created.status !== 'candidate') return;
+      window.setTimeout(() => {
+        void confirmCandidate(created.eventId as string);
+      }, CONFIRMATION_DELAY_MS);
+    }, IDLE_PAUSE_MS);
+  }, [post, confirmCandidate]);
+
   // 两阶段停顿：无操作 + 可见 + 聚焦 + 无媒体 → 候选；短延迟后二次确认。
   useEffect(() => {
     if (!enabled) return;
     const watchRef = watch.current;
-    const armPause = () => {
-      if (watchRef.timer !== null) window.clearTimeout(watchRef.timer);
-      watchRef.timer = window.setTimeout(async () => {
-        const signals = readSignals(watchRef);
-        if (signals.recentActionCount > 0 || !signals.visible || !signals.focused || signals.mediaPlaying) return;
-        const created = await post({ eventType: 'pause-candidate', signals });
-        if (!created?.eventId || created.status !== 'candidate') return;
-        window.setTimeout(() => {
-          void confirmCandidate(created.eventId as string);
-        }, CONFIRMATION_DELAY_MS);
-      }, IDLE_PAUSE_MS);
-    };
     const onVisibility = () => armPause();
     const onFocus = () => {
       watchRef.lastActionAt = Date.now();
@@ -143,14 +163,20 @@ export function useKonlingCompanionReporter({
     window.addEventListener('focus', onFocus);
     armPause();
     return () => {
-      if (watchRef.timer !== null) window.clearTimeout(watchRef.timer);
+      if (watchRef.timer !== null) {
+        window.clearTimeout(watchRef.timer);
+        watchRef.timer = null;
+      }
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('focus', onFocus);
     };
-  }, [enabled, post, confirmCandidate]);
+  }, [enabled, armPause]);
 
-  /** 有效学习操作：打断停顿计时并按需上报直发事件（确认后直接投递）。 */
-  const reportActivity = useCallback((eventType?: Extract<CompanionEventType, 'wrong-answer' | 'progress-milestone' | 'resource-completed'>) => {
+  /** 有效学习操作：打断停顿计时、按需上报直发事件（确认后直接投递），随后重新布置停顿检测。 */
+  const reportActivity = useCallback((
+    eventType?: Extract<CompanionEventType, 'wrong-answer' | 'progress-milestone' | 'resource-completed'>,
+    hints?: CompanionEventHints,
+  ) => {
     watch.current.lastActionAt = Date.now();
     if (watch.current.timer !== null) {
       window.clearTimeout(watch.current.timer);
@@ -158,16 +184,18 @@ export function useKonlingCompanionReporter({
     }
     if (eventType) {
       void post({ eventType }).then((created) => {
-        if (created?.eventId && created.status === 'confirmed') void deliver(created.eventId);
+        if (created?.eventId && created.status === 'confirmed') void deliver(created.eventId, hints);
       });
     }
-  }, [post, deliver]);
+    armPause();
+  }, [post, deliver, armPause]);
 
-  /** 粗粒度媒体状态（仅播放/暂停，无逐秒轨迹）。 */
+  /** 粗粒度媒体状态（仅播放/暂停，无逐秒轨迹）；暂停后重新布置停顿检测。 */
   const reportMediaState = useCallback((playing: boolean) => {
     watch.current.mediaPlaying = playing;
     watch.current.lastActionAt = Date.now();
-  }, []);
+    if (!playing) armPause();
+  }, [armPause]);
 
   return { reportActivity, reportMediaState };
 }
