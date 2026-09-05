@@ -1536,15 +1536,17 @@ async function openStatePage(browser: Browser, state: CaptureState, storageState
 
 async function waitForKnowledgeReady(page: Page) {
   await page.waitForFunction(() => {
-    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
-    if (!canvas) return false;
-    const visibleNodeCount = Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0');
-    const loadingShardCount = Number(canvas.dataset.knowledgeLoadingShardCount ?? '0');
-    const navigationState = canvas.dataset.knowledgeDomainState ?? canvas.dataset.knowledgeRootState ?? '';
-    return visibleNodeCount > 0
-      && loadingShardCount === 0
-      && navigationState !== 'loading'
-      && navigationState !== 'failure';
+    // active 共享画布与 legacy 画布都携带 data-knowledge-canvas-primary；任一画布满足就绪谓词即可。
+    const canvases = Array.from(document.querySelectorAll<HTMLElement>('[data-knowledge-canvas-primary="true"]'));
+    return canvases.some((canvas) => {
+      const visibleNodeCount = Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0');
+      const loadingShardCount = Number(canvas.dataset.knowledgeLoadingShardCount ?? '0');
+      const navigationState = canvas.dataset.knowledgeDomainState ?? canvas.dataset.knowledgeRootState ?? '';
+      return visibleNodeCount > 0
+        && loadingShardCount === 0
+        && navigationState !== 'loading'
+        && navigationState !== 'failure';
+    });
   }, undefined, { timeout: 30000 });
   await page.waitForTimeout(500);
 }
