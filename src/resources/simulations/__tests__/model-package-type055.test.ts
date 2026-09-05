@@ -15,13 +15,14 @@ import {
   SHIP_LOD_BY_QUALITY_TIER,
   TYPE055_NANCHANG_101_V2,
   TYPE055_V2_BASIS_YAW_RAD,
+  propulsorSceneAnchors,
   shipLodUrlForQualityTier,
 } from '../model-packages/type055-nanchang-101-v2';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '../model-packages/clone-skinned-scene';
 import { findAnimationIndex, listLoadedInstanceNames, listMunitionTemplateNames } from '../model-packages/model-interface';
 
-const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.0');
-const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.0/receipt.json');
+const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.2');
+const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.2/receipt.json');
 
 function realIo(): ModelPackageFileIo {
   return {
@@ -45,11 +46,11 @@ function tamperedIo(mutate: (files: Map<string, { bytes: Uint8Array }>) => void)
   };
 }
 
-describe('type055-nanchang-101 v2.1.0 received package integrity', () => {
+describe('type055-nanchang-101 v2.1.2 received package integrity', () => {
   it('verifies the complete seven-role denominator, hashes, sizes and manifest identity', () => {
     const receipt = validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, realIo());
     expect(receipt.packageId).toBe('type055-nanchang-101');
-    expect(receipt.modelVersion).toBe('2.1.0');
+    expect(receipt.modelVersion).toBe('2.1.2');
     expect(Object.keys(receipt.roles)).toHaveLength(7);
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
   });
@@ -96,7 +97,7 @@ describe('type055-nanchang-101 v2.1.0 received package integrity', () => {
     let headTree = '';
     try {
       headTree = execSync(
-        'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.1.0',
+        'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.1.2',
         { encoding: 'utf-8' },
       ).trim();
     } catch {
@@ -143,7 +144,7 @@ describe('type055-nanchang-101 v2.1.0 received package integrity', () => {
   });
 });
 
-describe('type055-nanchang-101 v2.1.0 semantic interface contract', () => {
+describe('type055-nanchang-101 v2.1.2 semantic interface contract', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     return parseGlb(bytes);
@@ -199,6 +200,80 @@ describe('type055-nanchang-101 v2.1.0 semantic interface contract', () => {
 
     const duplicated = { ...ship, animations: [...ship.animations, ship.animations[0]] };
     expect(findAnimationIndex(duplicated as typeof ship, String(ship.animations[0].name))).toBeNull();
+  });
+});
+
+describe('v2.1.2 declared waterline anchor, propulsors and semantic bindings', () => {
+  const glbJsonOf = (file: string) => {
+    const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
+    const jsonLength = bytes[12] | (bytes[13] << 8) | (bytes[14] << 16) | (bytes[15] << 24);
+    return JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength))) as {
+      animations?: { name?: string }[];
+      nodes?: { name?: string }[];
+    };
+  };
+
+  it('declares the design waterline and twin propulsors consistent across all LODs', () => {
+    expect(TYPE055_NANCHANG_101_V2.verticalAnchor?.designWaterlineY).toBe(6.6);
+    expect(TYPE055_NANCHANG_101_V2.propulsors?.map((propulsor) => propulsor.node)).toEqual([
+      'PROP_PORT',
+      'PROP_STARBOARD',
+    ]);
+    for (const role of ['ship-lod0', 'ship-lod1', 'ship-lod2'] as const) {
+      const nodeNames = new Set((glbJsonOf(TYPE055_NANCHANG_101_V2.roles[role].file).nodes ?? []).map((node) => node.name));
+      for (const propulsor of TYPE055_NANCHANG_101_V2.propulsors ?? []) {
+        expect(nodeNames.has(propulsor.node), `${role} must contain ${propulsor.node}`).toBe(true);
+      }
+    }
+  });
+
+  it('converts propulsor model-local positions onto the scene +Z-bow basis', () => {
+    const anchors = propulsorSceneAnchors(TYPE055_NANCHANG_101_V2, 180);
+    expect(anchors).toHaveLength(2);
+    const port = anchors.find((anchor) => anchor.id === 'prop-port');
+    const starboard = anchors.find((anchor) => anchor.id === 'prop-starboard');
+    // 模型局部 (x=-82.97 艉, z=-4.8 左舷) → 场景 (x=+4.8 左舷, z=-82.97 艉)，缩放 180/179.69
+    expect(port?.anchor[0]).toBeCloseTo(4.81, 1);
+    expect(port?.anchor[2]).toBeCloseTo(-83.11, 1);
+    expect(starboard?.anchor[0]).toBeCloseTo(-4.81, 1);
+    expect(port?.anchor[1]).toBe(0);
+  });
+
+  it('resolves every declared semantic binding against the real ship GLBs', () => {
+    const bindings = TYPE055_NANCHANG_101_V2.semanticBindings ?? [];
+    expect(bindings.length).toBeGreaterThan(0);
+    for (const role of ['ship-lod0', 'ship-lod1', 'ship-lod2'] as const) {
+      const json = glbJsonOf(TYPE055_NANCHANG_101_V2.roles[role].file);
+      const clipNames = new Set((json.animations ?? []).map((clip) => clip.name));
+      const nodeNames = new Set((json.nodes ?? []).map((node) => node.name));
+      for (const binding of bindings) {
+        if (binding.drive === 'clip-loop') {
+          expect(clipNames.has(binding.clip), `${role} must contain clip ${binding.clip}`).toBe(true);
+        } else {
+          for (const node of binding.nodes) {
+            expect(nodeNames.has(node), `${role} must contain node ${node} for ${binding.id}`).toBe(true);
+          }
+        }
+      }
+      for (const patrol of TYPE055_NANCHANG_101_V2.easterEgg?.patrolClips ?? []) {
+        expect(clipNames.has(patrol.clip), `${role} must contain patrol clip ${patrol.clip}`).toBe(true);
+      }
+    }
+    const demo = glbJsonOf(TYPE055_NANCHANG_101_V2.roles.demo.file);
+    const demoClipNames = new Set((demo.animations ?? []).map((clip) => clip.name));
+    for (const clipName of TYPE055_NANCHANG_101_V2.interfaceContract.demoAnimations) {
+      expect(demoClipNames.has(clipName)).toBe(true);
+    }
+  });
+
+  it('keeps antifouling material below the declared waterline in every LOD', () => {
+    // 接收侧材质归属事实：防锈漆与灰色的分界面即声明水线（含 boot-top 余量）。
+    // 逐顶点几何核验在模型侧 G08 完成；ACT 侧核对三档 LOD 都声明了防锈漆材质。
+    for (const role of ['ship-lod0', 'ship-lod1', 'ship-lod2'] as const) {
+      const json = glbJsonOf(TYPE055_NANCHANG_101_V2.roles[role].file) as { materials?: { name?: string }[] };
+      const materialNames = new Set((json.materials ?? []).map((material) => material.name));
+      expect(materialNames.has('MAT_ANTIFOULING_RED'), `${role} must declare MAT_ANTIFOULING_RED`).toBe(true);
+    }
   });
 });
 

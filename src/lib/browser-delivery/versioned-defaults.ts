@@ -16,8 +16,8 @@ export interface VersionedDefaultActivation {
 export const SIMULATION_VERSIONED_DEFAULTS: Partial<Record<SimulationModelId, VersionedDefaultActivation>> = {
   destroyer: {
     packageId: 'type055-nanchang-101',
-    modelVersion: '2.1.0',
-    baseUrl: '/assets/model-releases/type055-nanchang-101/v2.1.0',
+    modelVersion: '2.1.2',
+    baseUrl: '/assets/model-releases/type055-nanchang-101/v2.1.2',
   },
 };
 

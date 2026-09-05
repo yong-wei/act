@@ -1,0 +1,296 @@
+{
+  "schema": "type055-versioned-model-release/2",
+  "ship_id": "type_055_destroyer_101_nanchang",
+  "contract_version": "2.1.0",
+  "model_version": "2.1.2",
+  "release_state": "G08R_MODEL_EXPORT_COMPLETE_WITH_BUDGET_WARNING",
+  "source": {
+    "blend": "blender/builds/055-101-g07-accepted.blend",
+    "sha256": "c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357",
+    "scene": "G07_BEAUTY_REVIEW",
+    "review_state": "G07_ACCEPTED_USER_REVIEW",
+    "mutable": false
+  },
+  "contract": {
+    "path": "14-g08r-perceptual-lossless-export-v2.1.0.md",
+    "download_sha256": "75222d5f6b1f03ef449ba107f4a3c121597ea6ed82c8326749c2e262aba759e7",
+    "repository_copy_sha256": "9e6ad5cf5e2bc25f2ae01766daedaf32c4fcc925aa7a6f891f6d9a64ae3fc8bb",
+    "normalization": "terminal newline added"
+  },
+  "coordinate_system": {
+    "source": "Blender Z-up",
+    "glb": "glTF Y-up",
+    "unit": "meter"
+  },
+  "scope": {
+    "act_wiring": "OUT_OF_SCOPE",
+    "act_repository_changes": false,
+    "model_side_interface_validation": true,
+    "integration_defects_return_as_new_model_version": true
+  },
+  "compression": {
+    "geometry": "EXT_meshopt_compression",
+    "quantization": "meshopt EXPONENTIAL 24-bit and QUATERNION 16-bit filters",
+    "gpu_instancing": "EXT_mesh_gpu_instancing",
+    "draco": false,
+    "ktx2": false
+  },
+  "artifacts": {
+    "ship_lod0": {
+      "file": "type055-nanchang-101-ship-lod0.glb",
+      "sha256": "9b59b3185681586a76af1b6c94522cbe99dca675c52132dde674468c9b568fd3",
+      "bytes": 3527132,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship_lod1": {
+      "file": "type055-nanchang-101-ship-lod1.glb",
+      "sha256": "2cbfe9dd6800b88304a2887835ccd695d3fa15a784a876260b409b9e037b3df0",
+      "bytes": 1729084,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship_lod2": {
+      "file": "type055-nanchang-101-ship-lod2.glb",
+      "sha256": "eb7c551d177b78b619d1d4b6c35a02008a60248f89ad358114ad4033dab70327",
+      "bytes": 1138920,
+      "kind": "ship",
+      "lod": 2
+    },
+    "interactive": {
+      "file": "type055-nanchang-101-interactive-systems.glb",
+      "sha256": "fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244",
+      "bytes": 14648,
+      "kind": "interactive",
+      "lod": null
+    },
+    "payload": {
+      "file": "type055-nanchang-101-weapon-payloads.glb",
+      "sha256": "cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9",
+      "bytes": 200896,
+      "kind": "payload",
+      "lod": null
+    },
+    "demo": {
+      "file": "type055-nanchang-101-weapon-demo.glb",
+      "sha256": "28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f",
+      "bytes": 185172,
+      "kind": "demo",
+      "lod": null
+    },
+    "collision": {
+      "file": "type055-nanchang-101-collision.glb",
+      "sha256": "d9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9",
+      "bytes": 52472,
+      "kind": "collision",
+      "lod": null
+    }
+  },
+  "reports": {
+    "runtime_interface": "runtime-interface.json",
+    "component_remap": "component-remap.json",
+    "geometry_census": "geometry-census.json",
+    "lod_error": "lod-error-report.json",
+    "model_validation": "model-validation.json",
+    "visual_gate_qa": {
+      "path": "qa/reports/v2-g08r-v2.1.2-visual-gate.json",
+      "sha256": "8db3b9fce1dadfdf27a164e809642f0929d03525e930a5dcc86e11066611b001"
+    }
+  },
+  "validation": {
+    "status": "PASS_WITH_BUDGET_WARNING",
+    "triangles": [
+      293318,
+      116506,
+      68518
+    ],
+    "glb_mib": 6.531070709228516,
+    "roundtrip": {
+      "ship_lod0": {
+        "schema": "type055-g08r-roundtrip/1",
+        "gate": "G08R",
+        "status": "PASS",
+        "kind": "ship",
+        "input": "type055-nanchang-101-ship-lod0.glb",
+        "sha256": "9b59b3185681586a76af1b6c94522cbe99dca675c52132dde674468c9b568fd3",
+        "decode_load_seconds": 0.2786199999973178,
+        "objects": 235,
+        "meshes": 154,
+        "mesh_datablocks_including_orphans": 47,
+        "actions": [
+          "ciws_barrel_spin",
+          "ciws_pitch",
+          "ciws_yaw",
+          "hangar_port_open",
+          "hangar_starboard_open",
+          "hq10_pitch",
+          "hq10_yaw",
+          "main_gun_pitch",
+          "main_gun_yaw",
+          "national_flag_wind",
+          "nav_radar_spin",
+          "prop_port_spin",
+          "prop_starboard_spin",
+          "rudder_port",
+          "rudder_starboard"
+        ],
+        "flag_animation": {
+          "sample_frames": [
+            1,
+            25
+          ],
+          "maximum_visible_displacement_m": 0.4313078231333785
+        }
+      },
+      "ship_lod1": {
+        "schema": "type055-g08r-roundtrip/1",
+        "gate": "G08R",
+        "status": "PASS",
+        "kind": "ship",
+        "input": "type055-nanchang-101-ship-lod1.glb",
+        "sha256": "2cbfe9dd6800b88304a2887835ccd695d3fa15a784a876260b409b9e037b3df0",
+        "decode_load_seconds": 0.1698198749218136,
+        "objects": 230,
+        "meshes": 154,
+        "mesh_datablocks_including_orphans": 47,
+        "actions": [
+          "ciws_barrel_spin",
+          "ciws_pitch",
+          "ciws_yaw",
+          "hangar_port_open",
+          "hangar_starboard_open",
+          "hq10_pitch",
+          "hq10_yaw",
+          "main_gun_pitch",
+          "main_gun_yaw",
+          "national_flag_wind",
+          "nav_radar_spin",
+          "prop_port_spin",
+          "prop_starboard_spin",
+          "rudder_port",
+          "rudder_starboard"
+        ],
+        "flag_animation": {
+          "sample_frames": [
+            1,
+            25
+          ],
+          "maximum_visible_displacement_m": 0.4313078231333785
+        }
+      },
+      "ship_lod2": {
+        "schema": "type055-g08r-roundtrip/1",
+        "gate": "G08R",
+        "status": "PASS",
+        "kind": "ship",
+        "input": "type055-nanchang-101-ship-lod2.glb",
+        "sha256": "eb7c551d177b78b619d1d4b6c35a02008a60248f89ad358114ad4033dab70327",
+        "decode_load_seconds": 0.12551633385010064,
+        "objects": 221,
+        "meshes": 150,
+        "mesh_datablocks_including_orphans": 43,
+        "actions": [
+          "ciws_barrel_spin",
+          "ciws_pitch",
+          "ciws_yaw",
+          "hangar_port_open",
+          "hangar_starboard_open",
+          "hq10_pitch",
+          "hq10_yaw",
+          "main_gun_pitch",
+          "main_gun_yaw",
+          "national_flag_wind",
+          "nav_radar_spin",
+          "prop_port_spin",
+          "prop_starboard_spin",
+          "rudder_port",
+          "rudder_starboard"
+        ],
+        "flag_animation": {
+          "sample_frames": [
+            1,
+            25
+          ],
+          "maximum_visible_displacement_m": 0.4313078231333785
+        }
+      },
+      "interactive": {
+        "schema": "type055-g08r-roundtrip/1",
+        "gate": "G08R",
+        "status": "PASS",
+        "kind": "interactive",
+        "input": "type055-nanchang-101-interactive-systems.glb",
+        "sha256": "fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244",
+        "decode_load_seconds": 0.03608225006610155,
+        "objects": 7,
+        "meshes": 4,
+        "mesh_datablocks_including_orphans": 5,
+        "actions": [
+          "vls_hatch_template_open"
+        ],
+        "flag_animation": null
+      },
+      "payload": {
+        "schema": "type055-g08r-roundtrip/1",
+        "gate": "G08R",
+        "status": "PASS",
+        "kind": "payload",
+        "input": "type055-nanchang-101-weapon-payloads.glb",
+        "sha256": "cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9",
+        "decode_load_seconds": 0.05533037497662008,
+        "objects": 185,
+        "meshes": 165,
+        "mesh_datablocks_including_orphans": 16,
+        "actions": [],
+        "flag_animation": null
+      },
+      "demo": {
+        "schema": "type055-g08r-roundtrip/1",
+        "gate": "G08R",
+        "status": "PASS",
+        "kind": "demo",
+        "input": "type055-nanchang-101-weapon-demo.glb",
+        "sha256": "28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f",
+        "decode_load_seconds": 0.05432808306068182,
+        "objects": 80,
+        "meshes": 57,
+        "mesh_datablocks_including_orphans": 20,
+        "actions": [
+          "demo_ciws_burst",
+          "demo_decoy_chaff_launch",
+          "demo_decoy_ir_launch",
+          "demo_hq10_launch",
+          "demo_main_gun_fire",
+          "demo_vls_aft_yj18_hot",
+          "demo_vls_forward_hhq9_cold",
+          "demo_weapon_systems_overview"
+        ],
+        "flag_animation": null
+      },
+      "collision": {
+        "schema": "type055-g08r-roundtrip/1",
+        "gate": "G08R",
+        "status": "PASS",
+        "kind": "collision",
+        "input": "type055-nanchang-101-collision.glb",
+        "sha256": "d9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9",
+        "decode_load_seconds": 0.03674675012007356,
+        "objects": 3,
+        "meshes": 3,
+        "mesh_datablocks_including_orphans": 4,
+        "actions": [],
+        "flag_animation": null
+      }
+    },
+    "visual_gate": {
+      "status": "PASS",
+      "camera_count_per_lod": 9,
+      "switch_sheet_count": 9,
+      "specialized_count": 8
+    }
+  },
+  "downstream_handoff": {
+    "act_wiring": "OUT_OF_SCOPE",
+    "integration_defect_resolution": "publish a new model version from 3DModels"
+  }
+}

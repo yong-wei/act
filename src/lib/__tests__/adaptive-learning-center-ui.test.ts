@@ -653,6 +653,62 @@ describe('adaptive learning center UI contracts', () => {
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
   });
 
+  it('renders exactly three candidate cards for a starter generation result', () => {
+    const displays = buildAdaptivePathOptionDisplays([
+      {
+        optionId: 'path-option-1',
+        label: '基础补救',
+        lockedNodeIds: [],
+        readinessSummary: [],
+        targetDeficits: [],
+        evidenceBasis: ['adaptive-learner-state'],
+        resourceMix: { knowledge_card: 1 },
+        effort: { estimatedMinutes: 30, relative: 'medium' },
+        terminalValidationNodeIds: [],
+        terminalValidationStrategy: {},
+        limitations: [],
+      },
+      {
+        optionId: 'path-option-2',
+        label: '仿真与 Arena 冲刺',
+        lockedNodeIds: [],
+        readinessSummary: [],
+        targetDeficits: [],
+        evidenceBasis: ['adaptive-learner-state'],
+        resourceMix: { simulation: 1 },
+        effort: { estimatedMinutes: 45, relative: 'medium' },
+        terminalValidationNodeIds: [],
+        terminalValidationStrategy: {},
+        limitations: [],
+      },
+      {
+        optionId: 'path-option-3',
+        label: '偏好匹配路线',
+        lockedNodeIds: [],
+        readinessSummary: [],
+        targetDeficits: [],
+        evidenceBasis: ['adaptive-learner-state'],
+        resourceMix: { textbook_section: 1 },
+        effort: { estimatedMinutes: 25, relative: 'short' },
+        terminalValidationNodeIds: [],
+        terminalValidationStrategy: {},
+        limitations: [],
+      },
+    ]);
+
+    expect(displays).toHaveLength(3);
+    expect(displays.map((display) => display.id)).toEqual([
+      'path-option-1',
+      'path-option-2',
+      'path-option-3',
+    ]);
+    expect(displays.map((display) => display.title)).toEqual([
+      '基础补救',
+      '仿真与 Arena 冲刺',
+      '偏好匹配路线',
+    ]);
+  });
+
   it('translates candidate diversity limitation codes into student-facing risk notes', () => {
     const [display] = buildAdaptivePathOptionDisplays([{
       optionId: 'path-option-1',

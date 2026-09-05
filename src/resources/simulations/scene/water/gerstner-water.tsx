@@ -5,19 +5,163 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
-import { GERSTNER_WAVE_SETS } from './gerstner-waves';
+import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } from './gerstner-waves';
 import { createGerstnerWaterMaterial } from './gerstner-water-material';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { simulationScenePalette } from '../../components/simulation-theme';
 
-const RESOLUTION_BY_TIER = {
+/** 水面网格的世界基准高度（mesh position.y）：贴水覆盖层（折线/尾迹）必须叠加同一基准。 */
+export const GERSTNER_WATER_BASE_Y = -1;
+
+/** 场景默认海况（GerstnerWater 未显式传入时使用）；CPU 采样必须复用同一海况与振幅倍率。 */
+export const DEFAULT_GERSTNER_SEA_STATE = 3;
+
+/** 海面尺寸（米）：GerstnerWater 与 CPU 采样共用同一网格尺寸。 */
+export const GERSTNER_WATER_SIZE = 60000;
+
+/** 质量档位 → 网格细分（GerstnerWater 与 CPU 采样共用同一分辨率）。 */
+export const GERSTNER_WATER_RESOLUTION_BY_TIER = {
   high: 256,
   medium: 128,
   low: 64,
 } as const;
 
-/** 水面网格的世界基准高度（mesh position.y）：贴水覆盖层（折线/尾迹）必须叠加同一基准。 */
-export const GERSTNER_WATER_BASE_Y = -1;
+export type GerstnerWaterTier = keyof typeof GERSTNER_WATER_RESOLUTION_BY_TIER;
+
+export interface GerstnerWaterMeshSpec {
+  readonly size: number;
+  readonly resolution: number;
+}
+
+/** 档位对应的渲染网格规格：CPU 采样必须按同一网格做插值。 */
+export function gerstnerWaterMeshSpecForTier(tier: GerstnerWaterTier): GerstnerWaterMeshSpec {
+  return { size: GERSTNER_WATER_SIZE, resolution: GERSTNER_WATER_RESOLUTION_BY_TIER[tier] };
+}
+
+/** 海况等级 → 振幅倍率（与 createGerstnerWaterMaterial 的 uAmplitudeScale 同一公式）。 */
+export function gerstnerAmplitudeScale(seaState: number): number {
+  return 0.3 + (seaState - 1) * 0.34;
+}
+
+interface DisplacedVertex {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+}
+
+/** 与顶点着色器同一公式：解析场位移（含振幅倍率的水平分量）。 */
+function displaceVertex(
+  waves: readonly GerstnerWave[],
+  amplitudeScale: number,
+  x: number,
+  z: number,
+  timeSeconds: number,
+): DisplacedVertex {
+  const displacement = computeGerstnerDisplacement(waves, x, z, timeSeconds);
+  return {
+    x: x + amplitudeScale * displacement.offsetX,
+    y: amplitudeScale * displacement.y,
+    z: z + amplitudeScale * displacement.offsetZ,
+  };
+}
+
+/** 位移后 XZ 平面内的重心插值高度；点在三角形外返回 null。 */
+function barycentricHeight(
+  a: DisplacedVertex,
+  b: DisplacedVertex,
+  c: DisplacedVertex,
+  x: number,
+  z: number,
+): number | null {
+  const v0x = b.x - a.x;
+  const v0z = b.z - a.z;
+  const v1x = c.x - a.x;
+  const v1z = c.z - a.z;
+  const v2x = x - a.x;
+  const v2z = z - a.z;
+  const denominator = v0x * v1z - v1x * v0z;
+  if (Math.abs(denominator) < 1e-12) return null;
+  const u = (v2x * v1z - v1x * v2z) / denominator;
+  const v = (v0x * v2z - v2x * v0z) / denominator;
+  const w = 1 - u - v;
+  const EPSILON = 1e-6;
+  if (u < -EPSILON || v < -EPSILON || w < -EPSILON) return null;
+  return w * a.y + u * b.y + v * c.y;
+}
+
+/**
+ * 与可见水面同一坐标基准、同一细分曲面的 CPU 采样。
+ *
+ * GerstnerWater 网格逐帧平移到舰位、几何体已烘焙 -90° X 旋转（局部 XZ 平面、+Y 朝上，
+ * 见 createGerstnerWaterGeometry），因此世界坐标必须先减去网格原点（舰位）。
+ * 顶点着色器只在网格顶点计算 Gerstner 位移，顶点之间的可见水面是 GPU 对位移后
+ * 三角形的线性插值——high 档 60000/256 ≈ 234 米边长，远大于最短波长，解析场采样
+ * 与可见曲面在非顶点位置可差数米。采样必须还原位移后三角网格：在未位移网格定位
+ * 目标单元后，于其 3×3 邻域内按与 PlaneGeometry 索引 (a,b,d),(b,c,d) 同一剖分
+ * 逐一做位移后 XZ 包含测试并重心插值（位移顶点共享、曲面连续，目标必落在邻域
+ * 某个位移后三角形内；水平位移 ≪ 单元边长，更大邻域无意义）。
+ * 使船体、尾迹、贴水线与用户实际看到的曲面逐点一致。
+ */
+export function sampleVisibleWaterHeight(
+  waves: readonly GerstnerWave[],
+  amplitudeScale: number,
+  mesh: GerstnerWaterMeshSpec,
+  originX: number,
+  originZ: number,
+  worldX: number,
+  worldZ: number,
+  timeSeconds: number,
+): number {
+  const targetX = worldX - originX;
+  const targetZ = worldZ - originZ;
+  const cell = mesh.size / mesh.resolution;
+  const half = mesh.size / 2;
+  const lastCell = mesh.resolution - 1;
+  const baseI = Math.min(Math.max(Math.floor((targetX + half) / cell), 0), lastCell);
+  const baseJ = Math.min(Math.max(Math.floor((targetZ + half) / cell), 0), lastCell);
+
+  const cornerCache = new Map<number, DisplacedVertex>();
+  const corner = (i: number, j: number): DisplacedVertex => {
+    const key = i * (mesh.resolution + 1) + j;
+    let vertex = cornerCache.get(key);
+    if (!vertex) {
+      vertex = displaceVertex(waves, amplitudeScale, i * cell - half, j * cell - half, timeSeconds);
+      cornerCache.set(key, vertex);
+    }
+    return vertex;
+  };
+
+  const tryCell = (i: number, j: number): number | null => {
+    if (i < 0 || j < 0 || i > lastCell || j > lastCell) return null;
+    const v00 = corner(i, j);
+    const v10 = corner(i + 1, j);
+    const v01 = corner(i, j + 1);
+    const v11 = corner(i + 1, j + 1);
+    return barycentricHeight(v00, v01, v10, targetX, targetZ)
+      ?? barycentricHeight(v01, v11, v10, targetX, targetZ);
+  };
+
+  const center = tryCell(baseI, baseJ);
+  if (center !== null) return GERSTNER_WATER_BASE_Y + center;
+  for (const [di, dj] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [-1, 1], [1, -1]] as const) {
+    const height = tryCell(baseI + di, baseJ + dj);
+    if (height !== null) return GERSTNER_WATER_BASE_Y + height;
+  }
+  // 数值边界兜底（目标超出网格边缘）：返回最近角点位移高度
+  return GERSTNER_WATER_BASE_Y + corner(baseI, baseJ).y;
+}
+
+/**
+ * 水面几何：-90° X 旋转必须烘焙进几何体，不能挂在 mesh rotation 上。
+ * PlaneGeometry 原始平面在 XY（z 恒 0）；mesh 挂 rotation 时 shader 看到的
+ * position.z 恒为 0（相位沿一维退化）、写入 position.y 的垂向位移落到世界水平轴。
+ * 烘焙后局部即 XZ 平面、+Y 朝上，与 shader/CPU 采样同一坐标约定。
+ */
+export function createGerstnerWaterGeometry(size: number, resolution: number): THREE.PlaneGeometry {
+  const geometry = new THREE.PlaneGeometry(size, size, resolution, resolution);
+  geometry.rotateX(-Math.PI / 2);
+  return geometry;
+}
 
 /** 未显式传色时的默认水色组：与默认环境预设（开阔海）同一真源，不再各自硬编码。 */
 const DEFAULT_WATER_COLORS = getEnvironmentPreset(DEFAULT_ENVIRONMENT_PRESET_ID).water;
@@ -45,8 +189,8 @@ export function GerstnerWater({
   tier = 'high',
   shipPosition,
   positionSampler,
-  size = 60000,
-  seaState = 3,
+  size = GERSTNER_WATER_SIZE,
+  seaState = DEFAULT_GERSTNER_SEA_STATE,
   waterColor = DEFAULT_WATER_COLORS.waterColor,
   deepColor = DEFAULT_WATER_COLORS.deepColor,
   horizonColor = DEFAULT_WATER_COLORS.horizonColor,
@@ -60,11 +204,11 @@ export function GerstnerWater({
   foamTexture.wrapT = THREE.RepeatWrapping;
 
   const geometry = useMemo(() => {
-    const resolution = RESOLUTION_BY_TIER[tier];
-    return new THREE.PlaneGeometry(size, size, resolution, resolution);
+    const resolution = GERSTNER_WATER_RESOLUTION_BY_TIER[tier];
+    return createGerstnerWaterGeometry(size, resolution);
   }, [size, tier]);
 
-  const amplitudeScale = useMemo(() => 0.3 + (seaState - 1) * 0.34, [seaState]);
+  const amplitudeScale = useMemo(() => gerstnerAmplitudeScale(seaState), [seaState]);
 
   const material = useMemo(
     () => createGerstnerWaterMaterial({
@@ -94,7 +238,6 @@ export function GerstnerWater({
       ref={meshRef}
       geometry={geometry}
       material={material}
-      rotation={[-Math.PI / 2, 0, 0]}
       position={[0, GERSTNER_WATER_BASE_Y, 0]}
     />
   );

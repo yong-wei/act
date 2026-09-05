@@ -56,7 +56,7 @@ export const CONTROL_CORRECTION_PATH_PLANNING_POLICY: PersonalizationPluginPathP
   },
   starterPathPolicy: {
     policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-    minOptions: 2,
+    targetOptionCount: 3,
     difficultyRhythm: 'steady',
     allowExternalResources: false,
     preferredResourceTypes: [

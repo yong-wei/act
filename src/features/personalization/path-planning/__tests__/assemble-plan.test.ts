@@ -635,12 +635,87 @@ describe('policy bundle core diversity fixture', () => {
       },
       policyFamily: 'foundation-remediation',
       policyBundle: {
-        families: ['simulation-driven', 'preference-matched'],
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
         overlapThreshold: 0.6,
       },
       now: new Date('2026-05-27T08:00:00.000Z'),
     };
   }
+
+  it('injects exactly the three starter families as cold-start candidates', () => {
+    const plan = planLearningPath({
+      ...buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry()),
+      policyBundle: undefined,
+      learnerState: null,
+    });
+    expectStarterThreeOptionContract(plan);
+  });
+
+  it('keeps low-confidence starter injection at exactly three candidate options', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    const plan = planLearningPath({
+      ...input,
+      policyBundle: undefined,
+      learnerState: {
+        ...input.learnerState!,
+        evidence: {
+          ...input.learnerState!.evidence!,
+          confidence: { level: 'low', score: 0.3, evidenceCount: 8, sourceCompleteness: 0.4 },
+        },
+      },
+    });
+    expectStarterThreeOptionContract(plan);
+  });
+
+  it('keeps single-evidence starter injection at exactly three candidate options', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    const plan = planLearningPath({
+      ...input,
+      policyBundle: undefined,
+      learnerState: {
+        ...input.learnerState!,
+        evidence: {
+          ...input.learnerState!.evidence!,
+          confidence: { ...input.learnerState!.evidence!.confidence, evidenceCount: 1 },
+        },
+      },
+    });
+    expectStarterThreeOptionContract(plan);
+  });
+
+  it('marks revision requests below the target option count as explicit fallback', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    const plan = planLearningPath({
+      ...input,
+      policyBundle: {
+        families: ['foundation-remediation', 'sprint-correction'],
+        overlapThreshold: 0.6,
+      },
+    });
+
+    expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
+      'foundation-remediation',
+      'sprint-correction',
+    ]);
+    expect(plan.policyBundle?.status).toBe('low-resource-fallback');
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-count-below-target');
+  });
+
+  it('rejects policy family requests exceeding the target option count', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    expect(() => planLearningPath({
+      ...input,
+      policyBundle: {
+        families: [
+          'foundation-remediation',
+          'simulation-driven',
+          'preference-matched',
+          'sprint-correction',
+        ],
+        overlapThreshold: 0.6,
+      },
+    })).toThrow(/exceeding targetOptionCount 3/);
+  });
 
   it('keeps three policy options meaningfully distinct when alternative core teaching resources exist', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
@@ -1160,6 +1235,29 @@ function mergeLearnerState(
     primaryPortraitAvailability: override.primaryPortraitAvailability ?? trusted.primaryPortraitAvailability,
     primaryPortrait: override.primaryPortrait ?? trusted.primaryPortrait,
   };
+}
+
+function expectStarterThreeOptionContract(plan: ReturnType<typeof planLearningPath>) {
+  expect(plan.policyBundle?.families).toEqual([
+    'foundation-remediation',
+    'simulation-driven',
+    'preference-matched',
+  ]);
+  expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
+    'foundation-remediation',
+    'simulation-driven',
+    'preference-matched',
+  ]);
+  expect(plan.policyBundle?.paths.map((path) => path.styleId)).toEqual([
+    'foundation-remediation',
+    'arena-simulation-sprint',
+    'preference-matched-route',
+  ]);
+  expect(serializeLearningPathPlan(plan).payload.pathOptions?.map((option) => option.optionId)).toEqual([
+    'path-option-1',
+    'path-option-2',
+    'path-option-3',
+  ]);
 }
 
 function graphContextForLearningGoal(
@@ -4163,17 +4261,16 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.policyBundle?.families).toEqual([
-      'rules-plus-graph-search',
       'foundation-remediation',
       'simulation-driven',
       'sprint-correction',
     ]);
     const displayedPaths = plan.policyBundle?.paths ?? [];
     expect(displayedPaths.length).toBeGreaterThanOrEqual(1);
-    expect(displayedPaths.length).toBeLessThanOrEqual(4);
+    expect(displayedPaths.length).toBeLessThanOrEqual(3);
     expect(displayedPaths[0]).toMatchObject({
-      policyFamily: 'rules-plus-graph-search',
-      styleId: 'rules-graph-search-route',
+      policyFamily: 'foundation-remediation',
+      styleId: 'foundation-remediation',
     });
     expect(plan.policyBundle?.diversity.maxResourceOverlap).toBeGreaterThanOrEqual(0);
     expect(plan.policyBundle?.diversity.terminalValidationDifference).toBeGreaterThanOrEqual(0);
@@ -4186,7 +4283,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.policyBundle?.diversity.pairwiseTerminalValidationDifference).toHaveLength(expectedPairCount);
   });
 
-  it('compares bundle policies against an explicit primary policy family', () => {
+  it('builds bundle candidates from the requested families without appending the primary family', () => {
     const baseInput = plannerInput();
     const plan = planLearningPath({
       ...baseInput,
@@ -4204,17 +4301,11 @@ describe('adaptive learning path planner', () => {
       },
     });
 
-    expect(plan.policyBundle?.families).toEqual(['foundation-remediation', 'sprint-correction']);
+    expect(plan.policyBundle?.families).toEqual(['sprint-correction']);
     expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
-      'foundation-remediation',
       'sprint-correction',
     ]);
-    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([
-      expect.objectContaining({
-        left: 'foundation-remediation',
-        right: 'sprint-correction',
-      }),
-    ]);
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([]);
   });
 
   it('returns an explicit low-resource fallback when policy paths cannot be distinct', () => {
@@ -8580,7 +8671,7 @@ describe('adaptive learning path planner', () => {
       resourcePreferences: ['knowledge_card'],
       resourcePreferenceSource: 'request',
       policyBundle: {
-        families: ['preference-matched'],
+        families: ['rules-plus-graph-search', 'preference-matched'],
         overlapThreshold: 0.6,
       },
     }));

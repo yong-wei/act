@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * type055-nanchang-101 v2.1.0 模型包 QA 验收页。
+ * type055-nanchang-101 v2.1.1 模型包 QA 验收页。
  *
  * 不进入任何导航；仅供 Playwright/人工验收：
  * - 装配 ship LOD（?lod=0|1|2，默认 0）并按语义名播放代表性动画；

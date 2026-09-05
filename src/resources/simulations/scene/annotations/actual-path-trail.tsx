@@ -46,6 +46,7 @@ export function ActualPathTrail({ positionSampler, resetToken }: ActualPathTrail
       lineWidth={ANNOTATION_STYLE.trail.lineWidth}
       transparent
       opacity={ANNOTATION_STYLE.trail.opacity}
+      waterOriginSampler={positionSampler}
     />
   );
 }

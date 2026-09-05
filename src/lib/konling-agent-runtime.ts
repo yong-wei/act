@@ -4762,7 +4762,7 @@ function buildAdaptivePathRevisionPlannerPreference(
   ].filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family));
   const families = Array.from(new Set(candidateFamilies.filter((family) => (
     family === preferredFamily || !rejectedFamilies.has(family)
-  ))));
+  )))).slice(0, registeredGoal.starterPathPolicy.targetOptionCount);
   if (!preferredFamily && rejectedFamilies.size === 0) return {};
   return {
     policyFamily: preferredFamily ?? families[0] ?? 'rules-plus-graph-search',

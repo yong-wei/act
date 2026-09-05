@@ -310,7 +310,7 @@ export interface AdaptiveLearningPathRegisteredGoalDefinition {
   allowedResourceMix: ResourceNode['type'][];
   starterPathPolicy: {
     policyFamilies: AdaptiveLearningPathPolicyFamily[];
-    minOptions: number;
+    targetOptionCount: number;
     difficultyRhythm: 'gentle' | 'steady' | 'challenge';
     allowExternalResources: boolean;
     preferredResourceTypes: ResourceNode['type'][];
@@ -1483,7 +1483,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz', 'adaptive_quiz', 'control_workbench', 'simulation', 'arena_task'],
@@ -1534,7 +1534,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'simulation', 'quiz', 'adaptive_quiz'],
@@ -1572,7 +1572,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: FOUNDATION_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 3,
+      targetOptionCount: 3,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz', 'adaptive_quiz', 'simulation', 'checkpoint'],
@@ -1604,7 +1604,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: FOUNDATION_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 2,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
       preferredResourceTypes: ['textbook_section', 'knowledge_card', 'quiz', 'control_workbench'],
@@ -1636,7 +1636,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'foundation-remediation', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['simulation', 'knowledge_card', 'quiz', 'checkpoint'],
@@ -1668,7 +1668,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'control_workbench', 'quiz'],
@@ -1700,7 +1700,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'foundation-remediation', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['simulation', 'textbook_section', 'quiz', 'reflection', 'checkpoint'],
@@ -1740,7 +1740,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 2,
       difficultyRhythm: 'challenge',
       allowExternalResources: false,
       preferredResourceTypes: ['simulation', 'control_workbench', 'checkpoint', 'reflection'],
@@ -1783,7 +1783,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'preference-matched', 'teacher-assigned'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'challenge',
       allowExternalResources: false,
       preferredResourceTypes: ['arena_task', 'simulation', 'reflection', 'ai_intervention'],
@@ -2044,7 +2044,7 @@ export function buildControlCorrectionThreeStylePathBundle(
     ...input,
     policyFamily: 'foundation-remediation',
     policyBundle: {
-      families: ['simulation-driven', 'preference-matched'],
+      families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
       overlapThreshold: 0.6,
     },
   });
@@ -2470,7 +2470,7 @@ function assembleAdaptiveLearningPathPlanInternal(
     policyBundle: includePolicyBundle ? buildPolicyBundle({
       ...input,
       policyBundle: policyBundleRequest,
-    }, policyFamily, now, stageRepairedNodeIds) : undefined,
+    }, now, stageRepairedNodeIds) : undefined,
     excludedPolicyFamilies: EXCLUDED_POLICY_FAMILIES,
     status,
     currentNodeId,
@@ -4842,8 +4842,15 @@ function resolvePolicyBundleRequest(
   const evidenceCount = input.learnerState?.evidence?.confidence?.evidenceCount ?? 0;
   const needsStarterOptions = !input.learnerState || confidence.level === 'low' || evidenceCount <= 1;
   if (!needsStarterOptions) return undefined;
+  const { policyFamilies, targetOptionCount } = registeredGoal.starterPathPolicy;
+  if (policyFamilies.length !== targetOptionCount) {
+    throw new Error(
+      `Adaptive path goal "${input.goal.id}" declares ${policyFamilies.length} starter policy families ` +
+      `but targetOptionCount ${targetOptionCount}; the starter candidate count contract is misconfigured.`,
+    );
+  }
   return {
-    families: registeredGoal.starterPathPolicy.policyFamilies,
+    families: policyFamilies,
     overlapThreshold: 0.95,
   };
 }
@@ -5023,7 +5030,6 @@ const POLICY_FAMILY_STYLE: Record<AdaptiveLearningPathPolicyFamily, { id: Adapti
 
 function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
-  primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
   capturedAt: string,
   stageRepairedNodeIds?: readonly string[],
 ): AdaptiveLearningPathPolicyBundle | undefined {
@@ -5031,13 +5037,23 @@ function buildPolicyBundle(
   if (!requestedFamilies || requestedFamilies.length === 0) {
     return undefined;
   }
-  const families = unique([primaryPolicyFamily, ...requestedFamilies]);
+  const families = unique(requestedFamilies);
   const overlapThreshold = input.policyBundle?.overlapThreshold ?? 0.6;
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
   const terminalValidationRequired = registeredGoal?.checkpointPolicy.requiresTerminalValidation ?? false;
   const deficits = inferDeficits(input.goal, input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const omittedPolicyReasons: string[] = [];
+  const targetOptionCount = registeredGoal?.starterPathPolicy.targetOptionCount;
+  if (targetOptionCount !== undefined && families.length > targetOptionCount) {
+    throw new Error(
+      `Adaptive path goal "${input.goal.id}" requested ${families.length} policy families, ` +
+      `exceeding targetOptionCount ${targetOptionCount}.`,
+    );
+  }
+  if (targetOptionCount !== undefined && families.length < targetOptionCount) {
+    omittedPolicyReasons.push('policy-option-count-below-target');
+  }
   const avoidedDifferentiableCoreRefs = new Set<string>();
   const retainedCoreRefs = new Set<string>();
   const basePaths: AdaptiveLearningPathPolicyBundle['paths'] = [];
