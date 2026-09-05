@@ -1138,7 +1138,7 @@ const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', 
 // #2015：「教材」仅在规范语境下作为来源信号（教材附录引用标准、教材规定的
 // 验收/时效结论），不得与「要求」这类泛教学任务措辞组合——「教材要求我们
 // 比较/推导…」是教学任务不是规范诉求（review P2）。
-const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '标准', '验收', '规程', '现行', '最新', '作废', '过期', '时效', '版本'] as const;
+const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '标准', '验收', '规程', '现行', '最新', '作废', '过期', '时效', '仍有效'] as const;
 
 // #2015 组合信号：代码片段 × 排障请求。真实代码围栏出现时定位/修复/缺陷
 // 任一即判调试（覆盖标定/单位缺陷等无经典异常现象词的输入）；仅有代码指称
@@ -1247,6 +1247,7 @@ function hasIndependentNormativeRisk(query: string | null | undefined): boolean 
   return NORMATIVE_STANDARD_ID.test(normalized)
     || includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
     || hasNormativeComboSignal(normalized)
+    || hasTextbookNormativeSignal(normalized)
     || NORMATIVE_OBLIGATION.test(normalized);
 }
 

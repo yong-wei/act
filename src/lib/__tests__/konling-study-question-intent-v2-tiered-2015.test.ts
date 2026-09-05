@@ -171,6 +171,12 @@ describe('konling study question intent routing on the V2 tiered bank (#2015)', 
     // review R2 反例：「教材+要求」是教学任务措辞，不得触发规范门禁。
     expect(classify('教材要求我们比较 PID 和 LQR，我该怎么选？')).toBe('concept-comparison');
     expect(classify('教材要求推导单位负反馈闭环传递函数')).toBe('formula-derivation');
+    // review R3 反例：裸「版本」不构成规范状态——教材版本比较题不判规范。
+    expect(classify('比较一下教材的两个版本有什么区别？')).toBe('concept-comparison');
+    expect(classify('教材的新版和旧版本该怎么选？')).toBe('concept-comparison');
+    // review R3 正例：教材验收规程的时效结论判规范（主分类器与 #1901 风险
+    // 门禁消费同一 hasTextbookNormativeSignal helper，平价由共享实现保证）。
+    expect(classify('教材中的验收规程是否还是现行版本？')).toBe('normative-content');
     expect(classify('这个设计的缺陷在哪里？')).toBe('open-ended-explanation');
     // review P2 反例：无围栏、无排障动作的「缺陷」概念题不得判为代码调试。
     expect(classify('代码设计缺陷是什么意思？')).toBe('fact-explanation');
