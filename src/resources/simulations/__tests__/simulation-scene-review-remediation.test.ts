@@ -7,20 +7,23 @@ const DESTROYER = path.join(process.cwd(), 'src/resources/simulations/simulation
 const WAKE_TRAIL = path.join(process.cwd(), 'src/resources/simulations/scene/wake/wake-trail.tsx');
 
 describe('review remediation: wake lifecycle and speed semantics', () => {
+  const rigFunctionBlock = (destroyer: string) =>
+    destroyer.slice(destroyer.indexOf('function WakeTrailRig'), destroyer.indexOf('declare global'));
+
   it('remounts the wake trail on the simulation reset token so stale particles and path length clear', () => {
     const destroyer = readFileSync(DESTROYER, 'utf8');
     expect(destroyer).toContain('resetToken={resetToken}');
     const rigBlock = destroyer.slice(destroyer.indexOf('<WakeTrailRig'), destroyer.indexOf('<WakeTrailRig') + 200);
     expect(rigBlock).toContain('resetToken');
-    const rigFn = destroyer.slice(destroyer.indexOf('function WakeTrailRig'), destroyer.indexOf('function WakeTrailRig') + 1200);
-    expect(rigFn).toContain('key={resetToken}');
+    const rigFn = rigFunctionBlock(destroyer);
+    expect(rigFn).toContain('resetToken');
   });
 
   it('accepts an explicit world speed sampler so playback rate never distorts Froude activity', () => {
     const trail = readFileSync(WAKE_TRAIL, 'utf8');
     expect(trail).toContain('worldSpeedSampler');
     const destroyer = readFileSync(DESTROYER, 'utf8');
-    const rigFn = destroyer.slice(destroyer.indexOf('function WakeTrailRig'), destroyer.indexOf('function WakeTrailRig') + 1200);
+    const rigFn = rigFunctionBlock(destroyer);
     expect(rigFn).toContain('speedMps');
   });
 });

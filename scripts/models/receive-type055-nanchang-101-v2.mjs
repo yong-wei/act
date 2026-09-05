@@ -37,6 +37,22 @@ const RELEASES = {
     validationStatuses: ['PASS', 'PASS_WITH_BUDGET_WARNING'],
     defaultSource: '/Users/YW/Documents/Project/3DModels/assets/type_055_destroyer/exports/v2.1.0',
   },
+  '2.1.1': {
+    schema: 'type055-versioned-model-release/2',
+    roles: ['ship_lod0', 'ship_lod1', 'ship_lod2', 'collision', 'payload', 'demo', 'interactive'],
+    expectedManifestSha: '24f7dfdb2ec362d3fb4ac9fe0b1b6c63ce15d5c1f34b8603ddf5638932581430',
+    expectedBlendSha: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
+    validationStatuses: ['PASS', 'PASS_WITH_BUDGET_WARNING'],
+    defaultSource: '/Users/YW/Documents/Project/3DModels/assets/type_055_destroyer/exports/v2.1.1',
+  },
+  '2.1.2': {
+    schema: 'type055-versioned-model-release/2',
+    roles: ['ship_lod0', 'ship_lod1', 'ship_lod2', 'collision', 'payload', 'demo', 'interactive'],
+    expectedManifestSha: 'e56460aae95234157fb738b36ba5e09e0165353e68f53e70c093f7f325989eb5',
+    expectedBlendSha: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
+    validationStatuses: ['PASS', 'PASS_WITH_BUDGET_WARNING'],
+    defaultSource: '/Users/YW/Documents/Project/3DModels/assets/type_055_destroyer/exports/v2.1.2',
+  },
 };
 
 const PACKAGE_RELATIVE = 'public/assets/model-releases/type055-nanchang-101';
@@ -65,7 +81,7 @@ const sourceEq = argv.find((arg) => arg.startsWith('--source='));
 const sourceIdx = argv.indexOf('--source');
 const sourceDir = sourceEq ? sourceEq.slice('--source='.length)
   : sourceIdx >= 0 ? argv[sourceIdx + 1]
-  : (existsSync(RELEASES['2.1.0'].defaultSource) ? RELEASES['2.1.0'].defaultSource : RELEASES['2.0.0'].defaultSource);
+  : [RELEASES['2.1.1'], RELEASES['2.1.0'], RELEASES['2.0.0']].find((release) => existsSync(release.defaultSource))?.defaultSource;
 if (!sourceDir || !existsSync(sourceDir)) fail(`source release directory not found: ${sourceDir || '(missing --source value)'}`);
 
 const root = repoRoot();

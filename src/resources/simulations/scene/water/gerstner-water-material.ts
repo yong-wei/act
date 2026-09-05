@@ -71,6 +71,9 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
 
       void main() {
         vec3 pos = position;
+        // 相位必须使用未位移的原始坐标：Gerstner 场是 (x,z,t) 的确定函数，
+        // 若逐波用已水平位移的 pos.xz 取相位，波序依赖且与 CPU 参照不再同公式。
+        vec3 basePos = position;
         float dYdx = 0.0;
         float dYdz = 0.0;
         float crestRaw = 0.0;
@@ -88,7 +91,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
 
           float k = 6.28318530718 / wavelength;
           float c = speed * sqrt(9.8 / k);
-          float phase = k * (dx * pos.x + dz * pos.z) - c * k * uTime;
+          float phase = k * (dx * basePos.x + dz * basePos.z) - c * k * uTime;
           float s = sin(phase);
           float co = cos(phase);
 
