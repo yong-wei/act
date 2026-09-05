@@ -8,6 +8,7 @@ import {
   request,
   type Browser,
   type BrowserContextOptions,
+  type Locator,
   type Page,
   type Response,
 } from 'playwright';
@@ -1496,8 +1497,13 @@ async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: str
   if (!(await button.isVisible().catch(() => false))) {
     throw new Error(`${mode} mode control unavailable in ${context}`);
   }
-  await button.scrollIntoViewIfNeeded().catch(() => undefined);
-  await button.click({ timeout: 5000 });
+  const clickResult = await clickLocatorAtReachablePoint(page, button);
+  if (clickResult.status !== 'clicked') {
+    throw new Error(
+      `${mode} mode control is not reachable by a real pointer click in ${context}`
+      + (clickResult.status === 'unreachable' ? ` occludedBy=${clickResult.occludedBy ?? 'unknown'}` : ''),
+    );
+  }
   await page.waitForSelector(`[data-knowledge-graph-mode="${mode}"]`, { timeout: 15000 });
   if (mode === 'legacy') {
     await page.waitForFunction(() => {
@@ -1573,59 +1579,73 @@ async function waitForKnowledgeReady(page: Page) {
   await page.waitForTimeout(500);
 }
 
+type ReachableClickResult = { status: 'clicked' } | { status: 'unreachable'; occludedBy: string | null } | { status: 'absent' };
+
+// 真实指针点击保留可达性校验：每个采样点先经 elementFromPoint 命中测试确认解析到
+// 目标元素内部，再用受信 mouse 事件点击——等同真实用户点击未遮挡的可见部分；
+// 整个元素被遮挡时返回 unreachable 带诊断，由调用方决定失败，不用程序化 DOM click 掩盖。
+async function clickLocatorAtReachablePoint(page: Page, candidate: Locator): Promise<ReachableClickResult> {
+  if (!(await candidate.isVisible().catch(() => false))) return { status: 'absent' };
+  await candidate.scrollIntoViewIfNeeded().catch(() => undefined);
+  try {
+    await candidate.click({ timeout: 5000 });
+    await page.waitForTimeout(250);
+    return { status: 'clicked' };
+  } catch {
+    // Playwright 中心点命中失败；回退到多点可达性采样。
+  }
+  const probe = await candidate.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const points = [
+      [0.5, 0.5], [0.5, 0.08], [0.5, 0.92], [0.08, 0.5], [0.92, 0.5],
+      [0.08, 0.08], [0.92, 0.08], [0.08, 0.92], [0.92, 0.92], [0.25, 0.5], [0.75, 0.5],
+    ];
+    for (const [fx, fy] of points) {
+      const x = Math.min(Math.max(rect.left + rect.width * fx, 1), window.innerWidth - 1);
+      const y = Math.min(Math.max(rect.top + rect.height * fy, 1), window.innerHeight - 1);
+      const hit = document.elementFromPoint(x, y);
+      if (hit && element.contains(hit)) return { x, y };
+    }
+    const centerHit = document.elementFromPoint(
+      Math.min(Math.max(rect.left + rect.width / 2, 1), window.innerWidth - 1),
+      Math.min(Math.max(rect.top + rect.height / 2, 1), window.innerHeight - 1),
+    );
+    return {
+      occludedBy: centerHit && !element.contains(centerHit)
+        ? centerHit.tagName + (centerHit.getAttribute('data-knowledge-mode-switch') ? '[data-knowledge-mode-switch]' : '')
+        : null,
+      rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) },
+    };
+  });
+  if (probe && 'x' in probe && typeof probe.x === 'number') {
+    await page.mouse.click(probe.x, probe.y);
+    await page.waitForTimeout(250);
+    return { status: 'clicked' };
+  }
+  return {
+    status: 'unreachable',
+    occludedBy: probe && 'occludedBy' in probe ? probe.occludedBy ?? null : null,
+  };
+}
+
 async function clickIfPresent(page: Page, selector: string) {
-  // 真实指针点击保留可达性校验：每个采样点先经 elementFromPoint 命中测试确认解析到
-  // 目标元素内部，再用受信 mouse 事件点击——等同真实用户点击未遮挡的可见部分；
-  // 整个元素被遮挡时带诊断诚实失败，不用程序化 DOM click 掩盖。
   const locator = page.locator(selector);
   const count = await locator.count();
+  let sawElement = false;
+  let lastOccludedBy: string | null = null;
   for (let index = 0; index < count; index += 1) {
     const candidate = locator.nth(index);
-    if (!(await candidate.isVisible().catch(() => false))) continue;
-    await candidate.scrollIntoViewIfNeeded().catch(() => undefined);
-    try {
-      await candidate.click({ timeout: 5000 });
-      await page.waitForTimeout(250);
-      return;
-    } catch {
-      // Playwright 中心点命中失败；回退到多点可达性采样。
+    const result = await clickLocatorAtReachablePoint(page, candidate);
+    if (result.status === 'clicked') return;
+    if (result.status === 'unreachable') {
+      sawElement = true;
+      lastOccludedBy = result.occludedBy;
     }
-    const reachablePoint = await page.evaluate((targetSelector) => {
-      const element = Array.from(document.querySelectorAll<HTMLElement>(targetSelector))
-        .find((item) => item.getClientRects().length > 0);
-      if (!element) return null;
-      const rect = element.getBoundingClientRect();
-      const points = [
-        [0.5, 0.5], [0.5, 0.08], [0.5, 0.92], [0.08, 0.5], [0.92, 0.5],
-        [0.08, 0.08], [0.92, 0.08], [0.08, 0.92], [0.92, 0.92], [0.25, 0.5], [0.75, 0.5],
-      ];
-      for (const [fx, fy] of points) {
-        const x = Math.min(Math.max(rect.left + rect.width * fx, 1), window.innerWidth - 1);
-        const y = Math.min(Math.max(rect.top + rect.height * fy, 1), window.innerHeight - 1);
-        const hit = document.elementFromPoint(x, y);
-        if (hit && element.contains(hit)) return { x, y };
-      }
-      const centerHit = document.elementFromPoint(
-        Math.min(Math.max(rect.left + rect.width / 2, 1), window.innerWidth - 1),
-        Math.min(Math.max(rect.top + rect.height / 2, 1), window.innerHeight - 1),
-      );
-      return {
-        occludedBy: centerHit && !element.contains(centerHit)
-          ? centerHit.tagName + (centerHit.getAttribute('data-knowledge-mode-switch') ? '[data-knowledge-mode-switch]' : '')
-          : null,
-        rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) },
-      };
-    }, selector);
-    if (reachablePoint && 'x' in reachablePoint) {
-      await page.mouse.click(reachablePoint.x, reachablePoint.y);
-      await page.waitForTimeout(250);
-      return;
-    }
-    if (reachablePoint && 'occludedBy' in reachablePoint && reachablePoint.occludedBy) {
-      throw new Error(
-        `clickIfPresent target is not reachable by a real pointer click: ${selector} ${JSON.stringify(reachablePoint)}`,
-      );
-    }
+  }
+  if (sawElement) {
+    throw new Error(
+      `clickIfPresent target is not reachable by a real pointer click: ${selector} occludedBy=${lastOccludedBy ?? 'unknown'}`,
+    );
   }
 }
 
