@@ -4231,15 +4231,32 @@ async function buildAdaptivePathToolOutput(
   // derived from the repaired plan below and never raises an explicit request.
   const planningTimeBudgetMinutes = args.timeBudgetMinutes ?? resolveAdaptivePathPlanningBudget(registeredGoal);
   const intentMapping = mapAdaptivePathNaturalLanguageIntent(args.naturalLanguageIntent);
+  const plannerLearnerState = operation === 'generated'
+    ? isAdaptiveLearnerStateServiceEnabled()
+      ? await readPathPlannerLearnerStateForSubject(input.scope.targetUserId, {
+          goal: goalId,
+          classId: input.scope.classId,
+          now: new Date(),
+        }).catch((error) => {
+          console.error('[KonlingRuntime] Planner learner state read failed:', error);
+          return null;
+        })
+      : input.context.learnerState
+    : input.context.learnerState;
+  const learnerStateForPlanning = plannerLearnerState;
   const explicitResourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference);
+  const portraitResourcePreferences = resolveAdaptivePathPortraitResourcePreference(plannerLearnerState);
   const resourcePreferences = explicitResourcePreferences
+    ?? portraitResourcePreferences
     ?? (intentMapping.resourcePreferences.length > 0 ? intentMapping.resourcePreferences : undefined)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
   const resourcePreferenceSource = explicitResourcePreferences
     ? 'request'
-    : intentMapping.resourcePreferences.length > 0
-      ? 'intent'
-      : 'fallback';
+    : portraitResourcePreferences
+      ? 'profile'
+      : intentMapping.resourcePreferences.length > 0
+        ? 'intent'
+        : 'fallback';
   const difficultyRhythm = args.difficultyRhythm
     ?? (intentMapping.conflictDimensions.includes('difficulty')
       ? undefined
@@ -4272,12 +4289,20 @@ async function buildAdaptivePathToolOutput(
       key: 'resource-preferences' as const,
       source: 'request' as const,
       value: explicitResourcePreferences,
+    }] : portraitResourcePreferences ? [{
+      key: 'resource-preferences' as const,
+      source: 'profile' as const,
+      value: portraitResourcePreferences,
     }] : intentMapping.resourcePreferences.length > 0 ? [{
       key: 'resource-preferences' as const,
       source: 'intent' as const,
       value: intentMapping.resourcePreferences,
       mappedTerms: intentMapping.matchedTerms,
-    }] : []),
+    }] : [{
+      key: 'resource-preferences' as const,
+      source: 'fallback' as const,
+      value: registeredGoal.starterPathPolicy.preferredResourceTypes,
+    }]),
     ...(args.difficultyRhythm ? [{
       key: 'difficulty-rhythm' as const,
       source: 'request' as const,
@@ -4326,19 +4351,6 @@ async function buildAdaptivePathToolOutput(
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
-  const plannerLearnerState = operation === 'generated'
-    ? isAdaptiveLearnerStateServiceEnabled()
-      ? await readPathPlannerLearnerStateForSubject(input.scope.targetUserId, {
-          goal: goalId,
-          classId: input.scope.classId,
-          now: new Date(),
-        }).catch((error) => {
-          console.error('[KonlingRuntime] Planner learner state read failed:', error);
-          return null;
-        })
-      : input.context.learnerState
-    : input.context.learnerState;
-  const learnerStateForPlanning = plannerLearnerState;
   const governedFacts = await input.db.learningFact?.findMany?.({
     where: { userId: input.scope.targetUserId },
     orderBy: [{ finishedAt: 'desc' }, { id: 'desc' }],
@@ -4396,6 +4408,7 @@ async function buildAdaptivePathToolOutput(
     timeBudgetInsufficient: timeBudget.insufficient,
     difficultyRhythm,
     resourcePreference: resourcePreferences,
+    resourcePreferenceSource,
     checkpointPreference,
     allowExternalResources,
     graphNodeId: args.graphNodeId ?? null,
@@ -4571,6 +4584,7 @@ async function buildAdaptivePathToolOutput(
       timeBudgetInsufficient: timeBudget.insufficient,
       difficultyRhythm,
       resourcePreference: resourcePreferences,
+      resourcePreferenceSource,
       checkpointPreference,
       allowExternalResources,
       graphNodeId: args.graphNodeId ?? null,
@@ -4679,6 +4693,7 @@ function toStudentConfigurationFulfillment(
   return {
     key: fulfillment.key,
     status: fulfillment.status,
+    source: fulfillment.source,
     effect: fulfillment.effect,
     message: fulfillment.message,
   };
@@ -5048,6 +5063,42 @@ function normalizePlannerScore(value: unknown) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
   if (value > 1) return Math.max(0, Math.min(1, value / 100));
   return Math.max(0, Math.min(1, value));
+}
+
+// #1985：画像偏好层门槛——治理证据总量达到该值且画像可用时才以 profile 来源生效。
+const ADAPTIVE_PATH_PORTRAIT_RESOURCE_PREFERENCE_MIN_EVIDENCE = 3;
+
+// learner-state 偏好模态（factTypeToModality）→ 规划器资源类型；path_choice resourceMix
+// 键本身已是规划器资源类型，经 normalize 过滤后原样保留。
+const ADAPTIVE_PATH_PORTRAIT_MODALITY_RESOURCE_TYPES: Record<string, AdaptiveLearningPathPlanNode['type'][]> = {
+  assessment: ['adaptive_quiz'],
+  media: ['video'],
+  simulation: ['simulation'],
+  arena: ['arena_task'],
+  reflection: ['reflection'],
+  'ai-collaboration': ['konling'],
+  ai: ['konling'],
+  konling: ['konling'],
+  resource: ['handout'],
+};
+
+function resolveAdaptivePathPortraitResourcePreference(
+  learnerState: AdaptiveLearnerState | null | undefined,
+): AdaptiveLearningPathPlanNode['type'][] | undefined {
+  // 仅在主画像快照可用（SNAPSHOT + available）时启用画像层；NO_EVIDENCE/UNAVAILABLE
+  // 一律按 delta spec 下落系统默认，即使偏好特征本身已有足量治理证据。
+  if (!learnerState
+    || learnerState.primaryPortraitState !== 'SNAPSHOT'
+    || learnerState.primaryPortraitAvailability !== 'available') return undefined;
+  const preference = learnerState.resourcePreference;
+  if (!preference || preference.confidence === 'none') return undefined;
+  const evidenceCount = Object.values(preference.sourceCounts ?? {})
+    .reduce((sum, count) => sum + (typeof count === 'number' && Number.isFinite(count) && count > 0 ? count : 0), 0);
+  if (evidenceCount < ADAPTIVE_PATH_PORTRAIT_RESOURCE_PREFERENCE_MIN_EVIDENCE) return undefined;
+  const mapped = normalizeAdaptivePathResourcePreferences(Array.from(new Set(preference.preferredModalities.flatMap((modality) => (
+    ADAPTIVE_PATH_PORTRAIT_MODALITY_RESOURCE_TYPES[modality] ?? [modality]
+  )))));
+  return mapped && mapped.length > 0 ? mapped : undefined;
 }
 
 function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): AdaptiveLearningPathPlanNode['type'][] | undefined {

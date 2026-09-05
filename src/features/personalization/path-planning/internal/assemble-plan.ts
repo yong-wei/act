@@ -481,7 +481,7 @@ export type AdaptiveLearningPathConfigurationKey =
   | 'natural-language-intent'
   | 'time-budget';
 
-export type AdaptiveLearningPathConfigurationSource = 'request' | 'intent' | 'fallback';
+export type AdaptiveLearningPathConfigurationSource = 'request' | 'profile' | 'intent' | 'fallback';
 
 export interface AdaptiveLearningPathConfigurationRequest {
   key: AdaptiveLearningPathConfigurationKey;
@@ -2068,7 +2068,12 @@ function withCollectionBackedPlanningInput(
     goalId: input.goal.id,
     mode: 'new',
   });
-  if (projection.records.length === 0) return input;
+  // #1985：下落系统默认（fallback）时，画像偏好已被运行时门槛判定不可用或未达门槛，
+  // 其原始模态不得再参与排序加权；冷启动试学模态在下方另行合并，不受影响。
+  const suppressedLearnerState = input.resourcePreferenceSource === 'fallback'
+    ? withoutLearnerStateResourceModalities(input.learnerState)
+    : input.learnerState;
+  if (projection.records.length === 0) return { ...input, learnerState: suppressedLearnerState };
   const extraModalities = collectionPreferredModalities(projection.records)
     .filter((type): type is ResourceNode['type'] => input.registry.supportedTypes.includes(type as ResourceNode['type']));
   const checkpointPreference = input.checkpointPreferenceSource === 'request'
@@ -2080,16 +2085,16 @@ function withCollectionBackedPlanningInput(
   const applyPreference = extraModalities.length > 0 && input.resourcePreferenceSource !== 'request';
   const learnerState = applyPreference
     ? {
-      ...input.learnerState,
+      ...suppressedLearnerState,
       resourcePreference: {
         preferredModalities: unique([
           ...extraModalities,
-          ...(input.learnerState?.resourcePreference?.preferredModalities ?? []),
+          ...(suppressedLearnerState?.resourcePreference?.preferredModalities ?? []),
         ]),
         confidence: 'medium' as const,
       },
     }
-    : input.learnerState;
+    : suppressedLearnerState;
   return {
     ...input,
     learnerState,
@@ -2230,7 +2235,9 @@ function assembleAdaptiveLearningPathPlanInternal(
     scene: 'path',
     targetGraphNodeIds,
     selectedGraphNodeIds: graphContext?.selectedGraphNodeIds ?? [],
-    learnerState: input.learnerState,
+    learnerState: preferenceContext.usesExplicitResourcePreferences
+      ? withoutLearnerStateResourceModalities(input.learnerState)
+      : input.learnerState,
     preferredResourceTypes: input.resourcePreferences,
     timeBudgetMinutes: input.constraints.timeBudgetMinutes,
     completedNodeIds: input.constraints.completedNodeIds ?? [],
@@ -3478,15 +3485,22 @@ function buildConfigurationFulfillment(
   const fulfillmentByKey = new Map<AdaptiveLearningPathConfigurationKey, AdaptiveLearningPathConfigurationFulfillment>();
 
   for (const request of requests) {
-    if (request.source === 'fallback') continue;
+    if (request.source === 'fallback' && request.key !== 'resource-preferences') continue;
     let fulfilled = mainPath.length > 0;
     let effect = '';
     let message = '';
     if (request.key === 'resource-preferences') {
-      const requestedTypes = Array.isArray(request.value) ? request.value : [];
-      fulfilled = requestedTypes.some((type) => selectedTypes.has(type as ResourceNode['type']));
-      effect = fulfilled ? '已优先选择匹配的资源类型。' : '没有可满足的匹配资源类型。';
-      message = fulfilled ? effect : '当前目标和约束下没有可替代的匹配资源。';
+      if (request.source === 'fallback') {
+        // #1985：下落系统默认时同样标注来源，不得呈现为用户或画像选择。
+        fulfilled = mainPath.length > 0;
+        effect = '未提交资源偏好，已按目标默认资源类型组合路径。';
+        message = effect;
+      } else {
+        const requestedTypes = Array.isArray(request.value) ? request.value : [];
+        fulfilled = requestedTypes.some((type) => selectedTypes.has(type as ResourceNode['type']));
+        effect = fulfilled ? '已优先选择匹配的资源类型。' : '没有可满足的匹配资源类型。';
+        message = fulfilled ? effect : '当前目标和约束下没有可替代的匹配资源。';
+      }
     } else if (request.key === 'difficulty-rhythm') {
       const rhythm = typeof request.value === 'string' ? request.value : 'steady';
       fulfilled = selectedReasons.has(`matches-${rhythm}-rhythm`);
@@ -5626,6 +5640,21 @@ function buildModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<stri
 
 function hasExplicitPlannerChoice(source: string | undefined, value: unknown): boolean {
   return source ? source !== 'fallback' : value !== undefined;
+}
+
+// #1985：显式来源（request/profile）下，解析后的 resourcePreferences 是唯一偏好权威，
+// learnerState 携带的画像/试学模态不得再进入排序加权，避免画像偏好压过用户显式选择。
+function withoutLearnerStateResourceModalities(
+  learnerState: AdaptiveLearningPathPlannerInput['learnerState'],
+): AdaptiveLearningPathPlannerInput['learnerState'] {
+  if (!learnerState) return learnerState;
+  return {
+    ...learnerState,
+    resourcePreference: {
+      ...learnerState.resourcePreference,
+      preferredModalities: [],
+    },
+  };
 }
 
 function deficitsForPath(

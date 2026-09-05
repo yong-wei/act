@@ -1106,9 +1106,13 @@ function toStudentSafePathPayload(payload: unknown): unknown {
 }
 
 function toStudentConfigurationFulfillment(value: unknown): Array<Record<string, unknown>> {
+  const allowedSources = new Set(['request', 'profile', 'intent', 'fallback']);
   return arrayOfRecords(value).map((entry) => ({
     key: typeof entry.key === 'string' ? entry.key : 'configuration',
     status: entry.status === 'unmet' ? 'unmet' : 'applied',
+    ...(typeof entry.source === 'string' && allowedSources.has(entry.source)
+      ? { source: entry.source }
+      : {}),
     effect: typeof entry.effect === 'string' ? entry.effect : '',
     message: typeof entry.message === 'string' ? entry.message : '',
   }));

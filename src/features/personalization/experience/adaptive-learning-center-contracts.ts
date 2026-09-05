@@ -1314,6 +1314,7 @@ function toStudentConfigurationFulfillment(
   return {
     key: fulfillment.key,
     status: fulfillment.status,
+    source: fulfillment.source,
     effect: fulfillment.effect,
     message: fulfillment.message,
   };

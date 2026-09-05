@@ -339,6 +339,7 @@ describe('adaptive learning center UI contracts', () => {
       .configurationFulfillment?.[0]).toEqual({
       key: 'resource-preferences',
       status: 'applied',
+      source: 'request',
       effect: '已优先选择匹配的资源类型。',
       message: '已优先选择匹配的资源类型。',
     });
@@ -1214,6 +1215,7 @@ describe('adaptive learning center UI contracts', () => {
       goalId: 'control-correction' as const,
       timeBudgetMinutes: 45,
       resourcePreference: [],
+      resourcePreferenceTouched: true,
       allowExternalResources: true,
       naturalLanguageIntent: '先补频域证据',
     };
@@ -1229,8 +1231,23 @@ describe('adaptive learning center UI contracts', () => {
       goalId: 'frequency-response-foundations',
       timeBudgetMinutes: 45,
       resourcePreference: [],
+      resourcePreferenceTouched: true,
       allowExternalResources: true,
       naturalLanguageIntent: '',
+    });
+  });
+
+  it('omits pathResources from goal-change URLs while the panel preference is untouched', () => {
+    const href = buildPathGenerationGoalHref('frequency-response-foundations', {
+      ...defaultPathGenerationPanel,
+      goalId: 'frequency-response-foundations',
+    });
+    const query = new URLSearchParams(href.split('?')[1] ?? '');
+
+    expect(query.has('pathResources')).toBe(false);
+    expect(pathGenerationPanelFromSearchParams(query, 'frequency-response-foundations')).toMatchObject({
+      resourcePreference: defaultPathGenerationPanel.resourcePreference,
+      resourcePreferenceTouched: false,
     });
   });
 

@@ -1325,6 +1325,7 @@ describe('control-correction path rounds', () => {
       configurationFulfillment: [{
         key: 'natural-language-intent',
         status: 'unmet',
+        source: 'request',
         effect: '未完全满足',
         message: '请调整表达。',
       }],
@@ -1332,6 +1333,7 @@ describe('control-correction path rounds', () => {
         configurationFulfillment: [{
           key: 'difficulty-rhythm',
           status: 'unmet',
+          source: 'intent',
           effect: '未完全满足',
           message: '请只选择一种节奏。',
         }],

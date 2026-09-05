@@ -1577,6 +1577,7 @@ function takeStoredPathGenerationPanel(goalId: AdaptivePracticeGoalId | null): P
         ? parsed.resourcePreference.filter((item): item is AdaptivePathResourceKind =>
             generationResourceOptions.some((option) => option.id === item))
         : defaultPathGenerationPanel.resourcePreference,
+      resourcePreferenceTouched: parsed.resourcePreferenceTouched === true,
       naturalLanguageIntent: typeof parsed.naturalLanguageIntent === 'string'
         ? parsed.naturalLanguageIntent
         : '',
@@ -2080,8 +2081,16 @@ function getPathOptionFallback(view: ControlCorrectionLearningCenterView | null)
 type PathConfigurationFulfillmentView = {
   key: string;
   status: 'applied' | 'unmet';
+  source?: string;
   effect: string;
   message: string;
+};
+
+const pathResourcePreferenceSourceLabels: Record<string, string> = {
+  request: '用户选择',
+  profile: '画像推断',
+  intent: '自然语言',
+  fallback: '系统默认',
 };
 
 function getPathConfigurationFulfillment(view: ControlCorrectionLearningCenterView | null): PathConfigurationFulfillmentView[] {
@@ -2092,6 +2101,7 @@ function getPathConfigurationFulfillment(view: ControlCorrectionLearningCenterVi
     .map((entry) => ({
       key: typeof entry.key === 'string' ? entry.key : 'configuration',
       status: entry.status === 'unmet' ? 'unmet' as const : 'applied' as const,
+      source: typeof entry.source === 'string' ? entry.source : undefined,
       effect: typeof entry.effect === 'string' ? entry.effect : '',
       message: typeof entry.message === 'string' ? entry.message : '',
     }))
@@ -4157,6 +4167,7 @@ export default function AdaptivePracticePage() {
         resourcePreference: selected
           ? current.resourcePreference.filter((item) => item !== resource)
           : [...current.resourcePreference, resource],
+        resourcePreferenceTouched: true,
       };
     });
   }, []);
@@ -4283,7 +4294,9 @@ export default function AdaptivePracticePage() {
           routeIntent,
           timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes,
           difficultyRhythm: pathGenerationPanel.difficultyRhythm,
-          resourcePreference: pathGenerationPanel.resourcePreference,
+          resourcePreference: pathGenerationPanel.resourcePreferenceTouched
+            ? pathGenerationPanel.resourcePreference
+            : undefined,
           checkpointPreference: pathGenerationPanel.checkpointPreference,
           allowExternalResources: pathGenerationPanel.allowExternalResources,
           naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent,
@@ -5665,6 +5678,11 @@ export default function AdaptivePracticePage() {
                       );
                     })}
                   </div>
+                  {!pathGenerationPanel.resourcePreferenceTouched ? (
+                    <p className="mt-2 text-xs text-subtle" data-adaptive-path-resource-preference-default-hint="visible">
+                      以上为系统建议组合，尚未作为你的偏好提交；点击资源类型即按你的选择生成。
+                    </p>
+                  ) : null}
                 </fieldset>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -6013,6 +6031,9 @@ export default function AdaptivePracticePage() {
                     <p key={entry.key} className="leading-6 text-subtle">
                       <span className="font-medium text-foreground">{entry.status === 'applied' ? '已应用：' : '未满足：'}</span>
                       {entry.status === 'applied' ? entry.effect : entry.message}
+                      {entry.key === 'resource-preferences' && entry.source ? (
+                        <span>（偏好来源：{pathResourcePreferenceSourceLabels[entry.source] ?? entry.source}）</span>
+                      ) : null}
                     </p>
                   ))}
                   {pathBudgetLimitation.insufficient &&

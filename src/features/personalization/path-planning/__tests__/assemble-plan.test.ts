@@ -4069,6 +4069,98 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('applies portrait-inferred resource preferences as an explicit ranking source and labels provenance', () => {
+    const registryInput = plannerInput();
+    const profilePlan = planLearningPath({
+      ...plannerInput({
+        resourcePreferences: ['simulation', 'arena_task'],
+        resourcePreferenceSource: 'profile',
+        configurationRequests: [
+          { key: 'resource-preferences', source: 'profile', value: ['simulation', 'arena_task'] },
+        ],
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const baselinePlan = planLearningPath({
+      ...plannerInput({
+        learnerState: null,
+        resourcePreferences: undefined,
+        resourcePreferenceSource: undefined,
+        configurationRequests: [
+          { key: 'resource-preferences', source: 'fallback', value: ['knowledge_card', 'adaptive_quiz', 'simulation'] },
+        ],
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const preferenceSelectedCount = (plan: ReturnType<typeof planLearningPath>) =>
+      plan.mainPath.filter((node) => node.reasonCodes.includes('matches-resource-preference')).length;
+
+    expect(profilePlan.explanations.selectedReasons).toContain('matches-resource-preference');
+    expect(preferenceSelectedCount(profilePlan)).toBeGreaterThan(preferenceSelectedCount(baselinePlan));
+    expect(profilePlan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'profile' }),
+    ]));
+    expect(baselinePlan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'fallback' }),
+    ]));
+  });
+
+  it('stops learner-state portrait modalities from weighting resources under an explicit request source', () => {
+    const registryInput = plannerInput();
+    const explicitOverrides = {
+      resourcePreferences: ['konling'],
+      resourcePreferenceSource: 'request' as const,
+      configurationRequests: [
+        { key: 'resource-preferences', source: 'request' as const, value: ['konling'] },
+      ],
+    };
+    const withPortraitModality = planLearningPath({
+      ...plannerInput({
+        ...explicitOverrides,
+        learnerState: {
+          ...plannerInput().learnerState,
+          resourcePreference: { preferredModalities: ['simulation'], confidence: 'medium' },
+        },
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const withoutPortraitModality = planLearningPath({
+      ...plannerInput({
+        ...explicitOverrides,
+        learnerState: {
+          ...plannerInput().learnerState,
+          resourcePreference: { preferredModalities: [], confidence: 'none' },
+        },
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+
+    expect(withPortraitModality.mainPath.map((node) => node.id))
+      .toEqual(withoutPortraitModality.mainPath.map((node) => node.id));
+  });
+
+  it('stops judged-unavailable portrait modalities from altering the system-default fallback mix', () => {
+    const registryInput = plannerInput();
+    const fallbackOverrides = (modalities: string[]) => ({
+      resourcePreferenceSource: 'fallback' as const,
+      learnerState: {
+        ...plannerInput().learnerState,
+        resourcePreference: { preferredModalities: modalities, confidence: 'medium' as const },
+      },
+    });
+    const withUnavailablePortraitModality = planLearningPath({
+      ...plannerInput(fallbackOverrides(['simulation'])),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const withoutPortraitModality = planLearningPath({
+      ...plannerInput(fallbackOverrides([])),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+
+    expect(withUnavailablePortraitModality.mainPath.map((node) => node.id))
+      .toEqual(withoutPortraitModality.mainPath.map((node) => node.id));
+  });
+
   it('does not let a light checkpoint preference lower the registered minimum checkpoint count', () => {
     const registeredGoal = {
       ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],
