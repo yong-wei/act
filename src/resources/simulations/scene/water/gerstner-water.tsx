@@ -30,7 +30,8 @@ export function gerstnerAmplitudeScale(seaState: number): number {
 /**
  * 与可见水面同一坐标基准的 CPU 采样。
  *
- * GerstnerWater 网格逐帧平移到舰位、shader 以网格局部 position.xz 计算相位，
+ * GerstnerWater 网格逐帧平移到舰位、几何体已烘焙 -90° X 旋转（局部 XZ 平面、+Y 朝上，
+ * 见 createGerstnerWaterGeometry），shader 以网格局部 position.xz 计算相位、position.y 写垂向位移；
  * 因此世界坐标必须先减去网格原点（舰位）再采样，并乘同一振幅倍率；
  * 否则非原点附近船体/尾迹/贴水线与可见水面采到不同波相。
  */
@@ -45,6 +46,18 @@ export function sampleVisibleWaterHeight(
 ): number {
   return GERSTNER_WATER_BASE_Y
     + amplitudeScale * computeGerstnerDisplacement(waves, worldX - originX, worldZ - originZ, timeSeconds).y;
+}
+
+/**
+ * 水面几何：-90° X 旋转必须烘焙进几何体，不能挂在 mesh rotation 上。
+ * PlaneGeometry 原始平面在 XY（z 恒 0）；mesh 挂 rotation 时 shader 看到的
+ * position.z 恒为 0（相位沿一维退化）、写入 position.y 的垂向位移落到世界水平轴。
+ * 烘焙后局部即 XZ 平面、+Y 朝上，与 shader/CPU 采样同一坐标约定。
+ */
+export function createGerstnerWaterGeometry(size: number, resolution: number): THREE.PlaneGeometry {
+  const geometry = new THREE.PlaneGeometry(size, size, resolution, resolution);
+  geometry.rotateX(-Math.PI / 2);
+  return geometry;
 }
 
 /** 未显式传色时的默认水色组：与默认环境预设（开阔海）同一真源，不再各自硬编码。 */
@@ -89,7 +102,7 @@ export function GerstnerWater({
 
   const geometry = useMemo(() => {
     const resolution = RESOLUTION_BY_TIER[tier];
-    return new THREE.PlaneGeometry(size, size, resolution, resolution);
+    return createGerstnerWaterGeometry(size, resolution);
   }, [size, tier]);
 
   const amplitudeScale = useMemo(() => gerstnerAmplitudeScale(seaState), [seaState]);
@@ -122,7 +135,6 @@ export function GerstnerWater({
       ref={meshRef}
       geometry={geometry}
       material={material}
-      rotation={[-Math.PI / 2, 0, 0]}
       position={[0, GERSTNER_WATER_BASE_Y, 0]}
     />
   );

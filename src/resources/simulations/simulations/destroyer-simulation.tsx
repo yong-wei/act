@@ -228,10 +228,12 @@ export interface AttainmentState {
   armed: boolean;
   maneuverActive: boolean;
   initialTargetDeg: number;
+  /** 进入当前调节窗口以来的时间（s）：机动激活时清零；达标后再遇 >2×maxError 偏离重新武装时清零，开启新窗口。 */
+  maneuverTime: number;
 }
 
 export function createAttainmentState(initialTargetDeg = 0): AttainmentState {
-  return { dwell: 0, armed: true, maneuverActive: false, initialTargetDeg };
+  return { dwell: 0, armed: true, maneuverActive: false, initialTargetDeg, maneuverTime: 0 };
 }
 
 /**
@@ -239,6 +241,8 @@ export function createAttainmentState(initialTargetDeg = 0): AttainmentState {
  * 航向误差在 successCriteria.maxError 内持续 3s 记一次达标；
  * 误差超过 2×maxError 重新武装。直线巡航段（目标未变化）不记达标；
  * 目标渐变（斜坡插值）与阶跃同样识别，跟踪良好的斜坡段也可记达标。
+ * 传入 maxSettlingTimeSec（successCriteria.maxSettlingTime）时，仅在调节时限内
+ * 收敛才记达标；超时后本次机动不再计数，直到重新武装开启新调节窗口。
  */
 export function advanceAttainment(
   state: AttainmentState,
@@ -246,21 +250,28 @@ export function advanceAttainment(
   headingErrorDeg: number,
   maxErrorDeg: number,
   dt: number,
+  maxSettlingTimeSec?: number,
 ): boolean {
   if (!state.maneuverActive && Math.abs(normalizeSignedHeading(targetDeg - state.initialTargetDeg)) > 2) {
     state.maneuverActive = true;
+    state.maneuverTime = 0;
   }
   if (!state.maneuverActive) return false;
+  state.maneuverTime += dt;
   if (headingErrorDeg <= maxErrorDeg) {
     state.dwell += dt;
-    if (state.armed && state.dwell >= 3) {
+    const withinDeadline = maxSettlingTimeSec === undefined || state.maneuverTime <= maxSettlingTimeSec;
+    if (state.armed && state.dwell >= 3 && withinDeadline) {
       state.armed = false;
       return true;
     }
     return false;
   }
   state.dwell = 0;
-  if (headingErrorDeg > maxErrorDeg * 2) state.armed = true;
+  if (headingErrorDeg > maxErrorDeg * 2) {
+    if (!state.armed) state.maneuverTime = 0;
+    state.armed = true;
+  }
   return false;
 }
 
@@ -736,6 +747,7 @@ function SimulationEngine({
   resetToken,
   speedScale,
   maxErrorDeg,
+  maxSettlingTimeSec,
   onHudUpdate,
   onChartDataUpdate,
 }: {
@@ -751,6 +763,8 @@ function SimulationEngine({
   speedScale: number;
   /** 当前任务 successCriteria.maxError（航向误差 °）：彩蛋达标判定阈值。 */
   maxErrorDeg: number;
+  /** 当前任务 successCriteria.maxSettlingTime（s）：机动收敛时限，超时达标不计数。 */
+  maxSettlingTimeSec?: number;
   onHudUpdate: (state: HudState) => void;
   onChartDataUpdate: (time: number, desired: number, actual: number, speed: number, rudder: number) => void;
 }) {
@@ -918,7 +932,7 @@ function SimulationEngine({
 
       // 彩蛋达标判定（视觉层只读计数）：进入机动段后误差收敛记达标，见 advanceAttainment。
       const headingErrorDeg = Math.abs(normalizeSignedHeading(targetHeading - toDegrees(sim.headingRad)));
-      if (advanceAttainment(attainmentRef.current, targetHeading, headingErrorDeg, maxErrorDeg, dt)) {
+      if (advanceAttainment(attainmentRef.current, targetHeading, headingErrorDeg, maxErrorDeg, dt, maxSettlingTimeSec)) {
         sim.attainedCount += 1;
       }
 
@@ -1530,6 +1544,10 @@ export default function DestroyerSimulation() {
           maxErrorDeg={
             destroyer055Profile.scenarios.find((scenario) => scenario.id === task.scenario)
               ?.successCriteria?.maxError ?? 5
+          }
+          maxSettlingTimeSec={
+            destroyer055Profile.scenarios.find((scenario) => scenario.id === task.scenario)
+              ?.successCriteria?.maxSettlingTime
           }
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}

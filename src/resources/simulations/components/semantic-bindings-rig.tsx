@@ -45,8 +45,10 @@ export function SemanticBindingsRig({
   const lastAttainedRef = useRef(0);
   const [demoRequest, setDemoRequest] = useState<{ clip: string; key: number } | null>(null);
 
-  // L0 clip-loop 绑定：立即播放；speedCoupled 的 timeScale 每帧随航速更新。
-  useMemo(() => {
+  // L0 clip-loop 绑定：进 useEffect 装配并在 cleanup 停播。
+  // 不得在 useMemo 里 play()：StrictMode 会执行 setup→cleanup→setup，
+  // 挂在 useMemo 的副作用不会随第二轮 setup 重放，action 全部停在未激活态。
+  useEffect(() => {
     speedCoupledRef.current = [];
     for (const binding of descriptor.semanticBindings ?? []) {
       if (binding.drive !== 'clip-loop') continue;
@@ -59,9 +61,8 @@ export function SemanticBindingsRig({
       action.play();
       if (binding.speedCoupled) speedCoupledRef.current.push({ action, rate: binding.rate ?? 1 });
     }
+    return () => { mixer.stopAllAction(); };
   }, [mixer, animations, descriptor]);
-
-  useEffect(() => () => { mixer.stopAllAction(); }, [mixer]);
 
   // L0 程序化绑定：按语义名解析节点；任一节点缺失则该绑定整体 fail closed。
   const procedural = useMemo(() => (descriptor.semanticBindings ?? [])
