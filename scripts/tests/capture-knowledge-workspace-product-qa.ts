@@ -1430,23 +1430,21 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   await page.waitForTimeout(150);
   if (await page.evaluate(() => window.innerWidth < 640)) {
     const labelsReady = () => {
+      // compact 子集画布渲染后，标签层数量等于节点子集规模；放置与可见性由共享画布
+      // 的标签投影引擎决定，不再属于 DOM 合同（可见节点目录已随 #1742 移除）。
       const runtime = document.querySelector<HTMLElement>('[data-active-authority-runtime="force-graph"]');
       const labels = Array.from(runtime?.querySelectorAll<HTMLElement>(
         '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
       ) ?? []);
       const expectedNodeCount = runtime?.querySelectorAll('[data-active-authority-node]').length ?? 0;
+      const nodeLimit = Number(
+        document.querySelector('[data-active-authority-node-limit]')?.getAttribute('data-active-authority-node-limit')
+          ?? Number.NaN,
+      );
+      const expectedLabelCount = Number.isFinite(nodeLimit) ? Math.min(expectedNodeCount, nodeLimit) : expectedNodeCount;
       return expectedNodeCount > 0
-        && labels.length === expectedNodeCount
-        && labels.every((label) => {
-          const rect = label.getBoundingClientRect();
-          return !label.hidden
-            && rect.width > 0
-            && rect.height > 0
-            && rect.right > 0
-            && rect.bottom > 0
-            && rect.left < window.innerWidth
-            && rect.top < window.innerHeight;
-        });
+        && labels.length === expectedLabelCount
+        && labels.every((label) => label.isConnected);
     };
     try {
       await page.waitForFunction(labelsReady, undefined, { timeout: 5000 });
