@@ -1496,8 +1496,8 @@ async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: str
   if (!(await button.isVisible().catch(() => false))) {
     throw new Error(`${mode} mode control unavailable in ${context}`);
   }
-  // 模式按钮可能位于视口外的工具栏滚动区；用 DOM click 保证触发。
-  await button.evaluate((element) => (element as HTMLButtonElement).click());
+  await button.scrollIntoViewIfNeeded().catch(() => undefined);
+  await button.click({ timeout: 5000 });
   await page.waitForSelector(`[data-knowledge-graph-mode="${mode}"]`, { timeout: 15000 });
   if (mode === 'legacy') {
     await page.waitForFunction(() => {
@@ -1574,15 +1574,42 @@ async function waitForKnowledgeReady(page: Page) {
 }
 
 async function clickIfPresent(page: Page, selector: string) {
-  // 指针点击可能被悬浮工具栏（z-50 mode-switch）拦截；用 DOM click 保证触发，可见性判断保留。
-  const clicked = await page.evaluate((targetSelector) => {
-    const element = Array.from(document.querySelectorAll<HTMLElement>(targetSelector))
-      .find((item) => item.getClientRects().length > 0);
-    if (!element) return false;
-    element.click();
-    return true;
-  }, selector);
-  if (clicked) await page.waitForTimeout(250);
+  // 真实指针点击保留可达性校验：遮挡/视口外是验收事实，必须失败而不是用 DOM click 掩盖。
+  const locator = page.locator(selector);
+  const count = await locator.count();
+  for (let index = 0; index < count; index += 1) {
+    const candidate = locator.nth(index);
+    if (!(await candidate.isVisible().catch(() => false))) continue;
+    await candidate.scrollIntoViewIfNeeded().catch(() => undefined);
+    try {
+      await candidate.click({ timeout: 5000 });
+      await page.waitForTimeout(250);
+      return;
+    } catch {
+      // 记录遮挡诊断后尝试下一个候选。
+    }
+  }
+  if (count > 0) {
+    const occlusion = await page.evaluate((targetSelector) => {
+      const element = Array.from(document.querySelectorAll<HTMLElement>(targetSelector))
+        .find((item) => item.getClientRects().length > 0);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      const sample = document.elementFromPoint(
+        Math.min(Math.max(rect.left + rect.width / 2, 1), window.innerWidth - 1),
+        Math.min(Math.max(rect.top + rect.height / 2, 1), window.innerHeight - 1),
+      );
+      return {
+        occludedBy: sample && !element.contains(sample)
+          ? sample.tagName + (sample.getAttribute('data-knowledge-mode-switch') ? '[data-knowledge-mode-switch]' : '')
+          : null,
+        rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) },
+      };
+    }, selector);
+    if (occlusion) {
+      throw new Error(`clickIfPresent target is not reachable by a real pointer click: ${selector} ${JSON.stringify(occlusion)}`);
+    }
+  }
 }
 
 async function openDesktopTool(page: Page, tool: string) {
@@ -1916,12 +1943,10 @@ async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = se
       && control?.getAttribute('aria-busy') === 'false';
   }, nodeId, { timeout: 20000 });
   const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
-  // 画布节点控制可能被悬浮层拦截；DOM click 需先 focus 才能等价指针点击的焦点语义，
-  // 否则后续 Escape 关闭与焦点回画布的键盘证据失真。
-  await control.evaluate((element) => {
-    element.focus();
-    (element as HTMLButtonElement).click();
-  });
+  // 节点目录是 sr-only 可达性入口（#1742 后不再指针可达）；键盘激活是真实用户路径，
+  // 且把焦点放到触发控件上，保证后续 Escape 关闭与焦点回画布的键盘证据成立。
+  await control.focus();
+  await page.keyboard.press('Enter');
   await page.waitForSelector(inspectorSelector, { timeout: 15000 });
 }
 
