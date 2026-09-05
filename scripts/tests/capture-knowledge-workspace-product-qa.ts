@@ -2034,7 +2034,26 @@ async function probeFocusTarget(
   returnSelector: string,
 ) {
   assertLegacyFocusState(target, state);
-  const { context, page } = await openStatePage(browser, state, storageState);
+  let context: BrowserContext;
+  let page: Page;
+  try {
+    const opened = await openStatePage(browser, state, storageState);
+    context = opened.context;
+    page = opened.page;
+  } catch (error) {
+    // 模式控件指针不可达（现役产品缺陷）时如实记录 blocked，焦点证据字段落到失败值。
+    if (error instanceof ModeControlUnreachableError) {
+      console.warn(`[knowledge-qa] focus target ${target} blocked: ${error.message}`);
+      return {
+        target,
+        openedFocusManaged: false,
+        escapeOrCloseReturnsFocus: false,
+        keyboardReachable: false,
+        blockedReason: error.message,
+      };
+    }
+    throw error;
+  }
   try {
     await open(page);
     await page.waitForSelector(panelSelector, { timeout: 8000 });
