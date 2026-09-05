@@ -29,7 +29,8 @@ import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
  * #1996 Codex review 整改回归：
  * F1 共享波面坐标/振幅基准；F2 达标门（机动段才评估）；F3 双桨逐帧节点绑定；
  * F4 v2.1.0 运行时有序回退；F5 水面网格轴约定（复审 P1）；F6 达标门 maxSettlingTime（复审 P2）；
- * F7 L0 clip 绑定进 useEffect（用户报告：螺旋桨不转）；F8 v2.1.2 红旗伪 scale 轨道剔除。
+ * F7 L0 clip 绑定进 useEffect（用户报告：螺旋桨不转）；F8 v2.1.2 红旗伪 scale 轨道剔除；
+ * F9 shader 相位改用不可变原始坐标（复审 P1）。
  */
 
 describe('F1: visible water sampling shares the mesh-local coordinate basis', () => {
@@ -403,4 +404,85 @@ describe('F8: v2.1.2 flag clip has no spurious mirrored scale channel', () => {
       expect(flagScaleChannels).toHaveLength(0);
     },
   );
+});
+
+describe('F9: shader phase uses immutable original coordinates (CPU/GPU same field)', () => {
+  const waves = GERSTNER_WAVE_SETS.high;
+  const scale = gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE);
+
+  /** 独立复刻顶点着色器主循环（不复用 CPU helper）：phase 必须取自原始坐标。 */
+  function shaderReplicaDisplace(x: number, z: number, t: number) {
+    let posX = x;
+    let posY = 0;
+    let posZ = z;
+    for (const wave of waves) {
+      const length = Math.hypot(wave.direction[0], wave.direction[1]) || 1;
+      const dx = wave.direction[0] / length;
+      const dz = wave.direction[1] / length;
+      const amp = wave.amplitude * scale;
+      const k = (2 * Math.PI) / wave.wavelength;
+      const c = wave.speed * Math.sqrt(9.8 / k);
+      const phase = k * (dx * x + dz * z) - c * k * t;
+      posY += amp * Math.sin(phase);
+      posX += wave.steepness * amp * dx * Math.cos(phase);
+      posZ += wave.steepness * amp * dz * Math.cos(phase);
+    }
+    return { x: posX, y: posY, z: posZ };
+  }
+
+  it('CPU helper与着色器独立复刻在顶点位移上逐点一致', () => {
+    const t = 54.87;
+    for (const [x, z] of [[0, 0], [117.3, -45.6], [-300, 200], [90, 0], [234.375, -234.375]] as const) {
+      const replica = shaderReplicaDisplace(x, z, t);
+      const helper = computeGerstnerDisplacement(waves, x, z, t);
+      expect(replica.y).toBeCloseTo(scale * helper.y, 9);
+      expect(replica.x - x).toBeCloseTo(scale * helper.offsetX, 9);
+      expect(replica.z - z).toBeCloseTo(scale * helper.offsetZ, 9);
+    }
+  });
+
+  it('非顶点采样与着色器复刻的位移三角网插值一致（复审案例 t=54.87）', () => {
+    const mesh = gerstnerWaterMeshSpecForTier('high');
+    const t = 54.87;
+    const cell = mesh.size / mesh.resolution;
+    const half = mesh.size / 2;
+    for (const [px, pz] of [[90, 0], [0.5, -0.4], [-1234.5, 678.9]] as const) {
+      const baseI = Math.floor((px + half) / cell);
+      const baseJ = Math.floor((pz + half) / cell);
+      let expected: number | null = null;
+      for (let di = -1; di <= 1 && expected === null; di += 1) {
+        for (let dj = -1; dj <= 1 && expected === null; dj += 1) {
+          const i = baseI + di;
+          const j = baseJ + dj;
+          const v00 = shaderReplicaDisplace(i * cell - half, j * cell - half, t);
+          const v10 = shaderReplicaDisplace((i + 1) * cell - half, j * cell - half, t);
+          const v01 = shaderReplicaDisplace(i * cell - half, (j + 1) * cell - half, t);
+          const v11 = shaderReplicaDisplace((i + 1) * cell - half, (j + 1) * cell - half, t);
+          const bary = (a: typeof v00, b: typeof v00, c: typeof v00) => {
+            const den = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+            if (Math.abs(den) < 1e-12) return null;
+            const u = ((px - a.x) * (c.z - a.z) - (c.x - a.x) * (pz - a.z)) / den;
+            const v = ((b.x - a.x) * (pz - a.z) - (px - a.x) * (b.z - a.z)) / den;
+            const w = 1 - u - v;
+            if (u < -1e-6 || v < -1e-6 || w < -1e-6) return null;
+            return w * a.y + u * b.y + v * c.y;
+          };
+          expected = bary(v00, v01, v10) ?? bary(v01, v11, v10);
+        }
+      }
+      expect(expected).not.toBeNull();
+      const sampled = sampleVisibleWaterHeight(waves, scale, mesh, 0, 0, px, pz, t);
+      expect(sampled).toBeCloseTo(GERSTNER_WATER_BASE_Y + expected!, 9);
+    }
+  });
+
+  it('shader 源码以不可变原始坐标计算相位', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/scene/water/gerstner-water-material.ts'),
+      'utf-8',
+    );
+    expect(source).toContain('vec3 basePos = position;');
+    expect(source).toContain('phase = k * (dx * basePos.x + dz * basePos.z)');
+    expect(source).not.toContain('phase = k * (dx * pos.x + dz * pos.z)');
+  });
 });
