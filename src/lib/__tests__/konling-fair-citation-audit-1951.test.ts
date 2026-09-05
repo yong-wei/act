@@ -139,6 +139,23 @@ describe('auditKonlingFairCitationRecord', () => {
     expect(record.coveredUnitCount).toBe(0);
   });
 
+  it('missing or unknown relevance basis is conservatively rejected (allowlist)', () => {
+    const missing = audited(
+      canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
+      [citation({ id: 'cit-1', answerRelevanceBasis: undefined })],
+    );
+    expect(missing.citationClasses.citationNoDirectSupport).toBe(1);
+    expect(missing.verifiedSupportingCount).toBe(0);
+
+    const unknown = audited(
+      canonicalBodyWithMarkers('formula-derivation', () => ' [1]'),
+      [citation({ id: 'cit-1', answerRelevanceBasis: 'future-basis' })],
+    );
+    expect(unknown.citationClasses.citationNoDirectSupport).toBe(1);
+    expect(unknown.verifiedSupportingCount).toBe(0);
+    expect(unknown.coveredUnitCount).toBe(0);
+  });
+
   it('structural-line markers never enter the precision numerator', () => {
     const answer = STUDY_QUESTION_SECTIONS['formula-derivation']
       .map((section) => section.citationPolicy === 'evidence-required'

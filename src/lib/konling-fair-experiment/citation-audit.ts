@@ -44,25 +44,36 @@ function ratio(numerator: number, denominator: number): KonlingFairExperimentRat
 }
 
 /**
- * 检索相关性的纯语义证据：只证明来源与问题相似，不证明支撑任何具体
- * 主张（生产 hybrid-retriever 的 semantic-score 分数桶）。
+ * 直接支撑的答案相关性证据分级白名单（生产 hybrid-retriever 的
+ * basis）：显式引用（selected-node-ref / capability-target-ref /
+ * resource-ref / learner-context-ref）与查询词直接命中（query-exact /
+ * query-lexical）。纯语义相似（semantic-score）只是检索级相关；缺失或
+ * 未知的 basis 证据不足——一律不算直接支撑（白名单，未知值保守拒绝，
+ * #1992 review P1）。
  */
-const PURE_SEMANTIC_RELEVANCE_BASIS = 'semantic-score';
+const DIRECT_SUPPORT_RELEVANCE_BASES: ReadonlySet<string> = new Set([
+  'selected-node-ref',
+  'capability-target-ref',
+  'resource-ref',
+  'learner-context-ref',
+  'query-exact',
+  'query-lexical',
+]);
 
 /**
  * 直接支撑判据（spec：占位符、未知编号、无法访问的目标与仅相关但不
  * 直接支撑的来源不得计入分子/覆盖）：已核验 + 有锚点 + href 可访问 +
- * 快照冻结答案相关性证据且分级为显式引用/查询直接命中（排除纯语义
- * 相似）。任一信号缺失或仅为语义相似即降级到对应失败桶，宁可低估也
- * 不高估。判据上限是生产端引用核验 + 直接选中证据；主张级蕴含验证
- * 超出确定性审计范围（非目标，#1992 review P1）。
+ * 快照冻结答案相关性证据且分级在白名单内（显式引用/查询直接命中）。
+ * 任一信号缺失或分级未知即降级到对应失败桶，宁可低估也不高估。判据
+ * 上限是生产端引用核验 + 直接选中证据；主张级蕴含验证超出确定性审计
+ * 范围（非目标，#1992 review P1）。
  */
 function isDirectVerifiedSupport(citation: KonlingFairExperimentCitationInput): boolean {
   return citation.verified === true
     && Boolean(citation.citationTargetId)
     && Boolean(citation.href)
     && Boolean(citation.answerRelevanceMatch)
-    && citation.answerRelevanceBasis !== PURE_SEMANTIC_RELEVANCE_BASIS;
+    && DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '');
 }
 
 /**
@@ -124,7 +135,7 @@ export function auditKonlingFairCitationRecord(
       citationClasses.citationNoTarget += 1;
       continue;
     }
-    if (!citation.answerRelevanceMatch || citation.answerRelevanceBasis === PURE_SEMANTIC_RELEVANCE_BASIS) {
+    if (!citation.answerRelevanceMatch || !DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '')) {
       citationClasses.citationNoDirectSupport += 1;
       continue;
     }
