@@ -2,11 +2,13 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-03
+> Last updated: 2026-09-05
 
 ---
 
 ## ✅ Done
+
+- 2026-09-05：在 act-dev1 对齐 integration 后完成下一批重构提案并推送，登记 #2002（删除旧 Active SVG 画布和几何测试）、#2003（删除仅测试使用的 Control Engine 登记表）、#2004（化简教师批阅输入与编辑状态），均为 #1915 子项且 ready。三项 OpenSpec 完整，43 项活动变更 strict 通过；仅文档提案，未实施。整体仍有 Data Governance 业务归属和仓库大文件处理，已写入 #1915。后续删除代码应同步删除仅约束旧实现的测试，不因测试引用保留无生产用途的实现。
 
 <!-- Move items here from "🚀 Next phase" when finished. Group by area. -->
 
