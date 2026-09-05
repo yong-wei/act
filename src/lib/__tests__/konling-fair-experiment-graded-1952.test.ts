@@ -135,7 +135,13 @@ async function runGradedFixture(runId: string) {
     calibers: ['structure-alias.v2'],
     generateProvider: async (task) => ({
       ok: true as const,
-      result: { answer: gradedAnswer(task.arm, task.item, task.replicate), elapsedMs: 1 },
+      result: {
+          // #1951 契约：full-feature 臂必须显式提供 citation 快照（缺字段＝
+          // 不可得，聚合 fail closed）；graded fixture 如实给空快照。
+          answer: gradedAnswer(task.arm, task.item, task.replicate),
+          ...(task.arm === 'full-feature' ? { citations: [] as const } : {}),
+          elapsedMs: 1,
+        },
     }),
     auditProvider: gradedAuditProvider(KONLING_FAIR_EXPERIMENT_BANK_V2.items),
   });
@@ -403,7 +409,13 @@ describe('判别力报告（#1952 fixture 端到端）', () => {
       calibers: ['structure-alias.v2'],
       generateProvider: async (task) => ({
         ok: true as const,
-        result: { answer: gradedAnswer(task.arm, task.item, task.replicate), elapsedMs: 1 },
+        result: {
+          // #1951 契约：full-feature 臂必须显式提供 citation 快照（缺字段＝
+          // 不可得，聚合 fail closed）；graded fixture 如实给空快照。
+          answer: gradedAnswer(task.arm, task.item, task.replicate),
+          ...(task.arm === 'full-feature' ? { citations: [] as const } : {}),
+          elapsedMs: 1,
+        },
       }),
       auditProvider: async () => ({
         ok: true as const,
@@ -459,7 +471,13 @@ describe('判别力报告（#1952 fixture 端到端）', () => {
       calibers: ['structure-alias.v2'],
       generateProvider: async (task) => ({
         ok: true as const,
-        result: { answer: gradedAnswer(task.arm, task.item, task.replicate), elapsedMs: 1 },
+        result: {
+          // #1951 契约：full-feature 臂必须显式提供 citation 快照（缺字段＝
+          // 不可得，聚合 fail closed）；graded fixture 如实给空快照。
+          answer: gradedAnswer(task.arm, task.item, task.replicate),
+          ...(task.arm === 'full-feature' ? { citations: [] as const } : {}),
+          elapsedMs: 1,
+        },
       }),
       auditProvider: async () => ({
         ok: true as const,
