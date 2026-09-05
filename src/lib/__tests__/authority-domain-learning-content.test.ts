@@ -77,7 +77,7 @@ function sourceNode(canonicalId: string) {
   if (canonicalId === BLOCKED_CARD_NODE) {
     return {
       canonicalId,
-      safeId,
+      safeId: 'blocked-fixture-node',
       card: { state: 'blocked' as const, sha256: null },
       infograph: { state: 'available' as const, sha256: sha256(readFileSync(infographPath)) },
     };
@@ -118,11 +118,11 @@ function withAlignedRuntime(
   const infographRoot = join(root, INFOGRAPH_RELATIVE);
   mkdirSync(cardRoot, { recursive: true });
   mkdirSync(infographRoot, { recursive: true });
+  const trackedCard = join(REPO_ROOT, CARD_RELATIVE, 'ctc_modeling-865eb1c8824e157c2f05a903.md');
+  const trackedInfograph = join(REPO_ROOT, INFOGRAPH_RELATIVE, 'ctc_modeling-865eb1c8824e157c2f05a903.png');
   for (const node of [accepted, blocked]) {
-    const card = join(REPO_ROOT, CARD_RELATIVE, `${node.safeId}.md`);
-    const infograph = join(REPO_ROOT, INFOGRAPH_RELATIVE, `${node.safeId}.png`);
-    if (node.card.state === 'available') copyFileSync(card, join(cardRoot, `${node.safeId}.md`));
-    if (node.infograph.state === 'available') copyFileSync(infograph, join(infographRoot, `${node.safeId}.png`));
+    if (node.card.state === 'available') copyFileSync(trackedCard, join(cardRoot, `${node.safeId}.md`));
+    if (node.infograph.state === 'available') copyFileSync(trackedInfograph, join(infographRoot, `${node.safeId}.png`));
   }
   const manifestPath = join(root, MANIFEST_RELATIVE);
   mkdirSync(join(root, 'course-content/runtime/knowledge'), { recursive: true });

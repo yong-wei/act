@@ -34,16 +34,22 @@ if (manifest.teachingProjectionId !== overlay.projectionId || manifest.teachingP
 const sidecarRel = `course-content/runtime/knowledge/teaching-projection/domain-fragments/releases/${overlay.projectionId}/inspector-sidecar.json`;
 if (!existsSync(join(root, sidecarRel))) fail('sidecar-missing');
 const sidecar = existsSync(join(root, sidecarRel)) ? readJson(sidecarRel) : {};
-if (sidecar.envelopeProjectionId !== overlay.projectionId) fail('sidecar-envelope-mismatch');
+if (
+  sidecar.envelopeProjectionId !== overlay.projectionId
+  || sidecar.envelopeProjectionHash !== overlay.projectionHash
+) fail('sidecar-envelope-mismatch');
 
 const catalog = readJson('course-content/runtime/knowledge/authority-domain-catalog/catalog.json');
 const graphIds = new Set(catalog.memberships.map((row) => row.canonicalId));
 const trackedCards = new Set(gitFiles('course-content/runtime/knowledge/cards/authority/nodes'));
 const trackedInfographs = new Set(gitFiles('course-content/runtime/knowledge/infographs/authority/nodes'));
 const seen = new Set();
+const seenSafe = new Set();
 for (const node of manifest.nodes || []) {
   if (seen.has(node.canonicalId)) fail(`duplicate:${node.canonicalId}`);
   seen.add(node.canonicalId);
+  if (seenSafe.has(node.safeId)) fail(`duplicate-safeId:${node.safeId}`);
+  seenSafe.add(node.safeId);
   if (!graphIds.has(node.canonicalId)) fail(`unmapped:${node.canonicalId}`);
   const cardName = `${node.safeId}.md`;
   const infographName = `${node.safeId}.png`;

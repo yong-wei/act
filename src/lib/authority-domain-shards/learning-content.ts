@@ -110,6 +110,7 @@ function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | n
     if (
       nodes.length !== parsed.nodes.length
       || new Set(nodes.map((node) => node.canonicalId)).size !== nodes.length
+      || new Set(nodes.map((node) => node.safeId)).size !== nodes.length
     ) return null;
     return {
       contract: LEARNING_CONTENT_MANIFEST_CONTRACT,
