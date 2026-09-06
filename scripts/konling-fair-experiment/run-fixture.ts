@@ -30,65 +30,70 @@ import {
   type KonlingFairExperimentGradedVerdictName,
 } from '@/lib/konling-fair-experiment';
 import type { KonlingBlindAuditProvider } from '@/lib/konling-blind-audit';
+import type { KonlingEvidenceAllocationPlan } from '@/lib/konling-evidence-allocation';
 import { STUDY_QUESTION_SECTIONS } from '@/lib/konling-study-question-structure';
 
 import { defaultRunId, gitRevision, parseCliFlags } from '../konling-blind-audit/cli';
 
 /**
- * #1951 fixture citation 快照：cit-1 已核验、可访问且冻结了答案相关性
- * 直接证据（查询词精确命中）；cit-2 未核验；cit-3 已核验可访问但只有
- * 纯语义相似证据（semantic-score，仅相关不直接支撑）；cit-4 已核验有
- * 锚点但 href 为空（不可访问）。
- * full-feature 臂每个 evidence-required 章节末行以 [1] 绑定 cit-1；
- * itemId 确定性奇偶决定最后一个证据章节改标 [2]（未核验）或 [3]
- * （仅相关）；偶数条目的第一个证据章节同时标 [1] [4]（同单元绑定
- * 直接支撑与不可访问引用，覆盖由 [1] 达成、[4] 落不可访问桶）。
+ * #2039：fixture 的 citation 装配与生产同源——编号、主源/备用映射与冻结
+ * 快照均来自 runner 传入的 `task.citations` / `task.evidencePlan`（由
+ * `buildKonlingFairExperimentCitationAssembly` 从参考材料片段确定性装配）。
+ * fixture 在此之上追加三条审计口径演练用的边缘类引用（编号顺延，不入
+ * 分配表）：未核验（audit-unverified）、仅语义相关（audit-semantic，
+ * semantic-score）与不可访问（audit-inaccessible，href 为空）。
+ * full-feature 臂每个 evidence-required 章节末行以该章节主源编号绑定；
+ * itemId 确定性奇偶决定最后一个证据章节改绑未核验或仅语义引用；偶数
+ * 条目的第一个证据章节同时绑定主源与不可访问引用（覆盖由主源达成、
+ * 不可访问引用落对应桶），保持 #1951 的引用类分布可审计。
  */
-const FIXTURE_CITATIONS: readonly KonlingFairExperimentCitationSnapshot[] = [
-  {
-    id: 'cit-1',
-    citationTargetId: 'kb:fixture-primary',
-    verified: true,
-    displayNumber: 1,
-    sourceType: 'knowledge-graph',
-    href: 'https://act.example/kb/fixture-primary',
-    answerRelevanceMatch: 'query-exact',
-    answerRelevanceBasis: 'query-exact',
-  },
-  {
-    id: 'cit-2',
-    citationTargetId: 'kb:fixture-secondary',
-    verified: false,
-    displayNumber: 2,
-    sourceType: 'knowledge-graph',
-    href: null,
-  },
-  {
-    id: 'cit-3',
-    citationTargetId: 'kb:fixture-related-only',
-    verified: true,
-    displayNumber: 3,
-    sourceType: 'knowledge-graph',
-    href: 'https://act.example/kb/fixture-related-only',
-    answerRelevanceMatch: 'semantic:strong',
-    answerRelevanceBasis: 'semantic-score',
-  },
-  {
-    id: 'cit-4',
-    citationTargetId: 'kb:fixture-inaccessible',
-    verified: true,
-    displayNumber: 4,
-    sourceType: 'knowledge-graph',
-    href: null,
-    answerRelevanceMatch: 'token:keyword',
-    answerRelevanceBasis: 'query-lexical',
-  },
-];
+function fixtureEdgeCitations(
+  item: KonlingFairExperimentBankItem,
+  bankVersion: string,
+  sourceRevision: string,
+  baseCitations: readonly KonlingFairExperimentCitationSnapshot[],
+): KonlingFairExperimentCitationSnapshot[] {
+  const next = baseCitations.reduce((max, citation) => Math.max(max, citation.displayNumber ?? 0), 0) + 1;
+  const anchor = (suffix: string) => `fair-experiment:${bankVersion}:${item.itemId}:${suffix}`;
+  return [
+    {
+      id: `${item.itemId}:audit-unverified`,
+      citationTargetId: anchor('audit-unverified'),
+      verified: false,
+      displayNumber: next,
+      sourceType: 'content',
+      href: null,
+      answerRelevanceBasis: 'query-lexical',
+    },
+    {
+      id: `${item.itemId}:audit-semantic`,
+      citationTargetId: anchor('audit-semantic'),
+      verified: true,
+      displayNumber: next + 1,
+      sourceType: 'content',
+      href: `https://act.example/fair-experiment/${encodeURIComponent(bankVersion)}/${encodeURIComponent(item.itemId)}#audit-semantic`,
+      answerRelevanceBasis: 'semantic-score',
+    },
+    {
+      id: `${item.itemId}:audit-inaccessible`,
+      citationTargetId: anchor('audit-inaccessible'),
+      verified: true,
+      displayNumber: next + 2,
+      sourceType: 'content',
+      href: null,
+      answerRelevanceBasis: 'query-lexical',
+    },
+  ];
+}
 
 function fixtureAnswer(
   arm: 'plain-baseline' | 'enhanced-baseline' | 'full-feature',
   item: KonlingFairExperimentBankItem,
   replicate: number,
+  bankVersion: string,
+  sourceRevision: string,
+  taskCitations?: readonly KonlingFairExperimentCitationSnapshot[],
+  evidencePlan?: KonlingEvidenceAllocationPlan,
 ): { answer: string; citations: readonly KonlingFairExperimentCitationSnapshot[] } {
   const sections = STUDY_QUESTION_SECTIONS[item.intent];
   const suffix = `（${item.itemId}#${replicate}）`;
@@ -115,6 +120,11 @@ function fixtureAnswer(
   }
   const useUnverifiedOnLast = [...item.itemId].reduce((sum, ch) => sum + ch.codePointAt(0)!, 0) % 2 === 1;
   const evidenceSections = sections.filter((section) => section.citationPolicy === 'evidence-required');
+  const assembled = taskCitations ?? [];
+  const edges = fixtureEdgeCitations(item, bankVersion, sourceRevision, assembled);
+  const edgeNumber = (suffix: string) => edges.find((edge) => edge.id.endsWith(suffix))?.displayNumber ?? null;
+  const primaryNumberFor = (sectionId: string) => evidencePlan?.assignments
+    .find((assignment) => assignment.sectionId === sectionId)?.primaryDisplayNumber ?? null;
   let evidenceIndex = 0;
   return {
     answer: sections
@@ -124,14 +134,24 @@ function fixtureAnswer(
         }
         evidenceIndex += 1;
         const isLastEvidence = evidenceIndex === evidenceSections.length;
-        let marker = ' [1]';
-        if (isLastEvidence && useUnverifiedOnLast) marker = ' [2]';
-        if (isLastEvidence && !useUnverifiedOnLast) marker = ' [3]';
-        if (!useUnverifiedOnLast && evidenceIndex === 1 && evidenceSections.length > 1) marker = ' [1] [4]';
+        const primary = primaryNumberFor(section.id);
+        let marker = primary !== null ? ` [${primary}]` : '';
+        if (isLastEvidence && useUnverifiedOnLast) {
+          const unverified = edgeNumber(':audit-unverified');
+          marker = unverified !== null ? ` [${unverified}]` : marker;
+        }
+        if (isLastEvidence && !useUnverifiedOnLast) {
+          const semantic = edgeNumber(':audit-semantic');
+          marker = semantic !== null ? ` [${semantic}]` : marker;
+        }
+        if (!useUnverifiedOnLast && evidenceIndex === 1 && evidenceSections.length > 1) {
+          const inaccessible = edgeNumber(':audit-inaccessible');
+          if (inaccessible !== null && primary !== null) marker = ` [${primary}] [${inaccessible}]`;
+        }
         return `## ${headingOf(section)}\n按参考材料作答${suffix}。${marker}`;
       })
       .join('\n'),
-    citations: FIXTURE_CITATIONS,
+    citations: [...assembled, ...edges],
   };
 }
 
@@ -235,7 +255,15 @@ async function main() {
       if (injected) {
         return { ok: false, error: { code: injected, message: `injected ${injected} for ${taskKey}` } };
       }
-      const fixture = fixtureAnswer(task.arm, task.item, task.replicate);
+      const fixture = fixtureAnswer(
+        task.arm,
+        task.item,
+        task.replicate,
+        bank.bankVersion,
+        revision,
+        task.citations,
+        task.evidencePlan,
+      );
       return {
         ok: true,
         result: {

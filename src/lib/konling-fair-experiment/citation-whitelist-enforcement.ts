@@ -9,6 +9,7 @@
 
 import { createHash } from 'node:crypto';
 
+import { isDirectVerifiedSupportCitation } from '@/lib/konling-citation-protocol';
 import {
   isTechnicalIndexContext,
   markdownCodeRanges,
@@ -16,31 +17,9 @@ import {
 
 const CITATION_NUMBER_MARKER = /\[(\d+)\]/g;
 
-/**
- * 直接支撑判据与 citation-audit 的 isDirectVerifiedSupport 同一口径
- * （#2017 review P1）：verified + 锚点 + href 可访问 + 相关性证据分级
- * 在白名单内。语义相似（semantic-score）与缺失/未知值按「仅相关」处理。
- */
-const DIRECT_SUPPORT_RELEVANCE_BASES: ReadonlySet<string> = new Set([
-  'selected-node-ref',
-  'capability-target-ref',
-  'resource-ref',
-  'learner-context-ref',
-  'query-exact',
-  'query-lexical',
-]);
-
-export function isDirectVerifiedSupportCitation(citation: {
-  citationTargetId: string | null;
-  verified: boolean;
-  href: string | null;
-  answerRelevanceBasis?: string | null;
-}): boolean {
-  return citation.verified === true
-    && Boolean(citation.citationTargetId)
-    && Boolean(citation.href)
-    && DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '');
-}
+// 直接支撑判据与 relevance-basis 白名单统一真源于 konling-citation-protocol
+// （#2039）：本模块、citation-audit 与逐单元证据分配共用同一实现。
+export { isDirectVerifiedSupportCitation };
 
 export interface KonlingCitationWhitelistEnforcementResult {
   body: string;

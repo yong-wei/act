@@ -7,6 +7,7 @@
  */
 
 import { scanKonlingAnswerUnits } from '@/lib/konling-answer-unit-scan';
+import { DIRECT_SUPPORT_RELEVANCE_BASES, isDirectVerifiedSupportCitation } from '@/lib/konling-citation-protocol';
 import {
   STUDY_QUESTION_SECTIONS,
   type StudyQuestionIntent,
@@ -44,47 +45,19 @@ function ratio(numerator: number, denominator: number): KonlingFairExperimentRat
 }
 
 /**
- * 直接支撑的答案相关性证据分级白名单（生产 hybrid-retriever 的
- * basis）：显式引用（selected-node-ref / capability-target-ref /
- * resource-ref / learner-context-ref）与查询词直接命中（query-exact /
- * query-lexical）。纯语义相似（semantic-score）只是检索级相关；缺失或
- * 未知的 basis 证据不足——一律不算直接支撑（白名单，未知值保守拒绝，
- * #1992 review P1）。
- */
-const DIRECT_SUPPORT_RELEVANCE_BASES: ReadonlySet<string> = new Set([
-  'selected-node-ref',
-  'capability-target-ref',
-  'resource-ref',
-  'learner-context-ref',
-  'query-exact',
-  'query-lexical',
-]);
-
-/**
- * 直接支撑判据（spec：占位符、未知编号、无法访问的目标与仅相关但不
- * 直接支撑的来源不得计入分子/覆盖）：已核验 + 有锚点 + href 可访问 +
- * 答案相关性证据分级在白名单内（显式引用/查询直接命中）。判据只依赖
- * `answerRelevanceBasis`——`answerRelevanceMatch` 原文在 student pack
- * 脱敏（hybrid-retriever redactStudentItemMetadata）中被有意删除，
- * 生产引用不携带；basis 是脱敏后仍保留的非敏感证明类型。任一信号
- * 缺失或分级未知即降级到对应失败桶，宁可低估也不高估。判据上限是
- * 生产端引用核验 + 直接选中证据；主张级蕴含验证超出确定性审计范围
- * （非目标，#1992 review P1）。
+ * 直接支撑判据（spec：占位符、未知编号、无法访问的目标与仅相关但不直接
+ * 支撑的来源不得计入分子/覆盖）与 relevance-basis 白名单统一真源于
+ * `konling-citation-protocol`（#2039）：已核验 + 有锚点 + href 可访问 +
+ * 答案相关性证据分级在白名单内。判据只依赖 `answerRelevanceBasis`——
+ * `answerRelevanceMatch` 原文在 student pack 脱敏
+ * （hybrid-retriever redactStudentItemMetadata）中被有意删除，生产引用
+ * 不携带。任一信号缺失或分级未知即降级到对应失败桶，宁可低估也不高估；
+ * 主张级蕴含验证超出确定性审计范围（非目标，#1992 review P1）。
  */
 function isDirectVerifiedSupport(citation: KonlingFairExperimentCitationInput): boolean {
-  return citation.verified === true
-    && Boolean(citation.citationTargetId)
-    && Boolean(citation.href)
-    && DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '');
+  return isDirectVerifiedSupportCitation(citation);
 }
 
-/**
- * 单条回答的确定性审计。占位符（未分配编号）、未核验引用、无锚点或
- * 不可访问引用、仅相关无直接支撑证据引用与 model-derived 章节标记分别
- * 统计；只有通过 `isDirectVerifiedSupport` 且绑定到 evidence-required
- * substantive 单元的引用计入精确率分子，单元覆盖只认可绑定标记中的
- * 直接支撑引用（`scanKonlingAnswerUnits` 的绑定语义 + 审计侧核验）。
- */
 export function auditKonlingFairCitationRecord(
   input: KonlingFairCitationAuditInput,
 ): KonlingFairExperimentCitationAuditRecord {
@@ -204,6 +177,12 @@ export interface KonlingFairCitationArmAggregate {
     intent: StudyQuestionIntent;
     precision: KonlingFairExperimentRatioMetric;
     coverage: KonlingFairExperimentRatioMetric;
+    /**
+     * #2039：按意图池化的 missReason 分桶（no-marker / marker-unassigned /
+     * citation-unverified / citation-no-target），官方摘要按意图导出失败
+     * 原因，总体平均不再掩盖单意图失败。
+     */
+    missReasons: Readonly<Record<string, number>>;
   }>;
 }
 
@@ -223,6 +202,12 @@ export function aggregateKonlingFairCitationAudit(
     coverage: ratio(coverageNumerator, coverageDenominator),
     byIntent: intents.map((intent) => {
       const scoped = records.filter((record) => record.intent === intent);
+      const missReasons: Record<string, number> = {};
+      for (const record of scoped) {
+        for (const [reason, count] of Object.entries(record.missReasons)) {
+          missReasons[reason] = (missReasons[reason] ?? 0) + (count ?? 0);
+        }
+      }
       return {
         intent,
         precision: ratio(
@@ -233,6 +218,7 @@ export function aggregateKonlingFairCitationAudit(
           sum(scoped.map((record) => record.coveredUnitCount)),
           sum(scoped.map((record) => record.requiredUnitCount)),
         ),
+        missReasons,
       };
     }),
   };

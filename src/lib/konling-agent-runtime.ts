@@ -1849,6 +1849,14 @@ export interface KonlingCitationContext {
   sourcePacks?: KonlingSourcePackCitationSummary[];
   missingCitationClasses: string[];
   lowConfidenceReasons: string[];
+  /**
+   * #2039：evidence-required 章节的逐单元分配编号（章节标题 → 主源编号
+   * + 备用编号）。存在时 prompt 渲染为逐单元映射行（ai-prompt-builder）。
+   */
+  unitCitations?: Array<{
+    sectionTitle: string;
+    displayNumbers: readonly number[];
+  }>;
   responseProtocol: {
     requiredOwners: Array<KonlingCitation['owner']>;
     minimum: {

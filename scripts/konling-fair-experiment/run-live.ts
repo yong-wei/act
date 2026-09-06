@@ -124,16 +124,14 @@ async function main() {
         if (!response.text.trim()) {
           return { ok: false, error: { code: 'parse-failure' as KonlingFairExperimentErrorCode, message: 'empty answer' } };
         }
+        // #2039：full-feature 臂冻结生产分配模块装配的真实 citation 快照
+        //（runner 随 task 传入）；plain/enhanced 臂无引用功能，空数组是
+        // 真实快照。
         const citations = task.arm === 'full-feature'
-          ? undefined
+          ? task.citations
           : [];
         return {
           ok: true,
-          // #1951：plain/enhanced 臂无引用功能，空数组是真实快照；
-          // full-feature 臂 live 管线拿不到 citationContext，不写 citations
-          // 字段（缺字段=不可得），聚合进入 citation-audit incomplete，
-          // 待接入真实 citation 冻结前不发布看似有效的零值引用指标
-          // （#1992 review P1）。
           result: { answer: response.text, ...(citations ? { citations } : {}), elapsedMs: Date.now() - started },
         };
       } catch (error) {

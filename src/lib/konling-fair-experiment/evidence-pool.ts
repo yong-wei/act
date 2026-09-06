@@ -1,0 +1,222 @@
+/**
+ * #2039：公平实验 full-feature 臂的多来源证据装配（与生产同源）。
+ *
+ * 候选池从题库参考材料确定性派生（分片段 + 词面匹配出 relevance basis），
+ * 装配本身走生产分配模块 `buildEvidenceRequiredUnitSourcePlan`——同一
+ * 函数、同一白名单判据，实验结论可外推到生产改进。冻结绑定不变：
+ * 每条候选携带 sourceRevision（gitRevision），随记录落盘。
+ */
+
+import {
+  buildEvidenceRequiredUnitSourcePlan,
+  cjkBigramsForMatching as cjkBigrams,
+  evidenceUnitCitationMappings,
+  type KonlingEvidenceAllocationCandidate,
+  type KonlingEvidenceAllocationPlan,
+} from '@/lib/konling-evidence-allocation';
+import {
+  evidenceRequiredStudyQuestionSections,
+  type StudyQuestionIntent,
+} from '@/lib/konling-study-question-structure';
+
+import type {
+  KonlingFairExperimentBankItem,
+  KonlingFairExperimentCitationSnapshot,
+} from './types';
+
+export interface KonlingFairExperimentCitationAssembly {
+  plan: KonlingEvidenceAllocationPlan;
+  citations: readonly KonlingFairExperimentCitationSnapshot[];
+  /** 章节标题 → 分配编号映射（prompt 逐单元渲染与 fixture 绑定共用）。 */
+  unitMappings: ReadonlyArray<{ sectionTitle: string; displayNumbers: readonly number[] }>;
+  candidates: readonly KonlingEvidenceAllocationCandidate[];
+}
+
+/** fixture 审计口径演练用的边缘类候选 id 后缀（未核验/仅语义/不可访问）。 */
+const AUDIT_EDGE_SUFFIXES = ['audit-unverified', 'audit-semantic', 'audit-inaccessible'] as const;
+
+export function isAuditEdgeCandidateId(id: string): boolean {
+  return AUDIT_EDGE_SUFFIXES.some((suffix) => id.endsWith(suffix));
+}
+
+function splitReferenceFragments(referenceAnswer: string, limit: number): string[] {
+  const paragraphs = referenceAnswer
+    .split(/\n\s*\n/)
+    .map((fragment) => fragment.trim())
+    .filter((fragment) => fragment.length >= 8);
+  if (paragraphs.length >= 2) return paragraphs.slice(0, limit);
+  const sentences = referenceAnswer
+    .split(/(?<=[。；;！？\n])/)
+    .map((fragment) => fragment.trim())
+    .filter((fragment) => fragment.length >= 8);
+  return sentences.slice(0, limit);
+}
+
+function longestCommonRunLength(left: string, right: string): number {
+  if (!left || !right) return 0;
+  let best = 0;
+  const previous = new Array<number>(right.length + 1).fill(0);
+  for (let i = 1; i <= left.length; i += 1) {
+    let diagonal = 0;
+    for (let j = 1; j <= right.length; j += 1) {
+      const temp = previous[j];
+      if (left[i - 1] === right[j - 1]) {
+        previous[j] = (diagonal ?? 0) + 1;
+        if (previous[j] > best) best = previous[j];
+      } else {
+        previous[j] = 0;
+      }
+      diagonal = temp;
+    }
+  }
+  return best;
+}
+
+function sharedBigramCount(left: ReadonlySet<string>, right: ReadonlySet<string>): number {
+  let count = 0;
+  for (const gram of left) {
+    if (right.has(gram)) count += 1;
+  }
+  return count;
+}
+
+function deriveAnswerRelevanceBasis(input: {
+  fragment: string;
+  question: string;
+  intent: StudyQuestionIntent;
+}): 'query-exact' | 'query-lexical' | 'semantic-score' {
+  const normalizedFragment = input.fragment.toLowerCase().normalize('NFKC');
+  const normalizedQuestion = input.question.toLowerCase().normalize('NFKC');
+  if (longestCommonRunLength(normalizedFragment, normalizedQuestion) >= 6) return 'query-exact';
+  const fragmentGrams = cjkBigrams(input.fragment);
+  if (sharedBigramCount(fragmentGrams, cjkBigrams(input.question)) >= 2) return 'query-lexical';
+  for (const section of evidenceRequiredStudyQuestionSections(input.intent)) {
+    if (sharedBigramCount(fragmentGrams, cjkBigrams(section.title)) >= 1) return 'query-lexical';
+  }
+  return 'semantic-score';
+}
+
+function fragmentCandidate(input: {
+  item: KonlingFairExperimentBankItem;
+  bankVersion: string;
+  sourceRevision: string;
+  index: number;
+  fragment: string;
+}): KonlingEvidenceAllocationCandidate {
+  const { item, bankVersion, sourceRevision, index, fragment } = input;
+  const anchor = `p${index}`;
+  return {
+    id: `${item.itemId}:ref-${anchor}`,
+    displayTitle: `参考材料片段 ${index + 1}`,
+    citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:${anchor}`,
+    verified: true,
+    href: `https://act.example/fair-experiment/${encodeURIComponent(bankVersion)}/${encodeURIComponent(item.itemId)}#${anchor}`,
+    answerRelevanceBasis: deriveAnswerRelevanceBasis({
+      fragment,
+      question: item.question,
+      intent: item.intent,
+    }),
+    identity: {
+      kind: 'content',
+      sourceType: 'content',
+      contentId: `${bankVersion}:${item.itemId}:${anchor}`,
+      sourceRevision,
+    },
+    matchText: fragment,
+  };
+}
+
+/**
+ * 装配 full-feature 臂的 citationContext：参考材料片段池 → 生产分配模块
+ * → 编号引用快照 + 逐单元映射。`includeAuditEdgeCandidates` 供 fixture
+ * 保持 #1951 的审计口径演练（未核验/仅语义/不可访问三类边缘候选，不参与
+ * 分配、只进入可用池）；live 装配不包含边缘候选。
+ */
+export function buildKonlingFairExperimentCitationAssembly(input: {
+  item: KonlingFairExperimentBankItem;
+  bankVersion: string;
+  sourceRevision: string;
+  includeAuditEdgeCandidates?: boolean;
+}): KonlingFairExperimentCitationAssembly {
+  const { item, bankVersion, sourceRevision } = input;
+  const requiredCount = evidenceRequiredStudyQuestionSections(item.intent).length;
+  const limit = Math.max(4, requiredCount * 3);
+  const fragments = splitReferenceFragments(item.referenceAnswer, limit);
+  const candidates: KonlingEvidenceAllocationCandidate[] = fragments.map((fragment, index) => (
+    fragmentCandidate({ item, bankVersion, sourceRevision, index, fragment })
+  ));
+  if (input.includeAuditEdgeCandidates) {
+    candidates.push(
+      {
+        id: `${item.itemId}:audit-unverified`,
+        displayTitle: '参考材料片段（未核验）',
+        citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:audit-unverified`,
+        verified: false,
+        href: null,
+        answerRelevanceBasis: 'query-lexical',
+        identity: {
+          kind: 'content',
+          sourceType: 'content',
+          contentId: `${bankVersion}:${item.itemId}:audit-unverified`,
+          sourceRevision,
+        },
+        matchText: item.referenceAnswer.slice(0, 120),
+      },
+      {
+        id: `${item.itemId}:audit-semantic`,
+        displayTitle: '参考材料片段（仅语义相关）',
+        citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:audit-semantic`,
+        verified: true,
+        href: `https://act.example/fair-experiment/${encodeURIComponent(bankVersion)}/${encodeURIComponent(item.itemId)}#audit-semantic`,
+        answerRelevanceBasis: 'semantic-score',
+        identity: {
+          kind: 'content',
+          sourceType: 'content',
+          contentId: `${bankVersion}:${item.itemId}:audit-semantic`,
+          sourceRevision,
+        },
+        matchText: item.referenceAnswer.slice(0, 120),
+      },
+      {
+        id: `${item.itemId}:audit-inaccessible`,
+        displayTitle: '参考材料片段（不可访问）',
+        citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:audit-inaccessible`,
+        verified: true,
+        href: null,
+        answerRelevanceBasis: 'query-lexical',
+        identity: {
+          kind: 'content',
+          sourceType: 'content',
+          contentId: `${bankVersion}:${item.itemId}:audit-inaccessible`,
+          sourceRevision,
+        },
+        matchText: item.referenceAnswer.slice(0, 120),
+      },
+    );
+  }
+
+  const plan = buildEvidenceRequiredUnitSourcePlan({
+    intent: item.intent,
+    candidates,
+    queryText: item.question,
+  });
+  const byId = new Map(candidates.map((candidate) => [candidate.id, candidate]));
+  const citations: KonlingFairExperimentCitationSnapshot[] = plan.assignedCitations.map((citation) => {
+    const candidate = byId.get(citation.id);
+    return {
+      id: citation.id,
+      citationTargetId: candidate?.citationTargetId ?? null,
+      verified: candidate?.verified === true,
+      displayNumber: citation.displayNumber,
+      sourceType: 'content',
+      href: citation.href,
+      answerRelevanceBasis: candidate?.answerRelevanceBasis ?? null,
+    };
+  });
+  return {
+    plan,
+    citations,
+    unitMappings: evidenceUnitCitationMappings(plan),
+    candidates,
+  };
+}
