@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MutableRefObject } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MutableRefObject, useCallback } from 'react';
 import Image from 'next/image';
 import {
   AlertTriangle,
@@ -58,6 +58,7 @@ import {
   type IncomingAuthorityShard,
 } from './active-authority-shard-store';
 import { ActiveAuthorityRuntimeView } from './active-authority-runtime-view';
+import { crossDomainNodeId } from './graph/cross-domain-cluster';
 import { ActiveAuthorityFilterPanel } from './active-authority-filter-panel';
 import { GovernedFormulaLabel } from './graph/semantic-label-layer';
 import { KnowledgeWorkspaceChromePortal } from './graph/knowledge-workspace-chrome';
@@ -89,7 +90,6 @@ import {
   selectGraphLanguage,
 } from '@/lib/authority-locale-readiness/presentation-state';
 import {
-  boundaryEnterCopy,
   formatLoadMore,
   formatLoadMoreAria,
   formatUnpinAllAria,
@@ -1240,13 +1240,15 @@ export function ActiveAuthorityGraph({
   );
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  // #2052 首帧门控：领域进入的分段 visibleKeys 并入（16→27→85）在后台
+  // 完成；引擎沉降且最终范围就绪前用加载占位替代可见帧。
+  const [settledDomainEntryNodeCount, setSettledDomainEntryNodeCount] = useState<number | null>(null);
   const [query, setQuery] = useState('');
   // 独立可逆的节点类型筛选：集合保存被隐藏的注册类型身份（canonicalType），
   // 与 locale/维度无关，切换筛选不重建模型、坐标或相机（#1742）。
   const [hiddenNodeTypes, setHiddenNodeTypes] = useState<ReadonlySet<string>>(new Set());
   // 教学关系层默认可见、独立可逆，便于单独观察工程关系（#1742 review）。
   const [teachingRelationsVisible, setTeachingRelationsVisible] = useState(true);
-  const [boundaryDirectoryExpanded, setBoundaryDirectoryExpanded] = useState(false);
   const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const graphMainRef = useRef<HTMLElement | null>(null);
   const mobileToolsRef = useRef<HTMLDivElement | null>(null);
@@ -1269,7 +1271,6 @@ export function ActiveAuthorityGraph({
   }, []);
 
   useEffect(() => {
-    setBoundaryDirectoryExpanded(false);
     setMobileGraphControlsExpanded(false);
   }, [workspace.activeDomainId]);
 
@@ -1320,36 +1321,56 @@ export function ActiveAuthorityGraph({
     );
   const latestCutoverReady = workspace.latestCutover?.ready === true
     && teachingCoverage?.note !== '教学关系暂不可用';
-  const boundaryCues = useMemo(() => {
+  // #2052 跨领域画布内聚类（cross-domain-canvas-cluster）：合成节点 id
+  // （cross:<canonicalId>）经视图进入 2D 画布的虚线领域圆；模型、覆盖
+  // 统计与检索语义不变；点击进入目标领域（followBoundary）。
+  const crossDomainClusters = useMemo(() => {
     if (!workspace.activeDomainId || !workspace.root) return [];
     const root = workspace.root;
     const knownBoundaryIds = new Set(Object.keys(workspace.boundaryRefsByCanonicalId));
-    return visibleAuthorityShardRelations(workspace)
-      .flatMap((relation) => {
-        const source = workspace.objectsByCanonicalId[relation.sourceId];
-        const target = workspace.objectsByCanonicalId[relation.targetId];
-        const sourceInDomain = source?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
-        const targetInDomain = target?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
-        if (sourceInDomain === targetInDomain) return [];
-        const boundary = sourceInDomain ? target : source;
-        if (!boundary || !knownBoundaryIds.has(boundary.id)) return [];
-        const membership = selectActiveAuthorityMembership(boundary.memberships, workspace.activeDomainId);
-        const domain = membership
-          ? root.domains.find((entry) => entry.visualRole === membership.visualRole)
-          : undefined;
-        if (!domain) return [];
-        return [{
-          key: `${relation.layer}:${relation.id}:${boundary.id}`,
-          nodeId: boundary.id,
-          domainName: domain.displayName,
-          relationLabel: presentActiveRelation(relation.predicate, relation.direction, {
-            label: relation.predicateLabel,
-            directionLabel: relation.directionLabel,
-          }).label,
-          objectLabel: presentActiveHumanText(boundary.label, graphCopy(locale, 'inspector.nameUnavailable')),
-        }];
-      })
-      .sort((left, right) => left.domainName.localeCompare(right.domainName) || left.objectLabel.localeCompare(right.objectLabel) || left.key.localeCompare(right.key));
+    const byDomain = new Map<string, {
+      domainName: string;
+      nodes: Map<string, { canonicalId: string; name: string; typeLabel: string; summary: string }>;
+      links: Map<string, { sourceId: string; targetId: string; predicate: string; relationFamily: string | null }>;
+    }>();
+    for (const relation of visibleAuthorityShardRelations(workspace)) {
+      const source = workspace.objectsByCanonicalId[relation.sourceId];
+      const target = workspace.objectsByCanonicalId[relation.targetId];
+      const sourceInDomain = source?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
+      const targetInDomain = target?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
+      if (sourceInDomain === targetInDomain) continue;
+      const boundary = sourceInDomain ? target : source;
+      if (!boundary || !knownBoundaryIds.has(boundary.id)) continue;
+      const membership = selectActiveAuthorityMembership(boundary.memberships, workspace.activeDomainId);
+      const domain = membership
+        ? root.domains.find((entry) => entry.visualRole === membership.visualRole)
+        : undefined;
+      if (!domain) continue;
+      let cluster = byDomain.get(domain.displayName);
+      if (!cluster) {
+        cluster = { domainName: domain.displayName, nodes: new Map(), links: new Map() };
+        byDomain.set(domain.displayName, cluster);
+      }
+      cluster.nodes.set(crossDomainNodeId(boundary.id), {
+        canonicalId: boundary.id,
+        name: boundary.label?.trim() || boundary.accessibleName || graphCopy(locale, 'inspector.nameUnavailable'),
+        typeLabel: boundary.typeLabel?.trim() || boundary.canonicalType,
+        summary: boundary.description?.trim() || '',
+      });
+      // 只把外部端点替换为合成跨域节点，保留原始 source→target 方向
+      //（#2054 review：有向跨域关系不得反转箭头语义）。
+      cluster.links.set(`${relation.layer}:${relation.id}`, {
+        sourceId: sourceInDomain ? relation.sourceId : crossDomainNodeId(boundary.id),
+        targetId: targetInDomain ? relation.targetId : crossDomainNodeId(boundary.id),
+        predicate: relation.predicate,
+        relationFamily: relation.relationFamily ?? null,
+      });
+    }
+    return [...byDomain.values()].map((cluster) => ({
+      domainName: cluster.domainName,
+      nodes: [...cluster.nodes.values()],
+      links: [...cluster.links.values()],
+    }));
   }, [workspace, locale]);
 
   const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
@@ -1368,6 +1389,7 @@ export function ActiveAuthorityGraph({
     }
     // Desktop and mobile enter the same server-bounded DomainConcept
     // overview; the desktop all-model-nodes initialization path is gone.
+    setSettledDomainEntryNodeCount(null);
     setVisibleKeys(isCompactViewport
       ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
       : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds));
@@ -1552,6 +1574,22 @@ export function ActiveAuthorityGraph({
     const filteredKeys = new Set(scoped.nodes.filter((node) => !hiddenNodeTypes.has(node.type.canonicalType)).map((node) => node.key));
     return visibleActiveGraph(model, filteredKeys);
   }, [model, hiddenNodeTypes, visibleKeys]);
+  // #2052：桌面领域进入以「可见集覆盖完整 overview 范围」为分阶段并入
+  // 完成里程碑；compact 视图本身有可见上限，以首次沉降为准。
+  const domainEntryStageComplete = isCompactViewport
+    ? true
+    : workspace.domainOverviewIds
+      // 只要求模型已接纳（fail-closed 省略不合格对象后）的 overview ID；
+      // 原始 ID 集里的被省略对象永远不会进入 visibleKeys（#2054 review）。
+      .filter((key) => model?.nodeByKey.has(key) ?? false)
+      .every((key) => visibleKeys.has(key));
+  const domainEntryNodeCount = scopedGraph?.nodes.length ?? 0;
+  const domainEntrySettled = domainEntryStageComplete
+    && settledDomainEntryNodeCount !== null
+    && settledDomainEntryNodeCount === domainEntryNodeCount;
+  const handleDomainEngineSettled = useCallback(() => {
+    setSettledDomainEntryNodeCount(domainEntryNodeCount);
+  }, [domainEntryNodeCount]);
   // 面板只列当前有界逻辑图中已物化的注册类型；隐藏类型保留控件可逆（#1742）。
   const materializedNodeTypes = useMemo(() => {
     if (!model) return [];
@@ -1592,7 +1630,19 @@ export function ActiveAuthorityGraph({
     return entries.length > 0 ? entries : undefined;
   }, [model, hiddenNodeTypes, workspace.domainOverviewIds]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
-  const hoverPreview = hoveredNodeId && model?.nodeByKey.get(hoveredNodeId)
+  // #2052：跨领域合成节点的有界预览（名称/类型/摘要），复用既有浮层。
+  const crossHoveredNodeId = hoveredNodeId?.startsWith('cross:') ? hoveredNodeId : null;
+  const crossHoverPreview = crossHoveredNodeId
+    ? crossDomainClusters.flatMap((cluster) => cluster.nodes)
+      .find((candidate) => crossDomainNodeId(candidate.canonicalId) === crossHoveredNodeId) ?? null
+    : null;
+  const hoverPreview = crossHoverPreview
+    ? {
+      name: crossHoverPreview.name,
+      typeLabel: crossHoverPreview.typeLabel,
+      summary: crossHoverPreview.summary,
+    }
+    : hoveredNodeId && model?.nodeByKey.get(hoveredNodeId)
     ? {
       name: model.nodeByKey.get(hoveredNodeId)!.label,
       typeLabel: model.nodeByKey.get(hoveredNodeId)!.type.label,
@@ -1899,40 +1949,6 @@ export function ActiveAuthorityGraph({
               ) : null}
             </div>
             </KnowledgeWorkspaceChromePortal>
-            {boundaryCues.length > 0 ? (
-              <section className="pointer-events-auto absolute left-3 right-3 top-14 z-20 rounded-lg border border-platform-border bg-platform-canvas-muted/95 p-3 max-[639px]:top-16 max-[639px]:p-2" aria-labelledby="active-authority-boundaries">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 id="active-authority-boundaries" className="text-xs font-semibold text-platform-fg-primary max-[639px]:sr-only">{graphCopy(locale, 'boundary.title')}</h3>
-                  <button
-                    type="button"
-                    data-active-authority-boundary-toggle="true"
-                    aria-expanded={boundaryDirectoryExpanded}
-                    aria-controls="active-authority-boundary-directory"
-                    onClick={() => setBoundaryDirectoryExpanded((expanded) => !expanded)}
-                    className="hidden items-center gap-1 text-xs font-semibold text-platform-fg-primary max-[639px]:inline-flex"
-                  >
-                    {graphCopy(locale, 'boundary.title')} ({boundaryCues.length})
-                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${boundaryDirectoryExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
-                  </button>
-                </div>
-                {(!isCompactViewport || boundaryDirectoryExpanded) ? (
-                <div id="active-authority-boundary-directory" className="mt-2 flex flex-wrap gap-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
-                  {boundaryCues.map((cue) => (
-                    <button
-                      key={cue.key}
-                      type="button"
-                      data-authority-boundary-node={cue.nodeId}
-                      onClick={() => followBoundary(cue.nodeId)}
-                      className="rounded-md border border-platform-border px-2.5 py-1.5 text-left text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:max-w-64 max-[639px]:shrink-0 max-[639px]:truncate max-[639px]:whitespace-nowrap"
-                    >
-                      {boundaryEnterCopy(locale, cue.domainName, cue.objectLabel, cue.relationLabel)}
-                    </button>
-                  ))}
-                </div>
-                ) : null}
-              </section>
-            ) : null}
-
             <div className="pointer-events-none absolute bottom-2 left-3 right-3 z-10 mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
               <span>{visibleCoverageCopy(locale, scopedGraph.nodes.length, scopedGraph.relations.length)}</span>
               <span>{totalCoverageCopy(locale, model.totalNodeCount, model.totalRelationCount)}</span>
@@ -1968,6 +1984,10 @@ export function ActiveAuthorityGraph({
                   overviewEntries={overviewDirectoryEntries}
                   layout={runtimeLayout}
                   sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
+                  entryGateActive={!domainEntrySettled}
+                  onEngineSettled={handleDomainEngineSettled}
+                  crossDomainClusters={crossDomainClusters}
+                  onCrossDomainNodeClick={followBoundary}
                 />
                 {materializedNodeTypes.length > 0 ? (
                   <ActiveAuthorityFilterPanel

@@ -2,13 +2,13 @@
   "change": "redesign-knowledge-workspace-tools-and-inspector",
   "issue": 487,
   "refreshedBy": "standardize-knowledge-graph-floating-panels",
-  "capturedAt": "2026-09-06T06:30:36.915Z",
-  "headCommit": "a3232fcdf24225ed07f650c3674d1065198ab8ab",
+  "capturedAt": "2026-09-06T18:14:33.256Z",
+  "headCommit": "387f4473ce3151bc50e28b372b3b34fa82f6ad55",
   "captureRevision": {
-    "commitSha": "a3232fcdf24225ed07f650c3674d1065198ab8ab",
-    "treeSha": "619524dbed51da6fb37c0d0fad259131f75e65ab"
+    "commitSha": "387f4473ce3151bc50e28b372b3b34fa82f6ad55",
+    "treeSha": "5e92a1f0ee855d94cbe798e1571326cadb37321c"
   },
-  "baseUrl": "http://localhost:3102",
+  "baseUrl": "http://localhost:3001",
   "selectedNodeId": "稳定性_1_7288b4ea",
   "designSourceOfTruth": {
     "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
@@ -64,7 +64,7 @@
     {
       "name": "desktop-default-compact-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-default-compact-dark.png",
-      "url": "http://localhost:3102/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
       "state": "desktop default compact tools",
       "theme": "dark",
       "viewport": "1440x960",
@@ -94,7 +94,7 @@
     {
       "name": "desktop-open-filters-dark",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-open-filters-dark.png",
-      "url": "http://localhost:3102/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?qa=knowledge-product",
       "state": "desktop opened node filters",
       "theme": "dark",
       "viewport": "1440x960",
@@ -124,7 +124,7 @@
     {
       "name": "desktop-selected-inspector-light",
       "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-selected-inspector-light.png",
-      "url": "http://localhost:3102/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3001/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "state": "desktop selected direct leaf inspector",
       "theme": "light",
       "viewport": "1440x960",

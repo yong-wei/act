@@ -51,14 +51,6 @@ export function totalCoverageCopy(
   return formatGraphInterfaceText('coverage.total', locale, { nodes, relations });
 }
 
-export function boundaryEnterCopy(
-  locale: AdmittedLocale,
-  domain: string,
-  object: string,
-  relation: string,
-): string {
-  return formatGraphInterfaceText('boundary.enter', locale, { domain, object, relation });
-}
 
 export function reviewedDomainHeaderCopy(locale: AdmittedLocale, domainCount: number): string {
   return formatGraphInterfaceText('header.domainCount', locale, { count: domainCount });

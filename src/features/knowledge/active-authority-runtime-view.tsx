@@ -24,6 +24,9 @@ import {
 } from './graph/authority-runtime-adapter';
 import type { AuthorityGraphViewModel } from './authority-graph-view-model';
 import { packActiveAuthorityRootEntries } from './active-authority-root-entries';
+import { crossDomainNodeId, readCrossDomainCanonicalId } from './graph/cross-domain-cluster';
+import { toSharedRuntimeRelationType } from './authority-graph-view-model';
+import { runtimeNodeTypeFor } from './graph/authority-runtime-adapter';
 import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
 import type { GovernedFormulaProjection } from '@/lib/governed-math/types';
 
@@ -51,6 +54,18 @@ interface ActiveAuthorityRuntimeViewProps {
   overviewEntries?: Array<{ id: string; label: string; mathematics?: GovernedFormulaProjection }>;
   layout: KnowledgeGraphRuntimeLayout;
   sessionKey: string;
+  /** #2052 首帧门控：领域进入沉降完成前以加载占位替代可见帧。 */
+  entryGateActive?: boolean;
+  /** #2052：画布引擎沉降（或 static 布局完成）回调。 */
+  onEngineSettled?: () => void;
+  /** #2052 cross-domain-canvas-cluster：跨领域关系聚类（合成节点经 2D 画布渲染）。 */
+  crossDomainClusters?: ReadonlyArray<{
+    domainName: string;
+    nodes: ReadonlyArray<{ canonicalId: string; name: string; typeLabel: string; summary: string }>;
+    links: ReadonlyArray<{ sourceId: string; targetId: string; predicate: string; relationFamily: string | null }>;
+  }>;
+  /** #2052：点击跨领域概念节点时携带其 canonicalId 进入目标领域。 */
+  onCrossDomainNodeClick?: (canonicalId: string) => void;
 }
 
 export function ActiveAuthorityRuntimeView({
@@ -68,6 +83,10 @@ export function ActiveAuthorityRuntimeView({
   overviewEntries,
   layout,
   sessionKey,
+  entryGateActive = false,
+  onEngineSettled,
+  crossDomainClusters,
+  onCrossDomainNodeClick,
 }: ActiveAuthorityRuntimeViewProps) {
   const {
     layoutState,
@@ -108,8 +127,37 @@ export function ActiveAuthorityRuntimeView({
     () => (kind === 'domain' && view ? toActiveRuntimeLinks(view) : []),
     [kind, view],
   );
-  const nodes = kind === 'root' ? rootNodes : domainNodes;
-  const links = kind === 'root' ? [] : domainLinks;
+  // #2052 cross-domain-canvas-cluster：跨领域概念合成节点与真实关系边。
+  const crossNodes = useMemo(() => (kind === 'domain'
+    ? (crossDomainClusters ?? []).flatMap((cluster) => cluster.nodes.map((node) => ({
+      id: crossDomainNodeId(node.canonicalId),
+      name: node.name,
+      nodeType: runtimeNodeTypeFor('circle'),
+      description: '',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      graphDegree: 1,
+      crossDomainClusterDomain: cluster.domainName,
+    })))
+    : []), [kind, crossDomainClusters]);
+  const crossLinks = useMemo(() => (kind === 'domain'
+    ? (crossDomainClusters ?? []).flatMap((cluster) => cluster.links.map((link) => ({
+      id: `cross-edge:${link.sourceId}->${link.targetId}:${link.predicate}`,
+      sourceId: link.sourceId,
+      targetId: link.targetId,
+      relation: link.predicate,
+      relationType: toSharedRuntimeRelationType({ predicate: link.predicate, relationFamily: link.relationFamily }),
+    })))
+    : []), [kind, crossDomainClusters]);
+  // cross-domain-canvas-cluster 仅覆盖新版 2D：3D/旧版不渲染跨领域圆。
+  const crossMergeActive = dimension === '2d';
+  const nodes = kind === 'root'
+    ? rootNodes
+    : (crossMergeActive ? [...domainNodes, ...crossNodes] : domainNodes);
+  const links = kind === 'root'
+    ? []
+    : (crossMergeActive ? [...domainLinks, ...crossLinks] : domainLinks);
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
   const hoveredNode = nodes.find((node) => node.id === hoveredId) ?? null;
   const graphVersion = kind === 'root' ? ACTIVE_ROOT_RUNTIME_GRAPH_VERSION : ACTIVE_RUNTIME_GRAPH_VERSION;
@@ -146,6 +194,12 @@ export function ActiveAuthorityRuntimeView({
       const visualRole = activeRootEntryVisualRole(node);
       if (!visualRole) return;
       onEnterDomain(visualRole);
+      return;
+    }
+    const crossCanonicalId = readCrossDomainCanonicalId(node.id);
+    if (crossCanonicalId) {
+      if (!onCrossDomainNodeClick) return;
+      onCrossDomainNodeClick(crossCanonicalId);
       return;
     }
     onSelectNode(node.id);
@@ -195,7 +249,17 @@ export function ActiveAuthorityRuntimeView({
           canvasAriaLabel={canvasAriaLabel}
           stageAttr="authority"
           liveEngine={process.env.VITEST !== 'true'}
+          onEngineSettled={onEngineSettled}
         />
+        {entryGateActive && process.env.VITEST !== 'true' ? (
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center bg-platform-surface"
+            data-active-authority-entry-gate="true"
+            aria-live="polite"
+          >
+            <span className="text-sm text-platform-fg-muted">正在加载当前领域知识。</span>
+          </div>
+        ) : null}
       </div>
       {kind === 'root' ? (
         <ul className="sr-only" data-active-authority-root-directory="true">
