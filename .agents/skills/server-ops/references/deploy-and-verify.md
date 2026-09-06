@@ -67,6 +67,14 @@ rtk npm run deploy:app -- --skip-build
 rtk bash scripts/remote-deploy.sh --app-only --skip-build
 ```
 
+`--skip-build` 复用既有镜像产物时，`remote-deploy.sh` 默认读取 `deploy/images/act-obe.tar` 且 `REMOTE_APP_IMAGE` 默认为旧标签 `localhost/act-obe-platform:20260301-amd64`；部署版本化镜像必须显式传两个变量，否则会误用默认 tar 的 provenance 或在远端报 `image not known`：
+
+```bash
+LOCAL_IMAGE_TAR='deploy/images/act-obe-<version>-<short-sha>.tar' \
+REMOTE_APP_IMAGE='localhost/act-obe-platform:<version>-<short-sha>' \
+rtk npm run deploy:app -- --skip-build
+```
+
 runtime 内容变更走 OSS 发布与物化，不得 rsync：
 
 ```bash

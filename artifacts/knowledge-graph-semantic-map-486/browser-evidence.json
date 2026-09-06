@@ -1,9 +1,9 @@
 {
-  "capturedAt": "2026-09-05T13:04:45.804Z",
-  "headCommit": "e5e427840de707e06a27f5b6ef662aa9ae7616fa",
+  "capturedAt": "2026-09-06T06:30:36.918Z",
+  "headCommit": "a3232fcdf24225ed07f650c3674d1065198ab8ab",
   "captureRevision": {
-    "commitSha": "e5e427840de707e06a27f5b6ef662aa9ae7616fa",
-    "treeSha": "1aba44e39fe1af9571689c14170a43cd1f8907cb"
+    "commitSha": "a3232fcdf24225ed07f650c3674d1065198ab8ab",
+    "treeSha": "619524dbed51da6fb37c0d0fad259131f75e65ab"
   },
   "change": "refine-knowledge-graph-semantic-map-presentation",
   "route": "/knowledge",
@@ -23,7 +23,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3102/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/01-default-semantic-map.png"
     },
@@ -35,7 +35,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://127.0.0.1:3002/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
+      "url": "http://localhost:3102/knowledge?node=%E7%A8%B3%E5%AE%9A%E6%80%A7_1_7288b4ea&qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/02-selected-neighborhood.png"
     },
@@ -47,7 +47,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3102/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/03-all-relation-families.png"
     },
@@ -59,7 +59,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "dark",
-      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3102/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/04-dark-theme.png"
     },
@@ -71,7 +71,7 @@
       "noGlobalEdgeSaturation": true,
       "nonColorRelationGrammar": true,
       "theme": "light",
-      "url": "http://127.0.0.1:3002/knowledge?qa=knowledge-product",
+      "url": "http://localhost:3102/knowledge?qa=knowledge-product",
       "workspace": "canvas-first",
       "screenshot": "artifacts/knowledge-graph-semantic-map-486/05-light-theme.png"
     }

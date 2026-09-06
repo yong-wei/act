@@ -70,8 +70,15 @@ async function main() {
       }
     }
 
+    // 抽样对象必须是迁移覆盖人群：cumulative backfill 的候选只包含拥有
+    // LearningFact 的学生（零事实账户按设计不生成 current state，读模型返回
+    // current-state-unavailable，属合法「尚未物化」而非迁移未收敛）。
+    const factOwners = await prisma.learningFact.findMany({
+      select: { userId: true },
+      distinct: ['userId'],
+    });
     const sampleStudentUser = await prisma.user.findFirst({
-      where: { role: 'STUDENT' },
+      where: { role: 'STUDENT', id: { in: factOwners.map((fact) => fact.userId) } },
       orderBy: { createdAt: 'asc' },
       select: { id: true },
     });
@@ -100,7 +107,7 @@ async function main() {
         );
       }
     } else {
-      blockers.push('数据库中没有 STUDENT 用户，无法抽样验证画像可读性');
+      blockers.push('数据库中没有迁移覆盖的学生（拥有 LearningFact 的 STUDENT），无法抽样验证画像可读性');
     }
 
     const report: VerificationReport = {
