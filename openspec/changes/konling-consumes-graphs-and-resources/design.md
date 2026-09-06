@@ -15,7 +15,7 @@
 
 - 绑定资源经服务端 citation allocator 进入引用面板，以可点击芯片呈现，点击在统一查看器壳中打开；teacherOnly 资源 fail-closed。
 - 控灵获得只读工程图谱工具与有界工程邻域 grounding，工程节点经教材映射产出带 vbh 重校验的教材引用。
-- `teaching-resource-rag` 接入检索链或明确退役；`canonicalRagShadow` 死代码被清理或接线；`PRODUCTION_ANSWER` 权威按 cutover 治理从 LEGACY 切到 composed。
+- `teaching-resource-rag` 作为 composed 的教学资源通道接入检索链（不退役）；`canonicalRagShadow` 死代码被接线为影子诊断；`PRODUCTION_ANSWER` 权威按 cutover 治理从 LEGACY 切到 composed。
 - 双域 provenance（工程/教学）在引用元数据中完整保留并可被客户端消费。
 
 **Non-Goals:**
@@ -32,7 +32,7 @@
 
 2. **工程图谱工具为只读、白名单边界。** 新工具 `search_engineering_graph` 以当前焦点 canonicalIds 为白名单种子，`engineeringCorpusFromLayeredPayload` 构建语料，`runEngineeringRagQuery` 检索，谓词集合限定白名单；结果以有界邻域摘要注入 grounding lines，工程节点经 Change 2 映射产出教材引用。备选是直接向模型暴露任意图遍历；拒绝，因为无界遍历会放大提示词体积并引入未治理节点。
 
-3. **RAG 切换按 cutover 治理，先影子后门禁。** 先接线 `canonicalRagShadow` 使影子诊断成为真实数据通路（composed 结果与 LEGACY 结果对比采样），达标后再把 `selectRagAuthority('PRODUCTION_ANSWER')` 从 LEGACY 切到 composed；切换以可回滚的配置/发布步骤完成，回滚即拨回 LEGACY。`teaching-resource-rag` 的取舍在实现期以一次评估定案：若 composed 已覆盖其职责则退役并删除无调用方代码，否则作为 composed 的组成通道接线；结论与证据写入实现记录。
+3. **RAG 切换按 cutover 治理，先影子后门禁；`teaching-resource-rag` 接线不退役。** `teaching-resource-rag` 是密封 consumer-activation 中的命名消费者，承载"控灵检索教学投影绑定资源"（讲义/卡/习题/媒体等非教材语料，带 canonical 双域 provenance）的职责，textbook pack v2 只覆盖教材正文，二者不重叠；它是本系列"全资源可消费"目标的必要组成，必须接线。先接线 `canonicalRagShadow` 使影子诊断成为真实数据通路（composed 结果与 LEGACY 结果对比采样），达标后再把 `selectRagAuthority('PRODUCTION_ANSWER')` 从 LEGACY 切到 composed（teaching-resource-rag 作为 composed 的教学资源通道）；切换以可回滚的配置/发布步骤完成，回滚即拨回 LEGACY。
 
 4. **教材引用沿用 vbh 句柄重校验。** 工程节点教材出处与教学投影教材资源统一经 `buildTextbookReaderHref` 生成带 `?vbh=` 的句柄，点击前由 `/api/textbooks/version-bound-target` 重校验；版本漂移时芯片降级为受限态而非跳转旧版本。registry/DB 资源的版本对齐沿用 Change 3 建立的 B′ authoringRevision 与部署 APP_REVISION 对齐机制。
 
@@ -56,5 +56,5 @@
 
 ## Open Questions
 
-- `teaching-resource-rag` 最终接入还是退役，需在实现期用一次对照评估定案（ Decision 3 已约定评估方式与记录位置）。
 - 工程邻域摘要的条数上限与谓词白名单初值，在实现期按提示词体积实测确定，写入实现记录。
+- `teaching-resource-rag` 接入 composed 的具体通道位置（独立通道结果合并 vs 语料并入）在实现期按检索质量实测定案，结论写入实现记录。

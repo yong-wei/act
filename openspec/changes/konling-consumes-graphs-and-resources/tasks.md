@@ -22,7 +22,7 @@
 ## 4. RAG 接线与切换治理
 
 - [ ] 4.1 接线 `canonicalRagShadow` 使影子诊断成为真实数据通路，或经评估后删除死代码；结论与证据写入实现记录
-- [ ] 4.2 评估 `teaching-resource-rag` 接入 composed 检索链还是退役；按 Decision 3 约定记录取舍
+- [ ] 4.2 将 `teaching-resource-rag` 作为 composed 的教学资源通道接入（独立通道合并或语料并入，按实测定案）；结论与证据写入实现记录
 - [ ] 4.3 采集影子对比指标（命中率、引用可验证率、答案差异采样）并达标
 - [ ] 4.4 经授权后将 `selectRagAuthority('PRODUCTION_ANSWER')` 从 LEGACY 切到 composed；验证回滚路径（拨回 LEGACY）可用
 
