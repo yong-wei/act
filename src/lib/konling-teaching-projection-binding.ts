@@ -23,6 +23,10 @@ import {
 import type { LayeredGraphPayload, LayeredGraphScope } from '@/lib/layered-graph/contracts';
 import { resolveInteractiveLessonIdentity } from '@/lib/interactive-lesson-identity';
 import {
+  overlayLiveTeachingPins,
+  readAgreedLiveCourseProjection,
+} from '@/lib/teaching-projection/live-course-pointer';
+import {
   projectionPinsFromSelection,
   resolveKonlingProductionSelection,
 } from '@/lib/versioned-knowledge-activation';
@@ -239,7 +243,10 @@ export function resolveKonlingTeachingProjectionBinding(input: {
   // #1276 konling consumer activation: pin / select Authority+Projection from
   // the activation pointer so replacing current.json changes Konling reads.
   const konlingActivation = resolveKonlingProductionSelection({ repoRoot });
-  const konlingPins = projectionPinsFromSelection(konlingActivation);
+  const konlingPins = overlayLiveTeachingPins(
+    projectionPinsFromSelection(konlingActivation),
+    readAgreedLiveCourseProjection(repoRoot, { projectionRoot }),
+  );
 
   if (konlingActivation.mode === 'unavailable') {
     return {
