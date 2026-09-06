@@ -126,18 +126,67 @@ function loadTaskSims(): TaskSimInput[] {
   ];
 }
 
+/** Canonical labels from the authority domain shards; used for readable infograph titles (#2042). */
+function loadCanonicalLabels(): Map<string, string> {
+  const labels = new Map<string, string>();
+  const setsDir = abs('course-content/runtime/knowledge/authority-domain-shards/sets');
+  if (!existsSync(setsDir)) return labels;
+  for (const setName of readdirSync(setsDir)) {
+    const domainsDir = path.join(setsDir, setName, 'domains');
+    if (!existsSync(domainsDir)) continue;
+    for (const domainName of readdirSync(domainsDir)) {
+      const file = path.join(domainsDir, domainName, 'default.json');
+      if (!existsSync(file)) continue;
+      const shard = JSON.parse(readFileSync(file, 'utf8')) as {
+        objects?: Array<{ id: string; label?: string | null }>;
+      };
+      for (const object of shard.objects ?? []) {
+        if (object.label && !labels.has(object.id)) labels.set(object.id, object.label);
+      }
+    }
+  }
+  return labels;
+}
+
+/** Card frontmatter names for legacy infograph titles (#2042). */
+function loadCardNames(): Map<string, string> {
+  const names = new Map<string, string>();
+  for (const sub of ['nodes', 'authority']) {
+    const dir = abs(`course-content/authoring/knowledge/cards/${sub}`);
+    if (!existsSync(dir)) continue;
+    const walk = (current: string) => {
+      for (const name of readdirSync(current, { withFileTypes: true })) {
+        const full = path.join(current, name.name);
+        if (name.isDirectory()) {
+          walk(full);
+          continue;
+        }
+        if (!name.name.endsWith('.md')) continue;
+        const token = name.name.slice(0, -'.md'.length);
+        const head = readFileSync(full, 'utf8').slice(0, 1200);
+        const match = head.match(/^name:\s*(.+)$/mu);
+        if (match) names.set(token, match[1].trim());
+      }
+    };
+    walk(dir);
+  }
+  return names;
+}
+
 /** Authority infographs bind by canonical token; the filename encodes it (#2042 task 2.2). */
 function loadInfographsAuthority(): InfographAuthorityInput[] {
   const dir = abs('course-content/runtime/knowledge/infographs/authority/nodes');
   if (!existsSync(dir)) return [];
+  const labels = loadCanonicalLabels();
   const entries: InfographAuthorityInput[] = [];
   for (const name of readdirSync(dir).sort()) {
     if (!name.endsWith('.png')) continue;
     const token = name.slice(0, -'.png'.length);
+    const canonicalId = token.replace(/_/g, ':');
     entries.push({
       resourceId: `act:infographic:${token}`,
-      canonicalId: token.replace(/_/g, ':'),
-      title: null,
+      canonicalId,
+      title: labels.get(canonicalId) ?? null,
     });
   }
   return entries;
@@ -147,6 +196,7 @@ function loadInfographsAuthority(): InfographAuthorityInput[] {
 function loadInfographsLegacy(): InfographLegacyInput[] {
   const dir = abs('course-content/runtime/knowledge/infographs/nodes');
   if (!existsSync(dir)) return [];
+  const cardNames = loadCardNames();
   const entries: InfographLegacyInput[] = [];
   for (const name of readdirSync(dir).sort()) {
     if (!name.endsWith('.png')) continue;
@@ -154,7 +204,7 @@ function loadInfographsLegacy(): InfographLegacyInput[] {
     entries.push({
       resourceId: `act:infographic:${cardId}`,
       cardId,
-      title: null,
+      title: cardNames.get(cardId) ?? null,
     });
   }
   return entries;
@@ -236,7 +286,10 @@ function main(): void {
     });
   }
   const resources = readJsonl<RuntimeResourceRow>(`${releaseDir}/resources.jsonl`)
-    .filter((row) => !row.resourceId.startsWith('act:simulation:lesson02-'));
+    .filter((row) => !row.resourceId.startsWith('act:simulation:lesson02-'))
+    // infographs are re-enumerated from the runtime filesystem each run; stale
+    // input rows (e.g. identifier titles) must not shadow the fresh titles (#2042).
+    .filter((row) => row.resourceType !== 'infographic');
   const bindings = readJsonl<RuntimeBindingRow>(`${releaseDir}/bindings.jsonl`);
   const prerequisites = readJsonl<TeachingPrerequisiteAuthoring>(`${releaseDir}/prerequisites.jsonl`);
   const cardsIndex = readJson<{ cards: RuntimeCardRow[] }>(`${releaseDir}/cards-index.json`);
