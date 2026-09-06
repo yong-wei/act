@@ -32,13 +32,6 @@ export interface KonlingFairExperimentCitationAssembly {
   candidates: readonly KonlingEvidenceAllocationCandidate[];
 }
 
-/** fixture 审计口径演练用的边缘类候选 id 后缀（未核验/仅语义/不可访问）。 */
-const AUDIT_EDGE_SUFFIXES = ['audit-unverified', 'audit-semantic', 'audit-inaccessible'] as const;
-
-export function isAuditEdgeCandidateId(id: string): boolean {
-  return AUDIT_EDGE_SUFFIXES.some((suffix) => id.endsWith(suffix));
-}
-
 function splitReferenceFragments(referenceAnswer: string, limit: number): string[] {
   const clean = (parts: readonly string[]): string[] => (
     parts.map((fragment) => fragment.trim()).filter((fragment) => fragment.length >= 8)
@@ -96,6 +89,16 @@ function deriveAnswerRelevanceBasis(input: {
   return 'semantic-score';
 }
 
+/**
+ * 参考材料的可解析来源地址（#2039 review P1）：指向题库真源在生成修订
+ * 上的 Git blob 视图——引用可点击核验且被 sourceRevision 冻结，不再
+ * 使用不可解析的 `.example` 占位域名充当可访问引用。
+ */
+function bankSourceHref(bankVersion: string, sourceRevision: string): string {
+  const bankFile = bankVersion.includes('v2') ? 'bank-v2.ts' : 'bank.ts';
+  return `https://github.com/yong-wei/act/blob/${encodeURIComponent(sourceRevision)}/src/lib/konling-fair-experiment/${bankFile}`;
+}
+
 function fragmentCandidate(input: {
   item: KonlingFairExperimentBankItem;
   bankVersion: string;
@@ -110,7 +113,7 @@ function fragmentCandidate(input: {
     displayTitle: `参考材料片段 ${index + 1}`,
     citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:${anchor}`,
     verified: true,
-    href: `https://act.example/fair-experiment/${encodeURIComponent(bankVersion)}/${encodeURIComponent(item.itemId)}#${anchor}`,
+    href: bankSourceHref(bankVersion, sourceRevision),
     answerRelevanceBasis: deriveAnswerRelevanceBasis({
       fragment,
       question: item.question,
@@ -136,7 +139,6 @@ export function buildKonlingFairExperimentCitationAssembly(input: {
   item: KonlingFairExperimentBankItem;
   bankVersion: string;
   sourceRevision: string;
-  includeAuditEdgeCandidates?: boolean;
 }): KonlingFairExperimentCitationAssembly {
   const { item, bankVersion, sourceRevision } = input;
   const requiredCount = evidenceRequiredStudyQuestionSections(item.intent).length;
@@ -145,56 +147,6 @@ export function buildKonlingFairExperimentCitationAssembly(input: {
   const candidates: KonlingEvidenceAllocationCandidate[] = fragments.map((fragment, index) => (
     fragmentCandidate({ item, bankVersion, sourceRevision, index, fragment })
   ));
-  if (input.includeAuditEdgeCandidates) {
-    candidates.push(
-      {
-        id: `${item.itemId}:audit-unverified`,
-        displayTitle: '参考材料片段（未核验）',
-        citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:audit-unverified`,
-        verified: false,
-        href: null,
-        answerRelevanceBasis: 'query-lexical',
-        identity: {
-          kind: 'content',
-          sourceType: 'content',
-          contentId: `${bankVersion}:${item.itemId}:audit-unverified`,
-          sourceRevision,
-        },
-        matchText: item.referenceAnswer.slice(0, 120),
-      },
-      {
-        id: `${item.itemId}:audit-semantic`,
-        displayTitle: '参考材料片段（仅语义相关）',
-        citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:audit-semantic`,
-        verified: true,
-        href: `https://act.example/fair-experiment/${encodeURIComponent(bankVersion)}/${encodeURIComponent(item.itemId)}#audit-semantic`,
-        answerRelevanceBasis: 'semantic-score',
-        identity: {
-          kind: 'content',
-          sourceType: 'content',
-          contentId: `${bankVersion}:${item.itemId}:audit-semantic`,
-          sourceRevision,
-        },
-        matchText: item.referenceAnswer.slice(0, 120),
-      },
-      {
-        id: `${item.itemId}:audit-inaccessible`,
-        displayTitle: '参考材料片段（不可访问）',
-        citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:audit-inaccessible`,
-        verified: true,
-        href: null,
-        answerRelevanceBasis: 'query-lexical',
-        identity: {
-          kind: 'content',
-          sourceType: 'content',
-          contentId: `${bankVersion}:${item.itemId}:audit-inaccessible`,
-          sourceRevision,
-        },
-        matchText: item.referenceAnswer.slice(0, 120),
-      },
-    );
-  }
-
   const plan = buildEvidenceRequiredUnitSourcePlan({
     intent: item.intent,
     candidates,

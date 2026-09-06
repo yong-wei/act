@@ -90,6 +90,14 @@ function cjkBigrams(value: string): ReadonlySet<string> {
 /** 装配层（如公平实验证据池）复用的确定性词面匹配 token 集。 */
 export const cjkBigramsForMatching = cjkBigrams;
 
+function sharedGramCount(left: ReadonlySet<string>, right: ReadonlySet<string>): number {
+  let count = 0;
+  for (const gram of left) {
+    if (right.has(gram)) count += 1;
+  }
+  return count;
+}
+
 function overlapRatio(labelGrams: ReadonlySet<string>, textGrams: ReadonlySet<string>): number {
   if (labelGrams.size === 0) return 0;
   let hit = 0;
@@ -160,12 +168,24 @@ export function buildEvidenceRequiredUnitSourcePlan(input: {
 
   for (const section of sections) {
     const sectionGrams = cjkBigrams([section.title, ...section.aliases].join(' '));
-    // 逐单元独立相关性判定（#2039 review P1）：与章节标题及别名零词面
-    // 重合的候选不得分配给该章节——即使它对整道查询有白名单 basis，
-    // 也不得成为主源/备用源或被同一来源机械复制到所有章节。
+    const sectionText = normaliseForMatch([section.title, ...section.aliases].join(' '));
+    const sectionTextOf = (candidate: KonlingEvidenceAllocationCandidate): string => (
+      normaliseForMatch(candidate.matchText ?? candidate.displayTitle)
+    );
+    // 逐单元独立相关性判定（#2039 review P1，两轮收敛）：候选必须与章节
+    // 有足够专属重合——标题/别名原文命中（题库参考材料的「章节：…」行
+    // 式标签）或至少 2 个共享词元；单个偶发词元（如仅共享「定义」）不
+    // 足以证明该候选直接支撑该章节，不得进入该章节的分配排名。
+    const sectionRelevant = (candidate: KonlingEvidenceAllocationCandidate): boolean => {
+      const text = sectionTextOf(candidate);
+      if (text && sectionText && (text.includes(sectionText) || [section.title, ...section.aliases].some((label) => text.includes(normaliseForMatch(label))))) {
+        return true;
+      }
+      return sharedGramCount(sectionGrams, gramsFor(candidate)) >= 2;
+    };
     const ranked: ScoredCandidate[] = eligible
       .map((candidate) => ({ candidate, score: scoreCandidate(candidate, sectionGrams) }))
-      .filter((entry) => overlapRatio(sectionGrams, gramsFor(entry.candidate)) > 0)
+      .filter((entry) => sectionRelevant(entry.candidate))
       .sort((left, right) => (
         right.score - left.score
         || left.candidate.id.localeCompare(right.candidate.id)
@@ -245,16 +265,20 @@ export function buildEvidenceRequiredUnitSourcePlan(input: {
 
 export interface KonlingEvidenceRepairResult {
   body: string;
+  /** 换源重绑成功的标记数（无效编号被替换为章节分配编号）。 */
   repairedUnitCount: number;
   /** 存在可分配来源但补证后仍有缺口的章节（无来源章节不参与补证）。 */
   unrepairedSectionIds: readonly string[];
 }
 
 /**
- * 生成后一轮有界补证（#2039，确定性、不调用模型）：对 evidence-required
- * 章节内未绑定直接支撑引用的实质单元行，按分配表追加该章节的主源编号
- * （主源不可用时用备用编号）；无分配来源的章节不参与补证，保持 #2017
- * fail-closed 降级。补证只追加真实分配编号，不伪造标记。
+ * 生成后一轮有界补证（#2039，确定性、不调用模型）——只做换源重绑：
+ * 对 evidence-required 章节内「已带引用标记但编号无效」的单元行（伪
+ * 编号已由白名单删除、或绑定未核验/无锚点/非直接支撑来源），把无效
+ * 标记替换为该章节的分配编号（主源优先，备用次之）。模型在这些行上
+ * 已表达「需要引用」的意图，补证只修正来源解析，不为无标记的新断言
+ * 追加编号——无标记或无可用来源的单元保持 #2017 fail-closed 降级，
+ * 不以确定性后处理制造覆盖（#2039 review P1）。
  */
 export function repairUncoveredEvidenceUnits(input: {
   answer: string;
@@ -277,28 +301,19 @@ export function repairUncoveredEvidenceUnits(input: {
       ))
       .map((citation) => citation.displayNumber as number),
   );
-  const directSupportIds = new Set(
-    input.citations
-      .filter((citation) => isDirectVerifiedSupportCitation(citation))
-      .map((citation) => citation.id),
-  );
   const requiredSections = new Map(
     evidenceRequiredStudyQuestionSections(input.intent).map((section) => [section.id, section]),
   );
   const assignmentBySection = new Map(input.plan.assignments.map((row) => [row.sectionId, row]));
   const scan = scanKonlingAnswerUnits(input.answer, input.citations, input.intent);
-  // 覆盖口径与审计一致：bound 但仅绑定 semantic-score 等非直接支撑引用的
-  // 单元同样视为未覆盖，参与一轮补证（#2017 review P1 的执行侧对齐）。
-  const unboundUnits = scan.units.filter((unit) => (
+  // 只补证「带标记但未获直接支撑」的单元：trusted 标记存在但无一绑定
+  // 直接支撑来源（含标记被白名单删除后仅剩无效标记语义的单元）。
+  const markedUncovered = new Set(scan.units.filter((unit) => (
     unit.substantive
     && unit.sectionId !== null
     && requiredSections.has(unit.sectionId)
-    && (unit.bindingCitationIds ?? []).every((id) => !directSupportIds.has(id))
-  ));
-  if (unboundUnits.length === 0) {
-    return { body: input.answer, repairedUnitCount: 0, unrepairedSectionIds: [] };
-  }
-  const unboundTexts = new Set(unboundUnits.map((unit) => unit.unit));
+    && (unit.bindingCitationIds ?? []).every((id) => !directSupportIdsOf(input.citations).has(id))
+  )).map((unit) => unit.unit));
 
   const numberForSection = (sectionId: string): number | null => {
     const assignment = assignmentBySection.get(sectionId);
@@ -314,6 +329,7 @@ export function repairUncoveredEvidenceUnits(input: {
   let repairedUnitCount = 0;
   const rebuilt: string[] = [];
   let currentSectionId: string | null = null;
+  const markerPattern = /\[(\d+)\]/g;
   for (const line of input.answer.split(/\r?\n/)) {
     const heading = detectStudyQuestionSectionHeading(line, input.intent);
     if (heading) {
@@ -325,20 +341,28 @@ export function repairUncoveredEvidenceUnits(input: {
     if (
       currentSectionId !== null
       && requiredSections.has(currentSectionId)
-      && unboundTexts.has(normalized)
       && normalized.length > 0
+      && markedUncovered.has(normalized)
+      && markerPattern.test(line)
     ) {
       const number = numberForSection(currentSectionId);
+      markerPattern.lastIndex = 0;
       if (number === null) {
         unrepaired.add(currentSectionId);
         rebuilt.push(line);
         continue;
       }
-      repairedSections.add(currentSectionId);
-      repairedUnitCount += 1;
-      rebuilt.push(`${line.replace(/\s+$/u, '')} [${number}]`);
-      continue;
+      // 该行存在标记（模型已表达引用意图）但编号未获直接支撑：整行
+      // 标记替换为章节分配编号（换源重绑，一次、确定性）。
+      const remapped = line.replace(/\s*(?:\[\d+\])+\s*$/u, ` [${number}]`);
+      if (remapped !== line) {
+        repairedSections.add(currentSectionId);
+        repairedUnitCount += 1;
+        rebuilt.push(remapped);
+        continue;
+      }
     }
+    markerPattern.lastIndex = 0;
     rebuilt.push(line);
   }
   return {
@@ -346,6 +370,10 @@ export function repairUncoveredEvidenceUnits(input: {
     repairedUnitCount,
     unrepairedSectionIds: [...unrepaired].sort(),
   };
+}
+
+function directSupportIdsOf(citations: ReadonlyArray<{ id: string; verified: boolean; citationTargetId: string | null; href: string | null; answerRelevanceBasis?: string | null }>): ReadonlySet<string> {
+  return new Set(citations.filter((citation) => isDirectVerifiedSupportCitation(citation)).map((citation) => citation.id));
 }
 
 /** 章节标题 → 分配编号映射（prompt 逐单元渲染用；未分配章节不出现）。 */

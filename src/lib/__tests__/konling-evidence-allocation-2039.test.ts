@@ -123,22 +123,30 @@ describe('evidence-required per-unit source allocation (#2039)', () => {
     expect(plan.assignedCitations.every((citation) => citation.identity.sourceRevision)).toBe(true);
   });
 
-  it('performs one bounded repair pass appending allocated numbers to unbound required units', () => {
+  it('performs one bounded repair pass remapping invalid markers to allocated numbers (no append to unmarked lines)', () => {
     const plan = buildEvidenceRequiredUnitSourcePlan({
       intent: codeItem.intent,
       candidates: [candidate({ id: 'src-fix', matchText: '最小修复 修复建议' })],
     });
-    const citations = snapshotOf(plan.assignedCitations.map((citation) => {
-      const source = citation.id === 'src-fix' ? candidate({ id: citation.id, matchText: '最小修复' }) : null;
-      return {
-        id: citation.id,
+    const primary = plan.assignedCitations.find((citation) => citation.id === 'src-fix')!;
+    const citations = snapshotOf([
+      {
+        id: primary.id,
         verified: true,
-        href: source?.href ?? null,
+        href: primary.href,
         answerRelevanceBasis: 'query-lexical',
-        displayNumber: citation.displayNumber,
-        citationTargetId: `target:${citation.id}`,
-      };
-    }));
+        displayNumber: primary.displayNumber,
+        citationTargetId: `target:${primary.id}`,
+      },
+      {
+        id: 'unverified-src',
+        verified: false,
+        href: null,
+        answerRelevanceBasis: null,
+        displayNumber: primary.displayNumber + 1,
+        citationTargetId: 'target:unverified-src',
+      },
+    ]);
     const answer = [
       '## 故障定位',
       '按现象观察输出饱和。',
@@ -146,13 +154,18 @@ describe('evidence-required per-unit source allocation (#2039)', () => {
       '积分累积导致。',
       '## 最小修复',
       '加入抗积分饱和 clamp。',
+      `改为对测量值差分。 [${primary.displayNumber + 1}]`,
       '## 验证方法',
       '仿真验证超调下降。',
     ].join('\n');
     const repair = repairUncoveredEvidenceUnits({ answer, intent: codeItem.intent, citations, plan });
+    // 带无效标记（未核验来源编号）的行被换源重绑为章节主源编号。
     expect(repair.repairedUnitCount).toBe(1);
-    expect(repair.body).toContain('加入抗积分饱和 clamp。 [1]');
-    expect(repair.body).not.toContain('按现象观察输出饱和。 [');
+    expect(repair.body).toContain(`改为对测量值差分。 [${primary.displayNumber}]`);
+    expect(repair.body).not.toContain(`[${primary.displayNumber + 1}]`);
+    // 无标记行不被追加编号（不以确定性后处理制造覆盖）。
+    expect(repair.body).toContain('加入抗积分饱和 clamp。');
+    expect(repair.body).not.toMatch(/加入抗积分饱和 clamp。\s*\[\d+\]/);
   });
 
   it('keeps fail-closed semantics when no source can be allocated (repair does not fabricate markers)', () => {

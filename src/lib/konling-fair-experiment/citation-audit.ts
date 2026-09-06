@@ -145,8 +145,13 @@ export function auditKonlingFairCitationRecord(
 
   const missReasons: Record<string, number> = {};
   for (const unit of requiredUnits) {
-    if (unit.bound || !unit.missReason) continue;
-    missReasons[unit.missReason] = (missReasons[unit.missReason] ?? 0) + 1;
+    // #2039 review P2：bound 但仅绑定 semantic-score / 不可访问等非直接
+    // 支撑来源的单元同样有缺口，归入独立原因桶——分意图导出不得出现
+    // 「有覆盖缺口却无失败原因」的空洞。
+    const covered = (unit.bindingCitationIds ?? []).some((id) => directSupportIds.has(id));
+    if (covered) continue;
+    const reason = unit.missReason ?? 'citation-no-direct-support';
+    missReasons[reason] = (missReasons[reason] ?? 0) + 1;
   }
 
   return {

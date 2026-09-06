@@ -131,7 +131,7 @@ export function buildKonlingFairExperimentSystemPrompt(input: {
    * 经生产分配模块装配 citationContext 并随返回值交出，供 runner 冻结
    * 与补证；基线臂必须不传（保持零引用能力）。
    */
-  evidence?: { bankVersion: string; sourceRevision: string; includeAuditEdgeCandidates?: boolean };
+  evidence?: { bankVersion: string; sourceRevision: string };
 }): {
   systemPrompt: string;
   contractIntent: string | null;
@@ -157,7 +157,6 @@ export function buildKonlingFairExperimentSystemPrompt(input: {
       item,
       bankVersion: input.evidence.bankVersion,
       sourceRevision: input.evidence.sourceRevision,
-      includeAuditEdgeCandidates: input.evidence.includeAuditEdgeCandidates,
     })
     : undefined;
   const runtimeContext = buildKonlingFairExperimentRuntimeContext(context);
