@@ -16,8 +16,10 @@ export interface AdaptivePathDifferentiationCandidate {
   resourceTypeShares: Record<string, number>;
   /** 预计学习时长（分钟）。 */
   estimatedMinutes: number;
-  /** 检查点结构签名：按出现顺序的 `inline`/`terminal` 序列。 */
+  /** 检查点结构签名：按出现顺序的 `terminal` 与带位置桶的 `inline-*` 序列。 */
   checkpointSignature: string[];
+  /** 核心资源中存在可验证的 Runtime 对象键资源（无则候选无法提供读取证明）。 */
+  hasVerifiableRuntimeResource?: boolean;
 }
 
 export interface AdaptivePathPairDifferentiationMetrics {
@@ -71,23 +73,28 @@ function totalVariationDistance(
 }
 
 /**
- * 共有节点归一化顺序差异：共有节点在两侧的排名绝对差之和，
- * 除以 |S| × max(|A|,|B|) 归一到 [0,1]。单侧缺失的共有节点不计（不存在）。
+ * 共有节点顺序差异（#2033 复审修复）：先把两侧投影为共有节点序列，再比较
+ * 其相对排列（逆序对比例，归一到 [0,1]）。独有节点在前后移动不再伪造顺序差异；
+ * 仅有单个共有节点或相对次序完全一致时为 0。
  */
 function sharedNodeOrderDifference(
   left: string[],
   right: string[],
 ): number {
-  const rightPositions = new Map(right.map((nodeId, index) => [nodeId, index]));
-  const shared = left.filter((nodeId) => rightPositions.has(nodeId));
-  if (shared.length < 2) return 0;
-  const leftPositions = new Map(left.map((nodeId, index) => [nodeId, index]));
-  let total = 0;
-  for (const nodeId of shared) {
-    total += Math.abs(leftPositions.get(nodeId)! - rightPositions.get(nodeId)!);
+  const leftSet = new Set(left);
+  const rightSet = new Set(right);
+  const leftShared = left.filter((nodeId) => rightSet.has(nodeId));
+  if (leftShared.length < 2) return 0;
+  const rightShared = right.filter((nodeId) => leftSet.has(nodeId));
+  const rightRank = new Map(rightShared.map((nodeId, index) => [nodeId, index]));
+  let inversions = 0;
+  for (let i = 0; i < leftShared.length; i += 1) {
+    for (let j = i + 1; j < leftShared.length; j += 1) {
+      if ((rightRank.get(leftShared[i]) ?? 0) > (rightRank.get(leftShared[j]) ?? 0)) inversions += 1;
+    }
   }
-  const denominator = shared.length * Math.max(left.length, right.length, 1);
-  return denominator === 0 ? 0 : total / denominator;
+  const totalPairs = (leftShared.length * (leftShared.length - 1)) / 2;
+  return totalPairs === 0 ? 0 : inversions / totalPairs;
 }
 
 function checkpointStructuralDifference(
@@ -96,17 +103,19 @@ function checkpointStructuralDifference(
 ): boolean {
   if (left.length !== right.length) return true;
   const normalize = (values: string[]) => {
-    const inline = values.filter((value) => value === 'inline').length;
-    const terminal = values.filter((value) => value === 'terminal').length;
+    // inline 带归一化位置桶（inline-head / inline-tail），只比较桶类型。
+    const inline = values.filter((value) => value.startsWith('inline')).length;
+    const terminal = values.filter((value) => value.startsWith('terminal')).length;
     // 相对位置：终结验证是否收尾、内联检查点是否出现在前半程。
-    const tailTerminal = values[values.length - 1] === 'terminal';
+    const tailTerminal = values[values.length - 1]?.startsWith('terminal') ?? false;
     return { inline, terminal, tailTerminal };
   };
   const leftShape = normalize(left);
   const rightShape = normalize(right);
   if (leftShape.inline !== rightShape.inline || leftShape.terminal !== rightShape.terminal) return true;
   if (leftShape.tailTerminal !== rightShape.tailTerminal) return true;
-  return left.some((value, index) => value !== right[index] && (value === 'terminal' || right[index] === 'terminal'));
+  return left.some((value, index) => value !== right[index]
+    && (value.startsWith('terminal') || right[index].startsWith('terminal')));
 }
 
 export function computeAdaptivePathPairDifferentiation(

@@ -259,18 +259,24 @@ export function computeAdaptivePathBatchDifferentiation(
       const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
       return !(provenance.objectKey && unreadableObjectKeys.has(provenance.objectKey));
     });
+    // 复审修复：候选核心资源中必须存在可验证的 Runtime 对象键资源；
+    // 纯站内路由（无 OSS 来源面）的候选无法提供读取证明，视为资源不足。
+    const hasVerifiableRuntimeResource = countedNodes.some((node) =>
+      resolveAdaptivePathRuntimeObjectKey(node.target).objectKey !== null);
     const objectKeys = new Set<string>();
     const typeCounts: Record<string, number> = {};
     const checkpointSignature: string[] = [];
     let estimatedMinutes = 0;
-    for (const node of countedNodes) {
+    const total = countedNodes.length;
+    countedNodes.forEach((node, index) => {
       const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
       if (provenance.objectKey) objectKeys.add(provenance.objectKey);
       typeCounts[node.type] = (typeCounts[node.type] ?? 0) + 1;
+      // 检查点签名编码归一化相对位置（前半程/后半程），区分安排差异。
       if (node.terminalConstraints?.includes('terminal-validation')) checkpointSignature.push('terminal');
-      else if (node.checkpoint) checkpointSignature.push('inline');
+      else if (node.checkpoint) checkpointSignature.push(index / Math.max(total, 1) < 0.5 ? 'inline-head' : 'inline-tail');
       estimatedMinutes += node.estimatedTimeMinutes ?? 0;
-    }
+    });
     const totalResources = countedNodes.length || 1;
     const resourceTypeShares = Object.fromEntries(
       Object.entries(typeCounts).map(([type, count]) => [type, count / totalResources]),
@@ -282,14 +288,16 @@ export function computeAdaptivePathBatchDifferentiation(
       resourceTypeShares,
       estimatedMinutes,
       checkpointSignature,
+      hasVerifiableRuntimeResource,
     };
   });
 
   const pairs: AdaptivePathBatchDifferentiation['pairs'] = [];
   let highDifferentiation = true;
-  // 空资源候选（核心资源被读验证失败等剔除殆尽）不得参与高区分度声称：
-  // 空集与非空集比较会虚增 Jaccard/TVD/时长指标，把资源故障误报成区分度成功。
-  const insufficientVerifiedResources = inputs.some((input) => input.coreNodeIds.length === 0);
+  // 空资源候选（核心资源被读验证失败等剔除殆尽）与无可验证 OSS 核心资源的候选
+  // 不得参与高区分度声称：空集 vs 非空集会虚增指标，纯站内资源无读取证明。
+  const insufficientVerifiedResources = inputs.some((input) =>
+    input.coreNodeIds.length === 0 || input.hasVerifiableRuntimeResource === false);
   if (insufficientVerifiedResources) highDifferentiation = false;
   for (let left = 0; left < inputs.length; left += 1) {
     for (let right = left + 1; right < inputs.length; right += 1) {
