@@ -1720,14 +1720,12 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 }
 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
-  // active 隐藏视图同名控件会先命中，scope 到 legacy 视图。
-  const nodeControl = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + expectedNodeId + '"]').first();
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    // 每次尝试前重新取节点包围盒，force 布局动画会让预查询坐标漂移。
-    const box = await nodeControl.boundingBox().catch(() => null);
-    if (!box) break;
-    const startX = box.x + box.width / 2;
-    const startY = box.y + box.height / 2;
+    // 每次尝试前重新取节点实时投影坐标，force 布局动画会让预查询坐标漂移。
+    const point = await readSelectedNodeLivePoint(page, expectedNodeId);
+    if (!point) break;
+    const startX = point.x;
+    const startY = point.y;
     await page.mouse.move(startX, startY);
     await page.waitForTimeout(150);
     await page.mouse.down();
@@ -1753,6 +1751,24 @@ async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
     }
   }
   return { method: 'pointer-drag', pinned: false, selectedNodeId: expectedNodeId };
+}
+
+// 节点实时投影坐标：选择转换/拖拽/悬停都用它命中画布节点本体。
+async function readSelectedNodeLivePoint(page: Page, nodeId: string) {
+  return page.evaluate((id) => {
+    const probe = (window as any).__knowledgeGraphQaNodePoints;
+    if (typeof probe !== 'function') return null;
+    const [first] = probe(id) as Array<{ x: number; y: number }>;
+    return first && Number.isFinite(first.x) && Number.isFinite(first.y)
+      ? { x: first.x, y: first.y }
+      : null;
+  }, nodeId);
+}
+
+async function clickNodeLivePoint(page: Page, nodeId: string) {
+  const point = await readSelectedNodeLivePoint(page, nodeId);
+  if (!point) throw new Error(`node ${nodeId} has no live projected point for pointer interaction`);
+  await page.mouse.click(point.x, point.y);
 }
 
 async function captureMarkerSnapshot(page: Page) {
@@ -3666,21 +3682,16 @@ async function main() {
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
         const beforeSelection = await captureMarkerSnapshot(page);
-        const nodeControl = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + dragNodeId + '"]').first();
-        const clickNodeControl = async () => {
-          const box = await nodeControl.boundingBox().catch(() => null);
-          if (!box) throw new Error(`node control ${dragNodeId} has no reachable pointer area`);
-          await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-        };
-        // 真实选择转换：点击已选节点取消选择，再点击重新选择；布局与钉住状态前后不变。
-        await clickNodeControl();
+        // 真实选择转换：点击已选节点取消选择，等布局稳定后在实时坐标上重新点选。
+        await clickNodeLivePoint(page, dragNodeId);
         await page.waitForFunction((expectedNodeId) => {
           const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
           return canvas?.getAttribute('data-knowledge-selected-node-id') === ''
             || canvas?.getAttribute('data-knowledge-selectedNodeId') === '';
         }, dragNodeId, { timeout: 10000 }).catch(() => undefined);
         const afterDeselection = await captureMarkerSnapshot(page);
-        await clickNodeControl();
+        await page.waitForTimeout(800);
+        await clickNodeLivePoint(page, dragNodeId);
         await page.waitForFunction((expectedNodeId) => {
           const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
           return canvas?.getAttribute('data-knowledge-selected-node-id') === expectedNodeId
@@ -3691,10 +3702,10 @@ async function main() {
         const beforeDrag = await captureMarkerSnapshot(page);
         const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
-        // 悬停命中实际节点（拖拽后重新取包围盒），并验证悬停预览可见。
-        const hoverBox = await nodeControl.boundingBox().catch(() => null);
-        if (hoverBox) {
-          await page.mouse.move(hoverBox.x + hoverBox.width / 2, hoverBox.y + hoverBox.height / 2);
+        // 悬停命中实际节点实时投影位置，并验证悬停预览可见。
+        const hoverPoint = await readSelectedNodeLivePoint(page, dragNodeId);
+        if (hoverPoint) {
+          await page.mouse.move(hoverPoint.x, hoverPoint.y);
           await page.waitForTimeout(300);
         }
         const afterHover = await captureMarkerSnapshot(page);
