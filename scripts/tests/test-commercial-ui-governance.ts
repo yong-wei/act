@@ -2317,35 +2317,74 @@ function interactionObservationPresent(snapshot: JsonRecord, fields: string[]): 
   return fields.every((field) => {
     const value = snapshot[field];
     if (field === 'inspectorOpen' || field === 'hoverPreviewVisible') return typeof value === 'boolean';
+    if (field === 'nodePoints') return Array.isArray(value) && value.length > 0;
     // pinnedLayoutSignature 允许合法空串（拖拽前无钉住），只要求字段存在。
     if (field === 'pinnedLayoutSignature') return typeof value === 'string';
     return typeof value === 'string' && value.length > 0;
   });
 }
 
+function nodePointsEqual(left: unknown, right: unknown): boolean {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) return false;
+  return left.every((point, index) => {
+    const leftPoint = objectRecord(point);
+    const rightPoint = objectRecord(right[index]);
+    return Math.abs(numberFromEvidence(leftPoint.x)! - numberFromEvidence(rightPoint.x)!) < 0.5
+      && Math.abs(numberFromEvidence(leftPoint.y)! - numberFromEvidence(rightPoint.y)!) < 0.5;
+  });
+}
+
+function interactionSurfaceStable(left: JsonRecord, right: JsonRecord): string[] {
+  return [
+    left.surfaceToken === right.surfaceToken ? null : 'surface-remounted',
+    nodePointsEqual(left.nodePoints, right.nodePoints) ? null : 'node-geometry-changed',
+  ].filter((entry): entry is string => Boolean(entry));
+}
+
 export function interactionStabilityProblems(evidence: JsonRecord, selectedNode: unknown): string[] {
+  const beforeSelection = objectRecord(evidence.beforeSelection);
+  const afterDeselection = objectRecord(evidence.afterDeselection);
+  const afterSelection = objectRecord(evidence.afterSelection);
   const beforeDrag = objectRecord(evidence.beforeDrag);
   const afterInspectorOpen = objectRecord(evidence.afterInspectorOpen);
   const afterInspectorClose = objectRecord(evidence.afterInspectorClose);
   const afterDrag = objectRecord(evidence.afterDrag);
   const afterHover = objectRecord(evidence.afterHover);
   const selectedNodeId = String(selectedNode ?? '');
-  const observationsPresent = interactionObservationPresent(beforeDrag, ['selectedNodeId', 'layoutVersion', 'pinnedLayoutSignature'])
-    && interactionObservationPresent(afterInspectorOpen, ['inspectorOpen', 'layoutVersion'])
-    && interactionObservationPresent(afterInspectorClose, ['inspectorOpen', 'pinnedLayoutSignature'])
-    && interactionObservationPresent(afterDrag, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId'])
-    && interactionObservationPresent(afterHover, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'hoverPreviewVisible']);
+  const geometryFields = ['layoutVersion', 'pinnedLayoutSignature', 'surfaceToken', 'nodePoints'];
+  const observationsPresent = interactionObservationPresent(beforeSelection, ['selectedNodeId', ...geometryFields])
+    && interactionObservationPresent(afterDeselection, ['layoutVersion'])
+    && interactionObservationPresent(afterSelection, ['selectedNodeId', ...geometryFields])
+    && interactionObservationPresent(beforeDrag, ['selectedNodeId', ...geometryFields])
+    && interactionObservationPresent(afterInspectorOpen, ['inspectorOpen', 'layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'surfaceToken', 'nodePoints'])
+    && interactionObservationPresent(afterInspectorClose, ['inspectorOpen', 'pinnedLayoutSignature', 'surfaceToken', 'nodePoints'])
+    && interactionObservationPresent(afterDrag, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'surfaceToken', 'nodePoints'])
+    && interactionObservationPresent(afterHover, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'hoverPreviewVisible', 'surfaceToken', 'nodePoints']);
   if (!observationsPresent) return ['interaction-observations-missing'];
   return [
-    beforeDrag.selectedNodeId === selectedNodeId && selectedNodeId.length > 0
+    beforeSelection.selectedNodeId === selectedNodeId && selectedNodeId.length > 0
       ? null
-      : 'before-drag-selection-missing',
+      : 'before-selection-state-missing',
+    afterDeselection.selectedNodeId === '' ? null : 'deselection-not-observed',
+    afterSelection.selectedNodeId === selectedNodeId ? null : 'selection-transition-not-observed',
+    afterSelection.layoutVersion === beforeSelection.layoutVersion ? null : 'selection-layout-reset',
+    afterSelection.pinnedLayoutSignature === beforeSelection.pinnedLayoutSignature
+      ? null
+      : 'selection-pinned-signature-changed',
+    beforeDrag.selectedNodeId === selectedNodeId ? null : 'before-drag-selection-missing',
     afterInspectorOpen.inspectorOpen === true ? null : 'inspector-open-not-observed',
     afterInspectorOpen.layoutVersion === afterDrag.layoutVersion ? null : 'inspector-open-layout-reset',
+    afterInspectorOpen.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
+      ? null
+      : 'inspector-open-pinned-signature-changed',
+    afterInspectorOpen.selectedNodeId === afterDrag.selectedNodeId ? null : 'inspector-open-selection-lost',
     afterInspectorClose.inspectorOpen === false ? null : 'inspector-close-not-observed',
     afterInspectorClose.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
       ? null
       : 'inspector-close-pinned-signature-changed',
+    ...interactionSurfaceStable(afterDrag, afterHover).map((problem) => `hover-${problem}`),
+    ...interactionSurfaceStable(afterDrag, afterInspectorOpen).map((problem) => `inspector-open-${problem}`),
+    ...interactionSurfaceStable(afterDrag, afterInspectorClose).map((problem) => `inspector-close-${problem}`),
     afterHover.hoverPreviewVisible === true ? null : 'hover-preview-not-visible',
     afterHover.layoutVersion === afterDrag.layoutVersion ? null : 'hover-layout-reset',
     afterHover.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
@@ -2362,6 +2401,7 @@ export function explicitRelayoutStabilityProblems(evidence: JsonRecord): string[
     && interactionObservationPresent(afterRelayout, ['layoutVersion', 'pinnedNodeCount', 'selectedNodeId']);
   if (!observationsPresent) return ['relayout-observations-missing'];
   return [
+    beforeRelayout.pinnedNodeCount === '1' ? null : 'relayout-pin-not-established',
     numberFromEvidence(afterRelayout.layoutVersion)! > numberFromEvidence(beforeRelayout.layoutVersion)!
       ? null
       : 'relayout-version-not-incremented',
@@ -2369,6 +2409,7 @@ export function explicitRelayoutStabilityProblems(evidence: JsonRecord): string[
     afterRelayout.selectedNodeId === beforeRelayout.selectedNodeId ? null : 'relayout-selection-lost',
   ].filter((entry): entry is string => Boolean(entry));
 }
+
 
 function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceViolation[] {
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH);
@@ -2959,14 +3000,14 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               : `${name}:layout-persistence-interaction-proof-missing`
           )
         : null,
-      name === 'desktop-hover-click-drag-dark'
+      ...(name === 'desktop-hover-click-drag-dark'
         ? interactionStabilityProblems(objectRecord(state.interactionEvidence), state.selectedNode)
           .map((problem) => `${name}:${problem}`)
-        : null,
-      name === 'desktop-explicit-relayout-dark'
+        : []),
+      ...(name === 'desktop-explicit-relayout-dark'
         ? explicitRelayoutStabilityProblems(objectRecord(state.interactionEvidence))
           .map((problem) => `${name}:${problem}`)
-        : null,
+        : []),
       name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (typeof inspectorTop === 'number' ? null : `${name}:inspector-rect-missing`)
         : null,

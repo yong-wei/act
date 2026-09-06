@@ -4947,18 +4947,22 @@ describe('commercial UI governance', () => {
 
   it('accepts complete graph interaction observations and rejects missing, reset, or flag-only evidence', () => {
     const selectedNode = 'node-knowledge-graph-core';
+    const points = [{ x: 120, y: 240 }, { x: 300, y: 180 }];
     const validEvidence = {
-      beforeDrag: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, inspectorOpen: false },
+      beforeSelection: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points, inspectorOpen: false },
+      afterDeselection: { layoutVersion: '3', selectedNodeId: '' },
+      afterSelection: { layoutVersion: '3', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points, inspectorOpen: true },
+      beforeDrag: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points, inspectorOpen: false },
       drag: { pinned: true, method: 'pointer-drag', selectedNodeId: selectedNode },
-      afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
-      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, hoverPreviewVisible: true },
-      afterInspectorOpen: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: true },
-      afterInspectorClose: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+      afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, surfaceToken: 's1', nodePoints: points },
+      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, surfaceToken: 's1', nodePoints: points, hoverPreviewVisible: true },
+      afterInspectorClose: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, surfaceToken: 's1', nodePoints: points },
+      afterInspectorOpen: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: true, surfaceToken: 's1', nodePoints: points },
     };
 
     expect(interactionStabilityProblems(validEvidence, selectedNode)).toEqual([]);
 
-    expect(interactionStabilityProblems({}, selectedNode)).not.toHaveLength(0);
+    expect(interactionStabilityProblems({}, selectedNode)).toEqual(['interaction-observations-missing']);
 
     expect(interactionStabilityProblems({
       ...validEvidence,
@@ -4977,51 +4981,45 @@ describe('commercial UI governance', () => {
 
     expect(interactionStabilityProblems({
       ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, nodePoints: [{ x: 999, y: 999 }] },
+    }, selectedNode)).toContain('hover-node-geometry-changed');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
       afterInspectorClose: { ...validEvidence.afterInspectorClose, pinnedLayoutSignature: 'pin:reset' },
       afterDrag: { ...validEvidence.afterDrag, pinnedLayoutSignature: `pin:${selectedNode}` },
     }, selectedNode)).toContain('inspector-close-pinned-signature-changed');
 
     expect(interactionStabilityProblems({
-      hoverDoesNotRelayout: true,
-      beforeDrag: validEvidence.beforeDrag,
-    }, selectedNode)).toEqual(['interaction-observations-missing']);
-
-    expect(interactionStabilityProblems({
       ...validEvidence,
-      beforeDrag: { ...validEvidence.beforeDrag, pinnedLayoutSignature: '' },
-      afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
-      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, hoverPreviewVisible: true },
-    }, selectedNode)).toEqual([]);
+      afterInspectorOpen: { ...validEvidence.afterInspectorOpen, pinnedLayoutSignature: '' },
+    }, selectedNode)).toContain('inspector-open-pinned-signature-changed');
 
     expect(interactionStabilityProblems({
       beforeDrag: { ...validEvidence.beforeDrag, pinnedLayoutSignature: undefined },
     }, selectedNode)).toContain('interaction-observations-missing');
 
     expect(interactionStabilityProblems({
+      beforeSelection: validEvidence.beforeSelection,
+      afterDeselection: validEvidence.afterDeselection,
+      afterSelection: validEvidence.afterSelection,
       beforeDrag: validEvidence.beforeDrag,
-      afterInspectorOpen: validEvidence.afterInspectorOpen,
-      afterInspectorClose: validEvidence.afterInspectorClose,
       dragDoesNotRelayout: true,
-    }, selectedNode)).toContain('interaction-observations-missing');
+    }, selectedNode)).toEqual(['interaction-observations-missing']);
 
     expect(explicitRelayoutStabilityProblems({
-      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: selectedNode },
       afterRelayout: { layoutVersion: '3', pinnedNodeCount: '0', selectedNodeId: selectedNode },
     })).toEqual([]);
 
-    expect(explicitRelayoutStabilityProblems({})).toContain('relayout-observations-missing');
+    expect(explicitRelayoutStabilityProblems({})).toEqual(['relayout-observations-missing']);
 
     expect(explicitRelayoutStabilityProblems({
       beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
-      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: 'node-relayout-drifted' },
       relayoutWorked: true,
-    })).toContain('relayout-version-not-incremented');
-
-    expect(explicitRelayoutStabilityProblems({
-      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
-      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: 'node-relayout-drifted' },
     })).toEqual(
-      expect.arrayContaining(['relayout-version-not-incremented', 'relayout-pinned-count-not-cleared', 'relayout-selection-lost']),
+      expect.arrayContaining(['relayout-pin-not-established', 'relayout-version-not-incremented', 'relayout-selection-lost']),
     );
   });
 

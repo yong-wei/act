@@ -1763,6 +1763,13 @@ async function captureMarkerSnapshot(page: Page) {
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
     const inspector = document.querySelector('[data-knowledge-inspector]');
     const hoverPreview = document.querySelector('[data-knowledge-local-panel="node-hover-preview"]');
+    const canvasWithToken = canvas;
+    if (canvasWithToken && !canvasWithToken.__qaSurfaceToken) {
+      canvasWithToken.__qaSurfaceToken = Math.random().toString(36).slice(2);
+    }
+    const nodePoints = typeof window.__knowledgeGraphQaNodePoints === 'function'
+      ? window.__knowledgeGraphQaNodePoints().slice(0, 8)
+      : [];
     return {
       layoutVersion: canvas?.dataset.knowledgeLayoutVersion ?? '',
       pinnedNodeCount: canvas?.dataset.knowledgePinnedNodeCount ?? '',
@@ -1770,6 +1777,8 @@ async function captureMarkerSnapshot(page: Page) {
       selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? '',
       inspectorOpen: Boolean(inspector),
       hoverPreviewVisible: Boolean(hoverPreview && hoverPreview.textContent?.trim()),
+      surfaceToken: canvasWithToken?.__qaSurfaceToken ?? '',
+      nodePoints,
       desktopToolState: desktopTools?.dataset.state ?? null,
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null
     };
@@ -1974,14 +1983,13 @@ async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
   const control = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + nodeId + '"]').first();
   const box = await control.boundingBox().catch(() => null);
   if (!box) {
-    await control.focus();
-    await control.evaluate((element) => (element as HTMLButtonElement).click());
-  } else {
-    // 真实指针命中节点控件中心，避免 DOM click() 绕过遮挡与命中测试。
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
-    await page.mouse.up();
+    // fail closed：节点不可指针命中时不得用程序化点击绕过。
+    throw new Error(`node control ${nodeId} is not reachable by a real pointer click`);
   }
+  // 真实指针命中节点控件中心，避免 DOM click() 绕过遮挡与命中测试。
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.up();
   await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 15000 });
 }
 
@@ -3656,12 +3664,33 @@ async function main() {
       query: `?node=${encodeURIComponent(dragNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
-        const beforeDrag = await captureMarkerSnapshot(page);
+        const beforeSelection = await captureMarkerSnapshot(page);
+        const nodeControl = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + dragNodeId + '"]').first();
+        const clickNodeControl = async () => {
+          const box = await nodeControl.boundingBox().catch(() => null);
+          if (!box) throw new Error(`node control ${dragNodeId} has no reachable pointer area`);
+          await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        };
+        // 真实选择转换：点击已选节点取消选择，再点击重新选择；布局与钉住状态前后不变。
+        await clickNodeControl();
+        await page.waitForFunction((expectedNodeId) => {
+          const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+          return canvas?.getAttribute('data-knowledge-selected-node-id') === ''
+            || canvas?.getAttribute('data-knowledge-selectedNodeId') === '';
+        }, dragNodeId, { timeout: 10000 }).catch(() => undefined);
+        const afterDeselection = await captureMarkerSnapshot(page);
+        await clickNodeControl();
+        await page.waitForFunction((expectedNodeId) => {
+          const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+          return canvas?.getAttribute('data-knowledge-selected-node-id') === expectedNodeId
+            || canvas?.getAttribute('data-knowledge-selectedNodeId') === expectedNodeId;
+        }, dragNodeId, { timeout: 10000 }).catch(() => undefined);
+        const afterSelection = await captureMarkerSnapshot(page);
         await waitForSelectedNodeRuntimePosition(page);
+        const beforeDrag = await captureMarkerSnapshot(page);
         const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
         // 悬停命中实际节点（拖拽后重新取包围盒），并验证悬停预览可见。
-        const nodeControl = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + dragNodeId + '"]').first();
         const hoverBox = await nodeControl.boundingBox().catch(() => null);
         if (hoverBox) {
           await page.mouse.move(hoverBox.x + hoverBox.width / 2, hoverBox.y + hoverBox.height / 2);
@@ -3675,6 +3704,9 @@ async function main() {
         const afterInspectorOpen = await captureMarkerSnapshot(page);
         return {
           kind: drag.pinned ? 'dragged-node-and-hover-stability' : 'dragged-node-stability-missing',
+          beforeSelection,
+          afterDeselection,
+          afterSelection,
           beforeDrag,
           drag,
           afterDrag,
@@ -3713,6 +3745,12 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
+        // 先经 pin-selected 建立非零钉住状态，再验证 legacy 显式重排清除钉住并递增版本。
+        await clickIfPresent(page, '[data-knowledge-layout-control="pin-selected"]');
+        await page.waitForFunction(() => {
+          const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+          return canvas?.getAttribute('data-knowledge-pinned-node-count') === '1';
+        }, undefined, { timeout: 10000 }).catch(() => undefined);
         const beforeRelayout = await captureMarkerSnapshot(page);
         await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
         await page.waitForTimeout(500);
