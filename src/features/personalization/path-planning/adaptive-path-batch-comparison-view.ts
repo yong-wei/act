@@ -11,10 +11,14 @@ export interface AdaptivePathStrategyView {
   name: string;
   portraitBasis: string[];
   generic: boolean;
+  /** 偏好配额未达 60% 可观察占比（资源/预算不足），偏好强化未兑现。 */
+  preferenceQuotaUnmet: boolean;
 }
 
 export interface AdaptivePathBatchComparisonView {
   highDifferentiation: boolean;
+  /** 任一候选核心资源被全部剔除（资源不足/验证失败），偏好/区分度不得声称兑现。 */
+  insufficientVerifiedResources: boolean;
   pairs: Array<{
     leftStyleId: string;
     rightStyleId: string;
@@ -27,7 +31,7 @@ export interface AdaptivePathBatchComparisonView {
     unreadableResources: number;
     /** 按失败类型区分的学生可理解说明（不暴露对象键原文）。 */
     notes: string[];
-    /** 逐资源状态（节点标识/资源标识/状态/冻结的 Runtime release），供定位具体资源。 */
+    /** 逐资源状态（节点标识/资源标识/状态/冻结的 Runtime release），含 verified。 */
     items: Array<{
       nodeId: string;
       resourceId: string;
@@ -35,6 +39,17 @@ export interface AdaptivePathBatchComparisonView {
       runtimeReleaseId: string | null;
     }>;
   }>;
+}
+
+/** 批次 metadata 中不得下发给学生 API 消费方的内部字段。 */
+const INTERNAL_METADATA_KEYS = new Set(['differentiation', 'objectKeyReadRecords']);
+
+/** 返回剥离内部字段后的批次 metadata 副本（学生安全 API 面）。 */
+export function stripInternalBatchMetadata(metadata: unknown): Record<string, unknown> {
+  const source = record(metadata);
+  return Object.fromEntries(
+    Object.entries(source).filter(([key]) => !INTERNAL_METADATA_KEYS.has(key)),
+  );
 }
 
 const UNREADABLE_STATE_NOTES: Record<string, string> = {
@@ -67,6 +82,7 @@ export function buildAdaptivePathStrategyView(value: unknown): AdaptivePathStrat
         ? strategy.portraitBasis.filter((item): item is string => typeof item === 'string')
         : [],
     generic,
+    preferenceQuotaUnmet: strategy.preferenceQuotaUnmet === true,
   };
 }
 
@@ -105,21 +121,20 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
     if (!styleId || !state) continue;
     const counts = resourceReadiness.get(styleId)
       ?? { verified: 0, unreadableByState: new Map<string, number>(), items: [] };
-    if (state === 'verified') {
-      counts.verified += 1;
-    } else {
-      counts.unreadableByState.set(state, (counts.unreadableByState.get(state) ?? 0) + 1);
-      counts.items.push({
-        nodeId: typeof item.nodeNodeId === 'string' ? item.nodeNodeId : 'unknown-node',
-        resourceId: typeof item.resourceId === 'string' ? item.resourceId : 'unknown-resource',
-        state,
-        runtimeReleaseId: typeof item.runtimeReleaseId === 'string' ? item.runtimeReleaseId : null,
-      });
-    }
+    if (state === 'verified') counts.verified += 1;
+    else counts.unreadableByState.set(state, (counts.unreadableByState.get(state) ?? 0) + 1);
+    // verified 与失败状态都投影逐资源条目：正常候选同样并列呈现 OSS 读取状态与来源。
+    counts.items.push({
+      nodeId: typeof item.nodeNodeId === 'string' ? item.nodeNodeId : 'unknown-node',
+      resourceId: typeof item.resourceId === 'string' ? item.resourceId : 'unknown-resource',
+      state,
+      runtimeReleaseId: typeof item.runtimeReleaseId === 'string' ? item.runtimeReleaseId : null,
+    });
     resourceReadiness.set(styleId, counts);
   }
   return {
     highDifferentiation: differentiation.highDifferentiation === true,
+    insufficientVerifiedResources: differentiation.insufficientVerifiedResources === true,
     pairs,
     resourceReadiness: [...resourceReadiness.entries()].map(([styleId, counts]) => {
       const notes = [...counts.unreadableByState.entries()]

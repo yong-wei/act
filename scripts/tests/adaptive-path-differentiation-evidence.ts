@@ -128,22 +128,83 @@ evidence.weaknessAnchoring = {
 };
 
 // 5. 读取验证故障注入：missing 对象键从覆盖统计剔除并进入审计清单。
-const faultedDifferentiation = computeAdaptivePathBatchDifferentiation(baseline, {
-  objectKeyReadRecords: [{
-    objectKey: 'injected/unreadable-asset.mp4',
-    resourceId: 'injected-resource',
+// 复审修复：注入候选实际使用的对象键（合成批次含 runtime 目标），并断言
+// 对应核心集合/指标确实变化，避免"回显输入"式假阳性证据。
+const faultBase = planLearningPath(buildAlternativeCoreDiversityInput({
+  resourcePreferences: ['knowledge_card'] as never,
+  resourcePreferenceSource: 'request' as never,
+}));
+const faultNodeTargets = new Map<string, string>([
+  ['knowledge-card:core-card', '/api/course-runtime/assets/lessons/1-3/media/intro.mp4'],
+  ['simulation:correction-sim', '/api/course-runtime/assets/simulations/cruise/index.html'],
+]);
+const rewriteTarget = (node: { nodeId: string; target: string }) => faultNodeTargets.has(node.nodeId)
+  ? { ...node, target: faultNodeTargets.get(node.nodeId)! }
+  : node;
+const faultPlan = {
+  ...faultBase,
+  mainPath: faultBase.mainPath.map(rewriteTarget),
+  // 候选 planNodes 与 mainPath 共享节点身份：同步改写，保证指标按改写后的 target 计算。
+  policyBundle: faultBase.policyBundle
+    ? {
+        ...faultBase.policyBundle,
+        paths: faultBase.policyBundle.paths.map((path) => ({
+          ...path,
+          planNodes: (path.planNodes ?? []).map(rewriteTarget),
+        })),
+      }
+    : undefined,
+} as unknown as Parameters<typeof computeAdaptivePathBatchDifferentiation>[0];
+// 读取记录的 objectKey 与 resolver 输出形态一致（不带网关前缀的 assetPath）。
+const faultRecords = [
+  {
+    objectKey: 'lessons/1-3/media/intro.mp4',
+    resourceId: 'injected-resource-0',
     candidateStyleId: 'foundation-remediation',
-    nodeNodeId: 'injected-node',
-    state: 'missing',
+    nodeNodeId: 'knowledge-card:core-card',
+    state: 'missing' as const,
     contentSha256: null,
     verifiedAt: NOW.toISOString(),
-  }],
+    runtimeReleaseId: 'release-evidence',
+  },
+  {
+    objectKey: 'simulations/cruise/index.html',
+    resourceId: 'injected-resource-1',
+    candidateStyleId: 'arena-simulation-sprint',
+    nodeNodeId: 'simulation:correction-sim',
+    state: 'verified' as const,
+    contentSha256: null,
+    verifiedAt: NOW.toISOString(),
+    runtimeReleaseId: 'release-evidence',
+  },
+];
+const faultedDifferentiation = computeAdaptivePathBatchDifferentiation(faultPlan, {
+  objectKeyReadRecords: faultRecords,
 });
 assert.ok(faultedDifferentiation);
-assert.deepEqual(faultedDifferentiation.unreadableObjectKeys, ['injected/unreadable-asset.mp4']);
+assert.deepEqual(faultedDifferentiation.unreadableObjectKeys, ['lessons/1-3/media/intro.mp4']);
+// 该缺失键属于 foundation 候选的独占核心节点：剔除后其核心集变空。
+assert.equal(faultedDifferentiation.insufficientVerifiedResources, true);
+assert.equal(faultedDifferentiation.highDifferentiation, false);
+const baselineWithFaultKeys = computeAdaptivePathBatchDifferentiation(faultPlan);
+assert.ok(baselineWithFaultKeys);
+// 剔除断言落在实际包含 foundation 候选的对比对上：其核心节点与时长必然减少。
+const pairWithFoundation = (differentiation: NonNullable<ReturnType<typeof computeAdaptivePathBatchDifferentiation>>) =>
+  differentiation.pairs.find((pair) => pair.leftStyleId === 'foundation-remediation' || pair.rightStyleId === 'foundation-remediation');
+const faultedPair = pairWithFoundation(faultedDifferentiation);
+const baselinePair = pairWithFoundation(baselineWithFaultKeys);
+assert.ok(faultedPair && baselinePair);
+assert.notEqual(
+  faultedPair.metrics.estimatedMinutesDeltaRatio,
+  baselinePair.metrics.estimatedMinutesDeltaRatio,
+  '故障剔除应实际改变含缺失资源候选的指标，而不是回显输入',
+);
 evidence.readVerificationFaultInjection = {
   unreadableObjectKeys: faultedDifferentiation.unreadableObjectKeys,
-  note: '验证失败的资源不进入覆盖与区分度统计，批次数值与无故障运行一致地反映可信资源。',
+  retainedObjectKeys: ['simulations/cruise/index.html'],
+  highDifferentiation: faultedDifferentiation.highDifferentiation,
+  insufficientVerifiedResources: faultedDifferentiation.insufficientVerifiedResources,
+  note: '验证失败的候选实际对象键被剔除：对应候选核心集变空、门禁降级为资源不足；verified 键保留。',
 };
 
 // 门禁语义：highDifferentiation 是诚实标记，不达标不得复制路径凑数。
@@ -184,7 +245,7 @@ console.log(`PASS issue-2033-oss 验收证据包 → ${path.relative(repoRoot, o
 console.log(`  三族区分度: ${baselineDifferentiation.pairs.length} 对, highDifferentiation=${baselineDifferentiation.highDifferentiation}`);
 console.log(`  偏好切换: ${JSON.stringify(cardStrategy.portraitBasis)} → ${JSON.stringify(textbookStrategy.portraitBasis)}`);
 console.log(`  优势切换: ${JSON.stringify(boostedStrength.portraitBasis)}`);
-console.log(`  故障剔除: ${JSON.stringify(faultedDifferentiation.unreadableObjectKeys)}`);
+console.log(`  故障剔除: ${JSON.stringify(faultedDifferentiation.unreadableObjectKeys)} → 高区分度门禁降级=${faultedDifferentiation.highDifferentiation === false}`);
 
 function topDimension(portrait: { dimensions: Array<{ id: string; score: number }> }) {
   const [top] = [...portrait.dimensions].sort((left, right) => right.score - left.score);

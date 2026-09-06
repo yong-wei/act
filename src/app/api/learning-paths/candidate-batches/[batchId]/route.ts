@@ -7,6 +7,7 @@ import { getLearningPathRequester } from '../../route-helpers';
 import {
   assertCanReadCandidateBatch,
   attachCandidateBatchSourcePathVersion,
+  sanitizeCandidateBatchForStudentResponse,
 } from '../route-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,7 @@ export async function GET(request: Request, props: { params: Promise<{ batchId: 
       return NextResponse.json({ error: '候选路径批次的来源路径已失效' }, { status: 409 });
     }
     return NextResponse.json({
-      batch: versionedBatch,
+      batch: sanitizeCandidateBatchForStudentResponse(versionedBatch),
       focusedCandidate: candidateId
         ? versionedBatch.candidates.find((candidate) => candidate.id === candidateId) ?? null
         : null,

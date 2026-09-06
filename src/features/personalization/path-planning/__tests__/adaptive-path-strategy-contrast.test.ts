@@ -80,6 +80,9 @@ describe('portrait-driven strategy single-variable contrast (#2033)', () => {
       .find((candidate) => candidate.policyFamily === 'preference-matched');
     expect((preferenceSnapshot?.snapshot as Record<string, unknown>).strategy)
       .toMatchObject({ strategyId: 'preference-reinforce', portraitBasis: ['knowledge_card'] });
+
+    // 配额诚实语义：受限资源池下占比 0.5 < 0.6，必须标记偏好强化未兑现。
+    expect(policyOption(cardRun, 'preference-matched')?.strategy?.preferenceQuotaUnmet).toBe(true);
   });
 
   it('keeps the weakness strategy observation anchored on low-mastery knowledge targets', () => {

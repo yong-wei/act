@@ -2,11 +2,29 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 import type { AdaptivePathCandidateBatchView } from '@/features/personalization/path-planning/public-api';
+import {
+  buildAdaptivePathBatchComparisonView,
+  stripInternalBatchMetadata,
+} from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
 import type { LearningPathRequester } from '../route-helpers';
 
 export type VersionedAdaptivePathCandidateBatch = AdaptivePathCandidateBatchView & {
   sourcePathVersion: string;
 };
+
+/**
+ * 学生 API 面：剥离 metadata 中的内部字段（对象键读取记录、区分度原始指标与规则名），
+ * 改以学生安全投影 `comparison` 下发，防止授权学生从原始 metadata 绕过投影。
+ */
+export function sanitizeCandidateBatchForStudentResponse<T extends VersionedAdaptivePathCandidateBatch>(
+  batch: T,
+): T {
+  return {
+    ...batch,
+    metadata: stripInternalBatchMetadata(batch.metadata),
+    comparison: buildAdaptivePathBatchComparisonView(batch.metadata),
+  };
+}
 
 export async function attachCandidateBatchSourcePathVersion(
   batch: AdaptivePathCandidateBatchView,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-06T12:10:01.394Z",
+  "generatedAt": "2026-09-06T12:35:49.664Z",
   "fixture": "alternative-core-fixture (three-family survival, deterministic)",
   "threeFamilyDifferentiation": {
     "families": [
@@ -84,9 +84,14 @@
   },
   "readVerificationFaultInjection": {
     "unreadableObjectKeys": [
-      "injected/unreadable-asset.mp4"
+      "lessons/1-3/media/intro.mp4"
     ],
-    "note": "验证失败的资源不进入覆盖与区分度统计，批次数值与无故障运行一致地反映可信资源。"
+    "retainedObjectKeys": [
+      "simulations/cruise/index.html"
+    ],
+    "highDifferentiation": false,
+    "insufficientVerifiedResources": true,
+    "note": "验证失败的候选实际对象键被剔除：对应候选核心集变空、门禁降级为资源不足；verified 键保留。"
   },
   "gateSemantics": {
     "highDifferentiation": false,
@@ -101,7 +106,8 @@
           "control-correction:time-domain-targets",
           "control-correction:root-locus-design"
         ],
-        "generic": false
+        "generic": false,
+        "preferenceQuotaUnmet": false
       },
       {
         "strategyId": "strength-transfer",
@@ -109,17 +115,20 @@
         "portraitBasis": [
           "controlModelingRepresentation"
         ],
-        "generic": false
+        "generic": false,
+        "preferenceQuotaUnmet": false
       },
       {
         "strategyId": "preference-reinforce",
         "name": "偏好资源强化",
         "portraitBasis": [],
-        "generic": true
+        "generic": true,
+        "preferenceQuotaUnmet": false
       }
     ],
     "comparison": {
       "highDifferentiation": false,
+      "insufficientVerifiedResources": false,
       "pairs": [
         {
           "leftStyleId": "foundation-remediation",
@@ -146,7 +155,14 @@
           "verifiedResources": 1,
           "unreadableResources": 0,
           "notes": [],
-          "items": []
+          "items": [
+            {
+              "nodeId": "node-1",
+              "resourceId": "r1",
+              "state": "verified",
+              "runtimeReleaseId": null
+            }
+          ]
         }
       ]
     }

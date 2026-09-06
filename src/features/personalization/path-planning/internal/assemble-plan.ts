@@ -777,6 +777,8 @@ export interface AdaptiveLearningPathPolicyBundle {
       preferredTypeShare: number;
       weaknessResourceCount: number;
       comprehensiveTaskCount: number;
+      /** 偏好配额未达 60% 可观察占比（资源/预算不足），偏好强化未兑现。 */
+      preferenceQuotaUnmet?: boolean;
     };
     recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
     evidenceBasis: string[];
@@ -5605,6 +5607,12 @@ function buildFamilyStrategyObservation(
     || (policyFamily === 'simulation-driven' && portraitBasis.length === 0);
   const teachingNodes = mainPath.filter((node) => node.terminalConstraints.length === 0);
   const preferredCount = teachingNodes.filter((node) => preferredTypes.length > 0 && preferredTypes.includes(node.type as ResourceNode['type'])).length;
+  const preferredTypeShare = teachingNodes.length > 0 ? preferredCount / teachingNodes.length : 0;
+  // 复审修复：配额轮资源/预算不足而未达 60% 可观察占比时，如实标记未兑现，
+  // 不得继续声称"偏好资源强化"已生效。
+  const preferenceQuotaUnmet = policyFamily === 'preference-matched'
+    && preferredTypes.length > 0
+    && preferredTypeShare < 0.6;
   const weaknessResourceCount = policyFamily === 'foundation-remediation'
     ? teachingNodes.filter((node) => node.knowledgeCoverage.some((tag) => deficits.includes(tag))).length
     : 0;
@@ -5617,7 +5625,8 @@ function buildFamilyStrategyObservation(
     name: mapped.name,
     portraitBasis: generic ? [] : portraitBasis,
     generic,
-    preferredTypeShare: teachingNodes.length > 0 ? preferredCount / teachingNodes.length : 0,
+    preferenceQuotaUnmet,
+    preferredTypeShare,
     weaknessResourceCount,
     comprehensiveTaskCount,
   };

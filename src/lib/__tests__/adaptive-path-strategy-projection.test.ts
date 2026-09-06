@@ -142,6 +142,7 @@ describe('student-safe strategy projection (#2033)', () => {
       name: '薄弱点补强',
       portraitBasis: ['control-correction:time-domain-targets'],
       generic: false,
+      preferenceQuotaUnmet: false,
     });
     // 无策略的候选投影为 null，不编造个性化。
     expect(options[1].strategy).toBeNull();
@@ -236,6 +237,7 @@ describe('student-safe strategy projection (#2033)', () => {
       name: '薄弱点补强',
       portraitBasis: ['control-correction:time-domain-targets'],
       generic: false,
+      preferenceQuotaUnmet: false,
     });
   });
 

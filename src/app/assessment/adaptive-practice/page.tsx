@@ -244,6 +244,7 @@ type PathOptionView = AdaptivePathOptionWriteOption & {
     name: string;
     portraitBasis: string[];
     generic: boolean;
+    preferenceQuotaUnmet: boolean;
   } | null;
   summaryFactAvailability?: {
     nodeIds: boolean;
@@ -277,6 +278,7 @@ interface AdaptivePathCandidateBatchView {
   sourcePathId: string;
   sourcePathVersion: string;
   metadata?: Record<string, unknown>;
+  comparison?: AdaptivePathBatchComparisonView;
   candidates: Array<{
     id: string;
     fingerprint: string;
@@ -1806,6 +1808,7 @@ function getPathOptionStrategy(value: unknown): PathOptionView['strategy'] {
     strategyId,
     name,
     generic,
+    preferenceQuotaUnmet: strategy.preferenceQuotaUnmet === true,
     portraitBasis: generic ? [] : getStringArray(strategy.portraitBasis),
   };
 }
@@ -2175,6 +2178,7 @@ function formatStrategyBasis(basis: string): string {
 }
 
 function formatResourceReadinessState(state: string): string {
+  if (state === 'verified') return '读取正常';
   if (state === 'missing') return '资源缺失';
   if (state === 'forbidden') return '暂无访问权限';
   if (state === 'checksum-mismatch') return '内容校验未通过';
@@ -2436,6 +2440,9 @@ function CandidateBatchComparisonWorkspace({
                 {option.strategy ? (
                   <div className="mt-1 text-xs leading-5 text-subtle" data-learning-path-candidate-strategy={option.strategy.strategyId}>
                     <p>学习策略：{option.strategy.name}{option.strategy.generic ? '（通用建议，暂无画像依据）' : ''}</p>
+                    {option.strategy.preferenceQuotaUnmet ? (
+                      <p>当前资源池偏好资源不足，未能保证 60% 偏好占比。</p>
+                    ) : null}
                     {option.strategy.portraitBasis.length > 0 ? (
                       <p>画像依据：{option.strategy.portraitBasis.map(formatStrategyBasis).join('、')}</p>
                     ) : null}
@@ -2453,7 +2460,7 @@ function CandidateBatchComparisonWorkspace({
                 </dl>
                 {(() => {
                   const readiness = comparison?.resourceReadiness.find((item) => item.styleId === option.styleId);
-                  if (!readiness || readiness.notes.length === 0) return null;
+                  if (!readiness || (readiness.notes.length === 0 && readiness.items.length === 0)) return null;
                   return (
                     <div className="mt-2 text-xs leading-5 text-subtle" data-learning-path-candidate-readiness={option.styleId}>
                       {readiness.notes.map((note) => <p key={note}>{note}</p>)}
@@ -2469,6 +2476,12 @@ function CandidateBatchComparisonWorkspace({
               </article>
             ))}
           </div>
+
+          {comparison?.insufficientVerifiedResources ? (
+            <p className="rounded-md border border-border bg-background/60 px-3 py-2 text-xs leading-5 text-subtle" data-learning-path-comparison-limitation>
+              注意：部分候选的核心资源读取失败，当前对比结果受资源不足限制；建议稍后重新生成候选方案。
+            </p>
+          ) : null}
 
           {comparison && comparison.pairs.length > 0 ? (
             <div className="space-y-1" data-learning-path-comparison-persisted-differentiation>
@@ -3281,9 +3294,10 @@ export default function AdaptivePracticePage() {
     () => getCandidateBatchPathOptions(activeCandidateBatch),
     [activeCandidateBatch],
   );
-  // #2033 复审修复：从持久化批次 metadata 构造比较投影，刷新/直开页面不丢失读取状态与差异摘要。
+  // 优先使用 API 已安全投影的 comparison；旧数据回退到本地投影。
   const persistedBatchComparison = useMemo(
-    () => activeCandidateBatch ? buildAdaptivePathBatchComparisonView(activeCandidateBatch.metadata) : null,
+    () => activeCandidateBatch?.comparison
+      ?? (activeCandidateBatch ? buildAdaptivePathBatchComparisonView(activeCandidateBatch.metadata) : null),
     [activeCandidateBatch],
   );
   const pathOptions = candidatePathOptions.length > 0 ? candidatePathOptions : currentPathOptions;
