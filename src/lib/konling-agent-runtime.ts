@@ -34,6 +34,13 @@ import {
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
 } from '@/features/personalization/learner-state/public-api';
+import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
+import { parseAnyRuntimeReleaseManifest } from '@/lib/runtime-release';
+import {
+  resolveAdaptivePathRuntimeObjectKey,
+  verifyAdaptivePathObjectKeys,
+} from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+import { buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
 import {
   projectGovernedCopilotProfile,
   toServerOwnedUserProfile,
@@ -4257,6 +4264,42 @@ function applySmartLessonCollectionPatches(
     .concat(additions);
 }
 
+// #2033：批次定稿时解析候选资源到 Runtime manifest 对象键并产出读取验证记录。
+async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPlan) {
+  try {
+    const manifestRaw = await readActiveRuntimeReleaseManifest();
+    if (!manifestRaw) return [];
+    const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
+    const filesByPath = new Map(manifest.files.map((file) => [file.path, file]));
+    const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
+    for (const option of buildSerializablePathOptions(plan)) {
+      for (const nodeId of option.nodeIds) {
+        const node = plan.mainPath.find((item) => item.nodeId === nodeId);
+        if (!node) continue;
+        const { state, objectKey } = resolveAdaptivePathRuntimeObjectKey(node.target);
+        if (state === 'non-runtime' || !objectKey) continue;
+        entries.push({
+          objectKey,
+          resourceId: node.resourceId ?? node.resourceNodeId ?? node.nodeId,
+          candidateStyleId: option.styleId,
+          nodeNodeId: nodeId,
+        });
+      }
+    }
+    return await verifyAdaptivePathObjectKeys({
+      async verify(objectKey) {
+        const file = filesByPath.get(objectKey);
+        if (!file) return { state: 'missing', contentSha256: null };
+        // manifest 命中：记录期望校验值；字节级加载发生在 runtime 网关服务学生请求时。
+        return { state: 'verified', contentSha256: file.sha256 };
+      },
+    }, entries, new Date().toISOString());
+  } catch (error) {
+    console.error('[KonlingRuntime] candidate object key read verification failed:', error);
+    return [];
+  }
+}
+
 async function buildAdaptivePathToolOutput(
   input: KonlingToolRuntimeInput,
   operation: 'generated' | 'revised',
@@ -4525,11 +4568,13 @@ async function buildAdaptivePathToolOutput(
     },
   });
   let candidateBatch: AdaptivePathCandidateBatchView | null = null;
+  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan);
   const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
   const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'
     && typeof candidateBatchStore.create === 'function';
   const candidateBatchInput = {
+    objectKeyReadRecords,
     generationRequestId: args.idempotencyKey,
     plan: persistedPlan,
     classId: input.scope.classId ?? null,

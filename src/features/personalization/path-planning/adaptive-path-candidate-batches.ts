@@ -50,6 +50,16 @@ export interface AdaptivePathCandidateBatchPersistenceInput {
   plan: AdaptiveLearningPathPlan;
   classId?: string | null;
   derivation?: AdaptivePathCandidateBatchDerivation;
+  /** 批次定稿时的 OSS 对象键读取验证记录（#2033），由调用方经 runtime manifest/store 产出。 */
+  objectKeyReadRecords?: Array<{
+    objectKey: string;
+    resourceId: string;
+    candidateStyleId: string;
+    nodeNodeId: string;
+    state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
+    contentSha256: string | null;
+    verifiedAt: string;
+  }>;
 }
 
 export interface AdaptivePathCandidateDifferenceSummary {
@@ -138,6 +148,7 @@ export async function persistAdaptivePathCandidateBatch(
           decisionEvidence: input.plan.policyBundle?.decisionEvidence ?? null,
           diversityLimitations: gated.limitations,
           differentiation: computeAdaptivePathBatchDifferentiation(input.plan),
+          objectKeyReadRecords: input.objectKeyReadRecords ?? [],
           ...(input.derivation ? {
             derivation: {
               ...input.derivation,
