@@ -40,16 +40,16 @@ export function isAuditEdgeCandidateId(id: string): boolean {
 }
 
 function splitReferenceFragments(referenceAnswer: string, limit: number): string[] {
-  const paragraphs = referenceAnswer
-    .split(/\n\s*\n/)
-    .map((fragment) => fragment.trim())
-    .filter((fragment) => fragment.length >= 8);
+  const clean = (parts: readonly string[]): string[] => (
+    parts.map((fragment) => fragment.trim()).filter((fragment) => fragment.length >= 8)
+  );
+  const paragraphs = clean(referenceAnswer.split(/\n\s*\n/));
   if (paragraphs.length >= 2) return paragraphs.slice(0, limit);
-  const sentences = referenceAnswer
-    .split(/(?<=[。；;！？\n])/)
-    .map((fragment) => fragment.trim())
-    .filter((fragment) => fragment.length >= 8);
-  return sentences.slice(0, limit);
+  // 题库参考材料以单换行拼接的带标签行（「最小修复：…」）是天然片段
+  // 边界；句子切分会把 limit 耗在长行的前几句上，截掉后面的必需章节。
+  const lines = clean(referenceAnswer.split(/\n+/));
+  if (lines.length >= 2) return lines.slice(0, limit);
+  return clean(referenceAnswer.split(/(?<=[。；;！？])/)).slice(0, limit);
 }
 
 function longestCommonRunLength(left: string, right: string): number {
