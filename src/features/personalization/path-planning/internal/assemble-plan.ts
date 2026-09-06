@@ -5508,7 +5508,7 @@ function policyUnlockMessages(path: AdaptiveLearningPathPlanNode[]): Array<{
 
 function shapePolicyBundlePath(
   mainPath: AdaptiveLearningPathPlanNode[],
-  policyFamily: AdaptiveLearningPathPolicyFamily,
+  policyFamily: AdaptiveLearningPathPolicyFamily | '__quota_support__',
   input: AdaptiveLearningPathPlannerInput,
 ): AdaptiveLearningPathPlanNode[] {
   if (personalizationPluginRegistry.get(input.goal.id)?.status !== 'active') {
@@ -5523,15 +5523,23 @@ function shapePolicyBundlePath(
       const teachingNodes = shaped.filter((node) => node.terminalConstraints.length === 0);
       const preferredCount = teachingNodes.filter((node) => preferredTypes.has(node.type)).length;
       if (teachingNodes.length === 0 || preferredCount / teachingNodes.length >= 0.6) break;
-      const withSupport = shapePolicyBundlePath(shaped, '__quota_support__' as AdaptiveLearningPathPolicyFamily, input);
+      const withSupport = shapePolicyBundlePath(shaped, '__quota_support__', input);
       if (withSupport.length === shaped.length) break;
       shaped = withSupport;
     }
     return shaped;
   }
-  if (policyFamily !== 'foundation-remediation' && policyFamily !== 'simulation-driven') {
+  if (
+    policyFamily !== 'foundation-remediation' &&
+    policyFamily !== 'simulation-driven' &&
+    // '__quota_support__' 是偏好配额补充轮的内部伪族，走同一插入管线。
+    policyFamily !== '__quota_support__'
+  ) {
     return mainPath;
   }
+  const supportReasonCode = policyFamily === '__quota_support__'
+    ? 'policy-preference-quota-support'
+    : `policy-${policyFamily}-support`;
   const selectedIds = new Set(mainPath.map((node) => node.nodeId));
   const remainingBudget = input.constraints.timeBudgetMinutes - remainingEstimatedMinutes(mainPath);
   const supportNodes = selectPolicySupportNodes(policyFamily, input, selectedIds, remainingBudget);
@@ -5545,7 +5553,7 @@ function shapePolicyBundlePath(
   const supportPlanNodes = supportNodes.map((node) => toPlanNode({
     node,
     score: 0.35,
-    reasonCodes: [`policy-${policyFamily}-support`],
+    reasonCodes: [supportReasonCode],
   }, null, completedNodeIds, evaluateNodeReadiness(node, input.learnerState, input.constraints, completedNodeIds)));
   const validationIndex = mainPath.findIndex((node) => node.terminalConstraints.length > 0);
   if (validationIndex < 0) {
@@ -5634,7 +5642,12 @@ function selectPolicySupportNodes(
       if (node.planningMetadata.terminalConstraints.length > 0) continue;
       const planningUnit = planningUnitForNode(node);
       if (!planningUnit) continue;
-      if (planningUnit.prerequisites.length > 0) continue;
+      if (planningUnit.prerequisites.length > 0) {
+        // 配额补充轮允许前置已被主路径满足的偏好核心节点，其余支持节点仍须立即可学。
+        const quotaRound = policyFamily === '__quota_support__';
+        const prerequisitesSatisfied = planningUnit.prerequisites.every((id) => selectedIds.has(id));
+        if (!quotaRound || !prerequisitesSatisfied) continue;
+      }
       if (!policyAllowsNode(node, supportFamily, input.constraints)) continue;
       if (!nodeMatchesGoal(node, input.goal, deficits, graphContext)) continue;
       const estimatedMinutes = planningUnit.estimatedTimeMinutes;
