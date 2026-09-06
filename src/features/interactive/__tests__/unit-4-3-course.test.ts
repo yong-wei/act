@@ -174,7 +174,6 @@ describe('unit 4-3 interactive course', () => {
     expect(runtimeManifestSource).toContain('(s+2.14375)/0.01715');
     expect(runtimeManifestSource).toContain('Q_f(s)=1/(16s+1)');
     expect(sharedContentRendererSource).toContain('data-progressive-reveal="step_click_reveal"');
-    expect(sharedContentRendererSource).toContain("'reveal-chain':");
     expect(runtimeManifestSource).toContain('首轮问题清单');
     expect(stepPanelsSource).toContain('ControlChartPanel');
     expect(stepPanelsSource).toContain('axisTooltipFormatter');

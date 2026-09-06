@@ -1071,7 +1071,7 @@ describe('interactive runtime manifest', () => {
               id: 'formula-reveal',
               title: '公式显影链',
               region: 'main',
-              kind: 'step-reveal',
+              kind: 'content.reveal',
               must_be_visible: true,
               payload: { block_key: 'reveal_layers' },
             },
@@ -1266,7 +1266,7 @@ describe('interactive runtime manifest', () => {
               id: 'objective-list',
               title: '完成本次课程后，学习者能够',
               region: 'main',
-              kind: 'objective-list',
+              kind: 'content.rich',
               must_be_visible: true,
               payload: { block_key: 'objectives' },
             },
@@ -1308,7 +1308,7 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('data-manifest-render-error');
   });
 
-  it('renders summary-card-grid and learning-stat-panel content modules', () => {
+  it('renders content.cardSet and analytics.summary content modules', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
       steps: {
@@ -1320,7 +1320,7 @@ describe('interactive runtime manifest', () => {
               id: 'boundary-cases',
               title: '边界情况',
               region: 'main',
-              kind: 'summary-card-grid',
+              kind: 'content.cardSet',
               must_be_visible: true,
               payload: { block_key: 'boundary_cases' },
             },
@@ -1328,7 +1328,7 @@ describe('interactive runtime manifest', () => {
               id: 'learning-stats',
               title: '课堂表现统计',
               region: 'main',
-              kind: 'learning-stat-panel',
+              kind: 'analytics.summary',
               must_be_visible: true,
               payload: { block_key: 'stats' },
             },
@@ -2691,10 +2691,7 @@ describe('interactive runtime manifest', () => {
     const requiredSteps = ['step-04', 'step-05', 'step-06', 'step-07', 'step-11', 'step-12'];
     const sharedKinds = [
       'formula-card',
-      'formula-card-row',
-      'image-panel',
       'native-table',
-      'step-reveal',
       'summary-card',
     ];
     const activityModuleKinds = ['activity-card', 'quiz-card'];
