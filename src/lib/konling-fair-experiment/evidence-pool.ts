@@ -96,7 +96,12 @@ function deriveAnswerRelevanceBasis(input: {
  */
 function bankSourceHref(bankVersion: string, sourceRevision: string): string {
   const bankFile = bankVersion.includes('v2') ? 'bank-v2.ts' : 'bank.ts';
-  return `https://github.com/yong-wei/act/blob/${encodeURIComponent(sourceRevision)}/src/lib/konling-fair-experiment/${bankFile}`;
+  // #2039 review P1：`<commit>-dirty` / `unknown` 不是可解析 ref。提取
+  // 干净 commit 构建地址；无法提取时回退默认分支视图（引用身份的
+  // sourceRevision 仍保留原始标记，真源审计按记录内冻结值进行）。
+  const commit = /^([0-9a-f]{40})(?:-dirty)?$/u.exec(sourceRevision)?.[1];
+  const ref = commit ?? 'main';
+  return `https://github.com/yong-wei/act/blob/${ref}/src/lib/konling-fair-experiment/${bankFile}`;
 }
 
 function fragmentCandidate(input: {

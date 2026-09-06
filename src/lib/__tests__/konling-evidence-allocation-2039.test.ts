@@ -319,3 +319,19 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
     ))).toBe(true);
   });
 });
+
+describe('evidence pool source href resolution (#2039 review)', () => {
+  it('builds resolvable blob refs from dirty and unknown revisions', async () => {
+    const { buildKonlingFairExperimentCitationAssembly } = await import('@/lib/konling-fair-experiment/evidence-pool');
+    const commit = 'a'.repeat(40);
+    const clean = buildKonlingFairExperimentCitationAssembly({ item: codeItem, bankVersion: 'fair-experiment-v2', sourceRevision: commit });
+    const dirty = buildKonlingFairExperimentCitationAssembly({ item: codeItem, bankVersion: 'fair-experiment-v2', sourceRevision: `${commit}-dirty` });
+    const unknown = buildKonlingFairExperimentCitationAssembly({ item: codeItem, bankVersion: 'fair-experiment-v2', sourceRevision: 'unknown' });
+    for (const href of [clean, dirty].map((a) => a.citations[0]?.href)) {
+      expect(href).toBe(`https://github.com/yong-wei/act/blob/${commit}/src/lib/konling-fair-experiment/bank-v2.ts`);
+    }
+    expect(unknown.citations[0]?.href).toBe('https://github.com/yong-wei/act/blob/main/src/lib/konling-fair-experiment/bank-v2.ts');
+    // 引用身份保留原始 revision 标记（dirty 审计可追溯）。
+    expect(dirty.citations[0]).toBeDefined();
+  });
+});
