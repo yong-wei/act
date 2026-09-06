@@ -66,6 +66,8 @@ export interface TransferFunctionModel {
 export interface RelatedKnowledgeRef {
   label: string;
   nodeId: string;
+  /** Canonical overlay anchors consumed by the teaching projection restage (#2042). */
+  canonicalIds?: string[];
 }
 
 export interface ArenaModelCapabilities {

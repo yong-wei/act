@@ -1,0 +1,9 @@
+{
+  "contract": "teaching-projection-ledger-quotas/v1",
+  "comment": "#2042 task 6.2/6.3: per-reason quotas tightened to B'' actuals. Unprocessed categories are closed at 0; explicit-exemption tracks the audited boundary set. Lowering explicit-exemption requires re-reviewing exemptions, not silent drift.",
+  "no-exact-identity": 0,
+  "classroom-sim-without-unit": 0,
+  "classroom-sim-unit-unmapped": 0,
+  "out-of-round-textbook": 0,
+  "explicit-exemption": 1689
+}

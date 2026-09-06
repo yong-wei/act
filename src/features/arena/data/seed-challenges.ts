@@ -57,10 +57,19 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 16,
     },
     relatedKnowledge: [
-      { label: '二阶系统标准型', nodeId: '二阶系统标准型_3_L2a' },
-      { label: '欠阻尼二阶系统', nodeId: '欠阻尼二阶系统_3_242477a2' },
-      { label: '根轨迹法', nodeId: '根轨迹法_2_e3f6c0c1' },
-      { label: '稳定裕度', nodeId: '稳定裕度_5_bfd54f1c' },
+      { label: '二阶系统标准型', nodeId: '二阶系统标准型_3_L2a', canonicalIds: [
+        'ctkg:v3e-canonical-772065f42947b660c72584f3',
+      ] },
+      { label: '欠阻尼二阶系统', nodeId: '欠阻尼二阶系统_3_242477a2', canonicalIds: [
+        'ctc:v11g-11d00d2120a83f5e05efdb6e',
+      ] },
+      { label: '根轨迹法', nodeId: '根轨迹法_2_e3f6c0c1', canonicalIds: [
+        'ctc:v11g-e8d4b4f1c63aa5a052b15538',
+      ] },
+      { label: '稳定裕度', nodeId: '稳定裕度_5_bfd54f1c', canonicalIds: [
+        'ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e',
+        'ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c',
+      ] },
     ],
   },
   {
@@ -81,8 +90,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 8,
     },
     relatedKnowledge: [
-      { label: '系统型别', nodeId: '系统型别_3_5573c2c3' },
-      { label: '稳态误差', nodeId: '稳态误差_3_c0207063' },
+      { label: '系统型别', nodeId: '系统型别_3_5573c2c3', canonicalIds: [
+        'ctkg:v3e-canonical-a781b2b377529226a4c5d077',
+      ] },
+      { label: '稳态误差', nodeId: '稳态误差_3_c0207063', canonicalIds: [
+        'ctkg:v3e-canonical-8d214840417a4c3b5780c715',
+      ] },
       { label: '低频补偿稳态改善路径', nodeId: '低频补偿稳态改善路径_3_37003' },
     ],
   },
@@ -104,8 +117,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 2,
     },
     relatedKnowledge: [
-      { label: '一阶系统', nodeId: '一阶系统_3_4f3b29ce' },
-      { label: '频率特性', nodeId: '频率特性_5_404adfdd' },
+      { label: '一阶系统', nodeId: '一阶系统_3_4f3b29ce', canonicalIds: [
+        'ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c',
+      ] },
+      { label: '频率特性', nodeId: '频率特性_5_404adfdd', canonicalIds: [
+        'ctkg:v3e-object-38d4679bf3335318b0f4afb7',
+      ] },
     ],
   },
   {
@@ -126,8 +143,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 20,
     },
     relatedKnowledge: [
-      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9' },
-      { label: '根轨迹完整法则', nodeId: '根轨迹完整法则_3_0f2e7b11' },
+      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9', canonicalIds: [
+        'ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e',
+      ] },
+      { label: '根轨迹完整法则', nodeId: '根轨迹完整法则_3_0f2e7b11', canonicalIds: [
+        'ctc:v11g-4bb347d0f2aa8859a18073de',
+      ] },
     ],
   },
   {
@@ -148,8 +169,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 1.2,
     },
     relatedKnowledge: [
-      { label: '零点作用', nodeId: '零点_2_c29600a1' },
-      { label: '非最小相与右半平面零点', nodeId: '非最小相与右半平面零点_3_35005' },
+      { label: '零点作用', nodeId: '零点_2_c29600a1', canonicalIds: [
+        'ctc:modeling-8010502b57930c3dcb915af9',
+      ] },
+      { label: '非最小相与右半平面零点', nodeId: '非最小相与右半平面零点_3_35005', canonicalIds: [
+        'ctkg:v3e-object-5a7582dcb72b1d33d09ca641',
+      ] },
       { label: '右半平面零点可行性边界', nodeId: '右半平面零点可行性边界_3_36005' },
     ],
   },
@@ -172,8 +197,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
     },
     relatedKnowledge: [
       { label: 'Bode 首轮骨架', nodeId: 'Bode首轮骨架_5_1e07d9da' },
-      { label: '幅值裕度', nodeId: '幅值裕度_5_73af26a5' },
-      { label: '相角裕度', nodeId: '相角裕度_5_5a74b451' },
+      { label: '幅值裕度', nodeId: '幅值裕度_5_73af26a5', canonicalIds: [
+        'ctkg:v3e-object-c2881833cb4d8b1e415dc742',
+      ] },
+      { label: '相角裕度', nodeId: '相角裕度_5_5a74b451', canonicalIds: [
+        'ctkg:v3e-object-1c159c9cc34ce696a62bf837',
+      ] },
     ],
   },
   {
@@ -194,8 +223,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 3,
     },
     relatedKnowledge: [
-      { label: '根轨迹增益换算', nodeId: '根轨迹增益换算_3_4b1d9e6c' },
-      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9' },
+      { label: '根轨迹增益换算', nodeId: '根轨迹增益换算_3_4b1d9e6c', canonicalIds: [
+        'ctc:v12g-15b7fb1d68889848e3c50c46',
+      ] },
+      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9', canonicalIds: [
+        'ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e',
+      ] },
     ],
   },
   {
@@ -257,8 +290,13 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 5,
     },
     relatedKnowledge: [
-      { label: '纯延迟', nodeId: '纯延迟_2_8f4165fd' },
-      { label: '稳定裕度', nodeId: '稳定裕度_5_bfd54f1c' },
+      { label: '纯延迟', nodeId: '纯延迟_2_8f4165fd', canonicalIds: [
+        'ctkg:v3e-object-b0cbf122498bca9269e55406',
+      ] },
+      { label: '稳定裕度', nodeId: '稳定裕度_5_bfd54f1c', canonicalIds: [
+        'ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e',
+        'ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c',
+      ] },
       { label: '右半平面零点可行性边界', nodeId: '右半平面零点可行性边界_3_36005' },
     ],
   },
@@ -280,8 +318,12 @@ export const ARENA_CHALLENGE_OBJECTS: ChallengeObject[] = [
       gain: 2,
     },
     relatedKnowledge: [
-      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9' },
-      { label: '目标驱动超前校正', nodeId: '目标驱动超前校正_3_36004' },
+      { label: '劳斯判据', nodeId: '劳斯判据_3_e3500ac9', canonicalIds: [
+        'ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e',
+      ] },
+      { label: '目标驱动超前校正', nodeId: '目标驱动超前校正_3_36004', canonicalIds: [
+        'ctkg:v3e-object-83b0bd3fc503270cb174a500',
+      ] },
       { label: '校正元件', nodeId: '校正元件_1_99f830b7' },
     ],
   },
