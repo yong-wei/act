@@ -2712,7 +2712,9 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
     return plan.policyBundle.paths.map((path, index) => ({
       optionId: `path-option-${index + 1}`,
       ...path,
-      strategy: buildAdaptivePathStrategyMetadata(path.policyFamily, portraitUnavailable, deficits),
+      // #2033 复审修复：保留 buildFamilyStrategyObservation 已按族计算的画像依据，
+      // 仅在路径未携带策略观察时回退到统一 deficit 推断。
+      strategy: path.strategy ?? buildAdaptivePathStrategyMetadata(path.policyFamily, portraitUnavailable, deficits),
       planNodes: Array.isArray(path.planNodes) && path.planNodes.length > 0
         ? path.planNodes
         : path.nodeIds.map((nodeId) => planNodeById.get(nodeId)).filter(Boolean),

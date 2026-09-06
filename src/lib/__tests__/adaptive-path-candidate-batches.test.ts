@@ -611,8 +611,8 @@ describe('adaptive path batch differentiation metrics', () => {
       policyBundle: {
         ...base.policyBundle!,
         paths: [
-          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'] },
-          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'] },
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'], planNodes: [nodeA] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [nodeB] },
         ],
       },
     };
@@ -636,17 +636,19 @@ describe('adaptive path batch differentiation metrics', () => {
     });
   });
 
-  it('excludes shared nodes from core differentiation inputs', () => {
+  it('excludes shared prerequisite nodes from core differentiation inputs', () => {
     const base = plan();
     const shared = node('shared-prereq');
+    const first = { ...node('node-1'), prerequisiteNodeIds: ['shared-prereq'] };
+    const second = { ...node('node-2'), prerequisiteNodeIds: ['shared-prereq'] };
     const extended: AdaptiveLearningPathPlan = {
       ...base,
-      mainPath: [shared, node('node-1'), node('node-2')],
+      mainPath: [shared, first, second],
       policyBundle: {
         ...base.policyBundle!,
         paths: [
-          { ...base.policyBundle!.paths[0], nodeIds: ['shared-prereq', 'node-1'] },
-          { ...base.policyBundle!.paths[1], nodeIds: ['shared-prereq', 'node-2'] },
+          { ...base.policyBundle!.paths[0], nodeIds: ['shared-prereq', 'node-1'], planNodes: [shared, first] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['shared-prereq', 'node-2'], planNodes: [shared, second] },
         ],
       },
     };
@@ -667,8 +669,8 @@ describe('adaptive path batch differentiation metrics', () => {
       policyBundle: {
         ...base.policyBundle!,
         paths: [
-          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'] },
-          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'] },
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'], planNodes: [nodeA] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [nodeB] },
         ],
       },
     };
@@ -711,8 +713,8 @@ describe('adaptive path batch differentiation metrics', () => {
       policyBundle: {
         ...base.policyBundle!,
         paths: [
-          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'] },
-          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'] },
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'], planNodes: [nodeA] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [nodeB] },
         ],
       },
     };

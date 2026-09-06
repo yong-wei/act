@@ -212,19 +212,38 @@ export function computeAdaptivePathBatchDifferentiation(
       .filter((record) => record.state !== 'verified')
       .map((record) => record.objectKey)
   );
+  // #2033 复审修复：按候选自己的 planNodes 解析节点（策略候选可含主推荐路径之外的节点）。
   const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
+  const nodesByCandidate = serialized.map((candidate) => {
+    const planNodes = candidate.planNodes;
+    if (Array.isArray(planNodes) && planNodes.length > 0) return planNodes;
+    return candidate.nodeIds
+      .map((nodeId) => planNodeById.get(nodeId))
+      .filter(Boolean) as NonNullable<ReturnType<typeof planNodeById.get>>[];
+  });
+  // 共享剔除仅限"统一先修节点"与"统一终结验证节点"：被其他节点声明为先修、
+  // 或承载 terminal-validation 的共有节点不算候选差异；普通共享教学资源保留。
   const sharedNodeIds = new Set(
     serialized[0].nodeIds.filter((nodeId) =>
       serialized.every((candidate) => candidate.nodeIds.includes(nodeId))),
   );
-  const inputs: AdaptivePathDifferentiationCandidate[] = serialized.map((candidate) => {
-    const coreNodes = candidate.nodeIds
-      .filter((nodeId) => !sharedNodeIds.has(nodeId))
-      .map((nodeId) => planNodeById.get(nodeId))
-      .filter(Boolean) as NonNullable<ReturnType<typeof planNodeById.get>>[];
-    const countedNodes = coreNodes.filter((node) => {
-      // #2033 任务 3.1：读验证失败（missing/forbidden/checksum-mismatch/unverified）
-      // 的对象键资源不进入覆盖与区分度统计。
+  const declaredPrerequisiteIds = new Set(
+    nodesByCandidate.flatMap((nodes) => nodes.flatMap((node) => node.prerequisiteNodeIds ?? [])),
+  );
+  const sharedExcludedNodeIds = new Set(
+    [...sharedNodeIds].filter((nodeId) => {
+      const node = nodesByCandidate
+        .map((nodes) => nodes.find((item) => item.nodeId === nodeId))
+        .find(Boolean);
+      if (!node) return false;
+      if (node.terminalConstraints?.includes('terminal-validation')) return true;
+      return declaredPrerequisiteIds.has(nodeId);
+    }),
+  );
+  const inputs: AdaptivePathDifferentiationCandidate[] = serialized.map((candidate, index) => {
+    const countedNodes = (nodesByCandidate[index] ?? []).filter((node) => {
+      if (sharedExcludedNodeIds.has(node.nodeId)) return false;
+      // 读验证失败（missing/forbidden/checksum-mismatch/unverified）的对象键资源不进入统计。
       const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
       return !(provenance.objectKey && unreadableObjectKeys.has(provenance.objectKey));
     });

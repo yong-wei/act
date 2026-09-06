@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-06T10:33:32.165Z",
+  "generatedAt": "2026-09-06T11:23:38.191Z",
   "fixture": "alternative-core-fixture (three-family survival, deterministic)",
   "threeFamilyDifferentiation": {
     "families": [
@@ -12,11 +12,10 @@
       {
         "left": "foundation-remediation",
         "right": "arena-simulation-sprint",
-        "satisfiedCount": 3,
+        "satisfiedCount": 2,
         "satisfiedRules": [
           "core-node-jaccard",
-          "resource-type-tvd",
-          "estimated-minutes-delta"
+          "distinct-core-nodes"
         ]
       },
       {
@@ -26,14 +25,18 @@
         "satisfiedRules": [
           "core-node-jaccard",
           "resource-type-tvd",
-          "estimated-minutes-delta"
+          "distinct-core-nodes"
         ]
       },
       {
         "left": "arena-simulation-sprint",
         "right": "preference-matched-route",
-        "satisfiedCount": 0,
-        "satisfiedRules": []
+        "satisfiedCount": 3,
+        "satisfiedRules": [
+          "core-node-jaccard",
+          "resource-type-tvd",
+          "distinct-core-nodes"
+        ]
       }
     ]
   },
@@ -121,8 +124,8 @@
         {
           "leftStyleId": "foundation-remediation",
           "rightStyleId": "arena-simulation-sprint",
-          "satisfiedCount": 3,
-          "summary": "这两条路径在资源构成与学习安排上有明显差异。"
+          "satisfiedCount": 2,
+          "summary": "这两条路径较为接近，可结合课程内容自行选择。"
         },
         {
           "leftStyleId": "foundation-remediation",
@@ -133,8 +136,8 @@
         {
           "leftStyleId": "arena-simulation-sprint",
           "rightStyleId": "preference-matched-route",
-          "satisfiedCount": 0,
-          "summary": "这两条路径较为接近，可结合课程内容自行选择。"
+          "satisfiedCount": 3,
+          "summary": "这两条路径在资源构成与学习安排上有明显差异。"
         }
       ],
       "resourceReadiness": [

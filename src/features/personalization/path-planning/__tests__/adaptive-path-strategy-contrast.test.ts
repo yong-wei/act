@@ -4,6 +4,7 @@ import {
   buildAlternativeCoreDiversityInput,
   buildPlannerPortrait,
 } from '@/features/personalization/path-planning/__tests__/fixtures/alternative-core-fixture';
+import { buildGatedCandidateSnapshots } from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
 import { planLearningPath } from '@/features/personalization/path-planning/public-api';
 
 const NOW = new Date('2026-05-27T08:00:00.000Z');
@@ -67,6 +68,14 @@ describe('portrait-driven strategy single-variable contrast (#2033)', () => {
     // textbook 资源在 registry 中唯一，配额上限内占比不低于对方偏好即可。
     expect(preferredShare(textbookRun, 'preference-matched', ['textbook_section']))
       .toBeGreaterThanOrEqual(preferredShare(textbookRun, 'preference-matched', ['knowledge_card']));
+
+    // 复审修复回归：可序列化快照必须保留各策略族自己的画像依据，
+    // 不得用统一 deficit 列表覆盖偏好/优势族的 basis。
+    const cardSnapshots = buildGatedCandidateSnapshots(cardRun, 'contrast-snapshot').candidates;
+    const preferenceSnapshot = cardSnapshots
+      .find((candidate) => candidate.policyFamily === 'preference-matched');
+    expect((preferenceSnapshot?.snapshot as Record<string, unknown>).strategy)
+      .toMatchObject({ strategyId: 'preference-reinforce', portraitBasis: ['knowledge_card'] });
   });
 
   it('keeps the weakness strategy observation anchored on low-mastery knowledge targets', () => {

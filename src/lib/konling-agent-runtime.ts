@@ -35,7 +35,12 @@ import {
   type AdaptiveLearnerStateRole,
 } from '@/features/personalization/learner-state/public-api';
 import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
-import { parseAnyRuntimeReleaseManifest } from '@/lib/runtime-release';
+import { parseAnyRuntimeReleaseManifest, runtimeBlobObjectKey } from '@/lib/runtime-release';
+import { createEcsRamRoleOssClient } from '@/lib/runtime-release-store';
+import {
+  buildAdaptivePathBatchComparisonView,
+  buildAdaptivePathStrategyView,
+} from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
 import {
   resolveAdaptivePathRuntimeObjectKey,
   verifyAdaptivePathObjectKeys,
@@ -4271,27 +4276,60 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
     if (!manifestRaw) return [];
     const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
     const filesByPath = new Map(manifest.files.map((file) => [file.path, file]));
+    const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
+    // 未配置 OSS RAM Role（本地/无凭证环境）时不产出读取记录：不声称验证，
+    // 也不据此把资源误判为缺失而从统计剔除。
+    if (!ramRole) return [];
+    const client = createEcsRamRoleOssClient({
+      bucket: process.env.ACT_RUNTIME_OSS_BUCKET?.trim() || 'act-course-assets',
+      region: process.env.ACT_RUNTIME_OSS_REGION?.trim() || 'oss-cn-hangzhou',
+      roleName: ramRole,
+    });
+    const verifyObjectBytes = async (
+      storageKey: string,
+      expectedSha256: string,
+    ): Promise<{ state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }> => {
+      try {
+        const { stream } = await client.getStream(storageKey);
+        const hash = createHash('sha256');
+        for await (const chunk of stream) {
+          hash.update(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        const actual = hash.digest('hex');
+        return actual === expectedSha256
+          ? { state: 'verified', contentSha256: actual }
+          : { state: 'checksum-mismatch', contentSha256: actual };
+      } catch (error) {
+        const status = (error as { status?: number } | null)?.status;
+        if (status === 403) return { state: 'forbidden', contentSha256: null };
+        return { state: 'missing', contentSha256: null };
+      }
+    };
     const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
     for (const option of buildSerializablePathOptions(plan)) {
-      for (const nodeId of option.nodeIds) {
-        const node = plan.mainPath.find((item) => item.nodeId === nodeId);
-        if (!node) continue;
+      // #2033 复审修复：按候选自己的 planNodes 解析（策略候选可含主推荐路径之外的节点）。
+      for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
         const { state, objectKey } = resolveAdaptivePathRuntimeObjectKey(node.target);
         if (state === 'non-runtime' || !objectKey) continue;
         entries.push({
           objectKey,
           resourceId: node.resourceId ?? node.resourceNodeId ?? node.nodeId,
           candidateStyleId: option.styleId,
-          nodeNodeId: nodeId,
+          nodeNodeId: node.nodeId,
         });
       }
     }
     return await verifyAdaptivePathObjectKeys({
       async verify(objectKey) {
+        // 内容寻址键（blob:<sha256>）：对象键即摘要，真实读取并比对。
+        if (objectKey.startsWith('blob:')) {
+          const sha256 = objectKey.slice('blob:'.length);
+          return verifyObjectBytes(runtimeBlobObjectKey(sha256), sha256);
+        }
         const file = filesByPath.get(objectKey);
         if (!file) return { state: 'missing', contentSha256: null };
-        // manifest 命中：记录期望校验值；字节级加载发生在 runtime 网关服务学生请求时。
-        return { state: 'verified', contentSha256: file.sha256 };
+        // manifest 命中后仍执行真实读取，流式比对 manifest 期望校验值。
+        return verifyObjectBytes(objectKey, file.sha256);
       },
     }, entries, new Date().toISOString());
   } catch (error) {
@@ -5360,79 +5398,19 @@ function buildStudentSafeEvidenceBasis(values: string[]) {
 }
 
 /**
- * 学生安全策略呈现（#2033）：只下发策略标识/名称/画像依据/通用标记。
- * 画像不可用（generic）时不得声称个性化，画像依据不下发。
+ * 学生安全策略呈现（#2033）：委托共享投影模块，konling 响应与持久化批次消费方
+ * （页面）保持一致；画像不可用（generic）时不下发画像依据。
  */
 function buildStudentSafeStrategy(value: unknown) {
-  if (!value || typeof value !== 'object') return null;
-  const strategy = value as Record<string, unknown>;
-  const strategyId = typeof strategy.strategyId === 'string' ? strategy.strategyId : null;
-  const name = typeof strategy.name === 'string' ? strategy.name : null;
-  if (!strategyId || !name) return null;
-  const generic = strategy.generic === true;
-  const portraitBasis = generic
-    ? []
-    : Array.isArray(strategy.portraitBasis)
-      ? strategy.portraitBasis.filter((item): item is string => typeof item === 'string')
-      : [];
-  return { strategyId, name, portraitBasis, generic };
+  return buildAdaptivePathStrategyView(value);
 }
 
 /**
- * 批次级学生安全比较呈现（#2033）：两两差异摘要与运行时资源读取状态计数。
- * 不下发指标原始数值、规则名与对象键原文。
+ * 批次级学生安全比较呈现（#2033）：委托共享投影模块；不下发指标原始数值、
+ * 规则名与对象键原文。
  */
 export function buildStudentSafeBatchComparison(metadata: Record<string, unknown>) {
-  const differentiation = metadata.differentiation && typeof metadata.differentiation === 'object'
-    ? metadata.differentiation as Record<string, unknown>
-    : null;
-  const pairs = Array.isArray(differentiation?.pairs)
-    ? differentiation!.pairs.flatMap((value) => {
-        if (!value || typeof value !== 'object') return [];
-        const pair = value as Record<string, unknown>;
-        const leftStyleId = typeof pair.leftStyleId === 'string' ? pair.leftStyleId : null;
-        const rightStyleId = typeof pair.rightStyleId === 'string' ? pair.rightStyleId : null;
-        const metrics = pair.metrics && typeof pair.metrics === 'object'
-          ? pair.metrics as Record<string, unknown>
-          : {};
-        const satisfiedCount = typeof metrics.satisfiedCount === 'number' && Number.isFinite(metrics.satisfiedCount)
-          ? metrics.satisfiedCount
-          : null;
-        if (!leftStyleId || !rightStyleId || satisfiedCount === null) return [];
-        return [{
-          leftStyleId,
-          rightStyleId,
-          satisfiedCount,
-          summary: satisfiedCount >= 3
-            ? '这两条路径在资源构成与学习安排上有明显差异。'
-            : '这两条路径较为接近，可结合课程内容自行选择。',
-        }];
-      })
-    : [];
-  const resourceReadiness = new Map<string, { verified: number; unreadable: number }>();
-  for (const value of Array.isArray(metadata.objectKeyReadRecords) ? metadata.objectKeyReadRecords : []) {
-    if (!value || typeof value !== 'object') continue;
-    const record = value as Record<string, unknown>;
-    const styleId = typeof record.candidateStyleId === 'string' ? record.candidateStyleId : null;
-    const state = typeof record.state === 'string' ? record.state : null;
-    if (!styleId || !state) continue;
-    const counts = resourceReadiness.get(styleId) ?? { verified: 0, unreadable: 0 };
-    if (state === 'verified') counts.verified += 1;
-    else counts.unreadable += 1;
-    resourceReadiness.set(styleId, counts);
-  }
-  return {
-    highDifferentiation: differentiation?.highDifferentiation === true,
-    pairs,
-    resourceReadiness: [...resourceReadiness.entries()].map(([styleId, counts]) => ({
-      styleId,
-      verifiedResources: counts.verified,
-      unreadableResources: counts.unreadable,
-      summary: counts.unreadable > 0
-        ? `这条路径有 ${counts.unreadable} 个资源暂时无法读取，已不计入方案对比。`
-        : null,
-    })),
-  };
+  return buildAdaptivePathBatchComparisonView(metadata);
 }
 
 function buildPathResourceMix(nodes: AdaptiveLearningPathPlanNode[]) {
