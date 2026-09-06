@@ -2313,6 +2313,16 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
 
 // #2024：图谱交互稳定性并入当前产品 QA 状态——只比较同次捕获的实际前后观测，
 // 不再读取旧 #485 证据格式；缺失、重置或仅写成功标志都按问题返回。
+function interactionObservationPresent(snapshot: JsonRecord, fields: string[]): boolean {
+  return fields.every((field) => {
+    const value = snapshot[field];
+    if (field === 'inspectorOpen') return typeof value === 'boolean';
+    // pinnedLayoutSignature 允许合法空串（拖拽前无钉住），只要求字段存在。
+    if (field === 'pinnedLayoutSignature') return typeof value === 'string';
+    return typeof value === 'string' && value.length > 0;
+  });
+}
+
 export function interactionStabilityProblems(evidence: JsonRecord, selectedNode: unknown): string[] {
   const beforeDrag = objectRecord(evidence.beforeDrag);
   const afterInspectorOpen = objectRecord(evidence.afterInspectorOpen);
@@ -2320,21 +2330,23 @@ export function interactionStabilityProblems(evidence: JsonRecord, selectedNode:
   const afterDrag = objectRecord(evidence.afterDrag);
   const afterHover = objectRecord(evidence.afterHover);
   const selectedNodeId = String(selectedNode ?? '');
+  const observationsPresent = interactionObservationPresent(beforeDrag, ['selectedNodeId', 'layoutVersion', 'pinnedLayoutSignature'])
+    && interactionObservationPresent(afterInspectorOpen, ['inspectorOpen', 'layoutVersion'])
+    && interactionObservationPresent(afterInspectorClose, ['inspectorOpen', 'pinnedLayoutSignature'])
+    && interactionObservationPresent(afterDrag, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId'])
+    && interactionObservationPresent(afterHover, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId']);
+  if (!observationsPresent) return ['interaction-observations-missing'];
   return [
-    String(beforeDrag.selectedNodeId ?? '') === selectedNodeId && selectedNodeId.length > 0
+    beforeDrag.selectedNodeId === selectedNodeId && selectedNodeId.length > 0
       ? null
       : 'before-drag-selection-missing',
     afterInspectorOpen.inspectorOpen === true ? null : 'inspector-open-not-observed',
-    afterInspectorOpen.layoutVersion !== '' && afterInspectorOpen.layoutVersion === afterDrag.layoutVersion
-      ? null
-      : 'inspector-open-layout-reset',
+    afterInspectorOpen.layoutVersion === afterDrag.layoutVersion ? null : 'inspector-open-layout-reset',
     afterInspectorClose.inspectorOpen === false ? null : 'inspector-close-not-observed',
     afterInspectorClose.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
       ? null
       : 'inspector-close-pinned-signature-changed',
-    afterDrag.layoutVersion !== '' && afterHover.layoutVersion === afterDrag.layoutVersion
-      ? null
-      : 'hover-layout-reset',
+    afterHover.layoutVersion === afterDrag.layoutVersion ? null : 'hover-layout-reset',
     afterHover.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
       ? null
       : 'hover-pinned-signature-changed',
@@ -2345,10 +2357,10 @@ export function interactionStabilityProblems(evidence: JsonRecord, selectedNode:
 export function explicitRelayoutStabilityProblems(evidence: JsonRecord): string[] {
   const beforeRelayout = objectRecord(evidence.beforeRelayout);
   const afterRelayout = objectRecord(evidence.afterRelayout);
+  const observationsPresent = interactionObservationPresent(beforeRelayout, ['layoutVersion', 'pinnedNodeCount', 'selectedNodeId'])
+    && interactionObservationPresent(afterRelayout, ['layoutVersion', 'pinnedNodeCount', 'selectedNodeId']);
+  if (!observationsPresent) return ['relayout-observations-missing'];
   return [
-    beforeRelayout.layoutVersion !== '' && afterRelayout.layoutVersion !== ''
-      ? null
-      : 'relayout-observations-missing',
     numberFromEvidence(afterRelayout.layoutVersion)! > numberFromEvidence(beforeRelayout.layoutVersion)!
       ? null
       : 'relayout-version-not-incremented',

@@ -3646,18 +3646,19 @@ async function main() {
         const afterDrag = await captureMarkerSnapshot(page);
         await page.mouse.move(720, 360);
         const afterHover = await captureMarkerSnapshot(page);
-        await openSelectedNodeInspector(page, dragNodeId);
-        const afterInspectorOpen = await captureMarkerSnapshot(page);
+        // ?node= 加载时 inspector 已开；先关闭再经真实指针操作重开，捕获真实开/关转换。
         await closeInspectorIfPresent(page);
         const afterInspectorClose = await captureMarkerSnapshot(page);
+        await openSelectedNodeInspector(page, dragNodeId);
+        const afterInspectorOpen = await captureMarkerSnapshot(page);
         return {
           kind: drag.pinned ? 'dragged-node-and-hover-stability' : 'dragged-node-stability-missing',
           beforeDrag,
           drag,
           afterDrag,
           afterHover,
-          afterInspectorOpen,
           afterInspectorClose,
+          afterInspectorOpen,
         };
       },
     },

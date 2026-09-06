@@ -4979,18 +4979,42 @@ describe('commercial UI governance', () => {
     expect(interactionStabilityProblems({
       hoverDoesNotRelayout: true,
       beforeDrag: validEvidence.beforeDrag,
-    }, selectedNode)).toContain('inspector-open-not-observed');
+    }, selectedNode)).toEqual(['interaction-observations-missing']);
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      beforeDrag: { ...validEvidence.beforeDrag, pinnedLayoutSignature: '' },
+      afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+    }, selectedNode)).toEqual([]);
+
+    expect(interactionStabilityProblems({
+      beforeDrag: { ...validEvidence.beforeDrag, pinnedLayoutSignature: undefined },
+    }, selectedNode)).toContain('interaction-observations-missing');
+
+    expect(interactionStabilityProblems({
+      beforeDrag: validEvidence.beforeDrag,
+      afterInspectorOpen: validEvidence.afterInspectorOpen,
+      afterInspectorClose: validEvidence.afterInspectorClose,
+      dragDoesNotRelayout: true,
+    }, selectedNode)).toContain('interaction-observations-missing');
 
     expect(explicitRelayoutStabilityProblems({
       beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
       afterRelayout: { layoutVersion: '3', pinnedNodeCount: '0', selectedNodeId: selectedNode },
     })).toEqual([]);
 
-    expect(explicitRelayoutStabilityProblems({})).not.toHaveLength(0);
+    expect(explicitRelayoutStabilityProblems({})).toContain('relayout-observations-missing');
 
     expect(explicitRelayoutStabilityProblems({
       beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
-      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: '' },
+      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      relayoutWorked: true,
+    })).toContain('relayout-version-not-incremented');
+
+    expect(explicitRelayoutStabilityProblems({
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: 'node-relayout-drifted' },
     })).toEqual(
       expect.arrayContaining(['relayout-version-not-incremented', 'relayout-pinned-count-not-cleared', 'relayout-selection-lost']),
     );
