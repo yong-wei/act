@@ -23,7 +23,10 @@ import {
   KNOWLEDGE_FORCE_ALPHA_DECAY,
   KNOWLEDGE_FORCE_ALPHA_MIN,
   resolveKnowledgeForceLifecycle,
+  computeKnowledgeForceStructureSignature,
+  resolveStableKnowledgeGraphEnginePayload,
 } from './force-lifecycle';
+import { applyCrossDomainClusterLayout } from './cross-domain-cluster';
 import {
   getNodeColor,
   getGlowColor,
@@ -100,6 +103,7 @@ import {
   getKnowledgeNodeLabelBounds,
   getKnowledgeNodeLabelPaintModel,
   getKnowledgeRootLabelPaintModel,
+  deriveKnowledgeNodeCanvasName,
   layoutKnowledgeNodeLabel,
 } from './node-label-layout';
 import {
@@ -149,6 +153,8 @@ interface KnowledgeGraph2DProps {
   fitViewRequest: KnowledgeGraphFitRequest;
   relayoutVersion: number;
   engineReheatRevision?: number;
+  /** #2052：引擎首次沉降（或 static 布局完成）时通知父级做首帧门控。 */
+  onEngineSettled?: () => void;
   expandedNodeIds: readonly string[];
   expandedDirectLinks: readonly KnowledgeLinkData[];
   activationSequenceByCenterId: Readonly<Record<string, number>>;
@@ -376,6 +382,7 @@ export function KnowledgeGraph2D({
   fitViewRequest,
   relayoutVersion,
   engineReheatRevision = 0,
+  onEngineSettled,
   expandedNodeIds,
   expandedDirectLinks,
   activationSequenceByCenterId,
@@ -427,6 +434,9 @@ export function KnowledgeGraph2D({
   const changeScopeRef = useRef<{ frozenNodeIds: Set<string>; reheat: boolean }>({ frozenNodeIds: new Set(), reheat: false });
   const committedRelayoutVersionRef = useRef(relayoutVersion);
   const committedGraphVersionRef = useRef(graphVersion);
+  // #2052：结构签名未变时复用上一帧 graphData 载荷引用，任何非结构重
+  // 渲染（hover/选择/预览）都无法触发 force-graph 重摄入与全量重热。
+  const enginePayloadStabilityRef = useRef<{ signature: string; payload: unknown } | null>(null);
   const revealedExpansionSignatureRef = useRef('');
   const previousExpandedNodeIdsRef = useRef<readonly string[]>([]);
   const focusedRevealTargetNodeIdRef = useRef<string | null>(null);
@@ -555,6 +565,8 @@ export function KnowledgeGraph2D({
       runtimePositionsByNodeId: runtimePositionsByNodeIdRef.current,
       preserve: preserveRuntimeCoordinates,
     }) as RuntimeKnowledgeGraphNode[];
+    // #2052：跨领域聚类节点在 anchor 冻结前放置到概览外圈领域圆内。
+    applyCrossDomainClusterLayout(layoutNodes, { viewportWidth: width ?? 1280, viewportHeight: height ?? 720 });
     markKnowledgeGraphAutomaticNodeAnchors(layoutNodes);
     const focusedLayoutNodes = applyFocusedExpansionLayout({
       nodes: layoutNodes,
@@ -582,10 +594,26 @@ export function KnowledgeGraph2D({
     // 有损的历史身份推进在摄入后的 effect 中完成（#1739）。
     changeScopeRef.current = changeScope;
     const scopedNodes = changeScope.nodes;
-    return {
+    const payload = {
       nodes: scopedNodes,
       links: transformedLinks
     };
+    // 结构签名护栏（#2052）：节点身份 + 边端点 + graphVersion/relayout/
+    // layoutState 全部未变即结构等价，复用上一帧载荷引用；渲染层属性
+    // （选中/hover/主题）不经 graphData 载荷生效，披露/过滤/reflow 仍
+    // 正常重建。
+    const structureSignature = computeKnowledgeForceStructureSignature(
+      payload.nodes,
+      payload.links,
+      [graphVersion, relayoutVersion, layoutState.version],
+    );
+    const resolved = resolveStableKnowledgeGraphEnginePayload(
+      enginePayloadStabilityRef.current,
+      structureSignature,
+      payload,
+    );
+    enginePayloadStabilityRef.current = { signature: structureSignature, payload: resolved.payload };
+    return resolved.payload as typeof payload;
   }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
   liveNodesRef.current = graphData.nodes as RuntimeKnowledgeGraphNode[];
   const structuralForegroundEdgeIdSet = useMemo(() => new Set(
@@ -917,7 +945,8 @@ export function KnowledgeGraph2D({
     if (settledLayoutSignatureRef.current === layoutSignature) return;
     settledLayoutSignatureRef.current = layoutSignature;
     setLayoutSettledRevision((revision) => revision + 1);
-  }, [graphData.nodes, layoutSignature, snapshotRuntimePositions]);
+    onEngineSettled?.();
+  }, [graphData.nodes, layoutSignature, onEngineSettled, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {
@@ -1126,6 +1155,34 @@ export function KnowledgeGraph2D({
     ctx.save();
     ctx.globalAlpha *= getKnowledgeGraphPresentationNodeOpacity({ ...presentation, nodeId: node.id })
       * getKnowledgeGraphNodeEmphasisOpacity(node.id, selectedCorridorEmphasis);
+    // #2052：跨领域领域圆——由簇内 id 最小的代表节点绘制一次（虚线圆 +
+    // 领域名标注），几何在布局期确定，不随力导向漂移。
+    const clusterCircle = node.__knowledgeCrossClusterCircle as {
+      domainName: string;
+      centerX: number;
+      centerY: number;
+      radius: number;
+      representative: boolean;
+    } | undefined;
+    if (clusterCircle?.representative) {
+      ctx.save();
+      ctx.globalAlpha *= 0.9;
+      ctx.beginPath();
+      ctx.setLineDash([6 / globalScale, 5 / globalScale]);
+      ctx.arc(clusterCircle.centerX, clusterCircle.centerY, clusterCircle.radius, 0, 2 * Math.PI);
+      ctx.strokeStyle = isLightTheme ? 'rgba(71, 85, 105, 0.5)' : 'rgba(148, 163, 184, 0.45)';
+      ctx.lineWidth = 1.4 / globalScale;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // 领域名标注在圆周上方。
+      ctx.font = `600 ${12 / globalScale}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = isLightTheme ? 'rgba(71, 85, 105, 0.85)' : 'rgba(203, 213, 225, 0.85)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(clusterCircle.domainName, clusterCircle.centerX, clusterCircle.centerY - clusterCircle.radius - 4 / globalScale);
+      ctx.restore();
+    }
+
     // 获取颜色配置
     const fillColor = getNodeColor(node.knowledgeDim);
     const glowColor = getGlowColor(node.bloomLevel);
@@ -1522,7 +1579,7 @@ export function KnowledgeGraph2D({
       const visible = Boolean(placement?.visible && point && Number.isFinite(point.x) && Number.isFinite(point.y));
       element.hidden = !visible;
       if (!visible || !placement || !point) continue;
-      const layout = layoutKnowledgeNodeLabel(node.name);
+      const layout = layoutKnowledgeNodeLabel(deriveKnowledgeNodeCanvasName(node.name));
       element.style.left = `${point.x + placement.offsetX}px`;
       element.style.top = `${point.y + placement.offsetY}px`;
       element.style.width = `${layout.width * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize}px`;
@@ -1843,6 +1900,16 @@ export function KnowledgeGraph2D({
     };
   }, [expandedDirectLinks, expandedNodeIds, graphData.nodes, height, width]);
 
+  // #2052：static（reduced-motion/测试）路径没有引擎 stop 事件，以布局
+  // 计算完成（layoutSignature 变化后的首次渲染）作为沉降里程碑。
+  const staticSettledSignatureRef = useRef('');
+  useEffect(() => {
+    if (!forceLifecycle.staticLayout) return;
+    if (staticSettledSignatureRef.current === layoutSignature) return;
+    staticSettledSignatureRef.current = layoutSignature;
+    onEngineSettled?.();
+  }, [forceLifecycle.staticLayout, layoutSignature, onEngineSettled]);
+
   const lastEngineReheatRevisionRef = useRef(engineReheatRevision);
   useEffect(() => {
     if (engineReheatRevision <= lastEngineReheatRevisionRef.current) return;
@@ -1893,7 +1960,7 @@ export function KnowledgeGraph2D({
         const point = projector?.(Number(node.x ?? node.positionX), Number(node.y ?? node.positionY));
         const placement = placements.get(node.id);
         if (!point || !placement?.visible || ![point.x, point.y].every(Number.isFinite)) return [];
-        const layout = layoutKnowledgeNodeLabel(node.name);
+        const layout = layoutKnowledgeNodeLabel(deriveKnowledgeNodeCanvasName(node.name));
         const labelWidth = layout.width * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
         const labelHeight = layout.height * placement.fontSize / KNOWLEDGE_NODE_LABEL_POLICY.fontSize;
         const centerX = point.x + placement.offsetX;
@@ -2035,7 +2102,7 @@ export function KnowledgeGraph2D({
               && node.richTitle?.state === 'available'
               ? node.richTitle.accessibleName
               : undefined,
-            fallbackLines: layoutKnowledgeNodeLabel(node.name).lines.map((line) => line.text),
+            fallbackLines: layoutKnowledgeNodeLabel(deriveKnowledgeNodeCanvasName(node.name)).lines.map((line) => line.text),
             accessibleName: node.mathematics?.state === 'available'
               ? node.mathematics.accessibleLabel
               : node.richTitle?.state === 'available'

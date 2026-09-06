@@ -181,6 +181,8 @@ interface KnowledgeGraphCanvasProps {
   onCameraPoseChange?: (scopeKey: string, pose: KnowledgeGraphCameraPose) => void;
   relayoutVersion: number;
   engineReheatRevision?: number;
+  /** #2052：引擎首次沉降时通知父级做首帧门控。 */
+  onEngineSettled?: () => void;
   width?: number;
   height?: number;
   expandedNodeIds: readonly string[];
@@ -518,6 +520,7 @@ export function KnowledgeGraphCanvas({
   onCameraPoseChange,
   relayoutVersion,
   engineReheatRevision = 0,
+  onEngineSettled,
   width,
   height,
   expandedNodeIds,
@@ -1183,7 +1186,8 @@ export function KnowledgeGraphCanvas({
     settledLayoutSignatureRef.current = layoutSignature;
     setCameraProjectionRevision((revision) => revision + 1);
     setLayoutSettledRevision((revision) => revision + 1);
-  }, [graphData.nodes, layoutSignature, snapshotRuntimePositions]);
+    onEngineSettled?.();
+  }, [graphData.nodes, layoutSignature, onEngineSettled, snapshotRuntimePositions]);
 
   useEffect(() => {
     const qaWindow = window as Window & {

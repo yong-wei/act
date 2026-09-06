@@ -1722,26 +1722,17 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
 
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
-    const boundaryEntry = container.querySelector<HTMLButtonElement>('[data-authority-boundary-node="node-formula"]');
-    expect(boundaryEntry).not.toBeNull();
-    await act(async () => boundaryEntry!.click());
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
+    // #2052 task 4.4：跨领域横幅退役，入口改由 2D 画布内虚线领域圆承担
+    // （真实指针点击进入目标领域由 qa=knowledge-product 浏览器验收覆盖）。
+    expect(container.querySelector('[data-active-authority-boundaries]')).toBeNull();
+    expect(container.querySelector('[data-authority-boundary-node="node-formula"]')).toBeNull();
+    // 横幅退役后 jsdom 无画布点击通道；进入目标领域的请求顺序断言由
+    // qa=knowledge-product 浏览器验收承担。此处只断言未发生越域加载。
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
-    const modelingIndex = requested.indexOf('/api/knowledge/shards/active/domains/modeling');
-    const frequencyIndex = requested.indexOf('/api/knowledge/shards/active/domains/frequency');
-    const neighborhoodIndex = requested.indexOf('/api/knowledge/shards/active/neighborhoods/node-formula');
-    const detailIndex = requested.indexOf('/api/knowledge/shards/active/nodes/node-formula');
-    expect(modelingIndex).toBeGreaterThanOrEqual(0);
-    expect(frequencyIndex).toBeGreaterThan(modelingIndex);
-    expect(neighborhoodIndex).toBeGreaterThan(frequencyIndex);
-    expect(detailIndex).toBeGreaterThan(frequencyIndex);
-    expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
-    expect(container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]')?.getAttribute('aria-pressed')).toBe('true');
+    expect(requested).not.toContain('/api/knowledge/shards/active/domains/frequency');
+    expect(requested.some((url) => url.includes('/neighborhoods/node-formula'))).toBe(false);
+    expect(requested.some((url) => url.includes('/shards/active/nodes/node-formula'))).toBe(false);
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
   });
 
   it('does not select or load a boundary neighborhood when its owning domain fails', async () => {
@@ -1788,17 +1779,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
 
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
-    const boundaryEntry = container.querySelector<HTMLButtonElement>('[data-authority-boundary-node="node-formula"]');
-    expect(boundaryEntry).not.toBeNull();
-    await act(async () => boundaryEntry!.click());
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
+    // #2052 task 4.4：横幅退役；画布入口的失败守卫由 followBoundary →
+    // resolveNodeSelection 的既有域失败分支承担，浏览器验收覆盖真实点击。
+    expect(container.querySelector('[data-active-authority-boundaries]')).toBeNull();
+    expect(container.querySelector('[data-authority-boundary-node="node-formula"]')).toBeNull();
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
-    expect(requested).toContain('/api/knowledge/shards/active/domains/frequency');
+    expect(requested).not.toContain('/api/knowledge/shards/active/domains/frequency');
     expect(requested.some((url) => url.includes('/neighborhoods/node-formula'))).toBe(false);
     expect(requested.some((url) => url.includes('/shards/active/nodes/node-formula'))).toBe(false);
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
@@ -2310,8 +2296,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
     const activeGraphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
-    expect(activeGraphSource).toContain('data-active-authority-boundary-toggle="true"');
-    expect(activeGraphSource).toContain('boundaryDirectoryExpanded');
+    // #2052 task 4.4：横幅退役后的画布入口接线合同。
+    expect(activeGraphSource).toContain('onCrossDomainNodeClick={followBoundary}');
+    expect(activeGraphSource).not.toContain('data-active-authority-boundary-toggle');
+    expect(activeGraphSource).not.toContain('boundaryDirectoryExpanded');
     expect(activeGraphSource).toContain('data-active-authority-mobile-tools-toggle="true"');
     expect(activeGraphSource).toContain('mobileGraphControlsExpanded');
     expect(governanceSource).toContain('initial-controls-not-collapsed');

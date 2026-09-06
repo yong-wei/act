@@ -73,6 +73,22 @@ export function resolveKnowledgeForceLifecycle(input: {
  * pure re-renders never restart the simulation; only node/link structure or
  * an explicit relayout may reheat it (#1739: filter-only stability).
  */
+/**
+ * 结构护栏决策（#2052）：签名一致即结构等价，复用上一帧引擎载荷引用，
+ * 使 hover/选择/预览等纯渲染无法触发 force-graph 重摄入；签名变化才
+ * 采用新载荷。纯函数便于行为级回归。
+ */
+export function resolveStableKnowledgeGraphEnginePayload<T>(
+  previous: { readonly signature: string; readonly payload: T } | null,
+  signature: string,
+  payload: T,
+): { payload: T; reused: boolean } {
+  if (previous && previous.signature === signature) {
+    return { payload: previous.payload, reused: true };
+  }
+  return { payload, reused: false };
+}
+
 export function computeKnowledgeForceStructureSignature(
   nodes: ReadonlyArray<{ id: string }>,
   links: ReadonlyArray<{ sourceId?: unknown; targetId?: unknown; source?: unknown; target?: unknown }>,

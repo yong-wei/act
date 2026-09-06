@@ -301,6 +301,48 @@ function withTerminalEllipsis(text: string, measureText: KnowledgeNodeLabelMeasu
   return `${characters.join('')}${ellipsis}`;
 }
 
+/**
+ * 画布名称预算（#2052）：按 maxLines×maxWidth 折算 CJK 字符上限。
+ * CJK 字宽 ≈ fontSize，预算 = floor(maxWidth × maxLines / fontSize)。
+ */
+export const KNOWLEDGE_NODE_CANVAS_NAME_BUDGET = Math.floor(
+  (KNOWLEDGE_NODE_LABEL_POLICY.maxWidth * KNOWLEDGE_NODE_LABEL_POLICY.maxLines)
+    / KNOWLEDGE_NODE_LABEL_POLICY.fontSize,
+);
+
+const CANVAS_NAME_CLAUSE_BOUNDARY = /[，。；：、！？…）】》"']$/u;
+
+/**
+ * 展示层截断（#2052）：上游投影把完整定义句写进节点 label（如根轨迹域
+ * 22/85 节点），整句按行包裹在画布上视觉混乱并放大碰撞 defer。超出
+ * 预算的名称按中文标点/子句边界截断并加省略号，只影响画布标签绘制；
+ * hover 预览、详情抽屉、目录与 accessibleName 保留全称，不改分片数据。
+ */
+export function deriveKnowledgeNodeCanvasName(
+  name: string | null | undefined,
+): string {
+  const trimmed = typeof name === 'string' ? name.trim() : '';
+  const characters = Array.from(trimmed.replace(/\s+/gu, ' '));
+  if (characters.length <= KNOWLEDGE_NODE_CANVAS_NAME_BUDGET) {
+    return trimmed;
+  }
+  const budget = KNOWLEDGE_NODE_CANVAS_NAME_BUDGET - Array.from(KNOWLEDGE_NODE_LABEL_POLICY.ellipsis).length;
+  const window = characters.slice(0, Math.max(1, budget));
+  // 优先在预算内最后一个子句边界截断；没有边界时按最后一个空格（词
+  // 边界）截断；再退化为硬截断。省略号始终追加。
+  for (let index = window.length - 1; index >= Math.floor(window.length / 2); index -= 1) {
+    if (CANVAS_NAME_CLAUSE_BOUNDARY.test(window[index])) {
+      return `${window.slice(0, index + 1).join('')}${KNOWLEDGE_NODE_LABEL_POLICY.ellipsis}`;
+    }
+  }
+  for (let index = window.length - 1; index >= Math.floor(window.length / 2); index -= 1) {
+    if (window[index] === ' ') {
+      return `${window.slice(0, index).join('').trimEnd()}${KNOWLEDGE_NODE_LABEL_POLICY.ellipsis}`;
+    }
+  }
+  return `${window.join('')}${KNOWLEDGE_NODE_LABEL_POLICY.ellipsis}`;
+}
+
 export function layoutKnowledgeNodeLabel(
   name: string | null | undefined,
   measureText: KnowledgeNodeLabelMeasureText = getSharedKnowledgeNodeLabelMeasureText()
