@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   AdaptivePathCandidateBatchConflictError,
+  computeAdaptivePathBatchDifferentiation,
   buildAdaptivePathCandidateDifferenceSummary,
   buildCandidateSnapshots,
   fingerprintAdaptivePathCandidateSnapshot,
@@ -595,5 +596,64 @@ describe('adaptive path candidate batches', () => {
     expect(buildAdaptivePathCandidateDifferenceSummary(source, adjusted)).toMatchObject({
       material: false,
     });
+  });
+});
+
+
+describe('adaptive path batch differentiation metrics', () => {
+  it('computes pairwise differentiation and persists it into batch metadata', async () => {
+    const base = plan();
+    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html', checkpoint: { role: 'inline' } as never };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [nodeA, nodeB],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'] },
+        ],
+      },
+    };
+
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation).not.toBeNull();
+    expect(differentiation!.pairs).toHaveLength(1);
+    expect(differentiation!.pairs[0].metrics.coreNodeJaccard).toBe(1);
+    expect(differentiation!.pairs[0].metrics.objectKeyJaccard).toBe(1);
+    expect(differentiation!.pairs[0].metrics.resourceTypeTotalVariation).toBeCloseTo(1);
+    expect(differentiation!.highDifferentiation).toBe(true);
+
+    const { db } = dbFixture();
+    const view = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'gen-diff-1',
+      plan: extended,
+    });
+    expect((view.metadata as Record<string, unknown>).differentiation).toMatchObject({
+      highDifferentiation: true,
+      pairs: [{ leftStyleId: 'foundation-remediation', rightStyleId: 'arena-simulation-sprint' }],
+    });
+  });
+
+  it('excludes shared nodes from core differentiation inputs', () => {
+    const base = plan();
+    const shared = node('shared-prereq');
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [shared, node('node-1'), node('node-2')],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['shared-prereq', 'node-1'] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['shared-prereq', 'node-2'] },
+        ],
+      },
+    };
+
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation!.pairs[0].metrics.coreNodeJaccard).toBe(1);
+    expect(differentiation!.pairs[0].metrics.distinctCoreNodeCount).toBe(2);
+    expect(differentiation!.highDifferentiation).toBe(false);
   });
 });

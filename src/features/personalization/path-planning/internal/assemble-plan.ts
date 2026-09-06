@@ -1,3 +1,5 @@
+import type { AdaptivePathStrategyMetadata } from '@/features/personalization/path-planning/adaptive-path-differentiation';
+import { ADAPTIVE_PATH_STRATEGY_BY_FAMILY } from '@/features/personalization/path-planning/adaptive-path-differentiation';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVES,
@@ -890,6 +892,7 @@ export type AdaptiveLearningPathSerializablePathOption = AdaptiveLearningPathPer
   policyFamily: AdaptiveLearningPathPolicyFamily;
   label: string;
   nodeIds: string[];
+  strategy?: AdaptivePathStrategyMetadata;
 };
 
 export interface AdaptiveLearningPathCapabilityEvidence {
@@ -2675,12 +2678,36 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
   };
 }
 
+function buildAdaptivePathStrategyMetadata(
+  family: AdaptiveLearningPathPolicyFamily,
+  portraitUnavailable: boolean,
+  deficitTargetIds: string[],
+): AdaptivePathStrategyMetadata {
+  const mapped = ADAPTIVE_PATH_STRATEGY_BY_FAMILY[family];
+  if (!mapped) {
+    return { family, strategyId: family, name: family, portraitBasis: [], generic: true };
+  }
+  return {
+    family,
+    strategyId: mapped.strategyId,
+    name: mapped.name,
+    portraitBasis: portraitUnavailable ? [] : deficitTargetIds,
+    generic: portraitUnavailable,
+  };
+}
+
 export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathSerializablePathOption[] {
   if (plan.policyBundle?.paths.length) {
     const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
+    const portraitUnavailable = plan.visualization?.evidence?.learnerStateDeficits?.some((deficit) => deficit.reasonCode === 'portrait-unavailable') === true;
+    const deficits = (plan.visualization?.evidence?.learnerStateDeficits ?? [])
+      .map((deficit) => deficit.targetId)
+      .filter((targetId): targetId is string => typeof targetId === 'string')
+      .slice(0, 2);
     return plan.policyBundle.paths.map((path, index) => ({
       optionId: `path-option-${index + 1}`,
       ...path,
+      strategy: buildAdaptivePathStrategyMetadata(path.policyFamily, portraitUnavailable, deficits),
       planNodes: Array.isArray(path.planNodes) && path.planNodes.length > 0
         ? path.planNodes
         : path.nodeIds.map((nodeId) => planNodeById.get(nodeId)).filter(Boolean),

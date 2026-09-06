@@ -4,6 +4,12 @@ import {
   buildSerializablePathOptions,
   type AdaptiveLearningPathPlan,
 } from '@/features/personalization/path-planning/public-api';
+import {
+  computeAdaptivePathPairDifferentiation,
+  type AdaptivePathDifferentiationCandidate,
+  type AdaptivePathPairDifferentiationMetrics,
+} from '@/features/personalization/path-planning/adaptive-path-differentiation';
+import { resolveAdaptivePathRuntimeObjectKey } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
 
 export interface AdaptivePathCandidateSnapshot {
   id: string;
@@ -131,6 +137,7 @@ export async function persistAdaptivePathCandidateBatch(
           policyBundleFallbackReasons: input.plan.policyBundle?.fallbackReasons ?? [],
           decisionEvidence: input.plan.policyBundle?.decisionEvidence ?? null,
           diversityLimitations: gated.limitations,
+          differentiation: computeAdaptivePathBatchDifferentiation(input.plan),
           ...(input.derivation ? {
             derivation: {
               ...input.derivation,
@@ -162,6 +169,72 @@ export async function persistAdaptivePathCandidateBatch(
     if (raced) return assertMatchingExisting(raced, input);
     throw error;
   }
+}
+
+export interface AdaptivePathBatchDifferentiation {
+  pairs: Array<{
+    leftStyleId: string;
+    rightStyleId: string;
+    metrics: AdaptivePathPairDifferentiationMetrics;
+  }>;
+  /** 每对候选都达到最少达标数（7 项中 3 项）才允许标记高区分度。 */
+  highDifferentiation: boolean;
+}
+
+/** 从候选批次可序列化选项计算两两量化区分度（#2033）。候选少于 2 条时返回 null。 */
+export function computeAdaptivePathBatchDifferentiation(
+  plan: AdaptiveLearningPathPlan,
+): AdaptivePathBatchDifferentiation | null {
+  const serialized = buildSerializablePathOptions(plan)
+    .filter((candidate) => candidate.nodeIds.length > 0);
+  if (serialized.length < 2) return null;
+
+  const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
+  const sharedNodeIds = new Set(
+    serialized[0].nodeIds.filter((nodeId) =>
+      serialized.every((candidate) => candidate.nodeIds.includes(nodeId))),
+  );
+  const inputs: AdaptivePathDifferentiationCandidate[] = serialized.map((candidate) => {
+    const coreNodes = candidate.nodeIds
+      .filter((nodeId) => !sharedNodeIds.has(nodeId))
+      .map((nodeId) => planNodeById.get(nodeId))
+      .filter(Boolean) as NonNullable<ReturnType<typeof planNodeById.get>>[];
+    const objectKeys = new Set<string>();
+    const typeCounts: Record<string, number> = {};
+    const checkpointSignature: string[] = [];
+    let estimatedMinutes = 0;
+    for (const node of coreNodes) {
+      const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
+      if (provenance.objectKey) objectKeys.add(provenance.objectKey);
+      typeCounts[node.type] = (typeCounts[node.type] ?? 0) + 1;
+      if (node.terminalConstraints?.includes('terminal-validation')) checkpointSignature.push('terminal');
+      else if (node.checkpoint) checkpointSignature.push('inline');
+      estimatedMinutes += node.estimatedTimeMinutes ?? 0;
+    }
+    const totalResources = coreNodes.length || 1;
+    const resourceTypeShares = Object.fromEntries(
+      Object.entries(typeCounts).map(([type, count]) => [type, count / totalResources]),
+    );
+    return {
+      styleId: candidate.styleId,
+      coreNodeIds: coreNodes.map((node) => node.nodeId),
+      coreObjectKeys: Array.from(objectKeys),
+      resourceTypeShares,
+      estimatedMinutes,
+      checkpointSignature,
+    };
+  });
+
+  const pairs: AdaptivePathBatchDifferentiation['pairs'] = [];
+  let highDifferentiation = true;
+  for (let left = 0; left < inputs.length; left += 1) {
+    for (let right = left + 1; right < inputs.length; right += 1) {
+      const metrics = computeAdaptivePathPairDifferentiation(inputs[left], inputs[right]);
+      pairs.push({ leftStyleId: inputs[left].styleId, rightStyleId: inputs[right].styleId, metrics });
+      if (metrics.satisfiedCount < 3) highDifferentiation = false;
+    }
+  }
+  return { pairs, highDifferentiation };
 }
 
 export function buildCandidateSnapshots(
