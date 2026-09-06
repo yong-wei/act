@@ -114,8 +114,10 @@ function checkpointStructuralDifference(
   const rightShape = normalize(right);
   if (leftShape.inline !== rightShape.inline || leftShape.terminal !== rightShape.terminal) return true;
   if (leftShape.tailTerminal !== rightShape.tailTerminal) return true;
+  // 位置桶本身参与逐位比较：同数 inline 检查点安排在前半程 vs 后半程也是结构差异。
   return left.some((value, index) => value !== right[index]
-    && (value.startsWith('terminal') || right[index].startsWith('terminal')));
+    && (value.startsWith('terminal') || right[index].startsWith('terminal')
+      || value.startsWith('inline') || right[index].startsWith('inline')));
 }
 
 export function computeAdaptivePathPairDifferentiation(

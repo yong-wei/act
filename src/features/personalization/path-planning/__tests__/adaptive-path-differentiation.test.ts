@@ -74,6 +74,21 @@ describe('adaptive path pair differentiation metrics', () => {
     })).checkpointStructuralDifference).toBe(false);
   });
 
+  it('treats same-count inline checkpoints in different position buckets as structural difference', () => {
+    // 复审修复回归：inline-head vs inline-tail（同数检查点、安排位置不同）必须计为结构差异。
+    const base = candidate({ checkpointSignature: ['inline-head', 'terminal'] });
+    const metrics = computeAdaptivePathPairDifferentiation(base, candidate({
+      styleId: 'strategy-b',
+      checkpointSignature: ['inline-tail', 'terminal'],
+    }));
+    expect(metrics.checkpointStructuralDifference).toBe(true);
+    // 同桶（前半程 vs 前半程）不算差异。
+    expect(computeAdaptivePathPairDifferentiation(base, candidate({
+      styleId: 'strategy-b',
+      checkpointSignature: ['inline-head', 'terminal'],
+    })).checkpointStructuralDifference).toBe(false);
+  });
+
   it('marks high differentiation only when the minimum satisfied count is met', () => {
     const metrics = computeAdaptivePathPairDifferentiation(
       candidate({ estimatedMinutes: 90 }),
