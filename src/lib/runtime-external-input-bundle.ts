@@ -30,6 +30,12 @@ export const EXTERNAL_INPUT_BUNDLE_REPLACED_PREFIXES = [
 export const TEXTBOOK_EXTERNAL_INPUT_ID = 'textbook-runtime-generated-v2';
 export const TEXTBOOK_EXTERNAL_INPUT_GENERATOR_ID = 'act-textbook-runtime-v2-generator';
 export const TEXTBOOK_EXTERNAL_INPUT_GENERATOR_VERSION = 'v2';
+/** Authority learning-content runtime inputs carried by the external bundle (#2045). */
+export const LEARNING_CONTENT_CARD_PREFIX = 'knowledge/cards/authority/nodes/';
+export const LEARNING_CONTENT_INFOGRAPH_PREFIX = 'knowledge/infographs/authority/nodes/';
+export const LEARNING_CONTENT_MANIFEST_RUNTIME_PATH = 'knowledge/authority-learning-content-manifest.json';
+export const LEARNING_CONTENT_EXPORT_SCRIPT = 'scripts/knowledge/export-authority-learning-content-v2.py';
+export const LEARNING_CONTENT_LINKAGE_SCRIPT = 'scripts/knowledge/check-authority-surface-linkage.mjs';
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const REVISION_PATTERN = /^[a-f0-9]{40}$/u;
 const INPUT_ID_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$/u;
@@ -827,6 +833,59 @@ function isUnderPrefix(relativePath: string, prefix: string) {
 }
 
 /**
+ * Learning-content generator (#2045): run the sealed v2 export, then the
+ * authority-surface linkage gate. Any failure aborts bundle preparation so a
+ * stale, hand-edited, or fixture-scale manifest can never enter a release.
+ */
+export async function runLearningContentExportAndLinkage(repoRoot: string): Promise<void> {
+  const execFile = promisify(execFileCallback);
+  try {
+    await execFile('python3', [path.join(repoRoot, LEARNING_CONTENT_EXPORT_SCRIPT)], { cwd: repoRoot, maxBuffer: 16 * 1024 * 1024 });
+  } catch (cause) {
+    error(`learning-content v2 export failed: ${cause instanceof Error ? cause.message : String(cause)}`);
+  }
+  try {
+    await execFile(process.execPath, [path.join(repoRoot, LEARNING_CONTENT_LINKAGE_SCRIPT)], { cwd: repoRoot, maxBuffer: 16 * 1024 * 1024 });
+  } catch (cause) {
+    error(`authority-surface linkage gate failed: ${cause instanceof Error ? cause.message : String(cause)}`);
+  }
+}
+
+/**
+ * The cards/infographs runtime directories are untracked content; a Git
+ * snapshot tree silently lacks them. Fail closed unless the prepared bundle
+ * actually carries both prefixes (#2045 task 2.3).
+ */
+export function assertLearningContentInputsPresent(files: readonly ExternalInputBundleFile[]): void {
+  const countUnder = (prefix: string) => files.filter((file) => file.path.startsWith(prefix)).length;
+  const cards = countUnder(LEARNING_CONTENT_CARD_PREFIX);
+  const infographs = countUnder(LEARNING_CONTENT_INFOGRAPH_PREFIX);
+  if (cards === 0) error(`learning-content bundle carries no authority cards under ${LEARNING_CONTENT_CARD_PREFIX}`);
+  if (infographs === 0) error(`learning-content bundle carries no authority infographs under ${LEARNING_CONTENT_INFOGRAPH_PREFIX}`);
+}
+
+/**
+ * The release materializes the manifest from the Git tree at sourceRevision,
+ * so the committed bytes must equal the freshly exported manifest or the
+ * release would ship a stale manifest (#2045 task 2.3).
+ */
+export async function assertCommittedLearningContentManifestMatchesExport(repoRoot: string, sourceRevision: string): Promise<void> {
+  const execFile = promisify(execFileCallback);
+  const runtimeRootRelative = `course-content/runtime/${LEARNING_CONTENT_MANIFEST_RUNTIME_PATH}`;
+  let committed = '';
+  try {
+    const { stdout } = await execFile('git', ['show', `${sourceRevision}:${runtimeRootRelative}`], { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 });
+    committed = stdout;
+  } catch (cause) {
+    error(`committed learning-content manifest is unreadable at ${sourceRevision}: ${cause instanceof Error ? cause.message : String(cause)}`);
+  }
+  const exported = await readFile(path.join(repoRoot, runtimeRootRelative), 'utf8');
+  if (committed !== exported) {
+    error(`committed learning-content manifest at ${sourceRevision} drifted from the fresh export; commit the re-exported manifest before preparing a release`);
+  }
+}
+
+/**
  * Prepare the exact current-runtime external set.  `runtimeRoot` is the
  * physical course-content/runtime root. `generatedResourcesRoot` is the fresh
  * generated `resources/` directory; its three textbook prefixes are the only
@@ -854,6 +913,10 @@ export async function prepareTextbookExternalInputBundle(input: {
   if (!generatedDetails.isDirectory() || generatedDetails.isSymbolicLink()) error('generated resources root must be a real directory');
   const sourceRevision = validateRevision(input.sourceRevision, 'sourceRevision');
   const gitTree = await listGitRuntimeTree(input.repoRoot, sourceRevision);
+  // Learning-content generator: export + seal + linkage gate must pass before
+  // any bundle is built (#2045 task 2.1); a drifted committed manifest aborts.
+  await runLearningContentExportAndLinkage(input.repoRoot);
+  await assertCommittedLearningContentManifestMatchesExport(input.repoRoot, sourceRevision);
   await runTextbookValidators(input.repoRoot, generatedResourcesRoot);
 
   const baseFiles: ExternalInputBundleFile[] = [];
@@ -863,6 +926,7 @@ export async function prepareTextbookExternalInputBundle(input: {
     if (!isExternalInputBundleBasePathIncluded(file.path, gitTree)) continue;
     baseFiles.push(file);
   }
+  assertLearningContentInputsPresent(baseFiles);
 
   const overlayFiles: ExternalInputBundleFile[] = [];
   for (const prefix of EXTERNAL_INPUT_BUNDLE_PREFIXES) {

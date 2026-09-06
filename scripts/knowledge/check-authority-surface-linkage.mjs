@@ -45,6 +45,7 @@ const trackedCards = new Set(gitFiles('course-content/runtime/knowledge/cards/au
 const trackedInfographs = new Set(gitFiles('course-content/runtime/knowledge/infographs/authority/nodes'));
 const seen = new Set();
 const seenSafe = new Set();
+let missingInfographs = 0;
 for (const node of manifest.nodes || []) {
   if (seen.has(node.canonicalId)) fail(`duplicate:${node.canonicalId}`);
   seen.add(node.canonicalId);
@@ -54,11 +55,19 @@ for (const node of manifest.nodes || []) {
   const cardName = `${node.safeId}.md`;
   const infographName = `${node.safeId}.png`;
   trackedCards.delete(cardName);
-  trackedInfographs.delete(infographName);
+  // A `missing` infograph is a registered content gap: it has no file and no
+  // hash to verify (#2045). Any other infograph state needs the file.
+  const infographMissing = node.infograph?.state === 'missing';
+  if (infographMissing) {
+    missingInfographs += 1;
+    if (node.infograph?.sha256 != null) fail(`missing-infograph-with-hash:${infographName}`);
+  } else {
+    trackedInfographs.delete(infographName);
+  }
   const cardRel = `course-content/runtime/knowledge/cards/authority/nodes/${cardName}`;
   const infographRel = `course-content/runtime/knowledge/infographs/authority/nodes/${infographName}`;
   if (!existsSync(join(root, cardRel))) fail(`missing-card:${cardName}`);
-  if (!existsSync(join(root, infographRel))) fail(`missing-infograph:${infographName}`);
+  if (!infographMissing && !existsSync(join(root, infographRel))) fail(`missing-infograph:${infographName}`);
   if (node.card?.state === 'available' && sha256File(cardRel) !== node.card.sha256) fail(`card-hash:${cardName}`);
   if (node.infograph?.state === 'available' && sha256File(infographRel) !== node.infograph.sha256) fail(`infograph-hash:${infographName}`);
 }
@@ -84,4 +93,4 @@ if (failures.length > 0) {
   process.stderr.write(`${failures.slice(0, 40).join('\n')}\n`);
   process.exit(1);
 }
-process.stdout.write(`ok v2Nodes=${manifest.nodes.length} boundResources=${inventory.length} sidecar=${sidecar.courseProjectionId}\n`);
+process.stdout.write(`ok v2Nodes=${manifest.nodes.length} boundResources=${inventory.length} missingInfographs=${missingInfographs} sidecar=${sidecar.courseProjectionId}\n`);
