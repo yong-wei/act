@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-04
-摘要: 生产图谱加载失败（#1942）已修复并合并（PR #1981）：生产分片指针已切到带 coverage 收据的 ads-294a0616…，图谱视觉验收通过；英文切换待含 Dockerfile 修复的镜像部署后验收（Issue 保持开放跟踪 4.2/4.3）。生产应用仍为 `v0.7.2-b5d3768`（main `b5d37686…`，部署期 remote-deploy 验证段修复 `050f8f9f7` 已回传 integration `a32e6d9ab`）。Wolfram Cloud 仍维护 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`，Wolfram 恢复后删除该行即恢复完整门禁。开发者网关（runtime-dev）租约风暴超时已修复并上线。生产知识面维持 Authority v0.37；Runtime 仍为 `runtime-150a505a…`。
+最后更新: 2026-09-06
+摘要: 生产应用 `v0.7.4-8d661f5`（main `8d661f58e…`，app-only，tar SHA256 `fa7f6a62…`）已发布并验收通过：integration（fe9343dd2，含 #1985/#2004/#2021/#2024/#2032/#2034 等）合入 main；画像 fence 验收脚本抽样缺陷已热修（#2005 引入的抽样命中零事实学生，已限定为迁移覆盖人群，修复 `48741377f` 已回传 integration）。英文切换 Dockerfile 修复随本次镜像上线，可验收 #1942 archived tasks 4.2/4.3。生产知识面维持 Authority v0.37（LEGACY），Runtime 仍为 `runtime-150a505a…`。Wolfram Cloud 仍维护 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：学生 `cmjtgw3ov00008f1njzx4bg7l` 的画像 current state 停留在 v2/gen1（current-state-version-mismatch），未被 v3 迁移覆盖，待后续对账。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -15,6 +15,8 @@
 - [docs/ProjectDescription.md](../ProjectDescription.md)
 
 ## 最近最重要的稳定变化
+
+- 2026-09-06 生产应用 `v0.7.4-8d661f5` 已发布并验收通过（`deploymentScope=app-only`，main `8d661f58e…`，tar SHA256 `fa7f6a62…`，app/worker OCI revision 与冻结 main 一致）：integration fe9343dd2 合入 main，版本 0.7.2→0.7.4；ActKG/CourseCoverage/资源绑定影子 verify-only 通过，知识图谱同步 838 节点/16571 关系，readyz app/db/redis 全 true，Redis noeviction，DATABASE_URL 连接池参数正确。部署期发现并热修：#2005 新增的画像 fence 验收脚本抽样「最早创建的 STUDENT」，在生产命中零事实账户（backfill 候选只含有 LearningFact 的学生，零事实账户按设计无 current state），改为抽样迁移覆盖学生（`48741377f`，已回传 integration）。操作教训：`remote-deploy.sh --skip-build` 默认读取 `deploy/images/act-obe.tar`，指定版本化 tar 必须显式传 `LOCAL_IMAGE_TAR`，且 `REMOTE_APP_IMAGE` 必须显式传目标标签（默认 `20260301-amd64` 会在装载后报 image not known）。生产数据残余：119/293 学生有画像 current state，175 个零事实账户无（按设计），1 个学生滞留 v2/gen1。
 
 - 2026-09-04 #1942 生产图谱加载失败已修复（PR #1981 合并）：根因是生产 blob 视图激活分片集 ads-c462da19… 为 #1738 之前物化、无 coverage.json，根入口按规格 fail-closed 404；修复为内容侧切换——把仓库已封印的 ads-294a0616…（含 coverage 收据，15045 文件哈希校验一致）上传到视图 `sets/` 并把 `knowledge/authority-domain-shards/current.json` 覆盖为仓库字节（备份 `.bak-1942`），激活侧本已是 r4-c6（activation-0b72f577），无需 redeploy。注意：该分片集以宿主机常规文件存在于视图中（属 overlay payload 豁免），下次发布新 runtime release 会自带该分片集。英文不可切换的第二根因：`.dockerignore` 排除且 Dockerfile 未 COPY `cutover/envelopes/locale-manifests/`，已修复（含构建断言），并重封 v0.37 资格包（界面文案目录 digest 与包绑定，新增文案键后必须重跑 `scripts/knowledge-cutover/build-v037-r5-locale-qualification.ts`）。英文生产验收（archived tasks 4.2/4.3）待下次镜像部署，#1942 保持开放跟踪。呈现层同步修复：分片失败按 code 分「内容未就绪/暂时故障」两态，未就绪态提供旧版入口且无空重试。
 - 2026-09-04 生产应用 `v0.7.2-b5d3768` 已发布并完成验收（`deploymentScope=app-only`，tar SHA256 `650e0ee6…`，app/worker OCI revision `b5d37686…`）：ActKG/CourseCoverage/资源绑定影子 verify-only 通过，知识图谱 838 节点/16571 关系，readyz app/db/redis/runtime 全 true。驱逐舰仿真生产切换视觉验证通过：默认页加载 `assets/model-releases/type055-nanchang-101/v2.1.0/type055-nanchang-101-ship-lod0.glb`（200），整舰完整可见。部署期发现并修复 `scripts/remote-deploy.sh` 验证段 Wolfram 探针不读 `SKIP_WOLFRAM_READY_CHECK` 的缺口（`050f8f9f7`，已回传 integration）。部署过程中服务器云盘由 49G 扩容至 99G；此前三次失败的根因均为磁盘耗尽，教训已沉淀到 server-ops 技能：`2-load-images.sh` 会装载 images/ 下全部 tar（目录只放目标 tar）、`podman load` 需要约 2 倍镜像空间（/var/tmp 暂存+overlay 写入）、清理孤儿 overlay 目录必须与 `overlay-layers/layers.json` 记录联动（否则装载报幽灵层 Stat 失败）。
