@@ -50,8 +50,10 @@ export interface KonlingEvidenceUnitAssignment {
 export interface KonlingEvidenceAllocationPlan {
   readonly intent: StudyQuestionIntent;
   readonly assignments: readonly KonlingEvidenceUnitAssignment[];
-  /** 已编号的完整可用池（主源在前，随后备用，最后未分配候选）。 */
+  /** 已编号并被分配的来源（主源在前，随后备用）；只有这些进入 prompt 与 citation 快照。 */
   readonly assignedCitations: readonly KonlingAssignedCitation[];
+  /** 未被任何章节选中的候选（含 semantic-score/不可访问/零重合），不进入 prompt。 */
+  readonly unallocatedCandidates: readonly KonlingEvidenceAllocationCandidate[];
   readonly unassignedSectionIds: readonly string[];
   /** 分配层按必需章节数放大的检索候选预算（不改全局 profile 默认）。 */
   readonly retrievalBudget: number;
@@ -158,8 +160,12 @@ export function buildEvidenceRequiredUnitSourcePlan(input: {
 
   for (const section of sections) {
     const sectionGrams = cjkBigrams([section.title, ...section.aliases].join(' '));
+    // 逐单元独立相关性判定（#2039 review P1）：与章节标题及别名零词面
+    // 重合的候选不得分配给该章节——即使它对整道查询有白名单 basis，
+    // 也不得成为主源/备用源或被同一来源机械复制到所有章节。
     const ranked: ScoredCandidate[] = eligible
       .map((candidate) => ({ candidate, score: scoreCandidate(candidate, sectionGrams) }))
+      .filter((entry) => overlapRatio(sectionGrams, gramsFor(entry.candidate)) > 0)
       .sort((left, right) => (
         right.score - left.score
         || left.candidate.id.localeCompare(right.candidate.id)
@@ -195,12 +201,10 @@ export function buildEvidenceRequiredUnitSourcePlan(input: {
       }
     }
   }
-  for (const candidate of input.candidates) {
-    if (!chosenKeys.has(candidate.id)) {
-      chosenKeys.add(candidate.id);
-      chosen.push(candidate);
-    }
-  }
+  // 超出分配需求的候选不进入 prompt（#2039 review P1）：编号只授予被
+  // 分配的主源与备用源；未分配候选保留在 unallocatedCandidates 供审计
+  // 留档，不进入 citation 快照与可用编号清单。
+  const unallocatedCandidates = input.candidates.filter((candidate) => !chosenKeys.has(candidate.id));
 
   const assignedCitations = assignKonlingCitationDisplayNumbers(chosen.map((candidate) => ({
     id: candidate.id,
@@ -217,6 +221,7 @@ export function buildEvidenceRequiredUnitSourcePlan(input: {
 
   return {
     intent: input.intent,
+    unallocatedCandidates,
     assignments: sections.map((section) => {
       const entry = perSection.find((row) => row.sectionId === section.id);
       if (!entry) {

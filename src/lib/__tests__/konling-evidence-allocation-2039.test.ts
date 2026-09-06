@@ -20,6 +20,7 @@ import {
 import { KONLING_FAIR_EXPERIMENT_BANK_V2 } from '@/lib/konling-fair-experiment';
 import type { KonlingFairExperimentBankItem } from '@/lib/konling-fair-experiment';
 import type { KonlingFairExperimentCitationSnapshot } from '@/lib/konling-fair-experiment';
+import type { KonlingRuntimeContext } from '@/lib/konling-agent-runtime';
 
 function candidate(input: Partial<KonlingEvidenceAllocationCandidate> & Pick<KonlingEvidenceAllocationCandidate, 'id'>): KonlingEvidenceAllocationCandidate {
   return {
@@ -166,19 +167,26 @@ describe('evidence-required per-unit source allocation (#2039)', () => {
 
 describe('fair experiment evidence assembly parity (#2039)', () => {
   it('assembles multi-source citations from reference fragments through the production allocation module', () => {
+    const formulaItem = KONLING_FAIR_EXPERIMENT_BANK_V2.items.find((item) => item.itemId === 'formula-closed-loop')!;
     const assembly = buildKonlingFairExperimentCitationAssembly({
-      item: codeItem,
+      item: formulaItem,
       bankVersion: 'fair-experiment-v2',
       sourceRevision: 'rev-test',
     });
     expect(assembly.citations.length).toBeGreaterThan(1);
     expect(assembly.citations.every((citation) => citation.displayNumber !== null)).toBe(true);
     expect(assembly.citations.every((citation) => citation.citationTargetId !== null)).toBe(true);
-    const fix = assembly.plan.assignments.find((assignment) => assignment.sectionId === 'fix');
+    const fix = assembly.plan.assignments.find((assignment) => assignment.sectionId === 'assumptions');
     expect(fix?.primaryDisplayNumber).not.toBeNull();
     const primary = assembly.citations.find((citation) => citation.displayNumber === fix?.primaryDisplayNumber);
     expect(primary?.verified).toBe(true);
     expect(['query-exact', 'query-lexical']).toContain(primary?.answerRelevanceBasis);
+    // #2039 review P1：未分配候选（semantic-score/零重合）不得进入 citation 快照。
+    const allocatedIds = new Set(assembly.plan.assignedCitations.map((citation) => citation.id));
+    for (const citation of assembly.citations) {
+      expect(allocatedIds.has(citation.id)).toBe(true);
+    }
+    expect(assembly.plan.unallocatedCandidates.every((candidate) => !allocatedIds.has(candidate.id))).toBe(true);
   });
 
   it('renders per-unit mapping lines for full-feature and keeps baselines citation-free', () => {
@@ -192,7 +200,8 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
     expect(full.systemPrompt).toContain('逐单元引用映射（章节 → 分配编号');
     expect(full.systemPrompt).toContain('「最小修复」→ 使用编号');
     expect(full.systemPrompt).toContain('引用协议');
-    expect(full.citationAssembly?.citations.length).toBeGreaterThan(1);
+    expect(full.citationAssembly).toBeDefined();
+    expect(full.citationAssembly!.citations.length).toBeGreaterThanOrEqual(1);
 
     const plain = buildKonlingFairExperimentSystemPrompt({ arm: 'plain-baseline', item: codeItem, context });
     const enhanced = buildKonlingFairExperimentSystemPrompt({ arm: 'enhanced-baseline', item: codeItem, context });
@@ -228,5 +237,72 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
     for (const mapping of mappings) {
       expect(mapping.displayNumbers[0]).toBeGreaterThan(0);
     }
+  });
+
+  it('wires per-unit allocation into the production teaching-assistant runtime contract', async () => {
+    const { buildKonlingTeachingAssistantRuntimeContract } = await import('@/lib/konling-agent-runtime');
+    const runtimeContext: KonlingRuntimeContext = {
+      pageContext: buildKonlingFairExperimentPromptContext().page,
+      userProfile: buildKonlingFairExperimentPromptContext().user,
+      learnerState: null,
+      planContext: {
+        currentPathId: null,
+        activeNodeId: null,
+        nextNodeIds: [],
+        recentPathIds: [],
+        completedNodeIds: [],
+        status: 'missing',
+      },
+      memory: [],
+      permittedTools: [],
+      missingContext: [],
+      featureFlags: {},
+      citationContext: {
+        required: true,
+        contentCitations: [
+          {
+            id: 'cit-fix',
+            sourceType: 'content' as const,
+            displayTitle: '最小修复：积分抗饱和 clamp 的教材说明',
+            href: 'https://act.example/fix',
+            confidence: 'medium' as const,
+            evidenceBasis: 'query-lexical',
+            owner: 'answer' as const,
+            citationTargetId: 'kb:fix',
+            verified: true,
+            displayNumber: 3,
+            answerRelevanceBasis: 'query-lexical',
+          },
+        ],
+        evidenceCitations: [],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    };
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext,
+      scope: {
+        authenticatedUserId: 'u',
+        targetUserId: 'u',
+        role: 'student',
+        courseId: 'c',
+        pageId: 'p',
+        privacyScopes: [],
+      },
+      currentUserQuery: 'PID 输出持续饱和导致超调增大，如何做最小修复？',
+    });
+    expect(contract.studyQuestion?.intent).toBe('code-debugging');
+    const unitCitations = runtimeContext.citationContext?.unitCitations;
+    expect(unitCitations).toBeDefined();
+    expect(unitCitations?.some((mapping) => (
+      mapping.sectionTitle === '最小修复'
+      && mapping.displayNumbers.includes(3)
+    ))).toBe(true);
   });
 });

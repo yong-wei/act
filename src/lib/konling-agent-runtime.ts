@@ -75,11 +75,17 @@ import {
 } from '@/lib/course-bundle';
 import {
   detectStudyQuestionSectionHeading,
+  evidenceRequiredStudyQuestionSections,
   isStudyQuestionIntent as isKnownStudyQuestionIntent,
   STUDY_QUESTION_SECTIONS,
   studyQuestionSectionTitles,
   type StudyQuestionIntent,
 } from '@/lib/konling-study-question-structure';
+import {
+  buildEvidenceRequiredUnitSourcePlan,
+  evidenceUnitCitationMappings,
+  type KonlingEvidenceAllocationCandidate,
+} from '@/lib/konling-evidence-allocation';
 import { isTechnicalIndexContext, markdownCodeRanges } from '@/lib/konling-citation-repair';
 
 // #1951：答案单元扫描语义下沉到轻模块（无服务端重链），实验脚本可直接复用；
@@ -920,6 +926,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
       ? input.runtimeContext.permittedTools.includes('calculate')
       : mode.permittedTools.includes('calculate'),
   });
+  // #2039：evidence-required 专业问答在生成前做逐单元来源分配，映射随
+  // citationContext 进入 prompt（章节标题 → 分配编号）。编号重映射到
+  // 既有 contentCitations 的 displayNumber，不引入第二套编号。
+  if (studyQuestion) {
+    attachStudyQuestionUnitCitations(input.runtimeContext.citationContext, studyQuestion.intent, input.currentUserQuery);
+  }
   const groundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: input.runtimeContext,
     scope: input.scope,
@@ -1255,6 +1267,49 @@ function hasIndependentNormativeRisk(query: string | null | undefined): boolean 
     || hasNormativeComboSignal(normalized)
     || hasTextbookNormativeSignal(normalized)
     || NORMATIVE_OBLIGATION.test(normalized);
+}
+
+function attachStudyQuestionUnitCitations(
+  citationContext: KonlingCitationContext | null | undefined,
+  intent: KonlingStudyQuestionContract['intent'],
+  queryText?: string | null,
+): void {
+  if (!citationContext?.required) return;
+  if (evidenceRequiredStudyQuestionSections(intent).length === 0) return;
+  const numberById = new Map(
+    citationContext.contentCitations
+      .filter((citation) => Number.isInteger(citation.displayNumber))
+      .map((citation) => [citation.id, citation.displayNumber as number]),
+  );
+  if (numberById.size === 0) return;
+  const candidates: KonlingEvidenceAllocationCandidate[] = citationContext.contentCitations.map((citation) => ({
+    id: citation.id,
+    displayTitle: citation.displayTitle,
+    citationTargetId: citation.citationTargetId ?? null,
+    verified: citation.verified === true,
+    href: citation.href,
+    answerRelevanceBasis: citation.answerRelevanceBasis ?? null,
+    identity: citation.identity ?? { kind: 'content', sourceType: 'content', contentId: citation.id },
+    matchText: citation.displayTitle,
+  }));
+  const plan = buildEvidenceRequiredUnitSourcePlan({ intent, candidates, queryText });
+  // 分配编号 → 候选 id → 既有 citation displayNumber（单一编号真源）。
+  const productionNumberByAllocationNumber = new Map(
+    plan.assignedCitations.map((citation) => [
+      citation.displayNumber,
+      numberById.get(citation.id),
+    ]),
+  );
+  const mappings = evidenceUnitCitationMappings(plan)
+    .map((mapping) => ({
+      sectionTitle: mapping.sectionTitle,
+      displayNumbers: mapping.displayNumbers
+        .map((number) => productionNumberByAllocationNumber.get(number))
+        .filter((number): number is number => typeof number === 'number'),
+    }))
+    .filter((mapping) => mapping.displayNumbers.length > 0);
+  if (mappings.length === 0) return;
+  citationContext.unitCitations = mappings;
 }
 
 function buildKonlingStudyQuestionContract(input: {
