@@ -3,6 +3,15 @@
  */
 import type { GraphCaller } from './contracts';
 
+/**
+ * Generated artifacts removed from the worktree (the ledger is rebuilt on
+ * demand from retained inputs). Their frozen rows stay as historical
+ * denominator evidence and are no longer expected in live caller scans.
+ */
+export const RETIRED_GENERATED_CALLER_PATHS: readonly string[] = [
+  'docs/architecture/fitness-budget-ledger.json',
+];
+
 export const FROZEN_CALLERS: Readonly<Record<string, readonly GraphCaller[]>> = {
   'registry-read:student-resources-id-metadata-fallback': [
     { path: 'docs/architecture/fitness-budget-ledger.json', symbol: 'src/app/api/resources/[id]/route.ts', callerClass: 'historical', kind: 'import' },
