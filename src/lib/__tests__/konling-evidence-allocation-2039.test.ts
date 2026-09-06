@@ -36,6 +36,7 @@ function candidate(input: Partial<KonlingEvidenceAllocationCandidate> & Pick<Kon
 }
 
 const codeItem = KONLING_FAIR_EXPERIMENT_BANK_V2.items.find((item) => item.itemId === 'code-antiwindup')!;
+const CLEAN_REVISION = 'b'.repeat(40);
 
 function snapshotOf(citations: readonly { id: string; verified: boolean; href: string | null; answerRelevanceBasis?: string | null; displayNumber: number | null; citationTargetId: string | null }[]): KonlingFairExperimentCitationSnapshot[] {
   return citations.map((citation) => ({
@@ -184,7 +185,7 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
     const assembly = buildKonlingFairExperimentCitationAssembly({
       item: formulaItem,
       bankVersion: 'fair-experiment-v2',
-      sourceRevision: 'rev-test',
+      sourceRevision: CLEAN_REVISION,
     });
     expect(assembly.citations.length).toBeGreaterThan(1);
     expect(assembly.citations.every((citation) => citation.displayNumber !== null)).toBe(true);
@@ -208,7 +209,7 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
       arm: 'full-feature',
       item: codeItem,
       context,
-      evidence: { bankVersion: 'fair-experiment-v2', sourceRevision: 'rev-test' },
+      evidence: { bankVersion: 'fair-experiment-v2', sourceRevision: CLEAN_REVISION },
     });
     expect(full.systemPrompt).toContain('逐单元引用映射（章节 → 分配编号');
     expect(full.systemPrompt).toContain('「最小修复」→ 使用编号');
@@ -233,7 +234,7 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
       arm: 'full-feature',
       item: normative,
       context: buildKonlingFairExperimentPromptContext(),
-      evidence: { bankVersion: 'fair-experiment-v2', sourceRevision: 'rev-test' },
+      evidence: { bankVersion: 'fair-experiment-v2', sourceRevision: CLEAN_REVISION },
     });
     expect(full.systemPrompt).toContain('需核验');
     expect(full.systemPrompt).toContain('验证权威来源');
@@ -243,7 +244,7 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
     const assembly = buildKonlingFairExperimentCitationAssembly({
       item: codeItem,
       bankVersion: 'fair-experiment-v2',
-      sourceRevision: 'rev-test',
+      sourceRevision: CLEAN_REVISION,
     });
     const mappings = evidenceUnitCitationMappings(assembly.plan);
     expect(mappings.length).toBe(assembly.plan.assignments.length - assembly.plan.unassignedSectionIds.length);
@@ -321,17 +322,22 @@ describe('fair experiment evidence assembly parity (#2039)', () => {
 });
 
 describe('evidence pool source href resolution (#2039 review)', () => {
-  it('builds resolvable blob refs from dirty and unknown revisions', async () => {
+  it('keeps clean revisions verifiable and demotes dirty/unknown revisions to unverified (fail closed)', async () => {
     const { buildKonlingFairExperimentCitationAssembly } = await import('@/lib/konling-fair-experiment/evidence-pool');
     const commit = 'a'.repeat(40);
     const clean = buildKonlingFairExperimentCitationAssembly({ item: codeItem, bankVersion: 'fair-experiment-v2', sourceRevision: commit });
-    const dirty = buildKonlingFairExperimentCitationAssembly({ item: codeItem, bankVersion: 'fair-experiment-v2', sourceRevision: `${commit}-dirty` });
-    const unknown = buildKonlingFairExperimentCitationAssembly({ item: codeItem, bankVersion: 'fair-experiment-v2', sourceRevision: 'unknown' });
-    for (const href of [clean, dirty].map((a) => a.citations[0]?.href)) {
-      expect(href).toBe(`https://github.com/yong-wei/act/blob/${commit}/src/lib/konling-fair-experiment/bank-v2.ts`);
+    expect(clean.citations.length).toBeGreaterThan(0);
+    for (const citation of clean.citations) {
+      expect(citation.verified).toBe(true);
+      expect(citation.href).toBe(`https://github.com/yong-wei/act/blob/${commit}/src/lib/konling-fair-experiment/bank-v2.ts`);
     }
-    expect(unknown.citations[0]?.href).toBe('https://github.com/yong-wei/act/blob/main/src/lib/konling-fair-experiment/bank-v2.ts');
-    // 引用身份保留原始 revision 标记（dirty 审计可追溯）。
-    expect(dirty.citations[0]).toBeDefined();
+    for (const drifted of [`${commit}-dirty`, 'unknown']) {
+      const assembly = buildKonlingFairExperimentCitationAssembly({ item: codeItem, bankVersion: 'fair-experiment-v2', sourceRevision: drifted });
+      // 漂移修订：候选全部未核验、href 置空——无法通过直接支撑门槛，
+      // 分配为空，覆盖缺口如实暴露（不回退到不对应的 ref）。
+      expect(assembly.citations.every((citation) => citation.verified === false)).toBe(true);
+      expect(assembly.citations.every((citation) => citation.href === null)).toBe(true);
+      expect(assembly.plan.unassignedSectionIds.length).toBe(assembly.plan.assignments.length);
+    }
   });
 });

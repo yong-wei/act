@@ -89,6 +89,8 @@ function deriveAnswerRelevanceBasis(input: {
   return 'semantic-score';
 }
 
+const CLEAN_REVISION = /^([0-9a-f]{40})$/u;
+
 /**
  * 参考材料的可解析来源地址（#2039 review P1）：指向题库真源在生成修订
  * 上的 Git blob 视图——引用可点击核验且被 sourceRevision 冻结，不再
@@ -96,12 +98,18 @@ function deriveAnswerRelevanceBasis(input: {
  */
 function bankSourceHref(bankVersion: string, sourceRevision: string): string {
   const bankFile = bankVersion.includes('v2') ? 'bank-v2.ts' : 'bank.ts';
-  // #2039 review P1：`<commit>-dirty` / `unknown` 不是可解析 ref。提取
-  // 干净 commit 构建地址；无法提取时回退默认分支视图（引用身份的
-  // sourceRevision 仍保留原始标记，真源审计按记录内冻结值进行）。
-  const commit = /^([0-9a-f]{40})(?:-dirty)?$/u.exec(sourceRevision)?.[1];
-  const ref = commit ?? 'main';
-  return `https://github.com/yong-wei/act/blob/${ref}/src/lib/konling-fair-experiment/${bankFile}`;
+  const commit = CLEAN_REVISION.exec(sourceRevision)?.[1];
+  return `https://github.com/yong-wei/act/blob/${commit}/src/lib/konling-fair-experiment/${bankFile}`;
+}
+
+/**
+ * 修订漂移显式化（#2039 review P1 增量）：`<commit>-dirty`（题库内容
+ * 来自脏工作树）或 `unknown`（非 Git 环境）时，来源与记录修订不绑定，
+ * 候选一律降为未核验、href 置空——它们无法通过直接支撑门槛，分配与
+ * 覆盖如实暴露缺口，绝不把不对应生成输入的来源计入正式指标。
+ */
+export function isCleanBankRevision(sourceRevision: string): boolean {
+  return CLEAN_REVISION.test(sourceRevision);
 }
 
 function fragmentCandidate(input: {
@@ -117,8 +125,8 @@ function fragmentCandidate(input: {
     id: `${item.itemId}:ref-${anchor}`,
     displayTitle: `参考材料片段 ${index + 1}`,
     citationTargetId: `fair-experiment:${bankVersion}:${item.itemId}:${anchor}`,
-    verified: true,
-    href: bankSourceHref(bankVersion, sourceRevision),
+    verified: isCleanBankRevision(sourceRevision),
+    href: isCleanBankRevision(sourceRevision) ? bankSourceHref(bankVersion, sourceRevision) : null,
     answerRelevanceBasis: deriveAnswerRelevanceBasis({
       fragment,
       question: item.question,
