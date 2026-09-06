@@ -13,6 +13,7 @@ import {
   type AdaptiveLearningPathDeficit,
   type AdaptiveLearningPathPlan,
 } from '@/features/personalization/path-planning/public-api.client';
+import { buildAdaptivePathStrategyView } from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
 import { studentVisibleColdStartLimitation } from '@/lib/cold-start-evidence-collection-copy';
 import type { AdaptiveLearnerState } from '@/features/personalization/learner-state/public-api';
 
@@ -1407,6 +1408,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     label: path.label,
     nodeIds: path.nodeIds,
     nodeSummaries: path.nodeSummaries,
+    strategy: toStudentPathStrategy(path.strategy),
     lockedNodeIds: path.lockedNodeIds,
     readinessSummary: path.readinessSummary,
     readinessDetails: pathReadinessDetails(path.planNodes?.length ? path.planNodes : pathPlan.mainPath),
@@ -1424,8 +1426,15 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
   })) ?? [];
 }
 
-function buildPathOptionFallback(pathPlan: AdaptiveLearningPathPlan) {
-  if (!pathPlan.policyBundle || pathPlan.policyBundle.status === 'ready') {
+/**
+ * 学生安全策略呈现（#2033）：委托共享投影模块；画像不可用（generic）时候选为
+ * 通用策略，画像依据不下发。
+ */
+function toStudentPathStrategy(value: unknown) {
+  return buildAdaptivePathStrategyView(value);
+}
+
+function buildPathOptionFallback(pathPlan: AdaptiveLearningPathPlan) {  if (!pathPlan.policyBundle || pathPlan.policyBundle.status === 'ready') {
     return null;
   }
   return {

@@ -1,3 +1,5 @@
+import type { AdaptivePathStrategyMetadata } from '@/features/personalization/path-planning/adaptive-path-differentiation';
+import { ADAPTIVE_PATH_STRATEGY_BY_FAMILY } from '@/features/personalization/path-planning/adaptive-path-differentiation';
 import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_OBJECTIVES,
@@ -771,6 +773,13 @@ export interface AdaptiveLearningPathPolicyBundle {
     planNodes?: AdaptiveLearningPathPlanNode[];
     nodeSummaries: AdaptiveLearningPathOptionNodeSummary[];
     targetDeficits: AdaptiveLearningPathDeficit[];
+    strategy?: AdaptivePathStrategyMetadata & {
+      preferredTypeShare: number;
+      weaknessResourceCount: number;
+      comprehensiveTaskCount: number;
+      /** 偏好配额未达 60% 可观察占比（资源/预算不足），偏好强化未兑现。 */
+      preferenceQuotaUnmet?: boolean;
+    };
     recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
     evidenceBasis: string[];
     estimatedMinutes: number;
@@ -890,6 +899,7 @@ export type AdaptiveLearningPathSerializablePathOption = AdaptiveLearningPathPer
   policyFamily: AdaptiveLearningPathPolicyFamily;
   label: string;
   nodeIds: string[];
+  strategy?: AdaptivePathStrategyMetadata;
 };
 
 export interface AdaptiveLearningPathCapabilityEvidence {
@@ -2675,12 +2685,38 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
   };
 }
 
+function buildAdaptivePathStrategyMetadata(
+  family: AdaptiveLearningPathPolicyFamily,
+  portraitUnavailable: boolean,
+  deficitTargetIds: string[],
+): AdaptivePathStrategyMetadata {
+  const mapped = ADAPTIVE_PATH_STRATEGY_BY_FAMILY[family];
+  if (!mapped) {
+    return { family, strategyId: family, name: family, portraitBasis: [], generic: true };
+  }
+  return {
+    family,
+    strategyId: mapped.strategyId,
+    name: mapped.name,
+    portraitBasis: portraitUnavailable ? [] : deficitTargetIds,
+    generic: portraitUnavailable,
+  };
+}
+
 export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathSerializablePathOption[] {
   if (plan.policyBundle?.paths.length) {
     const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
+    const portraitUnavailable = plan.visualization?.evidence?.learnerStateDeficits?.some((deficit) => deficit.reasonCode === 'portrait-unavailable') === true;
+    const deficits = (plan.visualization?.evidence?.learnerStateDeficits ?? [])
+      .map((deficit) => deficit.targetId)
+      .filter((targetId): targetId is string => typeof targetId === 'string')
+      .slice(0, 2);
     return plan.policyBundle.paths.map((path, index) => ({
       optionId: `path-option-${index + 1}`,
       ...path,
+      // #2033 复审修复：保留 buildFamilyStrategyObservation 已按族计算的画像依据，
+      // 仅在路径未携带策略观察时回退到统一 deficit 推断。
+      strategy: path.strategy ?? buildAdaptivePathStrategyMetadata(path.policyFamily, portraitUnavailable, deficits),
       planNodes: Array.isArray(path.planNodes) && path.planNodes.length > 0
         ? path.planNodes
         : path.nodeIds.map((nodeId) => planNodeById.get(nodeId)).filter(Boolean),
@@ -3639,6 +3675,7 @@ function policyScoreBoost(
 ): number {
   const planningUnit = requirePlanningUnit(node);
   const estimatedMinutes = planningUnit.estimatedTimeMinutes;
+
   if (policyFamily === 'foundation-remediation') {
     const conceptBoost = node.type === 'knowledge_card' ||
       node.type === 'textbook_section' ||
@@ -5183,6 +5220,7 @@ function buildPolicyBundle(
         retainedCoreRefs.add(ref);
         avoidedDifferentiableCoreRefs.add(ref);
       });
+      const strategy = buildFamilyStrategyObservation(policyFamily, input, mainPath);
       const modalityMix = buildModalityMix(mainPath);
       const terminalValidationNodeIds = pathTerminalValidationNodeIds(mainPath);
       const estimatedMinutes = remainingTeachingEstimatedMinutes(mainPath);
@@ -5200,6 +5238,7 @@ function buildPolicyBundle(
         planNodes: mainPath,
         nodeSummaries: mainPath.map(toPathOptionNodeSummary),
         targetDeficits,
+        strategy,
         recommendationProvenance: buildAdaptivePathRecommendationProvenance({
           path: mainPath,
           deficits: targetDeficits,
@@ -5473,15 +5512,38 @@ function policyUnlockMessages(path: AdaptiveLearningPathPlanNode[]): Array<{
 
 function shapePolicyBundlePath(
   mainPath: AdaptiveLearningPathPlanNode[],
-  policyFamily: AdaptiveLearningPathPolicyFamily,
+  policyFamily: AdaptiveLearningPathPolicyFamily | '__quota_support__',
   input: AdaptiveLearningPathPlannerInput,
 ): AdaptiveLearningPathPlanNode[] {
   if (personalizationPluginRegistry.get(input.goal.id)?.status !== 'active') {
     return mainPath;
   }
-  if (policyFamily !== 'foundation-remediation' && policyFamily !== 'preference-matched') {
+  if (policyFamily === 'preference-matched') {
+    // #2033 偏好资源强化：偏好类型教学节点占比不足 60% 时补充偏好支持节点。
+    const preferredTypes = new Set(buildPlannerPreferenceContext(input).resourceTypes);
+    if (preferredTypes.size === 0) return mainPath;
+    let shaped = mainPath;
+    for (let round = 0; round < 2; round += 1) {
+      const teachingNodes = shaped.filter((node) => node.terminalConstraints.length === 0);
+      const preferredCount = teachingNodes.filter((node) => preferredTypes.has(node.type)).length;
+      if (teachingNodes.length === 0 || preferredCount / teachingNodes.length >= 0.6) break;
+      const withSupport = shapePolicyBundlePath(shaped, '__quota_support__', input);
+      if (withSupport.length === shaped.length) break;
+      shaped = withSupport;
+    }
+    return shaped;
+  }
+  if (
+    policyFamily !== 'foundation-remediation' &&
+    policyFamily !== 'simulation-driven' &&
+    // '__quota_support__' 是偏好配额补充轮的内部伪族，走同一插入管线。
+    policyFamily !== '__quota_support__'
+  ) {
     return mainPath;
   }
+  const supportReasonCode = policyFamily === '__quota_support__'
+    ? 'policy-preference-quota-support'
+    : `policy-${policyFamily}-support`;
   const selectedIds = new Set(mainPath.map((node) => node.nodeId));
   const remainingBudget = input.constraints.timeBudgetMinutes - remainingEstimatedMinutes(mainPath);
   const supportNodes = selectPolicySupportNodes(policyFamily, input, selectedIds, remainingBudget);
@@ -5495,7 +5557,7 @@ function shapePolicyBundlePath(
   const supportPlanNodes = supportNodes.map((node) => toPlanNode({
     node,
     score: 0.35,
-    reasonCodes: [`policy-${policyFamily}-support`],
+    reasonCodes: [supportReasonCode],
   }, null, completedNodeIds, evaluateNodeReadiness(node, input.learnerState, input.constraints, completedNodeIds)));
   const validationIndex = mainPath.findIndex((node) => node.terminalConstraints.length > 0);
   if (validationIndex < 0) {
@@ -5508,12 +5570,78 @@ function shapePolicyBundlePath(
   ];
 }
 
-function selectPolicySupportNodes(
+function buildFamilyStrategyObservation(
   policyFamily: AdaptiveLearningPathPolicyFamily,
+  input: AdaptiveLearningPathPlannerInput,
+  mainPath: AdaptiveLearningPathPlanNode[],
+): AdaptiveLearningPathPolicyBundle['paths'][number]['strategy'] {
+  const mapped = ADAPTIVE_PATH_STRATEGY_BY_FAMILY[policyFamily];
+  if (!mapped) return undefined;
+  // 复审修复：用与 planner 一致的可信画像判定（availability + payload 权威证据），
+  // SNAPSHOT 但无权威维度证据时同样降级为通用策略。
+  const portraitUnavailable = !hasTrustedPortraitForPersonalization(input.learnerState);
+  const deficits = inferDeficits(input.goal, input.learnerState)
+    .filter((deficit) => deficit.kind === 'knowledge')
+    .slice(0, 2)
+    .map((deficit) => deficit.targetId);
+  const preferredTypes = Array.from(buildPlannerPreferenceContext(input).resourceTypes);
+  // 优势维度取 portrait-v2 主权维度（最高分且证据非零）。
+  const competencies = (input.learnerState?.primaryPortrait?.dimensions ?? [])
+    .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 1)
+    .map((dimension) => dimension.id);
+  // 三策略依据各来自不同证据面，generic 需按策略独立判定：
+  // 薄弱=知识缺口、偏好=带画像来源的偏好证据（fallback 系统默认不得声称画像依据）、
+  // 优势=portrait-v2 优势维度。任一依据缺失即降级为通用策略。
+  const preferenceEvidenceAvailable = input.resourcePreferenceSource !== undefined
+    && input.resourcePreferenceSource !== 'fallback';
+  const portraitBasis = policyFamily === 'foundation-remediation'
+    ? deficits
+    : policyFamily === 'preference-matched'
+      ? preferredTypes.slice(0, 2)
+      : competencies;
+  const generic = portraitUnavailable
+    || (policyFamily === 'foundation-remediation' && portraitBasis.length === 0)
+    || (policyFamily === 'preference-matched' && (portraitBasis.length === 0 || !preferenceEvidenceAvailable))
+    || (policyFamily === 'simulation-driven' && portraitBasis.length === 0);
+  const teachingNodes = mainPath.filter((node) => node.terminalConstraints.length === 0);
+  const preferredCount = teachingNodes.filter((node) => preferredTypes.length > 0 && preferredTypes.includes(node.type as ResourceNode['type'])).length;
+  const preferredTypeShare = teachingNodes.length > 0 ? preferredCount / teachingNodes.length : 0;
+  // 复审修复：配额轮资源/预算不足而未达 60% 可观察占比时，如实标记未兑现，
+  // 不得继续声称"偏好资源强化"已生效。
+  const preferenceQuotaUnmet = policyFamily === 'preference-matched'
+    && preferredTypes.length > 0
+    && preferredTypeShare < 0.6;
+  const weaknessResourceCount = policyFamily === 'foundation-remediation'
+    ? teachingNodes.filter((node) => node.knowledgeCoverage.some((tag) => deficits.includes(tag))).length
+    : 0;
+  const comprehensiveTaskCount = policyFamily === 'simulation-driven'
+    ? teachingNodes.filter((node) => ['simulation', 'arena_task', 'project'].includes(node.type)).length
+    : 0;
+  return {
+    family: policyFamily,
+    strategyId: mapped.strategyId,
+    name: mapped.name,
+    portraitBasis: generic ? [] : portraitBasis,
+    generic,
+    preferenceQuotaUnmet,
+    preferredTypeShare,
+    weaknessResourceCount,
+    comprehensiveTaskCount,
+  };
+}
+
+function selectPolicySupportNodes(
+  policyFamily: AdaptiveLearningPathPolicyFamily | '__quota_support__',
   input: AdaptiveLearningPathPlannerInput,
   selectedIds: Set<string>,
   remainingBudget: number,
 ): ResourceNode[] {
+  // '__quota_support__'：偏好配额补充轮，沿用偏好匹配的支持节点选择。
+  const supportFamily = (policyFamily === '__quota_support__'
+    ? 'preference-matched'
+    : policyFamily) as AdaptiveLearningPathPolicyFamily;
   let remaining = Math.max(0, remainingBudget);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
@@ -5528,6 +5656,10 @@ function selectPolicySupportNodes(
       : true)
     .map((node) => node.id));
   const picked: ResourceNode[] = [];
+  // 前置放宽仅用于优势迁移与偏好配额补充轮：两者插入的支持节点前置已在主路径满足；
+  // foundation 等基础补强仍坚持"立即可学"，不引入前置链。
+  const allowSatisfiedPrerequisites = policyFamily === '__quota_support__'
+    || policyFamily === 'simulation-driven';
   const addCandidates = (candidates: ResourceNode[], limit: number) => {
     for (const node of candidates) {
       if (picked.length >= limit) break;
@@ -5537,8 +5669,11 @@ function selectPolicySupportNodes(
       if (node.planningMetadata.terminalConstraints.length > 0) continue;
       const planningUnit = planningUnitForNode(node);
       if (!planningUnit) continue;
-      if (planningUnit.prerequisites.length > 0) continue;
-      if (!policyAllowsNode(node, policyFamily, input.constraints)) continue;
+      if (planningUnit.prerequisites.length > 0) {
+        const prerequisitesSatisfied = planningUnit.prerequisites.every((id) => selectedIds.has(id));
+        if (!allowSatisfiedPrerequisites || !prerequisitesSatisfied) continue;
+      }
+      if (!policyAllowsNode(node, supportFamily, input.constraints)) continue;
       if (!nodeMatchesGoal(node, input.goal, deficits, graphContext)) continue;
       const estimatedMinutes = planningUnit.estimatedTimeMinutes;
       if (estimatedMinutes > remaining) continue;
@@ -5547,7 +5682,40 @@ function selectPolicySupportNodes(
     }
   };
 
-  if (policyFamily === 'foundation-remediation') {
+  if (supportFamily === 'simulation-driven') {
+    // 优势迁移应用（#2033）：优先仿真/Arena/项目综合任务支持节点。
+    // 复审修复：把 portrait-v2 优势维度经显式兼容适配器映射到资源 abilityImpact
+    // 的能力键，其最大增量作为首选排序信号——单变量优势切换可实际改变选中资源。
+    const topDimension = (input.learnerState?.primaryPortrait?.dimensions ?? [])
+      .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+      .sort((left, right) => right.score - left.score)[0]?.id ?? null;
+    const affinityOf = (node: ResourceNode): number => {
+      if (!topDimension) return 0;
+      let max = 0;
+      for (const [legacyKey, value] of Object.entries(node.planningMetadata.abilityImpact)) {
+        if (!mapLegacyCompetencyDimensionToPortraitV2(legacyKey).targetDimensions.includes(topDimension)) continue;
+        if (typeof value === 'number' && Number.isFinite(value)) max = Math.max(max, value);
+      }
+      return max;
+    };
+    const typeRank = new Map<ResourceNode['type'], number>([
+      ['simulation', 0],
+      ['arena_task', 1],
+      ['project', 2],
+      ['control_workbench', 3],
+    ]);
+    addCandidates(input.registry.nodes
+      .filter((node) => typeRank.has(node.type))
+      .sort((left, right) =>
+        affinityOf(right) - affinityOf(left) ||
+        (typeRank.get(left.type) ?? 99) - (typeRank.get(right.type) ?? 99) ||
+        (planningUnitForNode(left)?.estimatedTimeMinutes ?? 0) - (planningUnitForNode(right)?.estimatedTimeMinutes ?? 0) ||
+        left.id.localeCompare(right.id)
+      ), 2);
+    return picked;
+  }
+
+  if (supportFamily === 'foundation-remediation') {
     const typeRank = new Map<ResourceNode['type'], number>([
       ['knowledge_card', 0],
       ['textbook_section', 1],
@@ -5566,7 +5734,7 @@ function selectPolicySupportNodes(
     return picked;
   }
 
-  const preferredTypes = Array.from(buildPlannerPreferenceContext(input).resourceTypes);
+  const preferredTypes = Array.from(buildPlannerPreferenceContext({ ...input, policyFamily: supportFamily } as AdaptiveLearningPathPlannerInput).resourceTypes);
   const preferenceRank = new Map(preferredTypes.map((type, index) => [type, index]));
   addCandidates(input.registry.nodes
       .filter((node) => preferenceRank.has(node.type))

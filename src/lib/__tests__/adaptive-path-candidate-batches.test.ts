@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   AdaptivePathCandidateBatchConflictError,
+  computeAdaptivePathBatchDifferentiation,
   buildAdaptivePathCandidateDifferenceSummary,
   buildCandidateSnapshots,
   fingerprintAdaptivePathCandidateSnapshot,
@@ -595,5 +596,155 @@ describe('adaptive path candidate batches', () => {
     expect(buildAdaptivePathCandidateDifferenceSummary(source, adjusted)).toMatchObject({
       material: false,
     });
+  });
+});
+
+
+describe('adaptive path batch differentiation metrics', () => {
+  it('computes pairwise differentiation and persists it into batch metadata', async () => {
+    const base = plan();
+    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html', checkpoint: { role: 'inline' } as never };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [nodeA, nodeB],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'], planNodes: [nodeA] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [nodeB] },
+        ],
+      },
+    };
+
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation).not.toBeNull();
+    expect(differentiation!.pairs).toHaveLength(1);
+    expect(differentiation!.pairs[0].metrics.coreNodeJaccard).toBe(1);
+    expect(differentiation!.pairs[0].metrics.objectKeyJaccard).toBe(1);
+    expect(differentiation!.pairs[0].metrics.resourceTypeTotalVariation).toBeCloseTo(1);
+    expect(differentiation!.highDifferentiation).toBe(true);
+
+    const { db } = dbFixture();
+    const view = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'gen-diff-1',
+      plan: extended,
+    });
+    expect((view.metadata as Record<string, unknown>).differentiation).toMatchObject({
+      highDifferentiation: true,
+      pairs: [{ leftStyleId: 'foundation-remediation', rightStyleId: 'arena-simulation-sprint' }],
+    });
+  });
+
+  it('excludes shared prerequisite nodes from core differentiation inputs', () => {
+    const base = plan();
+    const shared = node('shared-prereq');
+    const first = { ...node('node-1'), prerequisiteNodeIds: ['shared-prereq'] };
+    const second = { ...node('node-2'), prerequisiteNodeIds: ['shared-prereq'] };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [shared, first, second],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['shared-prereq', 'node-1'], planNodes: [shared, first] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['shared-prereq', 'node-2'], planNodes: [shared, second] },
+        ],
+      },
+    };
+
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation!.pairs[0].metrics.coreNodeJaccard).toBe(1);
+    expect(differentiation!.pairs[0].metrics.distinctCoreNodeCount).toBe(2);
+    expect(differentiation!.highDifferentiation).toBe(false);
+  });
+
+  it('excludes read-verification-failed object keys from coverage statistics (#2033 3.1)', () => {
+    const base = plan();
+    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html' };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [nodeA, nodeB],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'], planNodes: [nodeA] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [nodeB] },
+        ],
+      },
+    };
+    const readRecord = (objectKey: string, state: 'verified' | 'missing') => ({
+      objectKey,
+      resourceId: 'resource-1',
+      candidateStyleId: 'foundation-remediation',
+      nodeNodeId: 'node-1',
+      state,
+      contentSha256: null,
+      verifiedAt: '2026-09-06T00:00:00.000Z',
+      runtimeReleaseId: 'release-fixture',
+    });
+
+    // 无读取记录时行为不变：两个对象键都计入统计。
+    const baseline = computeAdaptivePathBatchDifferentiation(extended);
+    expect(baseline!.unreadableObjectKeys).toEqual([]);
+    expect(baseline!.pairs[0].metrics.distinctCoreNodeCount).toBe(2);
+    expect(baseline!.pairs[0].metrics.estimatedMinutesDeltaRatio).toBe(0);
+
+    // node-1 的对象键读取失败：从覆盖统计剔除并进入审计清单；verified 的保留。
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended, {
+      objectKeyReadRecords: [
+        readRecord('lessons/1-3/media/intro.mp4', 'missing'),
+        readRecord('simulations/cruise/index.html', 'verified'),
+      ],
+    });
+    expect(differentiation!.unreadableObjectKeys).toEqual(['lessons/1-3/media/intro.mp4']);
+    // node-1 被剔除：左候选核心集变空（时长 0），与右候选的差异指标随之变化。
+    expect(differentiation!.pairs[0].metrics.distinctCoreNodeCount).toBe(1);
+    expect(differentiation!.pairs[0].metrics.estimatedMinutesDeltaRatio).toBe(1);
+    // 复审修复：空资源候选不得通过高区分度门禁（空集 vs 非空集会虚增指标）。
+    expect(differentiation!.insufficientVerifiedResources).toBe(true);
+    expect(differentiation!.highDifferentiation).toBe(false);
+  });
+
+  it('persists unreadable object keys into batch metadata alongside differentiation', async () => {
+    const base = plan();
+    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html' };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [nodeA, nodeB],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'], planNodes: [nodeA] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [nodeB] },
+        ],
+      },
+    };
+
+    const { db } = dbFixture();
+    const view = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'gen-diff-unreadable-1',
+      plan: extended,
+      objectKeyReadRecords: [{
+        objectKey: 'lessons/1-3/media/intro.mp4',
+        resourceId: 'resource-1',
+        candidateStyleId: 'foundation-remediation',
+        nodeNodeId: 'node-1',
+        state: 'missing',
+        contentSha256: null,
+        verifiedAt: '2026-09-06T00:00:00.000Z',
+      runtimeReleaseId: 'release-fixture',
+      }],
+    });
+    const metadata = view.metadata as Record<string, unknown>;
+    expect(metadata.objectKeyReadRecords).toHaveLength(1);
+    expect(metadata.differentiation).toMatchObject({
+      unreadableObjectKeys: ['lessons/1-3/media/intro.mp4'],
+      insufficientVerifiedResources: true,
+      highDifferentiation: false,
+    });
+    expect(metadata.diversityLimitations).toContain('insufficient-verified-resources');
   });
 });

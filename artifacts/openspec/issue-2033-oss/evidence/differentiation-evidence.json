@@ -1,0 +1,170 @@
+{
+  "generatedAt": "2026-09-06T12:58:01.211Z",
+  "fixture": "alternative-core-fixture (three-family survival, deterministic)",
+  "threeFamilyDifferentiation": {
+    "families": [
+      "foundation-remediation",
+      "simulation-driven",
+      "preference-matched"
+    ],
+    "highDifferentiation": false,
+    "pairs": [
+      {
+        "left": "foundation-remediation",
+        "right": "arena-simulation-sprint",
+        "satisfiedCount": 2,
+        "satisfiedRules": [
+          "core-node-jaccard",
+          "distinct-core-nodes"
+        ]
+      },
+      {
+        "left": "foundation-remediation",
+        "right": "preference-matched-route",
+        "satisfiedCount": 3,
+        "satisfiedRules": [
+          "core-node-jaccard",
+          "resource-type-tvd",
+          "distinct-core-nodes"
+        ]
+      },
+      {
+        "left": "arena-simulation-sprint",
+        "right": "preference-matched-route",
+        "satisfiedCount": 3,
+        "satisfiedRules": [
+          "core-node-jaccard",
+          "resource-type-tvd",
+          "distinct-core-nodes"
+        ]
+      }
+    ]
+  },
+  "preferenceSwitchContrast": {
+    "knowledgeCard": {
+      "portraitBasis": [
+        "knowledge_card"
+      ],
+      "preferredTypeShare": 0.5
+    },
+    "textbook": {
+      "portraitBasis": [
+        "textbook_section"
+      ],
+      "preferredTypeShare": 0.3333333333333333
+    }
+  },
+  "portraitStrengthSwitch": {
+    "baseline": {
+      "portraitBasis": [
+        "controlModelingRepresentation"
+      ],
+      "topDimensionScore": {
+        "id": "controlModelingRepresentation",
+        "score": 0.4
+      }
+    },
+    "boosted": {
+      "portraitBasis": [
+        "simulationValidationEvidence"
+      ],
+      "topDimensionScore": {
+        "id": "simulationValidationEvidence",
+        "score": 0.92
+      }
+    }
+  },
+  "weaknessAnchoring": {
+    "portraitBasis": [
+      "control-correction:time-domain-targets",
+      "control-correction:root-locus-design"
+    ],
+    "weaknessResourceCount": 2,
+    "genericWithoutPortrait": true
+  },
+  "readVerificationFaultInjection": {
+    "unreadableObjectKeys": [
+      "lessons/1-3/media/intro.mp4"
+    ],
+    "retainedObjectKeys": [
+      "simulations/cruise/index.html"
+    ],
+    "highDifferentiation": false,
+    "insufficientVerifiedResources": true,
+    "note": "验证失败的候选实际对象键被剔除：对应候选核心集变空、门禁降级为资源不足；verified 键保留。"
+  },
+  "gateSemantics": {
+    "highDifferentiation": false,
+    "note": "false 表示存在未达 3 项阈值的候选对；门禁如实标记而非放宽或复制候选。"
+  },
+  "studentSafeProjection": {
+    "strategies": [
+      {
+        "strategyId": "weakness-repair",
+        "name": "薄弱点补强",
+        "portraitBasis": [
+          "control-correction:time-domain-targets",
+          "control-correction:root-locus-design"
+        ],
+        "generic": false,
+        "preferenceQuotaUnmet": false
+      },
+      {
+        "strategyId": "strength-transfer",
+        "name": "优势迁移应用",
+        "portraitBasis": [
+          "controlModelingRepresentation"
+        ],
+        "generic": false,
+        "preferenceQuotaUnmet": false
+      },
+      {
+        "strategyId": "preference-reinforce",
+        "name": "偏好资源强化",
+        "portraitBasis": [],
+        "generic": true,
+        "preferenceQuotaUnmet": false
+      }
+    ],
+    "comparison": {
+      "highDifferentiation": false,
+      "insufficientVerifiedResources": true,
+      "pairs": [
+        {
+          "leftStyleId": "foundation-remediation",
+          "rightStyleId": "arena-simulation-sprint",
+          "satisfiedCount": 2,
+          "summary": "这两条路径较为接近，可结合课程内容自行选择。"
+        },
+        {
+          "leftStyleId": "foundation-remediation",
+          "rightStyleId": "preference-matched-route",
+          "satisfiedCount": 3,
+          "summary": "这两条路径在资源构成与学习安排上有明显差异。"
+        },
+        {
+          "leftStyleId": "arena-simulation-sprint",
+          "rightStyleId": "preference-matched-route",
+          "satisfiedCount": 3,
+          "summary": "这两条路径在资源构成与学习安排上有明显差异。"
+        }
+      ],
+      "resourceReadiness": [
+        {
+          "styleId": "foundation-remediation",
+          "verifiedResources": 1,
+          "unreadableResources": 0,
+          "notes": [],
+          "items": [
+            {
+              "nodeId": "node-1",
+              "resourceId": "r1",
+              "state": "verified",
+              "runtimeReleaseId": null
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

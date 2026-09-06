@@ -27,6 +27,10 @@ import {
 import { AppShell } from '@/components/platform/app-shell';
 import { useKonlingCompanionReporter } from '@/features/ai/companion/use-konling-companion-reporter';
 import {
+  buildAdaptivePathBatchComparisonView,
+  type AdaptivePathBatchComparisonView,
+} from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
+import {
   adaptiveGenerationReadinessFromHttp,
   adaptivePracticeGoalLabel,
   buildAdaptiveGenerationReadiness,
@@ -234,6 +238,14 @@ type PathOptionView = AdaptivePathOptionWriteOption & {
   candidateId?: string;
   candidateFingerprint?: string;
   checkpointNodeIds?: string[];
+  styleId?: string;
+  strategy?: {
+    strategyId: string;
+    name: string;
+    portraitBasis: string[];
+    generic: boolean;
+    preferenceQuotaUnmet: boolean;
+  } | null;
   summaryFactAvailability?: {
     nodeIds: boolean;
     resourceMix: boolean;
@@ -266,6 +278,7 @@ interface AdaptivePathCandidateBatchView {
   sourcePathId: string;
   sourcePathVersion: string;
   metadata?: Record<string, unknown>;
+  comparison?: AdaptivePathBatchComparisonView;
   candidates: Array<{
     id: string;
     fingerprint: string;
@@ -1784,6 +1797,22 @@ function readPathDifferenceExplanation(value: unknown): PathDifferenceExplanatio
   };
 }
 
+function getPathOptionStrategy(value: unknown): PathOptionView['strategy'] {
+  if (!value || typeof value !== 'object') return null;
+  const strategy = getRecord(value);
+  const strategyId = typeof strategy.strategyId === 'string' ? strategy.strategyId : null;
+  const name = typeof strategy.name === 'string' ? strategy.name : null;
+  if (!strategyId || !name) return null;
+  const generic = strategy.generic === true;
+  return {
+    strategyId,
+    name,
+    generic,
+    preferenceQuotaUnmet: strategy.preferenceQuotaUnmet === true,
+    portraitBasis: generic ? [] : getStringArray(strategy.portraitBasis),
+  };
+}
+
 function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathOptionView[] {
   const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
   const payload = getRecord(currentPath?.payload);
@@ -1798,6 +1827,8 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
     return {
       optionId: typeof option.optionId === 'string' ? option.optionId : 'unknown-option',
       label: typeof option.label === 'string' ? option.label : '未命名路径',
+      styleId: typeof option.styleId === 'string' ? option.styleId : undefined,
+      strategy: getPathOptionStrategy(option.strategy),
       nodeIds: getStringArray(option.nodeIds),
       activeNodeIds: getStringArray(option.activeNodeIds),
       checkpointNodeIds: getStringArray(option.checkpointNodeIds),
@@ -2141,6 +2172,20 @@ function formatResourceType(type: string): string {
   return getAdaptivePathResourceVisual(type).label;
 }
 
+function formatStrategyBasis(basis: string): string {
+  // 画像依据可能是资源偏好类型（映射中文）或知识目标/画像维度标识（原样展示）。
+  return formatResourceType(basis) !== basis ? formatResourceType(basis) : basis;
+}
+
+function formatResourceReadinessState(state: string): string {
+  if (state === 'verified') return '读取正常';
+  if (state === 'missing') return '资源缺失';
+  if (state === 'forbidden') return '暂无访问权限';
+  if (state === 'checksum-mismatch') return '内容校验未通过';
+  if (state === 'unverified') return '未完成读取验证';
+  return '暂时无法读取';
+}
+
 function formatReadinessState(state: string): string {
   if (state === 'ready') return '可开始';
   if (state === 'locked') return '待解锁';
@@ -2306,6 +2351,7 @@ function PathDifferenceExplanationPanel({ explanation }: { explanation: PathDiff
 function CandidateBatchComparisonWorkspace({
   options,
   pairs,
+  comparison,
   draft,
   selectedPair,
   explanation,
@@ -2315,6 +2361,8 @@ function CandidateBatchComparisonWorkspace({
 }: {
   options: PathOptionView[];
   pairs: AdaptivePathComparisonPair[];
+  /** 持久化批次 metadata 的学生安全投影（差异摘要与资源读取状态）。 */
+  comparison?: AdaptivePathBatchComparisonView;
   draft: { leftOptionId: string; rightOptionId: string };
   selectedPair: AdaptivePathComparisonPair | null;
   explanation?: PathDifferenceExplanation;
@@ -2389,6 +2437,17 @@ function CandidateBatchComparisonWorkspace({
             {options.map((option) => (
               <article key={option.optionId} className="min-w-0 rounded-md border border-border bg-background/70 p-3">
                 <h4 className="break-words text-sm font-semibold text-foreground">{option.label}</h4>
+                {option.strategy ? (
+                  <div className="mt-1 text-xs leading-5 text-subtle" data-learning-path-candidate-strategy={option.strategy.strategyId}>
+                    <p>学习策略：{option.strategy.name}{option.strategy.generic ? '（通用建议，暂无画像依据）' : ''}</p>
+                    {option.strategy.preferenceQuotaUnmet ? (
+                      <p>当前资源池偏好资源不足，未能保证 60% 偏好占比。</p>
+                    ) : null}
+                    {option.strategy.portraitBasis.length > 0 ? (
+                      <p>画像依据：{option.strategy.portraitBasis.map(formatStrategyBasis).join('、')}</p>
+                    ) : null}
+                  </div>
+                ) : null}
                 <dl className="mt-2 grid gap-1 text-xs leading-5 text-subtle">
                   <div><dt className="inline font-medium text-foreground">预计时长：</dt><dd className="inline">{typeof option.effort.estimatedMinutes !== 'number' ? '数据不足' : `${option.effort.estimatedMinutes} 分钟`}{noDifferenceLabel('duration')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">路径节点数：</dt><dd className="inline">{option.summaryFactAvailability?.nodeIds ? `${option.nodeIds?.length ?? 0} 个节点` : '数据不足'}{noDifferenceLabel('nodeCount')}</dd></div>
@@ -2399,9 +2458,40 @@ function CandidateBatchComparisonWorkspace({
                   <div><dt className="inline font-medium text-foreground">锁定节点：</dt><dd className="inline">{option.summaryFactAvailability?.lockedNodeIds ? (option.lockedNodeIds.length > 0 ? `${option.lockedNodeIds.length} 个锁定节点` : '无') : '数据不足'}{noDifferenceLabel('lockedNodes')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">终点验证：</dt><dd className="inline">{option.summaryFactAvailability?.terminalValidationNodeIds ? (option.terminalValidationNodeIds.length > 0 ? `${option.terminalValidationNodeIds.length} 个终点验证节点` : '无') : '数据不足'}{noDifferenceLabel('terminalValidation')}</dd></div>
                 </dl>
+                {(() => {
+                  const readiness = comparison?.resourceReadiness.find((item) => item.styleId === option.styleId);
+                  if (!readiness || (readiness.notes.length === 0 && readiness.items.length === 0)) return null;
+                  return (
+                    <div className="mt-2 text-xs leading-5 text-subtle" data-learning-path-candidate-readiness={option.styleId}>
+                      {readiness.notes.map((note) => <p key={note}>{note}</p>)}
+                      {readiness.items.map((item) => (
+                        <p key={`${item.nodeId}:${item.resourceId}`} className="text-subtle/90">
+                          节点「{option.nodeSummaries?.find((summary) => summary.nodeId === item.nodeId)?.title ?? item.nodeId}」：{formatResourceReadinessState(item.state)}
+                          {item.runtimeReleaseId ? `（课程资源版本 ${item.runtimeReleaseId}）` : ''}
+                        </p>
+                      ))}
+                    </div>
+                  );
+                })()}
               </article>
             ))}
           </div>
+
+          {comparison?.insufficientVerifiedResources ? (
+            <p className="rounded-md border border-border bg-background/60 px-3 py-2 text-xs leading-5 text-subtle" data-learning-path-comparison-limitation>
+              注意：部分候选的核心资源读取失败，当前对比结果受资源不足限制；建议稍后重新生成候选方案。
+            </p>
+          ) : null}
+
+          {comparison && comparison.pairs.length > 0 ? (
+            <div className="space-y-1" data-learning-path-comparison-persisted-differentiation>
+              {comparison.pairs.map((pair) => (
+                <p key={`${pair.leftStyleId}:${pair.rightStyleId}`} className="text-xs leading-5 text-subtle">
+                  {pair.summary}
+                </p>
+              ))}
+            </div>
+          ) : null}
 
           {options.length < 2 ? (
             <p className="rounded-md border border-border bg-background/60 px-3 py-2 text-sm text-subtle" data-learning-path-comparison-state="insufficient-candidates">
@@ -3202,6 +3292,12 @@ export default function AdaptivePracticePage() {
   const currentPathOptions = useMemo(() => getPathOptions(adaptivePathCenter), [adaptivePathCenter]);
   const candidatePathOptions = useMemo(
     () => getCandidateBatchPathOptions(activeCandidateBatch),
+    [activeCandidateBatch],
+  );
+  // 优先使用 API 已安全投影的 comparison；旧数据回退到本地投影。
+  const persistedBatchComparison = useMemo(
+    () => activeCandidateBatch?.comparison
+      ?? (activeCandidateBatch ? buildAdaptivePathBatchComparisonView(activeCandidateBatch.metadata) : null),
     [activeCandidateBatch],
   );
   const pathOptions = candidatePathOptions.length > 0 ? candidatePathOptions : currentPathOptions;
@@ -6118,6 +6214,7 @@ export default function AdaptivePracticePage() {
               <CandidateBatchComparisonWorkspace
                 options={pathOptions}
                 pairs={candidateComparisonPairs}
+                comparison={persistedBatchComparison ?? undefined}
                 draft={comparisonDraft}
                 selectedPair={selectedComparisonPair}
                 explanation={selectedComparisonKey ? pathDifferenceExplanations[selectedComparisonKey] : undefined}

@@ -34,6 +34,18 @@ import {
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
 } from '@/features/personalization/learner-state/public-api';
+import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
+import { parseAnyRuntimeReleaseManifest, runtimeBlobObjectKey } from '@/lib/runtime-release';
+import { createEcsRamRoleOssClient } from '@/lib/runtime-release-store';
+import {
+  buildAdaptivePathBatchComparisonView,
+  buildAdaptivePathStrategyView,
+} from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
+import {
+  resolveAdaptivePathRuntimeObjectKey,
+  verifyAdaptivePathObjectKeys,
+} from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+import { buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
 import {
   projectGovernedCopilotProfile,
   toServerOwnedUserProfile,
@@ -4257,6 +4269,84 @@ function applySmartLessonCollectionPatches(
     .concat(additions);
 }
 
+// #2033：批次定稿时解析候选资源到 Runtime manifest 对象键并产出读取验证记录。
+async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPlan) {
+  // 候选资源解析不依赖网络：先构建完整条目集，验证层不可用时对其统一
+  // 产出 unverified 记录（fail-closed，未验证资源不得当可信输入）。
+  const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
+  for (const option of buildSerializablePathOptions(plan)) {
+    // #2033 复审修复：按候选自己的 planNodes 解析（策略候选可含主推荐路径之外的节点）。
+    for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
+      const { state, objectKey } = resolveAdaptivePathRuntimeObjectKey(node.target);
+      if (state === 'non-runtime' || !objectKey) continue;
+      entries.push({
+        objectKey,
+        resourceId: node.resourceId ?? node.resourceNodeId ?? node.nodeId,
+        candidateStyleId: option.styleId,
+        nodeNodeId: node.nodeId,
+      });
+    }
+  }
+  if (entries.length === 0) return [];
+  const verifiedAt = new Date().toISOString();
+  const failClosedUnverified = () => entries.map((entry) => ({
+    ...entry,
+    state: 'unverified' as const,
+    contentSha256: null,
+    verifiedAt,
+    runtimeReleaseId: null,
+  }));
+  try {
+    const manifestRaw = await readActiveRuntimeReleaseManifest();
+    if (!manifestRaw) return failClosedUnverified();
+    const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
+    const filesByPath = new Map(manifest.files.map((file) => [file.path, file]));
+    const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
+    if (!ramRole) return failClosedUnverified();
+    const client = createEcsRamRoleOssClient({
+      bucket: process.env.ACT_RUNTIME_OSS_BUCKET?.trim() || 'act-course-assets',
+      region: process.env.ACT_RUNTIME_OSS_REGION?.trim() || 'oss-cn-hangzhou',
+      roleName: ramRole,
+    });
+    const verifyObjectBytes = async (
+      storageKey: string,
+      expectedSha256: string,
+    ): Promise<{ state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }> => {
+      try {
+        const { stream } = await client.getStream(storageKey);
+        const hash = createHash('sha256');
+        for await (const chunk of stream) {
+          hash.update(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        const actual = hash.digest('hex');
+        return actual === expectedSha256
+          ? { state: 'verified', contentSha256: actual }
+          : { state: 'checksum-mismatch', contentSha256: actual };
+      } catch (error) {
+        const status = (error as { status?: number } | null)?.status;
+        if (status === 403) return { state: 'forbidden', contentSha256: null };
+        return { state: 'missing', contentSha256: null };
+      }
+    };
+    return await verifyAdaptivePathObjectKeys({
+      async verify(objectKey) {
+        // 内容寻址键（blob:<sha256>）：对象键即摘要，真实读取并比对。
+        if (objectKey.startsWith('blob:')) {
+          const sha256 = objectKey.slice('blob:'.length);
+          return verifyObjectBytes(runtimeBlobObjectKey(sha256), sha256);
+        }
+        const file = filesByPath.get(objectKey);
+        if (!file) return { state: 'missing', contentSha256: null };
+        // manifest 命中后按 manifest 记录的实际存储键执行真实读取，流式比对期望校验值。
+        return verifyObjectBytes(file.objectKey, file.sha256);
+      },
+    }, entries, verifiedAt, manifest.releaseId ?? null);
+  } catch (error) {
+    console.error('[KonlingRuntime] candidate object key read verification failed:', error);
+    return failClosedUnverified();
+  }
+}
+
 async function buildAdaptivePathToolOutput(
   input: KonlingToolRuntimeInput,
   operation: 'generated' | 'revised',
@@ -4525,11 +4615,13 @@ async function buildAdaptivePathToolOutput(
     },
   });
   let candidateBatch: AdaptivePathCandidateBatchView | null = null;
+  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan);
   const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
   const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'
     && typeof candidateBatchStore.create === 'function';
   const candidateBatchInput = {
+    objectKeyReadRecords,
     generationRequestId: args.idempotencyKey,
     plan: persistedPlan,
     classId: input.scope.classId ?? null,
@@ -4655,6 +4747,7 @@ async function buildAdaptivePathToolOutput(
       id: candidateBatch.id,
       generationRequestId: candidateBatch.generationRequestId,
       candidateIds: candidateBatch.candidates.map((candidate) => candidate.id),
+      comparison: buildStudentSafeBatchComparison(readRecord(candidateBatch.metadata)),
     } : null,
     pathOptions,
     configurationFulfillment: plan.explanations.configurationFulfillment.map(
@@ -5195,6 +5288,7 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
         label: path.label,
         estimatedMinutes: path.effort.estimatedMinutes,
         effort: path.effort.relative,
+        strategy: buildStudentSafeStrategy(path.strategy),
         nodeSummaries: path.nodeSummaries.map((node) => ({
           nodeId: node.nodeId,
           title: node.title,
@@ -5245,7 +5339,7 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
   }];
 }
 
-function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) {
+export function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) {
   const optionId = typeof snapshot.optionId === 'string' ? snapshot.optionId : null;
   const styleId = typeof snapshot.styleId === 'string' ? snapshot.styleId : null;
   const label = typeof snapshot.label === 'string' ? snapshot.label : null;
@@ -5267,6 +5361,7 @@ function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) 
     label,
     estimatedMinutes: typeof effort.estimatedMinutes === 'number' ? effort.estimatedMinutes : null,
     effort: typeof effort.relative === 'string' ? effort.relative : null,
+    strategy: buildStudentSafeStrategy(snapshot.strategy),
     nodeSummaries: nodeSummaries.map((value) => {
       const node = value && typeof value === 'object' ? value as Record<string, unknown> : {};
       return {
@@ -5309,6 +5404,22 @@ function buildStudentSafeEvidenceBasis(values: string[]) {
     }
   }
   return [...labels];
+}
+
+/**
+ * 学生安全策略呈现（#2033）：委托共享投影模块，konling 响应与持久化批次消费方
+ * （页面）保持一致；画像不可用（generic）时不下发画像依据。
+ */
+function buildStudentSafeStrategy(value: unknown) {
+  return buildAdaptivePathStrategyView(value);
+}
+
+/**
+ * 批次级学生安全比较呈现（#2033）：委托共享投影模块；不下发指标原始数值、
+ * 规则名与对象键原文。
+ */
+export function buildStudentSafeBatchComparison(metadata: Record<string, unknown>) {
+  return buildAdaptivePathBatchComparisonView(metadata);
 }
 
 function buildPathResourceMix(nodes: AdaptiveLearningPathPlanNode[]) {
