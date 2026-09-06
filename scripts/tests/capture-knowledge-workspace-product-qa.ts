@@ -1977,8 +1977,9 @@ async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
       ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
       : null;
     return selectedNodeId === expectedNodeId
-      && control?.getAttribute('aria-busy') === 'false'
-      && control?.getAttribute('aria-expanded') === null;
+      && control?.getAttribute('aria-busy') !== 'true'
+      // inspector 开合一次后 aria-expanded 固化为 'false'，只排除仍展开状态。
+      && control?.getAttribute('aria-expanded') !== 'true';
   }, nodeId, { timeout: 20000 });
   const control = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + nodeId + '"]').first();
   const box = await control.boundingBox().catch(() => null);
