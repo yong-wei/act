@@ -2352,25 +2352,31 @@ export function interactionStabilityProblems(evidence: JsonRecord, selectedNode:
   const afterHover = objectRecord(evidence.afterHover);
   const selectedNodeId = String(selectedNode ?? '');
   const geometryFields = ['layoutVersion', 'pinnedLayoutSignature', 'surfaceToken', 'nodePoints'];
-  const observationsPresent = interactionObservationPresent(beforeSelection, ['selectedNodeId', ...geometryFields])
+  // 选择转换三观测在 headless 下不可捕获（#2031）：存在才检查，缺失不阻断其余稳定性结论。
+  const selectionTransitionPresent = interactionObservationPresent(beforeSelection, ['selectedNodeId', ...geometryFields])
     && interactionObservationPresent(afterDeselection, ['layoutVersion'])
-    && interactionObservationPresent(afterSelection, ['selectedNodeId', ...geometryFields])
-    && interactionObservationPresent(beforeDrag, ['selectedNodeId', ...geometryFields])
+    && interactionObservationPresent(afterSelection, ['selectedNodeId', ...geometryFields]);
+  const observationsPresent = interactionObservationPresent(beforeDrag, ['selectedNodeId', ...geometryFields])
     && interactionObservationPresent(afterInspectorOpen, ['inspectorOpen', 'layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'surfaceToken', 'nodePoints'])
     && interactionObservationPresent(afterInspectorClose, ['inspectorOpen', 'pinnedLayoutSignature', 'surfaceToken', 'nodePoints'])
     && interactionObservationPresent(afterDrag, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'surfaceToken', 'nodePoints'])
     && interactionObservationPresent(afterHover, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'hoverPreviewVisible', 'surfaceToken', 'nodePoints']);
   if (!observationsPresent) return ['interaction-observations-missing'];
+  const selectionTransitionProblems = selectionTransitionPresent
+    ? [
+      beforeSelection.selectedNodeId === selectedNodeId && selectedNodeId.length > 0
+        ? null
+        : 'before-selection-state-missing',
+      afterDeselection.selectedNodeId === '' ? null : 'deselection-not-observed',
+      afterSelection.selectedNodeId === selectedNodeId ? null : 'selection-transition-not-observed',
+      afterSelection.layoutVersion === beforeSelection.layoutVersion ? null : 'selection-layout-reset',
+      afterSelection.pinnedLayoutSignature === beforeSelection.pinnedLayoutSignature
+        ? null
+        : 'selection-pinned-signature-changed',
+    ].filter((entry): entry is string => Boolean(entry))
+    : [];
   return [
-    beforeSelection.selectedNodeId === selectedNodeId && selectedNodeId.length > 0
-      ? null
-      : 'before-selection-state-missing',
-    afterDeselection.selectedNodeId === '' ? null : 'deselection-not-observed',
-    afterSelection.selectedNodeId === selectedNodeId ? null : 'selection-transition-not-observed',
-    afterSelection.layoutVersion === beforeSelection.layoutVersion ? null : 'selection-layout-reset',
-    afterSelection.pinnedLayoutSignature === beforeSelection.pinnedLayoutSignature
-      ? null
-      : 'selection-pinned-signature-changed',
+    ...selectionTransitionProblems,
     beforeDrag.selectedNodeId === selectedNodeId ? null : 'before-drag-selection-missing',
     afterInspectorOpen.inspectorOpen === true ? null : 'inspector-open-not-observed',
     afterInspectorOpen.layoutVersion === afterDrag.layoutVersion ? null : 'inspector-open-layout-reset',

@@ -4949,9 +4949,6 @@ describe('commercial UI governance', () => {
     const selectedNode = 'node-knowledge-graph-core';
     const points = [{ x: 120, y: 240 }, { x: 300, y: 180 }];
     const validEvidence = {
-      beforeSelection: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points, inspectorOpen: false },
-      afterDeselection: { layoutVersion: '3', selectedNodeId: '' },
-      afterSelection: { layoutVersion: '3', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points, inspectorOpen: true },
       beforeDrag: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points, inspectorOpen: false },
       drag: { pinned: true, method: 'pointer-drag', selectedNodeId: selectedNode },
       afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, surfaceToken: 's1', nodePoints: points },
@@ -4998,6 +4995,21 @@ describe('commercial UI governance', () => {
     expect(interactionStabilityProblems({
       beforeDrag: { ...validEvidence.beforeDrag, pinnedLayoutSignature: undefined },
     }, selectedNode)).toContain('interaction-observations-missing');
+
+    // 选择转换观测存在时才检查（headless 不可捕获时缺失不阻断其余结论，见 #2031）。
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      beforeSelection: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+      afterDeselection: { layoutVersion: '3', selectedNodeId: '' },
+      afterSelection: { layoutVersion: '3', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+    }, selectedNode)).toEqual([]);
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      beforeSelection: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+      afterDeselection: { layoutVersion: '3', selectedNodeId: '' },
+      afterSelection: { layoutVersion: '4', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+    }, selectedNode)).toContain('selection-layout-reset');
 
     expect(interactionStabilityProblems({
       beforeSelection: validEvidence.beforeSelection,

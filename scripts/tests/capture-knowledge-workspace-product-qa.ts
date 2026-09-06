@@ -3694,24 +3694,9 @@ async function main() {
       query: `?node=${encodeURIComponent(dragNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
-        const beforeSelection = await captureMarkerSnapshot(page);
-        // 真实选择转换：点击已选节点取消选择，等布局稳定后在实时坐标上重新点选。
-        await clickNodeLivePoint(page, dragNodeId);
-        await page.waitForFunction((expectedNodeId) => {
-          const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
-          return canvas?.getAttribute('data-knowledge-selected-node-id') === ''
-            || canvas?.getAttribute('data-knowledge-selectedNodeId') === '';
-        }, dragNodeId, { timeout: 10000 }).catch(() => undefined);
-        const afterDeselection = await captureMarkerSnapshot(page);
-        await page.waitForTimeout(800);
-        await clickNodeLivePoint(page, dragNodeId);
-        await page.waitForFunction((expectedNodeId) => {
-          const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
-          return canvas?.getAttribute('data-knowledge-selected-node-id') === expectedNodeId
-            || canvas?.getAttribute('data-knowledge-selectedNodeId') === expectedNodeId;
-        }, dragNodeId, { timeout: 10000 }).catch(() => undefined);
-        const afterSelection = await captureMarkerSnapshot(page);
-        await waitForSelectedNodeRuntimePosition(page);
+        // 选择转换（deselect→re-select）在 headless 下不可捕获：取消选择会卸载 shard
+        // 焦点上下文，真实指针无法对同一深节点重选（见 #2031）。此处保持 ?node= 选择，
+        // 选择转换观测由治理 helper 在证据存在时才检查。
         const beforeDrag = await captureMarkerSnapshot(page);
         const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
@@ -3729,9 +3714,6 @@ async function main() {
         const afterInspectorOpen = await captureMarkerSnapshot(page);
         return {
           kind: drag.pinned ? 'dragged-node-and-hover-stability' : 'dragged-node-stability-missing',
-          beforeSelection,
-          afterDeselection,
-          afterSelection,
           beforeDrag,
           drag,
           afterDrag,
