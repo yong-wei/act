@@ -2,19 +2,19 @@
   "contract": "act-teaching-projection-manifest/v1",
   "builderVersion": "act-teaching-projection-builder/v1",
   "scopeId": "act-control-theory",
-  "authoringRevision": "54b2aa238e13dd4776b8fa2a9cd70614ee1bc77d",
+  "authoringRevision": "4ce6c0f73192af2b452abefe0e1d41cd75052d92",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
   "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
   "authoritySnapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
   "authoritySnapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
   "sourceHashes": {
-    "resources": "73134e1920dd4fefaece82788b6ce4b319882c93642e3c18a16472c16bef7520",
+    "resources": "bcf59394f0f1d90f49a5d336dd4a810c8d673d4d7d1ecc076a491ecb606e0958",
     "bindings": "523c3351478a553980eb9ef6b46cf8d46bbd354c8dcec8f22622ea79bf9961db",
     "prerequisites": "0a464ab561cb7316a5d09e61a62bb9529eb8982e075c439814de0c64b268d57d",
     "coreNodes": "f656165b00680e980ce6dc70b707af7db5b6c1f75bf88d4a066f737ed79c42c9",
     "cards": "3f166e8f5f1b4f8802b85827f5f823c0c64b7350010f68f82479852c63f68e1d",
     "authorityNodes": "1c664a56cd4d0bd07dcd67118515a59845b0a4b956552f8cca7518e319ebee6a",
-    "authoringBody": "feba34e05f41d2f80345b0719cbb967bf0aae0351875e321a925eab3055d3ccd",
+    "authoringBody": "ccd7d50a8a46b40aafad8e78577eb2792d4782d5922598fb047712fa347ecd84",
     "gate": "3f6fe1dec749b377852fed9663b07f9bb56ef111f808a3bc60c3e1141b545705"
   },
   "resourceCount": 3129,
@@ -24,6 +24,6 @@
   "cardCount": 343,
   "gateStatus": "PUBLISHED",
   "gatePassed": true,
-  "projectionId": "proj-db70903e3bab14d3bc56f9dac53758b281f4a5fd2449b7e350823b5cc87a9ad1",
-  "projectionHash": "db70903e3bab14d3bc56f9dac53758b281f4a5fd2449b7e350823b5cc87a9ad1"
+  "projectionId": "proj-13d05f2582842a0fc968025cac64b0e6a61ff3ba85a8fccb89defd6d25db187a",
+  "projectionHash": "13d05f2582842a0fc968025cac64b0e6a61ff3ba85a8fccb89defd6d25db187a"
 }

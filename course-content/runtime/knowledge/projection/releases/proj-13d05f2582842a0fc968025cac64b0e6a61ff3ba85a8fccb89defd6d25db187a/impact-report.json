@@ -1,7 +1,7 @@
 {
   "contract": "act-teaching-projection-impact/v1",
-  "projectionId": "proj-db70903e3bab14d3bc56f9dac53758b281f4a5fd2449b7e350823b5cc87a9ad1",
-  "projectionHash": "db70903e3bab14d3bc56f9dac53758b281f4a5fd2449b7e350823b5cc87a9ad1",
+  "projectionId": "proj-13d05f2582842a0fc968025cac64b0e6a61ff3ba85a8fccb89defd6d25db187a",
+  "projectionHash": "13d05f2582842a0fc968025cac64b0e6a61ff3ba85a8fccb89defd6d25db187a",
   "records": [
     {
       "kind": "binding",

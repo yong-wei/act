@@ -126,23 +126,27 @@ function loadTaskSims(): TaskSimInput[] {
   ];
 }
 
-/** Canonical labels from the authority domain shards; used for readable infograph titles (#2042). */
+/** Canonical labels from the CURRENT authority shard set only; historical or candidate sets must not shadow it (#2042). */
 function loadCanonicalLabels(): Map<string, string> {
   const labels = new Map<string, string>();
-  const setsDir = abs('course-content/runtime/knowledge/authority-domain-shards/sets');
-  if (!existsSync(setsDir)) return labels;
-  for (const setName of readdirSync(setsDir)) {
-    const domainsDir = path.join(setsDir, setName, 'domains');
-    if (!existsSync(domainsDir)) continue;
-    for (const domainName of readdirSync(domainsDir)) {
-      const file = path.join(domainsDir, domainName, 'default.json');
-      if (!existsSync(file)) continue;
-      const shard = JSON.parse(readFileSync(file, 'utf8')) as {
-        objects?: Array<{ id: string; label?: string | null }>;
-      };
-      for (const object of shard.objects ?? []) {
-        if (object.label && !labels.has(object.id)) labels.set(object.id, object.label);
-      }
+  const pointerPath = abs('course-content/runtime/knowledge/authority-domain-shards/current.json');
+  if (!existsSync(pointerPath)) return labels;
+  const pointer = JSON.parse(readFileSync(pointerPath, 'utf8')) as { shardSetId?: string };
+  if (!pointer.shardSetId) {
+    throw new Error('authority-domain-shards/current.json has no shardSetId; cannot resolve canonical labels');
+  }
+  const domainsDir = abs(`course-content/runtime/knowledge/authority-domain-shards/sets/${pointer.shardSetId}/domains`);
+  if (!existsSync(domainsDir)) {
+    throw new Error(`current shard set ${pointer.shardSetId} has no domains directory`);
+  }
+  for (const domainName of readdirSync(domainsDir)) {
+    const file = path.join(domainsDir, domainName, 'default.json');
+    if (!existsSync(file)) continue;
+    const shard = JSON.parse(readFileSync(file, 'utf8')) as {
+      objects?: Array<{ id: string; label?: string | null }>;
+    };
+    for (const object of shard.objects ?? []) {
+      if (object.label && !labels.has(object.id)) labels.set(object.id, object.label);
     }
   }
   return labels;
