@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execFile as execFileCallback } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { lstat, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -886,6 +887,57 @@ export async function assertCommittedLearningContentManifestMatchesExport(repoRo
 }
 
 /**
+ * Verify the prepared bundle (plus Git-tracked fixtures) covers exactly the
+ * sealed manifest: every node's card file and every available infograph must
+ * be Git-provided or bundled with matching sha256, and every bundled
+ * card/infograph must belong to a manifest node. A divergent runtimeRoot
+ * cannot smuggle different or missing assets into the release (#2045).
+ */
+export function assertLearningContentAssetsMatchManifest(repoRoot: string, files: readonly ExternalInputBundleFile[], gitPaths: ReadonlySet<string>): void {
+  const manifestPath = path.join(repoRoot, 'course-content/runtime', LEARNING_CONTENT_MANIFEST_RUNTIME_PATH);
+  let manifest: { nodes?: Array<{ safeId: string; card?: { state?: string; sha256?: string | null }; infograph?: { state?: string; sha256?: string | null } }> };
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  } catch (cause) {
+    error(`learning-content manifest is unreadable: ${cause instanceof Error ? cause.message : String(cause)}`);
+  }
+  const bundled = new Map<string, string>();
+  for (const file of files) {
+    if (file.path.startsWith(LEARNING_CONTENT_CARD_PREFIX) || file.path.startsWith(LEARNING_CONTENT_INFOGRAPH_PREFIX)) {
+      bundled.set(file.path, file.sha256);
+    }
+  }
+  const failures: string[] = [];
+  const provided = (relativePath: string, expectedSha: string | null): void => {
+    if (bundled.has(relativePath)) {
+      if (expectedSha !== null && bundled.get(relativePath) !== expectedSha) failures.push(`hash:${relativePath}`);
+      return;
+    }
+    if (gitPaths.has(`course-content/runtime/${relativePath}`)) return;
+    failures.push(`missing:${relativePath}`);
+  };
+  const listed = new Set<string>();
+  for (const node of manifest.nodes ?? []) {
+    const cardPath = `${LEARNING_CONTENT_CARD_PREFIX}${node.safeId}.md`;
+    listed.add(cardPath);
+    provided(cardPath, node.card?.state === 'available' ? node.card.sha256 ?? null : null);
+    const infographPath = `${LEARNING_CONTENT_INFOGRAPH_PREFIX}${node.safeId}.png`;
+    if (node.infograph?.state === 'missing') {
+      if (bundled.has(infographPath) || gitPaths.has(`course-content/runtime/${infographPath}`)) failures.push(`unexpected:${infographPath}`);
+    } else {
+      listed.add(infographPath);
+      provided(infographPath, node.infograph?.state === 'available' ? node.infograph.sha256 ?? null : null);
+    }
+  }
+  for (const relativePath of bundled.keys()) {
+    if (!listed.has(relativePath)) failures.push(`unlisted:${relativePath}`);
+  }
+  if (failures.length > 0) {
+    error(`learning-content bundle assets do not match the sealed manifest: ${failures.slice(0, 20).join('; ')}`);
+  }
+}
+
+/**
  * Prepare the exact current-runtime external set.  `runtimeRoot` is the
  * physical course-content/runtime root. `generatedResourcesRoot` is the fresh
  * generated `resources/` directory; its three textbook prefixes are the only
@@ -927,6 +979,7 @@ export async function prepareTextbookExternalInputBundle(input: {
     baseFiles.push(file);
   }
   assertLearningContentInputsPresent(baseFiles);
+  assertLearningContentAssetsMatchManifest(input.repoRoot, baseFiles, new Set(gitTree.keys()));
 
   const overlayFiles: ExternalInputBundleFile[] = [];
   for (const prefix of EXTERNAL_INPUT_BUNDLE_PREFIXES) {

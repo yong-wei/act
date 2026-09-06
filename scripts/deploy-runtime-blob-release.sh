@@ -164,6 +164,12 @@ if [[ "$resuming_published_release" == "1" ]]; then
       exit 1
     }
   done
+  # Learning-content closure gate applies to resumed releases too (#2045): an
+  # uploaded-but-unactivated release must not bypass the asset-closure check.
+  python3 "$ROOT_DIR/scripts/knowledge/export-authority-learning-content-v2.py" >/dev/null
+  node "$ROOT_DIR/scripts/knowledge/check-release-learning-content-closure.mjs" \
+    --release-manifest "$manifest" \
+    --learning-manifest "$ROOT_DIR/course-content/runtime/knowledge/authority-learning-content-manifest.json"
   build_elapsed_milliseconds=0
   publish_elapsed_milliseconds=0
 else
@@ -220,6 +226,11 @@ else
     build_args+=(--formal-resource-envelope-hash "$formal_resource_envelope_hash")
   fi
   npx tsx "$CLI" "${build_args[@]}" >/dev/null
+  # The release closure must carry every asset the sealed manifest promises,
+  # whatever --external-bundle the operator supplied (#2045 task 2.3).
+  node "$ROOT_DIR/scripts/knowledge/check-release-learning-content-closure.mjs" \
+    --release-manifest "$manifest" \
+    --learning-manifest "$ROOT_DIR/course-content/runtime/knowledge/authority-learning-content-manifest.json"
   build_elapsed_milliseconds=$(( (SECONDS - build_started_seconds) * 1000 ))
 fi
 release_id="$(python3 - "$manifest" <<'PY'
