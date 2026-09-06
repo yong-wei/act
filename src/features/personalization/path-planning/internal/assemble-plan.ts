@@ -5589,6 +5589,20 @@ function buildFamilyStrategyObservation(
     .sort((left, right) => right.score - left.score)
     .slice(0, 1)
     .map((dimension) => dimension.id);
+  // 三策略依据各来自不同证据面，generic 需按策略独立判定：
+  // 薄弱=知识缺口、偏好=带画像来源的偏好证据（fallback 系统默认不得声称画像依据）、
+  // 优势=portrait-v2 优势维度。任一依据缺失即降级为通用策略。
+  const preferenceEvidenceAvailable = input.resourcePreferenceSource !== undefined
+    && input.resourcePreferenceSource !== 'fallback';
+  const portraitBasis = policyFamily === 'foundation-remediation'
+    ? deficits
+    : policyFamily === 'preference-matched'
+      ? preferredTypes.slice(0, 2)
+      : competencies;
+  const generic = portraitUnavailable
+    || (policyFamily === 'foundation-remediation' && portraitBasis.length === 0)
+    || (policyFamily === 'preference-matched' && (portraitBasis.length === 0 || !preferenceEvidenceAvailable))
+    || (policyFamily === 'simulation-driven' && portraitBasis.length === 0);
   const teachingNodes = mainPath.filter((node) => node.terminalConstraints.length === 0);
   const preferredCount = teachingNodes.filter((node) => preferredTypes.length > 0 && preferredTypes.includes(node.type as ResourceNode['type'])).length;
   const weaknessResourceCount = policyFamily === 'foundation-remediation'
@@ -5601,12 +5615,8 @@ function buildFamilyStrategyObservation(
     family: policyFamily,
     strategyId: mapped.strategyId,
     name: mapped.name,
-    portraitBasis: policyFamily === 'foundation-remediation'
-      ? deficits
-      : policyFamily === 'preference-matched'
-        ? preferredTypes.slice(0, 2)
-        : competencies,
-    generic: portraitUnavailable,
+    portraitBasis: generic ? [] : portraitBasis,
+    generic,
     preferredTypeShare: teachingNodes.length > 0 ? preferredCount / teachingNodes.length : 0,
     weaknessResourceCount,
     comprehensiveTaskCount,
@@ -5637,6 +5647,10 @@ function selectPolicySupportNodes(
       : true)
     .map((node) => node.id));
   const picked: ResourceNode[] = [];
+  // 前置放宽仅用于优势迁移与偏好配额补充轮：两者插入的支持节点前置已在主路径满足；
+  // foundation 等基础补强仍坚持"立即可学"，不引入前置链。
+  const allowSatisfiedPrerequisites = policyFamily === '__quota_support__'
+    || policyFamily === 'simulation-driven';
   const addCandidates = (candidates: ResourceNode[], limit: number) => {
     for (const node of candidates) {
       if (picked.length >= limit) break;
@@ -5647,10 +5661,8 @@ function selectPolicySupportNodes(
       const planningUnit = planningUnitForNode(node);
       if (!planningUnit) continue;
       if (planningUnit.prerequisites.length > 0) {
-        // 配额补充轮允许前置已被主路径满足的偏好核心节点，其余支持节点仍须立即可学。
-        const quotaRound = policyFamily === '__quota_support__';
         const prerequisitesSatisfied = planningUnit.prerequisites.every((id) => selectedIds.has(id));
-        if (!quotaRound || !prerequisitesSatisfied) continue;
+        if (!allowSatisfiedPrerequisites || !prerequisitesSatisfied) continue;
       }
       if (!policyAllowsNode(node, supportFamily, input.constraints)) continue;
       if (!nodeMatchesGoal(node, input.goal, deficits, graphContext)) continue;
@@ -5663,6 +5675,20 @@ function selectPolicySupportNodes(
 
   if (supportFamily === 'simulation-driven') {
     // 优势迁移应用（#2033）：优先仿真/Arena/项目综合任务支持节点。
+    // 复审修复：把 portrait-v2 优势维度经显式兼容适配器映射到资源 abilityImpact
+    // 的能力键，其最大增量作为首选排序信号——单变量优势切换可实际改变选中资源。
+    const topDimension = (input.learnerState?.primaryPortrait?.dimensions ?? [])
+      .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+      .sort((left, right) => right.score - left.score)[0]?.id ?? null;
+    const affinityOf = (node: ResourceNode): number => {
+      if (!topDimension) return 0;
+      let max = 0;
+      for (const [legacyKey, value] of Object.entries(node.planningMetadata.abilityImpact)) {
+        if (!mapLegacyCompetencyDimensionToPortraitV2(legacyKey).targetDimensions.includes(topDimension)) continue;
+        if (typeof value === 'number' && Number.isFinite(value)) max = Math.max(max, value);
+      }
+      return max;
+    };
     const typeRank = new Map<ResourceNode['type'], number>([
       ['simulation', 0],
       ['arena_task', 1],
@@ -5672,6 +5698,7 @@ function selectPolicySupportNodes(
     addCandidates(input.registry.nodes
       .filter((node) => typeRank.has(node.type))
       .sort((left, right) =>
+        affinityOf(right) - affinityOf(left) ||
         (typeRank.get(left.type) ?? 99) - (typeRank.get(right.type) ?? 99) ||
         (planningUnitForNode(left)?.estimatedTimeMinutes ?? 0) - (planningUnitForNode(right)?.estimatedTimeMinutes ?? 0) ||
         left.id.localeCompare(right.id)

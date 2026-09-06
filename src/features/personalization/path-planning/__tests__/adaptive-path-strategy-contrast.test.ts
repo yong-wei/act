@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildAffinitySimVariantRegistry,
   buildAlternativeCoreDiversityInput,
   buildPlannerPortrait,
+  withLegalAdaptiveDestinations,
 } from '@/features/personalization/path-planning/__tests__/fixtures/alternative-core-fixture';
+import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import { buildGatedCandidateSnapshots } from '@/features/personalization/path-planning/adaptive-path-candidate-batches';
+import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 import { planLearningPath } from '@/features/personalization/path-planning/public-api';
 
 const NOW = new Date('2026-05-27T08:00:00.000Z');
@@ -175,5 +179,40 @@ describe('portrait-driven strategy single-variable contrast (#2033)', () => {
     for (const family of ['foundation-remediation', 'simulation-driven', 'preference-matched']) {
       expect(policyOption(plan, family)?.strategy?.generic).toBe(true);
     }
+  });
+
+  it('changes the selected strength-transfer resources under a single portrait dimension switch', () => {
+    // 复审修复回归：优势维度必须参与支持节点选择（affinity 排序）——
+    // 单变量切换 portrait-v2 优势维度后，仿真类核心节点集合应发生可解释变化。
+    const run = (topDimension: PortraitV2DimensionId) => planLearningPath(buildAlternativeCoreDiversityInput({
+      registry: buildAffinitySimVariantRegistry(),
+      learnerState: {
+        primaryPortraitState: 'SNAPSHOT' as const,
+        primaryPortraitAvailability: 'available',
+        primaryPortrait: buildPlannerPortrait(NOW, 'student-1', { [topDimension]: 0.92 }),
+        knowledgeMastery: buildAlternativeCoreDiversityInput().learnerState!.knowledgeMastery!,
+        evidence: {
+          confidence: { level: 'medium', score: 0.68, evidenceCount: 8, sourceCompleteness: 0.7 },
+          sourceCoverage: { LearningFact: 'available', ArenaSubmission: 'partial' },
+        },
+      },
+    }));
+
+    const parameterRun = run('controllerDesignSynthesis');
+    const decisionRun = run('engineeringConstraintSafety');
+
+    const simNodeIds = (plan: PlanShape) => {
+      const option = policyOption(plan, 'simulation-driven');
+      return (option?.planNodes ?? [])
+        .filter((node) => node.type === 'simulation')
+        .map((node) => node.nodeId)
+        .sort();
+    };
+    const parameterSimIds = simNodeIds(parameterRun);
+    const decisionSimIds = simNodeIds(decisionRun);
+
+    expect(parameterSimIds).toContain('simulation:affinity-parameter');
+    expect(decisionSimIds).toContain('simulation:affinity-decision');
+    expect(parameterSimIds).not.toEqual(decisionSimIds);
   });
 });

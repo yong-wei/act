@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-06T11:44:13.104Z",
+  "generatedAt": "2026-09-06T12:10:01.394Z",
   "fixture": "alternative-core-fixture (three-family survival, deterministic)",
   "threeFamilyDifferentiation": {
     "families": [
@@ -115,7 +115,7 @@
         "strategyId": "preference-reinforce",
         "name": "偏好资源强化",
         "portraitBasis": [],
-        "generic": false
+        "generic": true
       }
     ],
     "comparison": {
@@ -145,7 +145,8 @@
           "styleId": "foundation-remediation",
           "verifiedResources": 1,
           "unreadableResources": 0,
-          "notes": []
+          "notes": [],
+          "items": []
         }
       ]
     }

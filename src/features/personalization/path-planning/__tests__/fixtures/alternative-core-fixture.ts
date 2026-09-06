@@ -189,7 +189,53 @@ export function buildAlternativeCoreFixtureRegistry(): ResourceNodeRegistry {
 
 export type PlannerPortraitScoreOverrides = Partial<Record<PortraitV2DimensionId, number>>;
 
-export function buildPlannerPortrait(
+/**
+ * 优势迁移单变量对照变体：在共享 fixture 上追加两个能力倾向互补的仿真资源
+ * （parameterDesign 倾向 vs engineeringDecision 倾向），使切换 portrait-v2 优势维度
+ * 可以实际改变 simulation-driven 支持节点的选择结果，而不只改变策略标签。
+ */
+export function buildAffinitySimVariantRegistry(): ResourceNodeRegistry {
+  const base = withLegalAdaptiveDestinations(buildAlternativeCoreFixtureRegistry());
+  const template = base.nodes.find((node) => node.type === 'simulation');
+  if (!template) return base;
+  const buildSim = (
+    id: string,
+    title: string,
+    sourceRef: string,
+    abilityImpact: Record<string, number>,
+  ): ResourceNodeRegistry['nodes'][number] => {
+    // 克隆模板仿真但去掉终结验证约束（支持节点须为非 terminal 教学节点）。
+    const planningMetadata = {
+      ...template.planningMetadata,
+      terminalConstraints: [] as string[],
+      abilityImpact,
+    };
+    return {
+      ...template,
+      id,
+      sourceRef,
+      title,
+      displayName: title,
+      launchTarget: `/simulations/${sourceRef}`,
+      target: `/simulations/${sourceRef}`,
+      planningMetadata,
+    };
+  };
+  return {
+    ...base,
+    nodes: [
+      ...base.nodes,
+      buildSim('simulation:affinity-parameter', '参数设计倾向仿真', 'affinity-parameter', {
+        parameterDesign: 0.4,
+        engineeringDecision: 0.02,
+      }),
+      buildSim('simulation:affinity-decision', '工程决策倾向仿真', 'affinity-decision', {
+        parameterDesign: 0.02,
+        engineeringDecision: 0.4,
+      }),
+    ],
+  };
+}export function buildPlannerPortrait(
   now: Date,
   userId: string,
   scoreOverrides: PlannerPortraitScoreOverrides = {},
@@ -228,7 +274,7 @@ export function buildPlannerPortrait(
 
 type DiversityInputOverrides = Partial<Pick<
   AdaptiveLearningPathPlannerInput,
-  'resourcePreferences' | 'resourcePreferenceSource' | 'policyBundle' | 'learnerState'
+  'resourcePreferences' | 'resourcePreferenceSource' | 'policyBundle' | 'learnerState' | 'registry'
 >>;
 
 export function buildAlternativeCoreDiversityInput(
@@ -281,7 +327,7 @@ export function buildAlternativeCoreDiversityInput(
         sourceCoverage: { LearningFact: 'available', ArenaSubmission: 'partial' },
       },
     },
-    registry: withLegalAdaptiveDestinations(buildAlternativeCoreFixtureRegistry()),
+    registry: overrides.registry ?? withLegalAdaptiveDestinations(buildAlternativeCoreFixtureRegistry()),
     constraints: {
       timeBudgetMinutes: 180,
       privacyScopes: ['student-visible'],

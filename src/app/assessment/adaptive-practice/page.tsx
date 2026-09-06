@@ -2174,6 +2174,14 @@ function formatStrategyBasis(basis: string): string {
   return formatResourceType(basis) !== basis ? formatResourceType(basis) : basis;
 }
 
+function formatResourceReadinessState(state: string): string {
+  if (state === 'missing') return '资源缺失';
+  if (state === 'forbidden') return '暂无访问权限';
+  if (state === 'checksum-mismatch') return '内容校验未通过';
+  if (state === 'unverified') return '未完成读取验证';
+  return '暂时无法读取';
+}
+
 function formatReadinessState(state: string): string {
   if (state === 'ready') return '可开始';
   if (state === 'locked') return '待解锁';
@@ -2445,11 +2453,18 @@ function CandidateBatchComparisonWorkspace({
                 </dl>
                 {(() => {
                   const readiness = comparison?.resourceReadiness.find((item) => item.styleId === option.styleId);
-                  return readiness && readiness.notes.length > 0 ? (
+                  if (!readiness || readiness.notes.length === 0) return null;
+                  return (
                     <div className="mt-2 text-xs leading-5 text-subtle" data-learning-path-candidate-readiness={option.styleId}>
                       {readiness.notes.map((note) => <p key={note}>{note}</p>)}
+                      {readiness.items.map((item) => (
+                        <p key={`${item.nodeId}:${item.resourceId}`} className="text-subtle/90">
+                          节点「{option.nodeSummaries?.find((summary) => summary.nodeId === item.nodeId)?.title ?? item.nodeId}」：{formatResourceReadinessState(item.state)}
+                          {item.runtimeReleaseId ? `（课程资源版本 ${item.runtimeReleaseId}）` : ''}
+                        </p>
+                      ))}
                     </div>
-                  ) : null;
+                  );
                 })()}
               </article>
             ))}

@@ -27,6 +27,13 @@ export interface AdaptivePathBatchComparisonView {
     unreadableResources: number;
     /** 按失败类型区分的学生可理解说明（不暴露对象键原文）。 */
     notes: string[];
+    /** 逐资源状态（节点标识/资源标识/状态/冻结的 Runtime release），供定位具体资源。 */
+    items: Array<{
+      nodeId: string;
+      resourceId: string;
+      state: string;
+      runtimeReleaseId: string | null;
+    }>;
   }>;
 }
 
@@ -86,16 +93,29 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
         }];
       })
     : [];
-  const resourceReadiness = new Map<string, { verified: number; unreadableByState: Map<string, number> }>();
+  const resourceReadiness = new Map<string, {
+    verified: number;
+    unreadableByState: Map<string, number>;
+    items: Array<{ nodeId: string; resourceId: string; state: string; runtimeReleaseId: string | null }>;
+  }>();
   for (const value of Array.isArray(source.objectKeyReadRecords) ? source.objectKeyReadRecords : []) {
     const item = record(value);
     const styleId = typeof item.candidateStyleId === 'string' ? item.candidateStyleId : null;
     const state = typeof item.state === 'string' ? item.state : null;
     if (!styleId || !state) continue;
     const counts = resourceReadiness.get(styleId)
-      ?? { verified: 0, unreadableByState: new Map<string, number>() };
-    if (state === 'verified') counts.verified += 1;
-    else counts.unreadableByState.set(state, (counts.unreadableByState.get(state) ?? 0) + 1);
+      ?? { verified: 0, unreadableByState: new Map<string, number>(), items: [] };
+    if (state === 'verified') {
+      counts.verified += 1;
+    } else {
+      counts.unreadableByState.set(state, (counts.unreadableByState.get(state) ?? 0) + 1);
+      counts.items.push({
+        nodeId: typeof item.nodeNodeId === 'string' ? item.nodeNodeId : 'unknown-node',
+        resourceId: typeof item.resourceId === 'string' ? item.resourceId : 'unknown-resource',
+        state,
+        runtimeReleaseId: typeof item.runtimeReleaseId === 'string' ? item.runtimeReleaseId : null,
+      });
+    }
     resourceReadiness.set(styleId, counts);
   }
   return {
@@ -111,6 +131,7 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
         verifiedResources: counts.verified,
         unreadableResources: [...counts.unreadableByState.values()].reduce((sum, count) => sum + count, 0),
         notes,
+        items: counts.items,
       };
     }),
   };
