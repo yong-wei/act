@@ -234,6 +234,12 @@ type PathOptionView = AdaptivePathOptionWriteOption & {
   candidateId?: string;
   candidateFingerprint?: string;
   checkpointNodeIds?: string[];
+  strategy?: {
+    strategyId: string;
+    name: string;
+    portraitBasis: string[];
+    generic: boolean;
+  } | null;
   summaryFactAvailability?: {
     nodeIds: boolean;
     resourceMix: boolean;
@@ -1784,6 +1790,21 @@ function readPathDifferenceExplanation(value: unknown): PathDifferenceExplanatio
   };
 }
 
+function getPathOptionStrategy(value: unknown): PathOptionView['strategy'] {
+  if (!value || typeof value !== 'object') return null;
+  const strategy = getRecord(value);
+  const strategyId = typeof strategy.strategyId === 'string' ? strategy.strategyId : null;
+  const name = typeof strategy.name === 'string' ? strategy.name : null;
+  if (!strategyId || !name) return null;
+  const generic = strategy.generic === true;
+  return {
+    strategyId,
+    name,
+    generic,
+    portraitBasis: generic ? [] : getStringArray(strategy.portraitBasis),
+  };
+}
+
 function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathOptionView[] {
   const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
   const payload = getRecord(currentPath?.payload);
@@ -1798,6 +1819,7 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
     return {
       optionId: typeof option.optionId === 'string' ? option.optionId : 'unknown-option',
       label: typeof option.label === 'string' ? option.label : '未命名路径',
+      strategy: getPathOptionStrategy(option.strategy),
       nodeIds: getStringArray(option.nodeIds),
       activeNodeIds: getStringArray(option.activeNodeIds),
       checkpointNodeIds: getStringArray(option.checkpointNodeIds),
@@ -2389,6 +2411,12 @@ function CandidateBatchComparisonWorkspace({
             {options.map((option) => (
               <article key={option.optionId} className="min-w-0 rounded-md border border-border bg-background/70 p-3">
                 <h4 className="break-words text-sm font-semibold text-foreground">{option.label}</h4>
+                {option.strategy ? (
+                  <p className="mt-1 text-xs leading-5 text-subtle" data-learning-path-candidate-strategy={option.strategy.strategyId}>
+                    学习策略：{option.strategy.name}
+                    {option.strategy.generic ? '（通用建议，暂无画像依据）' : ''}
+                  </p>
+                ) : null}
                 <dl className="mt-2 grid gap-1 text-xs leading-5 text-subtle">
                   <div><dt className="inline font-medium text-foreground">预计时长：</dt><dd className="inline">{typeof option.effort.estimatedMinutes !== 'number' ? '数据不足' : `${option.effort.estimatedMinutes} 分钟`}{noDifferenceLabel('duration')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">路径节点数：</dt><dd className="inline">{option.summaryFactAvailability?.nodeIds ? `${option.nodeIds?.length ?? 0} 个节点` : '数据不足'}{noDifferenceLabel('nodeCount')}</dd></div>

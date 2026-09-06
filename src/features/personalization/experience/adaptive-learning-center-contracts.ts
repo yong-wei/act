@@ -1407,6 +1407,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     label: path.label,
     nodeIds: path.nodeIds,
     nodeSummaries: path.nodeSummaries,
+    strategy: toStudentPathStrategy(path.strategy),
     lockedNodeIds: path.lockedNodeIds,
     readinessSummary: path.readinessSummary,
     readinessDetails: pathReadinessDetails(path.planNodes?.length ? path.planNodes : pathPlan.mainPath),
@@ -1424,8 +1425,30 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
   })) ?? [];
 }
 
-function buildPathOptionFallback(pathPlan: AdaptiveLearningPathPlan) {
-  if (!pathPlan.policyBundle || pathPlan.policyBundle.status === 'ready') {
+/**
+ * 学生安全策略呈现（#2033）：只保留策略标识/名称/画像依据/通用标记；
+ * 画像不可用（generic）时候选为通用策略，画像依据不下发。
+ */
+function toStudentPathStrategy(value: unknown) {
+  if (!value || typeof value !== 'object') return null;
+  const strategy = value as Record<string, unknown>;
+  const strategyId = typeof strategy.strategyId === 'string' ? strategy.strategyId : null;
+  const name = typeof strategy.name === 'string' ? strategy.name : null;
+  if (!strategyId || !name) return null;
+  const generic = strategy.generic === true;
+  return {
+    strategyId,
+    name,
+    portraitBasis: generic
+      ? []
+      : Array.isArray(strategy.portraitBasis)
+        ? strategy.portraitBasis.filter((item): item is string => typeof item === 'string')
+        : [],
+    generic,
+  };
+}
+
+function buildPathOptionFallback(pathPlan: AdaptiveLearningPathPlan) {  if (!pathPlan.policyBundle || pathPlan.policyBundle.status === 'ready') {
     return null;
   }
   return {

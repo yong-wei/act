@@ -4700,6 +4700,7 @@ async function buildAdaptivePathToolOutput(
       id: candidateBatch.id,
       generationRequestId: candidateBatch.generationRequestId,
       candidateIds: candidateBatch.candidates.map((candidate) => candidate.id),
+      comparison: buildStudentSafeBatchComparison(readRecord(candidateBatch.metadata)),
     } : null,
     pathOptions,
     configurationFulfillment: plan.explanations.configurationFulfillment.map(
@@ -5240,6 +5241,7 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
         label: path.label,
         estimatedMinutes: path.effort.estimatedMinutes,
         effort: path.effort.relative,
+        strategy: buildStudentSafeStrategy(path.strategy),
         nodeSummaries: path.nodeSummaries.map((node) => ({
           nodeId: node.nodeId,
           title: node.title,
@@ -5290,7 +5292,7 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
   }];
 }
 
-function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) {
+export function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) {
   const optionId = typeof snapshot.optionId === 'string' ? snapshot.optionId : null;
   const styleId = typeof snapshot.styleId === 'string' ? snapshot.styleId : null;
   const label = typeof snapshot.label === 'string' ? snapshot.label : null;
@@ -5312,6 +5314,7 @@ function buildStudentSafeCandidatePathOption(snapshot: Record<string, unknown>) 
     label,
     estimatedMinutes: typeof effort.estimatedMinutes === 'number' ? effort.estimatedMinutes : null,
     effort: typeof effort.relative === 'string' ? effort.relative : null,
+    strategy: buildStudentSafeStrategy(snapshot.strategy),
     nodeSummaries: nodeSummaries.map((value) => {
       const node = value && typeof value === 'object' ? value as Record<string, unknown> : {};
       return {
@@ -5354,6 +5357,82 @@ function buildStudentSafeEvidenceBasis(values: string[]) {
     }
   }
   return [...labels];
+}
+
+/**
+ * 学生安全策略呈现（#2033）：只下发策略标识/名称/画像依据/通用标记。
+ * 画像不可用（generic）时不得声称个性化，画像依据不下发。
+ */
+function buildStudentSafeStrategy(value: unknown) {
+  if (!value || typeof value !== 'object') return null;
+  const strategy = value as Record<string, unknown>;
+  const strategyId = typeof strategy.strategyId === 'string' ? strategy.strategyId : null;
+  const name = typeof strategy.name === 'string' ? strategy.name : null;
+  if (!strategyId || !name) return null;
+  const generic = strategy.generic === true;
+  const portraitBasis = generic
+    ? []
+    : Array.isArray(strategy.portraitBasis)
+      ? strategy.portraitBasis.filter((item): item is string => typeof item === 'string')
+      : [];
+  return { strategyId, name, portraitBasis, generic };
+}
+
+/**
+ * 批次级学生安全比较呈现（#2033）：两两差异摘要与运行时资源读取状态计数。
+ * 不下发指标原始数值、规则名与对象键原文。
+ */
+export function buildStudentSafeBatchComparison(metadata: Record<string, unknown>) {
+  const differentiation = metadata.differentiation && typeof metadata.differentiation === 'object'
+    ? metadata.differentiation as Record<string, unknown>
+    : null;
+  const pairs = Array.isArray(differentiation?.pairs)
+    ? differentiation!.pairs.flatMap((value) => {
+        if (!value || typeof value !== 'object') return [];
+        const pair = value as Record<string, unknown>;
+        const leftStyleId = typeof pair.leftStyleId === 'string' ? pair.leftStyleId : null;
+        const rightStyleId = typeof pair.rightStyleId === 'string' ? pair.rightStyleId : null;
+        const metrics = pair.metrics && typeof pair.metrics === 'object'
+          ? pair.metrics as Record<string, unknown>
+          : {};
+        const satisfiedCount = typeof metrics.satisfiedCount === 'number' && Number.isFinite(metrics.satisfiedCount)
+          ? metrics.satisfiedCount
+          : null;
+        if (!leftStyleId || !rightStyleId || satisfiedCount === null) return [];
+        return [{
+          leftStyleId,
+          rightStyleId,
+          satisfiedCount,
+          summary: satisfiedCount >= 3
+            ? '这两条路径在资源构成与学习安排上有明显差异。'
+            : '这两条路径较为接近，可结合课程内容自行选择。',
+        }];
+      })
+    : [];
+  const resourceReadiness = new Map<string, { verified: number; unreadable: number }>();
+  for (const value of Array.isArray(metadata.objectKeyReadRecords) ? metadata.objectKeyReadRecords : []) {
+    if (!value || typeof value !== 'object') continue;
+    const record = value as Record<string, unknown>;
+    const styleId = typeof record.candidateStyleId === 'string' ? record.candidateStyleId : null;
+    const state = typeof record.state === 'string' ? record.state : null;
+    if (!styleId || !state) continue;
+    const counts = resourceReadiness.get(styleId) ?? { verified: 0, unreadable: 0 };
+    if (state === 'verified') counts.verified += 1;
+    else counts.unreadable += 1;
+    resourceReadiness.set(styleId, counts);
+  }
+  return {
+    highDifferentiation: differentiation?.highDifferentiation === true,
+    pairs,
+    resourceReadiness: [...resourceReadiness.entries()].map(([styleId, counts]) => ({
+      styleId,
+      verifiedResources: counts.verified,
+      unreadableResources: counts.unreadable,
+      summary: counts.unreadable > 0
+        ? `这条路径有 ${counts.unreadable} 个资源暂时无法读取，已不计入方案对比。`
+        : null,
+    })),
+  };
 }
 
 function buildPathResourceMix(nodes: AdaptiveLearningPathPlanNode[]) {
