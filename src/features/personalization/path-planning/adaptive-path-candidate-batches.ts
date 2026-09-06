@@ -147,7 +147,9 @@ export async function persistAdaptivePathCandidateBatch(
           policyBundleFallbackReasons: input.plan.policyBundle?.fallbackReasons ?? [],
           decisionEvidence: input.plan.policyBundle?.decisionEvidence ?? null,
           diversityLimitations: gated.limitations,
-          differentiation: computeAdaptivePathBatchDifferentiation(input.plan),
+          differentiation: computeAdaptivePathBatchDifferentiation(input.plan, {
+            objectKeyReadRecords: input.objectKeyReadRecords,
+          }),
           objectKeyReadRecords: input.objectKeyReadRecords ?? [],
           ...(input.derivation ? {
             derivation: {
@@ -190,16 +192,26 @@ export interface AdaptivePathBatchDifferentiation {
   }>;
   /** 每对候选都达到最少达标数（7 项中 3 项）才允许标记高区分度。 */
   highDifferentiation: boolean;
+  /** 读验证失败而被剔除出统计的对象键（去重排序），供审计对照读取记录。 */
+  unreadableObjectKeys: string[];
 }
 
 /** 从候选批次可序列化选项计算两两量化区分度（#2033）。候选少于 2 条时返回 null。 */
 export function computeAdaptivePathBatchDifferentiation(
   plan: AdaptiveLearningPathPlan,
+  options: {
+    objectKeyReadRecords?: AdaptivePathCandidateBatchPersistenceInput['objectKeyReadRecords'];
+  } = {},
 ): AdaptivePathBatchDifferentiation | null {
   const serialized = buildSerializablePathOptions(plan)
     .filter((candidate) => candidate.nodeIds.length > 0);
   if (serialized.length < 2) return null;
 
+  const unreadableObjectKeys = new Set(
+    (options.objectKeyReadRecords ?? [])
+      .filter((record) => record.state !== 'verified')
+      .map((record) => record.objectKey)
+  );
   const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
   const sharedNodeIds = new Set(
     serialized[0].nodeIds.filter((nodeId) =>
@@ -210,11 +222,17 @@ export function computeAdaptivePathBatchDifferentiation(
       .filter((nodeId) => !sharedNodeIds.has(nodeId))
       .map((nodeId) => planNodeById.get(nodeId))
       .filter(Boolean) as NonNullable<ReturnType<typeof planNodeById.get>>[];
+    const countedNodes = coreNodes.filter((node) => {
+      // #2033 任务 3.1：读验证失败（missing/forbidden/checksum-mismatch/unverified）
+      // 的对象键资源不进入覆盖与区分度统计。
+      const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
+      return !(provenance.objectKey && unreadableObjectKeys.has(provenance.objectKey));
+    });
     const objectKeys = new Set<string>();
     const typeCounts: Record<string, number> = {};
     const checkpointSignature: string[] = [];
     let estimatedMinutes = 0;
-    for (const node of coreNodes) {
+    for (const node of countedNodes) {
       const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
       if (provenance.objectKey) objectKeys.add(provenance.objectKey);
       typeCounts[node.type] = (typeCounts[node.type] ?? 0) + 1;
@@ -222,13 +240,13 @@ export function computeAdaptivePathBatchDifferentiation(
       else if (node.checkpoint) checkpointSignature.push('inline');
       estimatedMinutes += node.estimatedTimeMinutes ?? 0;
     }
-    const totalResources = coreNodes.length || 1;
+    const totalResources = countedNodes.length || 1;
     const resourceTypeShares = Object.fromEntries(
       Object.entries(typeCounts).map(([type, count]) => [type, count / totalResources]),
     );
     return {
       styleId: candidate.styleId,
-      coreNodeIds: coreNodes.map((node) => node.nodeId),
+      coreNodeIds: countedNodes.map((node) => node.nodeId),
       coreObjectKeys: Array.from(objectKeys),
       resourceTypeShares,
       estimatedMinutes,
@@ -245,7 +263,11 @@ export function computeAdaptivePathBatchDifferentiation(
       if (metrics.satisfiedCount < 3) highDifferentiation = false;
     }
   }
-  return { pairs, highDifferentiation };
+  return {
+    pairs,
+    highDifferentiation,
+    unreadableObjectKeys: [...unreadableObjectKeys].sort(),
+  };
 }
 
 export function buildCandidateSnapshots(

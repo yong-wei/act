@@ -656,4 +656,85 @@ describe('adaptive path batch differentiation metrics', () => {
     expect(differentiation!.pairs[0].metrics.distinctCoreNodeCount).toBe(2);
     expect(differentiation!.highDifferentiation).toBe(false);
   });
+
+  it('excludes read-verification-failed object keys from coverage statistics (#2033 3.1)', () => {
+    const base = plan();
+    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html' };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [nodeA, nodeB],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'] },
+        ],
+      },
+    };
+    const readRecord = (objectKey: string, state: 'verified' | 'missing') => ({
+      objectKey,
+      resourceId: 'resource-1',
+      candidateStyleId: 'foundation-remediation',
+      nodeNodeId: 'node-1',
+      state,
+      contentSha256: null,
+      verifiedAt: '2026-09-06T00:00:00.000Z',
+    });
+
+    // 无读取记录时行为不变：两个对象键都计入统计。
+    const baseline = computeAdaptivePathBatchDifferentiation(extended);
+    expect(baseline!.unreadableObjectKeys).toEqual([]);
+    expect(baseline!.pairs[0].metrics.distinctCoreNodeCount).toBe(2);
+    expect(baseline!.pairs[0].metrics.estimatedMinutesDeltaRatio).toBe(0);
+
+    // node-1 的对象键读取失败：从覆盖统计剔除并进入审计清单；verified 的保留。
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended, {
+      objectKeyReadRecords: [
+        readRecord('lessons/1-3/media/intro.mp4', 'missing'),
+        readRecord('simulations/cruise/index.html', 'verified'),
+      ],
+    });
+    expect(differentiation!.unreadableObjectKeys).toEqual(['lessons/1-3/media/intro.mp4']);
+    // node-1 被剔除：左候选核心集变空（时长 0），与右候选的差异指标随之变化。
+    expect(differentiation!.pairs[0].metrics.distinctCoreNodeCount).toBe(1);
+    expect(differentiation!.pairs[0].metrics.estimatedMinutesDeltaRatio).toBe(1);
+  });
+
+  it('persists unreadable object keys into batch metadata alongside differentiation', async () => {
+    const base = plan();
+    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html' };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [nodeA, nodeB],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'] },
+        ],
+      },
+    };
+
+    const { db } = dbFixture();
+    const view = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'gen-diff-unreadable-1',
+      plan: extended,
+      objectKeyReadRecords: [{
+        objectKey: 'lessons/1-3/media/intro.mp4',
+        resourceId: 'resource-1',
+        candidateStyleId: 'foundation-remediation',
+        nodeNodeId: 'node-1',
+        state: 'missing',
+        contentSha256: null,
+        verifiedAt: '2026-09-06T00:00:00.000Z',
+      }],
+    });
+    const metadata = view.metadata as Record<string, unknown>;
+    expect(metadata.objectKeyReadRecords).toHaveLength(1);
+    expect(metadata.differentiation).toMatchObject({
+      unreadableObjectKeys: ['lessons/1-3/media/intro.mp4'],
+    });
+  });
 });
