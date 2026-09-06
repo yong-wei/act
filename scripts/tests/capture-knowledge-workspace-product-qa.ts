@@ -1720,7 +1720,8 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 }
 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
-  const nodeControl = page.locator(`[data-knowledge-node-control="${expectedNodeId}"]`).first();
+  // active 隐藏视图同名控件会先命中，scope 到 legacy 视图。
+  const nodeControl = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + expectedNodeId + '"]').first();
   for (let attempt = 0; attempt < 3; attempt += 1) {
     // 每次尝试前重新取节点包围盒，force 布局动画会让预查询坐标漂移。
     const box = await nodeControl.boundingBox().catch(() => null);
@@ -1970,7 +1971,7 @@ async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
       && control?.getAttribute('aria-busy') === 'false'
       && control?.getAttribute('aria-expanded') === null;
   }, nodeId, { timeout: 20000 });
-  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`).first();
+  const control = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + nodeId + '"]').first();
   const box = await control.boundingBox().catch(() => null);
   if (!box) {
     await control.focus();
@@ -3660,7 +3661,7 @@ async function main() {
         const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
         // 悬停命中实际节点（拖拽后重新取包围盒），并验证悬停预览可见。
-        const nodeControl = page.locator(`[data-knowledge-node-control="${dragNodeId}"]`).first();
+        const nodeControl = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + dragNodeId + '"]').first();
         const hoverBox = await nodeControl.boundingBox().catch(() => null);
         if (hoverBox) {
           await page.mouse.move(hoverBox.x + hoverBox.width / 2, hoverBox.y + hoverBox.height / 2);

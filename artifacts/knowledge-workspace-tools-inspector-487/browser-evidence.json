@@ -2,11 +2,11 @@
   "change": "redesign-knowledge-workspace-tools-and-inspector",
   "issue": 487,
   "refreshedBy": "standardize-knowledge-graph-floating-panels",
-  "capturedAt": "2026-09-06T00:26:08.430Z",
-  "headCommit": "e7825d10db16d81195f37567126a021abe5017d5",
+  "capturedAt": "2026-09-06T00:43:25.070Z",
+  "headCommit": "01b03c23ad030d77f48f09093716d9d858b94f68",
   "captureRevision": {
-    "commitSha": "e7825d10db16d81195f37567126a021abe5017d5",
-    "treeSha": "616519224946fd8a4e3f4ea934fed58478e44402"
+    "commitSha": "01b03c23ad030d77f48f09093716d9d858b94f68",
+    "treeSha": "f4f73deef3ec71033611a864901dffe61ffa6e93"
   },
   "baseUrl": "http://localhost:3102",
   "selectedNodeId": "稳定性_1_7288b4ea",
