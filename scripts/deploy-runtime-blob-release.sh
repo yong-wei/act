@@ -385,7 +385,7 @@ if [[ "$pre_publish_action" == begin:* ]]; then
   publishing_generation="$(printf '%s' "$begin_publish_result" | python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])')"
   [[ "$publishing_generation" =~ ^[1-9][0-9]*$ ]] || { echo "ERROR: invalid lifecycle generation after begin-publish; publishing root ownership is uncertain" >&2; exit 1; }
   publishing_identity_started=1
-elif [[ "$pre_publish_action" != protected:* && "$pre_publish_action" != repair:* ]]; then
+elif [[ "$pre_publish_action" != protected:* && "$pre_publish_action" != repair:* && "$pre_publish_action" != staged:* ]]; then
   if [[ "$pre_publish_action" != resume:* ]]; then
     echo "ERROR: invalid lifecycle publication state" >&2
     exit 1
