@@ -24,6 +24,8 @@ export interface AdaptivePathObjectKeyReadRecord {
   /** 与 Runtime manifest 一致的内容校验值（verified 时提供）。 */
   contentSha256: string | null;
   verifiedAt: string;
+  /** 本次读取验证所针对的活动 Runtime release；验证不可用时为 null。 */
+  runtimeReleaseId: string | null;
 }
 
 export function resolveAdaptivePathRuntimeObjectKey(target: string | null | undefined): {
@@ -53,6 +55,7 @@ export async function verifyAdaptivePathObjectKeys(
   verifier: AdaptivePathObjectKeyVerifier,
   entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }>,
   verifiedAt: string,
+  runtimeReleaseId: string | null = null,
 ): Promise<AdaptivePathObjectKeyReadRecord[]> {
   const records: AdaptivePathObjectKeyReadRecord[] = [];
   const verifiedByKey = new Map<string, { state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }>();
@@ -77,6 +80,7 @@ export async function verifyAdaptivePathObjectKeys(
       state: result.state,
       contentSha256: result.contentSha256,
       verifiedAt,
+      runtimeReleaseId,
     });
   }
   return records;

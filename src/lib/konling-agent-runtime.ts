@@ -4271,15 +4271,38 @@ function applySmartLessonCollectionPatches(
 
 // #2033：批次定稿时解析候选资源到 Runtime manifest 对象键并产出读取验证记录。
 async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPlan) {
+  // 候选资源解析不依赖网络：先构建完整条目集，验证层不可用时对其统一
+  // 产出 unverified 记录（fail-closed，未验证资源不得当可信输入）。
+  const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
+  for (const option of buildSerializablePathOptions(plan)) {
+    // #2033 复审修复：按候选自己的 planNodes 解析（策略候选可含主推荐路径之外的节点）。
+    for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
+      const { state, objectKey } = resolveAdaptivePathRuntimeObjectKey(node.target);
+      if (state === 'non-runtime' || !objectKey) continue;
+      entries.push({
+        objectKey,
+        resourceId: node.resourceId ?? node.resourceNodeId ?? node.nodeId,
+        candidateStyleId: option.styleId,
+        nodeNodeId: node.nodeId,
+      });
+    }
+  }
+  if (entries.length === 0) return [];
+  const verifiedAt = new Date().toISOString();
+  const failClosedUnverified = () => entries.map((entry) => ({
+    ...entry,
+    state: 'unverified' as const,
+    contentSha256: null,
+    verifiedAt,
+    runtimeReleaseId: null,
+  }));
   try {
     const manifestRaw = await readActiveRuntimeReleaseManifest();
-    if (!manifestRaw) return [];
+    if (!manifestRaw) return failClosedUnverified();
     const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
     const filesByPath = new Map(manifest.files.map((file) => [file.path, file]));
     const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
-    // 未配置 OSS RAM Role（本地/无凭证环境）时不产出读取记录：不声称验证，
-    // 也不据此把资源误判为缺失而从统计剔除。
-    if (!ramRole) return [];
+    if (!ramRole) return failClosedUnverified();
     const client = createEcsRamRoleOssClient({
       bucket: process.env.ACT_RUNTIME_OSS_BUCKET?.trim() || 'act-course-assets',
       region: process.env.ACT_RUNTIME_OSS_REGION?.trim() || 'oss-cn-hangzhou',
@@ -4305,20 +4328,6 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
         return { state: 'missing', contentSha256: null };
       }
     };
-    const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
-    for (const option of buildSerializablePathOptions(plan)) {
-      // #2033 复审修复：按候选自己的 planNodes 解析（策略候选可含主推荐路径之外的节点）。
-      for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
-        const { state, objectKey } = resolveAdaptivePathRuntimeObjectKey(node.target);
-        if (state === 'non-runtime' || !objectKey) continue;
-        entries.push({
-          objectKey,
-          resourceId: node.resourceId ?? node.resourceNodeId ?? node.nodeId,
-          candidateStyleId: option.styleId,
-          nodeNodeId: node.nodeId,
-        });
-      }
-    }
     return await verifyAdaptivePathObjectKeys({
       async verify(objectKey) {
         // 内容寻址键（blob:<sha256>）：对象键即摘要，真实读取并比对。
@@ -4328,13 +4337,13 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
         }
         const file = filesByPath.get(objectKey);
         if (!file) return { state: 'missing', contentSha256: null };
-        // manifest 命中后仍执行真实读取，流式比对 manifest 期望校验值。
-        return verifyObjectBytes(objectKey, file.sha256);
+        // manifest 命中后按 manifest 记录的实际存储键执行真实读取，流式比对期望校验值。
+        return verifyObjectBytes(file.objectKey, file.sha256);
       },
-    }, entries, new Date().toISOString());
+    }, entries, verifiedAt, manifest.releaseId ?? null);
   } catch (error) {
     console.error('[KonlingRuntime] candidate object key read verification failed:', error);
-    return [];
+    return failClosedUnverified();
   }
 }
 

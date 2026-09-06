@@ -126,6 +126,14 @@ export async function persistAdaptivePathCandidateBatch(
     const batchId = stableId('path-candidate-batch', input.generationRequestId);
     const gated = buildGatedCandidateSnapshots(input.plan, batchId);
     const candidates = gated.candidates;
+    // 只对实际持久化（门禁去重后）的候选计算两两指标。
+    const differentiation = computeAdaptivePathBatchDifferentiation(input.plan, {
+      objectKeyReadRecords: input.objectKeyReadRecords,
+      styleIds: candidates.map((candidate) => candidate.styleId),
+    });
+    const limitations = differentiation?.insufficientVerifiedResources
+      ? uniqueStrings([...gated.limitations, 'insufficient-verified-resources'])
+      : gated.limitations;
     const record = await tx.adaptivePathCandidateBatch.create({
       data: {
         id: batchId,
@@ -146,10 +154,8 @@ export async function persistAdaptivePathCandidateBatch(
           policyBundleStatus: input.plan.policyBundle?.status ?? null,
           policyBundleFallbackReasons: input.plan.policyBundle?.fallbackReasons ?? [],
           decisionEvidence: input.plan.policyBundle?.decisionEvidence ?? null,
-          diversityLimitations: gated.limitations,
-          differentiation: computeAdaptivePathBatchDifferentiation(input.plan, {
-            objectKeyReadRecords: input.objectKeyReadRecords,
-          }),
+          diversityLimitations: limitations,
+          differentiation,
           objectKeyReadRecords: input.objectKeyReadRecords ?? [],
           ...(input.derivation ? {
             derivation: {
@@ -190,10 +196,12 @@ export interface AdaptivePathBatchDifferentiation {
     rightStyleId: string;
     metrics: AdaptivePathPairDifferentiationMetrics;
   }>;
-  /** 每对候选都达到最少达标数（7 项中 3 项）才允许标记高区分度。 */
+  /** 每对候选都达到最少达标数（7 项中 3 项）且无空资源候选才允许标记高区分度。 */
   highDifferentiation: boolean;
   /** 读验证失败而被剔除出统计的对象键（去重排序），供审计对照读取记录。 */
   unreadableObjectKeys: string[];
+  /** 存在核心资源被全部剔除（空资源）的候选：资源不足或验证失败，不得声称高区分度。 */
+  insufficientVerifiedResources: boolean;
 }
 
 /** 从候选批次可序列化选项计算两两量化区分度（#2033）。候选少于 2 条时返回 null。 */
@@ -201,10 +209,14 @@ export function computeAdaptivePathBatchDifferentiation(
   plan: AdaptiveLearningPathPlan,
   options: {
     objectKeyReadRecords?: AdaptivePathCandidateBatchPersistenceInput['objectKeyReadRecords'];
+    /** 仅对实际持久化的候选计算（门禁去重后的 styleId 集合）。 */
+    styleIds?: string[];
   } = {},
 ): AdaptivePathBatchDifferentiation | null {
+  const styleIdFilter = options.styleIds ? new Set(options.styleIds) : null;
   const serialized = buildSerializablePathOptions(plan)
-    .filter((candidate) => candidate.nodeIds.length > 0);
+    .filter((candidate) => candidate.nodeIds.length > 0)
+    .filter((candidate) => !styleIdFilter || styleIdFilter.has(candidate.styleId));
   if (serialized.length < 2) return null;
 
   const unreadableObjectKeys = new Set(
@@ -275,6 +287,10 @@ export function computeAdaptivePathBatchDifferentiation(
 
   const pairs: AdaptivePathBatchDifferentiation['pairs'] = [];
   let highDifferentiation = true;
+  // 空资源候选（核心资源被读验证失败等剔除殆尽）不得参与高区分度声称：
+  // 空集与非空集比较会虚增 Jaccard/TVD/时长指标，把资源故障误报成区分度成功。
+  const insufficientVerifiedResources = inputs.some((input) => input.coreNodeIds.length === 0);
+  if (insufficientVerifiedResources) highDifferentiation = false;
   for (let left = 0; left < inputs.length; left += 1) {
     for (let right = left + 1; right < inputs.length; right += 1) {
       const metrics = computeAdaptivePathPairDifferentiation(inputs[left], inputs[right]);
@@ -286,6 +302,7 @@ export function computeAdaptivePathBatchDifferentiation(
     pairs,
     highDifferentiation,
     unreadableObjectKeys: [...unreadableObjectKeys].sort(),
+    insufficientVerifiedResources,
   };
 }
 

@@ -184,6 +184,7 @@ describe('student-safe strategy projection (#2033)', () => {
           state: 'verified',
           contentSha256: 'sha-a',
           verifiedAt: '2026-09-06T00:00:00.000Z',
+          runtimeReleaseId: null,
         },
         {
           objectKey: 'simulations/cruise/index.html',
@@ -193,6 +194,7 @@ describe('student-safe strategy projection (#2033)', () => {
           state: 'missing',
           contentSha256: null,
           verifiedAt: '2026-09-06T00:00:00.000Z',
+          runtimeReleaseId: null,
         },
       ],
     });
@@ -205,8 +207,14 @@ describe('student-safe strategy projection (#2033)', () => {
       summary: '这两条路径在资源构成与学习安排上有明显差异。',
     })]);
     expect(comparison.resourceReadiness).toEqual(expect.arrayContaining([
-      expect.objectContaining({ styleId: 'foundation-remediation', verifiedResources: 1, unreadableResources: 0, summary: null }),
-      expect.objectContaining({ styleId: 'arena-simulation-sprint', verifiedResources: 0, unreadableResources: 1, summary: expect.any(String) }),
+      expect.objectContaining({ styleId: 'foundation-remediation', verifiedResources: 1, unreadableResources: 0, notes: [] }),
+      expect.objectContaining({
+        styleId: 'arena-simulation-sprint',
+        verifiedResources: 0,
+        unreadableResources: 1,
+        // 失败类型对学生可理解：缺失/权限/损坏分述，而非统一"无法读取"。
+        notes: ['这条路径有 1 个资源在当前课程资源库中暂时缺失，已不计入方案对比。'],
+      }),
     ]));
     // 学生安全：不下发指标原始数值、规则名与对象键原文。
     expect(JSON.stringify(comparison)).not.toContain('intro.mp4');

@@ -2443,11 +2443,14 @@ function CandidateBatchComparisonWorkspace({
                   <div><dt className="inline font-medium text-foreground">锁定节点：</dt><dd className="inline">{option.summaryFactAvailability?.lockedNodeIds ? (option.lockedNodeIds.length > 0 ? `${option.lockedNodeIds.length} 个锁定节点` : '无') : '数据不足'}{noDifferenceLabel('lockedNodes')}</dd></div>
                   <div><dt className="inline font-medium text-foreground">终点验证：</dt><dd className="inline">{option.summaryFactAvailability?.terminalValidationNodeIds ? (option.terminalValidationNodeIds.length > 0 ? `${option.terminalValidationNodeIds.length} 个终点验证节点` : '无') : '数据不足'}{noDifferenceLabel('terminalValidation')}</dd></div>
                 </dl>
-                {comparison?.resourceReadiness.find((readiness) => readiness.styleId === option.styleId)?.summary ? (
-                  <p className="mt-2 text-xs leading-5 text-subtle" data-learning-path-candidate-readiness={option.styleId}>
-                    {comparison.resourceReadiness.find((readiness) => readiness.styleId === option.styleId)?.summary}
-                  </p>
-                ) : null}
+                {(() => {
+                  const readiness = comparison?.resourceReadiness.find((item) => item.styleId === option.styleId);
+                  return readiness && readiness.notes.length > 0 ? (
+                    <div className="mt-2 text-xs leading-5 text-subtle" data-learning-path-candidate-readiness={option.styleId}>
+                      {readiness.notes.map((note) => <p key={note}>{note}</p>)}
+                    </div>
+                  ) : null;
+                })()}
               </article>
             ))}
           </div>

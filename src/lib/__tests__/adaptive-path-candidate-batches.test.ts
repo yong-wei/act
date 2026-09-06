@@ -682,6 +682,7 @@ describe('adaptive path batch differentiation metrics', () => {
       state,
       contentSha256: null,
       verifiedAt: '2026-09-06T00:00:00.000Z',
+      runtimeReleaseId: 'release-fixture',
     });
 
     // 无读取记录时行为不变：两个对象键都计入统计。
@@ -701,6 +702,9 @@ describe('adaptive path batch differentiation metrics', () => {
     // node-1 被剔除：左候选核心集变空（时长 0），与右候选的差异指标随之变化。
     expect(differentiation!.pairs[0].metrics.distinctCoreNodeCount).toBe(1);
     expect(differentiation!.pairs[0].metrics.estimatedMinutesDeltaRatio).toBe(1);
+    // 复审修复：空资源候选不得通过高区分度门禁（空集 vs 非空集会虚增指标）。
+    expect(differentiation!.insufficientVerifiedResources).toBe(true);
+    expect(differentiation!.highDifferentiation).toBe(false);
   });
 
   it('persists unreadable object keys into batch metadata alongside differentiation', async () => {
@@ -731,12 +735,16 @@ describe('adaptive path batch differentiation metrics', () => {
         state: 'missing',
         contentSha256: null,
         verifiedAt: '2026-09-06T00:00:00.000Z',
+      runtimeReleaseId: 'release-fixture',
       }],
     });
     const metadata = view.metadata as Record<string, unknown>;
     expect(metadata.objectKeyReadRecords).toHaveLength(1);
     expect(metadata.differentiation).toMatchObject({
       unreadableObjectKeys: ['lessons/1-3/media/intro.mp4'],
+      insufficientVerifiedResources: true,
+      highDifferentiation: false,
     });
+    expect(metadata.diversityLimitations).toContain('insufficient-verified-resources');
   });
 });

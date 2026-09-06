@@ -153,4 +153,27 @@ describe('portrait-driven strategy single-variable contrast (#2033)', () => {
       expect(policyOption(plan, family)?.strategy?.generic).toBe(true);
     }
   });
+
+  it('marks strategies generic when the snapshot carries no authoritative dimension evidence', () => {
+    // 复审修复回归：SNAPSHOT 但全部维度证据为 0 时不得声称个性化。
+    const unevidencedPortrait = buildPlannerPortrait(NOW, 'student-1');
+    const plan = planLearningPath(buildAlternativeCoreDiversityInput({
+      learnerState: {
+        primaryPortraitState: 'SNAPSHOT' as const,
+        primaryPortraitAvailability: 'available',
+        primaryPortrait: {
+          ...unevidencedPortrait,
+          dimensions: unevidencedPortrait.dimensions.map((dimension) => ({
+            ...dimension,
+            evidenceSummary: { totalCount: 0, sourceFamilyCounts: {} },
+          })),
+        },
+        knowledgeMastery: buildAlternativeCoreDiversityInput().learnerState!.knowledgeMastery!,
+      },
+    }));
+
+    for (const family of ['foundation-remediation', 'simulation-driven', 'preference-matched']) {
+      expect(policyOption(plan, family)?.strategy?.generic).toBe(true);
+    }
+  });
 });

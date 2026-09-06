@@ -5575,7 +5575,9 @@ function buildFamilyStrategyObservation(
 ): AdaptiveLearningPathPolicyBundle['paths'][number]['strategy'] {
   const mapped = ADAPTIVE_PATH_STRATEGY_BY_FAMILY[policyFamily];
   if (!mapped) return undefined;
-  const portraitUnavailable = input.learnerState?.primaryPortraitState !== 'SNAPSHOT';
+  // 复审修复：用与 planner 一致的可信画像判定（availability + payload 权威证据），
+  // SNAPSHOT 但无权威维度证据时同样降级为通用策略。
+  const portraitUnavailable = !hasTrustedPortraitForPersonalization(input.learnerState);
   const deficits = inferDeficits(input.goal, input.learnerState)
     .filter((deficit) => deficit.kind === 'knowledge')
     .slice(0, 2)

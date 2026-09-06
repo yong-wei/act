@@ -25,9 +25,17 @@ export interface AdaptivePathBatchComparisonView {
     styleId: string;
     verifiedResources: number;
     unreadableResources: number;
-    summary: string | null;
+    /** 按失败类型区分的学生可理解说明（不暴露对象键原文）。 */
+    notes: string[];
   }>;
 }
+
+const UNREADABLE_STATE_NOTES: Record<string, string> = {
+  missing: '个资源在当前课程资源库中暂时缺失',
+  forbidden: '个资源暂无访问权限',
+  'checksum-mismatch': '个资源内容校验未通过（可能与缓存不一致）',
+  unverified: '个资源未能完成读取验证',
+};
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -78,27 +86,32 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
         }];
       })
     : [];
-  const resourceReadiness = new Map<string, { verified: number; unreadable: number }>();
+  const resourceReadiness = new Map<string, { verified: number; unreadableByState: Map<string, number> }>();
   for (const value of Array.isArray(source.objectKeyReadRecords) ? source.objectKeyReadRecords : []) {
     const item = record(value);
     const styleId = typeof item.candidateStyleId === 'string' ? item.candidateStyleId : null;
     const state = typeof item.state === 'string' ? item.state : null;
     if (!styleId || !state) continue;
-    const counts = resourceReadiness.get(styleId) ?? { verified: 0, unreadable: 0 };
+    const counts = resourceReadiness.get(styleId)
+      ?? { verified: 0, unreadableByState: new Map<string, number>() };
     if (state === 'verified') counts.verified += 1;
-    else counts.unreadable += 1;
+    else counts.unreadableByState.set(state, (counts.unreadableByState.get(state) ?? 0) + 1);
     resourceReadiness.set(styleId, counts);
   }
   return {
     highDifferentiation: differentiation.highDifferentiation === true,
     pairs,
-    resourceReadiness: [...resourceReadiness.entries()].map(([styleId, counts]) => ({
-      styleId,
-      verifiedResources: counts.verified,
-      unreadableResources: counts.unreadable,
-      summary: counts.unreadable > 0
-        ? `这条路径有 ${counts.unreadable} 个资源暂时无法读取，已不计入方案对比。`
-        : null,
-    })),
+    resourceReadiness: [...resourceReadiness.entries()].map(([styleId, counts]) => {
+      const notes = [...counts.unreadableByState.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .filter(([state, count]) => count > 0 && UNREADABLE_STATE_NOTES[state])
+        .map(([state, count]) => `这条路径有 ${count} ${UNREADABLE_STATE_NOTES[state]}，已不计入方案对比。`);
+      return {
+        styleId,
+        verifiedResources: counts.verified,
+        unreadableResources: [...counts.unreadableByState.values()].reduce((sum, count) => sum + count, 0),
+        notes,
+      };
+    }),
   };
 }
