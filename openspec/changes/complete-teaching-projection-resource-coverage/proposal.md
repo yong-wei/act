@@ -9,7 +9,7 @@
 - **lesson/step 回归**：把 `src/lib/teaching-projection/active-inventory.ts` 的课次/步骤盘点重新并入 restage 管线。
 - **core-nodes 喂回**：从 prerequisite 出版物 `core-nodes.json`（162 个 pathEligible core，159 个在 B′ 已有绑定）喂回投影 authoring，替代 `runtime-full-binding.ts:438` 硬编码空数组。
 - **单元绑定缺口**：为 3-9 / 5-5 / 5-6 单元的 canonical 节点补教学绑定声明，使这三个单元的讲义与习题 5-6 可绑。
-- **仿真关联升级**：Odyssey `level-data.ts` 关卡补 canonical 关联（替代硬编码 `relatedNodeIds: []`）；Arena `seed-challenges.ts` 的 `relatedKnowledge` 从 legacy 节点 id 升级为 canonical；`CLASSROOM_LESSON_UNIT` 对 lesson02 补映射或记显式永久例外。
+- **仿真关联升级**：Odyssey `level-data.ts` 关卡补 canonical 关联（替代硬编码 `relatedNodeIds: []`）；Arena `seed-challenges.ts` 的 `relatedKnowledge` 从 legacy 节点 id 升级为 canonical；lesson02 经用户裁决为已退役课程，16 条 `launcher-lesson02-*` 从绑定分母直接清理（不映射、不占例外账本）。
 - **Franklin 对齐**：crosswalk 中 Franklin 4 个 canonical 对准 overlay A core 内节点。
 - **账本治理**：例外账本接入治理报告消费者；`--allow-ledger` 从单一总量阈值改为分类别配额，并随缺口闭合收紧。
 - 已获用户授权执行必要的教学语义修改（卡片 crosswalk、仿真关联、单元绑定声明均含教学判断）。

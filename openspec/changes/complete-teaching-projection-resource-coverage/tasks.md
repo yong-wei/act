@@ -21,7 +21,7 @@
 - [ ] 4.1 为 3-9 / 5-5 / 5-6 单元的 canonical 节点补教学绑定声明（coresByUnit 非空），使讲义 3-9/5-5/5-6 与习题 5-6 经既有通道绑定
 - [ ] 4.2 Odyssey `level-data.ts` 关卡数据补 canonical 关联字段，restage 移除硬编码 `relatedNodeIds: []`
 - [ ] 4.3 Arena `seed-challenges.ts` 的 `relatedKnowledge` 升级为 canonical id，restage 消费 canonical 端点
-- [ ] 4.4 `CLASSROOM_LESSON_UNIT` 补 lesson02 映射并消除 16 条 `classroom-sim-unit-unmapped`；无教学依据的条目记显式永久例外（回答 design Open Question 1）
+- [ ] 4.4 lesson02 已退役：16 条 `launcher-lesson02-*` 从绑定分母直接清理——盘点侧登记退役排除清单，数据源侧删除残留 DB launcher 行；清理前验证课次路由、教案、课堂实例无活引用（design 决策 6 已定案）
 - [ ] 4.5 逐条评审 55 条 `classroom-sim-without-unit`：可归属课次的补映射，否则记显式永久例外
 
 ## 5. Franklin 对齐

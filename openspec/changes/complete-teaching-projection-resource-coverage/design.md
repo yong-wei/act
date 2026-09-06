@@ -42,7 +42,7 @@ B′ 的缺口事实（均已核实）：
 
 5. **单元绑定缺口：补声明而非改文件存在性。** 讲义 3-9 / 5-5 / 5-6 与习题 5-6 的文件本身存在，缺口在没有任何 canonical 节点携带这三个单元的标记。修复方式是为这三个单元的 canonical 节点补教学绑定声明（coresByUnit 非空），使既有讲义/习题绑定通道自然生效，而不是给单个资源开特例。
 
-6. **仿真关联：数据源内补 canonical，lesson02 显式决策。** Odyssey 在 `level-data.ts` 关卡数据补 canonical 关联字段，替代 restage 硬编码 `relatedNodeIds: []`；Arena `seed-challenges.ts` 的 `relatedKnowledge` 升级为 canonical id；`CLASSROOM_LESSON_UNIT` 优先补 lesson02 映射（16 条 `classroom-sim-unit-unmapped`），经评审确认确实不属于任何课次单元的才记显式永久例外。**暂定决策：补 lesson02 映射**，仅当映射无教学依据时退回答案为例外。55 条 `classroom-sim-without-unit` 逐条评审：能归属课次的补课次前缀，否则记显式永久例外。
+6. **仿真关联：数据源内补 canonical；lesson02 按已退役课程直接清理。** Odyssey 在 `level-data.ts` 关卡数据补 canonical 关联字段，替代 restage 硬编码 `relatedNodeIds: []`；Arena `seed-challenges.ts` 的 `relatedKnowledge` 升级为 canonical id；lesson02 已经用户裁决为已退役课程（旧建模复习课，其 mechanical/electrical/analogy 与 `physics-modeling-*` 通用件语义重复），**不补映射、不占例外账本**：16 条 `launcher-lesson02-*` 记录从绑定分母直接清理——盘点侧登记退役排除清单，数据源侧删除残留 DB launcher 行（清理前验证无活引用：课次路由、教案、课堂实例均不引用）。55 条 `classroom-sim-without-unit` 逐条评审：能归属课次的补课次前缀，否则记显式永久例外。
 
 7. **Franklin：crosswalk 端点对准 overlay core 内节点。** `ctc:v11g-*` 4 个端点不在 376 core 内，不改 overlay A；做法是修正 Franklin crosswalk，使每行端点落在 overlay core 内最近的语义等价节点，经独立语义评审确认。无等价节点的行进显式例外账本。
 
@@ -53,7 +53,7 @@ B′ 的缺口事实（均已核实）：
 - [633 张卡语义映射误判] → 生成候选只作输入，每条 crosswalk 行必须经独立语义评审；评审不通过的记 `no-exact-identity` 继续挂账，不得强行绑定。
 - [core-nodes 出版物与 Authority release 不一致] → restage 校验出版物 identity 与投影 Authority release 匹配，不匹配则 fail closed。
 - [信息图按 canonical token 绑定撞名] → authority 目录文件名 token 必须精确等于 overlay core canonical id，否则进账本，不做前缀/模糊匹配。
-- [lesson02 映射误判课次归属] → 决策 6 给出评审出口：无教学依据时记显式永久例外，不强行映射。
+- [lesson02 清理误删活引用] → 清理前验证课次路由、教案、课堂实例均不引用这 16 条记录；清理经退役排除清单登记，可从数据源恢复重建。
 - [配额收紧过早导致 restage 不可发布] → 分类配额初始值设为当前各类实际数，随闭合逐类下调，每次下调是一次独立可回退的配置变更。
 - [运行态资源不被 git 跟踪] → 验收以文件系统盘点为准；CI 侧 git 夹具门禁维持 fail-closed，不冒充产品覆盖分母。
 
@@ -67,6 +67,6 @@ B′ 的缺口事实（均已核实）：
 
 ## Open Questions
 
-1. lesson02 的 16 条课堂仿真是否全部可映射到既有课次单元？暂定补映射，评审中若发现无教学依据的条目，记显式永久例外并在 design 决策 6 补记最终结论。
+1. ~~lesson02 映射~~ **已定案（2026-09-06 用户裁决）**：lesson02 是已退役课程，16 条 `launcher-lesson02-*` 不映射、不记例外，直接清理（决策 6）。
 2. `card-name-index.json` 的 4279 个未解析 canonicalKey 中，预期有多少属于已退役资源（直接豁免）而非待解析卡？需在任务 1 的盘点阶段给出分类计数。
 3. 信息图 legacy 目录 161 张中是否存在已退役节点 id（overlay core 内无对应）？若是，按退役豁免处理，不做跨图猜测。
