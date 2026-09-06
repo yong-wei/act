@@ -2358,7 +2358,7 @@ export function interactionStabilityProblems(evidence: JsonRecord, selectedNode:
     && interactionObservationPresent(afterSelection, ['selectedNodeId', ...geometryFields]);
   const observationsPresent = interactionObservationPresent(beforeDrag, ['selectedNodeId', ...geometryFields])
     && interactionObservationPresent(afterInspectorOpen, ['inspectorOpen', 'layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'surfaceToken', 'nodePoints'])
-    && interactionObservationPresent(afterInspectorClose, ['inspectorOpen', 'pinnedLayoutSignature', 'surfaceToken', 'nodePoints'])
+    && interactionObservationPresent(afterInspectorClose, ['inspectorOpen', 'layoutVersion', 'selectedNodeId', 'pinnedLayoutSignature', 'surfaceToken', 'nodePoints'])
     && interactionObservationPresent(afterDrag, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'surfaceToken', 'nodePoints'])
     && interactionObservationPresent(afterHover, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'hoverPreviewVisible', 'surfaceToken', 'nodePoints']);
   if (!observationsPresent) return ['interaction-observations-missing'];
@@ -2385,9 +2385,13 @@ export function interactionStabilityProblems(evidence: JsonRecord, selectedNode:
       : 'inspector-open-pinned-signature-changed',
     afterInspectorOpen.selectedNodeId === afterDrag.selectedNodeId ? null : 'inspector-open-selection-lost',
     afterInspectorClose.inspectorOpen === false ? null : 'inspector-close-not-observed',
+    afterInspectorClose.layoutVersion === afterDrag.layoutVersion ? null : 'inspector-close-layout-reset',
+    afterInspectorClose.selectedNodeId === afterDrag.selectedNodeId ? null : 'inspector-close-selection-lost',
     afterInspectorClose.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
       ? null
       : 'inspector-close-pinned-signature-changed',
+    beforeDrag.layoutVersion === afterDrag.layoutVersion ? null : 'drag-layout-reset',
+    beforeDrag.surfaceToken === afterDrag.surfaceToken ? null : 'drag-surface-remounted',
     ...interactionSurfaceStable(afterDrag, afterHover).map((problem) => `hover-${problem}`),
     ...interactionSurfaceStable(afterDrag, afterInspectorOpen).map((problem) => `inspector-open-${problem}`),
     ...interactionSurfaceStable(afterDrag, afterInspectorClose).map((problem) => `inspector-close-${problem}`),

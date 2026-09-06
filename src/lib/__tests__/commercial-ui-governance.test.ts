@@ -4989,6 +4989,32 @@ describe('commercial UI governance', () => {
 
     expect(interactionStabilityProblems({
       ...validEvidence,
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, layoutVersion: '4' },
+    }, selectedNode)).toContain('inspector-close-layout-reset');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, selectedNodeId: 'node-other' },
+    }, selectedNode)).toContain('inspector-close-selection-lost');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterDrag: { ...validEvidence.afterDrag, layoutVersion: '4' },
+      afterHover: { ...validEvidence.afterHover, layoutVersion: '4' },
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, layoutVersion: '4' },
+      afterInspectorOpen: { ...validEvidence.afterInspectorOpen, layoutVersion: '4' },
+    }, selectedNode)).toContain('drag-layout-reset');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterDrag: { ...validEvidence.afterDrag, surfaceToken: 's2' },
+      afterHover: { ...validEvidence.afterHover, surfaceToken: 's2' },
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, surfaceToken: 's2' },
+      afterInspectorOpen: { ...validEvidence.afterInspectorOpen, surfaceToken: 's2' },
+    }, selectedNode)).toContain('drag-surface-remounted');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
       afterInspectorOpen: { ...validEvidence.afterInspectorOpen, pinnedLayoutSignature: '' },
     }, selectedNode)).toContain('inspector-open-pinned-signature-changed');
 
