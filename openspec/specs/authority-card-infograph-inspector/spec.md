@@ -17,7 +17,7 @@ Selecting a presentable Authority object SHALL open or update the established st
 - **AND** every displayed field SHALL resolve from the active composite release's matched ACT projections rather than from any old, inactive, candidate, or mismatched catalog
 
 ### Requirement: Accepted Knowledge Cards and infographs load on demand
-The inspector SHALL request eligible Knowledge Card content and accepted infograph metadata only after node selection. Accepted cards and infographs SHALL be presented as learning content when the v2 learning-content manifest, sealed Authority identity, and Teaching overlay identity match the selected shard envelope. Missing files, hash drift and unmapped objects SHALL fail the learning-content package rather than silently omitting coverage. Draft-blocked cards SHALL be omitted from the product panel without a placeholder that looks reviewed, but they SHALL remain counted as linked in the coverage ledger. Legacy, malformed or duplicate-entry manifests SHALL fail closed before any asset bytes are read.
+The inspector SHALL request eligible Knowledge Card content and accepted infograph metadata only after node selection. Accepted cards and infographs SHALL be presented as learning content when the v2 learning-content manifest, sealed Authority identity, and Teaching overlay identity match the selected shard envelope. The production-served manifest MUST be the scripted v2 export covering the complete runtime card and infograph file set and carrying the scripted teaching seal (`teachingProjectionId`/`teachingProjectionHash`) of the active overlay; a v1 manifest, a fixture-scale manifest, or a manifest without the scripted seal MUST NOT be served to learners as the production learning-content package. Missing files, hash drift and unmapped objects SHALL fail the learning-content package rather than silently omitting coverage. Draft-blocked cards SHALL be omitted from the product panel without a placeholder that looks reviewed, but they SHALL remain counted as linked in the coverage ledger. Legacy, malformed or duplicate-entry manifests SHALL fail closed before any asset bytes are read.
 
 #### Scenario: Node has an accepted card and infograph
 - **WHEN** the selected node resolves to an authorized published card and accepted infograph
@@ -48,6 +48,11 @@ The inspector SHALL request eligible Knowledge Card content and accepted infogra
 - **WHEN** the learning-content manifest was exported for another Authority snapshot or release
 - **THEN** the resolver SHALL fail closed for optional card and infograph content before reading their files
 - **AND** the selected node's semantic detail SHALL remain usable
+
+#### Scenario: Production serves a stale or unsealed manifest
+- **WHEN** the manifest deployed with the runtime release is v1, covers only the git-tracked fixture node set, or lacks the scripted teaching seal
+- **THEN** the release chain SHALL fail its pre-activation verification before that manifest is activated
+- **AND** if such a manifest nonetheless reaches the runtime, the resolver and readiness classification SHALL fail closed while semantic node detail remains usable
 
 ### Requirement: Inspector content hides system identity
 Visible text, accessible names and descriptions, tooltips, media alternatives, errors and copy payloads SHALL NOT expose Authority object or relation identifiers, release or projection identifiers, hashes, raw enum values, internal source locators or filesystem paths.
