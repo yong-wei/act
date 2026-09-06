@@ -308,7 +308,15 @@ export function planRuntimeFullBinding(input: {
   const admittedBooks = new Set<string>(EXTRACTION_SOURCE_BOOKS);
   for (const locator of input.textbookLocators) {
     if (!admittedBooks.has(locator.sourceDocumentId)) continue;
+    const hitIds = locator.canonicalIds.filter((id) => overlay.has(id));
     const bookId = `act:textbook:${locator.sourceDocumentId}`;
+    const chapterId = `act:textbook-chapter:${locator.sourceDocumentId}:${locator.chapterKey}`;
+    const sectionToken = toResourceIdToken(locator.sourceAnchorId, 'sourceAnchorId');
+    const sectionId = `act:textbook-section:${sectionToken}`;
+    if (hitIds.length === 0) {
+      ledger.push({ resourceId: sectionId, reason: 'no-exact-identity', detail: locator.sourceDocumentId });
+      continue;
+    }
     addResource({
       resourceId: bookId,
       resourceType: 'textbook',
@@ -317,7 +325,6 @@ export function planRuntimeFullBinding(input: {
       sourceDocumentId: locator.sourceDocumentId,
       title: BOOK_TITLES[locator.sourceDocumentId] ?? locator.sourceDocumentId,
     });
-    const chapterId = `act:textbook-chapter:${locator.sourceDocumentId}:${locator.chapterKey}`;
     addResource({
       resourceId: chapterId,
       resourceType: 'textbook-chapter',
@@ -327,8 +334,6 @@ export function planRuntimeFullBinding(input: {
       chapterKey: locator.chapterKey,
       title: `${BOOK_TITLES[locator.sourceDocumentId] ?? locator.sourceDocumentId} ${locator.chapterKey}`,
     });
-    const sectionToken = toResourceIdToken(locator.sourceAnchorId, 'sourceAnchorId');
-    const sectionId = `act:textbook-section:${sectionToken}`;
     addResource({
       resourceId: sectionId,
       resourceType: 'textbook-section',
@@ -337,10 +342,15 @@ export function planRuntimeFullBinding(input: {
       sectionId: sectionToken,
       title: locator.sourceAnchorId,
     });
-    for (const canonicalId of locator.canonicalIds) {
-      if (!overlay.has(canonicalId)) continue;
+    for (const canonicalId of hitIds) {
       addBinding({
         resourceId: sectionId,
+        canonicalId,
+        role: 'EXPLAINS',
+        scopeId: input.scopeId,
+      });
+      addBinding({
+        resourceId: chapterId,
         canonicalId,
         role: 'EXPLAINS',
         scopeId: input.scopeId,
@@ -394,6 +404,21 @@ export function planRuntimeFullBinding(input: {
     }
     if (!bound) {
       ledger.push({ resourceId, reason: 'no-exact-identity', detail: task.taskKey });
+    }
+  }
+
+  const boundIds = new Set(bindings.map((row) => row.resourceId));
+  for (const [resourceId, row] of resources) {
+    if (boundIds.has(resourceId)) continue;
+    if (!ledger.some((item) => item.resourceId === resourceId)) {
+      ledger.push({ resourceId, reason: 'no-exact-identity' });
+    }
+    if (
+      row.resourceType === 'textbook'
+      || row.resourceType === 'textbook-chapter'
+      || row.resourceType === 'textbook-section'
+    ) {
+      resources.delete(resourceId);
     }
   }
 

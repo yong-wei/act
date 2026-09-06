@@ -4,7 +4,7 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { DEFAULT_DOMAIN_TEACHING_RUNTIME_RELATIVE } from '@/lib/authority-domain-shards/teaching';
 import { DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE } from './contracts';
@@ -24,14 +24,24 @@ function readJson<T>(filePath: string): T | null {
   }
 }
 
+function resolveCourseProjectionRoot(repoRoot: string, projectionRoot?: string): string {
+  if (projectionRoot && projectionRoot.trim()) return resolve(projectionRoot);
+  const fromEnv =
+    process.env.ACT_TEACHING_PROJECTION_STORE_ROOT?.trim()
+    || process.env.TEACHING_PROJECTION_STORE_ROOT?.trim();
+  if (fromEnv) return resolve(fromEnv);
+  return resolve(repoRoot, DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE);
+}
+
 export function readAgreedLiveCourseProjection(
   repoRoot = process.cwd(),
+  options: { projectionRoot?: string } = {},
 ): AgreedLiveCourseProjection | null {
   const current = readJson<{
     projectionId?: string;
     projectionHash?: string;
     authorityReleaseId?: string;
-  }>(join(repoRoot, DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE, 'current.json'));
+  }>(join(resolveCourseProjectionRoot(repoRoot, options.projectionRoot), 'current.json'));
   const overlay = readJson<{ projectionId?: string; projectionHash?: string }>(
     join(repoRoot, DEFAULT_DOMAIN_TEACHING_RUNTIME_RELATIVE, 'current.json'),
   );

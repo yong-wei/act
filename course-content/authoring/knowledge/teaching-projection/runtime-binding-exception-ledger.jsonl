@@ -706,6 +706,9 @@
 {"resourceId":"act:simulation:widget-physics-elec-widget-physics-elec","reason":"classroom-sim-without-unit"}
 {"resourceId":"act:simulation:widget-physics-mech-cmjrz8gqh0007eg16h9c8eu4v","reason":"classroom-sim-without-unit"}
 {"resourceId":"act:simulation:widget-physics-mech-widget-physics-mech","reason":"classroom-sim-without-unit"}
+{"resourceId":"act:textbook-section:cts.section-074bc75a48b6ef08ec34a788","reason":"no-exact-identity","detail":"dorf-modern-control-systems-14th"}
+{"resourceId":"act:textbook-section:cts.section-8922c1151790adeca58b9b6f","reason":"no-exact-identity","detail":"franklin-feedback-control-7th"}
+{"resourceId":"act:textbook-section:cts.section-9e70c036da5b849ca5d64784","reason":"no-exact-identity","detail":"franklin-feedback-control-7th"}
 {"resourceId":"act:simulation:arena-task-second-order-lead-pid","reason":"no-exact-identity","detail":"arena:task-second-order-lead-pid"}
 {"resourceId":"act:simulation:arena-task-integrator-low-frequency-balance","reason":"no-exact-identity","detail":"arena:task-integrator-low-frequency-balance"}
 {"resourceId":"act:simulation:arena-task-ship-roll-comfort","reason":"no-exact-identity","detail":"arena:task-ship-roll-comfort"}
@@ -734,3 +737,7 @@
 {"resourceId":"act:simulation:odyssey-level-14","reason":"no-exact-identity","detail":"odyssey:level-14"}
 {"resourceId":"act:simulation:odyssey-level-15","reason":"no-exact-identity","detail":"odyssey:level-15"}
 {"resourceId":"act:simulation:control-workbench-free","reason":"no-exact-identity","detail":"control-workbench:free"}
+{"resourceId":"act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-02","reason":"no-exact-identity"}
+{"resourceId":"act:textbook-chapter:franklin-feedback-control-7th:ch-root-locus-01","reason":"no-exact-identity"}
+{"resourceId":"act:textbook-chapter:franklin-feedback-control-7th:ch-root-locus-02","reason":"no-exact-identity"}
+{"resourceId":"act:textbook:franklin-feedback-control-7th","reason":"no-exact-identity"}

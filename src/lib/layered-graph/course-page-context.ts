@@ -291,7 +291,7 @@ export function resolveCoursePageLayeredGraphContext(
     ?? resolveCourseRuntimeProductionSelection({ repoRoot });
   const coursePins = overlayLiveTeachingPins(
     projectionPinsFromSelection(courseActivation),
-    readAgreedLiveCourseProjection(repoRoot),
+    readAgreedLiveCourseProjection(repoRoot, { projectionRoot: projectionPaths.root }),
   );
 
   // Corrupted / mismatched activation evidence must fail closed — never fall

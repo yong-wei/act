@@ -245,7 +245,7 @@ export function resolveKonlingTeachingProjectionBinding(input: {
   const konlingActivation = resolveKonlingProductionSelection({ repoRoot });
   const konlingPins = overlayLiveTeachingPins(
     projectionPinsFromSelection(konlingActivation),
-    readAgreedLiveCourseProjection(repoRoot),
+    readAgreedLiveCourseProjection(repoRoot, { projectionRoot }),
   );
 
   if (konlingActivation.mode === 'unavailable') {

@@ -70,6 +70,7 @@ describe('runtime full binding planner', () => {
     expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:handout:1-1' && row.canonicalId === 'ctc:core-a')).toBe(true);
     expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:card:ctc_core-b')).toBe(true);
     expect(plan.authoring.resources.some((row) => row.resourceId === 'act:textbook:hu-shousong-auto-control-8th')).toBe(true);
+    expect(plan.authoring.bindings.some((row) => row.resourceId.startsWith('act:textbook-chapter:') && row.canonicalId === 'ctc:core-a')).toBe(true);
     expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:simulation:arena-task-second-order-lead-pid')).toBe(true);
     expect(plan.ledger.some((row) => row.resourceId === 'act:card:中文slug_1_abcd' && row.reason === 'no-exact-identity')).toBe(true);
     expect(plan.ledger.some((row) => row.reason === 'classroom-sim-without-unit')).toBe(true);
@@ -96,6 +97,30 @@ describe('runtime full binding planner', () => {
       taskSims: [],
     });
     expect(plan.authoring.resources.some((row) => String(row.resourceId).includes('exercise-analysis'))).toBe(false);
+  });
+
+  it('does not publish textbook rows whose locators miss overlay cores', () => {
+    const plan = planRuntimeFullBinding({
+      scopeId: 'act-control-theory',
+      authoringRevision: 'a'.repeat(40),
+      authorityReleaseId: 'ctr:release:x',
+      overlayCores: ['ctc:core-a'],
+      nodeUnits: new Map(),
+      resources: [],
+      bindings: [],
+      prerequisites: [],
+      cards: [],
+      authorityCardCanonicalIds: [],
+      textbookLocators: [{
+        sourceDocumentId: EXTRACTION_SOURCE_BOOKS[1],
+        sourceAnchorId: 'cts:section-miss',
+        chapterKey: 'ch-root-locus-01',
+        canonicalIds: ['ctc:outside'],
+      }],
+      taskSims: [],
+    });
+    expect(plan.authoring.resources.some((row) => String(row.resourceId).includes('franklin'))).toBe(false);
+    expect(plan.ledger.some((row) => row.reason === 'no-exact-identity' && row.detail === EXTRACTION_SOURCE_BOOKS[1])).toBe(true);
   });
 
   it('overlays live course projection only for teaching pins with matching authority', () => {
