@@ -31,5 +31,5 @@
 - [x] 6.2 Contract tests: baseline arms unchanged (no citation capability, 0/0 → N/A), code-block/subscript marker distinctions preserved, normative answers never upgrade unverified sources to verified.
 - [x] 6.3 Run typecheck, focused vitest suites, strict OpenSpec validation, and `git diff --check`.
 - [x] 6.4 Re-run the three-arm fair experiment; report overall and per-intent precision/coverage against the acceptance thresholds (85% overall, 70% per intent, 90% precision, zero unassigned/fabricated numbers) and archive this change after merge with the run summary recorded in the Issue/PR.
-  - Live run `live-2039-evidence-supply`（Qwen/Qwen3.5-35B-A3B@siliconflow，gitRevision `3a6f45a43`，bank v2，108/108）：coverage 总体 92/92=100%（阈值 85% ✅，提案前 46.2%）；分意图六类全部 100%（阈值 70% ✅）；伪/未分配编号 0（✅）；precision 72.5%=87/120（阈值 90% ❌）——归因：22 个编号仅落 model-derived 推导章节 + 11 个 semantic-score 分级片段被正文引用，非证据供给缺失（补证 22 repaired / 14 not-needed / 0 unresolved），不放宽口径，模型引用纪律作为后续数据点。
-  - Fixture run `fixture-2039-evidence-supply` 同链路复跑通过（coverage 72/72=100%，补证 36/36，missReasons 分意图导出为空桶）。
+  - 最终 live run `live-2039c-evidence-supply`（Qwen/Qwen3.5-35B-A3B@siliconflow，gitRevision `f699aae46`，bank v2，108/108，aggregate complete）：coverage 总体 94/94=100%（阈值 85% ✅，提案前 46.2%）；分意图六类全部 100%（阈值 70% ✅）；precision 73/80=91.2%（阈值 90% ✅）；伪/未分配编号 0（✅）；补证 22 repaired / 14 not-needed / 0 unresolved。
+  - 迭代过程：首轮 run（3a6f45a43）precision 72.5%——review 修复（零重合候选拒配、未分配候选不入 prompt）后二轮 run（464f49aa0）precision 95.1% 但 code-debugging 覆盖 40%（供给断点：单换行参考材料被句子切分截断必需章节片段）；行式切分修复后终轮全指标达标。三次 run 快照均在 artifacts（本地）。
