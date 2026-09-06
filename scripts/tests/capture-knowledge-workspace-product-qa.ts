@@ -1985,18 +1985,31 @@ async function closeInspectorIfPresent(page: Page) {
 async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
   const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
   if (await inspector.isVisible().catch(() => false)) return;
-  await page.waitForFunction((expectedNodeId) => {
-    // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
-    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
-    const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
-    const control = selectedNodeId
-      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
-      : null;
-    return selectedNodeId === expectedNodeId
-      && control?.getAttribute('aria-busy') !== 'true'
-      // inspector 开合一次后 aria-expanded 固化为 'false'，只排除仍展开状态。
-      && control?.getAttribute('aria-expanded') !== 'true';
-  }, nodeId, { timeout: 20000 });
+  try {
+    await page.waitForFunction((expectedNodeId) => {
+      // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
+      const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+      const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
+      const control = selectedNodeId
+        ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
+        : null;
+      return selectedNodeId === expectedNodeId
+        && control?.getAttribute('aria-busy') !== 'true'
+        // inspector 开合一次后 aria-expanded 固化为 'false'，只排除仍展开状态。
+        && control?.getAttribute('aria-expanded') !== 'true';
+    }, nodeId, { timeout: 20000 });
+  } catch (error) {
+    // 诊断现场：为 headless 交互失活调查（#2031）留证据。
+    const diagnostics = await page.evaluate(`(() => {
+      const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+      return {
+        selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? null,
+        selectedNodeDash: canvas?.getAttribute('data-knowledge-selected-node-id') ?? null,
+        inspectorCount: document.querySelectorAll('[data-knowledge-inspector]').length,
+      };
+    })()`);
+    throw new Error(`inspector readiness wait failed for ${nodeId}: ${JSON.stringify(diagnostics)}`);
+  }
   const control = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + nodeId + '"]').first();
   const box = await control.boundingBox().catch(() => null);
   if (!box) {
