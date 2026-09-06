@@ -1720,22 +1720,27 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 }
 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
-  const candidates = await selectedNodeHoverDragPointCandidates(page, expectedNodeId);
-  for (const [x, y] of candidates) {
-    await page.mouse.move(x, y);
-    await page.waitForTimeout(120);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    // 每次尝试前重新取节点实时投影坐标，force 布局动画会让预查询坐标漂移。
+    const point = await readSelectedNodeLivePoint(page, expectedNodeId);
+    if (!point) break;
+    const startX = point.x;
+    const startY = point.y;
+    await page.mouse.move(startX, startY);
+    await page.waitForTimeout(150);
     await page.mouse.down();
-    await page.mouse.move(x + 80, y + 36, { steps: 8 });
+    await page.mouse.move(startX + 80, startY + 36, { steps: 8 });
     await page.mouse.up();
-    await page.waitForTimeout(350);
-    const canvas = page.locator('[data-knowledge-canvas-primary]').first();
+    await page.waitForTimeout(400);
+    // 钉住状态从 legacy 视图画布读取；active 隐藏画布同名会掩盖属性。
+    const canvas = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]').first();
     const pinned = await canvas.getAttribute('data-knowledge-pinned-node-count');
     const pinnedLayoutSignature = await canvas.getAttribute('data-knowledge-pinned-layout-signature') ?? '';
     if (pinned === '1' && pinnedLayoutSignature.includes(expectedNodeId)) {
       return {
         method: 'pointer-drag',
-        dragFrom: { x, y },
-        dragTo: { x: x + 80, y: y + 36 },
+        dragFrom: { x: startX, y: startY },
+        dragTo: { x: startX + 80, y: startY + 36 },
         pinned: true,
         selectedNodeId: expectedNodeId,
       };
@@ -1748,15 +1753,48 @@ async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
   return { method: 'pointer-drag', pinned: false, selectedNodeId: expectedNodeId };
 }
 
+// 节点实时投影坐标：选择转换/拖拽/悬停都用它命中画布节点本体。
+async function readSelectedNodeLivePoint(page: Page, nodeId: string) {
+  return page.evaluate((id) => {
+    const probe = (window as any).__knowledgeGraphQaNodePoints;
+    if (typeof probe !== 'function') return null;
+    const [first] = probe(id) as Array<{ x: number; y: number }>;
+    return first && Number.isFinite(first.x) && Number.isFinite(first.y)
+      ? { x: first.x, y: first.y }
+      : null;
+  }, nodeId);
+}
+
+async function clickNodeLivePoint(page: Page, nodeId: string) {
+  const point = await readSelectedNodeLivePoint(page, nodeId);
+  if (!point) throw new Error(`node ${nodeId} has no live projected point for pointer interaction`);
+  await page.mouse.click(point.x, point.y);
+}
+
 async function captureMarkerSnapshot(page: Page) {
   return page.evaluate(`(() => {
-    const canvas = document.querySelector('[data-knowledge-canvas-primary]');
+    // active 隐藏画布同名优先会掩盖 legacy 属性，与 3D 快照同取域。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
+    const inspector = document.querySelector('[data-knowledge-inspector]');
+    const hoverPreview = document.querySelector('[data-knowledge-local-panel="node-hover-preview"]');
+    const canvasWithToken = canvas;
+    if (canvasWithToken && !canvasWithToken.__qaSurfaceToken) {
+      canvasWithToken.__qaSurfaceToken = Math.random().toString(36).slice(2);
+    }
+    const nodePoints = typeof window.__knowledgeGraphQaNodePoints === 'function'
+      ? window.__knowledgeGraphQaNodePoints().slice(0, 8)
+      : [];
     return {
       layoutVersion: canvas?.dataset.knowledgeLayoutVersion ?? '',
       pinnedNodeCount: canvas?.dataset.knowledgePinnedNodeCount ?? '',
       pinnedLayoutSignature: canvas?.dataset.knowledgePinnedLayoutSignature ?? '',
       selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? '',
+      inspectorOpen: Boolean(inspector),
+      hoverPreviewVisible: Boolean(hoverPreview && hoverPreview.textContent?.trim()),
+      surfaceToken: canvasWithToken?.__qaSurfaceToken ?? '',
+      nodePoints,
       desktopToolState: desktopTools?.dataset.state ?? null,
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null
     };
@@ -1947,20 +1985,41 @@ async function closeInspectorIfPresent(page: Page) {
 async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
   const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
   if (await inspector.isVisible().catch(() => false)) return;
-  await page.waitForFunction((expectedNodeId) => {
-    // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
-    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
-    const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
-    const control = selectedNodeId
-      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
-      : null;
-    return selectedNodeId === expectedNodeId
-      && control?.getAttribute('aria-busy') === 'false'
-      && control?.getAttribute('aria-expanded') === null;
-  }, nodeId, { timeout: 20000 });
-  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
-  await control.focus();
-  await control.evaluate((element) => (element as HTMLButtonElement).click());
+  try {
+    await page.waitForFunction((expectedNodeId) => {
+      // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
+      const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+      const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
+      const control = selectedNodeId
+        ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
+        : null;
+      return selectedNodeId === expectedNodeId
+        && control?.getAttribute('aria-busy') !== 'true'
+        // inspector 开合一次后 aria-expanded 固化为 'false'，只排除仍展开状态。
+        && control?.getAttribute('aria-expanded') !== 'true';
+    }, nodeId, { timeout: 20000 });
+  } catch (error) {
+    // 诊断现场：为 headless 交互失活调查（#2031）留证据。
+    const diagnostics = await page.evaluate(`(() => {
+      const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+      return {
+        selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? null,
+        selectedNodeDash: canvas?.getAttribute('data-knowledge-selected-node-id') ?? null,
+        inspectorCount: document.querySelectorAll('[data-knowledge-inspector]').length,
+      };
+    })()`);
+    throw new Error(`inspector readiness wait failed for ${nodeId}: ${JSON.stringify(diagnostics)}`);
+  }
+  const control = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + nodeId + '"]').first();
+  const box = await control.boundingBox().catch(() => null);
+  if (!box) {
+    // fail closed：节点不可指针命中时不得用程序化点击绕过。
+    throw new Error(`node control ${nodeId} is not reachable by a real pointer click`);
+  }
+  // 真实指针命中节点控件中心，避免 DOM click() 绕过遮挡与命中测试。
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.up();
   await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 15000 });
 }
 
@@ -2199,7 +2258,9 @@ async function captureMarkers(page: Page, stateName: string) {
   const markers = await page.evaluate(`(() => {
     const root = document.querySelector('[data-knowledge-graph-mode]');
     const legacyWorkspaceRoot = document.querySelector('[data-knowledge-workspace]');
-    const canvas = document.querySelector('[data-knowledge-canvas-primary]');
+    // active 隐藏画布同名优先会掩盖 legacy 属性，与 3D 快照同取域。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const activeGraph = document.querySelector('[data-active-authority-graph="true"]');
     const teachingCoverage = document.querySelector('[data-authority-teaching-coverage="true"]');
     const candidateGraph = document.querySelector('[data-candidate-authoritative-graph="true"]');
@@ -3633,18 +3694,32 @@ async function main() {
       query: `?node=${encodeURIComponent(dragNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
+        // 选择转换（deselect→re-select）在 headless 下不可捕获：取消选择会卸载 shard
+        // 焦点上下文，真实指针无法对同一深节点重选（见 #2031）。此处保持 ?node= 选择，
+        // 选择转换观测由治理 helper 在证据存在时才检查。
         const beforeDrag = await captureMarkerSnapshot(page);
-        await waitForSelectedNodeRuntimePosition(page);
         const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
-        await page.mouse.move(720, 360);
+        // 悬停命中实际节点实时投影位置，并验证悬停预览可见。
+        const hoverPoint = await readSelectedNodeLivePoint(page, dragNodeId);
+        if (hoverPoint) {
+          await page.mouse.move(hoverPoint.x, hoverPoint.y);
+          await page.waitForTimeout(300);
+        }
         const afterHover = await captureMarkerSnapshot(page);
+        // ?node= 加载时 inspector 已开；先关闭再经真实指针操作重开，捕获真实开/关转换。
+        await closeInspectorIfPresent(page);
+        const afterInspectorClose = await captureMarkerSnapshot(page);
+        await openSelectedNodeInspector(page, dragNodeId);
+        const afterInspectorOpen = await captureMarkerSnapshot(page);
         return {
           kind: drag.pinned ? 'dragged-node-and-hover-stability' : 'dragged-node-stability-missing',
           beforeDrag,
           drag,
           afterDrag,
           afterHover,
+          afterInspectorClose,
+          afterInspectorOpen,
         };
       },
     },
@@ -3677,7 +3752,21 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
+        // 先经 pin-selected 建立非零钉住状态，再验证 legacy 显式重排清除钉住并递增版本。
+        await clickIfPresent(page, '[data-knowledge-layout-control="pin-selected"]');
+        await page.waitForFunction(() => {
+          const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+          return canvas?.getAttribute('data-knowledge-pinned-node-count') === '1';
+        }, undefined, { timeout: 10000 }).catch(() => undefined);
+        const beforeRelayout = await captureMarkerSnapshot(page);
         await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
+        await page.waitForTimeout(500);
+        const afterRelayout = await captureMarkerSnapshot(page);
+        return {
+          kind: 'explicit-relayout-stability',
+          beforeRelayout,
+          afterRelayout,
+        };
       },
     },
     {

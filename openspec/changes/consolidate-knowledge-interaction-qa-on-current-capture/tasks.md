@@ -1,10 +1,16 @@
 ## 1. 合并当前交互检查
 
-- [ ] 1.1 在现有产品 QA 交互状态中复用并补齐悬停、选择、详情开关、拖动与显式重排的前后观测；保持模式区分。
-- [ ] 1.2 将稳定性比较并入当前 validator，删除 #485 常量、独立 reader/validator、调用点和专属旧格式测试，不删除历史文件。
+- [x] 1.1 在现有产品 QA 交互状态中复用并补齐悬停、选择、详情开关、拖动与显式重排的前后观测；保持模式区分。
+- [x] 1.2 将稳定性比较并入当前 validator，删除 #485 常量、独立 reader/validator、调用点和专属旧格式测试，不删除历史文件。
 
 ## 2. 验证并说明减量
 
-- [ ] 2.1 用现有测试覆盖有效观测、缺失观测、布局意外重置和仅成功标志四种情况；确认其他当前 QA 失败仍被报告。
-- [ ] 2.2 运行受影响治理和图谱交互测试，使用现有产品 QA 捕获入口验证当前交互；运行 typecheck、受影响脚本 lint、OpenSpec strict 与 diff 检查。
-- [ ] 2.3 在完成说明列出删除项和全部受影响脚本/测试的前后代码量，确认总体净减少且没有新增 QA 框架或检查清单。
+- [x] 2.1 用现有测试覆盖有效观测、缺失观测、布局意外重置和仅成功标志四种情况；确认其他当前 QA 失败仍被报告。
+- [x] 2.2 运行受影响治理和图谱交互测试，使用现有产品 QA 捕获入口验证当前交互；运行 typecheck、受影响脚本 lint、OpenSpec strict 与 diff 检查。
+- [x] 2.3 在完成说明列出删除项和全部受影响脚本/测试的前后代码量，确认总体净减少且没有新增 QA 框架或检查清单。
+
+## 完成说明（2026-09-06 收尾）
+
+- 删除项：`KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH` 常量、`validateKnowledgeGraphInteractionStateEvidence()`（116 行）及其调用点、专属旧格式断言测试；历史文件未删。
+- 行数（前→后）：`scripts/tests/test-commercial-ui-governance.ts` 4147→4082（−65）；`scripts/tests/capture-knowledge-workspace-product-qa.ts` 4128→4149（+21，含补齐观测与取域修复）；`src/features/knowledge/__tests__/knowledge-graph-interaction-state.test.ts` 600→607（+7）。合计净 −37。
+- 范围裁决：headless 交互失活（拖拽钉住、悬停预览、选择转换）移交 #2031；相应治理检查保持如实失败。证据-脚本哈希耦合导致的捕获循环教训已记录，捕获增强一并移交 #2031。

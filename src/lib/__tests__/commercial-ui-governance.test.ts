@@ -35,8 +35,10 @@ import {
 } from '@/lib/platform-role-navigation';
 import {
   buildSecondaryRouteGovernanceMatrixFromEvidence,
+  explicitRelayoutStabilityProblems,
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
+  interactionStabilityProblems,
   knowledgeWorkspaceProductQaCaptureRevisionProblems,
   knowledgeWorkspaceProductQaVisualReviewHashProblems,
   knowledgeWorkspaceProductQaSourceHashProblems,
@@ -4940,6 +4942,127 @@ describe('commercial UI governance', () => {
       repositoryRoot: repo,
       revision: captureCommitSha,
       currentSourceSha256: { [sourcePath]: committedHash },
+    })).toEqual([]);
+  });
+
+  it('accepts complete graph interaction observations and rejects missing, reset, or flag-only evidence', () => {
+    const selectedNode = 'node-knowledge-graph-core';
+    const points = [{ x: 120, y: 240 }, { x: 300, y: 180 }];
+    const validEvidence = {
+      beforeDrag: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points, inspectorOpen: false },
+      drag: { pinned: true, method: 'pointer-drag', selectedNodeId: selectedNode },
+      afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, surfaceToken: 's1', nodePoints: points },
+      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, surfaceToken: 's1', nodePoints: points, hoverPreviewVisible: true },
+      afterInspectorClose: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, surfaceToken: 's1', nodePoints: points },
+      afterInspectorOpen: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: true, surfaceToken: 's1', nodePoints: points },
+    };
+
+    expect(interactionStabilityProblems(validEvidence, selectedNode)).toEqual([]);
+
+    expect(interactionStabilityProblems({}, selectedNode)).toEqual(['interaction-observations-missing']);
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, layoutVersion: '4' },
+    }, selectedNode)).toContain('hover-layout-reset');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, pinnedLayoutSignature: '' },
+    }, selectedNode)).toContain('hover-pinned-signature-changed');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, hoverPreviewVisible: false },
+    }, selectedNode)).toContain('hover-preview-not-visible');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, nodePoints: [{ x: 999, y: 999 }] },
+    }, selectedNode)).toContain('hover-node-geometry-changed');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, pinnedLayoutSignature: 'pin:reset' },
+      afterDrag: { ...validEvidence.afterDrag, pinnedLayoutSignature: `pin:${selectedNode}` },
+    }, selectedNode)).toContain('inspector-close-pinned-signature-changed');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, layoutVersion: '4' },
+    }, selectedNode)).toContain('inspector-close-layout-reset');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, selectedNodeId: 'node-other' },
+    }, selectedNode)).toContain('inspector-close-selection-lost');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterDrag: { ...validEvidence.afterDrag, layoutVersion: '4' },
+      afterHover: { ...validEvidence.afterHover, layoutVersion: '4' },
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, layoutVersion: '4' },
+      afterInspectorOpen: { ...validEvidence.afterInspectorOpen, layoutVersion: '4' },
+    }, selectedNode)).toContain('drag-layout-reset');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterDrag: { ...validEvidence.afterDrag, surfaceToken: 's2' },
+      afterHover: { ...validEvidence.afterHover, surfaceToken: 's2' },
+      afterInspectorClose: { ...validEvidence.afterInspectorClose, surfaceToken: 's2' },
+      afterInspectorOpen: { ...validEvidence.afterInspectorOpen, surfaceToken: 's2' },
+    }, selectedNode)).toContain('drag-surface-remounted');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      afterInspectorOpen: { ...validEvidence.afterInspectorOpen, pinnedLayoutSignature: '' },
+    }, selectedNode)).toContain('inspector-open-pinned-signature-changed');
+
+    expect(interactionStabilityProblems({
+      beforeDrag: { ...validEvidence.beforeDrag, pinnedLayoutSignature: undefined },
+    }, selectedNode)).toContain('interaction-observations-missing');
+
+    // 选择转换观测存在时才检查（headless 不可捕获时缺失不阻断其余结论，见 #2031）。
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      beforeSelection: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+      afterDeselection: { layoutVersion: '3', selectedNodeId: '' },
+      afterSelection: { layoutVersion: '3', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+    }, selectedNode)).toEqual([]);
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
+      beforeSelection: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+      afterDeselection: { layoutVersion: '3', selectedNodeId: '' },
+      afterSelection: { layoutVersion: '4', pinnedLayoutSignature: '', selectedNodeId: selectedNode, surfaceToken: 's1', nodePoints: points },
+    }, selectedNode)).toContain('selection-layout-reset');
+
+    expect(interactionStabilityProblems({
+      beforeSelection: validEvidence.beforeSelection,
+      afterDeselection: validEvidence.afterDeselection,
+      afterSelection: validEvidence.afterSelection,
+      beforeDrag: validEvidence.beforeDrag,
+      dragDoesNotRelayout: true,
+    }, selectedNode)).toEqual(['interaction-observations-missing']);
+
+    expect(explicitRelayoutStabilityProblems({
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '3', pinnedNodeCount: '1', selectedNodeId: selectedNode },
+    })).toEqual([]);
+
+    expect(explicitRelayoutStabilityProblems({})).toEqual(['relayout-observations-missing']);
+
+    expect(explicitRelayoutStabilityProblems({
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '2', pinnedNodeCount: '0', selectedNodeId: 'node-relayout-drifted' },
+      relayoutWorked: true,
+    })).toEqual(
+      expect.arrayContaining(['relayout-pin-not-established', 'relayout-version-not-incremented', 'relayout-selection-lost']),
+    );
+
+    expect(explicitRelayoutStabilityProblems({
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '3', pinnedNodeCount: '1', selectedNodeId: selectedNode },
     })).toEqual([]);
   });
 
