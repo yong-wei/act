@@ -773,6 +773,11 @@ export interface AdaptiveLearningPathPolicyBundle {
     planNodes?: AdaptiveLearningPathPlanNode[];
     nodeSummaries: AdaptiveLearningPathOptionNodeSummary[];
     targetDeficits: AdaptiveLearningPathDeficit[];
+    strategy?: AdaptivePathStrategyMetadata & {
+      preferredTypeShare: number;
+      weaknessResourceCount: number;
+      comprehensiveTaskCount: number;
+    };
     recommendationProvenance?: AdaptiveLearningPathRecommendationProvenance;
     evidenceBasis: string[];
     estimatedMinutes: number;
@@ -3666,6 +3671,7 @@ function policyScoreBoost(
 ): number {
   const planningUnit = requirePlanningUnit(node);
   const estimatedMinutes = planningUnit.estimatedTimeMinutes;
+
   if (policyFamily === 'foundation-remediation') {
     const conceptBoost = node.type === 'knowledge_card' ||
       node.type === 'textbook_section' ||
@@ -5210,6 +5216,7 @@ function buildPolicyBundle(
         retainedCoreRefs.add(ref);
         avoidedDifferentiableCoreRefs.add(ref);
       });
+      const strategy = buildFamilyStrategyObservation(policyFamily, input, mainPath);
       const modalityMix = buildModalityMix(mainPath);
       const terminalValidationNodeIds = pathTerminalValidationNodeIds(mainPath);
       const estimatedMinutes = remainingTeachingEstimatedMinutes(mainPath);
@@ -5227,6 +5234,7 @@ function buildPolicyBundle(
         planNodes: mainPath,
         nodeSummaries: mainPath.map(toPathOptionNodeSummary),
         targetDeficits,
+        strategy,
         recommendationProvenance: buildAdaptivePathRecommendationProvenance({
           path: mainPath,
           deficits: targetDeficits,
@@ -5506,7 +5514,22 @@ function shapePolicyBundlePath(
   if (personalizationPluginRegistry.get(input.goal.id)?.status !== 'active') {
     return mainPath;
   }
-  if (policyFamily !== 'foundation-remediation' && policyFamily !== 'preference-matched') {
+  if (policyFamily === 'preference-matched') {
+    // #2033 偏好资源强化：偏好类型教学节点占比不足 60% 时补充偏好支持节点。
+    const preferredTypes = new Set(buildPlannerPreferenceContext(input).resourceTypes);
+    if (preferredTypes.size === 0) return mainPath;
+    let shaped = mainPath;
+    for (let round = 0; round < 2; round += 1) {
+      const teachingNodes = shaped.filter((node) => node.terminalConstraints.length === 0);
+      const preferredCount = teachingNodes.filter((node) => preferredTypes.has(node.type)).length;
+      if (teachingNodes.length === 0 || preferredCount / teachingNodes.length >= 0.6) break;
+      const withSupport = shapePolicyBundlePath(shaped, '__quota_support__' as AdaptiveLearningPathPolicyFamily, input);
+      if (withSupport.length === shaped.length) break;
+      shaped = withSupport;
+    }
+    return shaped;
+  }
+  if (policyFamily !== 'foundation-remediation' && policyFamily !== 'simulation-driven') {
     return mainPath;
   }
   const selectedIds = new Set(mainPath.map((node) => node.nodeId));
@@ -5535,12 +5558,59 @@ function shapePolicyBundlePath(
   ];
 }
 
-function selectPolicySupportNodes(
+function buildFamilyStrategyObservation(
   policyFamily: AdaptiveLearningPathPolicyFamily,
+  input: AdaptiveLearningPathPlannerInput,
+  mainPath: AdaptiveLearningPathPlanNode[],
+): AdaptiveLearningPathPolicyBundle['paths'][number]['strategy'] {
+  const mapped = ADAPTIVE_PATH_STRATEGY_BY_FAMILY[policyFamily];
+  if (!mapped) return undefined;
+  const portraitUnavailable = input.learnerState?.primaryPortraitState !== 'SNAPSHOT';
+  const deficits = inferDeficits(input.goal, input.learnerState)
+    .filter((deficit) => deficit.kind === 'knowledge')
+    .slice(0, 2)
+    .map((deficit) => deficit.targetId);
+  const preferredTypes = Array.from(buildPlannerPreferenceContext(input).resourceTypes);
+  // 优势维度取 portrait-v2 主权维度（最高分且证据非零）。
+  const competencies = (input.learnerState?.primaryPortrait?.dimensions ?? [])
+    .filter((dimension) => dimension.evidenceSummary.totalCount > 0)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 1)
+    .map((dimension) => dimension.id);
+  const teachingNodes = mainPath.filter((node) => node.terminalConstraints.length === 0);
+  const preferredCount = teachingNodes.filter((node) => preferredTypes.length > 0 && preferredTypes.includes(node.type as ResourceNode['type'])).length;
+  const weaknessResourceCount = policyFamily === 'foundation-remediation'
+    ? teachingNodes.filter((node) => node.knowledgeCoverage.some((tag) => deficits.includes(tag))).length
+    : 0;
+  const comprehensiveTaskCount = policyFamily === 'simulation-driven'
+    ? teachingNodes.filter((node) => ['simulation', 'arena_task', 'project'].includes(node.type)).length
+    : 0;
+  return {
+    family: policyFamily,
+    strategyId: mapped.strategyId,
+    name: mapped.name,
+    portraitBasis: policyFamily === 'foundation-remediation'
+      ? deficits
+      : policyFamily === 'preference-matched'
+        ? preferredTypes.slice(0, 2)
+        : competencies,
+    generic: portraitUnavailable,
+    preferredTypeShare: teachingNodes.length > 0 ? preferredCount / teachingNodes.length : 0,
+    weaknessResourceCount,
+    comprehensiveTaskCount,
+  };
+}
+
+function selectPolicySupportNodes(
+  policyFamily: AdaptiveLearningPathPolicyFamily | '__quota_support__',
   input: AdaptiveLearningPathPlannerInput,
   selectedIds: Set<string>,
   remainingBudget: number,
 ): ResourceNode[] {
+  // '__quota_support__'：偏好配额补充轮，沿用偏好匹配的支持节点选择。
+  const supportFamily = (policyFamily === '__quota_support__'
+    ? 'preference-matched'
+    : policyFamily) as AdaptiveLearningPathPolicyFamily;
   let remaining = Math.max(0, remainingBudget);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
@@ -5565,7 +5635,7 @@ function selectPolicySupportNodes(
       const planningUnit = planningUnitForNode(node);
       if (!planningUnit) continue;
       if (planningUnit.prerequisites.length > 0) continue;
-      if (!policyAllowsNode(node, policyFamily, input.constraints)) continue;
+      if (!policyAllowsNode(node, supportFamily, input.constraints)) continue;
       if (!nodeMatchesGoal(node, input.goal, deficits, graphContext)) continue;
       const estimatedMinutes = planningUnit.estimatedTimeMinutes;
       if (estimatedMinutes > remaining) continue;
@@ -5574,7 +5644,25 @@ function selectPolicySupportNodes(
     }
   };
 
-  if (policyFamily === 'foundation-remediation') {
+  if (supportFamily === 'simulation-driven') {
+    // 优势迁移应用（#2033）：优先仿真/Arena/项目综合任务支持节点。
+    const typeRank = new Map<ResourceNode['type'], number>([
+      ['simulation', 0],
+      ['arena_task', 1],
+      ['project', 2],
+      ['control_workbench', 3],
+    ]);
+    addCandidates(input.registry.nodes
+      .filter((node) => typeRank.has(node.type))
+      .sort((left, right) =>
+        (typeRank.get(left.type) ?? 99) - (typeRank.get(right.type) ?? 99) ||
+        (planningUnitForNode(left)?.estimatedTimeMinutes ?? 0) - (planningUnitForNode(right)?.estimatedTimeMinutes ?? 0) ||
+        left.id.localeCompare(right.id)
+      ), 2);
+    return picked;
+  }
+
+  if (supportFamily === 'foundation-remediation') {
     const typeRank = new Map<ResourceNode['type'], number>([
       ['knowledge_card', 0],
       ['textbook_section', 1],
@@ -5593,7 +5681,7 @@ function selectPolicySupportNodes(
     return picked;
   }
 
-  const preferredTypes = Array.from(buildPlannerPreferenceContext(input).resourceTypes);
+  const preferredTypes = Array.from(buildPlannerPreferenceContext({ ...input, policyFamily: supportFamily } as AdaptiveLearningPathPlannerInput).resourceTypes);
   const preferenceRank = new Map(preferredTypes.map((type, index) => [type, index]));
   addCandidates(input.registry.nodes
       .filter((node) => preferenceRank.has(node.type))
