@@ -12,3 +12,7 @@
 {"resourceKey": "ten-drops-game-v1-ten-drops-game-v1", "exemptionReason": "no-knowledge-anchor"}
 {"resourceKey": "widget-argument-principle-widget-argument-principle", "exemptionReason": "no-knowledge-anchor"}
 {"resourceKey": "widget-argument-principle-cmjtc2ur30001d1skr7w074mz", "exemptionReason": "no-knowledge-anchor"}
+{"resourceKey": "arena-task-cruise-roll-blackbox-identification", "exemptionReason": "辨识类挑战无 overlay 等价知识锚点"}
+{"resourceKey": "arena-task-ship-roll-mpc-hidden-scenarios", "exemptionReason": "鲁棒隐场景挑战无 overlay 等价知识锚点"}
+{"resourceKey": "arena-task-ship-roll-optimized-pid-robust", "exemptionReason": "鲁棒整定挑战无 overlay 等价知识锚点"}
+{"resourceKey": "arena-task-ship-roll-robust-disturbance", "exemptionReason": "鲁棒扰动挑战无 overlay 等价知识锚点"}

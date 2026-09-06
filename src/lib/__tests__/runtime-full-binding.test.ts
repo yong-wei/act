@@ -213,7 +213,7 @@ describe('runtime full binding planner', () => {
     expect(plan.authoring.resources.filter((row) => row.resourceType === 'infographic').length).toBe(4);
     expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:infographic:ctc_core-a' && row.canonicalId === 'ctc:core-a')).toBe(true);
     expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:infographic:Bode图_1_1' && row.canonicalId === 'ctc:core-a')).toBe(true);
-    expect(plan.ledger.some((row) => row.resourceId === 'act:infographic:ctc_missing' && row.reason === 'no-exact-identity')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:infographic:ctc_missing' && row.reason === 'explicit-exemption' && row.detail === 'authority-infograph-outside-overlay')).toBe(true);
     expect(plan.ledger.some((row) => row.resourceId === 'act:infographic:未评审图_1_1' && row.reason === 'no-exact-identity')).toBe(true);
   });
 

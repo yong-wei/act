@@ -9,3 +9,4 @@
 {"resourceKey": "widget-physics-elec", "canonicalId": "ctc:modeling-348746457d644126ff8ecf77", "rationale": "电气物理 widget 绑定建模核心知识点"}
 {"resourceKey": "widget-analogy-mapper", "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6", "rationale": "类比映射 widget 绑定相似系统核心知识点"}
 {"resourceKey": "sim-pid-v1", "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086", "rationale": "PID 演示仿真绑定 PID 控制器核心知识点"}
+{"resourceKey": "arena-task-ship-roll-comfort", "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98", "rationale": "横摇舒适度白箱挑战绑定欠阻尼二阶响应核心知识点"}

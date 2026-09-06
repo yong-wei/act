@@ -339,8 +339,22 @@ export function planRuntimeFullBinding(input: {
 
   const isBound = (resourceId: string) => bindings.some((item) => item.resourceId === resourceId);
 
-  // Task sims and declared sims bind before the resource fallback so their
-  // ledger classification reflects binding, not absence (#2042).
+  for (const [resourceKey, canonicalId] of simDeclarationKeys) {
+    if (!overlay.has(canonicalId)) continue;
+    for (const resourceId of resources.keys()) {
+      if (resourceId !== `act:simulation:${resourceKey}` && !resourceId.startsWith(`act:simulation:${resourceKey}-`)) continue;
+      addBinding({
+        resourceId,
+        canonicalId,
+        role: 'PRACTICES',
+        scopeId: input.scopeId,
+      });
+    }
+  }
+
+
+  // Task sims bind before the resource fallback so their ledger classification
+  // reflects binding, not absence (#2042).
   for (const task of input.taskSims) {
     const token = task.taskKey.replace(/:/g, '-');
     if (!COLON_FREE.test(token)) {
@@ -379,23 +393,13 @@ export function planRuntimeFullBinding(input: {
         }
       }
     }
-    if (!bound) {
+    // Dedup-suppressed bindings mean the task was already bound in the input;
+    // only genuinely unbound tasks reach the ledger (#2042).
+    if (!bound && !isBound(resourceId) && !simExemptKeys.has(token)) {
       ledger.push({ resourceId, reason: 'no-exact-identity', detail: task.taskKey });
     }
   }
 
-  for (const [resourceKey, canonicalId] of simDeclarationKeys) {
-    if (!overlay.has(canonicalId)) continue;
-    for (const resourceId of resources.keys()) {
-      if (resourceId !== `act:simulation:${resourceKey}` && !resourceId.startsWith(`act:simulation:${resourceKey}-`)) continue;
-      addBinding({
-        resourceId,
-        canonicalId,
-        role: 'PRACTICES',
-        scopeId: input.scopeId,
-      });
-    }
-  }
 
   // Infographs enter the projection as a first-class resource type (#2042 task 2).
   for (const entry of input.infographsAuthority ?? []) {
@@ -414,7 +418,9 @@ export function planRuntimeFullBinding(input: {
         scopeId: input.scopeId,
       });
     } else {
-      ledger.push({ resourceId: entry.resourceId, reason: 'no-exact-identity', detail: 'authority-infograph-token-not-in-overlay' });
+      // The token resolves against the wider Authority, but the teaching overlay
+      // does not carry that core; that is a known boundary, not pending review (#2042).
+      ledger.push({ resourceId: entry.resourceId, reason: 'explicit-exemption', detail: 'authority-infograph-outside-overlay' });
     }
   }
   for (const entry of input.infographsLegacy ?? []) {
@@ -425,7 +431,8 @@ export function planRuntimeFullBinding(input: {
       scopeId: input.scopeId,
       title: entry.title ?? undefined,
     });
-    const canonicalId = cardCrosswalk.get(entry.cardId);
+    const boundCardCanonicals = boundCanonicalByCard.get(`act:card:${entry.cardId}`) ?? [];
+    const canonicalId = cardCrosswalk.get(entry.cardId) ?? boundCardCanonicals.find((id) => overlay.has(id));
     if (canonicalId && overlay.has(canonicalId)) {
       addBinding({
         resourceId: entry.resourceId,
@@ -450,8 +457,16 @@ export function planRuntimeFullBinding(input: {
       title: row.title ?? undefined,
       sourcePath: row.sourcePath ?? undefined,
     });
-    if (!bindToUnit(row.resourceId, 'EXPLAINS', input.scopeId)) {
-      ledger.push({ resourceId: row.resourceId, reason: 'no-exact-identity' });
+    // Dedup-suppressed bindings mean the row was already bound in the input;
+    // isBound guards against re-ledgering on re-derivation (#2042).
+    if (!isBound(row.resourceId) && !bindToUnit(row.resourceId, 'EXPLAINS', input.scopeId)) {
+      // Standalone courses outside the N-N syllabus (e.g. cruise-comfort-boppps)
+      // carry no unit token; that is a known boundary, not pending review (#2042).
+      ledger.push({
+        resourceId: row.resourceId,
+        reason: unitTokenFromResourceId(row.resourceId) ? 'no-exact-identity' : 'explicit-exemption',
+        detail: unitTokenFromResourceId(row.resourceId) ? undefined : 'lesson-step-outside-syllabus',
+      });
     }
   }
 
@@ -467,6 +482,51 @@ export function planRuntimeFullBinding(input: {
   const activeCanonicalCards = new Set(
     cards.filter((card) => card.active !== false).map((card) => card.canonicalId),
   );
+
+  // Card identity channel runs before the authority auto-card loop so the
+  // reviewed crosswalk claims its canonical first; reviewed cards win over
+  // generated token cards and over duplicate legacy cards for one canonical (#2042 task 1.3).
+  const crosswalkCards = [...cardCrosswalk.entries()]
+    .map(([cardId, canonicalId]) => ({ cardId, canonicalId }))
+    .sort((left, right) => left.cardId.localeCompare(right.cardId));
+  const crosswalkCanonicalByCard = new Map<string, string>();
+  for (const row of crosswalkCards) {
+    if (resources.has(`act:card:${row.cardId}`)) {
+      crosswalkCanonicalByCard.set(row.cardId, row.canonicalId);
+    }
+  }
+  for (const row of input.resources) {
+    if (isBound(row.resourceId)) continue;
+    if (row.resourceType !== 'card') continue;
+    const cardId = row.resourceId.slice('act:card:'.length);
+    const crosswalkCanonical = crosswalkCanonicalByCard.get(cardId);
+    if (crosswalkCanonical && overlay.has(crosswalkCanonical)) {
+      addBinding({
+        resourceId: row.resourceId,
+        canonicalId: crosswalkCanonical,
+        role: 'EXPLAINS',
+        scopeId: row.scopeId,
+        rationale: 'card-crosswalk #2042',
+      });
+      if (!seenCard.has(cardId) && !activeCanonicalCards.has(crosswalkCanonical)) {
+        seenCard.add(cardId);
+        activeCanonicalCards.add(crosswalkCanonical);
+        cards.push({
+          cardId,
+          canonicalId: crosswalkCanonical,
+          active: true,
+          required: false,
+          title: titleFor(row.resourceId, row.title),
+        });
+      }
+      continue;
+    }
+    if (cardExempt.has(cardId)) {
+      ledger.push({ resourceId: row.resourceId, reason: 'explicit-exemption', detail: 'card-exemption-listed' });
+      continue;
+    }
+    ledger.push({ resourceId: row.resourceId, reason: 'no-exact-identity' });
+  }
 
   for (const canonicalId of input.authorityCardCanonicalIds) {
     if (!overlay.has(canonicalId) || activeCanonicalCards.has(canonicalId)) continue;
@@ -496,40 +556,6 @@ export function planRuntimeFullBinding(input: {
       scopeId: input.scopeId,
       primary: true,
     });
-  }
-
-  // Card identity channel: frontmatter canonical via cards-index, then the
-  // reviewed crosswalk, then explicit exemptions; only then the ledger (#2042 task 1.3).
-  for (const row of input.resources) {
-    if (isBound(row.resourceId)) continue;
-    if (row.resourceType !== 'card') continue;
-    const cardId = row.resourceId.slice('act:card:'.length);
-    const crosswalkCanonical = cardCrosswalk.get(cardId);
-    if (crosswalkCanonical && overlay.has(crosswalkCanonical)) {
-      addBinding({
-        resourceId: row.resourceId,
-        canonicalId: crosswalkCanonical,
-        role: 'EXPLAINS',
-        scopeId: row.scopeId,
-        rationale: 'card-crosswalk #2042',
-      });
-      if (!seenCard.has(cardId)) {
-        seenCard.add(cardId);
-        cards.push({
-          cardId,
-          canonicalId: crosswalkCanonical,
-          active: true,
-          required: false,
-          title: titleFor(row.resourceId, row.title),
-        });
-      }
-      continue;
-    }
-    if (cardExempt.has(cardId)) {
-      ledger.push({ resourceId: row.resourceId, reason: 'explicit-exemption', detail: 'card-exemption-listed' });
-      continue;
-    }
-    ledger.push({ resourceId: row.resourceId, reason: 'no-exact-identity' });
   }
 
   const exemptTextbookSections = input.exemptTextbookSections ?? new Set<string>();

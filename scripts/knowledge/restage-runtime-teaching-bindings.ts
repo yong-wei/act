@@ -223,13 +223,20 @@ function main(): void {
     authoritySnapshotId: string;
     authoritySnapshotHash: string;
   }>(`${releaseDir}/projection-manifest.json`);
-  const retiredSimResourceIds = new Set(
-    readJsonl<{ resourceId: string }>(
-      'course-content/authoring/knowledge/teaching-projection/simulations/retired-sim-exclusions.jsonl',
-    ).map((row) => `act:simulation:${row.resourceId.replace(/^launcher-/u, '')}`),
+  const retiredLesson02 = readJsonl<{ resourceId: string }>(
+    'course-content/authoring/knowledge/teaching-projection/simulations/retired-sim-exclusions.jsonl',
   );
+  if (retiredLesson02.length > 0) {
+    // lesson02 launcher rows are retired wholesale (user ruling 2026-09-06):
+    // every act:simulation:lesson02-* resource leaves the denominator (#2042 decision 6).
+    retiredLesson02.forEach((row) => {
+      if (!/^launcher-lesson02-/u.test(row.resourceId)) {
+        throw new Error(`retired-sim-exclusions must only contain lesson02 launcher rows: ${row.resourceId}`);
+      }
+    });
+  }
   const resources = readJsonl<RuntimeResourceRow>(`${releaseDir}/resources.jsonl`)
-    .filter((row) => !retiredSimResourceIds.has(row.resourceId));
+    .filter((row) => !row.resourceId.startsWith('act:simulation:lesson02-'));
   const bindings = readJsonl<RuntimeBindingRow>(`${releaseDir}/bindings.jsonl`);
   const prerequisites = readJsonl<TeachingPrerequisiteAuthoring>(`${releaseDir}/prerequisites.jsonl`);
   const cardsIndex = readJson<{ cards: RuntimeCardRow[] }>(`${releaseDir}/cards-index.json`);
