@@ -23,6 +23,11 @@ The inspector SHALL request eligible Knowledge Card content and accepted infogra
 - **THEN** the resolver SHALL read the v2 manifest sealed to that Authority identity and overlay
 - **AND** it SHALL keep semantic detail usable while omitting only assets that are genuinely missing or blocked
 
+#### Scenario: Teaching binding is unavailable
+- **WHEN** the current Authority shard envelope does not report a passed teaching overlay
+- **THEN** the inspector SHALL not read independently current projection or card inputs
+- **AND** it SHALL keep semantic detail usable while omitting card and infograph panels
+
 #### Scenario: Learning export belongs to another Authority identity
 - **WHEN** the learning-content manifest was exported for another Authority snapshot or release
 - **THEN** the resolver SHALL fail closed for optional card and infograph content before reading their files
