@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-09-06
-摘要: 生产应用 `v0.7.4-8d661f5`（main `8d661f58e…`，app-only，tar SHA256 `fa7f6a62…`）已发布并验收通过：integration（fe9343dd2，含 #1985/#2004/#2021/#2024/#2032/#2034 等）合入 main；画像 fence 验收脚本抽样缺陷已热修（#2005 引入的抽样命中零事实学生，已限定为迁移覆盖人群，修复 `48741377f` 已回传 integration）。英文切换 Dockerfile 修复随本次镜像上线，可验收 #1942 archived tasks 4.2/4.3。生产知识面维持 Authority v0.37（LEGACY），Runtime 仍为 `runtime-150a505a…`。Wolfram Cloud 仍维护 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：学生 `cmjtgw3ov00008f1njzx4bg7l` 的画像 current state 停留在 v2/gen1（current-state-version-mismatch），未被 v3 迁移覆盖，待后续对账。
+摘要: 生产应用 `v0.7.4-8d661f5`（main `8d661f58e…`，app-only，tar SHA256 `fa7f6a62…`）已发布并验收通过：integration（fe9343dd2，含 #1985/#2004/#2021/#2024/#2032/#2034 等）合入 main；画像 fence 验收脚本抽样缺陷已热修（#2005 引入的抽样命中零事实学生，已限定为迁移覆盖人群，修复 `48741377f` 已回传 integration）。英文切换 Dockerfile 修复随本次镜像上线，#1942 生产验收（archived tasks 4.2/4.3）已完成并关闭 Issue：demo 登录 `/knowledge` 中英文双向切换正常，14 个领域英文完整呈现，证据存 `artifacts/issue-1942-en-acceptance-2026-09-06/`。注意：demo 账号的累计画像仍显示"未通过版本或完整性校验"，对应已知残余——学生 `cmjtgw3ov00008f1njzx4bg7l` 的画像 current state 停留在 v2/gen1（current-state-version-mismatch），未被 v3 迁移覆盖，待后续对账。生产知识面维持 Authority v0.37（LEGACY），Runtime 仍为 `runtime-150a505a…`。Wolfram Cloud 仍维护 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：学生 `cmjtgw3ov00008f1njzx4bg7l` 的画像 current state 停留在 v2/gen1（current-state-version-mismatch），未被 v3 迁移覆盖，待后续对账。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
