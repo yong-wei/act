@@ -6,6 +6,7 @@ import {
   FROZEN_CANDIDATES,
   FROZEN_CAPTURE_REVISION,
   PROTECTED_SURFACES,
+  RETIRED_GENERATED_CALLER_PATHS,
   buildDeprecationLedger,
   buildResourceGovernanceRetirementManifest,
   buildRollbackArchive,
@@ -651,7 +652,14 @@ describe('resource-governance retirement evidence gate (#1592)', () => {
       ]),
     );
     expect(frozenCallerCoverageGaps(FROZEN_CALLERS, live)).toEqual([]);
-    expect(frozenCallerCoverageGaps(live, FROZEN_CALLERS)).toEqual([]);
+    const retiredGeneratedGaps = [
+      ...new Set(Object.entries(FROZEN_CALLERS).flatMap(([id, hits]) => (
+        hits
+          .filter((hit) => RETIRED_GENERATED_CALLER_PATHS.includes(hit.path.replace(/\\/gu, '/')))
+          .map((hit) => `${id}:${hit.path.replace(/\\/gu, '/')}`)
+      ))),
+    ].sort();
+    expect(frozenCallerCoverageGaps(live, FROZEN_CALLERS)).toEqual(retiredGeneratedGaps);
     expect(liveScanFiles.some((file) => file.path === 'package.json')).toBe(true);
     expect(liveScanFiles.some((file) => file.path.startsWith('docs/'))).toBe(true);
     expect(liveScanFiles.some((file) => file.path.startsWith('openspec/'))).toBe(true);

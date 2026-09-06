@@ -44,4 +44,4 @@ npm run typecheck:web -- --cache cold
 npm run typecheck:web -- --fixture-probe
 ```
 
-夹具、边界、owner、entrypoint、错误 exclude、strictness downgrade 和缺失/stale/failed tools/test receipt 的契约测试位于 `src/lib/__tests__/typescript-graphs.test.ts`。#1553 通过 `docs/architecture/fitness-budget-ledger.json` 消费 revision-bound graph manifest 与 measurement receipt；它不把编译内存写成跨环境永久阈值。PR/integration 的强制消费由 #1554 接入。
+夹具、边界、owner、entrypoint、错误 exclude、strictness downgrade 和缺失/stale/failed tools/test receipt 的契约测试位于 `src/lib/__tests__/typescript-graphs.test.ts`。#1553 通过 fitness budget ledger（由冻结输入按需生成，不再提交展开 JSON）消费 revision-bound graph manifest 与 measurement receipt；它不把编译内存写成跨环境永久阈值。PR/integration 的强制消费由 #1554 接入。

@@ -10,7 +10,7 @@
 | census source | `58c77cbf6e0f6cd284e1eea6a39ca4df8854ebac` / `189dfeb5ad35f1d88e8ea5509a48b388424bf88f` |
 | dependency allowlist | `0d29851dcb123f0f2bb78346c9562753b163b33239e6ef7737a8a7190f9ba608` |
 | charter | `76850de671d65e821dd2acebe070ab23d6a3f26a3a7d9f9527e32af75c957396` |
-| budget ledger | `bd2da413d2c5f75e8a387e7efb4f334a4c76f637e98192b04775fcdac49a09ed`，见 [`fitness-budget-ledger.json`](./fitness-budget-ledger.json) 与 [`fitness-budget-ledger.sha256`](./fitness-budget-ledger.sha256) |
+| budget ledger | `d2ff999e91e965429c66369c75f6f35cfd3abc200ae8ecb04dd8d275d66b0255`（pin；标准检查用 `createFitnessBudgetLedger` 从冻结输入按需重建并校验该 pin，Git 不保存展开副本） |
 | frozen allowlist | `0d29851dcb123f0f2bb78346c9562753b163b33239e6ef7737a8a7190f9ba608`，见 [`fitness-budget-allowlist.json`](./fitness-budget-allowlist.json)；当前 [`dependency-allowlist.json`](./dependency-allowlist.json) 只作为候选集合，只能收缩 |
 
 Ledger record 使用固定 schema `act-architecture-fitness-budget/v1`，字段为 `budgetId`、`metricKind`、`scope`、`baselineIdentity`、`sourceCommit`、`sourceTree`、`observedValue`、`direction`、`owner`、`evidenceRefs`、`exceptionState`、`deletionCondition`、`followUpChange`、`status` 和 `totals`。`totals` 始终包含 `included`、`excluded`、`unresolved`。
@@ -38,4 +38,4 @@ rtk npm run typecheck:tools
 rtk npm run typecheck:test
 ```
 
-`--write-ledger` 只从冻结 `fitness-budget-allowlist.json` 重建 ledger，不会消费当前候选 `dependency-allowlist.json`。例外收缩只改候选集合，不得改写冻结 allowlist 或 ledger pin。`npm run fitness:architecture` 是标准入口，脚本使用 `node --import tsx` 避免 CLI IPC 依赖；不得以 heap 参数替代 graph 或 receipt 证据。
+`--write-ledger` 只从冻结 `fitness-budget-allowlist.json` 重建 ledger，导出到已忽略的 `.logs/architecture-fitness/`，不会消费当前候选 `dependency-allowlist.json`，也不得改写冻结 allowlist 或 ledger pin。默认检查不读取、不信任也不重写该导出副本，只从保留输入重建。例外收缩只改候选集合。`npm run fitness:architecture` 是标准入口，脚本使用 `node --import tsx` 避免 CLI IPC 依赖；不得以 heap 参数替代 graph 或 receipt 证据。

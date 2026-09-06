@@ -215,7 +215,7 @@ function check(input: Omit<RequiredQualityCheck, 'required' | 'failurePolicy' | 
 }
 
 const PR_CHECKS: readonly RequiredQualityCheck[] = [
-  check({ checkId: 'pr/architecture-fitness', name: 'PR / architecture fitness', layer: 'pr', commandIds: ['fitness:architecture'], scope: 'architecture-fitness-budgets', requiredInputs: ['fitness-budget-ledger', 'typescript-graph-receipts'], timeoutMinutes: 20 }),
+  check({ checkId: 'pr/architecture-fitness', name: 'PR / architecture fitness', layer: 'pr', commandIds: ['fitness:architecture'], scope: 'architecture-fitness-budgets', requiredInputs: ['fitness-budget-inputs', 'typescript-graph-receipts'], timeoutMinutes: 20 }),
   check({ checkId: 'pr/affected-lint', name: 'PR / affected lint', layer: 'pr', commandIds: ['lint'], scope: affectedScope('lint'), requiredInputs: ['git-diff', 'owner-denominator'], timeoutMinutes: 20 }),
   check({ checkId: 'pr/typecheck-test', name: 'PR / test TypeScript graph', layer: 'pr', commandIds: ['typecheck:test'], scope: qualityCommand('typecheck:test').scope, requiredInputs: ['typescript-graph-manifest'], timeoutMinutes: 30 }),
   check({ checkId: 'pr/typecheck-tools', name: 'PR / tooling TypeScript graph', layer: 'pr', commandIds: ['typecheck:tools'], scope: qualityCommand('typecheck:tools').scope, requiredInputs: ['typescript-graph-manifest'], timeoutMinutes: 30 }),
@@ -228,7 +228,7 @@ const PR_CHECKS: readonly RequiredQualityCheck[] = [
 ];
 
 const INTEGRATION_CHECKS: readonly RequiredQualityCheck[] = [
-  check({ checkId: 'integration/architecture-fitness', name: 'Integration / architecture fitness', layer: 'integration', commandIds: ['fitness:architecture'], scope: 'architecture-fitness-budgets', requiredInputs: ['fitness-budget-ledger', 'typescript-graph-receipts'], timeoutMinutes: 30 }),
+  check({ checkId: 'integration/architecture-fitness', name: 'Integration / architecture fitness', layer: 'integration', commandIds: ['fitness:architecture'], scope: 'architecture-fitness-budgets', requiredInputs: ['fitness-budget-inputs', 'typescript-graph-receipts'], timeoutMinutes: 30 }),
   check({ checkId: 'integration/unit', name: 'Integration / full unit tests', layer: 'integration', commandIds: ['test:unit'], scope: qualityCommand('test:unit').scope, requiredInputs: ['test-command-discovery-core'], timeoutMinutes: 45 }),
   check({ checkId: 'integration/contract', name: 'Integration / full contract tests', layer: 'integration', commandIds: ['test:contract'], scope: qualityCommand('test:contract').scope, requiredInputs: ['test-command-discovery-core'], timeoutMinutes: 45 }),
   check({ checkId: 'integration/integration', name: 'Integration / full integration tests', layer: 'integration', commandIds: ['test:integration'], scope: qualityCommand('test:integration').scope, requiredInputs: ['test-command-discovery-core', 'postgres-fixture'], timeoutMinutes: 60 }),
@@ -325,7 +325,7 @@ export const DEFAULT_QUALITY_GATE_REGISTRY: QualityGateRegistry = {
     { id: 'test-command-contracts', path: 'src/lib/architecture-test-commands', schema: 'act-test-command-contracts/v1', role: 'test discovery and command semantics' },
     { id: 'typescript-graphs', path: 'scripts/typescript-graphs/contracts.ts', schema: 'act-typescript-graph-contract/v1', role: 'four graph definitions and receipts' },
     { id: 'architecture-fitness', path: 'src/lib/architecture-fitness', schema: 'act-architecture-fitness/v1', role: 'fitness and budget evaluation' },
-    { id: 'fitness-budget-ledger', path: 'docs/architecture/fitness-budget-ledger.json', schema: 'act-architecture-fitness-budget/v1', role: 'frozen fitness budget inputs' },
+    { id: 'fitness-budget-inputs', path: 'docs/architecture/fitness-budget-allowlist.json', schema: 'act-architecture-fitness-budget/v1', role: 'frozen fitness budget inputs; expanded ledger generated on demand' },
     { id: 'release-qualification', path: 'src/lib/architecture-test-commands/release.ts', schema: 'act-release-qualification-manifest/v1', role: 'release evidence validation' },
   ].sort((left, right) => left.id.localeCompare(right.id)),
   commands: QUALITY_COMMAND_DEFINITIONS,
