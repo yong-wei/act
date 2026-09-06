@@ -43,6 +43,7 @@ import {
   isDirectVerifiedSupportCitation,
 } from './citation-whitelist-enforcement';
 import { scanKonlingAnswerUnits } from '@/lib/konling-answer-unit-scan';
+import { repairUncoveredEvidenceUnits } from '@/lib/konling-evidence-allocation';
 import { STUDY_QUESTION_SECTIONS, type StudyQuestionIntent } from '@/lib/konling-study-question-structure';
 
 import type {
@@ -128,10 +129,19 @@ export async function runKonlingFairExperiment(input: {
 
           // 外部计费调用前确认锁仍归属本进程：并发接管移走锁时主动终止。
           assertKonlingFairExperimentLockHeld(runDir);
-          const { systemPrompt, contractIntent } = buildKonlingFairExperimentSystemPrompt({
+          const { systemPrompt, contractIntent, citationAssembly } = buildKonlingFairExperimentSystemPrompt({
             arm,
             item,
             context: PROMPT_CONTEXT,
+            // #2039：full-feature 臂经生产分配模块装配 citationContext
+            //（主源/备用逐单元映射），随 task 交给 provider 冻结；基线臂
+            // 不传 evidence，保持零引用能力。
+            ...(arm === 'full-feature' ? {
+              evidence: {
+                bankVersion: input.bank.bankVersion,
+                sourceRevision: input.config.gitRevision,
+              },
+            } : {}),
           });
           const startedAt = new Date().toISOString();
           const response = await input.generateProvider({
@@ -141,6 +151,10 @@ export async function runKonlingFairExperiment(input: {
             systemPrompt,
             userPrompt: buildKonlingFairExperimentUserPrompt(item),
             sampling: input.config.sampling,
+            ...(citationAssembly ? {
+              citations: citationAssembly.citations,
+              evidencePlan: citationAssembly.plan,
+            } : {}),
           });
           const finishedAt = new Date().toISOString();
           const meta = {
@@ -161,11 +175,12 @@ export async function runKonlingFairExperiment(input: {
             // 编号删除标记并降级；再按覆盖缺口执行一次有界修复说明。
             let finalAnswer = response.result.answer;
             let finalCitations = response.result.citations;
+            let citationRepair: KonlingFairExperimentAnswerRecord['citationRepair'];
             if (arm === 'full-feature' && finalCitations !== undefined) {
-              // 引用快照不可得（undefined，如 live 未接 citationContext）时
-              // 跳过执行：快照缺失≠「未分配任何引用」，按空白名单改写会把
-              // 全部合法 [n] 删掉并污染不可重生成的冻结快照（#1992/#2017 P1）。
-              // undefined 时聚合层按 citation-audit incomplete fail closed。
+              // 引用快照不可得（undefined）时跳过执行：快照缺失≠「未分配
+              // 任何引用」，按空白名单改写会把全部合法 [n] 删掉并污染不可
+              // 重生成的冻结快照（#1992/#2017 P1）。undefined 时聚合层按
+              // citation-audit incomplete fail closed。
               const whitelist = enforceKonlingCitationNumberWhitelist({
                 answer: response.result.answer,
                 citations: finalCitations,
@@ -179,10 +194,47 @@ export async function runKonlingFairExperiment(input: {
                   `[konling-fair-experiment] citation whitelist downgraded ${taskKey}: ${whitelist.removedMarkers.join(', ')}`,
                 );
               }
-              // 答案单元覆盖：用与审计同一 scan 口径计算必需/已覆盖数，
-              // 缺口时执行一次有界修复（显式证据缺口说明，不伪造引用）。
+              // 答案单元覆盖：用与审计同一 scan 口径计算必需/已覆盖数；
+              // #2039：存在缺口且分配表有可用来源时先执行一轮有界补证
+              //（确定性换源重绑，不调用模型），补证后仍缺失才追加显式
+              // 证据缺口说明（不伪造引用）。
               const intent = item.intent as StudyQuestionIntent;
-              const scan = scanKonlingAnswerUnits(whitelist.body, finalCitations, intent);
+              const directSupportIds = new Set(
+                finalCitations.filter(isDirectVerifiedSupportCitation).map((citation) => citation.id),
+              );
+              const countUncovered = (answer: string) => {
+                const scan = scanKonlingAnswerUnits(answer, finalCitations, intent);
+                const sections = STUDY_QUESTION_SECTIONS[intent];
+                return scan.units.filter((unit) => (
+                  unit.substantive
+                  && unit.sectionId !== null
+                  && sections.some((section) => section.id === unit.sectionId && section.citationPolicy === 'evidence-required')
+                  && (unit.bindingCitationIds ?? []).every((id) => !directSupportIds.has(id))
+                )).length;
+              };
+              const uncoveredBefore = countUncovered(finalAnswer);
+              if (uncoveredBefore > 0 && citationAssembly) {
+                const repair = repairUncoveredEvidenceUnits({
+                  answer: finalAnswer,
+                  intent,
+                  citations: finalCitations,
+                  plan: citationAssembly.plan,
+                });
+                if (repair.repairedUnitCount > 0) {
+                  finalAnswer = repair.body;
+                }
+                const uncoveredAfter = countUncovered(finalAnswer);
+                citationRepair = {
+                  round: 1,
+                  outcome: uncoveredAfter === 0 ? 'repaired' : 'unresolved',
+                  repairedUnitCount: repair.repairedUnitCount,
+                };
+              } else {
+                citationRepair = uncoveredBefore === 0
+                  ? { round: 0, outcome: 'not-needed', repairedUnitCount: 0 }
+                  : { round: 1, outcome: 'unresolved', repairedUnitCount: 0 };
+              }
+              const scan = scanKonlingAnswerUnits(finalAnswer, finalCitations, intent);
               const sections = STUDY_QUESTION_SECTIONS[intent];
               const requiredUnits = scan.units.filter((unit) => (
                 unit.substantive
@@ -192,14 +244,11 @@ export async function runKonlingFairExperiment(input: {
               // 覆盖口径与审计一致（#2017 review P1）：只认可绑定标记中
               // 存在直接支撑引用的单元；bound 但仅 semantic-score 的引用
               // 不计覆盖，使执行与审计对同一单元判定一致。
-              const directSupportIds = new Set(
-                finalCitations.filter(isDirectVerifiedSupportCitation).map((citation) => citation.id),
-              );
               const coveredUnits = requiredUnits.filter((unit) => (
                 (unit.bindingCitationIds ?? []).some((id) => directSupportIds.has(id))
               ));
               const coverage = enforceAnswerUnitCitationCoverage({
-                answer: whitelist.body,
+                answer: finalAnswer,
                 requiredUnitCount: requiredUnits.length,
                 coveredUnitCount: coveredUnits.length,
                 normativeGuidance: contractIntent === 'normative-content' || item.intent === 'normative-content'
@@ -222,6 +271,7 @@ export async function runKonlingFairExperiment(input: {
               citations: arm === 'full-feature'
                 ? finalCitations
                 : (response.result.citations ?? []),
+              ...(citationRepair ? { citationRepair } : {}),
               elapsedMs: response.result.elapsedMs,
               ...(contractIntent ? { contractIntent } : {}),
             };
