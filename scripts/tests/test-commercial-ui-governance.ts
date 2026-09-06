@@ -2316,7 +2316,7 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
 function interactionObservationPresent(snapshot: JsonRecord, fields: string[]): boolean {
   return fields.every((field) => {
     const value = snapshot[field];
-    if (field === 'inspectorOpen') return typeof value === 'boolean';
+    if (field === 'inspectorOpen' || field === 'hoverPreviewVisible') return typeof value === 'boolean';
     // pinnedLayoutSignature 允许合法空串（拖拽前无钉住），只要求字段存在。
     if (field === 'pinnedLayoutSignature') return typeof value === 'string';
     return typeof value === 'string' && value.length > 0;
@@ -2334,7 +2334,7 @@ export function interactionStabilityProblems(evidence: JsonRecord, selectedNode:
     && interactionObservationPresent(afterInspectorOpen, ['inspectorOpen', 'layoutVersion'])
     && interactionObservationPresent(afterInspectorClose, ['inspectorOpen', 'pinnedLayoutSignature'])
     && interactionObservationPresent(afterDrag, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId'])
-    && interactionObservationPresent(afterHover, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId']);
+    && interactionObservationPresent(afterHover, ['layoutVersion', 'pinnedLayoutSignature', 'selectedNodeId', 'hoverPreviewVisible']);
   if (!observationsPresent) return ['interaction-observations-missing'];
   return [
     beforeDrag.selectedNodeId === selectedNodeId && selectedNodeId.length > 0
@@ -2346,6 +2346,7 @@ export function interactionStabilityProblems(evidence: JsonRecord, selectedNode:
     afterInspectorClose.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
       ? null
       : 'inspector-close-pinned-signature-changed',
+    afterHover.hoverPreviewVisible === true ? null : 'hover-preview-not-visible',
     afterHover.layoutVersion === afterDrag.layoutVersion ? null : 'hover-layout-reset',
     afterHover.pinnedLayoutSignature === afterDrag.pinnedLayoutSignature
       ? null

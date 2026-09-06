@@ -4951,7 +4951,7 @@ describe('commercial UI governance', () => {
       beforeDrag: { layoutVersion: '3', pinnedNodeCount: '0', pinnedLayoutSignature: '', selectedNodeId: selectedNode, inspectorOpen: false },
       drag: { pinned: true, method: 'pointer-drag', selectedNodeId: selectedNode },
       afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
-      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, hoverPreviewVisible: true },
       afterInspectorOpen: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: true },
       afterInspectorClose: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
     };
@@ -4972,6 +4972,11 @@ describe('commercial UI governance', () => {
 
     expect(interactionStabilityProblems({
       ...validEvidence,
+      afterHover: { ...validEvidence.afterHover, hoverPreviewVisible: false },
+    }, selectedNode)).toContain('hover-preview-not-visible');
+
+    expect(interactionStabilityProblems({
+      ...validEvidence,
       afterInspectorClose: { ...validEvidence.afterInspectorClose, pinnedLayoutSignature: 'pin:reset' },
       afterDrag: { ...validEvidence.afterDrag, pinnedLayoutSignature: `pin:${selectedNode}` },
     }, selectedNode)).toContain('inspector-close-pinned-signature-changed');
@@ -4985,7 +4990,7 @@ describe('commercial UI governance', () => {
       ...validEvidence,
       beforeDrag: { ...validEvidence.beforeDrag, pinnedLayoutSignature: '' },
       afterDrag: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
-      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false },
+      afterHover: { layoutVersion: '3', pinnedNodeCount: '1', pinnedLayoutSignature: `pin:${selectedNode}`, selectedNodeId: selectedNode, inspectorOpen: false, hoverPreviewVisible: true },
     }, selectedNode)).toEqual([]);
 
     expect(interactionStabilityProblems({

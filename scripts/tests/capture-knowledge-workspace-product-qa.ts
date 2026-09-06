@@ -1720,14 +1720,19 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 }
 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
-  const candidates = await selectedNodeHoverDragPointCandidates(page, expectedNodeId);
-  for (const [x, y] of candidates) {
-    await page.mouse.move(x, y);
-    await page.waitForTimeout(120);
+  const nodeControl = page.locator(`[data-knowledge-node-control="${expectedNodeId}"]`).first();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    // 每次尝试前重新取节点包围盒，force 布局动画会让预查询坐标漂移。
+    const box = await nodeControl.boundingBox().catch(() => null);
+    if (!box) break;
+    const startX = box.x + box.width / 2;
+    const startY = box.y + box.height / 2;
+    await page.mouse.move(startX, startY);
+    await page.waitForTimeout(150);
     await page.mouse.down();
-    await page.mouse.move(x + 80, y + 36, { steps: 8 });
+    await page.mouse.move(startX + 80, startY + 36, { steps: 8 });
     await page.mouse.up();
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(400);
     // 钉住状态从 legacy 视图画布读取；active 隐藏画布同名会掩盖属性。
     const canvas = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]').first();
     const pinned = await canvas.getAttribute('data-knowledge-pinned-node-count');
@@ -1735,8 +1740,8 @@ async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
     if (pinned === '1' && pinnedLayoutSignature.includes(expectedNodeId)) {
       return {
         method: 'pointer-drag',
-        dragFrom: { x, y },
-        dragTo: { x: x + 80, y: y + 36 },
+        dragFrom: { x: startX, y: startY },
+        dragTo: { x: startX + 80, y: startY + 36 },
         pinned: true,
         selectedNodeId: expectedNodeId,
       };
@@ -1756,12 +1761,14 @@ async function captureMarkerSnapshot(page: Page) {
       ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
     const inspector = document.querySelector('[data-knowledge-inspector]');
+    const hoverPreview = document.querySelector('[data-knowledge-local-panel="node-hover-preview"]');
     return {
       layoutVersion: canvas?.dataset.knowledgeLayoutVersion ?? '',
       pinnedNodeCount: canvas?.dataset.knowledgePinnedNodeCount ?? '',
       pinnedLayoutSignature: canvas?.dataset.knowledgePinnedLayoutSignature ?? '',
       selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? '',
       inspectorOpen: Boolean(inspector),
+      hoverPreviewVisible: Boolean(hoverPreview && hoverPreview.textContent?.trim()),
       desktopToolState: desktopTools?.dataset.state ?? null,
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null
     };
@@ -1963,9 +1970,17 @@ async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
       && control?.getAttribute('aria-busy') === 'false'
       && control?.getAttribute('aria-expanded') === null;
   }, nodeId, { timeout: 20000 });
-  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
-  await control.focus();
-  await control.evaluate((element) => (element as HTMLButtonElement).click());
+  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`).first();
+  const box = await control.boundingBox().catch(() => null);
+  if (!box) {
+    await control.focus();
+    await control.evaluate((element) => (element as HTMLButtonElement).click());
+  } else {
+    // 真实指针命中节点控件中心，避免 DOM click() 绕过遮挡与命中测试。
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.up();
+  }
   await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 15000 });
 }
 
@@ -3644,7 +3659,13 @@ async function main() {
         await waitForSelectedNodeRuntimePosition(page);
         const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
-        await page.mouse.move(720, 360);
+        // 悬停命中实际节点（拖拽后重新取包围盒），并验证悬停预览可见。
+        const nodeControl = page.locator(`[data-knowledge-node-control="${dragNodeId}"]`).first();
+        const hoverBox = await nodeControl.boundingBox().catch(() => null);
+        if (hoverBox) {
+          await page.mouse.move(hoverBox.x + hoverBox.width / 2, hoverBox.y + hoverBox.height / 2);
+          await page.waitForTimeout(300);
+        }
         const afterHover = await captureMarkerSnapshot(page);
         // ?node= 加载时 inspector 已开；先关闭再经真实指针操作重开，捕获真实开/关转换。
         await closeInspectorIfPresent(page);
