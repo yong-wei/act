@@ -28,6 +28,10 @@ import {
   isProductionLegacyFallbackPermitted,
 } from '@/lib/legacy-knowledge-runtime-retirement';
 import {
+  overlayLiveTeachingPins,
+  readAgreedLiveCourseProjection,
+} from '@/lib/teaching-projection/live-course-pointer';
+import {
   projectionPinsFromSelection,
   resolveCourseRuntimeProductionSelection,
 } from '@/lib/versioned-knowledge-activation';
@@ -285,7 +289,10 @@ export function resolveCoursePageLayeredGraphContext(
   const courseActivation =
     input.consumerActivationSelection
     ?? resolveCourseRuntimeProductionSelection({ repoRoot });
-  const coursePins = projectionPinsFromSelection(courseActivation);
+  const coursePins = overlayLiveTeachingPins(
+    projectionPinsFromSelection(courseActivation),
+    readAgreedLiveCourseProjection(repoRoot),
+  );
 
   // Corrupted / mismatched activation evidence must fail closed — never fall
   // through to global Authority/Projection current pointers.
