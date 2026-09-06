@@ -227,7 +227,7 @@ export const FROZEN_CANDIDATES: readonly RetirementCandidate[] = [
   },
 ];
 
-export { FROZEN_CALLERS } from './frozen-callers';
+export { FROZEN_CALLERS, RETIRED_GENERATED_CALLER_PATHS } from './frozen-callers';
 
 export function classifyCallerPath(path: string): GraphCaller['callerClass'] {
   const normalized = path.replace(/\\/gu, '/');
