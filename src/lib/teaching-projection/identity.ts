@@ -30,6 +30,7 @@ const RESOURCE_ID_PATTERNS: Record<TeachingResourceType, RegExp> = {
   'textbook-chapter': /^act:textbook-chapter:[^:\s]+:[^:\s]+$/u,
   'textbook-section': /^act:textbook-section:[^:\s]+$/u,
   card: /^act:card:[^:\s]+$/u,
+  infographic: /^act:infographic:[^:\s]+$/u,
   video: /^act:video:[^:\s]+$/u,
   audio: /^act:audio:[^:\s]+$/u,
   podcast: /^act:podcast:[^:\s]+$/u,

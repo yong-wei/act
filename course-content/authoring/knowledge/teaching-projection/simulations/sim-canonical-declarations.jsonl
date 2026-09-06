@@ -1,0 +1,11 @@
+# #2042 task 4.5: classroom sims with attributable canonical anchors (one-to-one, reviewed 2026-09-06).
+# resourceKey matches act:simulation:<key> and act:simulation:<key>-<instance> resource rows.
+{"resourceKey": "physics-modeling-intro-v1", "canonicalId": "ctc:modeling-348746457d644126ff8ecf77", "rationale": "物理建模入门通用件绑定建模核心知识点"}
+{"resourceKey": "physics-modeling-mechanical-v1", "canonicalId": "ctc:modeling-348746457d644126ff8ecf77", "rationale": "机械机理建模通用件绑定建模核心知识点"}
+{"resourceKey": "physics-modeling-electrical-v1", "canonicalId": "ctc:modeling-348746457d644126ff8ecf77", "rationale": "电气机理建模通用件绑定建模核心知识点"}
+{"resourceKey": "physics-modeling-analogy-v1", "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6", "rationale": "机电类比通用件绑定相似系统核心知识点"}
+{"resourceKey": "physics-modeling-practice-v1", "canonicalId": "ctc:modeling-348746457d644126ff8ecf77", "rationale": "建模练习通用件绑定建模核心知识点"}
+{"resourceKey": "widget-physics-mech", "canonicalId": "ctc:modeling-348746457d644126ff8ecf77", "rationale": "机械物理 widget 绑定建模核心知识点"}
+{"resourceKey": "widget-physics-elec", "canonicalId": "ctc:modeling-348746457d644126ff8ecf77", "rationale": "电气物理 widget 绑定建模核心知识点"}
+{"resourceKey": "widget-analogy-mapper", "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6", "rationale": "类比映射 widget 绑定相似系统核心知识点"}
+{"resourceKey": "sim-pid-v1", "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086", "rationale": "PID 演示仿真绑定 PID 控制器核心知识点"}
