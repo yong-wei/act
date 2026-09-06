@@ -150,8 +150,14 @@ export function ActiveAuthorityRuntimeView({
       relationType: toSharedRuntimeRelationType({ predicate: link.predicate, relationFamily: link.relationFamily }),
     })))
     : []), [kind, crossDomainClusters]);
-  const nodes = kind === 'root' ? rootNodes : [...domainNodes, ...crossNodes];
-  const links = kind === 'root' ? [] : [...domainLinks, ...crossLinks];
+  // cross-domain-canvas-cluster 仅覆盖新版 2D：3D/旧版不渲染跨领域圆。
+  const crossMergeActive = dimension === '2d';
+  const nodes = kind === 'root'
+    ? rootNodes
+    : (crossMergeActive ? [...domainNodes, ...crossNodes] : domainNodes);
+  const links = kind === 'root'
+    ? []
+    : (crossMergeActive ? [...domainLinks, ...crossLinks] : domainLinks);
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
   const hoveredNode = nodes.find((node) => node.id === hoveredId) ?? null;
   const graphVersion = kind === 'root' ? ACTIVE_ROOT_RUNTIME_GRAPH_VERSION : ACTIVE_RUNTIME_GRAPH_VERSION;

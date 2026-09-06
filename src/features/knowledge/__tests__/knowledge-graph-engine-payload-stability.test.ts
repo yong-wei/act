@@ -57,3 +57,24 @@ describe('engine payload stability guard (#2052 hover drift)', () => {
     expect(hoverRenderSignature).toBe(previous.signature);
   });
 });
+
+describe('payload display-field sync on reuse (#2054 review)', () => {
+  it('copies mutable display fields onto reused node objects without touching identity or coordinates', async () => {
+    const { syncKnowledgeGraphPayloadDisplayFields } = await import('../graph/force-lifecycle');
+    const previous = [
+      { id: 'a', name: '旧名称', description: '旧描述', labelPriority: false, x: 10, fx: 10 },
+      { id: 'b', name: '保留', description: '', labelPriority: true, x: 20 },
+    ];
+    const fresh = [
+      { id: 'a', name: 'New name', description: 'New description', labelPriority: true, x: 99 },
+    ];
+    syncKnowledgeGraphPayloadDisplayFields(previous, fresh, ['name', 'description', 'labelPriority']);
+    expect(previous[0].name).toBe('New name');
+    expect(previous[0].description).toBe('New description');
+    expect(previous[0].labelPriority).toBe(true);
+    // 引擎状态不被同步覆盖。
+    expect(previous[0].x).toBe(10);
+    expect(previous[0].fx).toBe(10);
+    expect(previous[1].name).toBe('保留');
+  });
+});

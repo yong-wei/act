@@ -25,6 +25,7 @@ import {
   resolveKnowledgeForceLifecycle,
   computeKnowledgeForceStructureSignature,
   resolveStableKnowledgeGraphEnginePayload,
+  syncKnowledgeGraphPayloadDisplayFields,
 } from './force-lifecycle';
 import { applyCrossDomainClusterLayout } from './cross-domain-cluster';
 import {
@@ -612,6 +613,15 @@ export function KnowledgeGraph2D({
       structureSignature,
       payload,
     );
+    if (resolved.reused) {
+      // locale 切换等纯渲染差异：结构不变但显示字段已更新，原位同步到
+      // 复用载荷的节点对象（#2054 review），避免画布停留在旧语言。
+      syncKnowledgeGraphPayloadDisplayFields(
+        (resolved.payload as typeof payload).nodes,
+        payload.nodes,
+        ['name', 'description', 'richTitle', 'mathematics', 'labelPriority', 'graphDegree', 'graphImportanceScore'],
+      );
+    }
     enginePayloadStabilityRef.current = { signature: structureSignature, payload: resolved.payload };
     return resolved.payload as typeof payload;
   }, [nodes, links, relayoutVersion, layoutState, expandedNodeIds, expandedDirectLinks, activationSequenceByCenterId, materializedNodeIds, graphVersion, width, height, lessonOrderNodeIds, teachingOrderLinks]);
@@ -1343,7 +1353,7 @@ export function KnowledgeGraph2D({
 
     const labelPaint = isRootBubble
       ? getKnowledgeRootLabelPaintModel(node.name)
-      : getKnowledgeNodeLabelPaintModel(node.name);
+      : getKnowledgeNodeLabelPaintModel(deriveKnowledgeNodeCanvasName(node.name));
     ctx.translate(
       node.x + (isRootBubble ? 0 : labelPresentation.offsetX / globalScale),
       node.y + (isRootBubble ? 0 : labelPresentation.offsetY / globalScale)

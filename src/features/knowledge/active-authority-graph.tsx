@@ -1340,7 +1340,6 @@ export function ActiveAuthorityGraph({
       const targetInDomain = target?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
       if (sourceInDomain === targetInDomain) continue;
       const boundary = sourceInDomain ? target : source;
-      const inDomainId = sourceInDomain ? relation.sourceId : relation.targetId;
       if (!boundary || !knownBoundaryIds.has(boundary.id)) continue;
       const membership = selectActiveAuthorityMembership(boundary.memberships, workspace.activeDomainId);
       const domain = membership
@@ -1358,9 +1357,11 @@ export function ActiveAuthorityGraph({
         typeLabel: boundary.typeLabel?.trim() || boundary.canonicalType,
         summary: boundary.description?.trim() || '',
       });
+      // 只把外部端点替换为合成跨域节点，保留原始 source→target 方向
+      //（#2054 review：有向跨域关系不得反转箭头语义）。
       cluster.links.set(`${relation.layer}:${relation.id}`, {
-        sourceId: inDomainId,
-        targetId: crossDomainNodeId(boundary.id),
+        sourceId: sourceInDomain ? relation.sourceId : crossDomainNodeId(boundary.id),
+        targetId: targetInDomain ? relation.targetId : crossDomainNodeId(boundary.id),
         predicate: relation.predicate,
         relationFamily: relation.relationFamily ?? null,
       });
@@ -1577,7 +1578,11 @@ export function ActiveAuthorityGraph({
   // 完成里程碑；compact 视图本身有可见上限，以首次沉降为准。
   const domainEntryStageComplete = isCompactViewport
     ? true
-    : workspace.domainOverviewIds.every((key) => visibleKeys.has(key));
+    : workspace.domainOverviewIds
+      // 只要求模型已接纳（fail-closed 省略不合格对象后）的 overview ID；
+      // 原始 ID 集里的被省略对象永远不会进入 visibleKeys（#2054 review）。
+      .filter((key) => model?.nodeByKey.has(key) ?? false)
+      .every((key) => visibleKeys.has(key));
   const domainEntryNodeCount = scopedGraph?.nodes.length ?? 0;
   const domainEntrySettled = domainEntryStageComplete
     && settledDomainEntryNodeCount !== null

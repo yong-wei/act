@@ -89,6 +89,31 @@ export function resolveStableKnowledgeGraphEnginePayload<T>(
   return { payload, reused: false };
 }
 
+/**
+ * 载荷复用时的展示字段同步（#2054 review）：locale 切换等纯渲染差异不
+ * 改变结构签名，但节点显示字段（名称/富标题/公式/描述）已更新——把新
+ * 计算的展示字段原位写入上一帧节点对象，使绘制取到最新文案而无需
+ * force-graph 重摄入。同步按 id 对齐，只写显示字段，不动坐标/固定/锚点
+ * 等引擎状态。
+ */
+export function syncKnowledgeGraphPayloadDisplayFields(
+  previousNodes: ReadonlyArray<{ id: string }>,
+  freshNodes: ReadonlyArray<{ id: string }>,
+  fields: ReadonlyArray<string>,
+): void {
+  const previousById = new Map(previousNodes.map((node) => [node.id, node]));
+  for (const fresh of freshNodes) {
+    const target = previousById.get(fresh.id) as Record<string, unknown> | undefined;
+    if (!target) continue;
+    const source = fresh as Record<string, unknown>;
+    for (const field of fields) {
+      if (field in source) {
+        target[field] = source[field];
+      }
+    }
+  }
+}
+
 export function computeKnowledgeForceStructureSignature(
   nodes: ReadonlyArray<{ id: string }>,
   links: ReadonlyArray<{ sourceId?: unknown; targetId?: unknown; source?: unknown; target?: unknown }>,
