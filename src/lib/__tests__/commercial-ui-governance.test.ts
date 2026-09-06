@@ -5021,7 +5021,7 @@ describe('commercial UI governance', () => {
 
     expect(explicitRelayoutStabilityProblems({
       beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: selectedNode },
-      afterRelayout: { layoutVersion: '3', pinnedNodeCount: '0', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '3', pinnedNodeCount: '1', selectedNodeId: selectedNode },
     })).toEqual([]);
 
     expect(explicitRelayoutStabilityProblems({})).toEqual(['relayout-observations-missing']);
@@ -5033,6 +5033,11 @@ describe('commercial UI governance', () => {
     })).toEqual(
       expect.arrayContaining(['relayout-pin-not-established', 'relayout-version-not-incremented', 'relayout-selection-lost']),
     );
+
+    expect(explicitRelayoutStabilityProblems({
+      beforeRelayout: { layoutVersion: '2', pinnedNodeCount: '1', selectedNodeId: selectedNode },
+      afterRelayout: { layoutVersion: '3', pinnedNodeCount: '1', selectedNodeId: selectedNode },
+    })).toEqual([]);
   });
 
   it('keeps interactive visual acceptance script triggers and real artifact path checks wired', () => {

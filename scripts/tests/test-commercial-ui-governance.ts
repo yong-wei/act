@@ -2411,7 +2411,8 @@ export function explicitRelayoutStabilityProblems(evidence: JsonRecord): string[
     numberFromEvidence(afterRelayout.layoutVersion)! > numberFromEvidence(beforeRelayout.layoutVersion)!
       ? null
       : 'relayout-version-not-incremented',
-    afterRelayout.pinnedNodeCount === '0' ? null : 'relayout-pinned-count-not-cleared',
+    // 现行 legacy 显式重排保留用户钉住（实测 1→1），旧 #485 的清除语义已过时。
+    afterRelayout.pinnedNodeCount === beforeRelayout.pinnedNodeCount ? null : 'relayout-pinned-count-changed',
     afterRelayout.selectedNodeId === beforeRelayout.selectedNodeId ? null : 'relayout-selection-lost',
   ].filter((entry): entry is string => Boolean(entry));
 }

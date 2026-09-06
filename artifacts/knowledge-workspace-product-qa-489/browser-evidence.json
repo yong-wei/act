@@ -1,21 +1,21 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-09-06T00:54:12.145Z",
-  "headCommit": "391b9e2a17378f1b3f9a0d195db80baab93dec48",
+  "capturedAt": "2026-09-06T02:54:30.334Z",
+  "headCommit": "4155599e21d4b00a16b062b761dbde9d38d750bc",
   "captureRevision": {
-    "commitSha": "391b9e2a17378f1b3f9a0d195db80baab93dec48",
-    "treeSha": "4f235a0f42b77de3bbd9bed0d725b242c6c99e70"
+    "commitSha": "4155599e21d4b00a16b062b761dbde9d38d750bc",
+    "treeSha": "070d5a284f16533317a3888bf509f03a6f96cf30"
   },
   "captureGuard": {
     "before": {
-      "commitSha": "391b9e2a17378f1b3f9a0d195db80baab93dec48",
-      "treeSha": "4f235a0f42b77de3bbd9bed0d725b242c6c99e70",
+      "commitSha": "4155599e21d4b00a16b062b761dbde9d38d750bc",
+      "treeSha": "070d5a284f16533317a3888bf509f03a6f96cf30",
       "dirty": false
     },
     "afterBrowserCapture": {
-      "commitSha": "391b9e2a17378f1b3f9a0d195db80baab93dec48",
-      "treeSha": "4f235a0f42b77de3bbd9bed0d725b242c6c99e70",
+      "commitSha": "4155599e21d4b00a16b062b761dbde9d38d750bc",
+      "treeSha": "070d5a284f16533317a3888bf509f03a6f96cf30",
       "dirty": false
     },
     "allowedOutputPrefixes": [
@@ -30,20 +30,20 @@
   "runtimeRevisionProof": {
     "endpoint": "http://localhost:3102/api/internal/local-qa/revision",
     "expected": {
-      "commitSha": "391b9e2a17378f1b3f9a0d195db80baab93dec48",
-      "treeSha": "4f235a0f42b77de3bbd9bed0d725b242c6c99e70",
+      "commitSha": "4155599e21d4b00a16b062b761dbde9d38d750bc",
+      "treeSha": "070d5a284f16533317a3888bf509f03a6f96cf30",
       "sourceFingerprint": "d5bd1a460be236d584bb0b1d8bd0c59884cb4b4b2671d1d9b2a283e2c4f8d635",
       "clean": true
     },
     "beforeCapture": {
-      "commitSha": "391b9e2a17378f1b3f9a0d195db80baab93dec48",
-      "treeSha": "4f235a0f42b77de3bbd9bed0d725b242c6c99e70",
+      "commitSha": "4155599e21d4b00a16b062b761dbde9d38d750bc",
+      "treeSha": "070d5a284f16533317a3888bf509f03a6f96cf30",
       "sourceFingerprint": "d5bd1a460be236d584bb0b1d8bd0c59884cb4b4b2671d1d9b2a283e2c4f8d635",
       "clean": true
     },
     "afterCapture": {
-      "commitSha": "391b9e2a17378f1b3f9a0d195db80baab93dec48",
-      "treeSha": "4f235a0f42b77de3bbd9bed0d725b242c6c99e70",
+      "commitSha": "4155599e21d4b00a16b062b761dbde9d38d750bc",
+      "treeSha": "070d5a284f16533317a3888bf509f03a6f96cf30",
       "sourceFingerprint": "d5bd1a460be236d584bb0b1d8bd0c59884cb4b4b2671d1d9b2a283e2c4f8d635",
       "clean": true
     }
@@ -113,10 +113,10 @@
     "src/app/globals.css": "ea76d6a3c42a0d88f52931fce864b38d21e398129e368c87508d4b707133d6c8",
     "src/lib/konling-agent-runtime.ts": "11f30cc9e89061d16947da1cd6d764742e86f4d99be54632b009ac8843766fdc",
     "src/lib/evidence-capture-guard.ts": "7abfa901a1456bb77a7e46b89169ad4d8624f3a0f89d28cb5e650a8e52ce1b50",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "ac8a28ff0822198c3eeb059ddafba48f58e91d7f410ab55225741f1e5285cafc",
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "476007faf74e2996f02525ca3bc7b528732493ef6c66c5df3da72c5d4556048f",
     "scripts/tests/knowledge-workspace-product-qa-accounts.mjs": "963dfba6d422ba9ec9ca493cc5bf15ae0cae9642177cb1ed46b3d60e63de5c40",
     "scripts/tests/run-knowledge-workspace-product-qa.mjs": "6053c466cd379dcdd0164fc99633201b9251021c6b803a02a2762e5d486d2fbc",
-    "scripts/tests/test-commercial-ui-governance.ts": "d2f66fbc1ad478e459f63bec14428f428b4b580b7bd836a17edd84fcf94fe7df"
+    "scripts/tests/test-commercial-ui-governance.ts": "ac3b3507c913eaa044d132aa6e52117a42fc122ca6685c6bad2117348bcbd9e4"
   },
   "stateMatrix": [
     {
@@ -160,7 +160,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-default-collapsed-dark.png",
-      "screenshotSha256": "f135edde19391f6ad540f972df8d884b58c9f1e63f1c51571d923483defc544d",
+      "screenshotSha256": "97c0fcde77541de60b0c9fb8ec49c043b8cb22eeae6665780b8e3b952061ef8d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -360,7 +360,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-expanded-persisted-dark.png",
-      "screenshotSha256": "a080d4afc42ce83f1b01e3477763f9ebefa9aaa8f2938a31b9edfd2c5c255e58",
+      "screenshotSha256": "7c3124dfa24daac88bb7bd342844a3814a4604f2a6ab46ea1184841a8d3dec39",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -560,7 +560,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-local-tools-directory-dark.png",
-      "screenshotSha256": "7de346271f9e433940587804fba0d311046b2b9f9459157d801895252966f3a8",
+      "screenshotSha256": "3fa0646831585a3414a5361c028a1d99f936b5437805686ab43f2f8df03d897a",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1187,7 +1187,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-focus-dark.png",
-      "screenshotSha256": "bff315058ddace3075fc029ff065df84243f4391c4b3770a6a7663004dea1061",
+      "screenshotSha256": "7d0d2cd1fca8a9495d9d1baa05311ec7a135b087218e4ec94e981fd352247b34",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1619,7 +1619,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-inspector-light.png",
-      "screenshotSha256": "ba86336e5040ddc68a706396f22e339bcaa727621fcd6ca7efab9675ad92ef88",
+      "screenshotSha256": "62f41d8daf54240afe015740029b7bd9d42941c015c9a374c216cf608bb764b4",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -1838,7 +1838,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "7dbcc4b679ba5173c3d2a3a4741c7a8978c2450352570296c5e23bd74429e361",
+      "screenshotSha256": "e9357389346bfd0a148e913b5369ff73032a24a14f5c13129cecc9116c2acce7",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -2052,6 +2052,29 @@
           "selectedNodeId": "z反变换_7_7959c077",
           "inspectorOpen": true,
           "hoverPreviewVisible": false,
+          "surfaceToken": "a2ltc0lbz1",
+          "nodePoints": [
+            {
+              "x": 892.5045859274683,
+              "y": 415.51182296158726
+            },
+            {
+              "x": 884.5045859274683,
+              "y": 415.51182296158726
+            },
+            {
+              "x": 900.5045859274683,
+              "y": 415.51182296158726
+            },
+            {
+              "x": 892.5045859274683,
+              "y": 407.51182296158726
+            },
+            {
+              "x": 892.5045859274683,
+              "y": 423.51182296158726
+            }
+          ],
           "desktopToolState": "open",
           "desktopActiveTool": "view-layout"
         },
@@ -2067,6 +2090,29 @@
           "selectedNodeId": "z反变换_7_7959c077",
           "inspectorOpen": true,
           "hoverPreviewVisible": false,
+          "surfaceToken": "a2ltc0lbz1",
+          "nodePoints": [
+            {
+              "x": 1051.1836981708527,
+              "y": 487.167666134358
+            },
+            {
+              "x": 1043.1836981708527,
+              "y": 487.167666134358
+            },
+            {
+              "x": 1059.1836981708527,
+              "y": 487.167666134358
+            },
+            {
+              "x": 1051.1836981708527,
+              "y": 479.167666134358
+            },
+            {
+              "x": 1051.1836981708527,
+              "y": 495.167666134358
+            }
+          ],
           "desktopToolState": "open",
           "desktopActiveTool": "view-layout"
         },
@@ -2077,6 +2123,29 @@
           "selectedNodeId": "z反变换_7_7959c077",
           "inspectorOpen": true,
           "hoverPreviewVisible": false,
+          "surfaceToken": "a2ltc0lbz1",
+          "nodePoints": [
+            {
+              "x": 1051.1836981708527,
+              "y": 487.167666134358
+            },
+            {
+              "x": 1043.1836981708527,
+              "y": 487.167666134358
+            },
+            {
+              "x": 1059.1836981708527,
+              "y": 487.167666134358
+            },
+            {
+              "x": 1051.1836981708527,
+              "y": 479.167666134358
+            },
+            {
+              "x": 1051.1836981708527,
+              "y": 495.167666134358
+            }
+          ],
           "desktopToolState": "open",
           "desktopActiveTool": "view-layout"
         },
@@ -2087,6 +2156,29 @@
           "selectedNodeId": "z反变换_7_7959c077",
           "inspectorOpen": false,
           "hoverPreviewVisible": false,
+          "surfaceToken": "a2ltc0lbz1",
+          "nodePoints": [
+            {
+              "x": 1047.861823123488,
+              "y": 488.670502748986
+            },
+            {
+              "x": 1039.861823123488,
+              "y": 488.670502748986
+            },
+            {
+              "x": 1055.861823123488,
+              "y": 488.670502748986
+            },
+            {
+              "x": 1047.861823123488,
+              "y": 480.670502748986
+            },
+            {
+              "x": 1047.861823123488,
+              "y": 496.670502748986
+            }
+          ],
           "desktopToolState": "open",
           "desktopActiveTool": "view-layout"
         },
@@ -2097,6 +2189,29 @@
           "selectedNodeId": "z反变换_7_7959c077",
           "inspectorOpen": true,
           "hoverPreviewVisible": false,
+          "surfaceToken": "a2ltc0lbz1",
+          "nodePoints": [
+            {
+              "x": 1043.659641261345,
+              "y": 489.31434090245926
+            },
+            {
+              "x": 1035.659641261345,
+              "y": 489.31434090245926
+            },
+            {
+              "x": 1051.659641261345,
+              "y": 489.31434090245926
+            },
+            {
+              "x": 1043.659641261345,
+              "y": 481.31434090245926
+            },
+            {
+              "x": 1043.659641261345,
+              "y": 497.31434090245926
+            }
+          ],
           "desktopToolState": "open",
           "desktopActiveTool": "view-layout"
         }
@@ -2132,7 +2247,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-page-tools-menu-dark.png",
-      "screenshotSha256": "64d8bd816d5ff71cdd09a95b8bc6d3d6246342fa536dc7fcffaa48d5cbecddde",
+      "screenshotSha256": "90bd12287db9fec66070c9c20b5e9d1259ef0f762d256532f20aba50b6af7dfa",
       "markers": {
         "htmlClass": "dark",
         "workspace": null,
@@ -2258,7 +2373,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-explicit-relayout-dark.png",
-      "screenshotSha256": "06f13362da668e704e66ca3313e9a305a6184fb36e0eff86359e7a82361a1722",
+      "screenshotSha256": "8ad9fcf929bb88afd9d3e78f8964fa129b51c34795afe65f8db85cacb1e7a893",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -2328,8 +2443,8 @@
           "selectedNodeId": "稳定性_1_7288b4ea",
           "visibleNodeCount": "80",
           "visibleLinkCount": "52",
-          "layoutVersion": "1",
-          "pinnedNodeCount": "0"
+          "layoutVersion": "2",
+          "pinnedNodeCount": "1"
         },
         "threeDimensionalRenderer": null,
         "desktopToolState": "open",
@@ -2364,7 +2479,7 @@
         "mobileLayoutControls": [
           "fit-view",
           "relayout",
-          "pin-selected",
+          "unpin-selected",
           "set-focus-node",
           "clear-pins"
         ],
@@ -2388,9 +2503,9 @@
           "desktopTools": {
             "left": 112,
             "top": 125,
-            "right": 596,
+            "right": 594,
             "bottom": 458,
-            "width": 484,
+            "width": 482,
             "height": 333
           },
           "mobileTools": null,
@@ -2451,22 +2566,68 @@
       "interactionEvidence": {
         "kind": "explicit-relayout-stability",
         "beforeRelayout": {
-          "layoutVersion": "0",
-          "pinnedNodeCount": "0",
-          "pinnedLayoutSignature": "",
+          "layoutVersion": "1",
+          "pinnedNodeCount": "1",
+          "pinnedLayoutSignature": "稳定性_1_7288b4ea:-306.1,-207.8,0.0",
           "selectedNodeId": "稳定性_1_7288b4ea",
           "inspectorOpen": true,
           "hoverPreviewVisible": false,
+          "surfaceToken": "f511ev59x0g",
+          "nodePoints": [
+            {
+              "x": 844.3705521091,
+              "y": 367.6860807384484
+            },
+            {
+              "x": 836.3705521091,
+              "y": 367.6860807384484
+            },
+            {
+              "x": 852.3705521091,
+              "y": 367.6860807384484
+            },
+            {
+              "x": 844.3705521091,
+              "y": 359.6860807384484
+            },
+            {
+              "x": 844.3705521091,
+              "y": 375.6860807384484
+            }
+          ],
           "desktopToolState": "open",
           "desktopActiveTool": "view-layout"
         },
         "afterRelayout": {
-          "layoutVersion": "1",
-          "pinnedNodeCount": "0",
-          "pinnedLayoutSignature": "",
+          "layoutVersion": "2",
+          "pinnedNodeCount": "1",
+          "pinnedLayoutSignature": "稳定性_1_7288b4ea:-306.1,-207.8,0.0",
           "selectedNodeId": "稳定性_1_7288b4ea",
           "inspectorOpen": true,
           "hoverPreviewVisible": false,
+          "surfaceToken": "f511ev59x0g",
+          "nodePoints": [
+            {
+              "x": 844.3705521091,
+              "y": 367.6860807384484
+            },
+            {
+              "x": 836.3705521091,
+              "y": 367.6860807384484
+            },
+            {
+              "x": 852.3705521091,
+              "y": 367.6860807384484
+            },
+            {
+              "x": 844.3705521091,
+              "y": 359.6860807384484
+            },
+            {
+              "x": 844.3705521091,
+              "y": 375.6860807384484
+            }
+          ],
           "desktopToolState": "open",
           "desktopActiveTool": "view-layout"
         }
@@ -4313,7 +4474,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-selected-expanded-dark.png",
-      "screenshotSha256": "85f7b8c3b14efc5dcd345be84abe6c06133da85809372ff67237924540706ed7",
+      "screenshotSha256": "9a30a77faca9e968c9779538b86410edb049e73067bbc989bfe8b1b0f6416ccd",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -4934,7 +5095,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "0747060f82a6e7e3d877c19a8d558d7f50df9c7760d38cdacdcd5e9bf34924fa",
+      "screenshotSha256": "9564ac464d7ee46fabac89ece412777314951cdbf144414807ac209e6e50046d",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5167,7 +5328,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-wide-default-dark.png",
-      "screenshotSha256": "a65c94548689a3238c18b7fb4111a1fc3bd77912ea06ba5f88d16f2f54a6c3e5",
+      "screenshotSha256": "ea04e708228a5e5ddb0624bf92cc87972412388b00e86a4eb1e7b3c4cd432fa0",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5367,7 +5528,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-wide-inspector-tools-dark.png",
-      "screenshotSha256": "5a3937e39dff7f5870ce25c67999e7861f232e8f067603c9ad20adf4fe90ff06",
+      "screenshotSha256": "ba69398802d54fbe1d9bba275906e76668b76e979e783394d94be04f99674408",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -5593,7 +5754,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-default-dark.png",
-      "screenshotSha256": "1bee09c0f6a432f6ae57e2ec9fa909b52240f393919bb0b16ce98f19ddc52805",
+      "screenshotSha256": "3285630e04eea0743f5d57b6426fe735f7f7f06f6d2717d20b04d25025321e1b",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6000,7 +6161,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-selected-inspector-dark.png",
-      "screenshotSha256": "6c6dc0d7140f911b386ed10e4d57ab08355dd6b940feac6ed45b607e4d0d5770",
+      "screenshotSha256": "33540de8a19669ab35570a5a811bfb9f6e503a668a92f38c4c1d1520a3973f04",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6219,7 +6380,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1024-inspector-tools-konling-dark.png",
-      "screenshotSha256": "768779195e2e7636fdeb00a97a30ec0c44bbbc96f913427af33ab5ddb68c037e",
+      "screenshotSha256": "9b7781641d802a8a2802aa73698dc889118c0e9d9c9e904bdaed6620cd15070e",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6431,7 +6592,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1100-inspector-tools-konling-dark.png",
-      "screenshotSha256": "905d947f01b0a2fe1ec55f7457eff67c282cfb8c32af805461d45f59a451594b",
+      "screenshotSha256": "4a9e72995aad41e859a007f0420f6a7d3dc1b7e963f47867cdadb9a713d5c294",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6650,7 +6811,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/tablet-1279-inspector-tools-konling-dark.png",
-      "screenshotSha256": "e0e5f52022c912a2c3a705af7f704eef1ce76699ee4adaf7274ba56e87b00db0",
+      "screenshotSha256": "fed70a004cb12fdffc3a7664d315c6bfdd6ba3887054069ee59fe9f3d1cff7bd",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -6917,7 +7078,7 @@
       },
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/light-theme-default.png",
-      "screenshotSha256": "9261a625bf3939b0dd79ce2ad45594abab61490508d1241adf444282b89a029b",
+      "screenshotSha256": "a39cfe182e24be45971c72f20cda7ad9c32db95c33c44ef0b49f622b4cbeb2a8",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -7225,14 +7386,14 @@
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": true,
             "rendererViewportVisibleHeight": 725,
-            "rendererVisiblePaintPixelCount": 4561,
+            "rendererVisiblePaintPixelCount": 4535,
             "nodeGeometryWithinViewportCount": 32,
             "relationGeometryWithinViewportCount": 0
           },
           "nodeLabelReadability": {
             "nodeLabelCount": 85,
-            "visibleNodeLabelCount": 22,
-            "inViewportNodeLabelCount": 22,
+            "visibleNodeLabelCount": 21,
+            "inViewportNodeLabelCount": 21,
             "minFontSize": 12,
             "minPixelSize": 12,
             "viewBoxWidth": null,
@@ -7378,7 +7539,7 @@
       },
       "teachingRelationsUnavailable": false,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-desktop-dark.png",
-      "screenshotSha256": "064c852275cd5c1f2e7370254b3812bbdb02705ba06b66f71eb0d32579b6603b"
+      "screenshotSha256": "e36e4fd4f87d2681e2d5a7872cbb17a60c23f6e70ce2f4629e748ed77eb0102f"
     },
     {
       "name": "active-desktop-light",
@@ -7676,7 +7837,7 @@
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": true,
             "rendererViewportVisibleHeight": 608,
-            "rendererVisiblePaintPixelCount": 4,
+            "rendererVisiblePaintPixelCount": 0,
             "nodeGeometryWithinViewportCount": 27,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7788,7 +7949,7 @@
       },
       "teachingRelationsUnavailable": false,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-tablet.png",
-      "screenshotSha256": "fa6920fa2e9517af0b4ab23c5d82024dcd8bcbb96b802bbb3832f3fa1fe58bcb"
+      "screenshotSha256": "3f78e2bb1002059c03b79d4e4bcf5f8892c5052e051472466b44bb2f1deea78c"
     },
     {
       "name": "active-mobile",
@@ -7881,7 +8042,7 @@
             "svgVisibleInViewport": false,
             "rendererVisibleInViewport": true,
             "rendererViewportVisibleHeight": 228,
-            "rendererVisiblePaintPixelCount": 3208,
+            "rendererVisiblePaintPixelCount": 3078,
             "nodeGeometryWithinViewportCount": 7,
             "relationGeometryWithinViewportCount": 0
           },
@@ -7993,7 +8154,7 @@
       },
       "teachingRelationsUnavailable": false,
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/active-mobile.png",
-      "screenshotSha256": "bc11f26143476ae951800dc3a0544155f6e06b0648eb632e2c5501902635ce7b"
+      "screenshotSha256": "0fdd709a59272e3c34929a7b0cdbd919189210610c57c0eab2c58ee806341206"
     }
   ],
   "authenticatedRoleEvidence": [
@@ -8095,7 +8256,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-default.png",
-        "screenshotSha256": "9c2303cc40d12611deb3d96627f0f50a4a282cb5125e663e7bf03ecc16bc99c7"
+        "screenshotSha256": "c17535f1d74384f83d1e751c2cbf1980c0240a3491439061588af851527eaf32"
       },
       "mobile": {
         "mode": "active",
@@ -8186,7 +8347,7 @@
         "graphVisible": true,
         "nonEmptyCanvas": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-student-active-mobile.png",
-        "screenshotSha256": "830194880d47142672aebd2e7940a3caec69ad5750d5ad7709132d63f86db581"
+        "screenshotSha256": "965fb2d08ebbc5bae750918e55cd671012709d11df9eead058912738a72cfd3f"
       },
       "legacy": {
         "mode": "legacy",
@@ -8325,7 +8486,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-teacher-default.png",
-        "screenshotSha256": "22bd0da736b7c6a6e4dbf60454b02cf5d1278655430aaac3b75ad6ff8eab1e71"
+        "screenshotSha256": "e75e6f0a847e1e2bb8c848c3e9a9f5d1b68e59b8afdd1d5c7f2bf121c3d747f9"
       },
       "mobile": {
         "mode": "active",
@@ -8555,7 +8716,7 @@
           }
         ],
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-default.png",
-        "screenshotSha256": "c55cc821e0d1b85a80d186413240d8f95294b274b6bc274b62841eccb62dd77a"
+        "screenshotSha256": "b256eaada04eae43dd9ccb3040dd4e3bb8f2b110502b328d97d979e9eae8d081"
       },
       "mobile": {
         "mode": "active",
@@ -8728,7 +8889,7 @@
         },
         "graphVisible": true,
         "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/role-admin-candidate.png",
-        "screenshotSha256": "db12de4f6559ad11ac7b33fd23ab217405c154a444ed47797c0f609ec624a807"
+        "screenshotSha256": "a666deb59168cec0b5bba62fd73eb350241e3417b43431fb9f3c374617cae61b"
       }
     }
   ],
