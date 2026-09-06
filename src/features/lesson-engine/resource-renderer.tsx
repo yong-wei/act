@@ -48,6 +48,8 @@ interface ResourceRendererProps {
   teacherPreview?: boolean;
   /** 仅学生课堂运行态可以写入课堂作答。 */
   classroomActorRole?: 'student' | 'teacher';
+  /** 粗粒度媒体状态变化（播放/暂停），供陪伴信号采集；仅学生布点页面传入。 */
+  onMediaStateChange?: (playing: boolean) => void;
 }
 
 // Temporary accessibility exception: legacy static media resources only store one content URL.
@@ -102,6 +104,7 @@ export function ResourceRenderer({
   enableAIPanel = true,
   teacherPreview,
   classroomActorRole,
+  onMediaStateChange,
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
@@ -262,7 +265,15 @@ export function ResourceRenderer({
           <div className="flex items-center justify-center h-full bg-black">
               {/* Simplified media handling */}
               {resource.content?.endsWith('.mp4') ? (
-                  <video aria-label={effectiveTitle} src={resource.content} controls className="max-h-full max-w-full">
+                  <video
+                    aria-label={effectiveTitle}
+                    src={resource.content}
+                    controls
+                    className="max-h-full max-w-full"
+                    onPlay={() => onMediaStateChange?.(true)}
+                    onPause={() => onMediaStateChange?.(false)}
+                    onEnded={() => onMediaStateChange?.(false)}
+                  >
                       <track kind="captions" srcLang="zh-CN" label="中文说明" src={TEMPORARY_CAPTION_TRACK_SRC} />
                   </video>
               ) : (

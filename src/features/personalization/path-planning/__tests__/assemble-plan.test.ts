@@ -635,12 +635,87 @@ describe('policy bundle core diversity fixture', () => {
       },
       policyFamily: 'foundation-remediation',
       policyBundle: {
-        families: ['simulation-driven', 'preference-matched'],
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
         overlapThreshold: 0.6,
       },
       now: new Date('2026-05-27T08:00:00.000Z'),
     };
   }
+
+  it('injects exactly the three starter families as cold-start candidates', () => {
+    const plan = planLearningPath({
+      ...buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry()),
+      policyBundle: undefined,
+      learnerState: null,
+    });
+    expectStarterThreeOptionContract(plan);
+  });
+
+  it('keeps low-confidence starter injection at exactly three candidate options', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    const plan = planLearningPath({
+      ...input,
+      policyBundle: undefined,
+      learnerState: {
+        ...input.learnerState!,
+        evidence: {
+          ...input.learnerState!.evidence!,
+          confidence: { level: 'low', score: 0.3, evidenceCount: 8, sourceCompleteness: 0.4 },
+        },
+      },
+    });
+    expectStarterThreeOptionContract(plan);
+  });
+
+  it('keeps single-evidence starter injection at exactly three candidate options', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    const plan = planLearningPath({
+      ...input,
+      policyBundle: undefined,
+      learnerState: {
+        ...input.learnerState!,
+        evidence: {
+          ...input.learnerState!.evidence!,
+          confidence: { ...input.learnerState!.evidence!.confidence, evidenceCount: 1 },
+        },
+      },
+    });
+    expectStarterThreeOptionContract(plan);
+  });
+
+  it('marks revision requests below the target option count as explicit fallback', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    const plan = planLearningPath({
+      ...input,
+      policyBundle: {
+        families: ['foundation-remediation', 'sprint-correction'],
+        overlapThreshold: 0.6,
+      },
+    });
+
+    expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
+      'foundation-remediation',
+      'sprint-correction',
+    ]);
+    expect(plan.policyBundle?.status).toBe('low-resource-fallback');
+    expect(plan.policyBundle?.fallbackReasons).toContain('policy-option-count-below-target');
+  });
+
+  it('rejects policy family requests exceeding the target option count', () => {
+    const input = buildDiversityFixtureInput(buildAlternativeCoreFixtureRegistry());
+    expect(() => planLearningPath({
+      ...input,
+      policyBundle: {
+        families: [
+          'foundation-remediation',
+          'simulation-driven',
+          'preference-matched',
+          'sprint-correction',
+        ],
+        overlapThreshold: 0.6,
+      },
+    })).toThrow(/exceeding targetOptionCount 3/);
+  });
 
   it('keeps three policy options meaningfully distinct when alternative core teaching resources exist', () => {
     const registry = buildAlternativeCoreFixtureRegistry();
@@ -1160,6 +1235,29 @@ function mergeLearnerState(
     primaryPortraitAvailability: override.primaryPortraitAvailability ?? trusted.primaryPortraitAvailability,
     primaryPortrait: override.primaryPortrait ?? trusted.primaryPortrait,
   };
+}
+
+function expectStarterThreeOptionContract(plan: ReturnType<typeof planLearningPath>) {
+  expect(plan.policyBundle?.families).toEqual([
+    'foundation-remediation',
+    'simulation-driven',
+    'preference-matched',
+  ]);
+  expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
+    'foundation-remediation',
+    'simulation-driven',
+    'preference-matched',
+  ]);
+  expect(plan.policyBundle?.paths.map((path) => path.styleId)).toEqual([
+    'foundation-remediation',
+    'arena-simulation-sprint',
+    'preference-matched-route',
+  ]);
+  expect(serializeLearningPathPlan(plan).payload.pathOptions?.map((option) => option.optionId)).toEqual([
+    'path-option-1',
+    'path-option-2',
+    'path-option-3',
+  ]);
 }
 
 function graphContextForLearningGoal(
@@ -3971,6 +4069,98 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('applies portrait-inferred resource preferences as an explicit ranking source and labels provenance', () => {
+    const registryInput = plannerInput();
+    const profilePlan = planLearningPath({
+      ...plannerInput({
+        resourcePreferences: ['simulation', 'arena_task'],
+        resourcePreferenceSource: 'profile',
+        configurationRequests: [
+          { key: 'resource-preferences', source: 'profile', value: ['simulation', 'arena_task'] },
+        ],
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const baselinePlan = planLearningPath({
+      ...plannerInput({
+        learnerState: null,
+        resourcePreferences: undefined,
+        resourcePreferenceSource: undefined,
+        configurationRequests: [
+          { key: 'resource-preferences', source: 'fallback', value: ['knowledge_card', 'adaptive_quiz', 'simulation'] },
+        ],
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const preferenceSelectedCount = (plan: ReturnType<typeof planLearningPath>) =>
+      plan.mainPath.filter((node) => node.reasonCodes.includes('matches-resource-preference')).length;
+
+    expect(profilePlan.explanations.selectedReasons).toContain('matches-resource-preference');
+    expect(preferenceSelectedCount(profilePlan)).toBeGreaterThan(preferenceSelectedCount(baselinePlan));
+    expect(profilePlan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'profile' }),
+    ]));
+    expect(baselinePlan.explanations.configurationFulfillment).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: 'resource-preferences', source: 'fallback' }),
+    ]));
+  });
+
+  it('stops learner-state portrait modalities from weighting resources under an explicit request source', () => {
+    const registryInput = plannerInput();
+    const explicitOverrides = {
+      resourcePreferences: ['konling'],
+      resourcePreferenceSource: 'request' as const,
+      configurationRequests: [
+        { key: 'resource-preferences', source: 'request' as const, value: ['konling'] },
+      ],
+    };
+    const withPortraitModality = planLearningPath({
+      ...plannerInput({
+        ...explicitOverrides,
+        learnerState: {
+          ...plannerInput().learnerState,
+          resourcePreference: { preferredModalities: ['simulation'], confidence: 'medium' },
+        },
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const withoutPortraitModality = planLearningPath({
+      ...plannerInput({
+        ...explicitOverrides,
+        learnerState: {
+          ...plannerInput().learnerState,
+          resourcePreference: { preferredModalities: [], confidence: 'none' },
+        },
+      }),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+
+    expect(withPortraitModality.mainPath.map((node) => node.id))
+      .toEqual(withoutPortraitModality.mainPath.map((node) => node.id));
+  });
+
+  it('stops judged-unavailable portrait modalities from altering the system-default fallback mix', () => {
+    const registryInput = plannerInput();
+    const fallbackOverrides = (modalities: string[]) => ({
+      resourcePreferenceSource: 'fallback' as const,
+      learnerState: {
+        ...plannerInput().learnerState,
+        resourcePreference: { preferredModalities: modalities, confidence: 'medium' as const },
+      },
+    });
+    const withUnavailablePortraitModality = planLearningPath({
+      ...plannerInput(fallbackOverrides(['simulation'])),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+    const withoutPortraitModality = planLearningPath({
+      ...plannerInput(fallbackOverrides([])),
+      registry: withLegalAdaptiveDestinations(registryInput.registry),
+    });
+
+    expect(withUnavailablePortraitModality.mainPath.map((node) => node.id))
+      .toEqual(withoutPortraitModality.mainPath.map((node) => node.id));
+  });
+
   it('does not let a light checkpoint preference lower the registered minimum checkpoint count', () => {
     const registeredGoal = {
       ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'],
@@ -4163,17 +4353,16 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.policyBundle?.families).toEqual([
-      'rules-plus-graph-search',
       'foundation-remediation',
       'simulation-driven',
       'sprint-correction',
     ]);
     const displayedPaths = plan.policyBundle?.paths ?? [];
     expect(displayedPaths.length).toBeGreaterThanOrEqual(1);
-    expect(displayedPaths.length).toBeLessThanOrEqual(4);
+    expect(displayedPaths.length).toBeLessThanOrEqual(3);
     expect(displayedPaths[0]).toMatchObject({
-      policyFamily: 'rules-plus-graph-search',
-      styleId: 'rules-graph-search-route',
+      policyFamily: 'foundation-remediation',
+      styleId: 'foundation-remediation',
     });
     expect(plan.policyBundle?.diversity.maxResourceOverlap).toBeGreaterThanOrEqual(0);
     expect(plan.policyBundle?.diversity.terminalValidationDifference).toBeGreaterThanOrEqual(0);
@@ -4186,7 +4375,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.policyBundle?.diversity.pairwiseTerminalValidationDifference).toHaveLength(expectedPairCount);
   });
 
-  it('compares bundle policies against an explicit primary policy family', () => {
+  it('builds bundle candidates from the requested families without appending the primary family', () => {
     const baseInput = plannerInput();
     const plan = planLearningPath({
       ...baseInput,
@@ -4204,17 +4393,11 @@ describe('adaptive learning path planner', () => {
       },
     });
 
-    expect(plan.policyBundle?.families).toEqual(['foundation-remediation', 'sprint-correction']);
+    expect(plan.policyBundle?.families).toEqual(['sprint-correction']);
     expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
-      'foundation-remediation',
       'sprint-correction',
     ]);
-    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([
-      expect.objectContaining({
-        left: 'foundation-remediation',
-        right: 'sprint-correction',
-      }),
-    ]);
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([]);
   });
 
   it('returns an explicit low-resource fallback when policy paths cannot be distinct', () => {
@@ -8580,7 +8763,7 @@ describe('adaptive learning path planner', () => {
       resourcePreferences: ['knowledge_card'],
       resourcePreferenceSource: 'request',
       policyBundle: {
-        families: ['preference-matched'],
+        families: ['rules-plus-graph-search', 'preference-matched'],
         overlapThreshold: 0.6,
       },
     }));
@@ -8974,5 +9157,173 @@ describe('adaptive learning path planner', () => {
         message: '备选路径仍有锁定节点。',
       },
     ]);
+  });
+});
+
+describe('portrait-driven path personalization availability (#1984)', () => {
+  it('marks competency targets as no-portrait-evidence and surfaces unavailability when the portrait is fenced off', () => {
+    const plan = planLearningPath(plannerInput({
+      learnerState: {
+        primaryPortraitState: 'UNAVAILABLE',
+        primaryPortraitAvailability: 'migration-in-progress',
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.32, confidence: 0.7, evidenceCount: 3 },
+            'kn-cruise': { posteriorMastery: 0.2, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: { level: 'medium', score: 0.7, evidenceCount: 8, sourceCompleteness: 0.6 },
+        },
+      },
+      policyBundle: {
+        families: ['foundation-remediation', 'simulation-driven'],
+        overlapThreshold: 0.6,
+      },
+    }));
+    const persisted = serializeLearningPathPlan(plan);
+    const options = persisted.payload.pathOptions ?? [];
+    expect(options.length).toBeGreaterThan(0);
+    for (const option of options) {
+      const competencyDeficits = (option.targetDeficits ?? [])
+        .filter((deficit) => deficit.kind === 'competency');
+      for (const deficit of competencyDeficits) {
+        expect(deficit.reasonCode).toBe('competency-no-portrait-evidence');
+        expect(deficit.evidenceCount).toBe(0);
+      }
+      const provenance = option.recommendationProvenance;
+      expect(provenance?.personalizationState).toBe('portrait-unavailable');
+      expect(provenance?.summary).toContain('当前无法个性化推荐');
+      expect(provenance?.summary).toContain('通用学习路线');
+      expect(provenance?.entries.every((entry) => entry.targetKind !== 'competency')).toBe(true);
+      expect(provenance?.limitations.join(' ')).toContain('migration-in-progress');
+      expect(JSON.stringify(option)).not.toContain('matches-competency-deficit');
+    }
+    const bundleDecision = (persisted.payload.policyBundle as Record<string, unknown> | undefined)?.decisionEvidence as Record<string, unknown> | undefined;
+    const decisionSnapshot = (bundleDecision?.snapshot ?? bundleDecision) as Record<string, unknown> | undefined;
+    const decisionWeakTargets = (decisionSnapshot?.weakTargets ?? []) as Array<Record<string, unknown>>;
+    expect(decisionWeakTargets.length).toBeGreaterThan(0);
+    for (const weakTarget of decisionWeakTargets.filter((item) => item.kind === 'competency')) {
+      expect(weakTarget.reasonCode).toBe('competency-no-portrait-evidence');
+    }
+  });
+
+  it('keeps cited competency deficits aligned with an available trusted portrait', () => {
+    const plan = planLearningPath(plannerInput());
+    const persisted = serializeLearningPathPlan(plan);
+    const options = persisted.payload.pathOptions ?? [];
+    const provenance = options[0]?.recommendationProvenance;
+    expect(provenance?.personalizationState).toBeUndefined();
+    expect(provenance?.summary).not.toContain('当前无法个性化推荐');
+    const competencyEntries = provenance?.entries.filter((entry) => entry.targetKind === 'competency') ?? [];
+    for (const entry of competencyEntries) {
+      expect(entry.evidenceSummary).toMatch(/来自 \d+ 条有效证据/);
+    }
+  });
+
+  it('surfaces the portrait-unavailable degradation reason from the learner-state snapshot', async () => {
+    const { listPersonalizedPathDegradationReasons, degradationStudentText } = await import(
+      '@/features/personalization/path-planning/adaptive-path-decision-evidence'
+    );
+    const degraded = listPersonalizedPathDegradationReasons({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-09-05T00:00:00.000Z',
+      authority: 'server-owned',
+      sourceCoverage: {},
+      evidenceWindow: null,
+      freshness: 'current',
+      confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.6, evidenceCount: 8 },
+      missingEvidence: [],
+      preferredModalities: [],
+      preferredModalityConfidence: 'none',
+      primaryPortraitState: 'UNAVAILABLE',
+      primaryPortraitAvailability: 'migration-in-progress',
+    });
+    expect(degraded).toContain('portrait-unavailable');
+    expect(degradationStudentText('portrait-unavailable')).toContain('能力画像');
+    const available = listPersonalizedPathDegradationReasons({
+      payloadVersion: 'adaptive-learner-state.v1',
+      generatedAt: '2026-09-05T00:00:00.000Z',
+      authority: 'server-owned',
+      sourceCoverage: {},
+      evidenceWindow: null,
+      freshness: 'current',
+      confidence: { level: 'medium', score: 0.7, sourceCompleteness: 0.6, evidenceCount: 8 },
+      missingEvidence: [],
+      preferredModalities: [],
+      preferredModalityConfidence: 'none',
+      primaryPortraitState: 'SNAPSHOT',
+      primaryPortraitAvailability: 'available',
+    });
+    expect(available).not.toContain('portrait-unavailable');
+  });
+
+  it('labels option reason with generic-route semantics when every competency deficit lacks portrait evidence', async () => {
+    const { buildAdaptivePathOptionDisplays } = await import(
+      '@/features/personalization/path-planning/adaptive-path-option-display'
+    );
+    const displays = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '通用路线',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [
+        { targetId: 'parameterDesign', kind: 'competency', value: 0, confidence: 0, evidenceCount: 0, reasonCode: 'competency-no-portrait-evidence' },
+      ],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      limitations: [],
+    }]);
+    expect(displays[0].reason).toBe('能力画像暂不可用，按通用学习路线安排资源。');
+
+    const personalized = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '补强路线',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [
+        { targetId: 'kn-bode', kind: 'knowledge', value: 0.32, confidence: 0.7, evidenceCount: 3, reasonCode: 'knowledge-deficit' },
+      ],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      limitations: [],
+    }]);
+    expect(personalized[0].reason).toContain('当前薄弱项');
+  });
+
+  it('prefers generic-route copy when the portrait is unavailable even alongside real knowledge deficits', async () => {
+    const { buildAdaptivePathOptionDisplays } = await import(
+      '@/features/personalization/path-planning/adaptive-path-option-display'
+    );
+    const displays = buildAdaptivePathOptionDisplays([{
+      optionId: 'path-option-1',
+      label: '通用路线',
+      lockedNodeIds: [],
+      readinessSummary: [],
+      targetDeficits: [
+        { targetId: 'kn-bode', kind: 'knowledge', value: 0.32, confidence: 0.7, evidenceCount: 3, reasonCode: 'knowledge-deficit' },
+        { targetId: 'parameterDesign', kind: 'competency', value: 0, confidence: 0, evidenceCount: 0, reasonCode: 'competency-no-portrait-evidence' },
+      ],
+      evidenceBasis: [],
+      resourceMix: {},
+      effort: {},
+      terminalValidationNodeIds: [],
+      limitations: [],
+      recommendationProvenance: {
+        summary: '当前无法个性化推荐：能力画像暂不可用，本路径按通用学习路线生成。',
+        confidence: 'low',
+        entries: [],
+        personalizationState: 'portrait-unavailable',
+        evidenceReviewHref: '/profile/evidence',
+        limitations: [],
+        nextAction: null,
+      },
+    }]);
+    expect(displays[0].reason).toBe('能力画像暂不可用，按通用学习路线安排资源。');
+    expect(displays[0].reason).not.toContain('薄弱项');
   });
 });

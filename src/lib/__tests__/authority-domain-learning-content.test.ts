@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import {
   copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -9,6 +10,8 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+
+import { spawnSync } from 'node:child_process';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -58,28 +61,28 @@ function alignedDetail(nodeId: string) {
 }
 
 function sourceNode(canonicalId: string) {
-  const source = JSON.parse(readFileSync(join(REPO_ROOT, MANIFEST_RELATIVE), 'utf8')) as {
-    nodes: Array<{
-      canonicalId: string;
-      safeId: string;
-      card: { state: 'available' | 'blocked' | 'missing'; sha256: string | null };
-      infograph: { state: 'available' | 'missing'; sha256: string | null };
-    }>;
-  };
-  const node = source.nodes.find((candidate) => candidate.canonicalId === canonicalId);
-  if (node) return node;
-  if (canonicalId !== BLOCKED_CARD_NODE) {
-    throw new Error(`missing test source node ${canonicalId}`);
+  const safeId = 'ctc_modeling-865eb1c8824e157c2f05a903';
+  const cardPath = join(REPO_ROOT, CARD_RELATIVE, `${safeId}.md`);
+  const infographPath = join(REPO_ROOT, INFOGRAPH_RELATIVE, `${safeId}.png`);
+  const raw = readFileSync(cardPath, 'utf8');
+  const entity = raw.match(/^authority_entity_id:\s*["']?([^"'\r\n]+)/m)?.[1]?.trim();
+  if (canonicalId === ACCEPTED_NODE && entity === canonicalId) {
+    return {
+      canonicalId,
+      safeId,
+      card: { state: 'available' as const, sha256: sha256(raw) },
+      infograph: { state: 'available' as const, sha256: sha256(readFileSync(infographPath)) },
+    };
   }
-  return {
-    canonicalId,
-    safeId: 'ctkg_v3e-object-35942e1152c99bd94bdecd00',
-    card: { state: 'blocked', sha256: null },
-    infograph: {
-      state: 'available',
-      sha256: sha256(readFileSync(join(REPO_ROOT, INFOGRAPH_RELATIVE, 'ctkg_v3e-object-35942e1152c99bd94bdecd00.png'))),
-    },
-  };
+  if (canonicalId === BLOCKED_CARD_NODE) {
+    return {
+      canonicalId,
+      safeId: 'blocked-fixture-node',
+      card: { state: 'blocked' as const, sha256: null },
+      infograph: { state: 'available' as const, sha256: sha256(readFileSync(infographPath)) },
+    };
+  }
+  throw new Error(`missing test source node ${canonicalId}`);
 }
 
 function withAlignedRuntime(
@@ -115,11 +118,11 @@ function withAlignedRuntime(
   const infographRoot = join(root, INFOGRAPH_RELATIVE);
   mkdirSync(cardRoot, { recursive: true });
   mkdirSync(infographRoot, { recursive: true });
+  const trackedCard = join(REPO_ROOT, CARD_RELATIVE, 'ctc_modeling-865eb1c8824e157c2f05a903.md');
+  const trackedInfograph = join(REPO_ROOT, INFOGRAPH_RELATIVE, 'ctc_modeling-865eb1c8824e157c2f05a903.png');
   for (const node of [accepted, blocked]) {
-    const card = join(REPO_ROOT, CARD_RELATIVE, `${node.safeId}.md`);
-    const infograph = join(REPO_ROOT, INFOGRAPH_RELATIVE, `${node.safeId}.png`);
-    if (node.card.state === 'available') copyFileSync(card, join(cardRoot, `${node.safeId}.md`));
-    if (node.infograph.state === 'available') copyFileSync(infograph, join(infographRoot, `${node.safeId}.png`));
+    if (node.card.state === 'available') copyFileSync(trackedCard, join(cardRoot, `${node.safeId}.md`));
+    if (node.infograph.state === 'available') copyFileSync(trackedInfograph, join(infographRoot, `${node.safeId}.png`));
   }
   const manifestPath = join(root, MANIFEST_RELATIVE);
   mkdirSync(join(root, 'course-content/runtime/knowledge'), { recursive: true });
@@ -152,14 +155,19 @@ function expectUnavailable(detail: ReturnType<typeof alignedDetail>) {
 describe('Authority learning-content delivery', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('rejects the checked-in v1 export even when a Teaching fixture aligns', () => {
-    const detail = attachActiveAuthorityLearningContent(alignedDetail(ACCEPTED_NODE));
-
-    expect(detail.node.learningContent).toEqual({
-      card: { state: 'unavailable', message: '当前学习卡片暂时不可用。' },
-      infograph: { state: 'unavailable', message: '当前信息图暂时不可用。' },
-    });
-    expect(readActiveAuthorityInfograph(alignedDetail(ACCEPTED_NODE))).toBeNull();
+  it('renders the git-tracked accepted card without matching the course pointer', () => {
+    const live = loadNodeDetailShard(ACCEPTED_NODE);
+    const resolved = attachActiveAuthorityLearningContent(live);
+    expect(live.envelope.teaching.projectionId).not.toBe(
+      teachingProjectionStore.readCurrentTeachingProjectionPointer(
+        teachingProjectionStore.resolveTeachingProjectionStorePaths(
+          join(REPO_ROOT, 'course-content/runtime/knowledge/projection'),
+        ),
+      )?.projectionId,
+    );
+    expect(resolved.node.learningContent?.card.state).toBe('available');
+    expect(resolved.node.learningContent?.infograph.state).toBe('available');
+    expect(readActiveAuthorityInfograph(live)?.byteLength).toBeGreaterThan(1000);
   });
 
   it('binds an aligned v2 export before reading accepted card and infograph bytes', () => {
@@ -225,9 +233,37 @@ describe('Authority learning-content delivery', () => {
     });
   });
 
-  it('does not read an independently current projection when the shard Teaching binding is unavailable', () => {
+  it('renders typical inspector nodes from the v2 ledger', () => {
+    const resolved = attachActiveAuthorityLearningContent(loadNodeDetailShard(ACCEPTED_NODE));
+    expect(resolved.node.learningContent?.card.state).toBe('available');
+    expect(resolved.node.label).toBeTruthy();
+  });
+
+  it('keeps the runtime card/infograph/resource linkage gate green', () => {
+    const result = spawnSync(process.execPath, ['scripts/knowledge/check-authority-surface-linkage.mjs'], {
+      encoding: 'utf8',
+      cwd: REPO_ROOT,
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout).toContain('sidecar=');
+  });
+
+  it('does not read the course teaching pointer when shard teaching is unavailable', () => {
     const projectionResolver = vi.spyOn(teachingProjectionStore, 'resolveActiveTeachingProjection');
-    const detail = attachActiveAuthorityLearningContent(loadNodeDetailShard(ACCEPTED_NODE));
+    const live = loadNodeDetailShard(ACCEPTED_NODE);
+    const detail = attachActiveAuthorityLearningContent({
+      ...live,
+      envelope: {
+        ...live.envelope,
+        teaching: {
+          status: 'unavailable',
+          projectionId: null,
+          projectionHash: null,
+          teachingCacheFamily: null,
+        },
+        match: { ...live.envelope.match, teaching: false },
+      },
+    });
 
     expect(projectionResolver).not.toHaveBeenCalled();
     expect(detail.node.learningContent?.card).toEqual({

@@ -91,6 +91,40 @@ describe('governed math knowledge presentation', () => {
     expect(model.nodes).toEqual([]);
   });
 
+  it('does not render copy-formula or copy-text product buttons on detail density', () => {
+    const markup = renderToStaticMarkup(
+      createElement(GovernedRichText, {
+        projection: {
+          state: 'available',
+          locale: 'zh-CN',
+          contentHash: 'c'.repeat(64),
+          renderKey: 'detail-formula',
+          accessibleName: '公式 G(s)',
+          copyText: 'G(s)',
+          searchText: 'G(s)',
+          blocks: [{
+            kind: 'math-block',
+            spans: [{
+              kind: 'math',
+              display: 'block',
+              latex: 'G(s)',
+              macroProfileId: 'ctmacro:katex-default-v1',
+              macroProfileHash: '9da48a920152b4ea1ca7eacd8b5d8f94aeb54ca3218b47ec08923611a3942b74',
+              accessibleLabel: 'G(s)',
+              copyLatex: 'G(s)',
+              renderKey: 'gs',
+            }],
+          }],
+        },
+        density: 'detail',
+      }),
+    );
+    expect(markup).not.toContain('复制公式');
+    expect(markup).not.toContain('复制全文');
+    expect(markup).not.toContain('data-governed-copy-latex');
+    expect(markup).not.toContain('data-governed-copy-text');
+  });
+
   it('renders repeated governed math spans without duplicate React keys', () => {
     const duplicateKeyWarning = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     try {
@@ -117,6 +151,8 @@ describe('governed math knowledge presentation', () => {
         }),
       );
       expect(markup.match(/data-governed-math-span="same-math"/g)).toHaveLength(2);
+      expect(markup).not.toContain('复制公式');
+      expect(markup).not.toContain('复制全文');
       expect(duplicateKeyWarning).not.toHaveBeenCalled();
     } finally {
       duplicateKeyWarning.mockRestore();

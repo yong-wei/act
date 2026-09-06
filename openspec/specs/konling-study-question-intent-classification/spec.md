@@ -70,3 +70,64 @@ Konling SHALL resolve a multi-intent study question to one primary intent using 
 - **WHEN** a professional question matches no stronger signal
 - **THEN** the primary intent SHALL default to `open-ended-explanation` and SHALL NOT default to `fact-explanation`.
 
+### Requirement: 组合措辞信号的意图路由
+
+六意图分类 SHALL 覆盖不含显式调试或规范关键词的组合措辞：当问题同时包含异常现象标记与定位/修复动作标记时 SHALL 判为 `code-debugging`；当问题同时包含规范/要求/格式类标记与权威来源标记时 SHALL 判为 `normative-content`。组合信号 SHALL 按既有优先级序参与判定（normative > formula-derivation > code-debugging > concept-comparison > open-ended-explanation > fact-explanation），不得改变单命中标记的既有行为，也不得使既有冻结用例发生翻转。
+
+#### Scenario: 异常现象加定位修复判为代码调试
+
+- **WHEN** 学习者问「PID 输出持续饱和导致超调增大，如何定位和修复？」
+- **THEN** 运行时 SHALL 将 `answerIntent` 设为 `code-debugging`
+
+#### Scenario: 规范要求加权威文档判为规范内容
+
+- **WHEN** 学习者问「实验报告封面有哪些规范要求？」
+- **THEN** 运行时 SHALL 将 `answerIntent` 设为 `normative-content`
+
+#### Scenario: 现象无排障动作不判为代码调试
+
+- **WHEN** 问题包含异常现象词但不含定位/修复动作（如「用生活化例子解释超调」）
+- **THEN** 该问题 SHALL 按其余信号路由，不被调试组合信号吞并
+
+#### Scenario: 独立规范门禁与分类器词汇保持平价
+
+- **WHEN** 主分类器因规范组合信号判为 `normative-content` 的措辞出现在任何受管模式
+- **THEN** 独立规范风险探测器 SHALL 给出同等风险判定，非 generic 模式不得绕过 fail-closed 门禁
+
+#### Scenario: 组合措辞族的冻结回归门禁
+
+- **WHEN** 意图分类测试运行
+- **THEN** 表驱动回归 SHALL 覆盖组合措辞族中全部六类意图与多意图优先级（含子句序无关），且既有 standard/implicit 冻结集的准确率、macro-F1 与逐类 recall 门禁不降低
+
+### Requirement: V2 分层题库的意图混淆矩阵门禁
+
+六意图分类 SHALL 在 `KONLING_FAIR_EXPERIMENT_BANK_V2` 十八道分层题（六意图 × 基础/综合/对抗）上满足总体意图一致率不低于 90%，规范内容与代码调试两类命中率均不低于 80%，其余意图命中率不低于 90%；回归 SHALL 按意图与难度报告混淆矩阵，且不得以硬编码完整题目文本的方式满足门槛。
+
+#### Scenario: 实验安全规范判为规范内容
+
+- **WHEN** 学习者问「使用旋转机械与功率电源开展控制实验时，上电前与运行中应遵循哪些安全规范？」
+- **THEN** 运行时 SHALL 将 `answerIntent` 设为 `normative-content`
+
+#### Scenario: 标准编号与来源引用判为规范内容
+
+- **WHEN** 问题引用标准编号（如 GB/T 编号）或引用教材等权威出处并询问规范的当前结论（规范时效类）
+- **THEN** 运行时 SHALL 将 `answerIntent` 设为 `normative-content`
+- **AND** 独立规范风险探测器 SHALL 给出同等风险判定（#1901 平价保持）
+
+#### Scenario: 代码片段加缺陷定位判为代码调试
+
+- **WHEN** 问题包含代码围栏并要求找出缺陷、定位或修复（如标定/单位缺陷导致实测偏差）
+- **THEN** 运行时 SHALL 将 `answerIntent` 设为 `code-debugging`
+- **AND** 不含代码围栏且无排障动作的「缺陷」类概念问题 SHALL 不被该组合信号吞并
+
+#### Scenario: 开放讲解兜底优先级不变
+
+- **WHEN** 问题不含任何规范、推导、调试、比较或举例类专业信号
+- **THEN** 运行时 SHALL 按既有兜底判为 `open-ended-explanation`，新增信号不得改变兜底的相对位置
+
+#### Scenario: V2 分层回归按难度报告混淆矩阵
+
+- **WHEN** 意图分类回归运行
+- **THEN** 表驱动用例 SHALL 遍历 V2 题库全部十八道题，按意图与难度输出混淆矩阵
+- **AND** 总体一致率、规范内容与代码调试命中率、其余意图命中率 SHALL 分别满足 90%/80%/80%/90% 门槛
+

@@ -17,9 +17,17 @@ import { VersionedShipModel } from '@/resources/simulations/components/versioned
 import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
 import {
   TYPE055_NANCHANG_101_V2,
+  TYPE055_NANCHANG_101_V2_1_0,
+  TYPE055_NANCHANG_101_V2_1_1,
+  TYPE055_NANCHANG_101_V2_1_2,
   TYPE055_V2_BASIS_YAW_RAD,
+  isType055VersionedAssetUrl,
   matchActivatedType055Package,
+  propulsorSceneAnchors,
+  shipLodUrlForQualityTier,
+  type VersionedModelPackageDescriptor,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
+import { SemanticBindingsRig } from '@/resources/simulations/components/semantic-bindings-rig';
 import { boxProjectsInsideNdc } from '@/resources/simulations/scene/camera';
 import {
   Play,
@@ -47,7 +55,14 @@ import { Input } from '@/components/ui/input';
 
 import { destroyer055Profile } from '../profiles/destroyer-055';
 import { destroyer055SceneVisual } from '../profiles/destroyer-055-scene';
-import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
+import {
+  DEFAULT_GERSTNER_SEA_STATE,
+  gerstnerAmplitudeScale,
+  GERSTNER_WAVE_SETS,
+  GerstnerWater,
+  gerstnerWaterMeshSpecForTier,
+  sampleVisibleWaterHeight,
+} from '../scene/water';
 import { WakeTrail } from '../scene/wake';
 import {
   EnvironmentScene,
@@ -154,6 +169,14 @@ interface SimulationState {
   waveY: number;
   wavePitch: number;
   waveRoll: number;
+  /** 视觉层彩蛋计数：任务达标次数（只读遥测派生，不回写驱动链）。 */
+  attainedCount: number;
+  /**
+   * 仿真时钟是否在推进（运行中且未播完）：视觉层推进绑定（桨转速/天线倾角/
+   * 尾迹发射航速）的唯一门控。物理 speedMps 为定速模型语义，暂停与播完后不归零，
+   * 视觉绑定一律以 advancing × speedMps 为有效航速，禁止直接消费 speedMps。
+   */
+  advancing: boolean;
 }
 
 // ============ 常量 ============
@@ -171,14 +194,6 @@ const CAMERA_SHOT_VIEWS = [
   { id: SCENE_CAMERA_SHOTS.orbit.id, label: '环绕', shortLabel: '环', icon: Orbit, description: SCENE_CAMERA_SHOTS.orbit.description },
   { id: SCENE_CAMERA_SHOTS.tactical.id, label: '战术', shortLabel: '战', icon: Compass, description: SCENE_CAMERA_SHOTS.tactical.description },
   { id: SCENE_CAMERA_SHOTS.topDown.id, label: '顶视', shortLabel: '顶', icon: ArrowDownFromLine, description: SCENE_CAMERA_SHOTS.topDown.description },
-];
-
-const waveParams = [
-  { amplitude: 1.2, frequency: 0.018, speed: 0.9, direction: { x: 1.0, z: 0.1 } },
-  { amplitude: 0.9, frequency: 0.035, speed: 1.1, direction: { x: 0.4, z: 0.9 } },
-  { amplitude: 0.6, frequency: 0.06, speed: 1.3, direction: { x: -0.6, z: 0.5 } },
-  { amplitude: 0.35, frequency: 0.12, speed: 1.6, direction: { x: 0.3, z: -0.7 } },
-  { amplitude: 0.15, frequency: 0.25, speed: 2.0, direction: { x: -0.5, z: -0.6 } },
 ];
 
 const REF_SPEED = nomotoParams.speedMps;
@@ -210,21 +225,64 @@ const tasks: TaskDef[] = [
 
 // ============ 工具函数 ============
 
-function getWaveHeight(x: number, z: number, time: number): number {
-  let y = 0;
-  waveParams.forEach((wave) => {
-    const phase = (x * wave.direction.x + z * wave.direction.z) * wave.frequency + time * wave.speed;
-    y += wave.amplitude * Math.sin(phase);
-  });
-  return y;
-}
-
 const normalizeHeading = (heading: number) => ((heading % 360) + 360) % 360;
 
 const normalizeSignedHeading = (heading: number) => {
   const normalized = normalizeHeading(heading);
   return normalized > 180 ? normalized - 360 : normalized;
 };
+
+export interface AttainmentState {
+  dwell: number;
+  armed: boolean;
+  maneuverActive: boolean;
+  initialTargetDeg: number;
+  /** 进入当前调节窗口以来的时间（s）：机动激活时清零；达标后再遇 >2×maxError 偏离重新武装时清零，开启新窗口。 */
+  maneuverTime: number;
+}
+
+export function createAttainmentState(initialTargetDeg = 0): AttainmentState {
+  return { dwell: 0, armed: true, maneuverActive: false, initialTargetDeg, maneuverTime: 0 };
+}
+
+/**
+ * 彩蛋达标判定（视觉层只读计数）：目标航向偏离初始值（进入机动段）后，
+ * 航向误差在 successCriteria.maxError 内持续 3s 记一次达标；
+ * 误差超过 2×maxError 重新武装。直线巡航段（目标未变化）不记达标；
+ * 目标渐变（斜坡插值）与阶跃同样识别，跟踪良好的斜坡段也可记达标。
+ * 传入 maxSettlingTimeSec（successCriteria.maxSettlingTime）时，仅在调节时限内
+ * 收敛才记达标；超时后本次机动不再计数，直到重新武装开启新调节窗口。
+ */
+export function advanceAttainment(
+  state: AttainmentState,
+  targetDeg: number,
+  headingErrorDeg: number,
+  maxErrorDeg: number,
+  dt: number,
+  maxSettlingTimeSec?: number,
+): boolean {
+  if (!state.maneuverActive && Math.abs(normalizeSignedHeading(targetDeg - state.initialTargetDeg)) > 2) {
+    state.maneuverActive = true;
+    state.maneuverTime = 0;
+  }
+  if (!state.maneuverActive) return false;
+  state.maneuverTime += dt;
+  if (headingErrorDeg <= maxErrorDeg) {
+    state.dwell += dt;
+    const withinDeadline = maxSettlingTimeSec === undefined || state.maneuverTime <= maxSettlingTimeSec;
+    if (state.armed && state.dwell >= 3 && withinDeadline) {
+      state.armed = false;
+      return true;
+    }
+    return false;
+  }
+  state.dwell = 0;
+  if (headingErrorDeg > maxErrorDeg * 2) {
+    if (!state.armed) state.maneuverTime = 0;
+    state.armed = true;
+  }
+  return false;
+}
 
 type ScenarioLogic = {
   getDesiredHeading: (t: number) => number;
@@ -408,20 +466,34 @@ function TeachingAnnotationsGate({
   );
 }
 
+/** 双桨逐帧发射锚点共享 ref：模型侧每帧写入桨节点世界位置，尾迹侧读取。 */
+type PropWakeAnchorsRef = React.MutableRefObject<{
+  port: THREE.Vector3 | null;
+  starboard: THREE.Vector3 | null;
+}>;
+
 /** 尾迹粒子场桥接：逐帧喂入船位/航向与 Gerstner 波面高度（采样点=船位=海面跟随中心）。 */
 function WakeTrailRig({
   simRef,
   playing,
   resetToken,
+  propWakeRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
   playing: boolean;
   resetToken: number;
+  propWakeRef: PropWakeAnchorsRef;
 }) {
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
+
+  // 版本化包声明推进器时逐桨一条航迹；无声明（旧链/回退）保持 profile 单航迹。
+  const descriptor = matchActivatedType055Package(resolveVersionedDefault('destroyer'));
+  const propulsorAnchors = descriptor
+    ? propulsorSceneAnchors(descriptor, destroyer055SceneVisual.shipLengthMeters)
+    : [];
 
   useFrame((state) => {
     const sim = simRef.current;
@@ -431,6 +503,50 @@ function WakeTrailRig({
   });
 
   if (!wakeVisible) return null;
+  // 与可见水面同一坐标基准、同一细分曲面：水面网格跟随舰位，世界坐标须先减原点，
+  // 再按位移后三角网格重心插值采样。
+  const waterMeshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
+  const waterYSampler = (x?: number, z?: number) =>
+    sampleVisibleWaterHeight(
+      GERSTNER_WAVE_SETS[params.waterTier],
+      gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+      waterMeshSpec,
+      simRef.current.position.x,
+      simRef.current.position.z,
+      x ?? simRef.current.position.x,
+      z ?? simRef.current.position.z,
+      timeRef.current,
+    );
+
+  if (propulsorAnchors.length > 0) {
+    return (
+      <>
+        {propulsorAnchors.map(({ id, anchor }) => (
+          <WakeTrail
+            key={`${resetToken}-${id}`}
+            profile={{
+              ...destroyer055SceneVisual,
+              wakeAnchors: {
+                stern: anchor,
+                portShoulder: [anchor[0] + 6, 0, anchor[2] + 30],
+                starboardShoulder: [anchor[0] - 6, 0, anchor[2] + 30],
+              },
+            }}
+            shipTransform={transformRef.current}
+            qualityTier={tier}
+            playing={playing}
+            waterYSampler={waterYSampler}
+            worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
+            emitterWorldSampler={() => {
+              const world = id === 'prop-port' ? propWakeRef.current.port : propWakeRef.current.starboard;
+              return world ? [world.x, world.y, world.z] : null;
+            }}
+          />
+        ))}
+      </>
+    );
+  }
+
   return (
     <WakeTrail
       key={resetToken}
@@ -438,8 +554,8 @@ function WakeTrailRig({
       shipTransform={transformRef.current}
       qualityTier={tier}
       playing={playing}
-      waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
-      worldSpeedSampler={() => simRef.current.speedMps}
+      waterYSampler={waterYSampler}
+      worldSpeedSampler={() => (simRef.current.advancing ? simRef.current.speedMps : 0)}
     />
   );
 }
@@ -450,6 +566,11 @@ declare global {
       url: string;
       boxInView: boolean;
       skinnedIntact: boolean;
+      /** 仿真推进门控（QA 观测面）：false 时桨/天线/尾迹发射全部静止。 */
+      advancing?: boolean;
+      /** 左右桨节点局部四元数（QA 观测面：桨转速连续性/静止判定）。 */
+      propPortQuat?: [number, number, number, number] | null;
+      propStarboardQuat?: [number, number, number, number] | null;
     };
   }
 }
@@ -457,11 +578,15 @@ declare global {
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败或回滚走旧 browser-delivery 链。 */
+/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败按 v2.1.2 → v2.1.1 → v2.1.0 → 旧 browser-delivery 链有序回退。 */
 function DestroyerModel({
   simRef,
+  resetToken,
+  propWakeRef,
 }: {
   simRef: React.MutableRefObject<SimulationState>;
+  resetToken: number;
+  propWakeRef: PropWakeAnchorsRef;
 }) {
   const { tier } = useSceneQuality();
   const descriptor = matchActivatedType055Package(resolveVersionedDefault('destroyer'));
@@ -470,22 +595,39 @@ function DestroyerModel({
     return (
       <FallbackGltfModel
         candidates={MODEL.candidates}
-        render={(url) => <DestroyerModelScene url={url} simRef={simRef} />}
+        render={(url) => <DestroyerModelScene url={url} simRef={simRef} propWakeRef={propWakeRef} />}
       />
     );
   }
+
+  // 有序回退：激活版（v2.1.3）→ v2.1.2 → v2.1.1 → v2.1.0 → 旧单文件链。
+  const orderedFallback = [
+    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_2, tier),
+    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier),
+    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier),
+    ...MODEL.candidates,
+  ];
 
   return (
     <VersionedShipModel
       descriptor={descriptor}
       tier={tier}
-      legacyCandidates={MODEL.candidates}
+      legacyCandidates={orderedFallback}
       renderScene={(url) => (
         <DestroyerModelScene
           url={url}
           simRef={simRef}
+          resetToken={resetToken}
+          propWakeRef={propWakeRef}
           // 坐标基适配只对模型包内资产生效；候选失败回退到旧 GLB 时不施加（旧模型已是 +Z 艏）
-          basisYawRad={url.startsWith(TYPE055_NANCHANG_101_V2.baseUrl) ? TYPE055_V2_BASIS_YAW_RAD : 0}
+          basisYawRad={isType055VersionedAssetUrl(url) ? TYPE055_V2_BASIS_YAW_RAD : 0}
+          descriptor={
+            url.startsWith(descriptor.baseUrl) ? descriptor
+              : url.startsWith(TYPE055_NANCHANG_101_V2_1_2.baseUrl) ? TYPE055_NANCHANG_101_V2_1_2
+                : url.startsWith(TYPE055_NANCHANG_101_V2_1_1.baseUrl) ? TYPE055_NANCHANG_101_V2_1_1
+                  : url.startsWith(TYPE055_NANCHANG_101_V2_1_0.baseUrl) ? TYPE055_NANCHANG_101_V2_1_0
+                    : null
+          }
         />
       )}
     />
@@ -496,17 +638,25 @@ function DestroyerModelScene({
   url,
   simRef,
   basisYawRad = 0,
+  descriptor = null,
+  resetToken = 0,
+  propWakeRef,
 }: {
   url: string;
   simRef: React.MutableRefObject<SimulationState>;
   /** 坐标基适配（唯一应用点）：v2 候选模型 +X 舰艏 → 场景 +Z 舰艏。 */
   basisYawRad?: number;
+  /** 版本化包描述符：仅版本化路径传入，驱动水线锚定与声明式动画绑定。 */
+  descriptor?: VersionedModelPackageDescriptor | null;
+  /** 实验重置令牌：透传给彩蛋装配，触发状态随实验生命周期复位。 */
+  resetToken?: number;
+  propWakeRef?: PropWakeAnchorsRef;
 }) {
   const { camera } = useThree();
-  const { scene } = useGLTF(url, true, true);
+  const { scene, animations } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
-  const { model, scale, modelHeight } = useMemo(() => {
+  const { model, scale, waterlineOffset, propNodes } = useMemo(() => {
     const cloned = cloneSkinnedScene(scene);
     const box = new THREE.Box3().setFromObject(cloned);
     const size = new THREE.Vector3();
@@ -530,8 +680,25 @@ function DestroyerModelScene({
     const targetLength = shipDimensions.length;
     const calculatedScale = targetLength / maxDim;
 
-    return { model: cloned, scale: calculatedScale, modelHeight: size.y * calculatedScale };
-  }, [scene]);
+    // 垂向锚定：版本化包按声明设计水线对齐波面参考；无声明模型沿用 bbox 推导
+    // （bbox 底部=龙骨假设，与既有行为逐位等价）。
+    const offset = descriptor?.verticalAnchor
+      ? (center.y - descriptor.verticalAnchor.designWaterlineY) * calculatedScale
+      : (size.y * calculatedScale) * 0.5 - shipDimensions.draft;
+
+    // 推进器语义节点解析（逐帧尾迹发射锚点）；节点缺失 fail closed 到静态锚点。
+    const resolvePropNode = (id: string) => {
+      const declaration = descriptor?.propulsors?.find((propulsor) => propulsor.id === id);
+      return declaration ? cloned.getObjectByName(declaration.node) ?? null : null;
+    };
+
+    return {
+      model: cloned,
+      scale: calculatedScale,
+      waterlineOffset: offset,
+      propNodes: { port: resolvePropNode('prop-port'), starboard: resolvePropNode('prop-starboard') },
+    };
+  }, [scene, descriptor]);
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -539,16 +706,39 @@ function DestroyerModelScene({
 
     groupRef.current.position.set(
       sim.position.x,
-      sim.waveY + modelHeight * 0.5 - shipDimensions.draft,
+      sim.waveY + waterlineOffset,
       sim.position.z
     );
     groupRef.current.rotation.set(sim.wavePitch, -sim.headingRad + Math.PI / 2, sim.waveRoll);
+
+    // 逐帧推进器世界位置 → 尾迹发射锚点（节点未解析时置 null，尾迹回退静态锚点）。
+    if (propWakeRef) {
+      const write = (node: THREE.Object3D | null, key: 'port' | 'starboard') => {
+        if (!node) {
+          propWakeRef.current[key] = null;
+          return;
+        }
+        const target = propWakeRef.current[key] ?? new THREE.Vector3();
+        node.getWorldPosition(target);
+        propWakeRef.current[key] = target;
+      };
+      write(propNodes.port, 'port');
+      write(propNodes.starboard, 'starboard');
+    }
+
     if (typeof window !== 'undefined') {
       const box = new THREE.Box3().setFromObject(groupRef.current);
       window.__destroyerModelVisual = {
         url,
         boxInView: boxProjectsInsideNdc(camera, box),
         skinnedIntact: skinnedBindingsIntact(model),
+        advancing: sim.advancing,
+        propPortQuat: propNodes.port
+          ? [propNodes.port.quaternion.x, propNodes.port.quaternion.y, propNodes.port.quaternion.z, propNodes.port.quaternion.w]
+          : null,
+        propStarboardQuat: propNodes.starboard
+          ? [propNodes.starboard.quaternion.x, propNodes.starboard.quaternion.y, propNodes.starboard.quaternion.z, propNodes.starboard.quaternion.w]
+          : null,
       };
     }
   });
@@ -557,6 +747,16 @@ function DestroyerModelScene({
     <group ref={groupRef}>
       <group rotation-y={basisYawRad}>
         <primitive object={model} scale={scale} />
+        {descriptor ? (
+          <SemanticBindingsRig
+            key={resetToken}
+            model={model}
+            animations={animations}
+            descriptor={descriptor}
+            simRef={simRef}
+            modelScale={scale}
+          />
+        ) : null}
       </group>
     </group>
   );
@@ -577,6 +777,8 @@ function SimulationEngine({
   guidePath,
   resetToken,
   speedScale,
+  maxErrorDeg,
+  maxSettlingTimeSec,
   onHudUpdate,
   onChartDataUpdate,
 }: {
@@ -590,9 +792,14 @@ function SimulationEngine({
   guidePath: THREE.Vector3[];
   resetToken: number;
   speedScale: number;
+  /** 当前任务 successCriteria.maxError（航向误差 °）：彩蛋达标判定阈值。 */
+  maxErrorDeg: number;
+  /** 当前任务 successCriteria.maxSettlingTime（s）：机动收敛时限，超时达标不计数。 */
+  maxSettlingTimeSec?: number;
   onHudUpdate: (state: HudState) => void;
   onChartDataUpdate: (time: number, desired: number, actual: number, speed: number, rudder: number) => void;
 }) {
+  const { params } = useSceneQuality();
   const lastFrameTimeRef = useRef(0);
   const simTimeRef = useRef(0);
   const clockRef = useRef(
@@ -606,6 +813,9 @@ function SimulationEngine({
   const totalErrorRef = useRef(0);
   const errorSampleCountRef = useRef(0);
   const rustStateRef = useRef<DestroyerHifiState | null>(null);
+  const attainmentRef = useRef<AttainmentState>(createAttainmentState());
+  /** 仿真时钟播完（simTime 超过 duration）：视觉推进门控随之为假。 */
+  const finishedRef = useRef(false);
   const [runtimeReady, setRuntimeReady] = useState(false);
 
   useEffect(() => {
@@ -630,6 +840,8 @@ function SimulationEngine({
     totalErrorRef.current = 0;
     errorSampleCountRef.current = 0;
     rustStateRef.current = null;
+    attainmentRef.current = createAttainmentState();
+    finishedRef.current = false;
     clockRef.current.reset();
   }, [resetToken]);
 
@@ -656,6 +868,8 @@ function SimulationEngine({
   );
 
   useFrame((state) => {
+    // 视觉推进门控每帧重算：暂停、未就绪、播完均为不推进（桨停转、尾迹停发）。
+    simRef.current.advancing = isRunning && runtimeReady && !finishedRef.current;
     if (!isRunning || !runtimeReady) {
       lastFrameTimeRef.current = state.clock.getElapsedTime();
       return;
@@ -671,7 +885,11 @@ function SimulationEngine({
       const previousTime = simTimeRef.current;
       const simTime = previousTime + dt;
 
-      if (simTime > duration) return;
+      if (simTime > duration) {
+        finishedRef.current = true;
+        simRef.current.advancing = false;
+        return;
+      }
 
       const sim = simRef.current;
       const targetHeading = interpolateHeading(simTime);
@@ -716,20 +934,33 @@ function SimulationEngine({
       sim.integralDegS = stepResult.integralDegS ?? 0;
       sim.prevErrorDeg = stepResult.prevErrorDeg ?? 0;
 
-      // 波浪运动
+      // 波浪运动：与可视水面同一坐标基准、同一细分曲面（水面网格跟随舰位，
+      // 采样先减舰位原点，再按位移后三角网格重心插值），船随可见波浪起伏。
       const posX = sim.position.x;
       const posZ = sim.position.z;
+      const waterMeshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
+      const sampleWater = (x: number, z: number) =>
+        sampleVisibleWaterHeight(
+          GERSTNER_WAVE_SETS[params.waterTier],
+          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+          waterMeshSpec,
+          posX,
+          posZ,
+          x,
+          z,
+          elapsedTime,
+        );
       const heading = sim.headingRad;
       const halfLength = shipDimensions.length / 2;
       const halfWidth = shipDimensions.width / 2;
       const cosH = Math.cos(heading);
       const sinH = Math.sin(heading);
 
-      const centerY = getWaveHeight(posX, posZ, simTime);
-      const bowY = getWaveHeight(posX + cosH * halfLength, posZ + sinH * halfLength, simTime);
-      const sternY = getWaveHeight(posX - cosH * halfLength, posZ - sinH * halfLength, simTime);
-      const portY = getWaveHeight(posX - sinH * halfWidth, posZ + cosH * halfWidth, simTime);
-      const starboardY = getWaveHeight(posX + sinH * halfWidth, posZ - cosH * halfWidth, simTime);
+      const centerY = sampleWater(posX, posZ);
+      const bowY = sampleWater(posX + cosH * halfLength, posZ + sinH * halfLength);
+      const sternY = sampleWater(posX - cosH * halfLength, posZ - sinH * halfLength);
+      const portY = sampleWater(posX - sinH * halfWidth, posZ + cosH * halfWidth);
+      const starboardY = sampleWater(posX + sinH * halfWidth, posZ - cosH * halfWidth);
 
       const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length);
       const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width);
@@ -740,6 +971,12 @@ function SimulationEngine({
       sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, heaveLerp);
       sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, rotLerp);
       sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, rotLerp);
+
+      // 彩蛋达标判定（视觉层只读计数）：进入机动段后误差收敛记达标，见 advanceAttainment。
+      const headingErrorDeg = Math.abs(normalizeSignedHeading(targetHeading - toDegrees(sim.headingRad)));
+      if (advanceAttainment(attainmentRef.current, targetHeading, headingErrorDeg, maxErrorDeg, dt, maxSettlingTimeSec)) {
+        sim.attainedCount += 1;
+      }
 
       // 误差计算
       const currentError = getCrossTrackError(sim.position, guidePath);
@@ -1199,8 +1436,15 @@ export default function DestroyerSimulation() {
     waveY: 0,
     wavePitch: 0,
     waveRoll: 0,
+    attainedCount: 0,
+    advancing: false,
   });
   const shipRef = useRef<THREE.Group | null>(null);
+  // 双桨尾迹发射锚点：模型侧逐帧写入桨节点世界位置，尾迹侧逐帧读取。
+  const propWakeRef = useRef<{ port: THREE.Vector3 | null; starboard: THREE.Vector3 | null }>({
+    port: null,
+    starboard: null,
+  });
 
   // 计算场景逻辑
   const task = tasks[selectedTask];
@@ -1236,6 +1480,8 @@ export default function DestroyerSimulation() {
       waveY: 0,
       wavePitch: 0,
       waveRoll: 0,
+      attainedCount: 0,
+      advancing: false,
     };
 
     setHudState({
@@ -1298,7 +1544,7 @@ export default function DestroyerSimulation() {
           simRef={simRef}
           targetHeadingSampler={() => platformHeadingToSceneRad(scenarioLogic.getDesiredHeading(hudState.time))}
         />
-        <WakeTrailRig simRef={simRef} playing={isRunning} resetToken={resetToken} />
+        <WakeTrailRig simRef={simRef} playing={isRunning} resetToken={resetToken} propWakeRef={propWakeRef} />
         <Suspense
           fallback={(
             <ModelLoadingPlaceholder
@@ -1307,7 +1553,7 @@ export default function DestroyerSimulation() {
             />
           )}
         >
-          <DestroyerModel simRef={simRef} />
+          <DestroyerModel simRef={simRef} resetToken={resetToken} propWakeRef={propWakeRef} />
         </Suspense>
 
         <OrbitControls
@@ -1339,6 +1585,14 @@ export default function DestroyerSimulation() {
           guidePath={guidePath}
           resetToken={resetToken}
           speedScale={speedScale}
+          maxErrorDeg={
+            destroyer055Profile.scenarios.find((scenario) => scenario.id === task.scenario)
+              ?.successCriteria?.maxError ?? 5
+          }
+          maxSettlingTimeSec={
+            destroyer055Profile.scenarios.find((scenario) => scenario.id === task.scenario)
+              ?.successCriteria?.maxSettlingTime
+          }
           onHudUpdate={setHudState}
           onChartDataUpdate={handleChartDataUpdate}
         />

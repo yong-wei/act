@@ -6,7 +6,6 @@ import * as d3 from 'd3';
 import { KnowledgeNodeData, KnowledgeLinkData } from '../knowledge-graph-system';
 import {
   freezeKnowledgeGraphUnaffectedScope,
-  releaseKnowledgeGraphFrozenScope,
   applyFocusedExpansionLayout,
   calculateFocusedExpansionRevealTranslation,
   commitKnowledgeGraphRelayoutVersion,
@@ -16,7 +15,6 @@ import {
   selectFocusedExpansionGraphNodes,
   freezeKnowledgeGraphDragFrame,
   type KnowledgeGraphPositionedNode,
-  releaseKnowledgeGraphDragFrame,
   selectKnowledgeGraphReheatAffectedNodeIds,
   scopeKnowledgeGraphRenderChange,
   advanceKnowledgeGraphFrameIdentity,
@@ -913,14 +911,9 @@ export function KnowledgeGraph2D({
 
   const handleEngineStop = useCallback(() => {
     snapshotRuntimePositions();
-    if (unaffectedFrozenNodeIdsRef.current.size > 0) {
-      const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-      releaseKnowledgeGraphFrozenScope(graphNodes, {
-        frozenNodeIds: unaffectedFrozenNodeIdsRef.current,
-        pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
-      });
-      unaffectedFrozenNodeIdsRef.current = new Set();
-    }
+    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
+    freezeKnowledgeGraphUnaffectedScope(graphNodes, new Set());
+    unaffectedFrozenNodeIdsRef.current = new Set();
     if (settledLayoutSignatureRef.current === layoutSignature) return;
     settledLayoutSignatureRef.current = layoutSignature;
     setLayoutSettledRevision((revision) => revision + 1);
@@ -1500,13 +1493,8 @@ export function KnowledgeGraph2D({
   const handleNodeDragEnd = useCallback((node: any) => {
     labelProjectionRevisionRef.current += 1;
     rememberRuntimeNodePosition(node as RuntimeKnowledgeGraphNode);
-    const graphNodes = (fgRef.current?.graphData?.()?.nodes ?? graphData.nodes) as RuntimeKnowledgeGraphNode[];
-    releaseKnowledgeGraphDragFrame(graphNodes, {
-      draggedId: String(node?.id ?? ''),
-      pinnedNodeIds: new Set(Object.keys(layoutStateRef.current.positionsByNodeId)),
-    });
     onNodeDragEnd(node as KnowledgeNodeData);
-  }, [graphData.nodes, onNodeDragEnd, rememberRuntimeNodePosition]);
+  }, [onNodeDragEnd, rememberRuntimeNodePosition]);
 
   const handleNodeDrag = useCallback((node: any) => {
     labelProjectionRevisionRef.current += 1;
@@ -1722,7 +1710,6 @@ export function KnowledgeGraph2D({
       padding: getKnowledgeGraphViewportSafeInsets({ width: width ?? 800, height: height ?? 600 }),
       labelMode,
       selectedNodeId: selectedNode?.id,
-      hoveredNodeId: hoveredNode?.id,
     });
     if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
     if (labelProjectionTimerRef.current !== null) window.clearTimeout(labelProjectionTimerRef.current);
@@ -1743,7 +1730,7 @@ export function KnowledgeGraph2D({
       if (fitTimerRef.current !== null) window.clearTimeout(fitTimerRef.current);
       fitTimerRef.current = null;
     };
-  }, [compactRootView, fitViewRequest, graphData.nodes, height, hoveredNode?.id, labelMode, layoutSettledRevision, layoutSignature, relayoutVersion, selectedNode?.id, viewportRevision, width]);
+  }, [compactRootView, fitViewRequest, graphData.nodes, height, labelMode, layoutSettledRevision, layoutSignature, relayoutVersion, selectedNode?.id, viewportRevision, width]);
 
   useEffect(() => {
     const cameraTransition = cameraTransitionRef.current;

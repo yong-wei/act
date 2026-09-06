@@ -20,13 +20,14 @@ interface ActiveAuthorityFilterPanelProps {
   onToggleNodeType: (canonicalType: string) => void;
   enabledFamilies: readonly EngineeringRelationFamily[];
   onToggleFamily: (family: EngineeringRelationFamily) => void;
-  familyFailures: Readonly<Partial<Record<EngineeringRelationFamily, string>>>;
+  familyFailures: Readonly<Partial<Record<EngineeringRelationFamily, { message: string; retryable: boolean }>>>;
   onRetryFamily: (family: EngineeringRelationFamily) => void;
   /** 教学关系覆盖状态（不可用/未发布等）；null 表示无说明。 */
   teachingCoverageNote: string | null;
   /** 教学关系层默认可见、独立可逆（#1742 review）。 */
   teachingRelationsVisible: boolean;
   onToggleTeachingRelations: () => void;
+  avoidExpandedKonling?: boolean;
 }
 
 // 样本描边与画布 nodeStroke 共用同一 tone 色板，面板样本与画布从不矛盾。
@@ -93,13 +94,17 @@ export function ActiveAuthorityFilterPanel({
   teachingCoverageNote,
   teachingRelationsVisible,
   onToggleTeachingRelations,
+  avoidExpandedKonling = false,
 }: ActiveAuthorityFilterPanelProps) {
   return (
     <section
       aria-label={graphCopy(locale, 'filter.panel')}
       data-active-authority-filter-panel="true"
+      data-active-authority-filter-placement="compact-bottom-left"
       data-graph-locale={locale}
-      className="flex min-w-0 flex-wrap items-start gap-x-4 gap-y-2 rounded-lg border border-platform-border bg-platform-canvas-muted/95 p-2 max-[639px]:w-full"
+      className={avoidExpandedKonling
+        ? 'pointer-events-auto absolute bottom-0 left-20 z-40 flex max-w-[calc(100%-5rem)] min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
+        : 'pointer-events-auto absolute bottom-0 left-0 z-40 flex max-w-full min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:p-1.5'}
     >
       <div
         role="group"
@@ -176,14 +181,16 @@ export function ActiveAuthorityFilterPanel({
                   data-authority-family-failure={family}
                   className="max-w-44 text-[11px] text-red-200"
                 >
-                  {failure}
-                  <button
-                    type="button"
-                    onClick={() => onRetryFamily(family)}
-                    aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
-                    data-authority-family-retry={family}
-                    className="ml-1 underline underline-offset-2"
-                  >{graphCopy(locale, 'filter.family.retry')}</button>
+                  {failure.message}
+                  {failure.retryable ? (
+                    <button
+                      type="button"
+                      onClick={() => onRetryFamily(family)}
+                      aria-label={`${graphCopy(locale, 'filter.family.retry')}${familyLabel(locale, family)}`}
+                      data-authority-family-retry={family}
+                      className="ml-1 underline underline-offset-2"
+                    >{graphCopy(locale, 'filter.family.retry')}</button>
+                  ) : null}
                 </span>
               ) : null}
             </span>

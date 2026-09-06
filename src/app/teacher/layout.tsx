@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { RoleWorkspaceShell } from '@/components/platform/role-workspace-shell';
 import { TeacherOperationsNav } from '@/features/teacher/teacher-operations-nav';
 
@@ -12,7 +13,7 @@ export default async function TeacherLayout({
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== 'TEACHER') {

@@ -56,12 +56,24 @@ Adaptive learning empty states SHALL be visually complete, student-facing, and a
 - **AND** it SHALL provide recovery or adjacent actions such as retry, learner-state review, Interactive Learning, or profile evidence review.
 
 ### Requirement: Learner data surfaces share one product shell
-The adaptive learning center SHALL provide a shared learner data shell for dashboard, profile, growth center, evidence, adaptive practice, and recommended path surfaces.
+The adaptive learning center SHALL provide a shared learner data shell for dashboard, profile, growth center, evidence, adaptive practice, and recommended path surfaces. The profile surface SHALL populate its personalized reinforcement area from the governed personalization output when recommendations are available.
 
 #### Scenario: Student opens a learner data route
 - **WHEN** `/dashboard`, `/profile`, `/profile/growth`, `/profile/evidence`, `/assessment/adaptive-practice`, or a recommended path surface renders
 - **THEN** the surface SHALL use consistent ability dimensions, evidence status, current path, recommendation, and next-action semantics
 - **AND** it SHALL preserve route identity without presenting each page as a separate product.
+
+#### Scenario: Profile shows governed reinforcement resources
+- **WHEN** an authenticated student has eligible governed recommendations
+- **THEN** `/profile` SHALL show the mapped resource cards in the personalized reinforcement area
+- **AND** each card SHALL preserve its student-facing title, reason, priority, evidence limitation or confidence metadata, and launch action
+- **AND** the launch action SHALL enter the corresponding real learning resource or path flow.
+
+#### Scenario: Profile has no usable recommendation
+- **WHEN** the recommendation policy returns no usable result because evidence is missing, stale, partial, unavailable, or no candidate is eligible
+- **THEN** `/profile` SHALL show an explicit student-facing limited state
+- **AND** it SHALL provide an adjacent evidence-gathering or starter-learning action
+- **AND** it SHALL NOT fabricate a personalized resource, mastery claim, or precise diagnosis.
 
 ### Requirement: Recommended paths render as staged learning routes
 The adaptive learning center SHALL render recommendations as staged route nodes where path data is available.
@@ -157,7 +169,7 @@ Adaptive learning center UI SHALL convert internal readiness and diagnostic stat
 - **AND** those raw strings SHALL remain absent from visible text, accessible labels, and student JSON embedded in the page.
 
 ### Requirement: Adaptive path center renders the approved generation interface
-The adaptive learning center SHALL render a generic path generation interface aligned with the accepted design handoff.
+The adaptive learning center SHALL render a generic path generation interface aligned with the accepted design handoff, and SHALL only submit resource preferences that the student actively selected while showing the provenance of the preference that actually took effect.
 
 #### Scenario: Student opens path generation
 - **WHEN** a student opens `/assessment/adaptive-practice`
@@ -169,6 +181,16 @@ The adaptive learning center SHALL render a generic path generation interface al
 - **WHEN** the generation panel is open
 - **THEN** it SHALL offer learning goal, available time, difficulty rhythm, resource preference, checkpoint, external-resource, and natural-language input controls
 - **AND** Konling SHALL remain the shared right-bottom floating dock rather than a page-local right rail.
+
+#### Scenario: Default panel does not submit resource preference
+- **WHEN** 学生未通过面板切换或 URL 参数选择资源类型并直接生成
+- **THEN** 生成请求体 SHALL NOT 携带 `resourcePreference`
+- **AND** 面板默认提示仅作为展示态，不作为提交值。
+
+#### Scenario: Generation result explains preference provenance
+- **WHEN** 生成结果返回资源偏好来源（用户选择 / 画像推断 / 自然语言 / 系统默认）
+- **THEN** 路径中心 SHALL 在生成结果或推荐依据区块展示来源说明
+- **AND** 学生 SHALL 能区分自己主动选择的偏好与系统推断/默认的偏好。
 
 ### Requirement: Adaptive path options are comparable
 The adaptive learning center SHALL render generated path options as comparable learning routes.
@@ -991,4 +1013,18 @@ AI Workshop collection records, statuses, and actions SHALL remain readable and 
 - **WHEN** the student navigates collection records and adjacent actions without a pointer
 - **THEN** focus order and accessible names SHALL identify the collection, record, state, and destination
 - **AND** an unavailable panel SHALL not expose an action that depends on the unavailable source.
+
+### Requirement: Path center surfaces personalization availability
+路径中心 SHALL 呈现本次路径生成的个性化可用性：个性化推荐与通用路线明确区分，画像不可用时展示原因与恢复预期，不输出看似个性化的结果。
+
+#### Scenario: Personalization unavailable banner
+- **WHEN** 学习状态或生成结果指示主画像不可用（`UNAVAILABLE` 及原因）
+- **THEN** 路径中心 SHALL 显示「当前无法个性化推荐」的明确提示及原因说明
+- **AND** 候选路径 SHALL 以通用学习路线语义呈现，目标薄弱项区块 SHALL 表明缺少画像证据
+- **AND** 页面 SHALL NOT 展示引用退化能力向量（全 0）的个性化推荐依据。
+
+#### Scenario: Personalization available shows evidence linkage
+- **WHEN** 主画像可用且候选路径引用具体维度、缺口或证据
+- **THEN** 推荐依据区块 SHALL 呈现「画像问题 → 路径安排」的解释链
+- **AND** 学生 SHALL 能看到候选之间目标薄弱项与其画像的一致关系。
 

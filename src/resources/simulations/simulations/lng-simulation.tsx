@@ -668,6 +668,18 @@ export function LNGSimulation() {
     })
   );
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  // 循环稳定化（#1945）：每帧变化的量走 ref，时钟真源在 timeRef，
+  // 循环回调与启动 effect 引用稳定，运行期间不 teardown 重建。
+  const controlRef = useRef({
+    isRunning: false,
+    isPaused: false,
+    targetHeading: 0,
+    controlMode: 'pid' as LNGSimulationState['controlMode'],
+  });
+  const speedScaleRef = useRef(1);
+  const timeRef = useRef(0);
+  const lastHudUpdateRef = useRef(0);
+  const lastTrajectoryTimeRef = useRef(0);
 
   const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
@@ -706,16 +718,17 @@ export function LNGSimulation() {
   const simulationStep = useCallback((timestamp: number) => {
     const engine = engineRef.current;
     if (!engine) return;
+    const control = controlRef.current;
     if (!isVirtualSimulationRuntimeReady()) {
       lastTimeRef.current = timestamp;
       animationRef.current = requestAnimationFrame(simulationStep);
       return;
     }
 
-    const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScale);
+    const frameDt = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
     lastTimeRef.current = timestamp;
 
-    let nextTime = state.time;
+    let nextTime = timeRef.current;
     let engineState = engine.getState(nextTime);
     let sloshingMetrics = engine.getSloshingMetrics();
 
@@ -723,9 +736,9 @@ export function LNGSimulation() {
       const time = nextTime + dt;
       nextTime = time;
       engine.step(
-        state.targetHeading,
+        control.targetHeading,
         null,
-        state.controlMode,
+        control.controlMode,
         0,
         LNG_CHANGHENG_PARAMS.CRUISE_SPEED,
         dt,
@@ -735,28 +748,50 @@ export function LNGSimulation() {
       sloshingMetrics = engine.getSloshingMetrics();
     });
 
-    setState((prev) => ({
-      ...prev,
-      time: nextTime,
-      position: engineState.position,
-      heading: engineState.heading,
-      yawRate: engineState.yawRate,
-      rudder: engineState.rudder,
-      speed: engineState.speed,
-      sloshingAngle: sloshingMetrics.angleDeg,
-      tankPressure: sloshingMetrics.pressure,
-    }));
+    timeRef.current = nextTime;
+    // HUD setState 0.1s 节流、轨迹 0.5s 节流（对齐 destroyer 口径）；
+    // 被跳过的帧仅推进 timeRef，不再触发整树渲染。
+    if (nextTime - lastHudUpdateRef.current > 0.1) {
+      lastHudUpdateRef.current = nextTime;
+      setState((prev) => ({
+        ...prev,
+        time: nextTime,
+        position: engineState.position,
+        heading: engineState.heading,
+        yawRate: engineState.yawRate,
+        rudder: engineState.rudder,
+        speed: engineState.speed,
+        sloshingAngle: sloshingMetrics.angleDeg,
+        tankPressure: sloshingMetrics.pressure,
+      }));
+    }
 
-    setTrajectory((prev) => {
+    if (nextTime - lastTrajectoryTimeRef.current > 0.5) {
+      lastTrajectoryTimeRef.current = nextTime;
       const newPoint = { ...engineState.position };
-      const newTraj = [...prev, newPoint];
-      return newTraj.length > 500 ? newTraj.slice(-500) : newTraj;
-    });
+      setTrajectory((prev) => {
+        const newTraj = [...prev, newPoint];
+        return newTraj.length > 500 ? newTraj.slice(-500) : newTraj;
+      });
+    }
 
-    if (state.isRunning && !state.isPaused) {
+    if (control.isRunning && !control.isPaused) {
       animationRef.current = requestAnimationFrame(simulationStep);
     }
-  }, [state.isRunning, state.isPaused, state.targetHeading, state.controlMode, state.time, speedScale]);
+  }, []);
+
+  // 控制量同步到 ref：低频、由 UI 事件驱动，rAF 循环每帧读取最新值。
+  useEffect(() => {
+    controlRef.current = {
+      isRunning: state.isRunning,
+      isPaused: state.isPaused,
+      targetHeading: state.targetHeading,
+      controlMode: state.controlMode,
+    };
+  }, [state.isRunning, state.isPaused, state.targetHeading, state.controlMode]);
+  useEffect(() => {
+    speedScaleRef.current = speedScale;
+  }, [speedScale]);
 
   // 控制仿真启停
   useEffect(() => {
@@ -792,6 +827,10 @@ export function LNGSimulation() {
     if (engineRef.current) {
       engineRef.current.initialize(-3000, 0, 0);
     }
+
+    timeRef.current = 0;
+    lastHudUpdateRef.current = 0;
+    lastTrajectoryTimeRef.current = 0;
 
     setState({
       isRunning: false,

@@ -18,7 +18,6 @@ import {
   Search,
   X,
   BookOpen,
-  UserPlus,
   Trash2,
   Loader2,
   BarChart3,
@@ -32,14 +31,11 @@ import {
   requestClassroomActionConfirmation,
   requestClassroomEndConfirmation,
 } from '@/features/classroom/classroom-lifecycle-dialog';
-import {
-  buildTeacherClassInsightsHref,
-  buildTeacherStudentInsightsHref,
-  formatTeacherStudentDisplayId,
-} from '@/features/teacher/teacher-insights';
+import { buildTeacherClassInsightsHref } from '@/features/teacher/teacher-insights';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 import { useTeacherClassroomLauncher } from '@/features/teacher/teacher-classroom-launcher';
 import { TeacherDiagnosisReportHistory } from '@/features/teacher/teacher-diagnosis-report-history';
+import { ClassStudentRoster, formatAvailabilityReason } from '@/features/teacher/class-student-roster';
 
 interface Student {
   id: string;
@@ -323,7 +319,6 @@ export default function ClassDetailPage() {
   const activeSession = sessions.find(s => s.status === 'ACTIVE');
   const displayedSessions = statusFilter === 'ACTIVE' ? sessions.filter(s => s.status === 'ACTIVE') : sessions.filter(s => s.status === 'FINISHED');
   const governance = insights?.governance;
-  const studentInsightMap = new Map(insights?.students.map((student) => [student.id, student]) || []);
   const classDetailStatus = `${announcement} 当前显示 ${displayedSessions.length} 条课堂历史，${classData?.students.length ?? 0} 名学生。`;
 
   const handleRegenerateJoinCode = async () => {
@@ -678,6 +673,7 @@ export default function ClassDetailPage() {
         <TeacherDiagnosisReportHistory
           classId={classId}
           subjectLabel={`${classData.name} · 班级范围`}
+          currentStudentsEntry={{ href: '#students' }}
         />
       </div>
 
@@ -847,158 +843,15 @@ export default function ClassDetailPage() {
       </div>
 
       {/* 学生列表 */}
-      <div id="students" className="surface-card p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-subtle" />
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">班级学生</h2>
-              <p className="text-sm text-subtle">以学生画像、风险和成长档案为主视图，不再只显示技术分/伦理分。</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-400">{classData.students.length} 人</span>
-            <button type="button"
-              onClick={() => setShowAddStudentsModal(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-sky-500/50 px-3 py-1.5 text-sm text-sky-400 transition hover:bg-sky-500/10"
-              aria-label="打开添加学生对话框"
-            >
-              <UserPlus className="h-4 w-4" />
-              添加学生
-            </button>
-          </div>
-        </div>
-
-        {classData.students.length === 0 ? (
-          <div className="py-12 text-center">
-            <GraduationCap className="mx-auto h-12 w-12 text-slate-600" />
-            <p className="mt-4 text-slate-500">暂无学生加入此班级</p>
-            <p className="mt-2 text-sm text-slate-600">
-              将班级码 <span className="font-mono text-sky-400">{classData.code}</span> 分享给学生
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-2xl border border-border/60">
-            <table className="min-w-full border-collapse text-sm" data-teacher-mobile-cards="true" aria-label="班级学生清单">
-              <thead className="sticky top-0 z-10 bg-card/95 backdrop-blur">
-                <tr className="border-b border-border/60 text-left text-xs uppercase tracking-[0.16em] text-subtle">
-                  <th className="px-4 py-3 font-medium">学生</th>
-                  <th className="px-4 py-3 font-medium">累计画像等级</th>
-                  <th className="px-4 py-3 font-medium">累计达成指数</th>
-                  <th className="px-4 py-3 font-medium">累计证据状态</th>
-                  <th className="px-4 py-3 font-medium">最后证据风险</th>
-                  <th className="px-4 py-3 font-medium">最后累计趋势</th>
-                  <th className="px-4 py-3 font-medium">证据截至</th>
-                  <th className="px-4 py-3 font-medium">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classData.students.map((student) => {
-                  const insight = studentInsightMap.get(student.user.id);
-                  return (
-                    <tr
-                      key={student.id}
-                      className="border-b border-border/50 bg-card/45 transition hover:bg-accent/45"
-                    >
-                      <td className="px-4 py-4 align-top" data-label="学生">
-                        <Link
-                          href={buildTeacherStudentInsightsHref(classId, student.user.id)}
-                          className="flex min-w-[220px] items-center gap-3"
-                        >
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-sm font-bold text-white">
-                            {student.user.name?.charAt(0) || 'S'}
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{student.user.name || '未命名学生'}</p>
-                            <p className="text-xs text-subtle">
-                              {formatTeacherStudentDisplayId({
-                                studentNumber: student.studentNumber,
-                                email: student.user.email,
-                                fallbackId: student.user.id,
-                              })}
-                            </p>
-                          </div>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-4 align-top text-foreground" data-label="画像等级">
-                        {insight ? insight.overallLevel ?? formatAvailabilityReason(insight.availabilityReason) : '当前不可用'}
-                      </td>
-                      <td className="px-4 py-4 align-top" data-label="综合指数">
-                        {insight ? (
-                          <span className="font-semibold text-sky-600 dark:text-sky-300">
-                            {insight.overallScore ?? '不可用'}
-                          </span>
-                        ) : (
-                          <span className="text-subtle">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 align-top" data-label="证据状态">
-                        {insight ? (
-                          <div className="min-w-[150px]">
-                            <span className={getTeacherEvidenceStateChipClass(insight.evidenceStatus)}>
-                              {formatTeacherEvidenceState(insight.evidenceStatus)}
-                            </span>
-                            <p className="mt-2 flex items-center gap-1 text-xs text-subtle">
-                              <Database className="h-3.5 w-3.5" />
-                              {formatTeacherEvidenceConfidence(insight.evidenceStatus)}
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="teacher-insight-chip teacher-insight-chip-pending">当前不可用</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 align-top" data-label="风险状态">
-                        {insight ? (
-                          <div className="min-w-[120px]">
-                            <span className={`teacher-insight-chip teacher-insight-risk-${insight.riskLevel}`}>
-                              {insight.riskLabel}
-                            </span>
-                            {insight.riskBadges.length > 0 ? (
-                              <p className="mt-2 text-xs text-subtle">{insight.riskBadges.join('、')}</p>
-                            ) : null}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-subtle">不可用</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 align-top text-foreground" data-label="累计趋势">
-                        {insight ? formatTrendDirection(insight.trendDirection) : '不可用'}
-                      </td>
-                      <td className="px-4 py-4 align-top text-subtle" data-label="证据截至">
-                        {insight ? formatEvidenceCutoff(insight.evidenceStatus.lastEvidenceAt) : '不可用'}
-                      </td>
-                      <td className="px-4 py-4 align-top" data-label="操作">
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={buildTeacherStudentInsightsHref(classId, student.user.id)}
-                            className="btn-ghost-themed rounded-lg px-3 py-1.5 text-sm"
-                            aria-label={`查看学生 ${student.user.name || student.user.id} 详情`}
-                          >
-                            详情
-                          </Link>
-                          <button type="button"
-                            onClick={() => handleRemoveStudent(student.user.id, student.user.name || '该学生')}
-                            disabled={removingStudent === student.user.id}
-                            className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 px-3 py-1.5 text-sm text-rose-600 transition hover:bg-rose-500/10 dark:text-rose-300 disabled:opacity-50"
-                            aria-label={`从班级移除学生 ${student.user.name || student.user.id}`}
-                          >
-                            {removingStudent === student.user.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                            删除
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <ClassStudentRoster
+        classId={classId}
+        classCode={classData.code}
+        students={classData.students}
+        insights={insights?.students ?? null}
+        removingStudentId={removingStudent}
+        onRemoveStudent={handleRemoveStudent}
+        onOpenAddStudents={() => setShowAddStudentsModal(true)}
+      />
 
       {teacherLauncher.dialog}
 
@@ -1014,57 +867,6 @@ export default function ClassDetailPage() {
       />
     </main>
   );
-}
-
-type TeacherEvidenceStatus = TeacherClassInsightsPayload['students'][number]['evidenceStatus'];
-
-function formatTeacherEvidenceState(status: TeacherEvidenceStatus): string {
-  if (status.state === 'missing') return '缺少合格证据';
-  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
-    return '低置信';
-  }
-  return '可使用';
-}
-
-function getTeacherEvidenceStateChipClass(status: TeacherEvidenceStatus): string {
-  const base = 'teacher-insight-chip';
-  if (status.state === 'missing') return `${base} teacher-insight-chip-pending`;
-  if (status.confidence.level === 'low' || status.statusMarkers.includes('low-confidence')) {
-    return `${base} teacher-insight-chip-warning`;
-  }
-  return `${base} teacher-insight-chip-healthy`;
-}
-
-function formatTeacherEvidenceConfidence(status: TeacherEvidenceStatus): string {
-  const levelLabel = status.confidence.level === 'high'
-    ? '高'
-    : status.confidence.level === 'medium'
-      ? '中'
-      : status.confidence.level === 'low'
-        ? '低'
-        : '无';
-  return `${levelLabel}置信 · ${status.confidence.evidenceCount} 条证据`;
-}
-
-function formatTrendDirection(direction: TeacherClassInsightsPayload['students'][number]['trendDirection']) {
-  if (direction === 'up') return '上升';
-  if (direction === 'down') return '下降';
-  if (direction === 'stable') return '稳定';
-  return '尚无可比';
-}
-
-function formatEvidenceCutoff(value: string | null) {
-  if (!value) return '不可用';
-  return new Date(value).toLocaleString('zh-CN');
-}
-
-function formatAvailabilityReason(reason: string) {
-  if (reason === 'available') return '可使用';
-  if (reason === 'no-eligible-evidence') return '无合格证据';
-  if (reason === 'no-evidence-after-revocation') return '支持证据已撤销';
-  if (reason === 'migration-in-progress') return '累计画像迁移中';
-  if (reason === 'processing-failed') return '累计画像处理失败';
-  return '累计画像当前不可用';
 }
 
 function formatDimensionList(

@@ -1,0 +1,4 @@
+- [x] 1.1 基于既有品牌资产生成 favicon.ico（多尺寸）并放置到 App Router 约定位置（`src/app/favicon.ico`）或 `public/` + metadata icons 声明
+- [x] 1.2 确认 `/favicon.ico` 返回图标与正确 Content-Type，无鉴权依赖
+- [x] 1.3 增加 favicon 存在性契约测试（构建产物或路由探针）
+- [x] 1.4 浏览器标签页图标目视验收（明暗两套主题下均清晰）

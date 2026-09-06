@@ -104,6 +104,7 @@ interface ActiveAuthorityGraphProps {
   dimension?: GraphDimension;
   onDimensionChange?: (dimension: GraphDimension) => void;
   onActiveDomainChange?: (domainId: string | null) => void;
+  onShowLegacy?: () => void;
   returnToRootRef?: MutableRefObject<(() => void) | null>;
   chromeHostRef?: { current: HTMLElement | null };
   runtimeControlsRef?: { current: {
@@ -116,7 +117,13 @@ interface ActiveAuthorityGraphProps {
 type WorkspaceLoadState =
   | { status: 'loading' }
   | { status: 'ready'; workspace: AuthorityShardWorkspaceState }
-  | { status: 'error'; message: string };
+  | { status: 'error'; message: string; unauthenticated?: boolean; contentNotReady?: boolean };
+
+/** 次级分片失败条目：内容未就绪类失败不提供重试（重试必然复现同一缺失）。 */
+interface ShardFailureEntry {
+  message: string;
+  retryable: boolean;
+}
 
 /** Keep an in-domain selection stable; otherwise choose the reviewed owner deterministically. */
 export function selectActiveAuthorityMembership(
@@ -144,16 +151,64 @@ function errorMessage(status: number, locale: AdmittedLocale = 'zh-CN'): string 
 
 class AuthorityShardFetchError extends Error {
   readonly status: number;
+  readonly code: string | null;
 
-  constructor(status: number) {
+  constructor(status: number, code: string | null = null) {
     super(errorMessage(status));
     this.name = 'AuthorityShardFetchError';
     this.status = status;
+    this.code = code;
   }
 }
 
 function isIdentityFailure(error: unknown): boolean {
   return error instanceof AuthorityShardFetchError && error.status === 409;
+}
+
+function isUnauthenticatedError(error: unknown): boolean {
+  return error instanceof AuthorityShardFetchError && error.status === 401;
+}
+
+// 内容未就绪类失败码（#1942）：分片/分片集/指针/激活缺失或消费者未就绪，
+// 属于「发布未完成」而非暂时故障。身份失配（MISMATCH/TAMPER）不匹配此模式。
+const CONTENT_NOT_READY_CODE = /(?:ABSENT|NOT_READY)/u;
+
+export function isContentNotReadyFailure(error: unknown): boolean {
+  return error instanceof AuthorityShardFetchError
+    && error.code !== null
+    && CONTENT_NOT_READY_CODE.test(error.code);
+}
+
+function shardErrorState(
+  error: unknown,
+  locale: AdmittedLocale,
+  fallbackKey: 'error.generic' | 'error.domainShard' = 'error.generic',
+): WorkspaceLoadState {
+  const contentNotReady = isContentNotReadyFailure(error);
+  return {
+    status: 'error',
+    message: contentNotReady
+      ? graphCopy(locale, 'error.contentNotReady')
+      : error instanceof AuthorityShardFetchError
+        ? errorMessage(error.status, locale)
+        : error instanceof Error ? error.message : graphCopy(locale, fallbackKey),
+    contentNotReady,
+    unauthenticated: isUnauthenticatedError(error) || undefined,
+  };
+}
+
+function shardFailureEntry(
+  error: unknown,
+  locale: AdmittedLocale,
+  fallbackKey: 'error.familyShard' | 'error.neighborhoodShard',
+): ShardFailureEntry {
+  const contentNotReady = isContentNotReadyFailure(error);
+  return {
+    message: contentNotReady
+      ? graphCopy(locale, 'error.contentNotReady')
+      : error instanceof Error ? error.message : graphCopy(locale, fallbackKey),
+    retryable: !contentNotReady,
+  };
 }
 
 function isShardClass<T extends IncomingAuthorityShard['shardClass']>(
@@ -163,13 +218,27 @@ function isShardClass<T extends IncomingAuthorityShard['shardClass']>(
   return isPublicAuthorityLearnerShard(value) && value.shardClass === shardClass;
 }
 
+async function readShardErrorCode(response: Response): Promise<string | null> {
+  try {
+    const body: unknown = await response.json();
+    if (body && typeof body === 'object' && typeof (body as { code?: unknown }).code === 'string') {
+      return (body as { code: string }).code;
+    }
+  } catch {
+    // 非 JSON 错误体（网关/代理错误页）没有失败码，按暂时故障处理。
+  }
+  return null;
+}
+
 async function fetchAuthorityShard(
   url: string,
   shardClass: IncomingAuthorityShard['shardClass'],
   signal: AbortSignal,
 ): Promise<IncomingAuthorityShard> {
   const response = await fetch(url, { signal, headers: { accept: 'application/json' } });
-  if (!response.ok) throw new AuthorityShardFetchError(response.status);
+  if (!response.ok) {
+    throw new AuthorityShardFetchError(response.status, await readShardErrorCode(response));
+  }
   const payload: unknown = await response.json();
   if (!isShardClass(payload, shardClass)) {
     throw new Error('当前知识图谱响应身份校验失败，已停止显示。');
@@ -188,9 +257,9 @@ function useActiveAuthorityWorkspace(
   enterDomain: (visualRole: string) => Promise<boolean>;
   enableFamily: (family: EngineeringRelationFamily) => void;
   disableFamily: (family: EngineeringRelationFamily) => void;
-  familyFailures: Partial<Record<EngineeringRelationFamily, string>>;
+  familyFailures: Partial<Record<EngineeringRelationFamily, ShardFailureEntry>>;
   requestNeighborhood: (nodeId: string) => void;
-  neighborhoodFailures: Record<string, string>;
+  neighborhoodFailures: Record<string, ShardFailureEntry>;
   localeRefreshFailure: string | null;
   resetDomain: () => void;
   applyShard: (shard: IncomingAuthorityShard, generation?: number, domainRevision?: number) => boolean;
@@ -198,8 +267,8 @@ function useActiveAuthorityWorkspace(
 } {
   const [state, setState] = useState<WorkspaceLoadState>({ status: 'loading' });
   const [workspace, setWorkspace] = useState<AuthorityShardWorkspaceState>(createEmptyAuthorityShardWorkspace);
-  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, string>>>({});
-  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, string>>({});
+  const [familyFailures, setFamilyFailures] = useState<Partial<Record<EngineeringRelationFamily, ShardFailureEntry>>>({});
+  const [neighborhoodFailures, setNeighborhoodFailures] = useState<Record<string, ShardFailureEntry>>({});
   const [localeRefreshFailure, setLocaleRefreshFailure] = useState<string | null>(null);
   const workspaceRef = useRef(workspace);
   const requestGenerationRef = useRef(0);
@@ -254,10 +323,7 @@ function useActiveAuthorityWorkspace(
           onIdentityFailure();
           return false;
         }
-        setState({
-          status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.domainShard'),
-        });
+        setState(shardErrorState(error, localeRef.current, 'error.domainShard'));
         return false;
       })
       .finally(() => {
@@ -331,10 +397,7 @@ function useActiveAuthorityWorkspace(
           onIdentityFailure();
           return;
         }
-        setState({
-          status: 'error',
-          message: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.generic'),
-        });
+        setState(shardErrorState(error, localeRef.current));
       });
     return () => {
       controller.abort();
@@ -530,7 +593,7 @@ function useActiveAuthorityWorkspace(
         }));
         setFamilyFailures((currentFailures) => ({
           ...currentFailures,
-          [family]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.familyShard'),
+          [family]: shardFailureEntry(error, localeRef.current, 'error.familyShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -575,7 +638,7 @@ function useActiveAuthorityWorkspace(
         }
         setNeighborhoodFailures((currentFailures) => ({
           ...currentFailures,
-          [nodeId]: error instanceof Error ? error.message : graphCopy(localeRef.current, 'error.neighborhoodShard'),
+          [nodeId]: shardFailureEntry(error, localeRef.current, 'error.neighborhoodShard'),
         }));
       })
       .finally(() => requestControllersRef.current.delete(controller));
@@ -641,7 +704,7 @@ function useActiveNodeDetail(
       .then(async (response) => {
         if (!response.ok) {
           if (!controller.signal.aborted && response.status === 409) onIdentityFailureRef.current?.();
-          throw new AuthorityShardFetchError(response.status);
+          throw new AuthorityShardFetchError(response.status, await readShardErrorCode(response));
         }
         const candidate: unknown = await response.json();
         if (!isShardClass(candidate, 'node-detail')) {
@@ -692,7 +755,11 @@ function useActiveNodeDetail(
       .then(setDetail)
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setFailure(error instanceof Error ? error.message : '节点详情暂时无法加载。');
+          setFailure(
+            isContentNotReadyFailure(error)
+              ? graphCopy(locale, 'error.contentNotReady')
+              : error instanceof Error ? error.message : '节点详情暂时无法加载。',
+          );
         }
       })
       .finally(() => {
@@ -702,204 +769,6 @@ function useActiveNodeDetail(
   }, [nodeId, expectedEnvelope, locale]);
 
   return { detail, failure, loading };
-}
-
-function nodeFill(node: ActiveNodePresentation, selected: boolean): string {
-  const colors: Record<string, string> = {
-    cyan: selected ? '#155e75' : '#083344',
-    violet: selected ? '#6d28d9' : '#312e81',
-    amber: selected ? '#92400e' : '#451a03',
-    emerald: selected ? '#047857' : '#064e3b',
-    blue: selected ? '#1d4ed8' : '#172554',
-    muted: '#334155',
-  };
-  return colors[node.type.tone] ?? colors.muted;
-}
-
-function nodeStroke(node: ActiveNodePresentation, selected: boolean): string {
-  if (selected) return '#f8fafc';
-  const colors: Record<string, string> = {
-    cyan: '#22d3ee',
-    violet: '#a78bfa',
-    amber: '#fbbf24',
-    emerald: '#34d399',
-    blue: '#60a5fa',
-    muted: '#94a3b8',
-  };
-  return colors[node.type.tone] ?? colors.muted;
-}
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-type ActiveNodeShape = ActiveNodePresentation['type']['shape'];
-
-const ACTIVE_NODE_CIRCLE_RADIUS = 18;
-const ACTIVE_NODE_RECT_HALF_WIDTH = 26;
-const ACTIVE_NODE_RECT_HALF_HEIGHT = 16;
-const ACTIVE_NODE_DIAMOND_HALF_WIDTH = 24;
-const ACTIVE_NODE_DIAMOND_HALF_HEIGHT = 16;
-const ACTIVE_NODE_HEXAGON_HALF_WIDTH = 24;
-const ACTIVE_NODE_HEXAGON_SLOPE_X = 12;
-const ACTIVE_NODE_HEXAGON_SLOPE_Y = 12;
-const ACTIVE_NODE_HEXAGON_HALF_HEIGHT = 18;
-const ACTIVE_NODE_ROUNDED_RADIUS = 12;
-const ACTIVE_NODE_SQUARE_RADIUS = 5;
-
-function polygonBoundaryPoint(center: Point, direction: Point, vertices: readonly Point[]): Point {
-  const epsilon = 1e-9;
-  let closestScale = Number.POSITIVE_INFINITY;
-  let closest: Point | null = null;
-  for (let index = 0; index < vertices.length; index += 1) {
-    const start = vertices[index];
-    const end = vertices[(index + 1) % vertices.length];
-    const edge = { x: end.x - start.x, y: end.y - start.y };
-    const offset = { x: start.x - center.x, y: start.y - center.y };
-    const denominator = direction.x * edge.y - direction.y * edge.x;
-    if (Math.abs(denominator) <= epsilon) continue;
-    const scale = (offset.x * edge.y - offset.y * edge.x) / denominator;
-    const edgePosition = (offset.x * direction.y - offset.y * direction.x) / denominator;
-    if (scale <= epsilon || edgePosition < -epsilon || edgePosition > 1 + epsilon || scale >= closestScale) continue;
-    closestScale = scale;
-    closest = {
-      x: center.x + direction.x * scale,
-      y: center.y + direction.y * scale,
-    };
-  }
-  return closest ?? center;
-}
-
-function roundedRectBoundaryPoint(
-  center: Point,
-  direction: Point,
-  halfWidth: number,
-  halfHeight: number,
-  radius: number,
-): Point {
-  const dx = direction.x;
-  const dy = direction.y;
-  const absoluteX = Math.abs(dx);
-  const absoluteY = Math.abs(dy);
-  if (absoluteX === 0 && absoluteY === 0) return center;
-  if (radius <= 0) {
-    const scale = Math.min(
-      absoluteX === 0 ? Number.POSITIVE_INFINITY : halfWidth / absoluteX,
-      absoluteY === 0 ? Number.POSITIVE_INFINITY : halfHeight / absoluteY,
-    );
-    return { x: center.x + dx * scale, y: center.y + dy * scale };
-  }
-
-  const horizontalCornerCenter = halfWidth - radius;
-  const verticalCornerCenter = halfHeight - radius;
-  const candidates: number[] = [];
-  if (absoluteX > 0) {
-    const scale = halfWidth / absoluteX;
-    if (absoluteY * scale <= verticalCornerCenter + 1e-9) candidates.push(scale);
-  }
-  if (absoluteY > 0) {
-    const scale = halfHeight / absoluteY;
-    if (absoluteX * scale <= horizontalCornerCenter + 1e-9) candidates.push(scale);
-  }
-
-  const signX = dx < 0 ? -1 : 1;
-  const signY = dy < 0 ? -1 : 1;
-  const cornerCenter = {
-    x: signX * horizontalCornerCenter,
-    y: signY * verticalCornerCenter,
-  };
-  const radiusSquared = radius * radius;
-  const quadraticA = (dx * dx + dy * dy) / radiusSquared;
-  const quadraticB = -2 * (dx * cornerCenter.x + dy * cornerCenter.y) / radiusSquared;
-  const quadraticC = (cornerCenter.x * cornerCenter.x + cornerCenter.y * cornerCenter.y) / radiusSquared - 1;
-  const discriminant = quadraticB * quadraticB - 4 * quadraticA * quadraticC;
-  if (discriminant >= 0) {
-    const root = Math.sqrt(discriminant);
-    for (const scale of [
-      (-quadraticB - root) / (2 * quadraticA),
-      (-quadraticB + root) / (2 * quadraticA),
-    ]) {
-      const x = dx * scale;
-      const y = dy * scale;
-      if (scale > 0 && signX * x >= horizontalCornerCenter - 1e-9 && signY * y >= verticalCornerCenter - 1e-9) {
-        candidates.push(scale);
-      }
-    }
-  }
-
-  const scale = Math.min(...candidates.filter((candidate) => candidate > 0));
-  if (!Number.isFinite(scale)) {
-    const fallback = Math.min(
-      absoluteX === 0 ? Number.POSITIVE_INFINITY : halfWidth / absoluteX,
-      absoluteY === 0 ? Number.POSITIVE_INFINITY : halfHeight / absoluteY,
-    );
-    return { x: center.x + dx * fallback, y: center.y + dy * fallback };
-  }
-  return { x: center.x + dx * scale, y: center.y + dy * scale };
-}
-
-/** Return the boundary point reached from a node center toward another point. */
-export function activeAuthorityNodeBoundaryPoint(
-  shape: ActiveNodeShape,
-  center: Point,
-  toward: Point,
-): Point {
-  const direction = { x: toward.x - center.x, y: toward.y - center.y };
-  if (shape === 'circle') {
-    const length = Math.hypot(direction.x, direction.y);
-    if (length === 0) return center;
-    const scale = ACTIVE_NODE_CIRCLE_RADIUS / length;
-    return { x: center.x + direction.x * scale, y: center.y + direction.y * scale };
-  }
-  if (shape === 'diamond') {
-    return polygonBoundaryPoint(center, direction, [
-      { x: center.x, y: center.y - ACTIVE_NODE_DIAMOND_HALF_HEIGHT },
-      { x: center.x + ACTIVE_NODE_DIAMOND_HALF_WIDTH, y: center.y },
-      { x: center.x, y: center.y + ACTIVE_NODE_DIAMOND_HALF_HEIGHT },
-      { x: center.x - ACTIVE_NODE_DIAMOND_HALF_WIDTH, y: center.y },
-    ]);
-  }
-  if (shape === 'hexagon') {
-    return polygonBoundaryPoint(center, direction, [
-      { x: center.x - ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y - ACTIVE_NODE_HEXAGON_SLOPE_Y },
-      { x: center.x - ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
-      { x: center.x + ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y - ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
-      { x: center.x + ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y - ACTIVE_NODE_HEXAGON_SLOPE_Y },
-      { x: center.x + ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y + ACTIVE_NODE_HEXAGON_SLOPE_Y },
-      { x: center.x + ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
-      { x: center.x - ACTIVE_NODE_HEXAGON_SLOPE_X, y: center.y + ACTIVE_NODE_HEXAGON_HALF_HEIGHT },
-      { x: center.x - ACTIVE_NODE_HEXAGON_HALF_WIDTH, y: center.y + ACTIVE_NODE_HEXAGON_SLOPE_Y },
-    ]);
-  }
-  return roundedRectBoundaryPoint(
-    center,
-    direction,
-    ACTIVE_NODE_RECT_HALF_WIDTH,
-    ACTIVE_NODE_RECT_HALF_HEIGHT,
-    shape === 'rounded' ? ACTIVE_NODE_ROUNDED_RADIUS : ACTIVE_NODE_SQUARE_RADIUS,
-  );
-}
-
-export function activeAuthorityEdgeEndpoints(
-  sourceShape: ActiveNodeShape,
-  targetShape: ActiveNodeShape,
-  source: Point,
-  target: Point,
-): { source: Point; target: Point } {
-  const samePoint = source.x === target.x && source.y === target.y;
-  return {
-    source: activeAuthorityNodeBoundaryPoint(
-      sourceShape,
-      source,
-      samePoint ? { x: source.x, y: source.y - 1 } : target,
-    ),
-    target: activeAuthorityNodeBoundaryPoint(
-      targetShape,
-      target,
-      samePoint ? { x: target.x + 1, y: target.y + 1 } : source,
-    ),
-  };
 }
 
 const ACTIVE_MOBILE_NODE_LIMIT = 6;
@@ -1331,6 +1200,7 @@ export function ActiveAuthorityGraph({
   viewerRole: _viewerRole,
   dimension: dimensionProp,
   onActiveDomainChange,
+  onShowLegacy,
   returnToRootRef,
   chromeHostRef,
   runtimeControlsRef,
@@ -1915,13 +1785,33 @@ export function ActiveAuthorityGraph({
         <div className="flex flex-1 items-center justify-center" role="status">
           <div className="text-center text-sm text-platform-fg-secondary"><Loader2 className="mx-auto mb-3 h-7 w-7 animate-spin text-platform-action-primary" aria-hidden="true" />{graphCopy(locale, 'loading.graph')}</div>
         </div>
+      ) : state.status === 'error' && state.unauthenticated ? (
+        <div className="flex flex-1 items-center justify-center p-6">
+          <div className="max-w-md rounded-xl border border-platform-border bg-platform-canvas-muted p-5 text-center" role="alert" data-graph-login-wall="true">
+            <p className="text-sm text-platform-fg-primary">{state.message}</p>
+            <a
+              href={`/login?callbackUrl=${encodeURIComponent(typeof window === 'undefined' ? '/knowledge' : `${window.location.pathname}${window.location.search}`)}`}
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-platform-action-primary px-4 py-2 text-sm text-platform-fg-inverse hover:opacity-90"
+            >
+              {graphCopy(locale, 'error.loginCta')}
+            </a>
+          </div>
+        </div>
       ) : state.status === 'error' ? (
         <div className="flex flex-1 items-center justify-center p-6">
           <div className="max-w-md rounded-xl border border-red-400/35 bg-red-400/10 p-5 text-center" role="alert">
             <AlertTriangle className="mx-auto h-6 w-6 text-red-200" aria-hidden="true" />
             <p className="mt-3 text-sm text-red-50">{state.message}</p>
-            <p className="mt-2 text-xs text-red-100/75">{graphCopy(locale, 'error.noOtherGraph')}</p>
-            <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'error.retryGraph')}</button>
+            {state.contentNotReady ? (
+              onShowLegacy ? (
+                <button type="button" onClick={onShowLegacy} data-error-action="legacy" className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10">{graphCopy(locale, 'error.viewLegacy')}</button>
+              ) : null
+            ) : (
+              <>
+                <p className="mt-2 text-xs text-red-100/75">{graphCopy(locale, 'error.noOtherGraph')}</p>
+                <button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-4 inline-flex items-center gap-2 rounded-md border border-red-200/40 px-3 py-2 text-sm text-red-50 hover:bg-red-100/10"><RotateCcw className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'error.retryGraph')}</button>
+              </>
+            )}
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
@@ -2005,21 +1895,6 @@ export function ActiveAuthorityGraph({
                   </button>
                 ) : null}
               </div>
-              {materializedNodeTypes.length > 0 ? (
-                <ActiveAuthorityFilterPanel
-                  locale={locale}
-                  materializedTypes={materializedNodeTypes}
-                  hiddenNodeTypes={hiddenNodeTypes}
-                  onToggleNodeType={toggleNodeTypeFilter}
-                  enabledFamilies={workspace.enabledFamilies}
-                  onToggleFamily={(family) => (workspace.enabledFamilies.includes(family) ? disableFamily(family) : enableFamily(family))}
-                  familyFailures={familyFailures}
-                  onRetryFamily={enableFamily}
-                  teachingCoverageNote={teachingCoverageNote}
-                  teachingRelationsVisible={teachingRelationsVisible}
-                  onToggleTeachingRelations={toggleTeachingRelations}
-                />
-              ) : null}
               </div>
               ) : null}
             </div>
@@ -2064,13 +1939,15 @@ export function ActiveAuthorityGraph({
             </div>
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
               <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
-                <span>{neighborhoodFailures[selectedNodeKey]}</span>
-                <button
-                  type="button"
-                  onClick={() => requestNeighborhood(selectedNodeKey)}
-                  data-authority-neighborhood-retry={selectedNodeKey}
-                  className="shrink-0 underline underline-offset-2"
-                >{graphCopy(locale, 'error.retryNeighborhood')}</button>
+                <span>{neighborhoodFailures[selectedNodeKey].message}</span>
+                {neighborhoodFailures[selectedNodeKey].retryable ? (
+                  <button
+                    type="button"
+                    onClick={() => requestNeighborhood(selectedNodeKey)}
+                    data-authority-neighborhood-retry={selectedNodeKey}
+                    className="shrink-0 underline underline-offset-2"
+                  >{graphCopy(locale, 'error.retryNeighborhood')}</button>
+                ) : null}
               </div>
             ) : null}
             {authorityView ? (
@@ -2092,6 +1969,21 @@ export function ActiveAuthorityGraph({
                   layout={runtimeLayout}
                   sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
                 />
+                {materializedNodeTypes.length > 0 ? (
+                  <ActiveAuthorityFilterPanel
+                    locale={locale}
+                    materializedTypes={materializedNodeTypes}
+                    hiddenNodeTypes={hiddenNodeTypes}
+                    onToggleNodeType={toggleNodeTypeFilter}
+                    enabledFamilies={workspace.enabledFamilies}
+                    onToggleFamily={(family) => (workspace.enabledFamilies.includes(family) ? disableFamily(family) : enableFamily(family))}
+                    familyFailures={familyFailures}
+                    onRetryFamily={enableFamily}
+                    teachingCoverageNote={teachingCoverageNote}
+                    teachingRelationsVisible={teachingRelationsVisible}
+                    onToggleTeachingRelations={toggleTeachingRelations}
+                  />
+                ) : null}
               </div>
             ) : null}
             {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}

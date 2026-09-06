@@ -89,3 +89,35 @@ Evidence-bearing Practice runs SHALL preserve SceneSpec/Trace, seed, protocol/ru
 - **THEN** verification SHALL report mismatch with safe diagnostics
 - **AND** it SHALL not overwrite the Practice run, trace, or derived evidence.
 
+### Requirement: DP 输出通道必须闭环到执行器
+
+DP 控制内核的输出通道（舵角、纵荡/横荡推力、艏摇力矩）SHALL 全部映射到被控对象的真实执行器输入；被丢弃的输出通道 MUST NOT 出现在生产仿真页面。定位类任务的默认初始状态 SHALL NOT 自带漂移速度。定位收敛行为 SHALL 由 Rust 内核回归测试锁定。
+
+#### Scenario: 挖泥船默认 DP 保持定位
+
+- **WHEN** 以默认 DP 参数、默认环境（含挖掘冲击扰动）运行挖泥船模型 60 秒
+- **THEN** 位置误差收敛到定位容差量级
+- **AND** 不出现持续性违规告警
+
+#### Scenario: 控制输出不被静默丢弃
+
+- **WHEN** 审查生产仿真页面的控制链路接线
+- **THEN** DP 控制器的每个输出通道都有明确的执行器消费方
+- **AND** 不存在硬编码的持续推进输入
+
+### Requirement: 推进力单位契约单一且被闭环收敛锁定
+
+跨 TypeScript/WASM 边界传递的推进力 SHALL 遵循单一、显式文档化的单位契约，换算只允许发生在一侧。默认 DP 参数、默认海况与零初始状态下，钻井平台模型 SHALL 在 60 秒内将位置误差收敛至安全范围且不触发紧急解脱阈值；该行为 SHALL 由 Rust 内核回归测试锁定。
+
+#### Scenario: 默认开局收敛
+
+- **WHEN** 以默认 DP 参数、level 3 海况、零初始状态与零目标运行钻井平台模型 60 秒
+- **THEN** 位置误差收敛至 3 m 以内
+- **AND** 不触发紧急解脱阈值，推进器不持续全饱和
+
+#### Scenario: 单位换算点唯一
+
+- **WHEN** 审查模型调用链中的推进力传递代码
+- **THEN** kN/N 换算只出现在契约规定的单一位置
+- **AND** 不存在调用方与内核重复换算
+

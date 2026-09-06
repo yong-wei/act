@@ -920,6 +920,20 @@ else
   printf '%s\n' "$readyz_response" | python3 "${ROOT_DIR}/scripts/lib/validate-readyz.py" false
 fi
 
+log "- 校验学生画像 fence 收敛（版本演进后须完成迁移收尾）"
+if remote "bash -lc '
+set -euo pipefail
+set -a
+[ -f \"${REMOTE_PROJECT_DIR}/.env.server\" ] && . \"${REMOTE_PROJECT_DIR}/.env.server\"
+set +a
+podman exec \"${APP_NAME_HINT}\" ./node_modules/.bin/tsx scripts/db/verify-cumulative-portrait-fence-readiness.ts
+'" >/tmp/portrait-fence-verify.log 2>&1; then
+  log "  画像 fence 已收敛，学生画像可读"
+else
+  tail -n 5 /tmp/portrait-fence-verify.log || true
+  fail "学生画像 fence 未收敛（migration-in-progress）：请按当前 PORTRAIT_V2_CALCULATION_VERSION 完成迁移收尾后重跑本验收（scripts/db/verify-cumulative-portrait-fence-readiness.ts）"
+fi
+
 log
 log "远端部署完成并验证通过"
 log "  公网地址: ${PUBLIC_URL}"

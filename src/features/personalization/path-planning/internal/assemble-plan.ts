@@ -310,7 +310,7 @@ export interface AdaptiveLearningPathRegisteredGoalDefinition {
   allowedResourceMix: ResourceNode['type'][];
   starterPathPolicy: {
     policyFamilies: AdaptiveLearningPathPolicyFamily[];
-    minOptions: number;
+    targetOptionCount: number;
     difficultyRhythm: 'gentle' | 'steady' | 'challenge';
     allowExternalResources: boolean;
     preferredResourceTypes: ResourceNode['type'][];
@@ -396,6 +396,8 @@ export interface AdaptiveLearningPathLearnerStateSnapshot {
   missingEvidence: string[];
   preferredModalities: string[];
   preferredModalityConfidence: 'none' | 'low' | 'medium';
+  primaryPortraitState: 'SNAPSHOT' | 'NO_EVIDENCE' | 'UNAVAILABLE' | null;
+  primaryPortraitAvailability: string | null;
 }
 
 export function buildAdaptiveLearningPathLearnerStateSnapshot(
@@ -436,6 +438,8 @@ export function buildAdaptiveLearningPathLearnerStateSnapshot(
     preferredModalities: [...(learnerState.resourcePreference?.preferredModalities ?? [])],
     preferredModalityConfidence: learnerState.resourcePreference?.confidence
       ?? preferredModalityConfidenceFromCount(learnerState.resourcePreference?.preferredModalities?.length ?? 0),
+    primaryPortraitState: learnerState.primaryPortraitState ?? null,
+    primaryPortraitAvailability: learnerState.primaryPortraitAvailability ?? null,
   };
 }
 
@@ -477,7 +481,7 @@ export type AdaptiveLearningPathConfigurationKey =
   | 'natural-language-intent'
   | 'time-budget';
 
-export type AdaptiveLearningPathConfigurationSource = 'request' | 'intent' | 'fallback';
+export type AdaptiveLearningPathConfigurationSource = 'request' | 'profile' | 'intent' | 'fallback';
 
 export interface AdaptiveLearningPathConfigurationRequest {
   key: AdaptiveLearningPathConfigurationKey;
@@ -868,6 +872,7 @@ export interface AdaptiveLearningPathRecommendationProvenance {
   confidence: 'low' | 'medium' | 'high';
   entries: AdaptiveLearningPathRecommendationProvenanceEntry[];
   personalizationNotes?: string[];
+  personalizationState?: 'portrait-unavailable';
   evidenceReviewHref: '/profile/evidence';
   limitations: string[];
   nextAction: string | null;
@@ -1478,7 +1483,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz', 'adaptive_quiz', 'control_workbench', 'simulation', 'arena_task'],
@@ -1529,7 +1534,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'simulation', 'quiz', 'adaptive_quiz'],
@@ -1567,7 +1572,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: FOUNDATION_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 3,
+      targetOptionCount: 3,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz', 'adaptive_quiz', 'simulation', 'checkpoint'],
@@ -1599,7 +1604,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: FOUNDATION_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 2,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
       preferredResourceTypes: ['textbook_section', 'knowledge_card', 'quiz', 'control_workbench'],
@@ -1631,7 +1636,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'foundation-remediation', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['simulation', 'knowledge_card', 'quiz', 'checkpoint'],
@@ -1663,7 +1668,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['knowledge_card', 'textbook_section', 'control_workbench', 'quiz'],
@@ -1695,7 +1700,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'foundation-remediation', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
       preferredResourceTypes: ['simulation', 'textbook_section', 'quiz', 'reflection', 'checkpoint'],
@@ -1735,7 +1740,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'preference-matched'],
-      minOptions: 2,
+      targetOptionCount: 2,
       difficultyRhythm: 'challenge',
       allowExternalResources: false,
       preferredResourceTypes: ['simulation', 'control_workbench', 'checkpoint', 'reflection'],
@@ -1778,7 +1783,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
     starterPathPolicy: {
       policyFamilies: ['simulation-driven', 'preference-matched', 'teacher-assigned'],
-      minOptions: 2,
+      targetOptionCount: 3,
       difficultyRhythm: 'challenge',
       allowExternalResources: false,
       preferredResourceTypes: ['arena_task', 'simulation', 'reflection', 'ai_intervention'],
@@ -2039,7 +2044,7 @@ export function buildControlCorrectionThreeStylePathBundle(
     ...input,
     policyFamily: 'foundation-remediation',
     policyBundle: {
-      families: ['simulation-driven', 'preference-matched'],
+      families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
       overlapThreshold: 0.6,
     },
   });
@@ -2063,7 +2068,12 @@ function withCollectionBackedPlanningInput(
     goalId: input.goal.id,
     mode: 'new',
   });
-  if (projection.records.length === 0) return input;
+  // #1985：下落系统默认（fallback）时，画像偏好已被运行时门槛判定不可用或未达门槛，
+  // 其原始模态不得再参与排序加权；冷启动试学模态在下方另行合并，不受影响。
+  const suppressedLearnerState = input.resourcePreferenceSource === 'fallback'
+    ? withoutLearnerStateResourceModalities(input.learnerState)
+    : input.learnerState;
+  if (projection.records.length === 0) return { ...input, learnerState: suppressedLearnerState };
   const extraModalities = collectionPreferredModalities(projection.records)
     .filter((type): type is ResourceNode['type'] => input.registry.supportedTypes.includes(type as ResourceNode['type']));
   const checkpointPreference = input.checkpointPreferenceSource === 'request'
@@ -2075,16 +2085,16 @@ function withCollectionBackedPlanningInput(
   const applyPreference = extraModalities.length > 0 && input.resourcePreferenceSource !== 'request';
   const learnerState = applyPreference
     ? {
-      ...input.learnerState,
+      ...suppressedLearnerState,
       resourcePreference: {
         preferredModalities: unique([
           ...extraModalities,
-          ...(input.learnerState?.resourcePreference?.preferredModalities ?? []),
+          ...(suppressedLearnerState?.resourcePreference?.preferredModalities ?? []),
         ]),
         confidence: 'medium' as const,
       },
     }
-    : input.learnerState;
+    : suppressedLearnerState;
   return {
     ...input,
     learnerState,
@@ -2225,7 +2235,9 @@ function assembleAdaptiveLearningPathPlanInternal(
     scene: 'path',
     targetGraphNodeIds,
     selectedGraphNodeIds: graphContext?.selectedGraphNodeIds ?? [],
-    learnerState: input.learnerState,
+    learnerState: preferenceContext.usesExplicitResourcePreferences
+      ? withoutLearnerStateResourceModalities(input.learnerState)
+      : input.learnerState,
     preferredResourceTypes: input.resourcePreferences,
     timeBudgetMinutes: input.constraints.timeBudgetMinutes,
     completedNodeIds: input.constraints.completedNodeIds ?? [],
@@ -2392,7 +2404,12 @@ function assembleAdaptiveLearningPathPlanInternal(
     evaluateNodeReadiness(entry.node, input.learnerState, input.constraints, completedNodeIds),
   ]));
   let currentNodeId = plannedEntries.length > 0
-    ? resolveCurrentNodeId(plannedEntries, completedNodeIds, readinessByNodeId, input.constraints.currentNodeId)
+    ? firstReadyCurrentNodeId(
+      plannedEntries.map((entry) => entry.node.id),
+      completedNodeIds,
+      (nodeId) => (readinessByNodeId.get(nodeId)?.state ?? 'ready') === 'ready',
+      input.constraints.currentNodeId,
+    )
     : null;
   let mainPath = plannedEntries.length > 0
     ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds, readinessByNodeId.get(entry.node.id)!))
@@ -2460,7 +2477,7 @@ function assembleAdaptiveLearningPathPlanInternal(
     policyBundle: includePolicyBundle ? buildPolicyBundle({
       ...input,
       policyBundle: policyBundleRequest,
-    }, policyFamily, now, stageRepairedNodeIds) : undefined,
+    }, now, stageRepairedNodeIds) : undefined,
     excludedPolicyFamilies: EXCLUDED_POLICY_FAMILIES,
     status,
     currentNodeId,
@@ -2529,7 +2546,12 @@ export function recordLearningPathFeedback(
   if (safeEvent.type === 'completion' && safeEvent.nodeId && plan.mainPath.some((node) => node.nodeId === safeEvent.nodeId)) {
     const completedNodeIds = unique([...executionStatus.completedNodeIds, safeEvent.nodeId]);
     const refreshedPath = refreshPathReadinessAfterFeedback(mainPath, completedNodeIds, safeEvent.context);
-    currentNodeId = resolveCurrentPlanNodeId(refreshedPath, completedNodeIds);
+    const readyById = new Map(refreshedPath.map((node) => [node.nodeId, (node.readiness?.state ?? 'ready') === 'ready']));
+    currentNodeId = firstReadyCurrentNodeId(
+      refreshedPath.map((node) => node.nodeId),
+      completedNodeIds,
+      (nodeId) => readyById.get(nodeId) ?? true,
+    );
     mainPath = refreshedPath.map((node) => ({
       ...node,
       status: completedNodeIds.includes(node.nodeId)
@@ -2666,9 +2688,7 @@ export function buildSerializablePathOptions(plan: AdaptiveLearningPathPlan): Ad
   }
   if (plan.mainPath.length === 0) return [];
   const estimatedMinutes = remainingEstimatedMinutes(plan.mainPath);
-  const terminalValidationNodeIds = plan.mainPath
-    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-    .map((node) => node.nodeId);
+  const terminalValidationNodeIds = pathTerminalValidationNodeIds(plan.mainPath);
   const resourceMix = buildModalityMix(plan.mainPath);
   const targetDeficits = deficitsForPath(
     plan.mainPath,
@@ -2781,15 +2801,21 @@ function inferDeficits(
       .map((targetId) => {
         const portraitDimensionIds = portraitDimensionIdsForTarget(targetId);
         const portraitScores = usablePortraitDimensionsForTarget(learnerState, targetId);
-        const value = portraitScores.length > 0
-          ? normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length)
-          : 0;
-        const confidence = portraitScores.length > 0
-          ? portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length
-          : 0;
-        const evidenceCount = portraitScores.length > 0
-          ? Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount))
-          : 0;
+        if (portraitScores.length === 0) {
+          return {
+            targetId,
+            kind: 'competency' as const,
+            value: 0,
+            confidence: 0,
+            evidenceCount: 0,
+            reasonCode: 'competency-no-portrait-evidence',
+            portraitDimensionIds,
+            eventReferences: eventReferencesForDeficit(undefined),
+          };
+        }
+        const value = normalizeCompetencyScore(portraitScores.reduce((sum, dimension) => sum + dimension.score, 0) / portraitScores.length);
+        const confidence = portraitScores.reduce((sum, dimension) => sum + dimension.confidence, 0) / portraitScores.length;
+        const evidenceCount = Math.max(...portraitScores.map((dimension) => dimension.evidenceSummary.totalCount));
         return {
           targetId,
           kind: 'competency' as const,
@@ -2801,7 +2827,7 @@ function inferDeficits(
           eventReferences: eventReferencesForDeficit(undefined),
         };
       })
-      .filter((item) => item.value < 0.85),
+      .filter((item) => item.reasonCode === 'competency-no-portrait-evidence' || item.value < 0.85),
   ];
 }
 
@@ -3380,11 +3406,14 @@ function scoreNode(
   }, 0);
   const competencyTargets = new Set(
     deficits
-      .filter((item) => item.kind === 'competency')
+      .filter((item) => item.kind === 'competency' && item.reasonCode !== 'competency-no-portrait-evidence')
       .map((item) => item.targetId),
   );
   const abilityGain = Object.entries(planningUnit.abilityImpact).reduce((sum, [dimension, impact]) => {
-    const deficit = deficits.find((item) => item.kind === 'competency' && item.targetId === dimension);
+    const deficit = deficits.find((item) =>
+      item.kind === 'competency'
+      && item.targetId === dimension
+      && item.reasonCode !== 'competency-no-portrait-evidence');
     if (!deficit || !competencyTargets.has(dimension)) return sum;
     return sum + impact * (1 - deficit.value);
   }, 0);
@@ -3421,9 +3450,10 @@ interface AdaptiveLearningPathPreferenceContext {
 }
 
 function buildPlannerPreferenceContext(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPreferenceContext {
-  const usesExplicitResourcePreferences = input.resourcePreferenceSource
-    ? input.resourcePreferenceSource !== 'fallback'
-    : input.resourcePreferences !== undefined;
+  const usesExplicitResourcePreferences = hasExplicitPlannerChoice(
+    input.resourcePreferenceSource,
+    input.resourcePreferences,
+  );
   const resourceTypes = unique(usesExplicitResourcePreferences
     ? input.resourcePreferences ?? []
     : [
@@ -3437,12 +3467,8 @@ function buildPlannerPreferenceContext(input: AdaptiveLearningPathPlannerInput):
     difficultyRhythm: input.difficultyRhythm ?? 'steady',
     checkpointPreference: input.checkpointPreference ?? 'standard',
     usesExplicitResourcePreferences,
-    usesExplicitDifficultyRhythm: input.difficultyRhythmSource
-      ? input.difficultyRhythmSource !== 'fallback'
-      : input.difficultyRhythm !== undefined,
-    usesExplicitCheckpointPreference: input.checkpointPreferenceSource
-      ? input.checkpointPreferenceSource !== 'fallback'
-      : input.checkpointPreference !== undefined,
+    usesExplicitDifficultyRhythm: hasExplicitPlannerChoice(input.difficultyRhythmSource, input.difficultyRhythm),
+    usesExplicitCheckpointPreference: hasExplicitPlannerChoice(input.checkpointPreferenceSource, input.checkpointPreference),
   };
 }
 
@@ -3459,15 +3485,22 @@ function buildConfigurationFulfillment(
   const fulfillmentByKey = new Map<AdaptiveLearningPathConfigurationKey, AdaptiveLearningPathConfigurationFulfillment>();
 
   for (const request of requests) {
-    if (request.source === 'fallback') continue;
+    if (request.source === 'fallback' && request.key !== 'resource-preferences') continue;
     let fulfilled = mainPath.length > 0;
     let effect = '';
     let message = '';
     if (request.key === 'resource-preferences') {
-      const requestedTypes = Array.isArray(request.value) ? request.value : [];
-      fulfilled = requestedTypes.some((type) => selectedTypes.has(type as ResourceNode['type']));
-      effect = fulfilled ? '已优先选择匹配的资源类型。' : '没有可满足的匹配资源类型。';
-      message = fulfilled ? effect : '当前目标和约束下没有可替代的匹配资源。';
+      if (request.source === 'fallback') {
+        // #1985：下落系统默认时同样标注来源，不得呈现为用户或画像选择。
+        fulfilled = mainPath.length > 0;
+        effect = '未提交资源偏好，已按目标默认资源类型组合路径。';
+        message = effect;
+      } else {
+        const requestedTypes = Array.isArray(request.value) ? request.value : [];
+        fulfilled = requestedTypes.some((type) => selectedTypes.has(type as ResourceNode['type']));
+        effect = fulfilled ? '已优先选择匹配的资源类型。' : '没有可满足的匹配资源类型。';
+        message = fulfilled ? effect : '当前目标和约束下没有可替代的匹配资源。';
+      }
     } else if (request.key === 'difficulty-rhythm') {
       const rhythm = typeof request.value === 'string' ? request.value : 'steady';
       fulfilled = selectedReasons.has(`matches-${rhythm}-rhythm`);
@@ -4132,38 +4165,24 @@ function prerequisiteDepth(node: ResourceNode, nodesById: Map<string, ResourceNo
   );
 }
 
-function resolveCurrentNodeId(
-  entries: ScoredNode[],
-  completedNodeIds: string[],
-  readinessByNodeId: Map<string, AdaptiveLearningPathNodeReadiness>,
+function firstReadyCurrentNodeId(
+  nodeIds: readonly string[],
+  completedNodeIds: readonly string[],
+  isReady: (nodeId: string) => boolean,
   preferredCurrentNodeId?: string | null,
 ): string | null {
   const completed = new Set(completedNodeIds);
   if (
     preferredCurrentNodeId &&
     !completed.has(preferredCurrentNodeId) &&
-    entries.some((entry) => entry.node.id === preferredCurrentNodeId) &&
-    (readinessByNodeId.get(preferredCurrentNodeId)?.state ?? 'ready') === 'ready'
+    nodeIds.includes(preferredCurrentNodeId) &&
+    isReady(preferredCurrentNodeId)
   ) {
     return preferredCurrentNodeId;
   }
-  for (const entry of entries) {
-    if (completed.has(entry.node.id)) continue;
-    return (readinessByNodeId.get(entry.node.id)?.state ?? 'ready') === 'ready'
-      ? entry.node.id
-      : null;
-  }
-  return null;
-}
-
-function resolveCurrentPlanNodeId(
-  nodes: AdaptiveLearningPathPlanNode[],
-  completedNodeIds: string[],
-): string | null {
-  const completed = new Set(completedNodeIds);
-  for (const node of nodes) {
-    if (completed.has(node.nodeId)) continue;
-    return (node.readiness?.state ?? 'ready') === 'ready' ? node.nodeId : null;
+  for (const nodeId of nodeIds) {
+    if (completed.has(nodeId)) continue;
+    return isReady(nodeId) ? nodeId : null;
   }
   return null;
 }
@@ -4837,8 +4856,15 @@ function resolvePolicyBundleRequest(
   const evidenceCount = input.learnerState?.evidence?.confidence?.evidenceCount ?? 0;
   const needsStarterOptions = !input.learnerState || confidence.level === 'low' || evidenceCount <= 1;
   if (!needsStarterOptions) return undefined;
+  const { policyFamilies, targetOptionCount } = registeredGoal.starterPathPolicy;
+  if (policyFamilies.length !== targetOptionCount) {
+    throw new Error(
+      `Adaptive path goal "${input.goal.id}" declares ${policyFamilies.length} starter policy families ` +
+      `but targetOptionCount ${targetOptionCount}; the starter candidate count contract is misconfigured.`,
+    );
+  }
   return {
-    families: registeredGoal.starterPathPolicy.policyFamilies,
+    families: policyFamilies,
     overlapThreshold: 0.95,
   };
 }
@@ -5007,9 +5033,17 @@ function differentiablePolicyModalityMix(
   return buildModalityMix(corePolicyTeachingPlanNodes(mainPath, registry));
 }
 
+const POLICY_FAMILY_STYLE: Record<AdaptiveLearningPathPolicyFamily, { id: AdaptiveLearningPathStyleId; label: string }> = {
+  'foundation-remediation': { id: 'foundation-remediation', label: '基础补救' },
+  'simulation-driven': { id: 'arena-simulation-sprint', label: '仿真与 Arena 冲刺' },
+  'preference-matched': { id: 'preference-matched-route', label: '偏好匹配路线' },
+  'sprint-correction': { id: 'sprint-correction-route', label: '短程纠偏' },
+  'teacher-assigned': { id: 'teacher-assigned-route', label: '教师指定路线' },
+  'rules-plus-graph-search': { id: 'rules-graph-search-route', label: '推荐路线' },
+};
+
 function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
-  primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
   capturedAt: string,
   stageRepairedNodeIds?: readonly string[],
 ): AdaptiveLearningPathPolicyBundle | undefined {
@@ -5017,13 +5051,23 @@ function buildPolicyBundle(
   if (!requestedFamilies || requestedFamilies.length === 0) {
     return undefined;
   }
-  const families = unique([primaryPolicyFamily, ...requestedFamilies]);
+  const families = unique(requestedFamilies);
   const overlapThreshold = input.policyBundle?.overlapThreshold ?? 0.6;
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
   const terminalValidationRequired = registeredGoal?.checkpointPolicy.requiresTerminalValidation ?? false;
   const deficits = inferDeficits(input.goal, input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const omittedPolicyReasons: string[] = [];
+  const targetOptionCount = registeredGoal?.starterPathPolicy.targetOptionCount;
+  if (targetOptionCount !== undefined && families.length > targetOptionCount) {
+    throw new Error(
+      `Adaptive path goal "${input.goal.id}" requested ${families.length} policy families, ` +
+      `exceeding targetOptionCount ${targetOptionCount}.`,
+    );
+  }
+  if (targetOptionCount !== undefined && families.length < targetOptionCount) {
+    omittedPolicyReasons.push('policy-option-count-below-target');
+  }
   const avoidedDifferentiableCoreRefs = new Set<string>();
   const retainedCoreRefs = new Set<string>();
   const basePaths: AdaptiveLearningPathPolicyBundle['paths'] = [];
@@ -5140,15 +5184,14 @@ function buildPolicyBundle(
         avoidedDifferentiableCoreRefs.add(ref);
       });
       const modalityMix = buildModalityMix(mainPath);
-      const terminalValidationNodeIds = mainPath
-        .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-        .map((node) => node.nodeId);
+      const terminalValidationNodeIds = pathTerminalValidationNodeIds(mainPath);
+      const estimatedMinutes = remainingTeachingEstimatedMinutes(mainPath);
       const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
       const targetDeficits = deficitsForPath(mainPath, deficits);
       basePaths.push({
-        styleId: styleIdForPolicyFamily(policyFamily),
+        styleId: POLICY_FAMILY_STYLE[policyFamily].id,
         policyFamily,
-        label: styleLabelForPolicyFamily(policyFamily),
+        label: POLICY_FAMILY_STYLE[policyFamily].label,
         nodeIds: mainPath.map((node) => node.nodeId),
         activeNodeIds: activePolicyNodeIds(mainPath),
         lockedNodeIds: lockedPolicyNodeIds(mainPath),
@@ -5164,15 +5207,15 @@ function buildPolicyBundle(
           learnerStateSnapshot: plan.visualization?.evidence?.learnerStateSnapshot,
         }),
         evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
-        estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
+        estimatedMinutes,
         modalityMix,
         resourceMix: modalityMix,
         overlap: {
           maxWithOtherOptions: 0,
         },
         effort: {
-          estimatedMinutes: remainingTeachingEstimatedMinutes(mainPath),
-          relative: effortLabel(remainingTeachingEstimatedMinutes(mainPath), input.constraints.timeBudgetMinutes),
+          estimatedMinutes,
+          relative: effortLabel(estimatedMinutes, input.constraints.timeBudgetMinutes),
         },
         expectedTargetLift: round(plan.score.objectives.learningGain, 3),
         terminalValidationNodeIds,
@@ -5562,14 +5605,18 @@ function toPathOptionNodeSummary(node: AdaptiveLearningPathPlanNode): AdaptiveLe
   };
 }
 
+function pathTerminalValidationNodeIds(mainPath: AdaptiveLearningPathPlanNode[]): string[] {
+  return mainPath
+    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+    .map((node) => node.nodeId);
+}
+
 function selectCheckpointNodeIds(
   mainPath: AdaptiveLearningPathPlanNode[],
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
 ): string[] {
   if (mainPath.length === 0) return [];
-  const terminalValidationNodeIds = mainPath
-    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
-    .map((node) => node.nodeId);
+  const terminalValidationNodeIds = pathTerminalValidationNodeIds(mainPath);
   if (terminalValidationNodeIds.length > 0) return terminalValidationNodeIds;
   const policy = registeredGoal?.checkpointPolicy;
   const preferred = policy
@@ -5591,22 +5638,23 @@ function buildModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<stri
   }, {});
 }
 
-function styleIdForPolicyFamily(policyFamily: AdaptiveLearningPathPolicyFamily): AdaptiveLearningPathStyleId {
-  if (policyFamily === 'foundation-remediation') return 'foundation-remediation';
-  if (policyFamily === 'simulation-driven') return 'arena-simulation-sprint';
-  if (policyFamily === 'preference-matched') return 'preference-matched-route';
-  if (policyFamily === 'sprint-correction') return 'sprint-correction-route';
-  if (policyFamily === 'teacher-assigned') return 'teacher-assigned-route';
-  return 'rules-graph-search-route';
+function hasExplicitPlannerChoice(source: string | undefined, value: unknown): boolean {
+  return source ? source !== 'fallback' : value !== undefined;
 }
 
-function styleLabelForPolicyFamily(policyFamily: AdaptiveLearningPathPolicyFamily): string {
-  if (policyFamily === 'foundation-remediation') return '基础补救';
-  if (policyFamily === 'simulation-driven') return '仿真与 Arena 冲刺';
-  if (policyFamily === 'preference-matched') return '偏好匹配路线';
-  if (policyFamily === 'sprint-correction') return '短程纠偏';
-  if (policyFamily === 'teacher-assigned') return '教师指定路线';
-  return '推荐路线';
+// #1985：显式来源（request/profile）下，解析后的 resourcePreferences 是唯一偏好权威，
+// learnerState 携带的画像/试学模态不得再进入排序加权，避免画像偏好压过用户显式选择。
+function withoutLearnerStateResourceModalities(
+  learnerState: AdaptiveLearningPathPlannerInput['learnerState'],
+): AdaptiveLearningPathPlannerInput['learnerState'] {
+  if (!learnerState) return learnerState;
+  return {
+    ...learnerState,
+    resourcePreference: {
+      ...learnerState.resourcePreference,
+      preferredModalities: [],
+    },
+  };
 }
 
 function deficitsForPath(
@@ -5649,9 +5697,13 @@ export function buildAdaptivePathRecommendationProvenance(input: {
   confidence: AdaptiveLearningPathPlan['confidence']['level'];
   learnerStateSnapshot?: AdaptiveLearningPathLearnerStateSnapshot | null;
 }): AdaptiveLearningPathRecommendationProvenance {
-  const snapshotDegraded = Boolean(input.learnerStateSnapshot)
-    && listPersonalizedPathDegradationReasons(input.learnerStateSnapshot).length > 0;
-  const entries = input.deficits.slice(0, 3).map((deficit) => {
+  const degradationReasons = listPersonalizedPathDegradationReasons(input.learnerStateSnapshot);
+  const snapshotDegraded = Boolean(input.learnerStateSnapshot) && degradationReasons.length > 0;
+  const portraitUnavailable = degradationReasons.includes('portrait-unavailable');
+  const entries = input.deficits
+    .filter((deficit) => deficit.reasonCode !== 'competency-no-portrait-evidence')
+    .slice(0, 3)
+    .map((deficit) => {
     const confidence = snapshotDegraded ? 'low' : recommendationEntryConfidence(deficit);
     const affectedNodes = confidence === 'low'
       ? []
@@ -5696,7 +5748,10 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     );
   const limitations = unique([
     entries.length === 0 ? '当前没有可用于形成个性化判断的有效学习证据。' : null,
-    snapshotDegraded ? '当前学习证据过期、缺失或不完整，暂时不能据此给出个性化判断。' : null,
+    portraitUnavailable
+      ? `当前无法个性化推荐：能力画像暂不可用（${input.learnerStateSnapshot?.primaryPortraitAvailability ?? '未知原因'}），本路径按通用学习路线生成。`
+      : null,
+    snapshotDegraded && !portraitUnavailable ? '当前学习证据过期、缺失或不完整，暂时不能据此给出个性化判断。' : null,
     hasLowConfidenceDeficit ? '部分判断的有效证据仍然不足。' : null,
     hasUnmatchedEntry ? '部分判断缺少可核验的推荐资源关联。' : null,
     hasMissingEventReferences ? '部分判断尚无可核验的事件级学习记录。' : null,
@@ -5706,14 +5761,17 @@ export function buildAdaptivePathRecommendationProvenance(input: {
     ? [`根据你的学习方式偏好，优先安排${appliedPreferredModalities.map(resourceTypeLabel).join('、')}类学习资源。`]
     : [];
   return {
-    summary: confidence === 'low'
-      ? '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。'
-      : entries.length === 1
-        ? `依据 ${entries[0].targetLabel} 的学习证据安排本路径。`
-        : `依据 ${entries[0].targetLabel} 等 ${entries.length} 项学习证据安排本路径。`,
+    summary: portraitUnavailable
+      ? '当前无法个性化推荐：能力画像暂不可用，本路径按通用学习路线生成。'
+      : confidence === 'low'
+        ? '当前证据较少，本路径主要依据课程结构、先修规则和可用资源生成。'
+        : entries.length === 1
+          ? `依据 ${entries[0].targetLabel} 的学习证据安排本路径。`
+          : `依据 ${entries[0].targetLabel} 等 ${entries.length} 项学习证据安排本路径。`,
     confidence,
     entries,
     personalizationNotes,
+    ...(portraitUnavailable ? { personalizationState: 'portrait-unavailable' as const } : {}),
     evidenceReviewHref: '/profile/evidence',
     limitations,
     nextAction: confidence === 'low' || hasLowConfidenceDeficit
@@ -6093,9 +6151,7 @@ function buildTimelinePayload(
       return {
         days,
         nodeIds,
-        estimatedMinutes: mainPath
-          .filter((node) => nodeIds.includes(node.nodeId) && node.status !== 'completed')
-          .reduce((sum, node) => sum + node.estimatedTimeMinutes, 0),
+        estimatedMinutes: remainingEstimatedMinutes(mainPath.filter((node) => nodeIds.includes(node.nodeId))),
       };
     }),
   };

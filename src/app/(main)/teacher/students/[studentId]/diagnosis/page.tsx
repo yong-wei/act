@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { prisma } from '@/lib/prisma';
 
 export default async function LegacyTeacherStudentDiagnosisPage(
@@ -10,7 +11,7 @@ export default async function LegacyTeacherStudentDiagnosisPage(
 ) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
 
   if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {

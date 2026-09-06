@@ -10,6 +10,10 @@
  */
 
 import {
+  overlayLiveTeachingPins,
+  readAgreedLiveCourseProjection,
+} from '@/lib/teaching-projection/live-course-pointer';
+import {
   projectionPinsFromSelection,
   resolveLearningPathProductionSelection,
   type ConsumerProductionSelection,
@@ -459,7 +463,10 @@ export function applyLearningPathConsumerActivation(
   const selection =
     options.activationSelection
     ?? resolveLearningPathProductionSelection({ repoRoot: options.repoRoot });
-  const pins = projectionPinsFromSelection(selection);
+  const pins = overlayLiveTeachingPins(
+    projectionPinsFromSelection(selection),
+    readAgreedLiveCourseProjection(options.repoRoot),
+  );
   if (selection.mode === 'absent') {
     return {
       projection,

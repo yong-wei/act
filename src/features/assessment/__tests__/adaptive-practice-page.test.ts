@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPathGenerationGoalHref,
   defaultPathGenerationPanel,
+  pathGenerationPanelFromSearchParams,
 } from '@/features/personalization/path-planning/adaptive-path-generation-panel';
 
 const repoRoot = process.cwd();
@@ -282,6 +283,44 @@ describe('adaptive practice page entry states', () => {
     expect(generationBlock).toContain('operation !== \'generate\' ? currentPathId : undefined');
     expect(generationBlock).toContain('await refreshLatestLearningPathAfterKonling();');
     expect(source).toContain('if (activePathId) {\n      const loaded = await fetchLearningPathRound(activePathId, activeGoal);');
+  });
+
+  it('does not submit the default resource preference until the student actively selects one', () => {
+    const untouched = pathGenerationPanelFromSearchParams(
+      new URLSearchParams('goal=control-correction'),
+      'control-correction',
+    );
+    expect(untouched.resourcePreference).toEqual(defaultPathGenerationPanel.resourcePreference);
+    expect(untouched.resourcePreferenceTouched).toBe(false);
+
+    const touched = pathGenerationPanelFromSearchParams(
+      new URLSearchParams('goal=control-correction&pathResources=konling,arena_task'),
+      'control-correction',
+    );
+    expect(touched.resourcePreferenceTouched).toBe(true);
+    expect(touched.resourcePreference).toEqual(['konling', 'arena_task']);
+
+    const untouchedQuery = new URLSearchParams(
+      buildPathGenerationGoalHref('frequency-response-foundations', {
+        ...defaultPathGenerationPanel,
+        goalId: 'frequency-response-foundations',
+      }).split('?')[1] ?? '',
+    );
+    expect(untouchedQuery.has('pathResources')).toBe(false);
+    const touchedQuery = new URLSearchParams(
+      buildPathGenerationGoalHref('frequency-response-foundations', {
+        ...defaultPathGenerationPanel,
+        goalId: 'frequency-response-foundations',
+        resourcePreferenceTouched: true,
+      }).split('?')[1] ?? '',
+    );
+    expect(touchedQuery.get('pathResources')).toBe(defaultPathGenerationPanel.resourcePreference.join(','));
+
+    const pageSource = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+    expect(pageSource).toContain('resourcePreference: pathGenerationPanel.resourcePreferenceTouched');
+    expect(pageSource).toContain('resourcePreferenceTouched: true');
+    expect(pageSource).toContain('data-adaptive-path-resource-preference-default-hint="visible"');
+    expect(pageSource).toContain('pathResourcePreferenceSourceLabels[entry.source] ?? entry.source');
   });
 
   it('keeps demo path state available for execution and visual QA routes', () => {

@@ -1,4 +1,5 @@
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { redirect } from 'next/navigation';
 import { OrchestratorBuilder } from '@/features/lesson-engine/orchestrator-builder';
 import { PresetTemplateCloneRedirect } from '@/features/lesson-engine/preset-template-clone-redirect';
@@ -17,7 +18,7 @@ function getTeacherReturnLabel(returnTarget: string) {
 
 export default async function TeacherNewLessonPlanPage({ searchParams }: PageProps) {
   const session = await getServerAuthSession();
-  if (!session) redirect('/login');
+  if (!session) redirect(await buildLoginRedirectFromRequest());
   if (session.user.role !== 'TEACHER') redirect('/');
 
   const query = await searchParams;

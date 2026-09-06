@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ClipboardList,
   FileClock,
+  GraduationCap,
   History,
   Loader2,
   RefreshCw,
@@ -23,6 +24,7 @@ import type {
 } from '@/features/teacher/diagnosis/public-api';
 import type { DiagnosisGenerationJobApiItem } from '@/lib/diagnosis-generation';
 import type { DiagnosisGenerationPreflightApiItem } from '@/lib/diagnosis-generation-preflight';
+import { DiagnosisReportEvolutionBoard } from '@/features/teacher/diagnosis-report-evolution-board';
 import {
   projectReportHistoryCard,
   type EvidenceCoverageGroup,
@@ -35,6 +37,7 @@ interface TeacherDiagnosisReportHistoryProps {
   classId: string;
   targetStudentId?: string;
   subjectLabel: string;
+  currentStudentsEntry?: { href: string };
 }
 
 interface TeacherDiagnosisReportHistoryViewProps {
@@ -43,6 +46,7 @@ interface TeacherDiagnosisReportHistoryViewProps {
   reports: DiagnosisReportApiItem[];
   selectedReportId?: string | null;
   subjectLabel: string;
+  currentStudentsEntry?: { href: string };
   errorMessage?: string | null;
   onRefresh?: () => void;
   onSelectReport?: (reportId: string) => void;
@@ -88,6 +92,7 @@ export function TeacherDiagnosisReportHistory({
   classId,
   targetStudentId,
   subjectLabel,
+  currentStudentsEntry,
 }: TeacherDiagnosisReportHistoryProps) {
   const [state, setState] = useState<ReportHistoryState>('loading');
   const [reports, setReports] = useState<DiagnosisReportApiItem[]>([]);
@@ -201,12 +206,14 @@ export function TeacherDiagnosisReportHistory({
   }, [generationJob, loadReports]);
 
   return (
+    <>
       <TeacherDiagnosisReportHistoryView
         classId={classId}
       state={state}
       reports={reports}
       selectedReportId={selectedReportId}
       subjectLabel={subjectLabel}
+      currentStudentsEntry={currentStudentsEntry}
       errorMessage={errorMessage}
       onRefresh={() => void loadReports()}
       onSelectReport={setSelectedReportId}
@@ -218,7 +225,13 @@ export function TeacherDiagnosisReportHistory({
       onClosePreflight={() => setGenerationPreflight(null)}
       onConfirmGeneration={(forceReason) => void submitGeneration(false, forceReason)}
       onRetryGeneration={() => void submitGeneration(true)}
-    />
+      />
+      {!targetStudentId ? (
+        // 历史列表有 20 条上限，长度达到上限后数量不再变化，因此以最新
+        // 报告 id 作为重挂载信号，保证新报告生成后演变板块重新读取。
+        <DiagnosisReportEvolutionBoard key={reports[0]?.id ?? 'empty'} classId={classId} />
+      ) : null}
+    </>
   );
 }
 
@@ -228,6 +241,7 @@ export function TeacherDiagnosisReportHistoryView({
   reports,
   selectedReportId,
   subjectLabel,
+  currentStudentsEntry,
   errorMessage,
   onRefresh,
   onSelectReport,
@@ -270,6 +284,16 @@ export function TeacherDiagnosisReportHistoryView({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {currentStudentsEntry ? (
+            <Link
+              href={currentStudentsEntry.href}
+              className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm"
+              data-teacher-current-students-entry
+            >
+              <GraduationCap className="h-4 w-4" />
+              查看当前学生学情
+            </Link>
+          ) : null}
           <button
             type="button"
             data-diagnosis-generation-action="generate"

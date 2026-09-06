@@ -23,7 +23,7 @@ The active Authority workspace SHALL render a first level containing one circula
 - **AND** it SHALL NOT fetch the complete global object or relation sets
 
 ### Requirement: Published teaching order is the default domain relation layer
-A domain's initial relation view SHALL enable every available published ACT_TEACHING containment, prerequisite, and pedagogical-association family by default. Every ActKG engineering family SHALL remain disabled until requested. Teaching coverage that is partial, empty or unavailable SHALL NOT block primary Authority object selection or engineering relation filters, SHALL NOT cause engineering relations to be restated as teaching, and SHALL NOT expose repository review-pack state in the runtime product.
+A domain's initial relation view SHALL enable every available published ACT_TEACHING containment, prerequisite, and pedagogical-association family by default. Every ActKG engineering family SHALL remain disabled until requested. Runtime presentation SHALL display only published teaching edges and SHALL NOT infer order from live engineering shards, object names, Canonical ID sort, or layout. Build-time composition of the single domain Teaching Projection from course-content-related DomainConcepts and syllabus unit order is required by `domain-teaching-order-coverage` and is not a runtime inference. Teaching service unavailability SHALL NOT block primary Authority object selection or engineering relation filters and SHALL NOT expose repository review-pack state in the runtime product.
 
 #### Scenario: Domain has published teaching edges
 - **WHEN** a version-matched Teaching Projection contains published teaching relations for the active domain
@@ -33,7 +33,12 @@ A domain's initial relation view SHALL enable every available published ACT_TEAC
 #### Scenario: Domain has no published teaching edge
 - **WHEN** the domain teaching coverage is empty, partial, or unavailable
 - **THEN** primary Authority objects SHALL remain visible and selectable and the product SHALL show only valid published teaching edges that are actually present
-- **AND** the workspace SHALL not infer order from engineering relations, object names, course order, layout, or repository review candidates
+- **AND** the workspace SHALL not infer order from live engineering relations, object names, course order, layout, or repository review candidates
+
+#### Scenario: Domain teaching overlay is unavailable
+- **WHEN** the domain teaching coverage cannot be resolved as a published overlay
+- **THEN** primary Authority objects SHALL remain visible and selectable
+- **AND** the workspace SHALL not infer order from live engineering relations, object names, course order, layout, or repository review candidates
 
 ### Requirement: Engineering relations use explicit presentation filters
 The workspace SHALL provide reversible filters for structure, derivation-and-representation, application-and-analysis, association, and every other supported engineering presentation family while preserving every relation's exact published predicate, endpoints and direction in detail. Enabling a missing family SHALL load only the active domain's missing shard; disabling and re-enabling a loaded family SHALL change visibility without discarding the shard or resetting graph session state.
@@ -173,17 +178,17 @@ Root, domain overview and selected semantic neighborhood SHALL each use a distin
 - **AND** search SHALL not promote every matching type into the domain overview
 
 ### Requirement: Active semantic filters live in one dedicated panel
-The active workspace SHALL provide one responsive filter panel containing reversible multi-select node-type and relation-family controls with registered visual samples. The global workspace toolbar SHALL contain only graph-version, language, dimension, fit, reflow and domain-return actions.
+The active workspace SHALL provide relation-family content filters as compact bottom-left canvas chips matching the old graph control: reversible multi-select labels with registered line samples, including the default teaching-order chip. The chips SHALL sit at the canvas corner (`bottom-0 left-0`, with the established Konling clearance when that launcher is expanded). The global workspace toolbar SHALL contain only graph-version, language, dimension, fit, reflow and domain-return actions and SHALL NOT host relation filters.
 
 #### Scenario: Viewer opens filters on desktop
-- **WHEN** the viewer opens the active filter control
-- **THEN** one bounded panel SHALL show node types and relation families with their current states and visual meanings
-- **AND** search or layout controls SHALL not be duplicated inside unrelated floating rows
+- **WHEN** an active domain canvas is visible on desktop
+- **THEN** teaching-order and engineering-family chips SHALL appear at the bottom-left canvas corner
+- **AND** search or layout controls SHALL not duplicate those chips in the top toolbar
 
 #### Scenario: Viewer opens filters on mobile
-- **WHEN** the same control is opened on a compact viewport
-- **THEN** an accessible drawer SHALL expose the same state and actions
-- **AND** closing it SHALL restore focus without changing the graph
+- **WHEN** the same canvas is opened on a compact viewport
+- **THEN** the same chip state SHALL remain available at the bottom-left corner or the established mobile equivalent
+- **AND** closing any compact overlay SHALL restore focus without changing the graph
 
 ### Requirement: Ordinary active graph has no visible all-node directory
 The active canvas SHALL NOT render a visible grid or list containing all materialized nodes as a fallback for missing Teaching relations, zero visible edges or formula availability. Semantic node controls SHALL remain screen-reader accessible and bounded discovery SHALL remain available through search.

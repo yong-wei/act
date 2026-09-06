@@ -28,6 +28,37 @@ export interface ReadTeacherDiagnosisReportHistoryInput {
   limit?: number;
 }
 
+export interface DiagnosisMetricSnapshotApiItem {
+  id: string;
+  schemaVersion: string;
+  computationVersion: string;
+  scopeType: string;
+  scopeId: string;
+  memberSetFingerprint: string;
+  evidenceCutoff: string;
+  metrics: unknown;
+  generatedAt: string;
+}
+
+export interface DiagnosisEvolutionApiItem {
+  id: string;
+  scopeType: 'class';
+  scopeId: string;
+  evidenceCutoff: string;
+  generatedAt: string;
+  metricSnapshot: DiagnosisMetricSnapshotApiItem | null;
+}
+
+export interface DiagnosisEvolutionPayload {
+  reports: DiagnosisEvolutionApiItem[];
+}
+
+export interface ReadTeacherDiagnosisEvolutionInput {
+  teacherId: string;
+  classId: string;
+  limit?: number;
+}
+
 export type TeacherDiagnosisReportErrorCode =
   | 'unauthenticated'
   | 'forbidden'

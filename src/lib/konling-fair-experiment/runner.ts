@@ -21,6 +21,7 @@ import {
   buildKonlingFairExperimentManifestPayload,
   konlingFairExperimentManifestHash,
 } from './aggregate';
+import { exportKonlingFairExperimentArtifacts } from './export';
 import {
   appendKonlingFairExperimentFailure,
   assertKonlingFairExperimentLockHeld,
@@ -36,6 +37,14 @@ import {
   writeKonlingFairExperimentScore,
 } from './store';
 import { KONLING_FAIR_EXPERIMENT_ARMS } from './types';
+import {
+  enforceAnswerUnitCitationCoverage,
+  enforceKonlingCitationNumberWhitelist,
+  isDirectVerifiedSupportCitation,
+} from './citation-whitelist-enforcement';
+import { scanKonlingAnswerUnits } from '@/lib/konling-answer-unit-scan';
+import { STUDY_QUESTION_SECTIONS, type StudyQuestionIntent } from '@/lib/konling-study-question-structure';
+
 import type {
   KonlingFairExperimentAggregateResult,
   KonlingFairExperimentAnswerRecord,
@@ -147,12 +156,72 @@ export async function runKonlingFairExperiment(input: {
             gitRevision: input.config.gitRevision,
           };
           if (response.ok) {
+            // #2017：正式回答写盘前的两道确定性防线（仅 full-feature，
+            // 基线臂无引用功能不适用）。先执行编号白名单校验——未分配
+            // 编号删除标记并降级；再按覆盖缺口执行一次有界修复说明。
+            let finalAnswer = response.result.answer;
+            let finalCitations = response.result.citations;
+            if (arm === 'full-feature' && finalCitations !== undefined) {
+              // 引用快照不可得（undefined，如 live 未接 citationContext）时
+              // 跳过执行：快照缺失≠「未分配任何引用」，按空白名单改写会把
+              // 全部合法 [n] 删掉并污染不可重生成的冻结快照（#1992/#2017 P1）。
+              // undefined 时聚合层按 citation-audit incomplete fail closed。
+              const whitelist = enforceKonlingCitationNumberWhitelist({
+                answer: response.result.answer,
+                citations: finalCitations,
+                // 删除伪编号后对所在断言行原地降级——仅删标记不构成
+                // 「按待核验呈现」（#2017 review P1）。
+                demoteClaim: (line) => `${line.trimEnd()}[引用缺口：待核验]`,
+              });
+              finalAnswer = whitelist.body;
+              if (whitelist.downgraded) {
+                console.warn(
+                  `[konling-fair-experiment] citation whitelist downgraded ${taskKey}: ${whitelist.removedMarkers.join(', ')}`,
+                );
+              }
+              // 答案单元覆盖：用与审计同一 scan 口径计算必需/已覆盖数，
+              // 缺口时执行一次有界修复（显式证据缺口说明，不伪造引用）。
+              const intent = item.intent as StudyQuestionIntent;
+              const scan = scanKonlingAnswerUnits(whitelist.body, finalCitations, intent);
+              const sections = STUDY_QUESTION_SECTIONS[intent];
+              const requiredUnits = scan.units.filter((unit) => (
+                unit.substantive
+                && unit.sectionId !== null
+                && sections.some((section) => section.id === unit.sectionId && section.citationPolicy === 'evidence-required')
+              ));
+              // 覆盖口径与审计一致（#2017 review P1）：只认可绑定标记中
+              // 存在直接支撑引用的单元；bound 但仅 semantic-score 的引用
+              // 不计覆盖，使执行与审计对同一单元判定一致。
+              const directSupportIds = new Set(
+                finalCitations.filter(isDirectVerifiedSupportCitation).map((citation) => citation.id),
+              );
+              const coveredUnits = requiredUnits.filter((unit) => (
+                (unit.bindingCitationIds ?? []).some((id) => directSupportIds.has(id))
+              ));
+              const coverage = enforceAnswerUnitCitationCoverage({
+                answer: whitelist.body,
+                requiredUnitCount: requiredUnits.length,
+                coveredUnitCount: coveredUnits.length,
+                normativeGuidance: contractIntent === 'normative-content' || item.intent === 'normative-content'
+                  ? 'verification-required'
+                  : null,
+              });
+              finalAnswer = coverage.body;
+            }
             const record: KonlingFairExperimentAnswerRecord = {
               ...meta,
               status: 'completed',
               startedAt,
               finishedAt,
-              answer: response.result.answer,
+              answer: finalAnswer,
+              // #1951：citation 快照与回答同文件冻结，供确定性审计。
+              // 基线臂（plain/enhanced）无引用功能，provider 缺省即空快照；
+              // full-feature 臂透传——缺 citations 字段＝快照不可得（如
+              // live 未接入 citationContext），聚合进入 citation-audit
+              // incomplete，不得折叠成空数组伪造零值指标（#1992 review P1）。
+              citations: arm === 'full-feature'
+                ? finalCitations
+                : (response.result.citations ?? []),
               elapsedMs: response.result.elapsedMs,
               ...(contractIntent ? { contractIntent } : {}),
             };
@@ -245,6 +314,11 @@ export async function runKonlingFairExperiment(input: {
       calibers: input.calibers,
       writeOfficial: true,
     });
+
+    // #1951：official 真源冻结后立即派生 CSV/工作簿/幻灯片，四载体同源。
+    if (aggregate.officialSummary) {
+      await exportKonlingFairExperimentArtifacts(runDir, aggregate.officialSummary);
+    }
 
     return {
       runId: input.runId,

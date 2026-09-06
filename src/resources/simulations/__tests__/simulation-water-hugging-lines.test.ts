@@ -13,7 +13,7 @@ const read = (file: string) => readFileSync(file, 'utf8');
 describe('water-hugging line module', () => {
   it('lifts vertices by the shared Gerstner sampling with epsilon and low-tier stride', () => {
     const source = read(LINES_INDEX);
-    expect(source).toContain('computeGerstnerDisplacement');
+    expect(source).toContain('sampleVisibleWaterHeight');
     expect(source).toContain('GERSTNER_WAVE_SETS');
     expect(source).toContain('epsilon');
     expect(source).toContain("waterTier === 'low'");
@@ -22,7 +22,9 @@ describe('water-hugging line module', () => {
   it('includes the Gerstner water mesh base height so lines hug the actual surface', () => {
     const source = read(LINES_INDEX);
     expect(source).toContain('GERSTNER_WATER_BASE_Y');
-    expect(source).toContain('GERSTNER_WATER_BASE_Y + computeGerstnerDisplacement');
+    expect(source).toContain('sampleVisibleWaterHeight(waveSet');
+    // 与可见水面同一坐标基准：水面网格跟随原点（舰位）采样
+    expect(source).toContain('waterOriginSampler');
   });
 });
 

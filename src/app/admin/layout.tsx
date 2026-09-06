@@ -6,6 +6,7 @@ import { ActionStatusPanel } from '@/components/platform/action-status';
 import { AppShell } from '@/components/platform/app-shell';
 import { RoleWorkspaceShell } from '@/components/platform/role-workspace-shell';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { buildPlatformRecoveryState } from '@/lib/platform-recovery-contract';
 
 export default async function AdminLayout({
@@ -16,7 +17,7 @@ export default async function AdminLayout({
   const session = await getServerAuthSession();
 
   if (!session?.user) {
-    redirect('/login');
+    redirect(await buildLoginRedirectFromRequest());
   }
   if (session.user.role !== UserRole.ADMIN) {
     const state = buildPlatformRecoveryState({

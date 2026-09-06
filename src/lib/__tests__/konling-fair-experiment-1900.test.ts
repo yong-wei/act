@@ -29,7 +29,7 @@ import {
   STUDY_QUESTION_INTENTS,
   STUDY_QUESTION_SECTIONS,
 } from '@/lib/konling-study-question-structure';
-import type { KonlingFairExperimentConfig } from '@/lib/konling-fair-experiment';
+import type { KonlingFairExperimentBank, KonlingFairExperimentConfig } from '@/lib/konling-fair-experiment';
 
 let root: string;
 
@@ -83,7 +83,13 @@ function armAnswer(arm: 'plain-baseline' | 'enhanced-baseline' | 'full-feature',
 
 const generateProvider = async (task: Parameters<Parameters<typeof runKonlingFairExperiment>[0]['generateProvider']>[0]) => ({
   ok: true as const,
-  result: { answer: armAnswer(task.arm, task.item.intent), elapsedMs: 1 },
+  // #1951 契约：full-feature 臂必须显式提供 citation 快照——缺字段＝快照
+  // 不可得，聚合会进入 citation-audit fail closed；确定性桩如实给空快照。
+  result: {
+    answer: armAnswer(task.arm, task.item.intent),
+    ...(task.arm === 'full-feature' ? { citations: [] as const } : {}),
+    elapsedMs: 1,
+  },
 });
 
 const auditProvider = async () => ({
@@ -112,11 +118,13 @@ describe('评分口径（#1900 caliber）', () => {
     }).passed).toBe(true);
   });
 
-  it('默认参数与显式 alias 口径输出一致（产品行为不变）', () => {
+  it('默认参数与当前 alias 口径（v2）一致；v1 冻结且对无装饰输入等价（#1950）', () => {
     const answer = `${aliasAnswer('code-debugging')}\n## 假设与符号\n多余章节。`;
     const implicit = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging' });
-    const explicit = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging', caliber: 'structure-alias.v1' });
-    expect(implicit).toEqual(explicit);
+    const explicitV2 = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging', caliber: 'structure-alias.v2' });
+    const explicitV1 = evaluateStudyQuestionStructure({ answer, intent: 'code-debugging', caliber: 'structure-alias.v1' });
+    expect(implicit).toEqual(explicitV2);
+    expect(explicitV1).toEqual(explicitV2);
   });
 });
 
@@ -211,6 +219,54 @@ describe('端到端：断点续跑与 fail closed', () => {
     expect(agreement?.n).toBe(KONLING_FAIR_EXPERIMENT_BANK_V1.items.length * 2);
     expect(agreement!.rate).toBeGreaterThanOrEqual(0);
     expect(agreement!.rate).toBeLessThanOrEqual(1);
+    // #1948：逐意图混淆分解按题库唯一意图枚举，类别级失败不被总体率掩盖。
+    const byIntent = agreement!.byIntent;
+    const expectedIntents = [...new Set(KONLING_FAIR_EXPERIMENT_BANK_V1.items.map((item) => item.intent))];
+    expect(byIntent.map((entry) => entry.intent)).toEqual(expectedIntents);
+    for (const entry of byIntent) {
+      const support = KONLING_FAIR_EXPERIMENT_BANK_V1.items
+        .filter((item) => item.intent === entry.intent).length;
+      expect(entry.n, entry.intent).toBe(support * 2);
+      expect(
+        Object.values(entry.routedCounts).reduce((sum, count) => sum + count, 0),
+        entry.intent,
+      ).toBe(entry.n);
+    }
+    expect(byIntent.reduce((sum, entry) => sum + entry.matched, 0)).toBe(agreement!.passed);
+    // 验收：代码调试与规范内容的公平实验样本不再回落为开放讲解。
+    for (const intent of ['code-debugging', 'normative-content'] as const) {
+      const entry = byIntent.find((candidate) => candidate.intent === intent);
+      expect(entry?.matched, intent).toBe(entry?.n);
+      expect(entry?.routedCounts['open-ended-explanation'], intent).toBeUndefined();
+    }
+  });
+
+  it('逐意图混淆按意图聚合：同意图多条目汇入同一条分解（#1948 review）', async () => {
+    // 真实批次可同结构追加条目（bank.ts）；两条 fact-explanation 题项必须聚合
+    // 为一条按意图分组的分解，不得按题项拆散。
+    const factItem = KONLING_FAIR_EXPERIMENT_BANK_V1.items
+      .find((item) => item.intent === 'fact-explanation')!;
+    const duplicateIntentBank: KonlingFairExperimentBank = {
+      bankVersion: 'fair-experiment-v1-dup',
+      replicates: 2,
+      items: [
+        factItem,
+        { ...factItem, itemId: 'fact-dup-2', question: '什么是稳态误差？' },
+      ],
+    };
+    const summary = await runKonlingFairExperiment({
+      root, runId: 'dup-intent', bank: duplicateIntentBank,
+      config: fixtureConfig(), calibers: ['structure-alias.v1'],
+      generateProvider, auditProvider,
+    });
+    expect(summary.aggregateStatus).toBe('complete');
+    const agreement = summary.aggregate.officialSummary!.perArm['full-feature'].classificationAgreement!;
+    expect(agreement.n).toBe(4);
+    expect(agreement.byIntent).toHaveLength(1);
+    expect(agreement.byIntent[0].intent).toBe('fact-explanation');
+    expect(agreement.byIntent[0].n).toBe(4);
+    expect(agreement.byIntent[0].matched).toBe(4);
+    expect(agreement.byIntent[0].routedCounts['fact-explanation']).toBe(4);
   });
 
   it('续跑不重复生成，回答快照冻结', async () => {

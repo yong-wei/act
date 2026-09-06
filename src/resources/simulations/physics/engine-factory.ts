@@ -28,6 +28,7 @@ import {
 } from './simulation-engine-facade';
 import {
   mmg3dofStep,
+  type MmgThrusterCommand,
   createMMG3DOFState,
   mmgToSimulationState,
   type MMG3DOFState,
@@ -415,6 +416,9 @@ export class MMG3DOFEngine implements SimulationEngine {
   private maxRudderRate: number = 0;
   private maxPositionError: number = 0;
   private violations: EthicalViolation[] = [];
+  private dpThruster?: MmgThrusterCommand;
+  private positionAlarmSince: number | null = null;
+  private positionAlarmActive = false;
   private runContext?: SimulationRunContext;
 
   constructor(profile: ShipProfile, options: SimulationEngineOptions = {}) {
@@ -511,24 +515,44 @@ export class MMG3DOFEngine implements SimulationEngine {
 
       this.dpState = dpResult.newState;
       rudderCommand = dpResult.output.rudderCommand;
+      // 四通道执行（#1944 同步修复）：DP 推力直接驱动 mmg3dof，rpm 置零避免重复推力
+      propellerRPM = 0;
+      this.dpThruster = {
+        surgeKN: dpResult.output.surgeThrust / 1000,
+        swayKN: dpResult.output.swayThrust / 1000,
+        yawMomentKNm: dpResult.output.yawMoment / 1000,
+      };
 
       // 记录位置误差
       if (dpResult.metrics.positionError > this.maxPositionError) {
         this.maxPositionError = dpResult.metrics.positionError;
       }
 
-      // 检测定位精度违规
-      if (dpResult.metrics.positionError > 0.1) {  // 0.1m 精度要求
-        this.violations.push({
-          type: 'SAFETY_VIOLATION',
-          thresholdValue: 0.1,
-          actualValue: dpResult.metrics.positionError,
-          timestamp: time,
-          description: `定位误差过大: ${dpResult.metrics.positionError.toFixed(3)}m`,
-          severity: dpResult.metrics.positionError > 0.5 ? 'critical' : 'warning',
-        });
+      // 定位精度告警滞回（#1944 解耦：持续超限 10s 记录一次，恢复后清除）
+      if (dpResult.metrics.positionError > 0.1) {
+        this.positionAlarmSince ??= time;
+        if (
+          !this.positionAlarmActive
+          && time - this.positionAlarmSince >= 10
+        ) {
+          this.positionAlarmActive = true;
+          this.violations.push({
+            type: 'SAFETY_VIOLATION',
+            thresholdValue: 0.1,
+            actualValue: dpResult.metrics.positionError,
+            timestamp: time,
+            description: `定位误差持续超限 10 秒: ${dpResult.metrics.positionError.toFixed(3)}m`,
+            severity: dpResult.metrics.positionError > 0.5 ? 'critical' : 'warning',
+          });
+        }
+      } else if (!this.positionAlarmActive || dpResult.metrics.positionError < 0.05) {
+        this.positionAlarmSince = null;
+        if (this.positionAlarmActive && dpResult.metrics.positionError < 0.05) {
+          this.positionAlarmActive = false;
+        }
       }
     } else {
+      this.dpThruster = undefined;
       // 航向控制
       this.pidMode = controlMode;
       const currentHeading = toDegrees(this.state.psi);
@@ -567,7 +591,8 @@ export class MMG3DOFEngine implements SimulationEngine {
       mmgParams,
       shipLength,
       shipDraft,
-      disturbance
+      disturbance,
+      this.dpThruster
     );
 
     // 累计误差
@@ -1604,6 +1629,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
   private dpState: DPDecouplingState;
   private currentEnv!: CurrentEnvironment;
   private windEnv!: CurrentWindEnvironment;
+  private meanWindSpeed: number = 0;
   private performanceTracker: ReturnType<typeof createPerformanceTracker>;
 
   // 配置选项
@@ -1662,6 +1688,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
     if (!this.disturbanceEnabled) {
       this.currentEnv = createCurrentEnvironment(0, 0, 0);
       this.windEnv = createCurrentWindEnvironment(0, 0, 1.0);
+      this.meanWindSpeed = 0;
       this.waveHeight = 0;
       return;
     }
@@ -1669,6 +1696,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
     const env = getTypicalEnvironment(this.seaStateLevel);
     this.currentEnv = createCurrentEnvironment(env.currentSpeed, 45, 0.1);
     this.windEnv = createCurrentWindEnvironment(env.windSpeed, 45, 1.2);
+    this.meanWindSpeed = env.windSpeed;
     this.waveHeight = env.waveHeight;
   }
 
@@ -1713,7 +1741,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
 
     // 更新环境
     this.currentEnv = updateCurrentEnvironment(this.currentEnv, dt, this.currentRng);
-    this.windEnv = updateCurrentWindEnvironment(this.windEnv, dt, this.windEnv.speed, this.windRng);
+    this.windEnv = updateCurrentWindEnvironment(this.windEnv, dt, this.meanWindSpeed, this.windRng);
 
     // 计算环境力
     const envForces = computeTotalEnvironmentalForces(
@@ -1779,7 +1807,7 @@ export class DrillingPlatformEngine implements SimulationEngine {
 
       this.state.thrusters = allocationResult.thrusters;
 
-      // 计算实际推力作用于平台的力 (kN -> N)
+      // 实际推力 kN → N：semisub3dof 契约为 SI 单位（N、N·m），内核不再换算（#1943）
       const thrusterForce: [number, number, number] = [
         allocationResult.totalForceX * 1000,
         allocationResult.totalForceY * 1000,

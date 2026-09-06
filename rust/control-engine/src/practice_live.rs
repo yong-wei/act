@@ -126,6 +126,7 @@ pub fn compute_practice_capability(model_id: &str, request: &Value) -> Result<St
         "practice_pid_control" => compute_pid_control(request),
         "practice_pid_2nd_order" => compute_pid_2nd_order(request),
         "practice_dp_control" => compute_dp_control(request),
+        "practice_environment_load" => compute_environment_load(request),
         "practice_smith_predictor" => compute_smith_predictor(request),
         "practice_sloshing_step" => compute_sloshing_step(request),
         "practice_gain_schedule_step" => compute_gain_schedule_step(request),
@@ -333,6 +334,29 @@ fn compute_dp_control(request: &Value) -> Result<String, String> {
             "swayError": sway_error
         },
         "modelId": "practice_dp_control"
+    }))
+    .map_err(|error| error.to_string())
+}
+
+/// #1944：风/流定常环境载荷契约（kN 级阻力面积×动压近似）。方向角为世界系
+/// 航向角（deg）；各入口（组件、Rust 回归、遗留引擎）必须复用同一模型，
+/// 不允许 TS 侧另立公式。艏摇力矩按受风侧压有效臂近似。
+fn compute_environment_load(request: &Value) -> Result<String, String> {
+    let current_speed = num(request, "currentSpeed", 0.0);
+    let current_direction = deg_to_rad(num(request, "currentDirection", 0.0));
+    let wind_speed = num(request, "windSpeed", 0.0);
+    let wind_direction = deg_to_rad(num(request, "windDirection", 0.0));
+    let length = num(request, "shipLength", 127.5);
+    let draft = num(request, "shipDraft", 6.2);
+    let windage_area = num(request, "windageArea", length * 12.0);
+    let wind_moment_arm = num(request, "windMomentArm", 20.0);
+    let current_force = 0.5 * 1025.0 * length * draft * 0.08 * current_speed * current_speed;
+    let wind_force = 0.5 * 1.225 * windage_area * wind_speed * wind_speed;
+    serde_json::to_string(&json!({
+        "forceX": current_force * current_direction.cos() + wind_force * wind_direction.cos(),
+        "forceY": current_force * current_direction.sin() + wind_force * wind_direction.sin(),
+        "momentN": wind_force * wind_moment_arm * wind_direction.sin(),
+        "modelId": "practice_environment_load"
     }))
     .map_err(|error| error.to_string())
 }

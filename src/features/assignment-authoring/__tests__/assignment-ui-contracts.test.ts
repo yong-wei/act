@@ -81,10 +81,10 @@ describe('teacher assignment workspace contracts', () => {
     expect(student).toContain('附件已从本题草稿中移除');
     expect(student).toContain('disabled={uploadDisabled}');
     expect(student).toMatch(
-      /Math\.max\(\s*candidate\.version,\s*result\.answerVersion \?\? candidate\.version,\s*\)/,
+      /Math\.max\(\s*current\.version,\s*result\.answerVersion \?\? current\.version\s*\)/,
     );
     expect(student).toMatch(
-      /assets\.some\(\(asset\) =>\s*asset\.id === finalizedAsset\.id\)/,
+      /\(current\.assets \?\? \[\]\)\.some\(\(asset\) =>\s*asset\.id === finalizedAsset\.id\)/,
     );
   });
 
@@ -107,7 +107,7 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).toContain('max={criterion.maxPoints}');
     expect(editor).toContain('validationFieldRefs.current.get(path)');
     expect(editor).toContain('aria-describedby="assignment-validation-errors"');
-    expect(editor).toContain("setPublishMessage('发布请求失败，请检查网络后重试。')");
+    expect(editor).toContain("failPublication('发布请求失败，请检查网络后重试。')");
     expect(editor).toContain('finally {');
     expect(editor).toContain("disabled={published || publishing || saveState !== 'saved'}");
   });
@@ -163,7 +163,7 @@ describe('teacher assignment workspace contracts', () => {
     const editor = source('src/features/assignment-authoring/assignment-editor-workspace.tsx');
     expect(editor).toContain('/content-assets/upload-sign');
     expect(editor).toContain('/content-assets/${signed.assetId}/complete');
-    expect(editor).toContain('uploadImage={uploadImage}');
+    expect(editor).toContain('uploadImage,');
     expect(editor).toContain('validateTeacherAuthoringAssetReference');
     expect(editor).toContain('/api/assignments/${encodeURIComponent(assignmentId)}/content-assets/');
     expect(editor).not.toContain('rejectTeacherAuthoringAssetReference');
@@ -230,7 +230,7 @@ describe('teacher assignment workspace contracts', () => {
     expect(editor).toContain('onClick={() => setRubricDialog(null)}');
     expect(editor).toContain("if (event.key === 'Escape') setRubricDialog(null)");
     expect(editor).toContain('aria-modal="true"');
-    expect(editor).toContain('dialogPrimaryRef.current?.focus()');
+    expect(editor).toContain('focusLater(() => dialogPrimaryRef.current)');
     expect(editor).toContain('role="status"');
     expect(editor).toContain('const requestedCriterionFingerprint = canonicalFingerprint(savedCriterion)');
     expect(editor).toContain('canonicalFingerprint(latestCriterion) !== requestedCriterionFingerprint');

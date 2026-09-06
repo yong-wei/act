@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getKnowledgeNodeLabelPresentation, shouldRenderKnowledgeNodeLabel } from '../graph/label-policy';
 
 describe('shouldRenderKnowledgeNodeLabel', () => {
-  it('shows only focus labels until the graph is zoomed in', () => {
+  it('keeps ordinary labels eligible without a zoom or font-size gate', () => {
     expect(
       shouldRenderKnowledgeNodeLabel({
         labelMode: 'focus',
@@ -37,35 +37,15 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
         nodeId: 'ordinary-node',
         globalScale: 1,
       })
-    ).toBe(false);
-
-    expect(
-      shouldRenderKnowledgeNodeLabel({
-        labelMode: 'focus',
-        nodeId: 'ordinary-node',
-        globalScale: 1.7,
-      })
     ).toBe(true);
-  });
 
-  it('defers labels below the readable projected font size in all-label mode', () => {
     expect(
       shouldRenderKnowledgeNodeLabel({
         labelMode: 'all',
         nodeId: 'ordinary-node',
         globalScale: 0.6,
       })
-    ).toBe(false);
-    expect(
-      shouldRenderKnowledgeNodeLabel({
-        labelMode: 'all',
-        nodeId: 'ordinary-node',
-        globalScale: 0.7,
-      })
-    ).toBe(false);
-    expect(shouldRenderKnowledgeNodeLabel({
-      labelMode: 'all', nodeId: 'ordinary-node', globalScale: 1,
-    })).toBe(true);
+    ).toBe(true);
   });
 
   it('makes visibility imply at least 12px on both sides of the projection threshold', () => {
@@ -75,8 +55,9 @@ describe('shouldRenderKnowledgeNodeLabel', () => {
     const above = getKnowledgeNodeLabelPresentation({
       labelMode: 'all', nodeId: 'ordinary', globalScale: 12 / 13 + 0.001,
     });
-    expect(below.visible).toBe(false);
+    expect(below.visible).toBe(true);
     expect(above.visible).toBe(true);
+    expect(below.fontSize).toBeGreaterThanOrEqual(12);
     expect(above.fontSize).toBeGreaterThanOrEqual(12);
     const selected = getKnowledgeNodeLabelPresentation({
       labelMode: 'all', nodeId: 'selected', selectedNodeId: 'selected', globalScale: 0.01,

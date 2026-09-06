@@ -444,7 +444,6 @@ export const STUDENT_CORE_ENTRY_IDS = [
   'student-arena',
   'student-simulations',
   'student-control-workbench',
-  'student-prompt-assessment',
 ] as const;
 
 export const STUDENT_PRIMARY_NAVIGATION_ENTRY_IDS = [
@@ -522,7 +521,7 @@ export const STUDENT_LEARNING_INTENT_GROUPS: StudentLearningIntentGroup[] = [
   {
     intent: 'practice',
     label: '练习',
-    entryIds: ['student-adaptive-learning', 'student-prompt-assessment'],
+    entryIds: ['student-adaptive-learning'],
     compatibilityAliases: ['/profile/growth'],
   },
   {
@@ -2058,7 +2057,7 @@ export const COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS: CommercialStudentEntryInten
     label: '练习',
     summary: '自适应学习路径、诊断与补强建议。',
     entryIds: ['student-adaptive-learning'],
-    hrefs: ['/assessment/adaptive-practice', '/profile/growth'],
+    hrefs: ['/assessment/adaptive-practice', '/profile/growth', '/evaluation/prompt-assessment'],
   },
   {
     intent: 'challenge',
@@ -2285,18 +2284,6 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     actionLabel: '打开工作台',
     actionPriority: 50,
     aliasHrefs: ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'],
-  },
-  {
-    id: 'student-prompt-assessment',
-    label: '提示词复盘',
-    href: '/evaluation/prompt-assessment',
-    role: 'student',
-    order: 165,
-    group: 'student-core',
-    description: '回顾提示词质量与控制策略迭代的一致性结果。',
-    iconKey: 'history',
-    actionLabel: '打开提示词复盘',
-    actionPriority: 55,
   },
   {
     id: 'student-adaptive-learning',

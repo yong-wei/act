@@ -427,6 +427,44 @@ describe('DiagnosisSurfacePanel', () => {
     expect(html).not.toMatch(/\b(?:0|1)\/3\b/);
   });
 
+  it('keeps a cumulative portrait diagnosis ready without a control-correction snapshot (Issue #2010)', () => {
+    const cumulative: RoleBasedLearningDiagnosis = {
+      ...baseDiagnosis,
+      goalId: 'cumulative-portrait-overall',
+      materialization: {
+        version: 'role-based-learning-diagnosis.v1',
+        inputs: ['canonical-cumulative-portrait'],
+        refresh: 'on-evidence-change-or-request',
+      },
+      claims: [{
+        ...baseDiagnosis.claims[0],
+        id: 'cumulative:controlModelingRepresentation',
+        dimensionId: 'controlModelingRepresentation',
+        judgment: 'stable',
+        confidence: { state: 'high', score: 0.8, evidenceCount: 2, sourceCompleteness: 1 },
+        limitations: [],
+      }],
+      limitations: [],
+    };
+
+    const html = renderToStaticMarkup(
+      React.createElement(DiagnosisSurfacePanel, {
+        diagnosis: cumulative,
+        mode: 'student',
+        title: '累计能力整体诊断',
+      })
+    );
+
+    // 累计画像诊断以自身声明的 materialization 输入就绪，不因缺少
+    // control-correction 专项快照被错误降级。
+    expect(html).toContain('data-diagnosis-state="ready"');
+    expect(html).not.toContain('当前诊断处于降级状态');
+    // 顶部引用计数与证据抽屉消费同一投影引用。
+    expect(html).toContain('data-diagnosis-evidence-count="2"');
+    expect(html).toContain('二阶对象诊断摘要');
+    expect(html).not.toContain('当前角色没有可展示的证据引用');
+  });
+
   it('renders degraded state when no governed snapshot is available', () => {
     const diagnosis: RoleBasedLearningDiagnosis = {
       ...baseDiagnosis,

@@ -170,7 +170,10 @@ describe('chrome family polish', () => {
         continue;
       }
       expect(source, `${file} still feeds a flat per-frame water height`).not.toContain('waterYSampler={() => waterYRef.current}');
-      expect(source, `${file} missing position-aware wake sampler`).toContain('x ?? 0, z ?? 0, timeRef.current');
+      // 位置感知采样：旧式世界坐标直采，或与可见水面同一坐标基准的共享采样器
+      const legacyForm = source.includes('x ?? 0, z ?? 0, timeRef.current');
+      const sharedForm = source.includes('sampleVisibleWaterHeight(');
+      expect(legacyForm || sharedForm, `${file} missing position-aware wake sampler`).toBe(true);
     }
   });
 });

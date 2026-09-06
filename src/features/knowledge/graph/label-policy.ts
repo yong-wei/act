@@ -3,8 +3,6 @@ import { KNOWLEDGE_ROOT_LABEL_POLICY } from './node-label-layout';
 
 export type KnowledgeGraphLabelMode = 'focus' | 'all';
 
-export const KNOWLEDGE_LABEL_ZOOM_THRESHOLD = 1.6;
-
 /**
  * #1739 default readable-label budgets for the bounded DomainConcept
  * overview. After force separation, camera fit and collision deferral the
@@ -22,15 +20,12 @@ export const KNOWLEDGE_LABEL_OVERVIEW_MIN_VISIBLE_RATIO = {
 export const KNOWLEDGE_LABEL_OVERVIEW_MAX_OVERLAP_COUNT = 0;
 
 /**
- * 大域（概念数超过 compact 上限）概览经重点标签通道（labelPriority）
- * 呈现，可见率下限按无钳位碰撞几何实测给出（273 概念真实分片 + 画布
- * 同参力学沉降 + fit + 碰撞求解，#1739）。mobile 大域 fit 后节点为
- * 像素级，画布标签几何不可行（320×568 实测未选中可见 0/273）：
- * spec 语义为节点目录承担无选择可读名称，画布预算仅由选中节点的
- * 钳位兜底保证（≈1/273）。
+ * 大域概览按最大可见数 + 画面中心优先绘制。desktop 下限按碰撞几何
+ * 实测给出；mobile 大域 fit 后节点为像素级，画布预算仅由选中节点的
+ * 钳位兜底保证。
  */
 export const KNOWLEDGE_LABEL_OVERVIEW_LARGE_DOMAIN_MIN_VISIBLE_RATIO = {
-  desktop: 0.15,
+  desktop: 0.14,
   mobile: 0.003,
 } as const;
 
@@ -78,21 +73,7 @@ export function getKnowledgeNodeLabelPresentation(
       complete: true,
     };
   }
-  const candidate = Boolean(input.nodeId) && (
-    input.isKeyNode === true
-    || input.nodeId === input.hoveredNodeId
-  );
-  const requested = Boolean(input.nodeId) && (
-    input.labelMode === 'all'
-    || selected
-    || candidate
-    || (typeof input.globalScale === 'number' && input.globalScale >= KNOWLEDGE_LABEL_ZOOM_THRESHOLD)
-  );
-  const graphScale = typeof input.globalScale === 'number' && input.globalScale > 0
-    ? input.globalScale
-    : 1;
-  const projectedFontSize = KNOWLEDGE_NODE_LABEL_POLICY.fontSize * graphScale;
-  if (!requested || (!selected && !candidate && projectedFontSize < KNOWLEDGE_NODE_LABEL_POLICY.minimumReadableFontSize)) {
+  if (!input.nodeId) {
     return {
       visible: false,
       fontSize: 0,
@@ -102,6 +83,11 @@ export function getKnowledgeNodeLabelPresentation(
       complete: false,
     };
   }
+  const candidate = input.isKeyNode === true || input.nodeId === input.hoveredNodeId;
+  const graphScale = typeof input.globalScale === 'number' && input.globalScale > 0
+    ? input.globalScale
+    : 1;
+  const projectedFontSize = KNOWLEDGE_NODE_LABEL_POLICY.fontSize * graphScale;
   const fontSize = Math.max(projectedFontSize, KNOWLEDGE_NODE_LABEL_POLICY.minimumReadableFontSize);
   return {
     visible: true,

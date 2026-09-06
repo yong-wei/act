@@ -19,6 +19,7 @@ import {
 import { usePathname } from 'next/navigation';
 import type { PageContext, UserProfile } from '@/types/ai-context';
 import type { KonlingKnowledgeWorkspaceHint, KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
+import { KonlingCompanionBubble, type CompanionBubbleRequest } from '@/features/ai/companion/konling-companion-bubble';
 import {
   resolveAIContext,
   resolveRegisteredAIContextFromPath,
@@ -31,6 +32,11 @@ export interface PendingAssistantRequest {
   id: number;
   entryPoint: KonlingTeachingAssistantEntryPoint;
   message: string;
+}
+
+/** 陪伴气泡请求：投递成功后由页面 Hook 呈现，sessionId 用于点击定位会话。 */
+export interface CompanionBubblePresentation extends CompanionBubbleRequest {
+  sessionId: string;
 }
 
 interface GlobalAIContextValue {
@@ -84,6 +90,17 @@ interface GlobalAIContextValue {
   pathname: string;
   /** 是否应该显示AI按钮 */
   shouldShowButton: boolean;
+  /** 侧栏正在流式生成或用户正在输入（陪伴气泡抑制信号，由侧栏回写） */
+  isStreamingOrComposing: boolean;
+  setStreamingOrComposing: (value: boolean) => void;
+  /** 呈现陪伴气泡（流式/输入期间被抑制）；由页面信号 Hook 在投递成功后调用 */
+  presentCompanionBubble: (request: CompanionBubblePresentation) => void;
+  dismissCompanionBubble: () => void;
+  /** 打开侧栏并定位到指定控灵会话（陪伴气泡点击等入口） */
+  openSidebarAtConversation: (conversationId: string) => void;
+  /** 侧栏消费定位请求后清除 */
+  clearPendingKonlingConversation: () => void;
+  pendingKonlingConversationId: string | null;
 }
 
 const GlobalAIContext = createContext<GlobalAIContextValue | null>(null);
@@ -129,6 +146,10 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [pendingAssistantRequest, setPendingAssistantRequest] = useState<PendingAssistantRequest | null>(null);
+  const [isStreamingOrComposing, setIsStreamingOrComposing] = useState(false);
+  const isStreamingOrComposingRef = useRef(false);
+  const [companionBubble, setCompanionBubble] = useState<CompanionBubblePresentation | null>(null);
+  const [pendingKonlingConversationId, setPendingKonlingConversationId] = useState<string | null>(null);
   const assistantRequestIdRef = useRef(0);
   const assistantRequestCallbacksRef = useRef(new Map<number, {
     resolve: () => void;
@@ -166,6 +187,9 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
       assistantEntryPoint: null,
       knowledgeWorkspaceHint: null,
     });
+    // 路由切换后旧页面的陪伴气泡不再展示（异步投递可能晚于导航返回）。
+    setCompanionBubble(null);
+    setPendingKonlingConversationId(null);
 
     // 路由变化时关闭侧边栏（可选，根据UX需求决定）
     // 保持开启可能更好，让用户可以在不同页面间保持对话上下文
@@ -267,6 +291,36 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     callbacks.reject(cause);
   }, []);
 
+  const setStreamingOrComposing = useCallback((value: boolean) => {
+    isStreamingOrComposingRef.current = value;
+    setIsStreamingOrComposing(value);
+  }, []);
+
+  const presentCompanionBubble = useCallback((request: CompanionBubblePresentation) => {
+    // 侧栏流式生成或输入期间不弹陪伴气泡（事件已在服务端投递，稍后可在会话内查看）。
+    if (isStreamingOrComposingRef.current) return;
+    setCompanionBubble(request);
+  }, []);
+
+  const dismissCompanionBubble = useCallback(() => {
+    setCompanionBubble(null);
+  }, []);
+
+  const openSidebarAtConversation = useCallback((conversationId: string) => {
+    setPendingKonlingConversationId(conversationId);
+    setIsOpen(true);
+    setUnreadCount(0);
+  }, []);
+
+  const clearPendingKonlingConversation = useCallback(() => {
+    setPendingKonlingConversationId(null);
+  }, []);
+
+  const handleCompanionBubbleOpen = useCallback((request: CompanionBubbleRequest) => {
+    setCompanionBubble(null);
+    openSidebarAtConversation(request.sessionId);
+  }, [openSidebarAtConversation]);
+
   // 合并基础上下文和动态上下文
   const mergedPageContext = useMemo<PageContext | null>(() => {
     if (!resolvedContext.pageContext) return null;
@@ -331,11 +385,28 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     failAssistantRequest,
     pathname,
     shouldShowButton,
+    isStreamingOrComposing,
+    setStreamingOrComposing,
+    presentCompanionBubble,
+    dismissCompanionBubble,
+    openSidebarAtConversation,
+    clearPendingKonlingConversation,
+    pendingKonlingConversationId,
   };
+
+  const companionUserId = session?.user?.id ?? '';
 
   return (
     <GlobalAIContext.Provider value={contextValue}>
       {children}
+      {companionUserId ? (
+        <KonlingCompanionBubble
+          userId={companionUserId}
+          request={isStreamingOrComposing ? null : companionBubble}
+          onOpen={handleCompanionBubbleOpen}
+          onDismissed={dismissCompanionBubble}
+        />
+      ) : null}
     </GlobalAIContext.Provider>
   );
 }

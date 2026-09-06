@@ -93,6 +93,10 @@ course-content/authoring/knowledge/cutover/*
 !course-content/authoring/knowledge/cutover/envelopes
 course-content/authoring/knowledge/cutover/envelopes/*
 !course-content/authoring/knowledge/cutover/envelopes/actkg-composite-envelope-registry.json
+# Sealed locale qualification packages (#1942): the runtime locale gate reads
+# them inside the container; excluding them silently disables English.
+!course-content/authoring/knowledge/cutover/envelopes/locale-manifests
+!course-content/authoring/knowledge/cutover/envelopes/locale-manifests/**
 # latest-cutover verifier image fallback (#1683). Production still bind-mounts
 # the host candidate via ACT_LATEST_CUTOVER_CANDIDATE_ROOT.
 !course-content/authoring/knowledge/cutover/candidates

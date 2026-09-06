@@ -4,6 +4,9 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
+  readProfileSimulationEvidence,
+} from '@/lib/data-governance/profile-simulation-evidence';
+import {
   buildClassroomPortfolioWorks,
   buildEthicsPortfolioCases,
   buildSimulationPortfolioDesigns,
@@ -19,7 +22,7 @@ export const dynamic = 'force-dynamic';
 const SOURCE_READ_LIMIT = 20;
 
 async function readSource<T>(
-  read: () => Promise<{ total: number; rows: T[] }>,
+  read: () => Promise<{ total: number | null; rows: T[] }>,
 ): Promise<{ total: number | null; rows: T[] }> {
   try {
     return await read();
@@ -75,23 +78,11 @@ export async function GET() {
         ]);
         return { total, rows };
       }),
+      // 仿真档案与普通个人中心统计共用同一学生安全投影（Issue #1991）：
+      // canonical SimulationRun 摘要 + 旧日志兼容去重，不再只读 SimulationLog。
       readSource(async () => {
-        const [total, rows] = await Promise.all([
-          prisma.simulationLog.count({ where: { userId } }),
-          prisma.simulationLog.findMany({
-            where: { userId },
-            orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-            take: SOURCE_READ_LIMIT,
-            select: {
-              id: true,
-              controlMode: true,
-              inputParams: true,
-              score: true,
-              createdAt: true,
-            },
-          }),
-        ]);
-        return { total, rows };
+        const projection = await readProfileSimulationEvidence(prisma, userId);
+        return { total: projection.total, rows: projection.items };
       }),
       readSource(async () => {
         const [total, rows] = await Promise.all([

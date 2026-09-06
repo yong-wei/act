@@ -78,15 +78,13 @@ describe('controlled knowledge graph drag isolation', () => {
     expect(typeof rendererProps.onEngineTick).toBe('function');
     (rendererProps.onEngineTick as () => void)();
     expect(runtimeNodes[1]).toMatchObject(stableBefore);
-    // Drag end releases the isolation frame: the non-dragged node returns to
-    // force ownership while the dragged node keeps its coordinates.
     (rendererProps.onNodeDragEnd as (node: typeof runtimeNodes[number]) => void)({
       ...runtimeNodes[0], x: 70, y: 80,
     });
-    expect(runtimeNodes[1].fx).toBeUndefined();
-    expect(runtimeNodes[1].fy).toBeUndefined();
+    expect(runtimeNodes[1].fx).toBe(stableBefore.x);
+    expect(runtimeNodes[1].fy).toBe(stableBefore.y);
     expect(runtimeNodes[1]).toMatchObject(stableBefore);
-    expect(runtimeNodes[0]).toMatchObject({ x: 70, y: 80 });
+    expect(runtimeNodes[0]).toMatchObject({ x: 70, y: 80, fx: 70, fy: 80 });
     expect(rendererProps).not.toHaveProperty('onZoom');
     expect(typeof rendererProps.onBackgroundClick).toBe('function');
     await act(async () => (rendererProps.onBackgroundClick as () => void)());

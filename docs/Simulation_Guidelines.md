@@ -21,16 +21,25 @@
 
 ## 3. 时间步进规范
 
-统一采用固定步长推进，推荐参数：
+统一采用固定步长推进，推荐参数（真源 `src/resources/simulations/lib/simulation-timing.ts` 的
+`SIMULATION_FIXED_STEP_SECONDS = 1/60` 与 `SIMULATION_MAX_SUB_STEPS = 120`；教学页可用更小的
+maxSubSteps，如 lesson-13 的 6）：
 
 - `dt = 1 / 60`
-- `maxSubSteps = 6`
+- `maxSubSteps = 120`
+
+帧 delta 经 250ms clamp（`MAX_REAL_FRAME_DELTA_SECONDS`）：帧率低于约 4fps 时（如后台标签页），
+仿真时钟按 clamp 值退化慢于墙钟，这是防止切后台后大步长破坏数值稳定性的既有行为，不是缺陷。
 
 ```ts
-const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 6 }));
+const clockRef = useRef(new SimulationClock({ dt: 1 / 60, maxSubSteps: 120 }));
+
+import { getSimulationDeltaFromMilliseconds } from '@/resources/simulations/lib/simulation-timing';
 
 const loop = (timestamp: number) => {
-  const frameDelta = Math.min((timestamp - lastTimeRef.current) / 1000, 0.1);
+  // 统一经 simulation-timing 取帧 delta：含 250ms clamp 与倍速换算，
+  // 不要在页面手写 Math.min 截断（上限与文档口径一致才不会在低帧率欠计）。
+  const frameDelta = getSimulationDeltaFromMilliseconds(timestamp, lastTimeRef.current, speedScaleRef.current);
   lastTimeRef.current = timestamp;
 
   clockRef.current.advance(frameDelta, (dt) => {

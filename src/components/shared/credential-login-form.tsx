@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { getSession, signIn } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,25 @@ export interface CredentialLoginFormProps {
   className?: string;
 }
 
+export interface CredentialLoginRequiredFieldErrors {
+  account?: string;
+  password?: string;
+}
+
+export function getLoginRequiredFieldErrors(
+  account: string,
+  password: string,
+): CredentialLoginRequiredFieldErrors {
+  const errors: CredentialLoginRequiredFieldErrors = {};
+  if (!account.trim()) {
+    errors.account = '请输入学号/工号';
+  }
+  if (!password) {
+    errors.password = '请输入密码';
+  }
+  return errors;
+}
+
 export function CredentialLoginForm({
   callbackUrl,
   onSuccess,
@@ -31,12 +50,28 @@ export function CredentialLoginForm({
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<CredentialLoginRequiredFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const modalVariant = variant === 'modal';
+  const accountErrorId = useId();
+  const passwordErrorId = useId();
+  const errorTextClass = cn(
+    'text-sm text-red-400',
+    modalVariant && 'rounded-lg bg-red-500/10 px-3 py-2',
+  );
+
+  const clearFieldError = (field: 'account' | 'password') => {
+    setFieldErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
+    const requiredErrors = getLoginRequiredFieldErrors(account, password);
+    setFieldErrors(requiredErrors);
+    if (requiredErrors.account || requiredErrors.password) {
+      return;
+    }
     setIsSubmitting(true);
 
     const result = await signIn('credentials', {
@@ -62,6 +97,7 @@ export function CredentialLoginForm({
     setAccount('');
     setPassword('');
     setError('');
+    setFieldErrors({});
     onSuccess({
       role,
       redirectPath: resolvePostLoginRedirect({
@@ -77,6 +113,7 @@ export function CredentialLoginForm({
       action="/login"
       method="post"
       onSubmit={handleSubmit}
+      noValidate
       className={cn('space-y-4', className)}
     >
       <Input
@@ -85,33 +122,44 @@ export function CredentialLoginForm({
         placeholder="学号/工号"
         autoComplete="username"
         value={account}
-        onChange={(event) => setAccount(event.target.value)}
-        required
+        onChange={(event) => {
+          setAccount(event.target.value);
+          clearFieldError('account');
+        }}
+        aria-describedby={fieldErrors.account ? accountErrorId : undefined}
         className={cn(
           modalVariant &&
             'border-slate-700 bg-slate-900/70 text-slate-200 placeholder:text-slate-500 focus:border-amber-500 focus:ring-amber-500',
         )}
       />
+      {fieldErrors.account ? (
+        <p id={accountErrorId} role="alert" className={errorTextClass}>
+          {fieldErrors.account}
+        </p>
+      ) : null}
       <Input
         type="password"
         name="password"
         placeholder="密码"
         autoComplete="current-password"
         value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        required
+        onChange={(event) => {
+          setPassword(event.target.value);
+          clearFieldError('password');
+        }}
+        aria-describedby={fieldErrors.password ? passwordErrorId : undefined}
         className={cn(
           modalVariant &&
             'border-slate-700 bg-slate-900/70 text-slate-200 placeholder:text-slate-500 focus:border-amber-500 focus:ring-amber-500',
         )}
       />
+      {fieldErrors.password ? (
+        <p id={passwordErrorId} role="alert" className={errorTextClass}>
+          {fieldErrors.password}
+        </p>
+      ) : null}
       {error ? (
-        <p
-          className={cn(
-            'text-sm text-red-400',
-            modalVariant && 'rounded-lg bg-red-500/10 px-3 py-2',
-          )}
-        >
+        <p className={errorTextClass}>
           {error}
         </p>
       ) : null}

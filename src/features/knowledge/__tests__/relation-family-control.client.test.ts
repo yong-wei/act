@@ -22,6 +22,7 @@ describe('RelationFamilyControl', () => {
     const markup = renderControl(true);
 
     expect(markup).toContain('data-knowledge-relation-family-collision-policy="vertical-clear-of-expanded-konling"');
+    expect(markup).toContain('bottom-0');
     expect(markup).toContain('left-20');
     expect(markup).toContain('grid-cols-1');
     expect(markup.match(/data-knowledge-relation-family=/g)).toHaveLength(4);
@@ -33,6 +34,8 @@ describe('RelationFamilyControl', () => {
     const markup = renderControl(false);
 
     expect(markup).toContain('data-knowledge-relation-family-collision-policy="default"');
+    expect(markup).toContain('bottom-0');
+    expect(markup).toContain('left-0');
     expect(markup).toContain('sm:grid-flow-col');
     expect(markup).not.toContain('vertical-clear-of-expanded-konling');
   });

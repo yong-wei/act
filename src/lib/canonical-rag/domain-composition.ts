@@ -16,6 +16,10 @@ import type {
   TeachingResourceType,
 } from '@/lib/teaching-projection/contracts';
 import {
+  overlayLiveTeachingPins,
+  readAgreedLiveCourseProjection,
+} from '@/lib/teaching-projection/live-course-pointer';
+import {
   projectionPinsFromSelection,
   resolveEngineeringRagProductionSelection,
   resolveTeachingResourceRagProductionSelection,
@@ -318,7 +322,10 @@ export function applyTeachingResourceRagConsumerActivation(
     ?? resolveTeachingResourceRagProductionSelection({
       repoRoot: options.repoRoot,
     });
-  const pins = projectionPinsFromSelection(selection);
+  const pins = overlayLiveTeachingPins(
+    projectionPinsFromSelection(selection),
+    readAgreedLiveCourseProjection(options.repoRoot),
+  );
   if (selection.mode === 'absent') {
     return { ...query, activationMode: selection.mode };
   }

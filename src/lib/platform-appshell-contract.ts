@@ -99,7 +99,6 @@ export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_ORDER = [
   '竞技场',
   '虚拟仿真',
   '控制工作台',
-  '提示词复盘',
   '个人中心',
 ] as const;
 
@@ -111,7 +110,6 @@ export const UNIVERSAL_APP_SHELL_CANONICAL_NAVIGATION_HREFS = [
   '/arena',
   '/simulations',
   '/interactive-learning/control-workbench',
-  '/evaluation/prompt-assessment',
   '/profile',
 ] as const;
 

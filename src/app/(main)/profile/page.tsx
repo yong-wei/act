@@ -31,6 +31,10 @@ const personalCenterIntentBadges: Record<(typeof personalCenterIntentOrder)[numb
 type PersonalCenterIntent = (typeof personalCenterIntentOrder)[number];
 
 const personalCenterEntryOverrides: Record<string, { title: string; description: string }> = {
+  '/evaluation/prompt-assessment': {
+    title: '提示词复盘',
+    description: '回顾提示词质量与控制策略迭代的一致性结果。',
+  },
   '/profile/evidence': {
     title: '学习记录',
     description: '查看课堂作答、路径执行、仿真活动和学习事实的时间线。',
@@ -93,11 +97,12 @@ interface UserProfile {
     ethicsScore: number;
   } | null;
   statistics: {
-    totalSimulations: number;
+    totalSimulations: number | null;
     completedMissions: number;
     ethicalViolations: number;
-    totalSimulationTime: number;
-    averageScore: number;
+    totalSimulationTime: number | null;
+    averageScore: number | null;
+    simulationEvidenceState: 'available' | 'empty' | 'unavailable';
   };
   competency: {
     model: 'portrait-v2-cumulative';
@@ -169,6 +174,8 @@ interface UserProfile {
       tags: string[];
       rationale?: RecommendationRationale;
     }>;
+    availability?: 'ready' | 'unavailable';
+    ownerUserId?: string;
     adaptivePractice: {
       estimatedAbility: number | null;
       confidenceInterval: [number, number] | null;
@@ -545,16 +552,16 @@ export default function ProfilePage() {
             <div className="surface-card p-6">
               <h3 className="mb-4 text-lg font-semibold text-foreground">学习统计</h3>
               <div className="space-y-4">
-                <StatItem label="完成仿真" value={profile.statistics.totalSimulations} unit="次" color="text-blue-500" />
+                <StatItem label="完成仿真" value={profile.statistics.totalSimulations ?? '—'} unit="次" color="text-blue-500" />
                 <StatItem label="完成任务" value={profile.statistics.completedMissions} unit="个" color="text-emerald-500" />
                 <StatItem label="伦理违规" value={profile.statistics.ethicalViolations} unit="次" color="text-red-500" />
                 <StatItem
                   label="仿真时长"
-                  value={Math.round(profile.statistics.totalSimulationTime / 60)}
+                  value={profile.statistics.totalSimulationTime === null ? '—' : Math.round(profile.statistics.totalSimulationTime / 60)}
                   unit="分钟"
                   color="text-amber-500"
                 />
-                <StatItem label="平均得分" value={profile.statistics.averageScore} unit="分" color="text-violet-500" />
+                <StatItem label="平均得分" value={profile.statistics.averageScore ?? '—'} unit="分" color="text-violet-500" />
               </div>
             </div>
 
@@ -793,9 +800,15 @@ export default function ProfilePage() {
 
             <div className="mt-5 space-y-3">
               {profile.personalizedReinforcement.resources.length === 0 ? (
-                <div className="surface-card-soft p-4 text-sm text-subtle">
-                  暂无新的补强资源，建议先完成一次课堂或自适应练习以刷新推荐。
-                </div>
+                profile.personalizedReinforcement.availability === 'unavailable' ? (
+                  <div className="surface-card-soft p-4 text-sm text-subtle">
+                    补强推荐暂时不可用，你仍可以继续自适应练习，稍后回来查看。
+                  </div>
+                ) : (
+                  <div className="surface-card-soft p-4 text-sm text-subtle">
+                    暂无新的补强资源，建议先完成一次课堂或自适应练习以刷新推荐。
+                  </div>
+                )
               ) : (
                 profile.personalizedReinforcement.resources.map((resource) => (
                   <Link
@@ -926,7 +939,7 @@ function StatItem({
   color,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   unit: string;
   color: string;
 }) {

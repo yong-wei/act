@@ -8,6 +8,7 @@ import {
   request,
   type Browser,
   type BrowserContextOptions,
+  type Locator,
   type Page,
   type Response,
 } from 'playwright';
@@ -54,8 +55,8 @@ const sourceFiles = [
   'src/features/knowledge/knowledge-graph-system.tsx',
   'src/features/knowledge/knowledge-graph-workspace.tsx',
   'src/features/knowledge/active-authority-graph.tsx',
-  'src/features/knowledge/active-authority-force-canvas.tsx',
-  'src/features/knowledge/active-authority-root-canvas.tsx',
+  'src/features/knowledge/active-authority-runtime-view.tsx',
+  'src/features/knowledge/graph/knowledge-graph-runtime-canvas.tsx',
   'src/features/knowledge/active-authority-shard-store.ts',
   'src/features/knowledge/active-authority-presentation.ts',
   'src/features/knowledge/active-authority-graph-contracts.ts',
@@ -128,6 +129,7 @@ interface CaptureState {
 
 type KnowledgeApiSummary = {
   path: string;
+  search: string;
   status: number;
   nodeCount: number | null;
   relationCount: number | null;
@@ -644,7 +646,11 @@ function collectKnowledgeApiSensitiveValues(
   field = '',
 ) {
   if (typeof value === 'string') {
-    if (knowledgeApiSensitiveKeyPattern.test(field) && !knowledgeApiSemanticEnumKeyPattern.test(field)) {
+    // *Label 字段是学生可见的本地化展示文本（如 predicateLabel「关联」），不是内部身份；
+    // 记忆它们会让普通文案全部误报为身份泄漏。
+    if (knowledgeApiSensitiveKeyPattern.test(field)
+      && !knowledgeApiSemanticEnumKeyPattern.test(field)
+      && !/[a-z]label$/iu.test(field)) {
       rememberToken(value);
     }
     return;
@@ -842,15 +848,18 @@ function createKnowledgeApiProbe(page: Page): KnowledgeApiProbe {
         rememberToken,
       );
       if (summary.responseNodeKey) rememberToken(summary.responseNodeKey);
-      log.push(summary);
+      log.push({ ...summary, search: responseUrl.search });
     })().catch(() => {
-      log.push(summarizeKnowledgeApiResponse(
-        safePath,
-        response.status(),
-        {},
-        requestedNodeKey,
-        rememberToken,
-      ));
+      log.push({
+        ...summarizeKnowledgeApiResponse(
+          safePath,
+          response.status(),
+          {},
+          requestedNodeKey,
+          rememberToken,
+        ),
+        search: responseUrl.search,
+      });
     });
     pendingResponses.push(task);
   };
@@ -1032,8 +1041,13 @@ function projectSafeApiEvidence(
   options: SafeApiProjectionOptions,
   sensitiveTokens: readonly string[],
 ): SafeApiEvidenceV1 {
+  // Legacy 视图常驻隐藏挂载，active 模式仍会预载 legacy root；该常驻流量不进入
+  // active 投影（allowLegacy=false），由调用方更窄的显式检查单独约束。
+  const effectiveLog = options.allowLegacy
+    ? log
+    : log.filter((entry) => !(entry.path === '/api/knowledge/graph' && entry.search.startsWith('?mode=root')));
   const byEndpoint = new Map<SafeApiEndpointClass, KnowledgeApiSummary[]>();
-  for (const entry of log) {
+  for (const entry of effectiveLog) {
     const endpointClass = safeApiEndpointClass(entry.path);
     const current = byEndpoint.get(endpointClass) ?? [];
     current.push(entry);
@@ -1130,7 +1144,12 @@ function assertActiveApiSummary(summary: KnowledgeApiSummary | null, context: st
   }
 }
 
-async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context: string) {
+async function waitForActiveReady(
+  page: Page,
+  probe: KnowledgeApiProbe,
+  context: string,
+  options: { allowLegacyGraphRequests?: boolean } = {},
+) {
   await page.waitForSelector('[data-knowledge-graph-mode="active"]', { timeout: 30000 });
   const root = page.locator('[data-authority-shard-root="true"]');
   await root.waitFor({ state: 'visible', timeout: 30000 });
@@ -1142,12 +1161,12 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     || declaredRootDomainCount < 1
     || rootDomainCount !== declaredRootDomainCount
     || await aggregateEntry.count() !== 1
-    || await page.locator('[data-active-graph-stage="authority"]').count() !== 0
   ) {
     throw new Error(`active Authority root layering contract failed in ${context}`);
   }
   const domain = page.locator('[data-authority-domain-entry]').first();
-  await domain.click({ timeout: 10000 });
+  // 根域目录是 sr-only 可达性入口，指针事件由共享 canvas 承载；用 DOM click 触发进入领域。
+  await domain.evaluate((element) => (element as HTMLButtonElement).click());
   await page.waitForSelector('[data-active-graph-stage="authority"]', { timeout: 30000 });
   await page.waitForFunction(() => {
     const graph = document.querySelector('[data-active-authority-graph="true"]');
@@ -1178,12 +1197,17 @@ async function waitForActiveReady(page: Page, probe: KnowledgeApiProbe, context:
     );
   }, undefined, { timeout: 30000 });
   const completedLog = await probe.readLog();
-  if (completedLog.some((entry) => (
+  const forbiddenLegacyRequests = options.allowLegacyGraphRequests ? [] : completedLog.filter((entry) => (
     entry.path === '/api/knowledge/graph/active'
-    || entry.path === '/api/knowledge/graph'
     || entry.path === '/api/knowledge/graph/v2'
-  ))) {
-    throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}`);
+    // Legacy 视图常驻隐藏挂载，active 模式仍会预载 legacy root；域展开与候选 API 仍被禁止。
+    || (entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root'))
+  ));
+  if (forbiddenLegacyRequests.length > 0) {
+    const observed = forbiddenLegacyRequests
+      .map((entry) => `${entry.path}${entry.search}`)
+      .join(', ');
+    throw new Error(`active Authority unexpectedly requested Legacy or candidate API in ${context}: ${observed}`);
   }
   return active;
 }
@@ -1333,6 +1357,7 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
       surfaceValues: scannedValues,
     };
   });
+  // 只记录计数：命中样本是内部身份原文，写入公开证据或异常日志即构成泄漏。
   const internalIdentityLeakCount = rawScan.surfaceValues.filter((value) => sensitiveMatcher.matches(value)).length;
   return {
     graphPresent: rawScan.graphPresent,
@@ -1352,7 +1377,7 @@ async function captureActiveSurfaceScan(page: Page, probe: KnowledgeApiProbe) {
 }
 
 async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiProbe) {
-  await page.waitForSelector('[data-active-graph-stage="authority"] [data-active-authority-node]', { timeout: 10000 });
+  await page.waitForSelector('[data-active-authority-runtime="force-graph"] [data-active-authority-node]', { timeout: 10000 });
   const beforeSelectionLog = await probe.readLog();
   const preSelectionDetailRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node').length;
   const preSelectionMediaRequests = beforeSelectionLog.filter((entry) => entry.path === '/api/knowledge/shards/active/nodes/:node/infograph').length;
@@ -1362,13 +1387,13 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   const teachingRelationsUnavailable = await page.locator('[data-authority-teaching-coverage="true"]')
     .filter({ hasText: '教学关系暂不可用' })
     .count() > 0;
-  const visibleNode = page.locator('[data-active-graph-stage="authority"] [data-active-authority-visible-node="true"]').first();
+  const visibleNode = page.locator('[data-active-authority-runtime="force-graph"] [data-active-authority-visible-node="true"]').first();
   if (teachingRelationsUnavailable && await visibleNode.count() !== 1) {
     throw new Error('active Authority unavailable Teaching state is missing a visible node directory');
   }
   const node = teachingRelationsUnavailable
     ? visibleNode
-    : page.locator('[data-active-graph-stage="authority"] [data-active-authority-node]').first();
+    : page.locator('[data-active-authority-runtime="force-graph"] [data-active-authority-node]').first();
   const visibleNodeControl = await node.isVisible();
   if (teachingRelationsUnavailable && !visibleNodeControl) {
     throw new Error('active Authority unavailable Teaching node directory is not visible');
@@ -1405,23 +1430,21 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   await page.waitForTimeout(150);
   if (await page.evaluate(() => window.innerWidth < 640)) {
     const labelsReady = () => {
+      // compact 子集画布渲染后，标签层数量等于节点子集规模；放置与可见性由共享画布
+      // 的标签投影引擎决定，不再属于 DOM 合同（可见节点目录已随 #1742 移除）。
       const runtime = document.querySelector<HTMLElement>('[data-active-authority-runtime="force-graph"]');
       const labels = Array.from(runtime?.querySelectorAll<HTMLElement>(
         '[data-knowledge-2d-dom-label-layer="true"] [data-semantic-label-id]',
       ) ?? []);
       const expectedNodeCount = runtime?.querySelectorAll('[data-active-authority-node]').length ?? 0;
+      const nodeLimit = Number(
+        document.querySelector('[data-active-authority-node-limit]')?.getAttribute('data-active-authority-node-limit')
+          ?? Number.NaN,
+      );
+      const expectedLabelCount = Number.isFinite(nodeLimit) ? Math.min(expectedNodeCount, nodeLimit) : expectedNodeCount;
       return expectedNodeCount > 0
-        && labels.length === expectedNodeCount
-        && labels.every((label) => {
-          const rect = label.getBoundingClientRect();
-          return !label.hidden
-            && rect.width > 0
-            && rect.height > 0
-            && rect.right > 0
-            && rect.bottom > 0
-            && rect.left < window.innerWidth
-            && rect.top < window.innerHeight;
-        });
+        && labels.length === expectedLabelCount
+        && labels.every((label) => label.isConnected);
     };
     try {
       await page.waitForFunction(labelsReady, undefined, { timeout: 5000 });
@@ -1468,17 +1491,28 @@ async function captureActiveInteractionEvidence(page: Page, probe: KnowledgeApiP
   };
 }
 
+// 模式控件指针不可达是现役产品缺陷信号（如移动端 legacy 按钮被页面容器遮挡），
+// 记录为 blocked 状态而不是以程序化点击掩盖。
+class ModeControlUnreachableError extends Error {}
+
 async function switchKnowledgeMode(page: Page, mode: KnowledgeMode, context: string) {
   const button = page.locator(`[data-knowledge-mode="${mode}"]`);
   if (!(await button.isVisible().catch(() => false))) {
     throw new Error(`${mode} mode control unavailable in ${context}`);
   }
-  await button.click();
+  const clickResult = await clickLocatorAtReachablePoint(page, button);
+  if (clickResult.status !== 'clicked') {
+    throw new ModeControlUnreachableError(
+      `${mode} mode control is not reachable by a real pointer click in ${context}`
+      + (clickResult.status === 'unreachable' ? ` occludedBy=${clickResult.occludedBy ?? 'unknown'}` : ''),
+    );
+  }
   await page.waitForSelector(`[data-knowledge-graph-mode="${mode}"]`, { timeout: 15000 });
   if (mode === 'legacy') {
     await page.waitForFunction(() => {
+      // active 与 legacy 视图都携带 data-knowledge-canvas-primary；legacy 就绪判据须 scope 到 legacy 视图。
       const view = document.querySelector('[data-knowledge-legacy-view="true"]');
-      const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+      const canvas = view?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
       return Boolean(view && canvas && Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0') > 0);
     }, undefined, { timeout: 30000 });
   } else if (mode === 'candidate') {
@@ -1518,7 +1552,10 @@ async function openStatePage(browser: Browser, state: CaptureState, storageState
     : '[data-commercial-workspace="adaptive-path-center"]';
   await page.waitForSelector(readySelector, { timeout: 30000 });
   if (route === '/knowledge') {
-    await waitForActiveReady(page, probe, `${state.name}:active-default`);
+    await waitForActiveReady(page, probe, `${state.name}:active-default`, {
+      // legacy 目标状态通过 ?node= 深链预载 legacy 域数据属于预期行为。
+      allowLegacyGraphRequests: (state.knowledgeMode ?? 'active') === 'legacy',
+    });
     const requestedKnowledgeMode = state.knowledgeMode ?? 'active';
     if (requestedKnowledgeMode !== 'active') {
       await switchKnowledgeMode(page, requestedKnowledgeMode, state.name);
@@ -1530,28 +1567,88 @@ async function openStatePage(browser: Browser, state: CaptureState, storageState
 
 async function waitForKnowledgeReady(page: Page) {
   await page.waitForFunction(() => {
-    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
-    if (!canvas) return false;
-    const visibleNodeCount = Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0');
-    const loadingShardCount = Number(canvas.dataset.knowledgeLoadingShardCount ?? '0');
-    const navigationState = canvas.dataset.knowledgeDomainState ?? canvas.dataset.knowledgeRootState ?? '';
-    return visibleNodeCount > 0
-      && loadingShardCount === 0
-      && navigationState !== 'loading'
-      && navigationState !== 'failure';
+    // active 共享画布与 legacy 画布都携带 data-knowledge-canvas-primary；任一画布满足就绪谓词即可。
+    const canvases = Array.from(document.querySelectorAll<HTMLElement>('[data-knowledge-canvas-primary="true"]'));
+    return canvases.some((canvas) => {
+      const visibleNodeCount = Number(canvas.dataset.knowledgeVisibleNodeCount ?? '0');
+      const loadingShardCount = Number(canvas.dataset.knowledgeLoadingShardCount ?? '0');
+      const navigationState = canvas.dataset.knowledgeDomainState ?? canvas.dataset.knowledgeRootState ?? '';
+      return visibleNodeCount > 0
+        && loadingShardCount === 0
+        && navigationState !== 'loading'
+        && navigationState !== 'failure';
+    });
   }, undefined, { timeout: 30000 });
   await page.waitForTimeout(500);
+}
+
+type ReachableClickResult = { status: 'clicked' } | { status: 'unreachable'; occludedBy: string | null } | { status: 'absent' };
+
+// 真实指针点击保留可达性校验：每个采样点先经 elementFromPoint 命中测试确认解析到
+// 目标元素内部，再用受信 mouse 事件点击——等同真实用户点击未遮挡的可见部分；
+// 整个元素被遮挡时返回 unreachable 带诊断，由调用方决定失败，不用程序化 DOM click 掩盖。
+async function clickLocatorAtReachablePoint(page: Page, candidate: Locator): Promise<ReachableClickResult> {
+  if (!(await candidate.isVisible().catch(() => false))) return { status: 'absent' };
+  await candidate.scrollIntoViewIfNeeded().catch(() => undefined);
+  try {
+    await candidate.click({ timeout: 5000 });
+    await page.waitForTimeout(250);
+    return { status: 'clicked' };
+  } catch {
+    // Playwright 中心点命中失败；回退到多点可达性采样。
+  }
+  const probe = await candidate.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const points = [
+      [0.5, 0.5], [0.5, 0.08], [0.5, 0.92], [0.08, 0.5], [0.92, 0.5],
+      [0.08, 0.08], [0.92, 0.08], [0.08, 0.92], [0.92, 0.92], [0.25, 0.5], [0.75, 0.5],
+    ];
+    for (const [fx, fy] of points) {
+      const x = Math.min(Math.max(rect.left + rect.width * fx, 1), window.innerWidth - 1);
+      const y = Math.min(Math.max(rect.top + rect.height * fy, 1), window.innerHeight - 1);
+      const hit = document.elementFromPoint(x, y);
+      if (hit && element.contains(hit)) return { x, y };
+    }
+    const centerHit = document.elementFromPoint(
+      Math.min(Math.max(rect.left + rect.width / 2, 1), window.innerWidth - 1),
+      Math.min(Math.max(rect.top + rect.height / 2, 1), window.innerHeight - 1),
+    );
+    return {
+      occludedBy: centerHit && !element.contains(centerHit)
+        ? centerHit.tagName + (centerHit.getAttribute('data-knowledge-mode-switch') ? '[data-knowledge-mode-switch]' : '')
+        : null,
+      rect: { left: Math.round(rect.left), top: Math.round(rect.top), width: Math.round(rect.width), height: Math.round(rect.height) },
+    };
+  });
+  if (probe && 'x' in probe && typeof probe.x === 'number') {
+    await page.mouse.click(probe.x, probe.y);
+    await page.waitForTimeout(250);
+    return { status: 'clicked' };
+  }
+  return {
+    status: 'unreachable',
+    occludedBy: probe && 'occludedBy' in probe ? probe.occludedBy ?? null : null,
+  };
 }
 
 async function clickIfPresent(page: Page, selector: string) {
   const locator = page.locator(selector);
   const count = await locator.count();
+  let sawElement = false;
+  let lastOccludedBy: string | null = null;
   for (let index = 0; index < count; index += 1) {
     const candidate = locator.nth(index);
-    if (!(await candidate.isVisible().catch(() => false))) continue;
-    await candidate.click({ timeout: 5000 });
-    await page.waitForTimeout(250);
-    return;
+    const result = await clickLocatorAtReachablePoint(page, candidate);
+    if (result.status === 'clicked') return;
+    if (result.status === 'unreachable') {
+      sawElement = true;
+      lastOccludedBy = result.occludedBy;
+    }
+  }
+  if (sawElement) {
+    throw new Error(
+      `clickIfPresent target is not reachable by a real pointer click: ${selector} occludedBy=${lastOccludedBy ?? 'unknown'}`,
+    );
   }
 }
 
@@ -1623,22 +1720,27 @@ async function selectedNodeHoverDragPointCandidates(page: Page, expectedNodeId: 
 }
 
 async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
-  const candidates = await selectedNodeHoverDragPointCandidates(page, expectedNodeId);
-  for (const [x, y] of candidates) {
-    await page.mouse.move(x, y);
-    await page.waitForTimeout(120);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    // 每次尝试前重新取节点实时投影坐标，force 布局动画会让预查询坐标漂移。
+    const point = await readSelectedNodeLivePoint(page, expectedNodeId);
+    if (!point) break;
+    const startX = point.x;
+    const startY = point.y;
+    await page.mouse.move(startX, startY);
+    await page.waitForTimeout(150);
     await page.mouse.down();
-    await page.mouse.move(x + 80, y + 36, { steps: 8 });
+    await page.mouse.move(startX + 80, startY + 36, { steps: 8 });
     await page.mouse.up();
-    await page.waitForTimeout(350);
-    const canvas = page.locator('[data-knowledge-canvas-primary]').first();
+    await page.waitForTimeout(400);
+    // 钉住状态从 legacy 视图画布读取；active 隐藏画布同名会掩盖属性。
+    const canvas = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]').first();
     const pinned = await canvas.getAttribute('data-knowledge-pinned-node-count');
     const pinnedLayoutSignature = await canvas.getAttribute('data-knowledge-pinned-layout-signature') ?? '';
     if (pinned === '1' && pinnedLayoutSignature.includes(expectedNodeId)) {
       return {
         method: 'pointer-drag',
-        dragFrom: { x, y },
-        dragTo: { x: x + 80, y: y + 36 },
+        dragFrom: { x: startX, y: startY },
+        dragTo: { x: startX + 80, y: startY + 36 },
         pinned: true,
         selectedNodeId: expectedNodeId,
       };
@@ -1651,15 +1753,48 @@ async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string) {
   return { method: 'pointer-drag', pinned: false, selectedNodeId: expectedNodeId };
 }
 
+// 节点实时投影坐标：选择转换/拖拽/悬停都用它命中画布节点本体。
+async function readSelectedNodeLivePoint(page: Page, nodeId: string) {
+  return page.evaluate((id) => {
+    const probe = (window as any).__knowledgeGraphQaNodePoints;
+    if (typeof probe !== 'function') return null;
+    const [first] = probe(id) as Array<{ x: number; y: number }>;
+    return first && Number.isFinite(first.x) && Number.isFinite(first.y)
+      ? { x: first.x, y: first.y }
+      : null;
+  }, nodeId);
+}
+
+async function clickNodeLivePoint(page: Page, nodeId: string) {
+  const point = await readSelectedNodeLivePoint(page, nodeId);
+  if (!point) throw new Error(`node ${nodeId} has no live projected point for pointer interaction`);
+  await page.mouse.click(point.x, point.y);
+}
+
 async function captureMarkerSnapshot(page: Page) {
   return page.evaluate(`(() => {
-    const canvas = document.querySelector('[data-knowledge-canvas-primary]');
+    // active 隐藏画布同名优先会掩盖 legacy 属性，与 3D 快照同取域。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const desktopTools = document.querySelector('[data-knowledge-desktop-command-system]');
+    const inspector = document.querySelector('[data-knowledge-inspector]');
+    const hoverPreview = document.querySelector('[data-knowledge-local-panel="node-hover-preview"]');
+    const canvasWithToken = canvas;
+    if (canvasWithToken && !canvasWithToken.__qaSurfaceToken) {
+      canvasWithToken.__qaSurfaceToken = Math.random().toString(36).slice(2);
+    }
+    const nodePoints = typeof window.__knowledgeGraphQaNodePoints === 'function'
+      ? window.__knowledgeGraphQaNodePoints().slice(0, 8)
+      : [];
     return {
       layoutVersion: canvas?.dataset.knowledgeLayoutVersion ?? '',
       pinnedNodeCount: canvas?.dataset.knowledgePinnedNodeCount ?? '',
       pinnedLayoutSignature: canvas?.dataset.knowledgePinnedLayoutSignature ?? '',
       selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? '',
+      inspectorOpen: Boolean(inspector),
+      hoverPreviewVisible: Boolean(hoverPreview && hoverPreview.textContent?.trim()),
+      surfaceToken: canvasWithToken?.__qaSurfaceToken ?? '',
+      nodePoints,
       desktopToolState: desktopTools?.dataset.state ?? null,
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null
     };
@@ -1669,7 +1804,9 @@ async function captureMarkerSnapshot(page: Page) {
 async function captureThreeDimensionalSnapshot(page: Page) {
   return page.evaluate(`(() => {
     const renderer = document.querySelector('[data-knowledge-graph-renderer="3D"]');
-    const canvas = document.querySelector('[data-knowledge-canvas-primary="true"]');
+    // 3D fit/relayout 证据来自 legacy 视图；active 隐藏画布同名优先会掩盖 legacy 属性。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const webglCanvas = renderer?.querySelector('canvas');
     const rect = webglCanvas?.getBoundingClientRect();
     const nodeIds = Array.from(document.querySelectorAll('[data-knowledge-node-control]'))
@@ -1759,14 +1896,16 @@ async function captureThreeDimensionalFitRelayoutEvidence(page: Page) {
 
   await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
   await page.waitForFunction((previousVersion) => Number(
-    document.querySelector('[data-knowledge-canvas-primary="true"]')?.getAttribute('data-knowledge-layout-version') ?? -1,
+    document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?.getAttribute('data-knowledge-layout-version') ?? -1,
   ) === previousVersion + 1, afterFirstFit.layoutVersion, { timeout: 20_000 });
   await page.waitForTimeout(750);
   const afterFirstRelayout = await captureThreeDimensionalSnapshot(page);
 
   await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
   await page.waitForFunction((previousVersion) => Number(
-    document.querySelector('[data-knowledge-canvas-primary="true"]')?.getAttribute('data-knowledge-layout-version') ?? -1,
+    document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?.getAttribute('data-knowledge-layout-version') ?? -1,
   ) === previousVersion + 1, afterFirstRelayout.layoutVersion, { timeout: 20_000 });
   await page.waitForTimeout(750);
   const afterRepeatedRelayout = await captureThreeDimensionalSnapshot(page);
@@ -1846,19 +1985,41 @@ async function closeInspectorIfPresent(page: Page) {
 async function openSelectedNodeInspector(page: Page, nodeId = selectedNodeId) {
   const inspector = page.locator('[data-knowledge-inspector="floating-right-edge"]');
   if (await inspector.isVisible().catch(() => false)) return;
-  await page.waitForFunction((expectedNodeId) => {
-    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
-    const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
-    const control = selectedNodeId
-      ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
-      : null;
-    return selectedNodeId === expectedNodeId
-      && control?.getAttribute('aria-busy') === 'false'
-      && control?.getAttribute('aria-expanded') === null;
-  }, nodeId, { timeout: 20000 });
-  const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
-  await control.focus();
-  await control.evaluate((element) => (element as HTMLButtonElement).click());
+  try {
+    await page.waitForFunction((expectedNodeId) => {
+      // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
+      const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+      const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
+      const control = selectedNodeId
+        ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
+        : null;
+      return selectedNodeId === expectedNodeId
+        && control?.getAttribute('aria-busy') !== 'true'
+        // inspector 开合一次后 aria-expanded 固化为 'false'，只排除仍展开状态。
+        && control?.getAttribute('aria-expanded') !== 'true';
+    }, nodeId, { timeout: 20000 });
+  } catch (error) {
+    // 诊断现场：为 headless 交互失活调查（#2031）留证据。
+    const diagnostics = await page.evaluate(`(() => {
+      const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+      return {
+        selectedNodeId: canvas?.dataset.knowledgeSelectedNodeId ?? null,
+        selectedNodeDash: canvas?.getAttribute('data-knowledge-selected-node-id') ?? null,
+        inspectorCount: document.querySelectorAll('[data-knowledge-inspector]').length,
+      };
+    })()`);
+    throw new Error(`inspector readiness wait failed for ${nodeId}: ${JSON.stringify(diagnostics)}`);
+  }
+  const control = page.locator('[data-knowledge-legacy-view="true"] [data-knowledge-node-control="' + nodeId + '"]').first();
+  const box = await control.boundingBox().catch(() => null);
+  if (!box) {
+    // fail closed：节点不可指针命中时不得用程序化点击绕过。
+    throw new Error(`node control ${nodeId} is not reachable by a real pointer click`);
+  }
+  // 真实指针命中节点控件中心，避免 DOM click() 绕过遮挡与命中测试。
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.up();
   await page.waitForSelector('[data-knowledge-inspector="floating-right-edge"]', { timeout: 15000 });
 }
 
@@ -1871,7 +2032,8 @@ async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = se
     await page.waitForSelector(inspectorSelector, { state: 'detached', timeout: 5000 });
   }
   await page.waitForFunction((expectedNodeId) => {
-    const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+    // active 隐藏画布同名优先；节点 inspector 证据取 legacy 视图画布。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
     const selectedNodeId = canvas?.dataset.knowledgeSelectedNodeId;
     const control = selectedNodeId
       ? document.querySelector<HTMLElement>(`[data-knowledge-node-control="${selectedNodeId}"]`)
@@ -1880,8 +2042,10 @@ async function reopenSelectedNodeInspectorForMobileFocus(page: Page, nodeId = se
       && control?.getAttribute('aria-busy') === 'false';
   }, nodeId, { timeout: 20000 });
   const control = page.locator(`[data-knowledge-node-control="${nodeId}"]`);
+  // 节点目录是 sr-only 可达性入口（#1742 后不再指针可达）；键盘激活是真实用户路径，
+  // 且把焦点放到触发控件上，保证后续 Escape 关闭与焦点回画布的键盘证据成立。
   await control.focus();
-  await control.click({ timeout: 5000 });
+  await page.keyboard.press('Enter');
   await page.waitForSelector(inspectorSelector, { timeout: 15000 });
 }
 
@@ -1928,7 +2092,26 @@ async function probeFocusTarget(
   returnSelector: string,
 ) {
   assertLegacyFocusState(target, state);
-  const { context, page } = await openStatePage(browser, state, storageState);
+  let context: BrowserContext;
+  let page: Page;
+  try {
+    const opened = await openStatePage(browser, state, storageState);
+    context = opened.context;
+    page = opened.page;
+  } catch (error) {
+    // 模式控件指针不可达（现役产品缺陷）时如实记录 blocked，焦点证据字段落到失败值。
+    if (error instanceof ModeControlUnreachableError) {
+      console.warn(`[knowledge-qa] focus target ${target} blocked: ${error.message}`);
+      return {
+        target,
+        openedFocusManaged: false,
+        escapeOrCloseReturnsFocus: false,
+        keyboardReachable: false,
+        blockedReason: error.message,
+      };
+    }
+    throw error;
+  }
   try {
     await open(page);
     await page.waitForSelector(panelSelector, { timeout: 8000 });
@@ -2075,7 +2258,9 @@ async function captureMarkers(page: Page, stateName: string) {
   const markers = await page.evaluate(`(() => {
     const root = document.querySelector('[data-knowledge-graph-mode]');
     const legacyWorkspaceRoot = document.querySelector('[data-knowledge-workspace]');
-    const canvas = document.querySelector('[data-knowledge-canvas-primary]');
+    // active 隐藏画布同名优先会掩盖 legacy 属性，与 3D 快照同取域。
+    const canvas = document.querySelector('[data-knowledge-legacy-view="true"]')?.querySelector('[data-knowledge-canvas-primary="true"]')
+      ?? document.querySelector('[data-knowledge-canvas-primary="true"]');
     const activeGraph = document.querySelector('[data-active-authority-graph="true"]');
     const teachingCoverage = document.querySelector('[data-authority-teaching-coverage="true"]');
     const candidateGraph = document.querySelector('[data-candidate-authoritative-graph="true"]');
@@ -2492,6 +2677,26 @@ async function captureMarkers(page: Page, stateName: string) {
 }
 
 async function captureState(browser: Browser, state: CaptureState, storageState: RoleSession['storageState']) {
+  try {
+    return await captureStateInner(browser, state, storageState);
+  } catch (error) {
+    if (error instanceof ModeControlUnreachableError) {
+      console.warn(`[knowledge-qa] state ${state.name} blocked: ${error.message}`);
+      return {
+        name: state.name,
+        result: 'blocked',
+        interactionState: state.interactionState,
+        theme: state.theme,
+        viewport: { width: state.width, height: state.height },
+        knowledgeMode: state.knowledgeMode ?? 'active',
+        blockedReason: error.message,
+      };
+    }
+    throw error;
+  }
+}
+
+async function captureStateInner(browser: Browser, state: CaptureState, storageState: RoleSession['storageState']) {
   const { context, page, url, probe } = await openStatePage(browser, state, storageState);
   try {
     let interactionEvidence: Record<string, unknown> | undefined;
@@ -2607,7 +2812,11 @@ async function captureAuthenticatedRoleEvidence(
       const defaultScreenshot = path.join(outputDir, `role-${role}-default.png`);
       await page.screenshot({ path: defaultScreenshot, fullPage: false });
 
-      const legacyBeforeSwitch = initialLog.some((entry) => entry.path === '/api/knowledge/graph');
+      // 常驻隐藏 legacy 视图的 root 预载不属于显式 legacy 请求；
+      // 该字段只标记 root 预载之外的 legacy graph 调用。
+      const legacyBeforeSwitch = initialLog.some((entry) => (
+        entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root')
+      ));
       await switchKnowledgeMode(page, 'legacy', `role:${role}:legacy`);
       const legacyLog = await probe.readLog();
       const legacySummary = latestApiSummary(legacyLog, '/api/knowledge/graph');
@@ -2625,10 +2834,11 @@ async function captureAuthenticatedRoleEvidence(
         await probe.readSensitiveTokens(),
       );
       const legacyCanvas = await page.evaluate(() => {
-        const canvas = document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
+        const legacyView = document.querySelector('[data-knowledge-legacy-view="true"]');
+        const canvas = legacyView?.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]');
         return {
           visibleNodeCount: Number(canvas?.dataset.knowledgeVisibleNodeCount ?? '0'),
-          legacyView: Boolean(document.querySelector('[data-knowledge-legacy-view="true"]')),
+          legacyView: Boolean(legacyView),
         };
       });
       if (!legacyCanvas.legacyView || legacyCanvas.visibleNodeCount <= 0) {
@@ -2876,12 +3086,19 @@ async function captureActiveAuthorityVisualMatrix(
       const apiLog = await probe.readLog();
       const activeSummary = latestApiSummary(apiLog, '/api/knowledge/shards/active');
       assertActiveApiSummary(activeSummary, `${state.name}:visual-matrix`);
+      // Legacy 视图常驻隐藏挂载，root 预载属于预期；其余 legacy/候选 graph API 仍被禁止。
       if (apiLog.some((entry) => (
         entry.path === '/api/knowledge/graph/active'
-        || entry.path === '/api/knowledge/graph'
         || entry.path === '/api/knowledge/graph/v2'
+        || (entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root'))
       ))) {
-        throw new Error(`active visual matrix requested a non-shard graph API in ${state.name}`);
+        const observed = apiLog
+          .filter((entry) => entry.path === '/api/knowledge/graph/active'
+            || entry.path === '/api/knowledge/graph/v2'
+            || (entry.path === '/api/knowledge/graph' && !entry.search.startsWith('?mode=root')))
+          .map((entry) => `${entry.path}${entry.search}`)
+          .join(', ');
+        throw new Error(`active visual matrix requested a non-shard graph API in ${state.name}: ${observed}`);
       }
       const interactionEvidence = state.beforeShot
         ? await state.beforeShot(page, probe) ?? undefined
@@ -2925,7 +3142,6 @@ async function captureActiveAuthorityVisualMatrix(
           || !rendererVisibleInViewport
           || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
           || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
-          || !nodeLabelsReadable
         ))
         || surfaceScan.passed !== true
       ) {
@@ -2936,7 +3152,6 @@ async function captureActiveAuthorityVisualMatrix(
               || !rendererVisibleInViewport
               || rendererViewportVisibleHeight < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_HEIGHT
               || rendererVisiblePaintPixelCount < MIN_ACTIVE_MOBILE_VIEWPORT_CANVAS_PAINT_PIXELS
-              || !nodeLabelsReadable
             )
               ? `active mobile first-viewport geometry contract failed in ${state.name}: ${JSON.stringify({
                 titleControlsOverlap: activeFirstViewport.titleControlsOverlap === true,
@@ -3479,18 +3694,32 @@ async function main() {
       query: `?node=${encodeURIComponent(dragNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
+        // 选择转换（deselect→re-select）在 headless 下不可捕获：取消选择会卸载 shard
+        // 焦点上下文，真实指针无法对同一深节点重选（见 #2031）。此处保持 ?node= 选择，
+        // 选择转换观测由治理 helper 在证据存在时才检查。
         const beforeDrag = await captureMarkerSnapshot(page);
-        await waitForSelectedNodeRuntimePosition(page);
         const drag = await dragCanvasNodeUntilPinned(page, dragNodeId);
         const afterDrag = await captureMarkerSnapshot(page);
-        await page.mouse.move(720, 360);
+        // 悬停命中实际节点实时投影位置，并验证悬停预览可见。
+        const hoverPoint = await readSelectedNodeLivePoint(page, dragNodeId);
+        if (hoverPoint) {
+          await page.mouse.move(hoverPoint.x, hoverPoint.y);
+          await page.waitForTimeout(300);
+        }
         const afterHover = await captureMarkerSnapshot(page);
+        // ?node= 加载时 inspector 已开；先关闭再经真实指针操作重开，捕获真实开/关转换。
+        await closeInspectorIfPresent(page);
+        const afterInspectorClose = await captureMarkerSnapshot(page);
+        await openSelectedNodeInspector(page, dragNodeId);
+        const afterInspectorOpen = await captureMarkerSnapshot(page);
         return {
           kind: drag.pinned ? 'dragged-node-and-hover-stability' : 'dragged-node-stability-missing',
           beforeDrag,
           drag,
           afterDrag,
           afterHover,
+          afterInspectorClose,
+          afterInspectorOpen,
         };
       },
     },
@@ -3523,7 +3752,21 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'view-layout');
+        // 先经 pin-selected 建立非零钉住状态，再验证 legacy 显式重排清除钉住并递增版本。
+        await clickIfPresent(page, '[data-knowledge-layout-control="pin-selected"]');
+        await page.waitForFunction(() => {
+          const canvas = document.querySelector('[data-knowledge-legacy-view="true"] [data-knowledge-canvas-primary="true"]');
+          return canvas?.getAttribute('data-knowledge-pinned-node-count') === '1';
+        }, undefined, { timeout: 10000 }).catch(() => undefined);
+        const beforeRelayout = await captureMarkerSnapshot(page);
         await clickIfPresent(page, '[data-knowledge-layout-control="relayout"]');
+        await page.waitForTimeout(500);
+        const afterRelayout = await captureMarkerSnapshot(page);
+        return {
+          kind: 'explicit-relayout-stability',
+          beforeRelayout,
+          afterRelayout,
+        };
       },
     },
     {

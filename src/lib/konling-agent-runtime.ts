@@ -11,8 +11,6 @@ import {
 import {
   CANDIDATE_GRAPH_SUPPORT,
   CANDIDATE_RELEASE_SELECTOR,
-} from '@/features/knowledge/public-api';
-import {
   isCandidateGraphPubliclyActivated,
   resolveCandidateGraphAccess,
 } from '@/features/knowledge/public-api';
@@ -44,6 +42,7 @@ import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-govern
 import {
   AdaptivePathCandidateBatchConflictError,
   assertAdaptivePathCandidateBatchMatchesInput,
+  authorizeAdaptivePathComparisonIdentity,
   buildAdaptivePathCandidateDifferenceSummary,
   persistAdaptivePathCandidateBatch,
   readAdaptivePathCandidateBatch,
@@ -54,8 +53,16 @@ import {
   persistLearningPathRound,
   recordPathChoiceEvidence,
   recordPathIntervention,
+  planLearningPath,
+  buildAdaptiveLearningPathLearnerStateSnapshot,
+  getRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningPathGraphContextInput,
+  type AdaptiveLearningPathConfigurationRequest,
+  type AdaptiveLearningPathPolicyFamily,
+  type AdaptiveLearningPathLearnerState,
+  type AdaptiveLearningPathPlan,
+  type AdaptiveLearningPathPlanNode,
 } from '@/features/personalization/path-planning/public-api';
-import { authorizeAdaptivePathComparisonIdentity } from '@/features/personalization/path-planning/public-api';
 import { runWithLearningPathWriteFence } from '@/lib/canonical-learning-path-transition/write-fence';
 import {
   bindKonlingCandidateSelectionToolRun,
@@ -74,17 +81,28 @@ import {
   type StudyQuestionIntent,
 } from '@/lib/konling-study-question-structure';
 import { isTechnicalIndexContext, markdownCodeRanges } from '@/lib/konling-citation-repair';
+
+// #1951：答案单元扫描语义下沉到轻模块（无服务端重链），实验脚本可直接复用；
+// 此处保持既有导出与内部使用不变。
 import {
-  planLearningPath,
-  buildAdaptiveLearningPathLearnerStateSnapshot,
-  getRegisteredAdaptiveLearningPathGoal,
-  type AdaptiveLearningPathGraphContextInput,
-  type AdaptiveLearningPathConfigurationRequest,
-  type AdaptiveLearningPathPolicyFamily,
-  type AdaptiveLearningPathLearnerState,
-  type AdaptiveLearningPathPlan,
-  type AdaptiveLearningPathPlanNode,
-} from '@/features/personalization/path-planning/public-api';
+  assignedCitationNumbers,
+  isBindableAnswerUnitCitation,
+  isCitationMarkerPosition,
+  scanKonlingAnswerUnits,
+} from './konling-answer-unit-scan';
+import type {
+  KonlingAnswerUnitCitationBinding,
+  KonlingAnswerUnitMissReason,
+  KonlingAnswerUnitRecord,
+  KonlingAnswerUnitScannableCitation,
+} from './konling-answer-unit-scan';
+export { scanKonlingAnswerUnits } from './konling-answer-unit-scan';
+export type {
+  KonlingAnswerUnitCitationBinding,
+  KonlingAnswerUnitMissReason,
+  KonlingAnswerUnitRecord,
+  KonlingAnswerUnitScannableCitation,
+} from './konling-answer-unit-scan';
 import {
   collectionEventsFromGovernedFacts,
   previousPathFactsFromPlanOptions,
@@ -160,18 +178,19 @@ import {
   type ArenaCompanionContext,
   isClientAuthoredArenaCompanionScope,
 } from '@/features/ai/companion/arena-companion-context';
-import type { InterventionDecision, StudentState } from '@/features/personalization/interventions/public-api';
-import { decideIntervention, shouldIntervene } from '@/features/personalization/interventions/public-api';
 import {
-  analyzeResultTool,
+  decideIntervention,
+  shouldIntervene,
+  type InterventionDecision,
+  type StudentState,
+} from '@/features/personalization/interventions/public-api';
+import {
   analyzeResultInputSchema,
   analyzeSimulationResult,
   buildSimulationParamChangeRequest,
   formatSimulationParamChangeResponse,
   getSimulationStatusInputSchema,
-  getSimulationStatusTool,
   setSimulationParamsInputSchema,
-  setSimulationParamsTool,
   type SimulationAnalysisInput,
   type SimulationParamChangeInput,
   type SimulationStateStore,
@@ -323,14 +342,6 @@ export interface KonlingStudyQuestionContract {
   preferences: KonlingStudyAnswerPreferences;
 }
 
-export interface KonlingAnswerUnitCitationBinding {
-  unit: string;
-  citationId: string;
-  citationTargetId: string | null;
-  limitation: string | null;
-  sectionId?: string | null;
-  sectionTitle?: string | null;
-}
 
 export interface KonlingTeachingAssistantModeContract {
   id: KonlingTeachingAssistantModeId;
@@ -857,15 +868,10 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
   }),
 };
 
-const KONLING_TEACHING_ASSISTANT_MODE_ALIASES: Record<string, KonlingTeachingAssistantModeId> = {
-  'teacher-grading-assistant': 'grading-assistant',
-  'student-feedback-explainer': 'feedback-explainer',
-};
-
 function normalizeKonlingTeachingAssistantModeId(modeId?: string | null): KonlingTeachingAssistantModeId | null {
   if (!modeId) return 'generic-chat';
   if (modeId in KONLING_TEACHING_ASSISTANT_MODE_REGISTRY) return modeId as KonlingTeachingAssistantModeId;
-  return KONLING_TEACHING_ASSISTANT_MODE_ALIASES[modeId] ?? null;
+  return null;
 }
 
 export function resolveKonlingTeachingAssistantMode(
@@ -1114,14 +1120,87 @@ const KONLING_NORMATIVE_QUERY_MARKERS = [
   '法律', '法条', '法规', '法律要求', '官方规定', '官方要求', '官方限值',
   '国家标准', '行业标准', '标准格式', '规范书写', '规范格式', '国标格式', '化学方程式',
   '必须写', '才算合格', '操作规程', '考核办法', '认证',
+  // #2015：实验安全规范是规范诉求（旋转机械/功率电源等实验规程类问题），
+  // 不得因缺少「报告/大纲」类来源词回落开放讲解兜底。
+  '安全规范', '安全规程',
   'official rule', 'official requirement', 'official limit', 'legal requirement',
   'standard format', 'certification', 'certified', 'must not', 'shall not',
 ] as const;
 
+// #1948 组合信号：规范/要求/格式措辞 × 权威来源文档。两个词面都出现才判
+// 规范诉求，避免单独的「要求/格式」吞并普通课程问题；与单命中标记共享给主分
+// 类器与独立风险探测器，维持 #1901 平价不变量。来源词必须是权威出处本身
+// （报告/论文/学校/教务/大纲等），不含「课程」这类泛学习上下文（review：课
+// 程要求我们比较 A 和 B」不得触发规范门禁）。
+const KONLING_NORMATIVE_COMBO_TERMS = ['规范', '要求', '格式', '封面', '模板', '书写', '排版'] as const;
+const KONLING_NORMATIVE_SOURCE_TERMS = ['报告', '论文', '学校', '教务', '学院', '考核', '大纲', '官方', '标准'] as const;
+
+// #2015：「教材」仅在规范语境下作为来源信号（教材附录引用标准、教材规定的
+// 验收/时效结论），不得与「要求」这类泛教学任务措辞组合——「教材要求我们
+// 比较/推导…」是教学任务不是规范诉求（review P2）。
+// 「标准」裸词不作教材语境信号（「标准二阶系统」是普通课程术语）；标准
+// 时效由 NORMATIVE_STANDARD_ID × 时效措辞覆盖。
+const KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS = ['规范', '验收', '规程', '现行', '最新', '作废', '过期', '时效', '仍有效'] as const;
+
+// #2015 组合信号：代码片段 × 排障请求。真实代码围栏出现时定位/修复/缺陷
+// 任一即判调试（覆盖标定/单位缺陷等无经典异常现象词的输入）；仅有代码指称
+// 时必须搭配专属排障动作词（定位/排查/修复等）——不含泛化的「解决」（
+// 「请用代码解决这个优化问题」是请求写代码不是调试，review P2），「缺陷」
+// 单独也不构成排障请求（「代码设计缺陷是什么意思」不得被吞并）。
+const KONLING_DEBUG_CODE_FENCE_MARKER = '```';
+const KONLING_DEBUG_CODE_PRESENT_MARKERS = ['```', '代码'] as const;
+const KONLING_DEBUG_DEFECT_MARKERS = ['缺陷'] as const;
+const KONLING_DEBUG_EXPLICIT_ACTION_MARKERS = ['排查', '修复', '排除故障', '找出缺陷', '找 bug', 'debug'] as const;
+// 无围栏时排障上下文证据：必须同时存在故障/异常症状词，多义动作（如
+// 「定位」极点位置=计算语义）不得单独构成排障请求（review R4）。
+const KONLING_DEBUG_TROUBLE_MARKERS = ['故障', '异常', '报错', '不工作', '不输出', '失效', '缺陷', '崩溃', '卡死', '发散', '不收敛', '抖动', '振荡', '震荡', '饱和', '超调', '失效'] as const;
+
+// #1948 组合信号：控制系统异常现象 × 定位/修复动作。现象词必须搭配排障动
+// 作才判代码调试，「解释超调」「什么是超调量」等仅含现象词的问题不被吞并。
+const KONLING_DEBUG_PHENOMENON_MARKERS = ['饱和', '超调', '振荡', '震荡', '发散', '不收敛', '抖动', '失稳', '畸变', '溢出', '崩溃', '卡死'] as const;
+const KONLING_DEBUG_RESOLUTION_MARKERS = ['定位', '修复', '排查', '排除', '解决', '怎么修', '如何修', '怎么办', '怎么处理', '如何处理', '找出原因'] as const;
+
+function hasNormativeComboSignal(normalized: string): boolean {
+  return includesAny(normalized, KONLING_NORMATIVE_COMBO_TERMS)
+    && includesAny(normalized, KONLING_NORMATIVE_SOURCE_TERMS);
+}
+
+// #2015：规范时效类信号 = 标准编号（GB/T、IEC 等，与 hasIndependentNormativeRisk
+// 共享同一正则）× 时效措辞。标准编号单独出现不改变分类（「GB/T 6113 是什么？」
+// 仍是 fact-explanation，#1903 分层：分类与 fail-closed 门禁各司其职），仅当
+// 询问当前/现行/作废等时效结论时才判规范内容。
+const KONLING_NORMATIVE_CURRENCY_MARKERS = ['当前', '现行', '最新', '仍有效', '作废', '过期'] as const;
+
+function hasNormativeCurrencySignal(normalized: string): boolean {
+  return NORMATIVE_STANDARD_ID.test(normalized)
+    && includesAny(normalized, KONLING_NORMATIVE_CURRENCY_MARKERS);
+}
+
+function hasCodeFenceDebugSignal(normalized: string): boolean {
+  const hasDefect = includesAny(normalized, KONLING_DEBUG_DEFECT_MARKERS);
+  if (normalized.includes(KONLING_DEBUG_CODE_FENCE_MARKER)) {
+    return hasDefect || includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS);
+  }
+  // 无围栏：代码指称 × 专属排障动作 × 故障/异常证据（三重必需）。
+  return includesAny(normalized, KONLING_DEBUG_CODE_PRESENT_MARKERS)
+    && includesAny(normalized, KONLING_DEBUG_EXPLICIT_ACTION_MARKERS)
+    && includesAny(normalized, KONLING_DEBUG_TROUBLE_MARKERS);
+}
+
+function hasTextbookNormativeSignal(normalized: string): boolean {
+  return normalized.includes('教材')
+    && includesAny(normalized, KONLING_NORMATIVE_TEXTBOOK_CONTEXT_MARKERS);
+}
+
 function classifyGenericStudyQuestionIntent(query: string | null | undefined): KonlingStudyQuestionContract['intent'] {
   const normalized = query?.trim().toLowerCase().normalize('NFKC') ?? '';
   if (!normalized) return 'fact-explanation';
-  if (includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)) {
+  if (
+    includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
+    || hasNormativeComboSignal(normalized)
+    || hasTextbookNormativeSignal(normalized)
+    || hasNormativeCurrencySignal(normalized)
+  ) {
     return 'normative-content';
   }
   if (
@@ -1133,9 +1212,16 @@ function classifyGenericStudyQuestionIntent(query: string | null | undefined): K
   ) {
     return 'formula-derivation';
   }
-  if (includesAny(normalized, [
-    '报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
-  ])) {
+  if (
+    includesAny(normalized, [
+      '报错', '错误', '调试', 'bug', 'debug', 'exception', 'traceback', '改了参数还是', '下不来',
+    ])
+    || (
+      includesAny(normalized, KONLING_DEBUG_PHENOMENON_MARKERS)
+      && includesAny(normalized, KONLING_DEBUG_RESOLUTION_MARKERS)
+    )
+    || hasCodeFenceDebugSignal(normalized)
+  ) {
     return 'code-debugging';
   }
   if (includesAny(normalized, [
@@ -1166,6 +1252,8 @@ function hasIndependentNormativeRisk(query: string | null | undefined): boolean 
   if (!normalized) return false;
   return NORMATIVE_STANDARD_ID.test(normalized)
     || includesAny(normalized, KONLING_NORMATIVE_QUERY_MARKERS)
+    || hasNormativeComboSignal(normalized)
+    || hasTextbookNormativeSignal(normalized)
     || NORMATIVE_OBLIGATION.test(normalized);
 }
 
@@ -1178,7 +1266,7 @@ function buildKonlingStudyQuestionContract(input: {
 }): KonlingStudyQuestionContract | null {
   const independentRisk = hasIndependentNormativeRisk(input.currentUserQuery);
   let intent: KonlingStudyQuestionContract['intent'];
-  if (isStudyQuestionIntent(input.answerIntent)) {
+  if (isKnownStudyQuestionIntent(input.answerIntent)) {
     intent = input.answerIntent;
   } else if (independentRisk) {
     intent = 'open-ended-explanation';
@@ -1197,23 +1285,10 @@ function buildKonlingStudyQuestionContract(input: {
     : 'not-applicable';
   return {
     intent,
-    requiredSections: studyQuestionRequiredSections(intent),
+    requiredSections: studyQuestionSectionTitles(intent),
     normativeGuidance,
     preferences,
   };
-}
-
-function isStudyQuestionIntent(answerIntent: KonlingAnswerIntent): answerIntent is KonlingStudyQuestionContract['intent'] {
-  return answerIntent === 'fact-explanation'
-    || answerIntent === 'formula-derivation'
-    || answerIntent === 'code-debugging'
-    || answerIntent === 'concept-comparison'
-    || answerIntent === 'normative-content'
-    || answerIntent === 'open-ended-explanation';
-}
-
-function studyQuestionRequiredSections(intent: KonlingStudyQuestionContract['intent']): string[] {
-  return studyQuestionSectionTitles(intent);
 }
 
 function normalizeKonlingStudyAnswerPreferences(
@@ -1801,11 +1876,6 @@ export interface KonlingAnswerUnitCoverageSectionState {
   covered: boolean;
 }
 
-export type KonlingAnswerUnitMissReason =
-  | 'no-marker'
-  | 'marker-unassigned'
-  | 'citation-unverified'
-  | 'citation-no-target';
 
 export interface KonlingAnswerUnitCoverageMissingReason {
   reason: KonlingAnswerUnitMissReason;
@@ -1869,6 +1939,9 @@ export function serializeKonlingCitationMetadata(citation: KonlingCitation) {
     resolver: citation.resolver ?? null,
     displayNumber: citation.displayNumber ?? null,
     canonicalKey: citation.canonicalKey ?? null,
+    // 持久化引用必须携带结构化 identity（来源版本与目标锚点随 identity
+    // 输出），sessions 重载不能只依赖 opaque canonicalKey（#1949 review）。
+    identity: citation.identity ?? null,
     citationChip: jsonSafe(citation.citationChip),
   };
 }
@@ -3538,6 +3611,8 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
         sourceType: 'textbook',
         displayTitle: candidate.title,
         href: candidate.href,
+        // 无锚点地址的教材候选不可核验，不得作为已核验引用（#1949）
+        verifiable: Boolean(candidate.href),
         confidence: 'high',
         evidenceBasis: 'source-pack:textbook-v2',
         limitation: candidate.limitation,
@@ -4213,15 +4288,32 @@ async function buildAdaptivePathToolOutput(
   // derived from the repaired plan below and never raises an explicit request.
   const planningTimeBudgetMinutes = args.timeBudgetMinutes ?? resolveAdaptivePathPlanningBudget(registeredGoal);
   const intentMapping = mapAdaptivePathNaturalLanguageIntent(args.naturalLanguageIntent);
+  const plannerLearnerState = operation === 'generated'
+    ? isAdaptiveLearnerStateServiceEnabled()
+      ? await readPathPlannerLearnerStateForSubject(input.scope.targetUserId, {
+          goal: goalId,
+          classId: input.scope.classId,
+          now: new Date(),
+        }).catch((error) => {
+          console.error('[KonlingRuntime] Planner learner state read failed:', error);
+          return null;
+        })
+      : input.context.learnerState
+    : input.context.learnerState;
+  const learnerStateForPlanning = plannerLearnerState;
   const explicitResourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference);
+  const portraitResourcePreferences = resolveAdaptivePathPortraitResourcePreference(plannerLearnerState);
   const resourcePreferences = explicitResourcePreferences
+    ?? portraitResourcePreferences
     ?? (intentMapping.resourcePreferences.length > 0 ? intentMapping.resourcePreferences : undefined)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
   const resourcePreferenceSource = explicitResourcePreferences
     ? 'request'
-    : intentMapping.resourcePreferences.length > 0
-      ? 'intent'
-      : 'fallback';
+    : portraitResourcePreferences
+      ? 'profile'
+      : intentMapping.resourcePreferences.length > 0
+        ? 'intent'
+        : 'fallback';
   const difficultyRhythm = args.difficultyRhythm
     ?? (intentMapping.conflictDimensions.includes('difficulty')
       ? undefined
@@ -4254,12 +4346,20 @@ async function buildAdaptivePathToolOutput(
       key: 'resource-preferences' as const,
       source: 'request' as const,
       value: explicitResourcePreferences,
+    }] : portraitResourcePreferences ? [{
+      key: 'resource-preferences' as const,
+      source: 'profile' as const,
+      value: portraitResourcePreferences,
     }] : intentMapping.resourcePreferences.length > 0 ? [{
       key: 'resource-preferences' as const,
       source: 'intent' as const,
       value: intentMapping.resourcePreferences,
       mappedTerms: intentMapping.matchedTerms,
-    }] : []),
+    }] : [{
+      key: 'resource-preferences' as const,
+      source: 'fallback' as const,
+      value: registeredGoal.starterPathPolicy.preferredResourceTypes,
+    }]),
     ...(args.difficultyRhythm ? [{
       key: 'difficulty-rhythm' as const,
       source: 'request' as const,
@@ -4308,19 +4408,6 @@ async function buildAdaptivePathToolOutput(
     : buildAdaptivePathGenerationPlannerPreference(registeredGoal);
   const graphContext = buildAdaptivePathPlannerGraphContext(input.context.graphContext, goalId, args.graphNodeId);
   const sourcePackInput = await buildAdaptivePathSourcePackCandidates(registry);
-  const plannerLearnerState = operation === 'generated'
-    ? isAdaptiveLearnerStateServiceEnabled()
-      ? await readPathPlannerLearnerStateForSubject(input.scope.targetUserId, {
-          goal: goalId,
-          classId: input.scope.classId,
-          now: new Date(),
-        }).catch((error) => {
-          console.error('[KonlingRuntime] Planner learner state read failed:', error);
-          return null;
-        })
-      : input.context.learnerState
-    : input.context.learnerState;
-  const learnerStateForPlanning = plannerLearnerState;
   const governedFacts = await input.db.learningFact?.findMany?.({
     where: { userId: input.scope.targetUserId },
     orderBy: [{ finishedAt: 'desc' }, { id: 'desc' }],
@@ -4378,6 +4465,7 @@ async function buildAdaptivePathToolOutput(
     timeBudgetInsufficient: timeBudget.insufficient,
     difficultyRhythm,
     resourcePreference: resourcePreferences,
+    resourcePreferenceSource,
     checkpointPreference,
     allowExternalResources,
     graphNodeId: args.graphNodeId ?? null,
@@ -4553,6 +4641,7 @@ async function buildAdaptivePathToolOutput(
       timeBudgetInsufficient: timeBudget.insufficient,
       difficultyRhythm,
       resourcePreference: resourcePreferences,
+      resourcePreferenceSource,
       checkpointPreference,
       allowExternalResources,
       graphNodeId: args.graphNodeId ?? null,
@@ -4661,6 +4750,7 @@ function toStudentConfigurationFulfillment(
   return {
     key: fulfillment.key,
     status: fulfillment.status,
+    source: fulfillment.source,
     effect: fulfillment.effect,
     message: fulfillment.message,
   };
@@ -4744,7 +4834,7 @@ function buildAdaptivePathRevisionPlannerPreference(
   ].filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family));
   const families = Array.from(new Set(candidateFamilies.filter((family) => (
     family === preferredFamily || !rejectedFamilies.has(family)
-  ))));
+  )))).slice(0, registeredGoal.starterPathPolicy.targetOptionCount);
   if (!preferredFamily && rejectedFamilies.size === 0) return {};
   return {
     policyFamily: preferredFamily ?? families[0] ?? 'rules-plus-graph-search',
@@ -5030,6 +5120,42 @@ function normalizePlannerScore(value: unknown) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
   if (value > 1) return Math.max(0, Math.min(1, value / 100));
   return Math.max(0, Math.min(1, value));
+}
+
+// #1985：画像偏好层门槛——治理证据总量达到该值且画像可用时才以 profile 来源生效。
+const ADAPTIVE_PATH_PORTRAIT_RESOURCE_PREFERENCE_MIN_EVIDENCE = 3;
+
+// learner-state 偏好模态（factTypeToModality）→ 规划器资源类型；path_choice resourceMix
+// 键本身已是规划器资源类型，经 normalize 过滤后原样保留。
+const ADAPTIVE_PATH_PORTRAIT_MODALITY_RESOURCE_TYPES: Record<string, AdaptiveLearningPathPlanNode['type'][]> = {
+  assessment: ['adaptive_quiz'],
+  media: ['video'],
+  simulation: ['simulation'],
+  arena: ['arena_task'],
+  reflection: ['reflection'],
+  'ai-collaboration': ['konling'],
+  ai: ['konling'],
+  konling: ['konling'],
+  resource: ['handout'],
+};
+
+function resolveAdaptivePathPortraitResourcePreference(
+  learnerState: AdaptiveLearnerState | null | undefined,
+): AdaptiveLearningPathPlanNode['type'][] | undefined {
+  // 仅在主画像快照可用（SNAPSHOT + available）时启用画像层；NO_EVIDENCE/UNAVAILABLE
+  // 一律按 delta spec 下落系统默认，即使偏好特征本身已有足量治理证据。
+  if (!learnerState
+    || learnerState.primaryPortraitState !== 'SNAPSHOT'
+    || learnerState.primaryPortraitAvailability !== 'available') return undefined;
+  const preference = learnerState.resourcePreference;
+  if (!preference || preference.confidence === 'none') return undefined;
+  const evidenceCount = Object.values(preference.sourceCounts ?? {})
+    .reduce((sum, count) => sum + (typeof count === 'number' && Number.isFinite(count) && count > 0 ? count : 0), 0);
+  if (evidenceCount < ADAPTIVE_PATH_PORTRAIT_RESOURCE_PREFERENCE_MIN_EVIDENCE) return undefined;
+  const mapped = normalizeAdaptivePathResourcePreferences(Array.from(new Set(preference.preferredModalities.flatMap((modality) => (
+    ADAPTIVE_PATH_PORTRAIT_MODALITY_RESOURCE_TYPES[modality] ?? [modality]
+  )))));
+  return mapped && mapped.length > 0 ? mapped : undefined;
 }
 
 function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): AdaptiveLearningPathPlanNode['type'][] | undefined {
@@ -8867,45 +8993,51 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
   context: T,
   assignedCitations: readonly KonlingAssignedCitation[],
 ): T {
-  if (!context.pageContext.candidateGraph || !context.citationContext) return context;
-  const candidateCitations: KonlingCitation[] = assignedCitations
-    .filter((citation) => citation.evidenceBasis?.startsWith('candidate-canonical:'))
+  if (!context.citationContext) return context;
+  // 最终 guard 必须与 normalize 层共享同一 assigned 表视图：检索工具分配的
+  // 教材与 candidate 引用只存在于 assigned 表，不投影进 citationContext 时，
+  // collectUnverifiedCitationMarkers 会把有效工具编号误判为未分配而剥离（#1949）。
+  const existingByCanonicalKey = new Set([
+    ...context.citationContext.contentCitations,
+    ...context.citationContext.evidenceCitations,
+  ].flatMap((citation) => [citation.canonicalKey
+    ?? buildKonlingCitationCanonicalKey(toAssignableRuntimeCitation(citation).identity)]));
+  const toolCitations: KonlingCitation[] = assignedCitations
+    .filter((citation) => citation.verifiable !== false && !existingByCanonicalKey.has(citation.canonicalKey))
     .map((citation) => ({
       id: citation.id,
-      sourceType: 'content',
+      // runtime citation 的 sourceType 联合不含 textbook：投影条目归一为
+      // content 分类（guard 内部分类用），用户可见的教材标签以 assigned
+      // 表持久化投影（normalized.citations）为准。
+      sourceType: 'content' as const,
       displayTitle: citation.displayTitle,
       href: citation.href,
       confidence: citation.confidence ?? 'high',
-      evidenceBasis: citation.evidenceBasis
-        ?? `candidate-canonical:${context.pageContext.candidateGraph!.releaseSetId}:${context.pageContext.candidateGraph!.releaseId}`,
-      owner: 'answer',
-      citationTargetId: citation.identity.kind === 'content'
-        ? citation.identity.contentId
-        : citation.id,
+      evidenceBasis: citation.evidenceBasis ?? 'server-assigned-citation',
+      owner: 'answer' as const,
+      citationTargetId: assignedCitationTargetId(citation),
       verified: true,
-      resolver: 'candidate-authoritative-repository',
+      resolver: citation.evidenceBasis?.startsWith('candidate-canonical:')
+        ? 'candidate-authoritative-repository'
+        : null,
       displayNumber: citation.displayNumber,
       canonicalKey: citation.canonicalKey,
       identity: citation.identity,
     }));
-  if (candidateCitations.length === 0) return context;
-  const existingByCanonicalKey = new Set(
-    context.citationContext.contentCitations.map((citation) => citation.canonicalKey),
-  );
+  if (toolCitations.length === 0) return context;
+  // assigned 表条目携带服务器分配的 displayNumber，与 normalize 层处于同一
+  // 编号空间，直接拼接保留原编号：后台优化移除中间教材候选时编号有缺口，
+  // 重新连续编号会让正文引用与 guard 视图错位而被误剥离（#1949 review）。
   const contentCitations = [
     ...context.citationContext.contentCitations,
-    ...candidateCitations.filter((citation) => !existingByCanonicalKey.has(citation.canonicalKey)),
+    ...toolCitations,
   ];
-  const hydrated = assignKonlingRuntimeCitationDisplayNumbers(
-    contentCitations,
-    context.citationContext.evidenceCitations,
-  );
   return {
     ...context,
     citationContext: {
       ...context.citationContext,
-      contentCitations: hydrated.contentCitations,
-      evidenceCitations: hydrated.evidenceCitations,
+      contentCitations,
+      evidenceCitations: context.citationContext.evidenceCitations,
       missingCitationClasses: context.citationContext.missingCitationClasses
         .filter((item) => item !== 'content'),
       lowConfidenceReasons: context.citationContext.lowConfidenceReasons
@@ -8915,6 +9047,16 @@ export function mergeCandidateAssignedCitations<T extends KonlingRuntimeContext>
         )),
     },
   };
+}
+
+function assignedCitationTargetId(citation: KonlingAssignedCitation): string {
+  if (citation.identity.kind === 'textbook') {
+    return citation.identity.fragmentId ?? citation.identity.unitId;
+  }
+  if (citation.identity.kind === 'content') {
+    return citation.identity.contentId;
+  }
+  return citation.identity.evidenceId;
 }
 
 function toAssignableRuntimeCitation(citation: KonlingCitation) {
@@ -8937,6 +9079,9 @@ function toAssignableRuntimeCitation(citation: KonlingCitation) {
     sourceType: citation.sourceType,
     displayTitle: citation.displayTitle,
     href: citation.displayHref ?? citation.href,
+    // 与 isBindableAnswerUnitCitation 同一判定：未核验或无目标的条目不得
+    // 作为已核验引用进入正式回答（#1949）
+    verifiable: citation.verified === true && Boolean(citation.citationTargetId),
     identity,
     confidence: citation.confidence,
     evidenceBasis: citation.evidenceBasis,
@@ -9548,9 +9693,16 @@ export function buildKonlingCitationGuard(
       lowConfidenceReasons.push(`answer-unit-citation-missing:${uncovered.sectionId}`);
     }
   }
-  const unverifiedCitationMarkers = assistantMessage === undefined || !studyIntent
+  // 不可绑定编号的收集不限于学习问答：所有正式回答路径都需要这道
+  // 防线，非 study-question 路径由 strip 层据此剥离（#1949）
+  const unverifiedCitationMarkers = assistantMessage === undefined
     ? []
     : collectUnverifiedCitationMarkers(assistantMessage, citations);
+  if (unverifiedCitationMarkers.length > 0) {
+    // 未核验编号本身构成降级原因：上下文完整时也不能在静默删除标记后
+    // 仍以 verified 状态交付（#1949 review）
+    lowConfidenceReasons.push('assistant-unverified-citation-markers');
+  }
   const normativeCompliance = assistantMessage !== undefined
     && modeContract?.studyQuestion?.normativeGuidance === 'verification-required'
     ? scanKonlingNormativeCompliance(assistantMessage)
@@ -9659,177 +9811,6 @@ export function buildKonlingCitationGuard(
   };
 }
 
-function isBindableAnswerUnitCitation(citation: KonlingCitation): boolean {
-  return citation.verified === true && Boolean(citation.citationTargetId);
-}
-
-export interface KonlingAnswerUnitRecord {
-  unit: string;
-  sectionId: string | null;
-  bound: boolean;
-  substantive: boolean;
-  missReason: KonlingAnswerUnitMissReason | null;
-}
-
-function assignedCitationNumbers(citations: readonly KonlingCitation[]): ReadonlySet<number> {
-  return new Set(
-    citations
-      .map((citation) => citation.displayNumber)
-      .filter((number): number is number => Number.isInteger(number)),
-  );
-}
-
-// 结构性行不进入需证据分母（#1902）：引导头、显式过渡短行、纯数学展示行与
-// 分隔线不是 substantive 答案单元。规则保守：先剥离尾部引用编号再判定，
-// 「短且无终止标点」本身不等同于过渡语——只有显式过渡词开头的短行才排除，
-// 宁可分母略大也不把未引用的短结论挤出覆盖统计（#1902 review）。
-const STRUCTURAL_TRANSITION_PREFIX = /^(?:接下来|首先|其次|然后|接着|此外|另外|下面|再看|继续|综上|总之)/;
-
-function stripTrailingCitationMarkers(value: string): string {
-  return value.replace(/(?:\s*\[\d+\])+\s*$/, '').trim();
-}
-
-function isStructuralAnswerUnitLine(trimmedUnit: string): boolean {
-  const withoutMarkers = stripTrailingCitationMarkers(trimmedUnit);
-  if (/^-{3,}$/.test(withoutMarkers) || /^\*{3,}$/.test(withoutMarkers) || /^_{3,}$/.test(withoutMarkers)) {
-    return true;
-  }
-  if (/[:：]$/.test(withoutMarkers)) return true;
-  if (!/[\u4e00-\u9fff]/.test(withoutMarkers)) {
-    if (/^\$\$[\s\S]*\$\$$/.test(withoutMarkers)) return true;
-    if (/^\\\[.*\\\]$/.test(withoutMarkers)) return true;
-    if (/^\\(begin|end)\{/.test(withoutMarkers)) return true;
-    if (/\\[a-zA-Z]+/.test(withoutMarkers)) return true;
-    if (/^[\w\s^_{}().=<>+\-*/%,.]*$/.test(withoutMarkers) && /[=^_]/.test(withoutMarkers)) return true;
-  }
-  if (
-    withoutMarkers.length <= 20
-    && STRUCTURAL_TRANSITION_PREFIX.test(withoutMarkers)
-    && !/[。；;！!？?]$/.test(withoutMarkers)
-  ) return true;
-  return false;
-}
-
-// 未绑定需证据单元的原因按证据链顺序取首个可确定环节（#1902）
-function resolveAnswerUnitMissReason(
-  trustedMarkers: readonly number[],
-  citations: readonly KonlingCitation[],
-): KonlingAnswerUnitMissReason {
-  if (trustedMarkers.length === 0) return 'no-marker';
-  const present = trustedMarkers
-    .map((number) => citations.find((candidate) => candidate.displayNumber === number))
-    .filter((citation): citation is KonlingCitation => Boolean(citation));
-  if (present.length === 0) return 'marker-unassigned';
-  if (present.every((citation) => citation.verified !== true)) return 'citation-unverified';
-  return 'citation-no-target';
-}
-
-function isCitationMarkerPosition(
-  assistantMessage: string,
-  codeRanges: readonly { start: number; end: number }[],
-  offset: number,
-  number: number,
-  assignedNumbers: ReadonlySet<number>,
-): boolean {
-  if (codeRanges.some((range) => offset >= range.start && offset < range.end)) return false;
-  // Unassigned numbers keep the helper's wide technical-index reading (any
-  // identifier directly before the bracket, e.g. controller[2]); only
-  // server-assigned numbers use the narrow single-letter/collection reading
-  // so Chinese prose before a real citation still counts (#1819).
-  return !isTechnicalIndexContext(assistantMessage, offset, assignedNumbers.has(number));
-}
-
-function scanKonlingAnswerUnits(
-  assistantMessage: string,
-  citations: readonly KonlingCitation[],
-  intent?: StudyQuestionIntent,
-): {
-  bindings: KonlingAnswerUnitCitationBinding[];
-  units: KonlingAnswerUnitRecord[];
-  driftedMarkerCount: number;
-  stackedMarkerCount: number;
-} {
-  const bindings: KonlingAnswerUnitCitationBinding[] = [];
-  const units: KonlingAnswerUnitRecord[] = [];
-  let driftedMarkerCount = 0;
-  let stackedMarkerCount = 0;
-  const marker = /\[(\d+)\]/g;
-  const codeRanges = markdownCodeRanges(assistantMessage);
-  const assignedNumbers = assignedCitationNumbers(citations);
-  let currentSection: { id: string; title: string } | null = null;
-  let lineStart = 0;
-  for (const line of assistantMessage.split(/\r?\n/)) {
-    try {
-      if (intent) {
-        const headingSection = detectStudyQuestionSectionHeading(line, intent);
-        if (headingSection) {
-          currentSection = { id: headingSection.id, title: headingSection.title };
-          continue;
-        }
-      }
-      // Fenced/inline code and its fence lines are not substantive answer
-      // units and never require per-unit citations (#1819). The fence regex
-      // also catches indented fences whose line start falls outside the code
-      // range (which begins at the backticks, not the indentation).
-      if (/^\s*```/.test(line)) {
-        continue;
-      }
-      if (codeRanges.some((range) => lineStart >= range.start && lineStart < range.end)) {
-        continue;
-      }
-      const trimmedUnit = line.replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '').trim();
-      if (!trimmedUnit) continue;
-      const substantive = !isStructuralAnswerUnitLine(trimmedUnit);
-      const trustedMarkers: number[] = [];
-      const perLineNumberCounts = new Map<number, number>();
-      let bound = false;
-      for (const match of line.matchAll(marker)) {
-        const markerNumber = Number(match[1]);
-        const markerOffset = lineStart + (match.index ?? 0);
-        if (!isCitationMarkerPosition(assistantMessage, codeRanges, markerOffset, markerNumber, assignedNumbers)) continue;
-        trustedMarkers.push(markerNumber);
-        perLineNumberCounts.set(markerNumber, (perLineNumberCounts.get(markerNumber) ?? 0) + 1);
-        const citation = citations.find((candidate) => candidate.displayNumber === markerNumber);
-        if (!citation || citation.verified !== true || !citation.citationTargetId) continue;
-        // 可绑定 marker 出现在 model-derived 章节或无章节区域时不服务于任何
-        // 需证据单元的覆盖，计为漂移（#1902）
-        if (intent && (!currentSection
-          || STUDY_QUESTION_SECTIONS[intent].find((section) => section.id === currentSection?.id)?.citationPolicy === 'model-derived')) {
-          driftedMarkerCount += 1;
-        }
-        const unit = line.slice(0, match.index ?? 0)
-          .replace(/^\s*(?:[-*]|\d+[.)]|#+)\s*/, '')
-          .trim()
-          .slice(0, 180);
-        if (!unit) continue;
-        if (!bindings.some((binding) => binding.unit === unit && binding.citationId === citation.id)) {
-          bindings.push({
-            unit,
-            citationId: citation.id,
-            citationTargetId: citation.citationTargetId,
-            limitation: citation.href ? null : 'unavailable-address',
-            sectionId: currentSection?.id ?? null,
-            sectionTitle: currentSection?.title ?? null,
-          });
-        }
-        bound = true;
-      }
-      for (const count of perLineNumberCounts.values()) {
-        if (count >= 2) stackedMarkerCount += 1;
-      }
-      units.push({
-        unit: trimmedUnit.slice(0, 180),
-        sectionId: currentSection?.id ?? null,
-        bound,
-        substantive,
-        missReason: bound || !substantive ? null : resolveAnswerUnitMissReason(trustedMarkers, citations),
-      });
-    } finally {
-      lineStart += line.length + 1;
-    }
-  }
-  return { bindings, units, driftedMarkerCount, stackedMarkerCount };
-}
 
 function isPersonalizationCitationClass(value: string): boolean {
   return value === 'learner-state'
@@ -9957,7 +9938,7 @@ export function stripUnverifiedKonlingCitationMarkers(
   guard: KonlingCitationGuard,
 ): string {
   const invalidNumbers = guard.unverifiedCitationMarkers ?? [];
-  if (!guard.studyQuestion || invalidNumbers.length === 0) return assistantMessage;
+  if (invalidNumbers.length === 0) return assistantMessage;
   const invalidSet = new Set(invalidNumbers);
   const assignedNumbers = assignedCitationNumbers(guard.citations);
   const codeRanges = markdownCodeRanges(assistantMessage);
@@ -9975,15 +9956,41 @@ export function stripUnverifiedKonlingCitationMarkers(
     .replace(/\n{3,}/g, '\n\n');
 }
 
+// 学生可见的降级原因映射：未登记的内部 reason code 一律不进入「证据限制」
+// 文本，详细原因仅保留在开发诊断 metadata（#1949 review）。
+const CITATION_MISSING_CLASS_LABELS: Record<string, string> = {
+  content: '课程内容',
+  'learner-state': '学习证据',
+  'path-execution': '学习路径',
+  evidence: '学习证据',
+  simulation: '仿真记录',
+  arena: 'Arena',
+  intervention: '干预记录',
+  memory: '记忆摘要',
+};
+
+const CITATION_LOW_CONFIDENCE_LABELS: Record<string, string> = {
+  'assistant-unverified-citation-markers': '存在未能核验的引用',
+};
+
 export function applyKonlingCitationFallback(
   assistantMessage: string,
   guard: KonlingCitationGuard,
 ): string {
   const sanitizedMessage = stripUnverifiedKonlingCitationMarkers(assistantMessage, guard);
-  if (!guard.fallbackRequired) return sanitizedMessage;
+  const unverifiedMarkerCount = (guard.unverifiedCitationMarkers ?? []).length;
+  if (!guard.fallbackRequired && unverifiedMarkerCount === 0) return sanitizedMessage;
   const limitation = [
-    ...guard.missingCitationClasses.map((item) => `缺少 ${item} 引用`),
-    ...guard.lowConfidenceReasons,
+    ...guard.missingCitationClasses
+      .flatMap((item) => {
+        const label = CITATION_MISSING_CLASS_LABELS[item];
+        return label ? [`缺少${label}引用`] : [];
+      }),
+    ...guard.lowConfidenceReasons
+      .flatMap((reason) => {
+        const label = CITATION_LOW_CONFIDENCE_LABELS[reason];
+        return label ? [label] : [];
+      }),
   ].join('；');
   const citations = guard.citations.slice(0, 4)
     .map((citation) => `${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`)
@@ -9992,6 +9999,9 @@ export function applyKonlingCitationFallback(
     sanitizedMessage.trim(),
     '',
     `证据限制：本次回答按低置信处理，原因是 ${limitation || '引用覆盖不足'}。`,
+    unverifiedMarkerCount > 0
+      ? `已移除 ${unverifiedMarkerCount} 个未能核验的引用标记。`
+      : '',
     citations ? `可用引用：${citations}` : '',
   ].filter(Boolean).join('\n');
 }

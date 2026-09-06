@@ -114,7 +114,7 @@ export function createControlCorrectionEvidencePort(
         take: 200,
       }) ?? [];
       const { attachPersistedArenaWritebacks } = await import(
-        '@/features/personalization/learner-state/internal'
+        '@/features/personalization/learner-state/effectful-reads'
       );
       return attachPersistedArenaWritebacks(db, submissions);
     },

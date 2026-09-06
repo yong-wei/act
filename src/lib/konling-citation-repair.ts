@@ -113,6 +113,12 @@ export function normalizeKonlingCitations(input: {
       if (!unresolvedMarkers.includes(raw)) unresolvedMarkers.push(raw);
       return '';
     }
+    // 表内解析成功但服务器声明不可核验（未核验/无目标锚点）的条目按未核验
+    // 处理：删除标记并降级，不得以已核验引用留在正文（#1949）
+    if (resolved.verifiable === false) {
+      if (!unresolvedMarkers.includes(raw)) unresolvedMarkers.push(raw);
+      return '';
+    }
     referencedNumbers.add(resolved.displayNumber);
     return `[${resolved.displayNumber}]`;
   });
@@ -168,7 +174,9 @@ export function isTechnicalIndexContext(
     .slice(0, offset)
     .match(/[\p{L}_][\p{L}\p{N}_]*$/u)?.[0];
   if (!precedingToken) return false;
-  if (!hasAssignedCitation) return true;
+  // 技术下标豁免仅限明确的变量/集合表达式（单字母拉丁/希腊变量与常见
+  // 集合词）；多字符普通词（中文或英文正文的 stable[9]、controller[9]）
+  // 紧邻的未分配编号按引用标记处理，删除并降级（#1949 review）。
   return /^[\p{Script=Latin}\p{Script=Greek}]$/u.test(precedingToken)
     || /^(?:array|data|items?|samples?|values?|vectors?)$/iu.test(precedingToken);
 }

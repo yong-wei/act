@@ -30,7 +30,30 @@ export interface KonlingFairExperimentBankItem {
   intent: StudyQuestionIntent;
   question: string;
   referenceAnswer: string;
+  /** 分层标注（#1952，题库 V2）：难度、知识点与对抗风险类型；V1 条目缺省。 */
+  difficulty?: KonlingFairExperimentBankDifficulty;
+  topic?: string;
+  riskType?: KonlingFairExperimentBankRiskType;
 }
+
+export const KONLING_FAIR_EXPERIMENT_BANK_DIFFICULTIES = [
+  'foundational',
+  'integrative',
+  'adversarial',
+] as const;
+
+export type KonlingFairExperimentBankDifficulty = (typeof KONLING_FAIR_EXPERIMENT_BANK_DIFFICULTIES)[number];
+
+export const KONLING_FAIR_EXPERIMENT_BANK_RISK_TYPES = [
+  'false-premise',
+  'evidence-conflict',
+  'normative-currency',
+  'hidden-defect',
+  'boundary-condition',
+  'insufficient-info',
+] as const;
+
+export type KonlingFairExperimentBankRiskType = (typeof KONLING_FAIR_EXPERIMENT_BANK_RISK_TYPES)[number];
 
 export interface KonlingFairExperimentBank {
   bankVersion: string;
@@ -79,6 +102,33 @@ export interface KonlingFairExperimentGenerateAttempt {
   error: { code: KonlingFairExperimentErrorCode; message: string };
 }
 
+/**
+ * #1951：生成阶段持久化的 citation 快照——引用精确率与追溯覆盖率的
+ * 确定性审计输入。字段是生产 KonlingCitation 的审计子集，与回答快照
+ * 同文件冻结（first-writer-wins）。
+ */
+export interface KonlingFairExperimentCitationSnapshot {
+  id: string;
+  citationTargetId: string | null;
+  verified: boolean;
+  displayNumber: number | null;
+  sourceType: string;
+  href: string | null;
+  /**
+   * 答案相关性的证据分级（生产 hybrid-retriever 的 basis，student pack
+   * 脱敏后仍保留的非敏感证明类型）。直接支撑判据只依赖此字段：显式引用
+   * 或查询词直接命中才算；`semantic-score`（纯语义相似）与缺失/未知值
+   * 都按「仅相关」处理。主张级蕴含验证超出确定性审计范围（非目标）。
+   */
+  answerRelevanceBasis?: string | null;
+  /**
+   * 答案相关性匹配原文（可选证据留档）。student pack 脱敏
+   * （redactStudentItemMetadata）会删除该字段，生产引用不携带；
+   * 审计判据不依赖它。
+   */
+  answerRelevanceMatch?: string | null;
+}
+
 export interface KonlingFairExperimentAnswerRecord {
   taskKey: string;
   arm: KonlingFairExperimentArm;
@@ -94,6 +144,8 @@ export interface KonlingFairExperimentAnswerRecord {
   startedAt: string;
   finishedAt: string;
   answer: string;
+  /** #1951：生成阶段核验过的引用快照；旧 run 冻结记录无此字段（审计 fail closed）。 */
+  citations?: readonly KonlingFairExperimentCitationSnapshot[];
   elapsedMs: number;
   /** full-feature 臂实际生效的运行时合同意图（与题库标注意图的差异单独报告）。 */
   contractIntent?: string;
@@ -130,7 +182,7 @@ export interface KonlingFairExperimentScoreRecord {
 }
 
 export type KonlingFairExperimentGenerateResponse =
-  | { ok: true; result: { answer: string; elapsedMs: number } }
+  | { ok: true; result: { answer: string; elapsedMs: number; citations?: readonly KonlingFairExperimentCitationSnapshot[] } }
   | { ok: false; error: { code: KonlingFairExperimentErrorCode; message: string } };
 
 export interface KonlingFairExperimentGenerateTask {
@@ -181,6 +233,60 @@ export interface KonlingFairExperimentRateMetric {
   rate: number;
 }
 
+/** #1948：分类一致率的逐意图混淆分解，按题库标注意图分组。 */
+export interface KonlingFairExperimentIntentConfusion {
+  intent: StudyQuestionIntent;
+  n: number;
+  matched: number;
+  rate: number;
+  /** 实际路由意图 → 出现次数；键为路由层输出的意图字符串。 */
+  routedCounts: Record<string, number>;
+}
+
+/** #1951：比率型指标（分子/分母计数），如引用精确率与单元覆盖率。 */
+export interface KonlingFairExperimentRatioMetric {
+  numerator: number;
+  denominator: number;
+  ratio: number;
+}
+
+/** #1951：单条回答的确定性 citation 审计记录。 */
+export interface KonlingFairExperimentCitationAuditRecord {
+  taskKey: string;
+  arm: KonlingFairExperimentArm;
+  itemId: string;
+  replicate: number;
+  intent: StudyQuestionIntent;
+  presentedCitationCount: number;
+  verifiedSupportingCount: number;
+  requiredUnitCount: number;
+  coveredUnitCount: number;
+  citationClasses: {
+    realVerifiedSupporting: number;
+    markerUnassigned: number;
+    citationUnverified: number;
+    /** 引用无锚点，或有锚点但 href 为空（不可访问，scan 的 unavailable-address）。 */
+    citationNoTarget: number;
+    /** 已核验且可访问，但快照未冻结答案相关性匹配证据（仅相关不直接支撑/判据缺失）。 */
+    citationNoDirectSupport: number;
+  };
+  missReasons: Partial<Record<string, number>>;
+  /** 已核验直接证据但未支撑实质单元、且标记（至少部分）落在 evidence-required 结构行/章节外的引用数（唯一编号口径）。 */
+  driftedMarkerCount: number;
+  /** 标记（至少部分）落在 model-derived 章节的已核验直接引用数（唯一编号口径，spec 要求单独统计）。 */
+  modelDerivedMarkerCount: number;
+}
+
+export interface KonlingFairExperimentPairedRatioDifference {
+  metric: string;
+  direction: 'higher-is-better';
+  baseline: { label: string; metric: KonlingFairExperimentRatioMetric };
+  comparison: { label: string; metric: KonlingFairExperimentRatioMetric };
+  percentagePointDifference: number;
+  pairedCi95: { low: number; high: number };
+  pairedN: number;
+}
+
 export interface KonlingFairExperimentPairedDifference {
   metric: string;
   direction: 'higher-is-better';
@@ -205,13 +311,119 @@ export interface KonlingFairExperimentOfficialSummary {
     composite: Record<string, KonlingFairExperimentRateMetric & {
       components: { structure: KonlingFairExperimentRateMetric; audit: KonlingFairExperimentRateMetric | null };
     }>;
-    classificationAgreement: null | KonlingFairExperimentRateMetric;
+    classificationAgreement: null | (KonlingFairExperimentRateMetric & {
+      byIntent: readonly KonlingFairExperimentIntentConfusion[];
+    });
+    /** #1952：分级盲审五子分与天花板/地板（graded rubric 记录缺省为 null）。 */
+    auditDimensions: null | {
+      verdictDistribution: Record<KonlingFairExperimentGradedVerdictName, number>;
+      meanSubscores: Record<KonlingFairExperimentAuditDimension, number>;
+      ceilingProportion: number;
+      floorProportion: number;
+    };
+    /** #1951：确定性 citation 审计（引用精确率 + 答案单元追溯覆盖率）。 */
+    citationAudit: {
+      precision: KonlingFairExperimentRatioMetric;
+      coverage: KonlingFairExperimentRatioMetric;
+      byIntent: ReadonlyArray<{
+        intent: StudyQuestionIntent;
+        precision: KonlingFairExperimentRatioMetric;
+        coverage: KonlingFairExperimentRatioMetric;
+      }>;
+    };
   }>;
+  /** #1952：难度×意图分层结果与分层配对差值；V1 题库（无分层标注）为空数组。 */
+  stratified: {
+    layers: Array<{
+      difficulty: KonlingFairExperimentBankDifficulty;
+      intent: StudyQuestionIntent;
+      itemCount: number;
+      structure: Record<string, KonlingFairExperimentRateMetric>;
+      meanSubscores: Record<KonlingFairExperimentAuditDimension, number> | null;
+    }>;
+    stratifiedDeltas: KonlingFairExperimentPairedDifference[];
+  };
+  /** #1952：教师双人复核校准（记录缺失时 pending，不阻塞正式摘要）。 */
+  expertReview: {
+    status: 'reported' | 'pending';
+    subsetItemIds: readonly string[];
+    agreementProportion: number | null;
+    disagreements: ReadonlyArray<{
+      itemId: string;
+      reviewerA: KonlingFairExperimentGradedVerdictName;
+      reviewerB: KonlingFairExperimentGradedVerdictName;
+      resolution: 'pending-teacher';
+    }>;
+  };
+  /** #1952：合成数据声明——合成实验结果不得表述为真人学习效果或教学因果结论。 */
+  syntheticDisclaimer: string;
+  /** #1951：逐回答 citation 审计记录（分子/分母与失败原因分桶）。 */
+  citationAuditRecords: readonly KonlingFairExperimentCitationAuditRecord[];
   /** 生成行为差值：同口径、跨臂。 */
   generationDeltas: KonlingFairExperimentPairedDifference[];
   /** 评分器口径差值：同臂快照、跨口径。 */
   caliberDeltas: KonlingFairExperimentPairedDifference[];
+  /** #1951：引用精确率与追溯覆盖率的臂间配对差（百分点 + 95% CI）。 */
+  citationAuditDeltas: KonlingFairExperimentPairedRatioDifference[];
 }
+
+export const KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS = [
+  'correct',
+  'minor-flaw',
+  'major-error',
+] as const;
+
+export type KonlingFairExperimentGradedVerdictName = (typeof KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS)[number];
+
+export const KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS = [
+  'accuracy',
+  'evidenceFaithfulness',
+  'pedagogy',
+  'structureCompliance',
+  'traceCoverage',
+] as const;
+
+export type KonlingFairExperimentAuditDimension = (typeof KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS)[number];
+
+/** #1952：分级盲审判定（rubric-graded.v2）。 */
+export interface KonlingFairExperimentGradedVerdict {
+  verdict: KonlingFairExperimentGradedVerdictName;
+  /** 0-1 总分（与 rubric.v1 的 ruleScore 同尺度，供天花板/地板统计）。 */
+  ruleScore: number;
+  subscores: Record<KonlingFairExperimentAuditDimension, number>;
+  notes: string | null;
+}
+
+/** #1952：盲审记录 result 的分级形态（judge 输出经解析器校验后落盘）。 */
+export interface KonlingFairExperimentGradedAuditResult extends KonlingFairExperimentGradedVerdict {}
+
+/**
+ * 冻结记录的分级结果守卫：verdict 枚举、ruleScore 与五子分全部为合法
+ * 0-1 有限数值才认定为 graded 记录；否则按记录现状回退二元语义或
+ * fail closed（混合形态运行视为不完整）。
+ */
+export function isKonlingFairExperimentGradedAuditResult(value: unknown): value is KonlingFairExperimentGradedAuditResult {
+  if (typeof value !== 'object' || value === null) return false;
+  const record = value as { verdict?: unknown; ruleScore?: unknown; subscores?: unknown };
+  if (!(KONLING_FAIR_EXPERIMENT_GRADED_VERDICTS as readonly string[]).includes(String(record.verdict))) {
+    return false;
+  }
+  if (typeof record.ruleScore !== 'number' || !Number.isFinite(record.ruleScore)
+    || record.ruleScore < 0 || record.ruleScore > 1) {
+    return false;
+  }
+  if (typeof record.subscores !== 'object' || record.subscores === null) return false;
+  const subscores = record.subscores as Record<string, unknown>;
+  return KONLING_FAIR_EXPERIMENT_AUDIT_DIMENSIONS.every((dimension) => {
+    const score = subscores[dimension];
+    return typeof score === 'number' && Number.isFinite(score) && score >= 0 && score <= 1;
+  });
+}
+
+/** #1952：合成实验边界声明——正式摘要固定携带，禁止表述为真人学习效果或教学因果结论。 */
+export const KONLING_FAIR_EXPERIMENT_SYNTHETIC_DISCLAIMER
+  = '本实验基于合成题库与模型生成的回答进行离线评测，盲审与专家复核均为离线判定；'
+    + '结果仅描述评测配置下的系统行为差异，不得表述为真人学习者的学习效果或任何教学因果结论。';
 
 export interface KonlingFairExperimentAggregateResult {
   runId: string;
@@ -219,7 +431,7 @@ export interface KonlingFairExperimentAggregateResult {
   expected: number;
   officialSummary: KonlingFairExperimentOfficialSummary | null;
   incompleteDetail?: {
-    phase: 'generate' | 'score' | 'audit';
+    phase: 'generate' | 'score' | 'audit' | 'citation-audit';
     arm?: KonlingFairExperimentArm;
     missingTaskKeys?: string[];
     unexpectedKeys?: string[];

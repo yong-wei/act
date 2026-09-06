@@ -4,12 +4,13 @@ import { UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { Plus, BookOpen } from 'lucide-react';
 import { getServerAuthSession } from '@/lib/auth';
+import { buildLoginRedirectFromRequest } from '@/lib/auth-request-redirect';
 import { redirect } from 'next/navigation';
 import { LessonPlanList } from '@/features/lesson-engine/lesson-plan-list';
 
 export default async function LessonPlansIndexPage() {
   const session = await getServerAuthSession();
-  if (!session) redirect('/login');
+  if (!session) redirect(await buildLoginRedirectFromRequest());
   if (session.user.role !== UserRole.ADMIN) redirect('/');
 
   const plans = await prisma.lessonPlan.findMany({

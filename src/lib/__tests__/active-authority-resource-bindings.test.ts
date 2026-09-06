@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { join } from 'node:path';
+
+import { loadNodeDetailShard } from '@/lib/authority-domain-shards';
 import {
   attachActiveAuthorityResourceBindings,
+  humanTitleFromResourceId,
   projectAuthorityNodeResourceBindings,
 } from '@/lib/authority-domain-shards/resource-bindings';
+import * as teachingProjectionStore from '@/lib/teaching-projection/store';
 import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
 import type {
   TeachingBindingRuntime,
@@ -115,6 +120,45 @@ describe('active Authority resource binding projection', () => {
       ],
     });
     expect(JSON.stringify(unavailable)).not.toContain('act:textbook:dorf');
+  });
+
+  it('fills a human title from resourceId instead of dropping the binding', () => {
+    const projected = projectAuthorityNodeResourceBindings({
+      nodeId: 'ctc:modeling-node',
+      resources: [
+        resource({
+          resourceId: 'act:audio:3-2',
+          resourceType: 'audio',
+          title: null,
+        }),
+      ],
+      bindings: [
+        binding({
+          bindingId: 'bind-audio',
+          resourceId: 'act:audio:3-2',
+          canonicalId: 'ctc:modeling-node',
+          role: 'EXPLAINS',
+        }),
+      ],
+    });
+    expect(humanTitleFromResourceId('act:audio:3-2')).toBe('3-2 音频');
+    expect(projected).toEqual(expect.objectContaining({
+      state: 'available',
+      items: [expect.objectContaining({ title: '3-2 音频' })],
+    }));
+  });
+
+  it('does not treat overlay vs course projection id as identity mismatch', () => {
+    const shard = loadNodeDetailShard('ctkg:v3e-object-a21bf9714ef096463309f7ef');
+    const coursePointer = teachingProjectionStore.readCurrentTeachingProjectionPointer(
+      teachingProjectionStore.resolveTeachingProjectionStorePaths(
+        join(process.cwd(), 'course-content/runtime/knowledge/projection'),
+      ),
+    );
+    expect(shard.envelope.teaching.projectionId).not.toBe(coursePointer?.projectionId);
+    const projected = attachActiveAuthorityResourceBindings(shard);
+    expect(projected.message).not.toBe('当前系统资源与所选对象身份不一致。');
+    expect(projected.state === 'available' || projected.state === 'empty').toBe(true);
   });
 
   it('keeps base detail usable when teaching identity is not matched', () => {

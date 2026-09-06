@@ -1314,6 +1314,7 @@ function toStudentConfigurationFulfillment(
   return {
     key: fulfillment.key,
     status: fulfillment.status,
+    source: fulfillment.source,
     effect: fulfillment.effect,
     message: fulfillment.message,
   };
@@ -1513,6 +1514,8 @@ function toStudentDeficit(deficit: AdaptiveLearningPathDeficit) {
     value: deficit.value,
     confidence: deficit.confidence,
     evidenceCount: deficit.evidenceCount,
+    // 降级态标注（如 competency-no-portrait-evidence）供展示层区分真实薄弱项与无画像证据。
+    reasonCode: deficit.reasonCode,
   };
 }
 

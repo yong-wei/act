@@ -1269,13 +1269,18 @@ struct MmgDerivatives {
     dr: f64,
 }
 
+/// `thruster`: 可选直接执行器输入（#1944 方案 A）——[surge N, sway N, yaw N·m]，
+/// 由 DP 四通道输出换算而来，与螺旋桨推力（rpm 路径）互斥使用；缺省 [0;3]
+/// 保持既有纯 rpm 行为。
 fn mmg_forces(
     state: MmgState,
     params: &Value,
     length: f64,
     draft: f64,
     disturbance: &Value,
+    disturbance_in_world: bool,
     rpm: f64,
+    thruster: [f64; 3],
 ) -> [f64; 3] {
     let speed = (state.u * state.u + state.v * state.v).sqrt().max(0.001);
     let vp = state.v / speed;
@@ -1325,10 +1330,24 @@ fn mmg_forces(
     let yr = -(1.0 - num(rudder, "tR", 0.4)) * normal * state.rudder.cos();
     let nr = -(x_r + num(rudder, "aH", 0.3) * length * 0.25) * normal * state.rudder.cos();
 
+    // 扰动默认按船体系直接合成；调用方声明世界系（#1944 review）时先旋入船体
+    // 坐标（与 practice_dp_control 前馈的世界系输入口径互补），力矩不变。
+    let (dfx, dfy) = {
+        let fx = num(disturbance, "forceX", 0.0);
+        let fy = num(disturbance, "forceY", 0.0);
+        if disturbance_in_world {
+            (
+                state.psi.cos() * fx + state.psi.sin() * fy,
+                -state.psi.sin() * fx + state.psi.cos() * fy,
+            )
+        } else {
+            (fx, fy)
+        }
+    };
     [
-        xh + xp + xr + num(disturbance, "forceX", 0.0),
-        yh + yr + num(disturbance, "forceY", 0.0),
-        nh + nr + num(disturbance, "momentN", 0.0),
+        xh + xp + xr + thruster[0] + dfx,
+        yh + yr + thruster[1] + dfy,
+        nh + nr + thruster[2] + num(disturbance, "momentN", 0.0),
     ]
 }
 
@@ -1338,9 +1357,12 @@ fn mmg_derivatives(
     length: f64,
     draft: f64,
     disturbance: &Value,
+    disturbance_in_world: bool,
     rpm: f64,
+    thruster: [f64; 3],
 ) -> MmgDerivatives {
-    let [x_force, y_force, n_force] = mmg_forces(state, params, length, draft, disturbance, rpm);
+    let [x_force, y_force, n_force] =
+        mmg_forces(state, params, length, draft, disturbance, disturbance_in_world, rpm, thruster);
     let mass = path_num(params, &["massInertia", "m"], 17_000_000.0);
     let mx = mass * path_num(params, &["massInertia", "mx"], 0.05);
     let my = mass * path_num(params, &["massInertia", "my"], 0.9);
@@ -1388,6 +1410,16 @@ fn compute_mmg3dof(request: &Value) -> Result<String, String> {
     let current_rudder = num(state_value, "rudderAngle", 0.0);
     let rudder = current_rudder + clamp(target_rudder - current_rudder, -max_change, max_change);
     let rpm = num(request, "propellerRPM", 80.0);
+    let disturbance_in_world = request
+        .get("disturbanceInWorld")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    // #1944：可选推力输入按 kN/kN·m 契约传入，这里唯一一次 ×1000 换算为 N。
+    let thruster = [
+        num(request, "surgeThrustKN", 0.0) * 1000.0,
+        num(request, "swayThrustKN", 0.0) * 1000.0,
+        num(request, "yawMomentKNm", 0.0) * 1000.0,
+    ];
     let base = MmgState {
         x: num(state_value, "x", 0.0),
         y: num(state_value, "y", 0.0),
@@ -1397,31 +1429,10 @@ fn compute_mmg3dof(request: &Value) -> Result<String, String> {
         r: num(state_value, "r", 0.0),
         rudder,
     };
-    let k1 = mmg_derivatives(base, params, length, draft, disturbance, rpm);
-    let k2 = mmg_derivatives(
-        add_mmg(base, k1, 0.5 * dt),
-        params,
-        length,
-        draft,
-        disturbance,
-        rpm,
-    );
-    let k3 = mmg_derivatives(
-        add_mmg(base, k2, 0.5 * dt),
-        params,
-        length,
-        draft,
-        disturbance,
-        rpm,
-    );
-    let k4 = mmg_derivatives(
-        add_mmg(base, k3, dt),
-        params,
-        length,
-        draft,
-        disturbance,
-        rpm,
-    );
+    let k1 = mmg_derivatives(base, params, length, draft, disturbance, disturbance_in_world, rpm, thruster);
+    let k2 = mmg_derivatives(add_mmg(base, k1, 0.5 * dt), params, length, draft, disturbance, disturbance_in_world, rpm, thruster);
+    let k3 = mmg_derivatives(add_mmg(base, k2, 0.5 * dt), params, length, draft, disturbance, disturbance_in_world, rpm, thruster);
+    let k4 = mmg_derivatives(add_mmg(base, k3, dt), params, length, draft, disturbance, disturbance_in_world, rpm, thruster);
     serde_json::to_string(&json!({
         "x": base.x + dt * (k1.dx + 2.0 * k2.dx + 2.0 * k3.dx + k4.dx) / 6.0,
         "y": base.y + dt * (k1.dy + 2.0 * k2.dy + 2.0 * k3.dy + k4.dy) / 6.0,
@@ -1439,6 +1450,9 @@ fn semisub_damping(u: f64, v: f64, r: f64) -> [f64; 3] {
     [-1.2e6 * u, -2.5e6 * v - 8.0e7 * r, -8.0e7 * v - 9.5e10 * r]
 }
 
+// 单位契约（#1943）：`thrust` 与 `env` 均为 SI 单位（N、N·m），调用方负责
+// kN→N 换算；内核不得再乘 1000（历史上调用侧已换算一次，内核再乘导致
+// 推力放大 1000 倍，默认 DP 开局即发散触发紧急解脱）。
 fn semisub_derivatives(
     _x: f64,
     _y: f64,
@@ -1454,9 +1468,9 @@ fn semisub_derivatives(
     let m22 = mass * 1.92;
     let m33 = 2.8e10 * 1.24;
     let [du_damp, dv_damp, dr_damp] = semisub_damping(u, v, r);
-    let u_dot = (thrust[0] * 1000.0 + env[0] + du_damp + m22 * v * r) / m11;
-    let v_dot = (thrust[1] * 1000.0 + env[1] + dv_damp - m11 * u * r) / m22;
-    let r_dot = (thrust[2] * 1000.0 + env[2] + dr_damp + (m11 - m22) * u * v) / m33;
+    let u_dot = (thrust[0] + env[0] + du_damp + m22 * v * r) / m11;
+    let v_dot = (thrust[1] + env[1] + dv_damp - m11 * u * r) / m22;
+    let r_dot = (thrust[2] + env[2] + dr_damp + (m11 - m22) * u * v) / m33;
     [
         u * psi.cos() - v * psi.sin(),
         u * psi.sin() + v * psi.cos(),

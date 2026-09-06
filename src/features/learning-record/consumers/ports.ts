@@ -29,7 +29,83 @@ import type {
   TeacherStudentEvidencePortResult,
 } from './types';
 
+// 每个事实的最终治理状态由其最大 sequence 的 transition 决定：
+// - REVOKE → 事实失效，不参与「较新有效事实」判定；
+// - CORRECT → 事实时间以修正载荷 transitionPayload.fact.startedAt 为准
+//   （与 reduceLearnerFactTransitions 的有效事实语义一致）；
+// - UPSERT → 沿用事实自身 startedAt。
+// 查询范围是全部未被最终 REVOKE 的事实：ingestion 先写 LearningFact、transition
+// 由画像 worker 异步补建，因此尚无 transition 的新事实仍视为有效。
+async function readLatestValidGovernedFactAt(
+  db: unknown,
+  userId: string,
+): Promise<{ available: boolean; at: string | null }> {
+  const transitions = (db as {
+    learnerFactTransition?: {
+      findMany?: (args: unknown) => Promise<Array<{
+        factId?: string | null;
+        operation?: string | null;
+        transitionPayload?: unknown;
+      }>>;
+    };
+  }).learnerFactTransition;
+  if (typeof transitions?.findMany !== 'function') return { available: false, at: null };
+  const rows = await transitions.findMany({
+    where: { userId },
+    orderBy: [{ factId: 'asc' }, { sequence: 'desc' }],
+    distinct: ['factId'],
+    select: { factId: true, operation: true, transitionPayload: true },
+  });
+  const correctedStartedAtByFactId = new Map<string, string>();
+  const revokedFactIds: string[] = [];
+  for (const row of rows) {
+    if (typeof row.factId !== 'string' || row.factId.length === 0) continue;
+    if (row.operation !== 'REVOKE') continue;
+    revokedFactIds.push(row.factId);
+  }
+  for (const row of rows) {
+    if (row.operation !== 'CORRECT') continue;
+    if (typeof row.factId !== 'string' || row.factId.length === 0) continue;
+    const payload = row.transitionPayload;
+    const fact = payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>).fact
+      : null;
+    const correctedStartedAt = fact && typeof fact === 'object' && !Array.isArray(fact)
+      ? (fact as Record<string, unknown>).startedAt
+      : null;
+    if (typeof correctedStartedAt === 'string' && correctedStartedAt.length > 0) {
+      correctedStartedAtByFactId.set(row.factId, correctedStartedAt);
+    }
+  }
+  const learningFact = (db as {
+    learningFact?: {
+      findMany?: (args: unknown) => Promise<Array<{ id?: string | null; startedAt?: Date | string | null }>>;
+    };
+  }).learningFact;
+  if (typeof learningFact?.findMany !== 'function') return { available: false, at: null };
+  const factRows = await learningFact.findMany({
+    where: {
+      userId,
+      ...(revokedFactIds.length > 0 ? { id: { notIn: revokedFactIds } } : {}),
+    },
+    select: { id: true, startedAt: true },
+  });
+  const toIso = (value: Date | string | null | undefined): string | null => {
+    if (value instanceof Date) return value.toISOString();
+    return typeof value === 'string' ? value : null;
+  };
+  let latest: string | null = null;
+  for (const row of factRows) {
+    if (typeof row.id !== 'string') continue;
+    const effectiveAt = correctedStartedAtByFactId.get(row.id) ?? toIso(row.startedAt);
+    if (effectiveAt && (latest === null || effectiveAt > latest)) latest = effectiveAt;
+  }
+  return { available: true, at: latest };
+}
+
 async function readLatestGovernedFactAt(db: unknown, userId: string): Promise<string | null> {
+  const viaTransitions = await readLatestValidGovernedFactAt(db, userId);
+  if (viaTransitions.available) return viaTransitions.at;
   const learningFact = (db as {
     learningFact?: {
       findFirst?: (args: unknown) => Promise<{ startedAt?: Date | string | null } | null>;

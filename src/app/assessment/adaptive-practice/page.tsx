@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { useKonlingCompanionReporter } from '@/features/ai/companion/use-konling-companion-reporter';
 import {
   adaptiveGenerationReadinessFromHttp,
   adaptivePracticeGoalLabel,
@@ -1576,6 +1577,7 @@ function takeStoredPathGenerationPanel(goalId: AdaptivePracticeGoalId | null): P
         ? parsed.resourcePreference.filter((item): item is AdaptivePathResourceKind =>
             generationResourceOptions.some((option) => option.id === item))
         : defaultPathGenerationPanel.resourcePreference,
+      resourcePreferenceTouched: parsed.resourcePreferenceTouched === true,
       naturalLanguageIntent: typeof parsed.naturalLanguageIntent === 'string'
         ? parsed.naturalLanguageIntent
         : '',
@@ -1982,6 +1984,9 @@ function getPathRecommendationProvenance(
     confidence,
     entries,
     personalizationNotes: getStringArray(provenance.personalizationNotes),
+    ...(provenance.personalizationState === 'portrait-unavailable'
+      ? { personalizationState: 'portrait-unavailable' as const }
+      : {}),
     evidenceReviewHref: '/profile/evidence',
     limitations: getStringArray(provenance.limitations),
     nextAction: typeof provenance.nextAction === 'string' ? provenance.nextAction : null,
@@ -2076,8 +2081,16 @@ function getPathOptionFallback(view: ControlCorrectionLearningCenterView | null)
 type PathConfigurationFulfillmentView = {
   key: string;
   status: 'applied' | 'unmet';
+  source?: string;
   effect: string;
   message: string;
+};
+
+const pathResourcePreferenceSourceLabels: Record<string, string> = {
+  request: '用户选择',
+  profile: '画像推断',
+  intent: '自然语言',
+  fallback: '系统默认',
 };
 
 function getPathConfigurationFulfillment(view: ControlCorrectionLearningCenterView | null): PathConfigurationFulfillmentView[] {
@@ -2088,6 +2101,7 @@ function getPathConfigurationFulfillment(view: ControlCorrectionLearningCenterVi
     .map((entry) => ({
       key: typeof entry.key === 'string' ? entry.key : 'configuration',
       status: entry.status === 'unmet' ? 'unmet' as const : 'applied' as const,
+      source: typeof entry.source === 'string' ? entry.source : undefined,
       effect: typeof entry.effect === 'string' ? entry.effect : '',
       message: typeof entry.message === 'string' ? entry.message : '',
     }))
@@ -3083,6 +3097,14 @@ export default function AdaptivePracticePage() {
   const sessionId = pathAssessmentSessionId ?? practiceSessionId;
   const sessionIdRef = useRef(sessionId);
   sessionIdRef.current = sessionId;
+
+  // 控灵主动陪伴布点（Issue #1966）：错题安慰 + 进步表扬；demo 模式与未登录不上报。
+  const { reportActivity: reportCompanionActivity } = useKonlingCompanionReporter({
+    enabled: authStatus === 'authenticated' && !isDemoMode,
+    pageKind: 'adaptive-practice',
+    pageRef: sessionId,
+    delivery: { courseId: 'adaptive-practice' },
+  });
 
   const [diagnostic, setDiagnostic] = useState<DiagnosticResponse | null>(null);
   const [questionState, setQuestionState] = useState<NextQuestionResponse | null>(null);
@@ -4145,6 +4167,7 @@ export default function AdaptivePracticePage() {
         resourcePreference: selected
           ? current.resourcePreference.filter((item) => item !== resource)
           : [...current.resourcePreference, resource],
+        resourcePreferenceTouched: true,
       };
     });
   }, []);
@@ -4271,7 +4294,9 @@ export default function AdaptivePracticePage() {
           routeIntent,
           timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes,
           difficultyRhythm: pathGenerationPanel.difficultyRhythm,
-          resourcePreference: pathGenerationPanel.resourcePreference,
+          resourcePreference: pathGenerationPanel.resourcePreferenceTouched
+            ? pathGenerationPanel.resourcePreference
+            : undefined,
           checkpointPreference: pathGenerationPanel.checkpointPreference,
           allowExternalResources: pathGenerationPanel.allowExternalResources,
           naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent,
@@ -5036,6 +5061,19 @@ export default function AdaptivePracticePage() {
       if (sessionIdRef.current !== requestedSessionId) return;
       setFeedback(data);
       setAttemptDiagnosisState('idle');
+      // 陪伴事件：错题安慰（气泡不显示知识点，知识点与治理资源随投递由服务端解析进会话）；
+      // 能力估计上升才算进步表扬。
+      if (!data.isCorrect) {
+        reportCompanionActivity('wrong-answer', {
+          knowledgePoints: Array.isArray(data.recommendedFocus)
+            ? data.recommendedFocus.slice(0, 5)
+            : [],
+          ...(data.durableAnswerId ? { answerId: data.durableAnswerId } : {}),
+        });
+      } else if (typeof data.estimatedAbility === 'number'
+        && data.estimatedAbility > questionState.estimatedAbility) {
+        reportCompanionActivity('progress-milestone');
+      }
       await syncAdaptiveAssessmentPathResult(data);
       await loadDiagnostic();
     } catch (submitError) {
@@ -5640,6 +5678,11 @@ export default function AdaptivePracticePage() {
                       );
                     })}
                   </div>
+                  {!pathGenerationPanel.resourcePreferenceTouched ? (
+                    <p className="mt-2 text-xs text-subtle" data-adaptive-path-resource-preference-default-hint="visible">
+                      以上为系统建议组合，尚未作为你的偏好提交；点击资源类型即按你的选择生成。
+                    </p>
+                  ) : null}
                 </fieldset>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -5988,6 +6031,9 @@ export default function AdaptivePracticePage() {
                     <p key={entry.key} className="leading-6 text-subtle">
                       <span className="font-medium text-foreground">{entry.status === 'applied' ? '已应用：' : '未满足：'}</span>
                       {entry.status === 'applied' ? entry.effect : entry.message}
+                      {entry.key === 'resource-preferences' && entry.source ? (
+                        <span>（偏好来源：{pathResourcePreferenceSourceLabels[entry.source] ?? entry.source}）</span>
+                      ) : null}
                     </p>
                   ))}
                   {pathBudgetLimitation.insufficient &&
@@ -6013,6 +6059,20 @@ export default function AdaptivePracticePage() {
               >
                 当前可用资源有限，推荐方案差异较小。
               </p>
+            ) : null}
+            {visiblePathOptions.some((option) =>
+              option.recommendationProvenance?.personalizationState === 'portrait-unavailable') ? (
+              <section
+                className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3"
+                role="status"
+                data-learning-path-personalization-state="portrait-unavailable"
+              >
+                <p className="text-sm font-medium text-foreground">当前无法个性化推荐</p>
+                <p className="mt-1 break-words text-xs leading-5 text-subtle">
+                  能力画像暂不可用（画像更新或证据收集中），本次候选路径按通用学习路线生成，
+                  不构成基于你当前能力状态的个性化判断；画像恢复后重新生成即可获得个性化推荐。
+                </p>
+              </section>
             ) : null}
             {pathAdjustmentSummary ? (
               <section

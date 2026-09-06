@@ -2,9 +2,7 @@
 
 ## Purpose
 Defines the Stage 1 adaptive learning path planner contract: deterministic rules plus graph search over learner state and ResourceNodes, explainable scoring, visualization payloads, and feedback/correction records without contextual bandit or reinforcement learning.
-
 ## Requirements
-
 ### Requirement: Path planner generates constrained explainable paths
 The system SHALL generate adaptive learning paths from learner state, the ResourceNode graph, registered LearningGoal strategy, teacher policy, planning constraints, ranked resource candidates, and bounded repair output where available. For Projection-bound formal paths, the planner MUST traverse only ACT Teaching Projection `ACT_TEACHING` prerequisites with `REQUIRED` strength for hard dependencies, exclude learner-mastered nodes, topologically order the remainder, and choose current accessible Teaching Projection resources. ActKG engineering relations and textbook/lesson order MAY be rationale only and MUST NOT become hard edges.
 
@@ -176,17 +174,24 @@ When multiple path styles are shown together, the system SHALL verify that they 
 - **AND** resource overlap SHALL stay below the configured threshold unless a low-resource fallback is returned.
 
 ### Requirement: Control-correction planner returns three path styles
-The path planner SHALL provide a directly comparable three-style path bundle for control-correction diagnosis when sufficient resources and evidence exist.
+The path planner SHALL provide a directly comparable three-style path bundle for control-correction diagnosis when sufficient resources and evidence exist. The number of serialized candidate options SHALL equal the goal's target option count (three) whenever a policy-family request is present, including starter injection and low-confidence fallback paths; the primary planning family SHALL NOT be appended as an additional candidate beyond the requested families.
 
 #### Scenario: Three-style bundle is generated
 - **WHEN** a student opens the control-correction path center from diagnosis or adaptive practice
 - **THEN** the system SHALL display available path styles with style id, policy family, target deficits, estimated effort, resource mix, terminal validation strategy, evidence basis, and limitations
+- **AND** the serialized option count SHALL equal three (`optionCount === 3`)
 - **AND** unavailable or insufficient path diversity SHALL be represented as fallback state rather than three cosmetic cards.
+
+#### Scenario: Starter injection keeps the option count fixed
+- **WHEN** the planner auto-injects starter policy families because the learner state is missing, confidence is low, or evidence count is at most one
+- **THEN** the candidate bundle SHALL contain exactly the requested starter families and the target option count (three) SHALL NOT be exceeded
+- **AND** the primary `rules-plus-graph-search` route SHALL NOT be appended as an extra candidate option.
 
 #### Scenario: Resources are insufficient
 - **WHEN** the planner cannot produce meaningfully distinct path options
 - **THEN** it SHALL return an explicit low-resource or low-confidence fallback
-- **AND** it SHALL NOT show three cosmetic variants with materially identical resources.
+- **AND** it SHALL NOT show three cosmetic variants with materially identical resources
+- **AND** it SHALL NOT compensate for unavailable diversity by adding a fourth route beyond the requested families.
 
 ### Requirement: Path choice writes back as preference evidence
 Student path selection and outcomes SHALL update governed preference and strategy evidence, and selection SHALL be visible without inflating mastery directly.
@@ -1057,3 +1062,43 @@ The adaptive path destination contract SHALL accept a `simulation` node when its
 - **THEN** `mainPath` SHALL be non-empty
 - **AND** it SHALL contain `simulation:control-correction-step-response-lab` and Arena terminal validation
 - **AND** the result SHALL come from a live planner run rather than a frozen 3-node / 48-minute snapshot
+
+### Requirement: Capability deficits require portrait evidence
+能力类目标缺陷 SHALL 由可用的画像维度证据支撑；画像不可用或维度证据缺失时，规划器 SHALL NOT 把能力目标伪造成 0 分缺陷并据此生成个性化主张。
+
+#### Scenario: Portrait unavailable yields honest no-evidence deficits
+- **WHEN** 主画像状态为 `UNAVAILABLE`（如 `migration-in-progress`）或能力维度无证据
+- **THEN** 规划器 SHALL 将能力类目标标注为「无画像证据」的降级状态
+- **AND** SHALL NOT 输出以 0 分能力缺陷为内容的个性化推荐依据
+- **AND** 候选路径 SHALL 呈现通用学习路线语义，不呈现与画像耦合的目标薄弱项主张。
+
+#### Scenario: Available portrait drives cited personalization
+- **WHEN** 主画像权威可读且包含能力维度或知识掌握证据
+- **THEN** 每个候选路径的 `targetDeficits` 或 `recommendationProvenance` SHALL 至少引用一个具体能力维度、知识缺口或学习证据
+- **AND** 推荐依据 SHALL 能解释画像中的问题与路径安排的对应关系
+- **AND** 不同画像数据 SHALL 产生与其一致的目标薄弱项差异。
+
+### Requirement: Resource preference resolution has explicit source priority
+路径生成的资源偏好 SHALL 按显式来源优先级解析：用户显式选择（request）→ 画像推断（profile）→ 自然语言意图（intent）→ 系统默认（system-default），且生成结果 SHALL 标明实际生效来源。
+
+#### Scenario: No explicit selection defers to portrait preference
+- **WHEN** 生成请求不携带资源偏好且 learner-state 资源偏好特征达到证据门槛
+- **THEN** 规划器 SHALL 使用画像推断的资源偏好
+- **AND** 生成结果 SHALL 标注偏好来源为画像推断
+- **AND** 对应资源类型在候选路径资源组合中的优先级 SHALL 可观察地提升。
+
+#### Scenario: Portrait unavailable falls through to system default
+- **WHEN** 生成请求不携带资源偏好且画像不可用或偏好特征未达门槛，且自然语言意图为空或未映射出资源类型
+- **THEN** 规划器 SHALL 使用注册 goal 的系统默认资源类型
+- **AND** 生成结果 SHALL 标注偏好来源为系统默认，SHALL NOT 将默认值呈现为用户或画像选择。
+
+#### Scenario: Explicit selection overrides portrait
+- **WHEN** 学生通过面板切换或 URL 参数显式选择资源类型后生成
+- **THEN** 显式选择 SHALL 覆盖画像偏好与系统默认
+- **AND** 生成结果 SHALL 标注偏好来源为用户选择。
+
+#### Scenario: Preference change alters path resource mix
+- **WHEN** 同一学生在画像偏好（如视频/讲义）与无偏好下落两种状态下分别生成候选路径
+- **THEN** 两组候选路径的资源组合 SHALL 存在与偏好对应的差异
+- **AND** 差异 SHALL 在推荐依据中可解释。
+

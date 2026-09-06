@@ -333,6 +333,8 @@ describe('knowledge graph interaction state stability', () => {
     expect(rendererSource).toContain('if (event.target !== canvas) return;');
     expect(rendererSource).toContain('if (!hitNode && !hitLink)');
     expect(rendererSource).toContain('freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode)');
+    expect(rendererSource).toContain('freezeKnowledgeGraphUnaffectedScope(graphNodes, new Set())');
+    expect(rendererSource).not.toContain('releaseKnowledgeGraphDragFrame');
     // #1739: bounded lifecycle wiring; behavior is proven by the real
     // d3 simulation in active-authority-force-runtime.test.ts.
     expect(rendererSource).toContain('cooldownTicks={forceLifecycle.cooldownTicks}');
@@ -365,6 +367,8 @@ describe('knowledge graph interaction state stability', () => {
     expect(canvasSource).not.toContain("controls.addEventListener('start', handleOrbitControlsStart)");
     expect(canvasSource).not.toContain("controls.removeEventListener('start', handleOrbitControlsStart)");
     expect(canvasSource).toContain('freezeKnowledgeGraphDragFrame(graphNodes, node as RuntimeKnowledgeGraphNode)');
+    expect(canvasSource).toContain('freezeKnowledgeGraphUnaffectedScope(graphNodes, new Set())');
+    expect(canvasSource).not.toContain('releaseKnowledgeGraphDragFrame');
     expect(canvasSource).toContain('cooldownTicks={forceLifecycle.cooldownTicks}');
     expect(canvasSource).toContain('committedGraphVersionRef.current !== graphVersion');
     expect(canvasSource).toContain('runtimePositionsByNodeIdRef.current.clear();');
@@ -373,21 +377,28 @@ describe('knowledge graph interaction state stability', () => {
     expect(canvasSource).not.toContain('}, [layoutState, nodes, links]);');
   });
 
-  it('registers interaction-state browser evidence in the commercial governance gate', () => {
+  it('reads interaction stability from the current product QA capture in the governance gate', () => {
     const governanceSource = readFileSync(
       path.join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'),
       'utf8'
     );
+    const captureSource = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'),
+      'utf8'
+    );
 
-    expect(governanceSource).toContain('KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH');
-    expect(governanceSource).toContain('artifacts/knowledge-graph-interaction-state-485/browser-evidence.json');
-    expect(governanceSource).toContain('validateKnowledgeGraphInteractionStateEvidence');
+    expect(governanceSource).not.toContain('KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH');
+    expect(governanceSource).not.toContain('artifacts/knowledge-graph-interaction-state-485/browser-evidence.json');
+    expect(governanceSource).not.toContain('validateKnowledgeGraphInteractionStateEvidence');
+    expect(governanceSource).toContain('interactionStabilityProblems');
+    expect(governanceSource).toContain('explicitRelayoutStabilityProblems');
     expect(governanceSource).toContain('pinnedLayoutSignature');
     expect(governanceSource).toContain('layoutVersion');
-    expect(governanceSource).toContain('currentRunBaseline');
-    expect(governanceSource).toContain("'set-focus-node'");
-    expect(governanceSource).toContain('currentRunInteractionHarness');
-    expect(governanceSource).toContain('preservedZAxisAnchorFor2DPin');
+    expect(captureSource).toContain('afterInspectorOpen');
+    expect(captureSource).toContain('afterInspectorClose');
+    expect(captureSource).toContain('beforeRelayout');
+    expect(captureSource).toContain('afterRelayout');
+    expect(captureSource).toContain('inspectorOpen: Boolean(inspector)');
   });
 
   it('keeps knowledge graph desktop tools in one compact local command system', () => {

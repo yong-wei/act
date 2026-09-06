@@ -138,17 +138,23 @@ The shared 2D and 3D Force Graph runtime SHALL render active Formula expressions
 - **AND** switching dimension SHALL not fetch detail, change formula identity or create a second graph node
 
 ### Requirement: Ordinary active nodes remain under live force ownership
-Ordinary domain and neighborhood nodes SHALL enter the shared Force Graph runtime as movable seeded nodes. Automatic layout code MUST NOT assign `fx`, `fy` or `fz`; fixed coordinates are reserved for governed root packing and explicit user pins.
+Ordinary domain and neighborhood nodes SHALL enter the shared Force Graph runtime as movable seeded nodes. Automatic layout code MUST NOT assign `fx`, `fy` or `fz` before the first accepted settlement milestone. After that milestone, visible nodes SHALL keep settled coordinates as pins until an explicit reflow, newly disclosed affected scope, or user unpin-all. User drag SHALL pin and move only the dragged node and MUST NOT release other nodes back to force ownership. Hover MUST NOT assign or clear force pins.
 
 #### Scenario: Domain overview settles
 - **WHEN** a bounded concept overview enters 2D or 3D
 - **THEN** force ticks SHALL move at least one unpinned node and separate collisions before settlement
 - **AND** the resulting coordinates SHALL remain within the configured time and viewport budgets
+- **AND** after the settlement milestone those visible nodes SHALL no longer drift
+
+#### Scenario: User drags one node
+- **WHEN** the user drags a settled node
+- **THEN** only that node SHALL move
+- **AND** every other visible node SHALL keep its settled coordinates
 
 #### Scenario: User pins and unpins a node
 - **WHEN** the user drags a node to a fixed location and later removes the pin
-- **THEN** only the explicit pin SHALL own fixed coordinates while active
-- **AND** unpinning SHALL return the node to force ownership without resetting unrelated nodes
+- **THEN** only the explicit pin SHALL own that node's free motion while active
+- **AND** unpinning SHALL return that node to force ownership without resetting unrelated nodes
 
 ### Requirement: Force reflow is bounded and behaviorally verified
 Reflow SHALL reheat the current bounded force scope, preserve user pins, settle under explicit tick/time budgets and update camera fit only after a valid layout milestone. Tests MUST verify movement and settlement and MUST NOT accept zero-tick source-string assertions as parity evidence.
@@ -183,4 +189,30 @@ The Force runtime migration SHALL remain incomplete until real 2D and 3D browser
 - **WHEN** component and unit tests pass but the integrated force trace is absent or failing
 - **THEN** migration completion SHALL be rejected
 - **AND** tasks SHALL not be marked complete from implementation inspection alone
+
+### Requirement: Retired Active SVG implementations are removed
+
+系统 SHALL 删除已无生产调用的 `active-authority-force-canvas.tsx`、`active-authority-root-canvas.tsx` 及其孤立颜色和几何辅助函数。Active 与 Legacy SHALL 继续使用现有共享 Force Graph 运行时及各自独立的数据和状态。
+
+#### Scenario: An old canvas remains referenced by tests or evidence
+
+- **WHEN** 旧画布只被其专属测试或 QA 文件列表引用
+- **THEN** 旧画布及失效测试 SHALL 一起删除，当前 QA 引用 SHALL 改为实际运行时
+- **AND** 系统 SHALL NOT 为满足旧测试而保留转发组件或旧几何函数
+
+#### Scenario: Current graph behavior is exercised
+
+- **WHEN** 用户在当前图谱切换 2D/3D、筛选、选择节点并打开或关闭详情
+- **THEN** 关系语义、选择状态、焦点恢复及 force 生命周期 SHALL 保持现有行为
+- **AND** Legacy 模式及其共享实现 SHALL 保留
+
+### Requirement: Current QA follows current rendering code
+
+当前图谱 QA SHALL 检查实际参与渲染的共享运行时。受影响的当前证据 SHALL 通过现有捕获流程更新，历史归档 SHALL 保留其原修订含义。
+
+#### Scenario: A retired source path is removed
+
+- **WHEN** 旧源码路径从当前 QA 捕获与校验脚本移除
+- **THEN** 当前检查 SHALL 覆盖现役运行时并通过相关浏览器回归
+- **AND** 旧路径的存在性或旧实现源码字符串 SHALL NOT 作为当前产品正确性的条件
 

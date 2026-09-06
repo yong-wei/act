@@ -1,6 +1,14 @@
 import { type Prisma } from '@prisma/client';
 
 import { hasConsistentFrozenAssignmentSubmissionLineage } from '@/lib/assignments/frozen-submission-lineage';
+import { readLatestValidNativePortraitV2Snapshots } from '@/lib/data-governance/portrait-v2-model';
+import {
+  computeClassDiagnosisMetrics,
+  computeMemberSetFingerprint,
+  DIAGNOSIS_METRIC_COMPUTATION_VERSION,
+  DIAGNOSIS_METRIC_SCHEMA_VERSION,
+  parseGovernedDiagnosisInput,
+} from '@/lib/diagnosis-metrics';
 import { prisma } from '@/lib/prisma';
 import { CURRENT_RISK_FLAG_TYPES } from '@/lib/risk-scanner';
 import { z } from 'zod';
@@ -194,6 +202,9 @@ export interface DiagnosisPersistenceDb {
     create(args: Record<string, unknown>): Promise<unknown>;
     findMany(args: Record<string, unknown>): Promise<DiagnosisReportReadModel[]>;
   };
+  studentPortraitV2Snapshot?: {
+    findMany(args: Record<string, unknown>): Promise<unknown[]>;
+  };
 }
 
 export class DiagnosisReportScopeError extends Error {
@@ -207,7 +218,7 @@ export class DiagnosisReportScopeError extends Error {
 }
 
 export async function assertTeacherClassScope(
-  db: DiagnosisPersistenceDb,
+  db: Pick<DiagnosisPersistenceDb, 'class'> & Partial<Pick<DiagnosisPersistenceDb, 'studentProfile'>>,
   input: {
     teacherId: string;
     classId: string;
@@ -227,6 +238,9 @@ export async function assertTeacherClassScope(
     throw new DiagnosisReportScopeError(409, 'diagnosis-class-inactive');
   }
   if (input.targetStudentId) {
+    if (!db.studentProfile) {
+      throw new DiagnosisReportScopeError(403, 'diagnosis-student-not-in-class');
+    }
     const member = await db.studentProfile.findFirst({
       where: {
         userId: input.targetStudentId,
@@ -466,6 +480,60 @@ async function assertEvidenceScope(
   }
 }
 
+/**
+ * 班级诊断报告指标快照的嵌套 create 数据（Issue #1963）。指标只来自任务
+ * 冻结的 governed input 与 evidenceCutoff 内的 native portrait v2 快照，
+ * 与报告文字同边界写入；student scope 不产生快照。
+ */
+async function buildClassDiagnosisMetricSnapshotCreate(
+  db: DiagnosisPersistenceDb,
+  input: {
+    classId: string;
+    evidenceCutoff: Date;
+    governedInput: unknown;
+  },
+) {
+  if (input.governedInput == null) {
+    throw new DiagnosisReportScopeError(400, 'diagnosis-metrics-governed-input-required');
+  }
+  let governed;
+  try {
+    governed = parseGovernedDiagnosisInput(input.governedInput);
+  } catch {
+    throw new DiagnosisReportScopeError(400, 'diagnosis-metrics-governed-input-invalid');
+  }
+  if (governed.classId !== input.classId) {
+    throw new DiagnosisReportScopeError(400, 'diagnosis-metrics-governed-input-class-mismatch');
+  }
+  const portraits = await readLatestValidNativePortraitV2Snapshots(db, governed.studentIds, 'reviewer', {
+    now: input.evidenceCutoff,
+    snapshotAtLte: input.evidenceCutoff,
+  });
+  const dimensionsByUser = new Map(
+    [...portraits.entries()].map(([userId, payload]) => [
+      userId,
+      payload.dimensions.map((dimension) => ({
+        id: dimension.id,
+        score: dimension.score,
+        confidence: dimension.confidence,
+      })),
+    ]),
+  );
+  return {
+    schemaVersion: DIAGNOSIS_METRIC_SCHEMA_VERSION,
+    computationVersion: DIAGNOSIS_METRIC_COMPUTATION_VERSION,
+    scopeType: 'class',
+    scopeId: input.classId,
+    memberSetFingerprint: computeMemberSetFingerprint(governed.studentIds),
+    evidenceCutoff: input.evidenceCutoff,
+    metrics: computeClassDiagnosisMetrics({
+      memberUserIds: governed.studentIds,
+      governed,
+      portraits: dimensionsByUser,
+    }),
+  };
+}
+
 export async function persistDiagnosisReport(
   params: {
     teacherId: string;
@@ -480,6 +548,8 @@ export async function persistDiagnosisReport(
     previousReportId?: string | null;
     inputSummary?: unknown | null;
     inputDigest?: string | null;
+    /** 任务冻结的受治理输入；class scope 持久化必须携带，用于同边界冻结指标快照。 */
+    governedInput?: unknown | null;
   },
   db: DiagnosisPersistenceDb = prisma as unknown as DiagnosisPersistenceDb,
 ) {
@@ -518,6 +588,13 @@ export async function persistDiagnosisReport(
 
   const scopeType = params.targetStudentId ? 'student' : 'class';
   const scopeId = params.targetStudentId ?? params.classId;
+  const metricSnapshotCreate = scopeType === 'class'
+    ? await buildClassDiagnosisMetricSnapshotCreate(db, {
+        classId: params.classId,
+        evidenceCutoff,
+        governedInput: params.governedInput ?? null,
+      })
+    : undefined;
   return db.diagnosisReport.create({
     data: {
       scopeType,
@@ -536,6 +613,7 @@ export async function persistDiagnosisReport(
       inputSummary: params.inputSummary ?? undefined,
       inputDigest: params.inputDigest ?? null,
       generationJobId: params.generationJobId ?? null,
+      ...(metricSnapshotCreate ? { metricSnapshot: { create: metricSnapshotCreate } } : {}),
     },
   });
 }
@@ -586,5 +664,78 @@ export async function readDiagnosisReports(
     const parsed = parseStoredDiagnosisReportBody(report.reportBody);
     if (!parsed.success) throw parsed.error;
     return { ...report, reportBody: parsed.data };
+  });
+}
+
+export interface DiagnosisMetricSnapshotRow {
+  id: string;
+  schemaVersion: string;
+  computationVersion: string;
+  scopeType: string;
+  scopeId: string;
+  memberSetFingerprint: string;
+  evidenceCutoff: Date;
+  metrics: unknown;
+  generatedAt: Date;
+}
+
+export interface DiagnosisEvolutionReportRow {
+  id: string;
+  scopeType: 'class';
+  scopeId: string;
+  evidenceCutoff: Date;
+  generatedAt: Date;
+  metricSnapshot: DiagnosisMetricSnapshotRow | null;
+}
+
+/** 演变读取的窄 db 视图：class 授权 + 最近 N 次同 scope 报告及其快照。 */
+export interface DiagnosisEvolutionReadDb {
+  class: DiagnosisPersistenceDb['class'];
+  diagnosisReport: {
+    findMany(args: Record<string, unknown>): Promise<DiagnosisEvolutionReportRow[]>;
+  };
+}
+
+export async function readDiagnosisReportEvolution(
+  params: {
+    teacherId: string;
+    classId: string;
+    limit?: number;
+  },
+  db: DiagnosisEvolutionReadDb = prisma as unknown as DiagnosisEvolutionReadDb,
+): Promise<DiagnosisEvolutionReportRow[]> {
+  await assertTeacherClassScope(db, {
+    teacherId: params.teacherId,
+    classId: params.classId,
+  });
+  const limit = Math.min(Math.max(params.limit ?? 6, 1), 6);
+  return db.diagnosisReport.findMany({
+    where: {
+      classId: params.classId,
+      scopeType: 'class',
+      targetUserId: null,
+    },
+    orderBy: { generatedAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      scopeType: true,
+      scopeId: true,
+      evidenceCutoff: true,
+      generatedAt: true,
+      metricSnapshot: {
+        select: {
+          id: true,
+          schemaVersion: true,
+          computationVersion: true,
+          scopeType: true,
+          scopeId: true,
+          memberSetFingerprint: true,
+          evidenceCutoff: true,
+          metrics: true,
+          generatedAt: true,
+        },
+      },
+    },
   });
 }

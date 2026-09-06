@@ -1,6 +1,0 @@
-- [ ] 1.1 在 auth-redirect 模块新增共享 helper：给定当前路径（含查询串）生成 `/login?callbackUrl=<encoded>` 目标，仅接受站内路径
-- [ ] 1.2 迁移 (main)/teacher/admin/classroom/assessment 路由组及 smart-prep 等全部裸 `redirect('/login')` 页面调用点（约 28 处）到 helper
-- [ ] 1.3 更新 `platform-ui-contracts.test.ts` 等既有测试中的裸 `/login` 断言
-- [ ] 1.4 新增契约测试：未登录访问受保护页（含带查询串的路径）时重定向目标携带正确编码的 callbackUrl；登录成功后回跳原路径
-- [ ] 1.5 明确显式丢弃目标的入口（角色驾驶舱兜底）保持无参跳转并注释说明
-- [ ] 1.6 typecheck、相关单元/契约测试通过

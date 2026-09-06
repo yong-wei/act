@@ -1,14 +1,15 @@
 /**
- * 知识问答公平基线实验 live 入口（Issue #1900）。
+ * 知识问答公平基线实验 live 入口（Issue #1900；#1952 增 --bank 分层题库）。
  *
  * 显式 opt-in：必须设置 KONLING_FAIR_EXPERIMENT_LIVE=1 并配置 AI 服务。
  * 三臂共用同一模型与采样参数；回答快照逐条原子落盘、断点续跑、
- * fail closed。盲审阶段复用 #1820 盲审 judge。
+ * fail closed。--bank v1|v2（默认 v2）：v1 复用冻结的二元盲审 judge；
+ * v2 使用分级 rubric（konling-blind-audit-graded.v2 / rubric-graded.v2）。
  *
  * 用法：
  *   KONLING_FAIR_EXPERIMENT_LIVE=1 npx tsx --import ./scripts/konling-blind-audit/server-only-shim.mjs \
  *     scripts/konling-fair-experiment/run-live.ts --run-id fair-240-round1 \
- *     [--seed 20260903] [--temperature 0.2] [--max-output-tokens 2048]
+ *     [--bank v1|v2] [--seed 20260903] [--temperature 0.2] [--max-output-tokens 2048]
  */
 
 import { generateText } from 'ai';
@@ -17,14 +18,17 @@ import {
   getConfiguredAIModel,
   getConfiguredAIProviderBinding,
   isConfiguredAIServiceAvailable,
-} from '@/lib/ai-client';
+} from '@/lib/ai/provider-runtime';
 import {
   KONLING_FAIR_EXPERIMENT_BANK_V1,
+  KONLING_FAIR_EXPERIMENT_BANK_V2,
+  KONLING_FAIR_EXPERIMENT_GRADED_AUDIT_SYSTEM_PROMPT,
+  parseKonlingFairExperimentGradedVerdict,
   parseKonlingFairExperimentJudgeVerdict,
   runKonlingFairExperiment,
   type KonlingFairExperimentErrorCode,
 } from '@/lib/konling-fair-experiment';
-import type { KonlingBlindAuditErrorCode } from '@/lib/konling-blind-audit';
+import type { KonlingBlindAuditErrorCode, KonlingBlindAuditItem } from '@/lib/konling-blind-audit';
 
 import { defaultRunId, gitRevision, parseCliFlags } from '../konling-blind-audit/cli';
 
@@ -54,8 +58,14 @@ async function main() {
     return;
   }
   const { values } = parseCliFlags(process.argv.slice(2), [
-    'run-id', 'model', 'seed', 'temperature', 'top-p', 'max-output-tokens',
+    'run-id', 'model', 'seed', 'temperature', 'top-p', 'max-output-tokens', 'bank',
   ]);
+  const bankSelection = values.bank ?? 'v2';
+  if (bankSelection !== 'v1' && bankSelection !== 'v2') {
+    console.error('未知题库版本；可用值：v1, v2');
+    process.exitCode = 1;
+    return;
+  }
   const runId = values['run-id'] ?? defaultRunId('fair-live');
   const model = await getConfiguredAIModel(values.model);
   const binding = await getConfiguredAIProviderBinding(values.model);
@@ -70,7 +80,9 @@ async function main() {
   const summary = await runKonlingFairExperiment({
     root: process.cwd(),
     runId,
-    bank: KONLING_FAIR_EXPERIMENT_BANK_V1,
+    bank: bankSelection === 'v1'
+      ? KONLING_FAIR_EXPERIMENT_BANK_V1
+      : KONLING_FAIR_EXPERIMENT_BANK_V2,
     config: {
       model: binding.model,
       provider: binding.provider,
@@ -83,13 +95,19 @@ async function main() {
       gitRevision: revision,
       scorerRevision: revision,
       bootstrapIterations: 10_000,
-      audit: {
-        enabled: true,
-        promptVersion: 'konling-blind-audit.v1',
-        scoreVersion: 'rubric.v1',
-      },
+      audit: bankSelection === 'v2'
+        ? {
+          enabled: true,
+          promptVersion: 'konling-blind-audit-graded.v2',
+          scoreVersion: 'rubric-graded.v2',
+        }
+        : {
+          enabled: true,
+          promptVersion: 'konling-blind-audit.v1',
+          scoreVersion: 'rubric.v1',
+        },
     },
-    calibers: ['structure-alias.v1'],
+    calibers: ['structure-alias.v2'],
     generateProvider: async (task) => {
       const started = Date.now();
       try {
@@ -106,31 +124,55 @@ async function main() {
         if (!response.text.trim()) {
           return { ok: false, error: { code: 'parse-failure' as KonlingFairExperimentErrorCode, message: 'empty answer' } };
         }
+        const citations = task.arm === 'full-feature'
+          ? undefined
+          : [];
         return {
           ok: true,
-          result: { answer: response.text, elapsedMs: Date.now() - started },
+          // #1951：plain/enhanced 臂无引用功能，空数组是真实快照；
+          // full-feature 臂 live 管线拿不到 citationContext，不写 citations
+          // 字段（缺字段=不可得），聚合进入 citation-audit incomplete，
+          // 待接入真实 citation 冻结前不发布看似有效的零值引用指标
+          // （#1992 review P1）。
+          result: { answer: response.text, ...(citations ? { citations } : {}), elapsedMs: Date.now() - started },
         };
       } catch (error) {
         return { ok: false, error: { code: classifyProviderError(error), message: error instanceof Error ? error.message : String(error) } };
       }
     },
-    auditProvider: async (item) => {
+    auditProvider: async (item: KonlingBlindAuditItem) => {
       const started = Date.now();
+      const graded = bankSelection === 'v2';
       try {
         const response = await generateText({
           model,
-          system: BLIND_AUDIT_SYSTEM_PROMPT,
+          system: graded ? KONLING_FAIR_EXPERIMENT_GRADED_AUDIT_SYSTEM_PROMPT : BLIND_AUDIT_SYSTEM_PROMPT,
           prompt: [
             `问题：${item.question}`,
             `被审回答（唯一评审对象，参考要点仅作对照）：${item.candidateAnswer}`,
             `参考要点：${item.referenceAnswer}`,
             `意图类型：${item.intent}`,
-            '请针对被审回答的引用支撑、推导正确性与讲解完整性给出盲审判定 JSON。',
+            graded
+              ? '请按分级评分规则输出五子分与整体分级 JSON。'
+              : '请针对被审回答的引用支撑、推导正确性与讲解完整性给出盲审判定 JSON。',
           ].join('\n'),
           temperature: 0,
-          maxOutputTokens: 512,
+          maxOutputTokens: graded ? 768 : 512,
           abortSignal: AbortSignal.timeout(120_000),
         });
+        if (graded) {
+          const verdict = parseKonlingFairExperimentGradedVerdict(response.text);
+          if (!verdict) {
+            return {
+              ok: false,
+              error: { code: 'parse-failure' as KonlingBlindAuditErrorCode, message: `unparseable or invalid graded verdict: ${response.text.slice(0, 200)}` },
+            };
+          }
+          return {
+            ok: true,
+            result: { ...verdict, elapsedMs: Date.now() - started },
+          };
+        }
         const verdict = parseKonlingFairExperimentJudgeVerdict(response.text);
         if (!verdict) {
           return {

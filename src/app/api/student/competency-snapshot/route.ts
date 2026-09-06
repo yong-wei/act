@@ -12,9 +12,11 @@ import {
 import { getServerAuthSession } from '@/lib/auth';
 import type { CumulativePortraitReadModel } from '@/lib/data-governance/cumulative-portrait-read-model';
 import { summarizePortraitV2 } from '@/lib/data-governance/portrait-v2-consumer';
+import type { PortraitV2ProjectedPayload } from '@/lib/data-governance/portrait-v2-model';
 import type {
   RoleBasedLearningDiagnosis,
   RoleBasedLearningDiagnosisClaim,
+  RoleBasedLearningDiagnosisEvidenceRef,
 } from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
@@ -94,7 +96,7 @@ export async function GET(request: NextRequest) {
       evidenceSummary: buildSafeEvidenceSummary(state),
       riskFlags,
       recommendations: buildRecommendations(state),
-      diagnosis: buildCumulativeDiagnosis(state),
+      diagnosis: withCumulativeStaleness(buildCumulativeDiagnosis(state), labeledCurrent, evidence.status),
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
@@ -172,6 +174,25 @@ function buildRecommendations(state: CumulativePortraitReadModel) {
   return recommendations;
 }
 
+/** 累计画像陈旧时（之后有更新的学习证据）诊断继承显式限制，不伪装就绪（Issue #2010）。 */
+function withCumulativeStaleness(
+  diagnosis: RoleBasedLearningDiagnosis | null,
+  labeledCurrent: boolean,
+  portStatus: string,
+): RoleBasedLearningDiagnosis | null {
+  if (!diagnosis || labeledCurrent || portStatus !== 'stale') return diagnosis;
+  return {
+    ...diagnosis,
+    limitations: [
+      ...diagnosis.limitations,
+      {
+        reason: 'stale-evidence' as const,
+        detail: '累计画像之后有更新的学习证据，诊断结论待重新聚合。',
+      },
+    ],
+  };
+}
+
 function buildCumulativeDiagnosis(
   state: CumulativePortraitReadModel,
 ): RoleBasedLearningDiagnosis | null {
@@ -203,7 +224,12 @@ function buildCumulativeDiagnosis(
       rootCause: evidenceCount === 0
         ? '该维度尚无合格累计证据。'
         : '该结论来自当前规范累计画像。',
-      evidenceRefs: [],
+      // 学生安全的证据引用（Issue #2010）：来自同一受治理累计画像读模型的
+      // 维度级摘要——只有条数、截止与固定入口，不投影原始答案、事件载荷
+      // 或 sourceLineage 引用值。
+      evidenceRefs: evidenceCount > 0
+        ? [buildCumulativeEvidenceRef(dimension, confidenceState)]
+        : [],
       sourceCoverage: {
         LearningFact: evidenceCount > 0 ? 'available' : 'missing',
       },
@@ -255,6 +281,44 @@ function buildCumulativeDiagnosis(
       ordinaryViews: 'redacted-summaries-only',
     },
   };
+}
+
+function buildCumulativeEvidenceRef(
+  dimension: PortraitV2ProjectedPayload['dimensions'][number],
+  confidenceState: 'high' | 'medium' | 'low' | 'none',
+): RoleBasedLearningDiagnosisEvidenceRef {
+  const chunkId = `cumulative-portrait:${dimension.id}`;
+  const asOf = dimension.freshness.asOf
+    ? new Date(dimension.freshness.asOf).toLocaleDateString('zh-CN')
+    : '未知';
+  const displayTitle = `${dimension.label}累计证据摘要`;
+  const capsule = `累计 ${dimension.evidenceSummary.totalCount} 条合格学习证据，证据截至 ${asOf}。`;
+  return {
+    chunkId,
+    sourceType: 'diagnosis',
+    displayTitle,
+    displayHref: '/profile/evidence',
+    confidence: confidenceState,
+    capsule,
+    citationChip: {
+      chunkId,
+      displayTitle,
+      displayHref: '/profile/evidence',
+      sourceType: 'diagnosis',
+      authorityLevel: 'learner-evidence',
+      confidence: confidenceState,
+      freshnessBucket: toCitationFreshnessBucket(dimension.freshness.state),
+      privacyVisibility: 'redacted',
+      limitationState: null,
+    },
+  };
+}
+
+function toCitationFreshnessBucket(state: 'current' | 'partial' | 'stale' | 'missing') {
+  if (state === 'current') return 'current' as const;
+  if (state === 'partial') return 'recent' as const;
+  if (state === 'stale') return 'stale' as const;
+  return 'expired' as const;
 }
 
 function unavailablePercentile() {

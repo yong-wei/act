@@ -32,6 +32,28 @@ export interface KonlingFairExperimentPromptContext {
   user: UserProfile;
 }
 
+/**
+ * 分级盲审系统提示词（#1952，promptVersion konling-blind-audit-graded.v2，
+ * scoreVersion rubric-graded.v2）：三级 verdict + 五子分，每个维度配一句
+ * 操作性定义，降低子分主观性；输出契约与
+ * parseKonlingFairExperimentGradedVerdict 严格对齐。
+ */
+export const KONLING_FAIR_EXPERIMENT_GRADED_AUDIT_SYSTEM_PROMPT = [
+  '你是自动控制课程知识问答的独立分级盲审评委。',
+  '对给定问题与被审回答（唯一评审对象），先按五维度各打 0-1 分，再整体分级：',
+  '- accuracy：事实与推导正确性；题面含错误前提或冲突证据而回答未识别时大幅扣分。',
+  '- evidenceFaithfulness：对参考材料与证据的忠实度；捏造、歪曲或过度引申来源即低分。',
+  '- pedagogy：对目标学习者的讲解有效性；结论清晰、步骤可循、类比与边界说明恰当。',
+  '- structureCompliance：是否遵循该意图要求的章节结构与篇幅。',
+  '- traceCoverage：关键推理步骤与结论出处的覆盖完整度；跳步或无出处的关键断言扣分。',
+  '整体分级：correct=完全正确；minor-flaw=存在轻微缺陷但不影响结论成立；',
+  'major-error=重大错误（错误前提未处置、关键推导错误、结论不成立或捏造证据）。',
+  'ruleScore 为 0-1 总分，必须与五子分和分级一致。',
+  '只输出 JSON：{"verdict":"correct"|"minor-flaw"|"major-error","ruleScore":0-1,',
+  '"subscores":{"accuracy":0-1,"evidenceFaithfulness":0-1,"pedagogy":0-1,',
+  '"structureCompliance":0-1,"traceCoverage":0-1},"notes":"简要理由"}',
+].join('\n');
+
 export function buildKonlingFairExperimentPromptContext(): KonlingFairExperimentPromptContext {
   return {
     page: {

@@ -171,3 +171,35 @@ The adaptive path center SHALL satisfy student entry-surface quality gates as a 
 - **WHEN** a student opens `/assessment/adaptive-practice`
 - **THEN** the first viewport SHALL show a usable learning-path task, current learning context where available, and at most one dominant next action on mobile
 - **AND** it SHALL preserve adjacent learning navigation without exposing operations data center or engineering diagnostics.
+
+### Requirement: 登录表单必填校验使用平台中文文案
+
+登录表单的必填校验 SHALL 由平台逻辑执行并展示统一风格的中文提示，MUST NOT 依赖浏览器原生校验气泡（其文案语言不受平台控制）。校验提示 SHALL 具备可访问语义。
+
+#### Scenario: 空提交显示中文必填提示
+
+- **WHEN** 用户在登录页不填任何字段直接提交
+- **THEN** 学号与密码字段分别显示中文必填提示
+- **AND** 不出现浏览器原生英文校验气泡，也不发起登录请求
+
+#### Scenario: 单字段为空提示对应字段
+
+- **WHEN** 用户只填写学号、密码留空并提交
+- **THEN** 仅密码字段显示中文必填提示
+
+### Requirement: 知识图谱未登录态提供单一语义登录引导
+
+未登录访问知识图谱页面时，图谱工作区 SHALL 展示登录引导态：明确说明需要登录，并提供携带原始路径回调参数的登录入口。该状态 MUST NOT 同时渲染「图谱不可用」类矛盾文案；非鉴权类错误 MUST NOT 渲染登录引导。
+
+#### Scenario: 未登录看到登录引导而非矛盾提示
+
+- **WHEN** 未登录用户打开 `/knowledge`
+- **THEN** 显示需要登录的说明与「前往登录」入口（携带 `callbackUrl`）
+- **AND** 不出现「当前知识图谱不可用」或「未请求另一套图谱数据」文案
+
+#### Scenario: 非鉴权错误不显示登录引导
+
+- **WHEN** 已登录用户的图谱数据加载失败
+- **THEN** 显示既有重试与不可用说明
+- **AND** 不出现登录引导文案
+
