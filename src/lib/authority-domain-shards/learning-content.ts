@@ -95,8 +95,13 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | null {
-  if (!existsSync(/*turbopackIgnore: true*/ paths.manifestPath)) return null;
+type LoadedLearningContentManifest =
+  | { status: 'missing' }
+  | { status: 'invalid' }
+  | { status: 'ready'; manifest: AuthorityLearningContentManifest };
+
+function loadLearningContentManifest(paths: RuntimePaths): LoadedLearningContentManifest {
+  if (!existsSync(/*turbopackIgnore: true*/ paths.manifestPath)) return { status: 'missing' };
   try {
     const parsed = JSON.parse(readFileSync(/*turbopackIgnore: true*/ paths.manifestPath, 'utf8')) as Partial<AuthorityLearningContentManifest>;
     if (
@@ -106,7 +111,7 @@ function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | n
       || !isNonEmptyString(parsed.authoritySnapshotId)
       || !isSha256(parsed.authoritySnapshotHash)
       || !Array.isArray(parsed.nodes)
-    ) return null;
+    ) return { status: 'invalid' };
     const nodes = parsed.nodes.filter((node): node is AuthorityLearningContentManifest['nodes'][number] => (
       Boolean(node)
       && typeof node.canonicalId === 'string'
@@ -120,20 +125,28 @@ function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | n
       nodes.length !== parsed.nodes.length
       || new Set(nodes.map((node) => node.canonicalId)).size !== nodes.length
       || new Set(nodes.map((node) => node.safeId)).size !== nodes.length
-    ) return null;
+    ) return { status: 'invalid' };
     return {
-      contract: LEARNING_CONTENT_MANIFEST_CONTRACT,
-      authorityReleaseId: parsed.authorityReleaseId,
-      authorityReleaseSetId: parsed.authorityReleaseSetId,
-      authoritySnapshotId: parsed.authoritySnapshotId,
-      authoritySnapshotHash: parsed.authoritySnapshotHash,
-      teachingProjectionId: isNonEmptyString(parsed.teachingProjectionId) ? parsed.teachingProjectionId : undefined,
-      teachingProjectionHash: isSha256(parsed.teachingProjectionHash) ? parsed.teachingProjectionHash : undefined,
-      nodes,
+      status: 'ready',
+      manifest: {
+        contract: LEARNING_CONTENT_MANIFEST_CONTRACT,
+        authorityReleaseId: parsed.authorityReleaseId,
+        authorityReleaseSetId: parsed.authorityReleaseSetId,
+        authoritySnapshotId: parsed.authoritySnapshotId,
+        authoritySnapshotHash: parsed.authoritySnapshotHash,
+        teachingProjectionId: isNonEmptyString(parsed.teachingProjectionId) ? parsed.teachingProjectionId : undefined,
+        teachingProjectionHash: isSha256(parsed.teachingProjectionHash) ? parsed.teachingProjectionHash : undefined,
+        nodes,
+      },
     };
   } catch {
-    return null;
+    return { status: 'invalid' };
   }
+}
+
+function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | null {
+  const loaded = loadLearningContentManifest(paths);
+  return loaded.status === 'ready' ? loaded.manifest : null;
 }
 
 function stripCardFrontmatter(value: string): string | null {
@@ -462,7 +475,9 @@ function resolvePublishedInfographBytes(
   const repoRoot = process.cwd();
   const bindingHash = contentHashFromSourcePath(options.sourcePath);
   const paths = runtimePaths(repoRoot);
-  const manifest = readManifest(paths);
+  const loaded = loadLearningContentManifest(paths);
+  if (loaded.status === 'invalid') return null;
+  const manifest = loaded.status === 'ready' ? loaded.manifest : null;
   const envelope = options.envelope
     ?? tryActiveEnvelope(options.identityRepoRoot ?? repoRoot);
   const listed = manifest?.nodes.find((node) => node.safeId === token);

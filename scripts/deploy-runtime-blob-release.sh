@@ -39,6 +39,7 @@ coordinated_runtime_authorization=""
 coordinated_runtime_binding=""
 formal_resource_envelope_hash=""
 stage_only=0
+explicit_app_revision=""
 publishing_identity_started=0
 publishing_generation=""
 resuming_published_release=0
@@ -59,6 +60,7 @@ while [[ $# -gt 0 ]]; do
     --coordinated-runtime-binding) coordinated_runtime_binding="$2"; shift 2 ;;
     --formal-resource-envelope-hash) formal_resource_envelope_hash="$2"; shift 2 ;;
     --stage-only) stage_only=1; shift ;;
+    --app-revision) explicit_app_revision="$2"; shift 2 ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -171,7 +173,17 @@ assert_teaching_projection_against_deployed_app() {
     exit 1
   }
   local deployed_app_revision
-  deployed_app_revision="$(read_deployed_app_revision)"
+  if [[ -n "${explicit_app_revision}" ]]; then
+    deployed_app_revision="$(printf '%s' "$explicit_app_revision" | tr -d '[:space:]')"
+  elif [[ -n "${ACT_RUNTIME_TARGET_APP_REVISION:-}" ]]; then
+    deployed_app_revision="$(printf '%s' "$ACT_RUNTIME_TARGET_APP_REVISION" | tr -d '[:space:]')"
+  else
+    deployed_app_revision="$(read_deployed_app_revision)"
+  fi
+  [[ "$deployed_app_revision" =~ ^[a-f0-9]{40}$ ]] || {
+    echo "ERROR: target application revision is invalid" >&2
+    exit 1
+  }
   npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts" \
     --repo-root "$ROOT_DIR" \
     --source-revision "$candidate_source_revision" \

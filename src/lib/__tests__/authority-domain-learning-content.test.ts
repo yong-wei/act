@@ -291,8 +291,20 @@ describe('Authority learning-content delivery', () => {
     });
   });
 
-  it('does not fall back to live teaching for a v2-listed token when the manifest is unsealed', () => {
+  it('does not fall back to live teaching when a v2 entry exists but the manifest is unsealed', () => {
     withAlignedRuntime(() => {
+      const token = 'ctc_modeling-865eb1c8824e157c2f05a903';
+      const bytes = readFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, `${token}.png`));
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        identityRepoRoot: REPO_ROOT,
+        liveInfographicTokens: new Map([[token, sha256(bytes)]]),
+      })).toBeNull();
+    });
+  });
+
+  it('does not fall back to live teaching when the v2 manifest exists but cannot be parsed', () => {
+    withAlignedRuntime(() => {
+      writeFileSync(join(process.cwd(), MANIFEST_RELATIVE), '{not-json');
       const token = 'ctc_modeling-865eb1c8824e157c2f05a903';
       const bytes = readFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, `${token}.png`));
       expect(readPublishedAuthorityInfographBySafeId(token, {

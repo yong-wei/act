@@ -665,8 +665,39 @@ assert.match(lifecycle, /only the exact active Runtime identity may be requalifi
 assert.match(runtimeDeploy, /runtime-app-compatibility-proof\.py/, 'runtime deploy must copy the compatibility proof helper to ECS');
 assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh --app-only');
 assert.equal(packageJson.scripts['deploy:all'], 'bash ./scripts/deploy-all-with-runtime-blobs.sh');
-assert.match(deployAll, /deploy-runtime-blob-release\.sh" "\$@"/, 'combined deployment must forward release arguments only to the runtime operation');
-assert.match(deployAll, /remote-deploy\.sh" --app-only/, 'combined deployment must run application deployment without a runtime pipeline');
+assert.match(
+  deployAll,
+  /deploy-runtime-blob-release\.sh" "\$@"/,
+  'combined deployment must forward release arguments only to the runtime operation',
+);
+assert.match(
+  deployAll,
+  /ACT_RUNTIME_TARGET_APP_REVISION/,
+  'combined deployment must pin the Teaching Projection assertion to the upcoming application revision',
+);
+assert.match(
+  deployAll,
+  /git -C "\$ROOT_DIR" rev-parse HEAD/,
+  'combined deployment must take the coordinated application revision from the same git HEAD that build.sh stamps',
+);
+assert.ok(
+  deployAll.indexOf('deploy-runtime-blob-release.sh') < deployAll.indexOf('remote-deploy.sh" --app-only'),
+  'combined deployment must publish runtime before replacing the application',
+);
+assert.ok(
+  deployAll.indexOf('remote-deploy.sh" --app-only') < deployAll.indexOf('assert-teaching-projection-app-revision.ts'),
+  'combined deployment must re-assert Teaching Projection against the coordinated app revision after application deploy',
+);
+assert.match(
+  runtimeDeploy,
+  /ACT_RUNTIME_TARGET_APP_REVISION/,
+  'runtime deploy must honor a coordinated target application revision from deploy:all',
+);
+assert.match(
+  runtimeDeploy,
+  /explicit_app_revision/,
+  'runtime deploy may receive an explicit --app-revision instead of the live container',
+);
 assert.match(appDeploy, /DEPLOY_SCOPE="app"/, 'application deployment must select its app-only scope explicitly');
 assert.match(appDeploy, /--app-only：保留当前 runtime 选择/, 'application deployment must retain the existing runtime selection');
 assert.match(appDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'application deployment must default to the production blob view');
