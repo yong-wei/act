@@ -196,7 +196,7 @@ async function main(): Promise<void> {
       },
       release: {
         releaseId: manifest.releaseId,
-        filesByPath: new Map(manifest.files.map((file) => [file.path, { sha256: file.sha256 }])),
+        filesByPath: new Map(manifest.files.map((file) => [file.path, { sha256: file.sha256, objectKey: file.objectKey }])),
         filesBySha256: new Map(manifest.files.map((file) => [file.sha256, { path: file.path }])),
       },
     });

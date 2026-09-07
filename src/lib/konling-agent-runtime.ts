@@ -4369,10 +4369,10 @@ async function loadRuntimeReleaseFileIndex(): Promise<RuntimeReleaseFileIndex | 
     const manifestRaw = await readActiveRuntimeReleaseManifest();
     if (!manifestRaw) return null;
     const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
-    const filesByPath = new Map<string, { sha256: string }>();
+    const filesByPath = new Map<string, { sha256: string; objectKey: string }>();
     const filesBySha256 = new Map<string, { path: string }>();
     for (const file of manifest.files) {
-      filesByPath.set(file.path, { sha256: file.sha256 });
+      filesByPath.set(file.path, { sha256: file.sha256, objectKey: file.objectKey });
       // 同一 sha 可被多文件声明复用；绑定只关心 release 是否持有该内容。
       if (!filesBySha256.has(file.sha256)) filesBySha256.set(file.sha256, { path: file.path });
     }
@@ -4385,10 +4385,12 @@ async function loadRuntimeReleaseFileIndex(): Promise<RuntimeReleaseFileIndex | 
 
 // #2055：批次定稿时为候选节点解析 Runtime 资源绑定并写回 plan 节点字段。
 // 绑定独立于导航 target（destination contract 不变）；失败逐节点显式记录。
+// 返回捕获的 release 索引供读取验证复用：同一批次绑定与验证必须来自同一 release 快照。
 export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPathPlan): Promise<{
   plan: AdaptiveLearningPathPlan;
   bindings: AdaptivePathNodeRuntimeBinding[];
   limitationCodes: string[];
+  release: RuntimeReleaseFileIndex | null;
 }> {
   const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
   const nodeTypeById = new Map<string, string>();
@@ -4437,12 +4439,18 @@ export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPa
     plan: enrichedPlan,
     bindings: bindingsWithStyles,
     limitationCodes: deriveAdaptivePathRuntimeBindingLimitationCodes(bindings),
+    release,
   };
 }
 
 // #2033/#2055：批次定稿时对候选节点的 runtime 绑定执行读取验证并产出记录。
 // 输入来自节点绑定字段（不再从导航 target 反解）；绑定状态随批次元数据持久化。
-async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPlan) {
+// release 索引由绑定阶段一次性捕获并传入：同批次绑定与验证来自同一 release 快照，
+// 定稿中途 release 切换不会把 A 的绑定与 B 的验证混入同一持久化批次。
+async function verifyCandidateObjectKeyReadRecords(
+  plan: AdaptiveLearningPathPlan,
+  release: RuntimeReleaseFileIndex | null,
+) {
   // 候选资源解析不依赖网络：先构建完整条目集，验证层不可用时对其统一
   // 产出 unverified 记录（fail-closed，未验证资源不得当可信输入）。
   const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
@@ -4451,6 +4459,8 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
     for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
       const binding = node.runtimeResourceBinding;
       if (binding?.state !== 'bound' || !binding.objectKey) continue;
+      // 绑定与验证必须同一 release：不一致（理论不可达，防御性 fail-closed）不产出记录。
+      if (!release || binding.runtimeReleaseId !== release.releaseId) continue;
       entries.push({
         objectKey: binding.objectKey,
         resourceId: binding.resourceId ?? node.resourceId ?? node.resourceNodeId ?? node.nodeId,
@@ -4459,7 +4469,7 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
       });
     }
   }
-  if (entries.length === 0) return [];
+  if (entries.length === 0 || !release) return [];
   const verifiedAt = new Date().toISOString();
   const failClosedUnverified = () => entries.map((entry) => ({
     ...entry,
@@ -4469,10 +4479,6 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
     runtimeReleaseId: null,
   }));
   try {
-    const manifestRaw = await readActiveRuntimeReleaseManifest();
-    if (!manifestRaw) return failClosedUnverified();
-    const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
-    const filesByPath = new Map(manifest.files.map((file) => [file.path, file]));
     const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
     if (!ramRole) return failClosedUnverified();
     const client = createEcsRamRoleOssClient({
@@ -4507,12 +4513,12 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
           const sha256 = objectKey.slice('blob:'.length);
           return verifyObjectBytes(runtimeBlobObjectKey(sha256), sha256);
         }
-        const file = filesByPath.get(objectKey);
+        const file = release.filesByPath.get(objectKey);
         if (!file) return { state: 'missing', contentSha256: null };
         // manifest 命中后按 manifest 记录的实际存储键执行真实读取，流式比对期望校验值。
         return verifyObjectBytes(file.objectKey, file.sha256);
       },
-    }, entries, verifiedAt, manifest.releaseId ?? null);
+    }, entries, verifiedAt, release.releaseId);
   } catch (error) {
     console.error('[KonlingRuntime] candidate object key read verification failed:', error);
     return failClosedUnverified();
@@ -4719,6 +4725,7 @@ async function buildAdaptivePathToolOutput(
     plan,
     bindings: runtimeResourceBindings,
     limitationCodes: runtimeBindingLimitationCodes,
+    release: runtimeBindingRelease,
   } = await attachAdaptivePathRuntimeBindings(rawPlan);
   const timeBudget = resolveAdaptivePathTimeBudget(
     args.timeBudgetMinutes,
@@ -4795,7 +4802,7 @@ async function buildAdaptivePathToolOutput(
     },
   });
   let candidateBatch: AdaptivePathCandidateBatchView | null = null;
-  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan);
+  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan, runtimeBindingRelease);
   const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
   const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'

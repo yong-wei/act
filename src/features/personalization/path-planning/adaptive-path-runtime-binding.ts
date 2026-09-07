@@ -55,7 +55,7 @@ export interface TeachingProjectionResourceIndex {
 
 export interface RuntimeReleaseFileIndex {
   releaseId: string;
-  filesByPath: Map<string, { sha256: string }>;
+  filesByPath: Map<string, { sha256: string; objectKey: string }>;
   filesBySha256: Map<string, { path: string }>;
 }
 /**

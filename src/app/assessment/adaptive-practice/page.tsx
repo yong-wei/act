@@ -2189,6 +2189,14 @@ function formatResourceReadinessState(state: string): string {
   return '暂时无法读取';
 }
 
+function formatRuntimeBindingState(state: string): string {
+  if (state === 'bound') return '已绑定课程资源库';
+  if (state === 'no-runtime-identity') return '暂无 Runtime 资源身份';
+  if (state === 'not-in-active-release') return '未包含在当前课程资源发布中';
+  if (state === 'no-active-release') return '当前没有活动的课程资源发布';
+  return '资源绑定不可用';
+}
+
 function formatReadinessState(state: string): string {
   if (state === 'ready') return '可开始';
   if (state === 'locked') return '待解锁';
@@ -2471,6 +2479,22 @@ function CandidateBatchComparisonWorkspace({
                         <p key={`${item.nodeId}:${item.resourceId}`} className="text-subtle/90">
                           节点「{option.nodeSummaries?.find((summary) => summary.nodeId === item.nodeId)?.title ?? item.nodeId}」：{formatResourceReadinessState(item.state)}
                           {item.runtimeReleaseId ? `（课程资源版本 ${item.runtimeReleaseId}）` : ''}
+                        </p>
+                      ))}
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  // #2055：逐节点 Runtime 资源绑定状态与失败原因（学生可读，不含对象键）。
+                  const binding = comparison?.runtimeBindings.find((item) => item.styleId === option.styleId);
+                  if (!binding || (binding.boundResources === 0 && binding.unboundResources === 0)) return null;
+                  return (
+                    <div className="mt-1 text-xs leading-5 text-subtle" data-learning-path-candidate-runtime-binding={option.styleId}>
+                      <p>Runtime 资源绑定：{binding.boundResources > 0 ? `${binding.boundResources} 个资源已绑定课程资源库` : '本路径暂无已绑定的课程资源库资源'}。</p>
+                      {binding.notes.map((note) => <p key={note}>{note}</p>)}
+                      {binding.items.filter((item) => item.state !== 'bound').map((item) => (
+                        <p key={item.nodeId} className="text-subtle/90">
+                          节点「{option.nodeSummaries?.find((summary) => summary.nodeId === item.nodeId)?.title ?? item.nodeId}」：{formatRuntimeBindingState(item.state)}
                         </p>
                       ))}
                     </div>

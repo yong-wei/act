@@ -17,7 +17,7 @@ const SHA_C = 'c'.repeat(64);
 function releaseFixture(files: Array<{ path: string; sha256: string }> = []): RuntimeReleaseFileIndex {
   return {
     releaseId: 'runtime-release-1',
-    filesByPath: new Map(files.map((file) => [file.path, { sha256: file.sha256 }])),
+    filesByPath: new Map(files.map((file) => [file.path, { sha256: file.sha256, objectKey: `release-objects/${file.path}` }])),
     filesBySha256: new Map([...new Map(files.map((file) => [file.sha256, { path: file.path }])).entries()]),
   };
 }
