@@ -170,6 +170,7 @@ if [[ "$resuming_published_release" == "1" ]]; then
   node "$ROOT_DIR/scripts/knowledge/check-release-learning-content-closure.mjs" \
     --release-manifest "$manifest" \
     --learning-manifest "$ROOT_DIR/course-content/runtime/knowledge/authority-learning-content-manifest.json"
+  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts"
   build_elapsed_milliseconds=0
   publish_elapsed_milliseconds=0
 else
@@ -207,6 +208,7 @@ else
   fi
   rm -f "$LC_TMP"
   node "$ROOT_DIR/scripts/knowledge/check-authority-surface-linkage.mjs" >/dev/null
+  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts"
   build_started_seconds=$SECONDS
   build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt" --source-provenance-proof-output "$source_provenance_proof")
   build_args+=(--daily-report-output "$daily_report")

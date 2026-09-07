@@ -619,6 +619,11 @@ assert.match(
 );
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');
+assert.equal(
+  (runtimeDeploy.match(/assert-teaching-projection-app-revision\.ts/g) ?? []).length,
+  2,
+  'resume and fresh publish must both fail closed when Teaching Projection authoringRevision drifts from the app capture',
+);
 assert.match(compatibilityProof, /runtime-app-compatibility\.v1/, 'compatibility proof helper must expose the v1 receipt schema');
 assert.match(compatibilityProof, /origin\/integration|sourceRevision/, 'compatibility proof must bind the Runtime source revision');
 assert.match(compatibilityProof, /\/app\/\.app-revision/, 'compatibility proof must read the embedded application revision');

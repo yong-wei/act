@@ -40,9 +40,11 @@ describe('teaching resource launch maps', () => {
     });
   });
 
-  it('requires an explicit exercise step mapping', () => {
+  it('maps lesson-owned exercises to the course page and prefers an explicit step mapping', () => {
     const exercise = resource('act:exercise:handout-4-5', 'exercise');
-    expect(buildTeachingResourceLaunchMaps([exercise]).resourceLaunchTargets[exercise.resourceId]).toBeUndefined();
+    expect(buildTeachingResourceLaunchMaps([exercise]).resourceLaunchTargets[exercise.resourceId]).toBe(
+      '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization',
+    );
     expect(buildTeachingResourceLaunchMaps([exercise], {
       exerciseStepByResourceId: {
         [exercise.resourceId]: { lessonKey: '4-5', stepId: 'step-03' },
@@ -59,6 +61,7 @@ describe('teaching resource launch maps', () => {
       resource('act:simulation:sim-pid-v1', 'simulation'),
       resource('act:simulation:sim-pid-v1-sim-pid-v1', 'simulation'),
       resource('act:simulation:control-odyssey-v1', 'simulation'),
+      resource('act:simulation:odyssey-level-7', 'simulation'),
     ]);
     expect(maps.resourceLaunchTargets).toMatchObject({
       'act:simulation:arena-task-second-order-lead-pid': '/arena/challenges/task-second-order-lead-pid',
@@ -66,6 +69,7 @@ describe('teaching resource launch maps', () => {
       'act:simulation:sim-pid-v1': '/interactive-learning/resources/sim-pid-v1',
       'act:simulation:sim-pid-v1-sim-pid-v1': '/interactive-learning/resources/sim-pid-v1',
       'act:simulation:control-odyssey-v1': '/interactive-learning/control-odyssey',
+      'act:simulation:odyssey-level-7': '/interactive-learning/control-odyssey',
     });
   });
 
@@ -87,11 +91,13 @@ describe('teaching resource launch maps', () => {
     );
   });
 
-  it('leaves unknown and unresolved targets unavailable without canonical hrefs', () => {
+  it('leaves unknown, book-level, and chapter-locator targets unavailable without guessing coordinates', () => {
     const maps = buildTeachingResourceLaunchMaps([
       resource('act:project:ctc:canonical-node', 'project'),
       resource('act:simulation:unknown-registry', 'simulation'),
       resource('act:audio:no-lesson', 'audio'),
+      resource('act:textbook:dorf-modern-control-systems-14th', 'textbook'),
+      resource('act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-01', 'textbook-chapter'),
     ]);
     expect(maps.resourceLaunchTargets).toEqual({});
     expect(Object.values(maps.resourceLaunchTargets)).not.toContain('ctc:canonical-node');

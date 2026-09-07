@@ -223,7 +223,7 @@ export function buildTeachingResourceLaunchMaps(
 
   for (const resource of resources) {
     const lessonToken = extractLessonKeyFromResource(resource)
-      ?? (['video', 'audio', 'podcast'].includes(resource.resourceType)
+      ?? (['video', 'audio', 'podcast', 'exercise'].includes(resource.resourceType)
         ? unitTokenFromResourceId(resource.resourceId)
         : null);
     const identity = lessonToken
@@ -272,6 +272,10 @@ export function buildTeachingResourceLaunchMaps(
           resourceLaunchTargets[resource.resourceId] =
             `/interactive-learning/courses/${exerciseRoute}/student/demo?step=${mapping.stepId}`;
           resourceRegistryIds[resource.resourceId] = `${exerciseRoute}:${mapping.stepId}`;
+        } else if (routeSegment) {
+          resourceLaunchTargets[resource.resourceId] =
+            `/interactive-learning/courses/${routeSegment}`;
+          resourceRegistryIds[resource.resourceId] = routeSegment;
         }
         break;
       }
@@ -290,7 +294,7 @@ export function buildTeachingResourceLaunchMaps(
         }
         const registryId = resolveSimulationRegistryId(key);
         const metadata = registryId ? getRegisteredResourceMetadata(registryId) : null;
-        if (metadata?.id === 'control-odyssey-v1' || key.includes('control-odyssey')) {
+        if (key.startsWith('odyssey-level-') || metadata?.id === 'control-odyssey-v1' || key.includes('control-odyssey')) {
           resourceLaunchTargets[resource.resourceId] = '/interactive-learning/control-odyssey';
           resourceRegistryIds[resource.resourceId] = metadata?.id ?? 'control-odyssey-v1';
         } else if (metadata) {

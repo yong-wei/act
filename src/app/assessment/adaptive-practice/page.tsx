@@ -50,7 +50,6 @@ import {
   pathGenerationPanelFromSearchParams,
   resolveAdaptivePathContextRecoveryState,
   resolveAdaptivePathDestinationContract,
-  resolvePathCenterViewerHref,
   resolveAdaptivePathExecutionNodeStatus,
   resolveAdaptivePathLandingState,
   restoreAdaptiveLearningPathPlanFromRound,
@@ -96,7 +95,6 @@ import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';
 import {
-  openResourceViewer,
   UniversalResourceViewerHost,
 } from '@/features/knowledge/universal-resource-viewer';
 import {
@@ -5009,13 +5007,8 @@ export default function AdaptivePracticePage() {
      return;
    }
    const keepsPathCenter = keepsOwningPathCenterOpen(node);
-   const viewerBaseHref = resolvePathCenterViewerHref({
-     disposition: targetDisposition,
-     canonicalTarget: targetContract.canonicalTarget,
-   });
-   const opensInViewer = Boolean(viewerBaseHref);
-   const resourceWindow = keepsPathCenter && !opensInViewer ? window.open('about:blank', '_blank') : null;
-   if (keepsPathCenter && !opensInViewer && !resourceWindow) {
+   const resourceWindow = keepsPathCenter ? window.open('about:blank', '_blank') : null;
+   if (keepsPathCenter && !resourceWindow) {
       setPathExecutionError('浏览器阻止了新资源窗口，请允许本站打开新窗口后重试。');
      return;
     }
@@ -5046,14 +5039,6 @@ export default function AdaptivePracticePage() {
       resourceWindow?.close();
     }
     if (!activityWritten) return;
-    if (opensInViewer && viewerBaseHref) {
-      openResourceViewer({
-        title: node.title,
-        resourceKind: node.type,
-        href: launchContext ? buildAdaptivePathLaunchHref(viewerBaseHref, launchContext) : viewerBaseHref,
-      });
-      return;
-    }
     if (resourceWindow && ownedTarget) {
       resourceWindow.location.replace(
         targetDisposition === 'external-fallback' || !launchContext

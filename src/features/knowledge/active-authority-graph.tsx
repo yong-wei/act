@@ -985,13 +985,21 @@ function ActiveNodeDetail({
             <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
             {node?.resourceBindings?.state === 'available' ? (
               <div className="mt-2 space-y-3">
-                {ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
-                  const bindings = node.resourceBindings;
-                  const items = bindings?.state === 'available'
-                    ? bindings.items.filter((item) => item.bindingRole === role)
+                {(() => {
+                  const boundItems = node.resourceBindings.state === 'available'
+                    ? node.resourceBindings.items
                     : [];
-                  if (items.length === 0) return null;
-                  return (
+                  const uniqueCard = boundItems.filter((item) => (
+                    item.resourceKind === '知识卡' && item.availability === 'available'
+                  )).length === 1;
+                  const uniqueInfograph = boundItems.filter((item) => (
+                    item.resourceKind === '信息图' && item.availability === 'available'
+                  )).length === 1;
+                  const card = node.learningContent?.card;
+                  return ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
+                    const items = boundItems.filter((item) => item.bindingRole === role);
+                    if (items.length === 0) return null;
+                    return (
                     <div key={role} data-active-resource-role={role}>
                       <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
                       <div className="mt-1 space-y-1">
@@ -1008,24 +1016,18 @@ function ActiveNodeDetail({
                                 node: item.resourceKind === '知识卡'
                                   ? {
                                       name: item.title,
-                                      description: node?.description ?? item.title,
-                                      nodeType: node?.canonicalType ?? 'KnowledgeStatement',
-                                      metadata: node?.learningContent?.card.state === 'available'
-                                        ? {
-                                            content: [
-                                              node.learningContent.card.summary,
-                                              node.learningContent.card.insight,
-                                              node.learningContent.card.explanation,
-                                            ].filter(Boolean).join('\n\n'),
-                                          }
-                                        : undefined,
+                                      description: uniqueCard && card?.state === 'available'
+                                        ? card.summary
+                                        : item.title,
+                                      nodeType: 'KnowledgeStatement',
                                     }
                                   : undefined,
-                                imageSrc: item.resourceKind === '信息图'
+                                imageSrc: item.resourceKind === '信息图' && uniqueInfograph
                                   ? shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)
                                   : undefined,
                               })}
                               data-active-resource-launch={item.launch.kind}
+                              data-active-resource-title={item.title}
                               className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
                             >
                               {item.title}
@@ -1044,7 +1046,8 @@ function ActiveNodeDetail({
                       </div>
                     </div>
                   );
-                })}
+                });
+                })()}
               </div>
             ) : (
               <p className="mt-2 text-sm text-platform-fg-muted">

@@ -33,6 +33,8 @@ describe('teaching launch href ownership', () => {
       resource('act:handout:3-2', 'handout'),
       resource('act:audio:3-2', 'audio'),
       resource('act:exercise:handout-3-2', 'exercise'),
+      resource('act:exercise:handout-4-5', 'exercise'),
+      resource('act:simulation:odyssey-level-7', 'simulation'),
       resource('act:simulation:arena-task-second-order-lead-pid', 'simulation'),
       resource('act:simulation:sim-scene-cruise', 'simulation'),
       resource('act:simulation:sim-pid-v1', 'simulation'),

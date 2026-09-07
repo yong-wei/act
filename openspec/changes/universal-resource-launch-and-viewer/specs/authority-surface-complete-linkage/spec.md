@@ -33,6 +33,6 @@ Every href the inspector exposes as available MUST be exactly owned by a live re
 - **AND** the discrepancy SHALL surface as a registration gap rather than a runtime fallback
 
 #### Scenario: Manifest revision disagrees with deployment
-- **WHEN** a release assertion compares the Teaching Projection manifest authoringRevision with the deployment APP_REVISION capture
-- **THEN** a mismatch or a `-dirty` capture SHALL fail the release closed
-- **AND** the mismatched manifest SHALL NOT be served to learners
+- **WHEN** `deploy:runtime` resumes a published release or builds a fresh release
+- **THEN** it SHALL run the Teaching Projection authoringRevision assertion before the release is served
+- **AND** a mismatch or a `-dirty` capture SHALL fail the release closed
