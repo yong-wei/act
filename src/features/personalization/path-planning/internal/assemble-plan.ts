@@ -72,6 +72,7 @@ import {
   type SourcePackLimitation,
 } from '@/lib/source-pack';
 import type { AdaptivePathNodeDecisionExplanation } from '@/features/personalization/path-planning/adaptive-path-node-decisions';
+import type { AdaptivePathNodeRuntimeBinding } from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
 import type { StudentSafeEvidenceEventReference } from '@/lib/data-governance/evidence-timeline';
 import type { StudentEvidenceWindow } from '@/lib/data-governance/student-evidence-feature-cache';
 import { resolveAdaptivePathDestinationContract } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
@@ -613,6 +614,8 @@ export interface AdaptiveLearningPathPlanNode {
   status: 'current' | 'next' | 'completed' | 'blocked' | 'alternative' | 'locked';
   readiness?: AdaptiveLearningPathNodeReadiness;
   decisionExplanation?: AdaptivePathNodeDecisionExplanation;
+  /** Runtime 资源绑定（#2055）：独立于导航 target，仅资产承载节点在批次定稿时携带。 */
+  runtimeResourceBinding?: AdaptivePathNodeRuntimeBinding | null;
 }
 
 export interface AdaptiveLearningPathAlternative {

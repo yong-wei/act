@@ -14,7 +14,8 @@ export type VersionedAdaptivePathCandidateBatch = AdaptivePathCandidateBatchView
 
 /**
  * 学生 API 面：剥离 metadata 中的内部字段（对象键读取记录、区分度原始指标与规则名），
- * 改以学生安全投影 `comparison` 下发，防止授权学生从原始 metadata 绕过投影。
+ * 并从候选快照 planNodes 剥离 runtime 绑定原文（对象键/内容校验值，#2055），改以
+ * 学生安全投影 `comparison` 下发，防止授权学生从原始 metadata 绕过投影。
  */
 export function sanitizeCandidateBatchForStudentResponse<T extends VersionedAdaptivePathCandidateBatch>(
   batch: T,
@@ -23,6 +24,27 @@ export function sanitizeCandidateBatchForStudentResponse<T extends VersionedAdap
     ...batch,
     metadata: stripInternalBatchMetadata(batch.metadata),
     comparison: buildAdaptivePathBatchComparisonView(batch.metadata),
+    candidates: batch.candidates.map(redactCandidateSnapshotRuntimeBinding),
+  };
+}
+
+/** 快照 planNodes 中的 runtimeResourceBinding 含原始对象键：学生面整体剥除，状态经 comparison 呈现。 */
+function redactCandidateSnapshotRuntimeBinding(
+  candidate: VersionedAdaptivePathCandidateBatch['candidates'][number],
+): VersionedAdaptivePathCandidateBatch['candidates'][number] {
+  const snapshot = candidate.snapshot as Record<string, unknown> | null;
+  const planNodes = Array.isArray(snapshot?.planNodes) ? snapshot.planNodes : null;
+  if (!planNodes?.some((node) => node && typeof node === 'object' && 'runtimeResourceBinding' in node)) {
+    return candidate;
+  }
+  return {
+    ...candidate,
+    snapshot: {
+      ...snapshot,
+      planNodes: planNodes.map((node) => node && typeof node === 'object' && 'runtimeResourceBinding' in node
+        ? Object.fromEntries(Object.entries(node).filter(([key]) => key !== 'runtimeResourceBinding'))
+        : node),
+    },
   };
 }
 

@@ -128,29 +128,40 @@ evidence.weaknessAnchoring = {
 };
 
 // 5. 读取验证故障注入：missing 对象键从覆盖统计剔除并进入审计清单。
-// 复审修复：注入候选实际使用的对象键（合成批次含 runtime 目标），并断言
-// 对应核心集合/指标确实变化，避免"回显输入"式假阳性证据。
+// 复审修复：注入候选实际使用的对象键（合成批次含 runtime 绑定，#2055 绑定驱动），
+// 并断言对应核心集合/指标确实变化，避免"回显输入"式假阳性证据。
 const faultBase = planLearningPath(buildAlternativeCoreDiversityInput({
   resourcePreferences: ['knowledge_card'] as never,
   resourcePreferenceSource: 'request' as never,
 }));
-const faultNodeTargets = new Map<string, string>([
-  ['knowledge-card:core-card', '/api/course-runtime/assets/lessons/1-3/media/intro.mp4'],
-  ['simulation:correction-sim', '/api/course-runtime/assets/simulations/cruise/index.html'],
+// #2055：对象键来源是节点 runtime 绑定字段（target 反解已退役）。
+const boundRuntimeBinding = (objectKey: string) => ({
+  resourceId: `act:resource:${objectKey}`,
+  resourceType: 'card',
+  state: 'bound' as const,
+  objectKey,
+  contentSha256: 'a'.repeat(64),
+  runtimeReleaseId: 'release-evidence',
+  projectionId: 'proj-evidence',
+  reason: null,
+});
+const faultNodeObjectKeys = new Map<string, string>([
+  ['knowledge-card:core-card', 'lessons/1-3/media/intro.mp4'],
+  ['simulation:correction-sim', 'simulations/cruise/index.html'],
 ]);
-const rewriteTarget = (node: { nodeId: string; target: string }) => faultNodeTargets.has(node.nodeId)
-  ? { ...node, target: faultNodeTargets.get(node.nodeId)! }
+const rewriteNode = (node: { nodeId: string }) => faultNodeObjectKeys.has(node.nodeId)
+  ? { ...node, runtimeResourceBinding: boundRuntimeBinding(faultNodeObjectKeys.get(node.nodeId)!) }
   : node;
 const faultPlan = {
   ...faultBase,
-  mainPath: faultBase.mainPath.map(rewriteTarget),
-  // 候选 planNodes 与 mainPath 共享节点身份：同步改写，保证指标按改写后的 target 计算。
+  mainPath: faultBase.mainPath.map(rewriteNode),
+  // 候选 planNodes 与 mainPath 共享节点身份：同步改写，保证指标按改写后的绑定计算。
   policyBundle: faultBase.policyBundle
     ? {
         ...faultBase.policyBundle,
         paths: faultBase.policyBundle.paths.map((path) => ({
           ...path,
-          planNodes: (path.planNodes ?? []).map(rewriteTarget),
+          planNodes: (path.planNodes ?? []).map(rewriteNode),
         })),
       }
     : undefined,

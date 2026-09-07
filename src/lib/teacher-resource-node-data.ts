@@ -59,6 +59,13 @@ export interface ResourceCandidatePoolDiagnostics {
   sourceFamilyIssues: Record<string, number>;
   missingSourceReasons: Record<string, number>;
   nodeEligibilityMissingReasons: Record<string, number>;
+  /** #2055：连接活动 Runtime release 后的池级绑定摘要（按族可绑定 OSS 资源计数）。 */
+  runtimeResourceBindings?: {
+    byState: Record<string, number>;
+    boundByFamily: Record<string, number>;
+    unboundReasons: Record<string, number>;
+    activeRuntimeReleaseId: string | null;
+  };
 }
 
 export interface ResourceCandidatePoolSourceStatus {
@@ -159,6 +166,7 @@ export async function loadRuntimeResourceProjectionInputs(
 export function buildResourceCandidatePoolDiagnostics(
   registry: ResourceNodeRegistry,
   sourceFamilies: readonly ResourceCandidatePoolSourceStatus[] = [],
+  options: { runtimeResourceBindings?: ResourceCandidatePoolDiagnostics['runtimeResourceBindings'] } = {},
 ): ResourceCandidatePoolDiagnostics {
   const excludedReasons = registry.audit.ineligibleNodes.flatMap((node) => node.reasons);
   const sourceFamilyIssues = sourceFamilies
@@ -183,6 +191,7 @@ export function buildResourceCandidatePoolDiagnostics(
     sourceFamilyIssues: countBy(sourceFamilyIssues),
     missingSourceReasons: countBy(missingSourceReasons),
     nodeEligibilityMissingReasons: countBy(nodeEligibilityMissingReasons),
+    ...(options.runtimeResourceBindings ? { runtimeResourceBindings: options.runtimeResourceBindings } : {}),
   };
 }
 

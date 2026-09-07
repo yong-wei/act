@@ -3,7 +3,7 @@
 ### Requirement: Candidate OSS resources carry runtime provenance and read verification
 计入路径覆盖与区分度的候选资源 SHALL 经由节点级 runtime 资源绑定解析到当前生效 Runtime release 的对象键并通过读取验证；绑定缺失、release 缺位或验证失败 SHALL 显式记录与呈现，SHALL NOT 静默退回或产生无解释的空记录。
 
-#### Scenario: Node bindings resolve object keys from the active runtime release
+#### Scenario: Object keys resolve from the active runtime
 - **WHEN** 候选路径包含可绑定 Runtime 教学资源的节点
 - **THEN** 每个该节点 SHALL 携带由教学投影确定性身份规则与活动 Runtime release manifest 连接解析出的 runtime 资源绑定（对象键或 blob 内容键、runtime release 标识、资源 ID、资源类型）
 - **AND** 读取验证 SHALL 消费该绑定字段，SHALL NOT 从节点导航 target 字符串反解对象键

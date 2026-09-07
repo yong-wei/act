@@ -39,10 +39,23 @@ export interface AdaptivePathBatchComparisonView {
       runtimeReleaseId: string | null;
     }>;
   }>;
+  /** 逐节点 Runtime 资源绑定状态与失败原因（#2055），不含对象键原文。 */
+  runtimeBindings: Array<{
+    styleId: string;
+    boundResources: number;
+    unboundResources: number;
+    notes: string[];
+    items: Array<{
+      nodeId: string;
+      resourceId: string | null;
+      state: string;
+      reason: string | null;
+    }>;
+  }>;
 }
 
 /** 批次 metadata 中不得下发给学生 API 消费方的内部字段。 */
-const INTERNAL_METADATA_KEYS = new Set(['differentiation', 'objectKeyReadRecords']);
+const INTERNAL_METADATA_KEYS = new Set(['differentiation', 'objectKeyReadRecords', 'runtimeResourceBindings']);
 
 /** 返回剥离内部字段后的批次 metadata 副本（学生安全 API 面）。 */
 export function stripInternalBatchMetadata(metadata: unknown): Record<string, unknown> {
@@ -57,6 +70,12 @@ const UNREADABLE_STATE_NOTES: Record<string, string> = {
   forbidden: '个资源暂无访问权限',
   'checksum-mismatch': '个资源内容校验未通过（可能与缓存不一致）',
   unverified: '个资源未能完成读取验证',
+};
+
+const UNBOUND_STATE_NOTES: Record<string, string> = {
+  'no-runtime-identity': '个资源暂无 Runtime 资源身份，无法绑定课程资源库发布',
+  'not-in-active-release': '个资源未包含在当前课程资源发布中',
+  'no-active-release': '个资源因当前没有活动的课程资源发布而无法绑定',
 };
 
 function record(value: unknown): Record<string, unknown> {
@@ -132,6 +151,7 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
     });
     resourceReadiness.set(styleId, counts);
   }
+  const runtimeBindings = buildRuntimeBindingsView(source);
   return {
     highDifferentiation: differentiation.highDifferentiation === true,
     insufficientVerifiedResources: differentiation.insufficientVerifiedResources === true,
@@ -149,5 +169,49 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
         items: counts.items,
       };
     }),
+    runtimeBindings,
   };
+}
+
+/** 逐节点绑定状态投影（#2055）：只保留节点/资源身份、状态与原因，不下发对象键。 */
+function buildRuntimeBindingsView(source: Record<string, unknown>): AdaptivePathBatchComparisonView['runtimeBindings'] {
+  const byStyle = new Map<string, {
+    bound: number;
+    unboundByState: Map<string, number>;
+    items: Array<{ nodeId: string; resourceId: string | null; state: string; reason: string | null }>;
+  }>();
+  for (const value of Array.isArray(source.runtimeResourceBindings) ? source.runtimeResourceBindings : []) {
+    const binding = record(value);
+    const nodeId = typeof binding.nodeId === 'string' ? binding.nodeId : null;
+    const state = typeof binding.state === 'string' ? binding.state : null;
+    if (!nodeId || !state) continue;
+    const styleIds = Array.isArray(binding.candidateStyleIds)
+      && binding.candidateStyleIds.every((item) => typeof item === 'string')
+      ? binding.candidateStyleIds as string[]
+      : [];
+    const item = {
+      nodeId,
+      resourceId: typeof binding.resourceId === 'string' ? binding.resourceId : null,
+      state,
+      reason: typeof binding.reason === 'string' ? binding.reason : null,
+    };
+    for (const styleId of styleIds.length > 0 ? styleIds : [null]) {
+      const counts = byStyle.get(styleId ?? '')
+        ?? { bound: 0, unboundByState: new Map<string, number>(), items: [] };
+      if (state === 'bound') counts.bound += 1;
+      else counts.unboundByState.set(state, (counts.unboundByState.get(state) ?? 0) + 1);
+      counts.items.push(item);
+      byStyle.set(styleId ?? '', counts);
+    }
+  }
+  return [...byStyle.entries()].map(([styleId, counts]) => ({
+    styleId,
+    boundResources: counts.bound,
+    unboundResources: [...counts.unboundByState.values()].reduce((sum, count) => sum + count, 0),
+    notes: [...counts.unboundByState.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .filter(([state, count]) => count > 0 && UNBOUND_STATE_NOTES[state])
+      .map(([state, count]) => `这条路径有 ${count} ${UNBOUND_STATE_NOTES[state]}。`),
+    items: counts.items,
+  }));
 }
