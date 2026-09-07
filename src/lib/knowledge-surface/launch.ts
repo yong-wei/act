@@ -44,6 +44,10 @@ const INTERNAL_PATH = /(?:^file:|[\\/](?:course-content|\.next|src)[\\/]|\.tsx?(
  */
 const GOVERNED_TEXTBOOK_ROUTE = /^\/textbooks\/[a-z0-9][a-z0-9-]{0,95}\/[^/?#]+\/[^?#]+\/?$/;
 
+export function isGovernedTextbookReaderHref(href: string): boolean {
+  return GOVERNED_TEXTBOOK_ROUTE.test(href);
+}
+
 /**
  * Single launch-guard resolution: governed textbook routes pass with the href
  * itself (every isUnsafeHref check still applies); everything else goes

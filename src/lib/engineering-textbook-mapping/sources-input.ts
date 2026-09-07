@@ -56,10 +56,14 @@ export function buildGovernedSourcesEntries(input: {
 
   const entries: MappingSourcesInputFile['entries'] = [];
   for (const canonicalId of [...rowsByNode.keys()].sort()) {
-    const rows = rowsByNode.get(canonicalId)!
+    const ranked = rowsByNode.get(canonicalId)!
       .slice()
-      .sort((left, right) => left.rank - right.rank)
-      .slice(0, nodeLimit);
+      .sort((left, right) => left.rank - right.rank);
+    const uniqueByUnit = new Map<string, MappingCandidateRow>();
+    for (const row of ranked) {
+      if (!uniqueByUnit.has(row.structuralUnitId)) uniqueByUnit.set(row.structuralUnitId, row);
+    }
+    const rows = [...uniqueByUnit.values()].slice(0, nodeLimit);
     const sources: NodeSourceCitation[] = rows.map((row) => ({
       sourceEditionId: sourceDocumentIdForReaderBook(row.bookId),
       sectionId: row.structuralUnitId,

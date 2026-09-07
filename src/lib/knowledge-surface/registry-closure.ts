@@ -5,6 +5,7 @@ import {
 import type { RegistryIndex } from '@/features/knowledge/resource-index/types';
 
 import type { KnowledgeSurfaceRegistryIndexIdentity } from './types';
+import { isGovernedTextbookReaderHref } from './launch';
 
 const GIT_SHA = /^[a-f0-9]{40}$/i;
 const IDENTITY_MISMATCH_MESSAGE = '当前系统资源与所选对象身份不一致。';
@@ -58,6 +59,7 @@ export function capturesMatch(
 }
 
 function indexOwnsLaunchHref(index: RegistryIndex, href: string): boolean {
+  if (isGovernedTextbookReaderHref(href)) return true;
   return index.entries.some((entry) => {
     const launcherRef = entry.descriptor.launcher?.launcherRef;
     const registryId = entry.descriptor.foreignRefs.registryId;

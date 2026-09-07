@@ -386,6 +386,21 @@ describe('governed sources-input binding', () => {
     ]);
   });
 
+  it('keeps one citation per structural unit when recall windows duplicate the same unit', () => {
+    const candidates = candidatesFixture();
+    candidates.rows.push({
+      ...candidates.rows[0]!,
+      rank: 9,
+      recallQuery: 'duplicate window',
+    });
+    const entries = buildGovernedSourcesEntries({
+      candidateRows: candidates.rows,
+      reviews: [reviewRow(1, 'ctc:a1', 'approved')],
+    });
+    expect(entries[0]?.sources).toHaveLength(1);
+    expect(entries[0]?.sources[0]?.sectionId).toBe(UNIT_DORF);
+  });
+
   it('fails closed when sources-input entries diverge while coverageDigest is unchanged', () => {
     const candidates = candidatesFixture();
     const reviews = [reviewRow(1, 'ctc:a1', 'approved')];
