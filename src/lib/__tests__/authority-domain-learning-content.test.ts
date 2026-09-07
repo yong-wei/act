@@ -23,6 +23,7 @@ import {
   readActiveAuthorityInfograph,
   readPublishedAuthorityInfographBySafeId,
 } from '@/lib/authority-domain-shards';
+import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 
 const REPO_ROOT = process.cwd();
 const ACCEPTED_NODE = 'ctc:modeling-865eb1c8824e157c2f05a903';
@@ -50,6 +51,22 @@ function addFixtureOnlyInfograph(manifest: Record<string, unknown>) {
 
 function copyFixtureOnlyInfograph() {
   copyFileSync(TRACKED_INFOGRAPH, join(process.cwd(), INFOGRAPH_RELATIVE, `${FIXTURE_ONLY_SAFE_ID}.png`));
+}
+
+function liveOverlayTeachingSeal() {
+  const teaching = resolveActiveShardIdentity({ repoRoot: REPO_ROOT }).envelope.teaching;
+  expect(teaching.status).toBe('available');
+  expect(teaching.projectionId).toBeTruthy();
+  expect(teaching.projectionHash).toBeTruthy();
+  return {
+    teachingProjectionId: teaching.projectionId,
+    teachingProjectionHash: teaching.projectionHash,
+  };
+}
+
+function sealFixtureOnlyInfograph(manifest: Record<string, unknown>) {
+  addFixtureOnlyInfograph(manifest);
+  Object.assign(manifest, liveOverlayTeachingSeal());
 }
 
 function sha256(value: Buffer | string) {
@@ -224,7 +241,28 @@ describe('Authority learning-content delivery', () => {
       expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
         identityRepoRoot: REPO_ROOT,
       })).toBeNull();
+    }, sealFixtureOnlyInfograph);
+  });
+
+  it('does not serve a v2 infograph when the teaching seal is missing', () => {
+    withAlignedRuntime(() => {
+      copyFixtureOnlyInfograph();
+      expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
     }, addFixtureOnlyInfograph);
+  });
+
+  it('does not serve a v2 infograph when only one teaching seal field is present', () => {
+    withAlignedRuntime(() => {
+      copyFixtureOnlyInfograph();
+      expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
+    }, (manifest) => {
+      sealFixtureOnlyInfograph(manifest);
+      delete manifest.teachingProjectionHash;
+    });
   });
 
   it('does not serve a v2 infograph when the active Authority identity has drifted', () => {
@@ -234,7 +272,7 @@ describe('Authority learning-content delivery', () => {
         identityRepoRoot: REPO_ROOT,
       })).toBeNull();
     }, (manifest) => {
-      addFixtureOnlyInfograph(manifest);
+      sealFixtureOnlyInfograph(manifest);
       manifest.authoritySnapshotHash = '0'.repeat(64);
     });
   });
@@ -247,6 +285,7 @@ describe('Authority learning-content delivery', () => {
       })).toBeNull();
     }, (manifest) => {
       addFixtureOnlyInfograph(manifest);
+      Object.assign(manifest, liveOverlayTeachingSeal());
       manifest.teachingProjectionId = 'proj-0000000000000000000000000000000000000000000000000000000000000000';
       manifest.teachingProjectionHash = '0'.repeat(64);
     });

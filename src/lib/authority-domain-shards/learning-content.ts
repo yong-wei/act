@@ -254,7 +254,7 @@ function matchesTeachingSeal(
   manifest: AuthorityLearningContentManifest,
   teaching: AuthorityShardEnvelope['teaching'],
 ): boolean {
-  if (!manifest.teachingProjectionId || !manifest.teachingProjectionHash) return true;
+  if (!manifest.teachingProjectionId || !manifest.teachingProjectionHash) return false;
   return (
     teaching.status === 'available'
     && manifest.teachingProjectionId === teaching.projectionId
