@@ -1,9 +1,13 @@
-import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
+import type {
+  ActiveNodeResourceBindings,
+  ActiveResourceBinding,
+} from '@/features/knowledge/active-authority-graph-contracts';
 import {
   getLiveResourceRegistryIndex,
 } from '@/features/knowledge/resource-index/public-api';
 import type { RegistryIndex } from '@/features/knowledge/resource-index/types';
 
+import { sanitizePublicLaunchHref } from './launch';
 import type { KnowledgeSurfaceRegistryIndexIdentity } from './types';
 
 const GIT_SHA = /^[a-f0-9]{40}$/i;
@@ -55,6 +59,37 @@ export function capturesMatch(
 ): boolean {
   if (!expectedCaptureRevision || !indexCaptureRevision) return false;
   return expectedCaptureRevision.trim().toLowerCase() === indexCaptureRevision;
+}
+
+export function sanitizePublicResourceBindingLaunches(
+  bindings: ActiveNodeResourceBindings,
+  nodeId: string,
+): ActiveNodeResourceBindings {
+  if (bindings.state !== 'available') return bindings;
+  const items = bindings.items.map((item): ActiveResourceBinding => {
+    if (item.launch.kind === 'viewer-shell') {
+      const keep = item.availability === 'available' && item.viewer != null;
+      const next: ActiveResourceBinding = {
+        title: item.title,
+        bindingRole: item.bindingRole,
+        resourceKind: item.resourceKind,
+        availability: keep ? 'available' : 'unavailable',
+        launch: { kind: keep ? 'viewer-shell' : 'unavailable', href: null },
+      };
+      if (keep && item.viewer) next.viewer = item.viewer;
+      return next;
+    }
+    const href = sanitizePublicLaunchHref(item.launch.href, nodeId);
+    return {
+      ...item,
+      availability: href ? 'available' : 'unavailable',
+      launch: {
+        kind: href ? item.launch.kind : 'unavailable',
+        href,
+      },
+    };
+  });
+  return { state: 'available', items };
 }
 
 export function indexOwnsLaunchHref(index: RegistryIndex, href: string): boolean {

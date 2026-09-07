@@ -9,7 +9,7 @@ import {
   getAllRegisteredResourceMetadata,
   type RegisteredResourceMetadata,
 } from './resource-registry-metadata';
-import { DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE } from './teaching-projection/contracts';
+import { resolveConfiguredTeachingProjectionRoot } from './teaching-projection/live-course-pointer';
 import {
   resolveActiveTeachingProjection,
   resolveTeachingProjectionStorePaths,
@@ -75,10 +75,7 @@ export function getTeachingLaunchRouteRecords(): RegisteredResourceMetadata[] {
     hrefs.add(buildLessonHandoutPrintPath(identity.runtimeLessonDir));
   }
   const projection = resolveActiveTeachingProjection(
-    resolveTeachingProjectionStorePaths(path.join(
-      process.cwd(),
-      DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE,
-    )),
+    resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
   );
   if (projection.status === 'available' && projection.staged) {
     const maps = buildTeachingResourceLaunchMaps(projection.staged.artifacts.resources);

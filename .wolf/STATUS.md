@@ -88,7 +88,7 @@
 
 ## 🚀 Next phase
 
-- 2026-09-07：#2044 / PR #2057 HEAD `d2df29382c` 已获 Codex 顶层清场（「Didn't find any major issues」）。OpenSpec 已归档为 `2026-09-07-universal-resource-launch-and-viewer`，待归档提交推送后对 latest HEAD 再请求一次复审，再合并。不要关 #1033。不要 `deploy:app` / `deploy:runtime`。不要主动调用 Claude。不要改 overlay A / `activation-0b72f577`。
+- 2026-09-07：#2044 / PR #2057 归档 HEAD `02765f5` 复审未清场：P1 viewer-shell 被 API href 清洗打成 unavailable；P2 缓存键未走配置的教学投影根。正在按根因一并修完后再对 latest HEAD 请求一次复审。不要关 #1033。不要 `deploy:app` / `deploy:runtime`。不要主动调用 Claude。不要改 overlay A / `activation-0b72f577`。
 
 - 2026-09-03：先 claim #1916，按 claim 时 clean `origin/integration` 重建完整 tracked payload path/byte 分母，闭合当前 authority/consumer/retention/privacy/materialization/recovery/rollback 与 full-inventory 实际字节验证。旧 #1881 的 52,159 个 unresolved 与 `package-unqualified` 只作历史比较；输出未达到 unresolved=0 时继续 fail closed。不得迁移、删除、外置、物化载荷，不得改 active baseline/fitness/test qualification 或生产状态。
 

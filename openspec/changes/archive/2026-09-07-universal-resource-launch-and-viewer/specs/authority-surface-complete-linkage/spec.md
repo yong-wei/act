@@ -46,6 +46,7 @@ Every href the inspector exposes as available MUST be exactly owned by a live re
 - **WHEN** the active Teaching Projection pointer identity changes without an application restart
 - **THEN** the next live registry index read SHALL rebuild from that pointer
 - **AND** it SHALL NOT reuse a memoized index captured under a previous projection identity
+- **AND** the memo key and teaching launch route records SHALL read the same configured Teaching Projection store root
 
 ### Requirement: Viewer-shell bindings carry the selected resource payload
 Each available viewer-shell binding MUST carry learner-safe content for that resource. Card bindings MUST include that card's published summary; infographic bindings MUST include a published image URL that identifies that infographic without `act:` resource ids, canonical ids, or source paths. A viewer-shell binding whose published payload cannot be resolved MUST be unavailable.
@@ -55,3 +56,8 @@ Each available viewer-shell binding MUST carry learner-safe content for that res
 - **THEN** the viewer SHALL render that binding's payload
 - **AND** the payload SHALL be resolved from that resource's runtime card or infograph file, not from the node's one-slot learning-content record
 - **AND** it SHALL NOT substitute another binding's content, the node's default card, or an empty placeholder while remaining available
+
+#### Scenario: Viewer-shell bindings remain available without a page href
+- **WHEN** a viewer-shell binding carries that resource's published payload and its launch href is null
+- **THEN** the knowledge node-detail sanitizer SHALL keep the binding available
+- **AND** it SHALL NOT rewrite availability solely because a missing href fails public launch sanitization

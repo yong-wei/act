@@ -1,8 +1,6 @@
-import path from 'node:path';
-
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { getTeachingLaunchRouteRecords } from '@/lib/teaching-launch-route-records';
-import { DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE } from '@/lib/teaching-projection/contracts';
+import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
 import {
   readCurrentTeachingProjectionPointer,
   resolveTeachingProjectionStorePaths,
@@ -28,7 +26,7 @@ function readTeachingProjectionPointerIdentity(cwd: string): string {
   try {
     const pointer = readCurrentTeachingProjectionPointer(
       resolveTeachingProjectionStorePaths(
-        path.join(cwd, DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE),
+        resolveConfiguredTeachingProjectionRoot(cwd),
       ),
     );
     const projectionId = pointer?.projectionId?.trim() ?? '';

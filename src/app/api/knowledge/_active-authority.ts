@@ -80,7 +80,7 @@ import {
   knowledgeSurfaceFromActiveProvenance,
   knowledgeSurfaceFromLearnerShard,
   knowledgeSurfaceSelectorRejection,
-  sanitizePublicLaunchHref,
+  sanitizePublicResourceBindingLaunches,
   withKnowledgeSurface,
 } from '@/lib/knowledge-surface';
 import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-cutover-live';
@@ -561,17 +561,11 @@ function sanitizeResourceBindings(
   if (closed.bindings.state !== 'available') {
     return { bindings: closed.bindings, registryIndex: null };
   }
-  const items = closed.bindings.items.map((item) => {
-    const href = sanitizePublicLaunchHref(item.launch.href, nodeId);
-    return {
-      ...item,
-      availability: href ? 'available' as const : 'unavailable' as const,
-      launch: { ...item.launch, href },
-    };
-  });
-  const stillAvailable = items.some((item) => item.availability === 'available');
+  const bindings = sanitizePublicResourceBindingLaunches(closed.bindings, nodeId);
+  const stillAvailable = bindings.state === 'available'
+    && bindings.items.some((item) => item.availability === 'available');
   return {
-    bindings: { state: 'available', items },
+    bindings,
     registryIndex: stillAvailable ? closed.registryIndex : null,
   };
 }
