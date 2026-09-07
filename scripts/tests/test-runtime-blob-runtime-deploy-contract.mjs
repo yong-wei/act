@@ -698,8 +698,13 @@ assert.ok(
   'combined deployment must select Runtime only after the application is replaced',
 );
 assert.ok(
-  deployAll.lastIndexOf('--resume-published-artifact-dir') < deployAll.lastIndexOf('assert_after_activation'),
+  deployAll.lastIndexOf('assert_after_activation') > deployAll.lastIndexOf('--resume-published-artifact-dir'),
   'combined deployment must re-assert Teaching Projection after Runtime selection',
+);
+assert.match(
+  deployAll,
+  /Resume-only: preflight/,
+  'combined resume must validate the published candidate against target HEAD before replacing the application',
 );
 assert.match(
   runtimeDeploy,

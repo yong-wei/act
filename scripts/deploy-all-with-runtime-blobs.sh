@@ -71,6 +71,9 @@ if [[ -z "$resume_artifact_dir" ]]; then
   exit 0
 fi
 
+# Resume-only: preflight the already published candidate against the upcoming
+# app HEAD before any irreversible application replace.
+assert_after_activation
 bash "$ROOT_DIR/scripts/remote-deploy.sh" --app-only
 bash "$ROOT_DIR/scripts/deploy-runtime-blob-release.sh" \
   --resume-published-artifact-dir "$resume_artifact_dir"
