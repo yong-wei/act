@@ -126,15 +126,19 @@ test.describe('#2043 engineering-textbook coverage on canvas', () => {
     );
 
     // Data-layer evidence: the projection binds textbook sections with unified
-    // reader hrefs (see the resource-bindings unit tests). The in-panel click
-    // is pending a user decision: the knowledge-graph launch sanitizer
-    // deliberately rejects percent-encoded spaces, while two of three source
-    // editions contain spaces (14th Global Edition / 7th edition).
+    // reader hrefs, and the governed textbook route survives the public API
+    // launch sanitization (#2043 review P1-2 fix).
     const sectionBinding = bindings.find((binding) =>
       binding.canonicalId === inspectable!.id
       && binding.resourceId.startsWith('act:textbook-section:')
       && !binding.resourceId.startsWith('act:textbook-section:cts.'));
     expect(sectionBinding, 'node must carry a v2 textbook-section binding').toBeTruthy();
+
+    // The textbook resource launches into the unified reader href system.
+    const readerLaunch = page.locator('a[data-active-resource-launch][href^="/textbooks/"]');
+    await expect(readerLaunch.first()).toBeVisible({ timeout: 30_000 });
+    const href = await readerLaunch.first().getAttribute('href');
+    expect(href).toMatch(/^\/textbooks\/[a-z0-9-]+\/[^/]+\/.+/);
 
     writeEvidence({
       shardSetId: pointer.shardSetId,
@@ -147,26 +151,7 @@ test.describe('#2043 engineering-textbook coverage on canvas', () => {
         sources: expectedSources,
       },
       v2SectionBinding: sectionBinding ?? null,
+      readerLaunchHref: href,
     }, 'canvas-acceptance.json');
-  });
-
-  test.fixme('textbook sections launch the unified reader from the resources panel', async ({ page, context }) => {
-    test.setTimeout(180_000);
-    await addStudentSession(context as BrowserContext);
-    await page.goto('/knowledge', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('[data-authority-domain-entry]').first()).toBeVisible({ timeout: 60_000 });
-    await activateSharedRuntimeControl(page, '[data-authority-domain-entry="modeling"]');
-    const node = page.locator(`[data-active-authority-node="${inspectable!.id}"]`).first();
-    await expect(node).toBeVisible({ timeout: 60_000 });
-    await node.evaluate((element) => {
-      if (!(element instanceof HTMLElement)) {
-        throw new Error('Expected an HTMLElement');
-      }
-      element.click();
-    });
-    const readerLaunch = page.locator('a[data-active-resource-launch][href^="/textbooks/"]');
-    await expect(readerLaunch.first()).toBeVisible({ timeout: 30_000 });
-    const href = await readerLaunch.first().getAttribute('href');
-    expect(href).toMatch(/^\/textbooks\/[a-z0-9-]+\/[^/]+\/.+/);
   });
 });
