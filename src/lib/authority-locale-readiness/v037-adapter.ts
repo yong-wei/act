@@ -317,8 +317,8 @@ export function adaptV037LocaleManifest(input: {
     if (languageNeutral) languageNeutralRecordIds.push(id);
   }
 
-  // 呈现真实空集类别（域名/方向枚举属 interface catalog）；别名与来源
-  // 已在覆盖集中以真实清单出现（当前均为空数组）。
+  // 呈现真实空集类别（域名/方向枚举属 interface catalog）；别名按双语
+  // 覆盖集进入分母，来源维持 r5 声明面口径（见上）。
   const emptyCategories: MandatoryLocaleCategory[] = ['domains', 'directions'];
   const denominators: LocaleCategoryDenominator[] = [
     ...([
