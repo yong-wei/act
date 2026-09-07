@@ -41,7 +41,7 @@ export function resolveBindingViewerContentForType(
   if (resourceType === 'infographic') {
     const token = tokenAfterPrefix(resourceId, 'act:infographic:');
     if (!token) return null;
-    const safeId = publishedInfographSafeIdForToken(token);
+    const safeId = publishedInfographSafeIdForToken(token, sourcePath);
     if (!safeId) return null;
     return {
       imageSrc: `/api/knowledge/published-infograph/${encodeURIComponent(safeId)}`,

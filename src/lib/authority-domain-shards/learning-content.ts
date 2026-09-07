@@ -11,6 +11,13 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
+import {
+  loadStagedTeachingProjection,
+  readCurrentTeachingProjectionPointer,
+  resolveTeachingProjectionStorePaths,
+} from '@/lib/teaching-projection/store';
+
 import type {
   AuthorityNodeDetailShard,
   AuthorityNodeLearningContent,
@@ -355,27 +362,116 @@ export function readPublishedLearnerCardByToken(
   return parseLearnerVisibleCardFields(raw);
 }
 
-export function publishedInfographSafeIdForToken(token: string): string | null {
+const INFOGRAPHIC_RESOURCE_PREFIX = 'act:infographic:';
+
+let liveInfographicTokenMemo: {
+  key: string;
+  tokens: ReadonlyMap<string, string | null>;
+} | null = null;
+
+function readInfographIfHashMatches(
+  path: string,
+  expectedSha256: string,
+  bindingHash?: string | null,
+): Buffer | null {
+  try {
+    if (!existsSync(/*turbopackIgnore: true*/ path)) return null;
+    const bytes = readFileSync(/*turbopackIgnore: true*/ path);
+    const digest = sha256(bytes);
+    if (digest !== expectedSha256) return null;
+    if (bindingHash && digest !== bindingHash) return null;
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function loadLiveInfographicTokens(repoRoot: string): ReadonlyMap<string, string | null> {
+  const projectionRoot = resolveConfiguredTeachingProjectionRoot(repoRoot);
+  const paths = resolveTeachingProjectionStorePaths(projectionRoot);
+  const pointer = readCurrentTeachingProjectionPointer(paths);
+  const key = `${repoRoot}::${projectionRoot}::${pointer?.projectionId ?? ''}::${pointer?.projectionHash ?? ''}`;
+  if (liveInfographicTokenMemo?.key === key) return liveInfographicTokenMemo.tokens;
+  const tokens = new Map<string, string | null>();
+  if (!pointer) {
+    liveInfographicTokenMemo = { key, tokens };
+    return tokens;
+  }
+  try {
+    const staged = loadStagedTeachingProjection(paths, pointer.projectionId);
+    if (
+      staged.projectionHash !== pointer.projectionHash
+      || !staged.artifacts.gate.passed
+    ) {
+      liveInfographicTokenMemo = { key, tokens };
+      return tokens;
+    }
+    for (const resource of staged.artifacts.resources) {
+      if (resource.resourceType !== 'infographic') continue;
+      if (!resource.resourceId.startsWith(INFOGRAPHIC_RESOURCE_PREFIX)) continue;
+      const token = resource.resourceId.slice(INFOGRAPHIC_RESOURCE_PREFIX.length);
+      if (!isBindingContentToken(token)) continue;
+      tokens.set(token, contentHashFromSourcePath(resource.sourcePath));
+    }
+  } catch {
+    liveInfographicTokenMemo = { key, tokens };
+    return tokens;
+  }
+  liveInfographicTokenMemo = { key, tokens };
+  return tokens;
+}
+
+function resolvePublishedInfographBytes(
+  token: string,
+  options: {
+    sourcePath?: string | null;
+    liveInfographicTokens?: ReadonlyMap<string, string | null>;
+  } = {},
+): Buffer | null {
   if (!isBindingContentToken(token)) return null;
   const repoRoot = process.cwd();
+  const bindingHash = contentHashFromSourcePath(options.sourcePath);
+  const paths = runtimePaths(repoRoot);
+  const manifest = readManifest(paths);
+  const v2Entry = manifest?.nodes.find((node) => node.safeId === token) ?? null;
+  if (v2Entry) {
+    if (v2Entry.infograph.state !== 'available' || !v2Entry.infograph.sha256) return null;
+    return readInfographIfHashMatches(
+      join(/*turbopackIgnore: true*/ paths.infographRoot, `${v2Entry.safeId}.png`),
+      v2Entry.infograph.sha256,
+      bindingHash,
+    );
+  }
+
+  const live = options.liveInfographicTokens ?? loadLiveInfographicTokens(repoRoot);
+  if (!live.has(token)) return null;
+  const liveHash = live.get(token) ?? null;
   const infographPath = firstExistingFile([
     join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_NODES_RELATIVE, `${token}.png`),
     join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_AUTHORITY_NODES_RELATIVE, `${token}.png`),
   ]);
-  return infographPath ? token : null;
+  if (!infographPath) return null;
+  const expectedHash = liveHash ?? bindingHash;
+  if (!expectedHash) {
+    try {
+      return readFileSync(/*turbopackIgnore: true*/ infographPath);
+    } catch {
+      return null;
+    }
+  }
+  return readInfographIfHashMatches(infographPath, expectedHash, bindingHash);
 }
 
-export function readPublishedAuthorityInfographBySafeId(safeId: string): Buffer | null {
-  if (!isBindingContentToken(safeId)) return null;
-  const repoRoot = process.cwd();
-  const infographPath = firstExistingFile([
-    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_NODES_RELATIVE, `${safeId}.png`),
-    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_AUTHORITY_NODES_RELATIVE, `${safeId}.png`),
-  ]);
-  if (!infographPath) return null;
-  try {
-    return readFileSync(/*turbopackIgnore: true*/ infographPath);
-  } catch {
-    return null;
-  }
+export function publishedInfographSafeIdForToken(
+  token: string,
+  sourcePath?: string | null,
+): string | null {
+  return resolvePublishedInfographBytes(token, { sourcePath }) ? token : null;
+}
+
+export function readPublishedAuthorityInfographBySafeId(
+  safeId: string,
+  options?: { liveInfographicTokens?: ReadonlyMap<string, string | null> },
+): Buffer | null {
+  return resolvePublishedInfographBytes(safeId, options);
 }

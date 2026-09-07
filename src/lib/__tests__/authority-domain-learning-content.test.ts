@@ -20,7 +20,9 @@ import * as teachingProjectionStore from '@/lib/teaching-projection/store';
 import {
   attachActiveAuthorityLearningContent,
   loadNodeDetailShard,
+  publishedInfographSafeIdForToken,
   readActiveAuthorityInfograph,
+  readPublishedAuthorityInfographBySafeId,
 } from '@/lib/authority-domain-shards';
 
 const REPO_ROOT = process.cwd();
@@ -180,6 +182,46 @@ describe('Authority learning-content delivery', () => {
         summary: expect.stringMatching(/(?:ctc:|ctkg:|[a-f0-9]{64}|course-content\/)/i),
       });
       expect(readActiveAuthorityInfograph(accepted)?.byteLength).toBeGreaterThan(1000);
+    });
+  });
+
+  it('serves published infograph GET only from the active v2 inventory and matching hash', () => {
+    withAlignedRuntime(() => {
+      const acceptedSafeId = 'ctc_modeling-865eb1c8824e157c2f05a903';
+      const accepted = readPublishedAuthorityInfographBySafeId(acceptedSafeId);
+      expect(accepted?.byteLength).toBeGreaterThan(1000);
+      expect(publishedInfographSafeIdForToken(acceptedSafeId)).toBe(acceptedSafeId);
+
+      const leftoverId = 'leftover-infograph-token';
+      const leftoverDir = join(process.cwd(), 'course-content/runtime/knowledge/infographs/nodes');
+      mkdirSync(leftoverDir, { recursive: true });
+      copyFileSync(
+        join(process.cwd(), INFOGRAPH_RELATIVE, `${acceptedSafeId}.png`),
+        join(leftoverDir, `${leftoverId}.png`),
+      );
+      expect(readPublishedAuthorityInfographBySafeId(leftoverId)).toBeNull();
+      expect(publishedInfographSafeIdForToken(leftoverId)).toBeNull();
+
+      writeFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, `${acceptedSafeId}.png`), 'not-the-accepted-bytes');
+      expect(readPublishedAuthorityInfographBySafeId(acceptedSafeId)).toBeNull();
+      expect(publishedInfographSafeIdForToken(acceptedSafeId)).toBeNull();
+    });
+  });
+
+  it('serves a binding infograph only when the live teaching inventory lists it', () => {
+    withAlignedRuntime(() => {
+      const token = 'lesson-infograph-token';
+      const bytes = readFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, 'ctc_modeling-865eb1c8824e157c2f05a903.png'));
+      const lessonDir = join(process.cwd(), 'course-content/runtime/knowledge/infographs/nodes');
+      mkdirSync(lessonDir, { recursive: true });
+      writeFileSync(join(lessonDir, `${token}.png`), bytes);
+      expect(readPublishedAuthorityInfographBySafeId(token)).toBeNull();
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        liveInfographicTokens: new Map([[token, sha256(bytes)]]),
+      })?.equals(bytes)).toBe(true);
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        liveInfographicTokens: new Map([[token, '0'.repeat(64)]]),
+      })).toBeNull();
     });
   });
 
