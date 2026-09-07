@@ -119,7 +119,9 @@ function main(): void {
   const reviewsPath = mappingArtifactPath(ROOT, 'reviews.jsonl');
   const existingReviews = existsSync(reviewsPath) ? loadReviewLedger({ filePath: reviewsPath }) : [];
   let ordinal = existingReviews.length === 0 ? 0 : existingReviews[existingReviews.length - 1]!.reviewOrdinal;
-  const seenKeys = new Set(existingReviews.map((row) => row.candidateKey));
+  // Duplicate keys against the existing ledger are corrections (new ordinal,
+  // last-write-wins via effectiveVerdicts). Only reject repeats in this apply.
+  const seenKeys = new Set<string>();
 
   const allReviewRows: MappingReviewRow[] = [];
   const allExceptionRows: Array<Record<string, unknown>> = [];

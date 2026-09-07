@@ -15,6 +15,7 @@ import {
   assertCoverageGate,
   computeCoverage,
   artifactDigest,
+  buildGovernedSourcesEntries,
   candidateKeyOf,
   effectiveVerdicts,
   loadCandidates,
@@ -24,6 +25,7 @@ import {
   mappingArtifactPath,
   MAPPING_SOURCES_INPUT_CONTRACT,
   NODE_SOURCES_LIMIT,
+  sourceDocumentIdForReaderBook,
   type MappingCandidateRow,
 } from '@/lib/engineering-textbook-mapping';
 import { TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2 } from '@/lib/teaching-projection/textbook-locators/contracts';
@@ -31,12 +33,6 @@ import { TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2 } from '@/lib/teaching-projectio
 const ROOT = process.cwd();
 const CROSSWALK_REL = 'course-content/authoring/knowledge/teaching-projection/textbook-locators/source-resource-crosswalk.jsonl';
 const BUNDLE_MANIFEST_REL = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/bundle-manifest.json';
-
-const READER_BOOK_LABEL: Readonly<Record<string, string>> = {
-  'dorf-modern-control-systems': 'Modern Control Systems (Dorf/Bishop, 14th)',
-  'feedback-control-of-dynamic-systems': 'Feedback Control of Dynamic Systems (Franklin, 7th)',
-  'hu-shousong-auto-control-8th': '自动控制原理（胡寿松，第8版）',
-};
 
 interface BundleManifest {
   release: { release_id: string; release_hash: string };
@@ -85,12 +81,6 @@ function main(): void {
     unitTitle: string;
     canonicalIds: string[];
   }>();
-  const sourceEditionByReaderBook: Readonly<Record<string, string>> = {
-    'dorf-modern-control-systems': 'dorf-modern-control-systems-14th',
-    'feedback-control-of-dynamic-systems': 'franklin-feedback-control-7th',
-    'hu-shousong-auto-control-8th': 'hu-shousong-auto-control-8th',
-  };
-  const entries: Array<{ nodeId: string; sources: Array<{ sourceEditionId: string; sectionId: string; label: string | null }> }> = [];
   let cappedNodes = 0;
 
   for (const canonicalId of [...rowsByNode.keys()].sort()) {
@@ -99,14 +89,8 @@ function main(): void {
       .sort((left, right) => left.rank - right.rank);
     const capped = rows.slice(0, NODE_SOURCES_LIMIT);
     if (rows.length > NODE_SOURCES_LIMIT) cappedNodes += 1;
-    const sources = [];
     for (const row of capped) {
-      const sourceEditionId = sourceEditionByReaderBook[row.bookId];
-      if (!sourceEditionId) {
-        throw new Error(`approved candidate references book outside the alias table: ${row.bookId}`);
-      }
-      const label = `${READER_BOOK_LABEL[row.bookId] ?? row.bookId} · ${row.unitTitle}`.slice(0, 140);
-      sources.push({ sourceEditionId, sectionId: row.structuralUnitId, label });
+      const sourceEditionId = sourceDocumentIdForReaderBook(row.bookId);
       const key = row.structuralUnitId;
       const crosswalkRow = unitRow.get(key);
       if (crosswalkRow) {
@@ -123,8 +107,13 @@ function main(): void {
         });
       }
     }
-    entries.push({ nodeId: canonicalId, sources });
   }
+
+  const entries = buildGovernedSourcesEntries({
+    candidateRows: candidates.rows,
+    reviews,
+    nodeLimit: NODE_SOURCES_LIMIT,
+  });
 
   const crosswalkLines = [...unitRow.values()]
     .sort((left, right) => left.structuralUnitId.localeCompare(right.structuralUnitId))

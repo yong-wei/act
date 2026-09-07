@@ -14,10 +14,13 @@ import {
 import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 import {
   artifactDigest,
+  loadCandidates,
+  loadReviewLedger,
   loadSourcesInput,
   mappingArtifactPath,
   MAPPING_SOURCES_INPUT_CONTRACT,
   verifyCoverageLedgerBinding,
+  verifySourcesInputMatchesApprovedMappings,
   loadCoverage,
 } from '@/lib/engineering-textbook-mapping';
 import {
@@ -62,6 +65,11 @@ export function materializeCommittedAuthorityDomainShards(
       `sources-input coverageDigest ${sourceCitations.coverageDigest.slice(0, 12)}… does not bind the live coverage receipt ${liveCoverageDigest.slice(0, 12)}…; regenerate sources-input from the current governed ledgers`,
     );
   }
+  verifySourcesInputMatchesApprovedMappings({
+    sources: sourceCitations,
+    candidateRows: loadCandidates(repoRoot).rows,
+    reviews: loadReviewLedger({ filePath: mappingArtifactPath(repoRoot, 'reviews.jsonl') }),
+  });
   const materialized = buildAuthorityDomainShards({
     envelope: identity.envelope,
     catalog: identity.catalog,

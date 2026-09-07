@@ -27,6 +27,7 @@ import type { TeachingPrerequisiteAuthoring } from '@/lib/teaching-projection/co
 import {
   EXTRACTION_SOURCE_BOOKS,
   planRuntimeFullBinding,
+  type AuthorityIdentityPin,
   type RuntimeBindingRow,
   type RuntimeCardRow,
   type RuntimeResourceRow,
@@ -39,6 +40,8 @@ const ROOT = process.cwd();
 const OVERLAY_REL = 'course-content/runtime/knowledge/teaching-projection/domain-fragments';
 const PROJECTION_REL = 'course-content/runtime/knowledge/projection';
 const LEDGER_REL = 'course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl';
+const BUNDLE_MANIFEST_REL =
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/bundle-manifest.json';
 
 function abs(rel: string): string {
   return path.join(ROOT, rel);
@@ -112,6 +115,9 @@ function loadTextbookLocators(): {
         unitTitle: row.unitTitle,
         canonicalIds: row.canonicalIds,
         authorityReleaseId: row.authorityReleaseId,
+        authorityReleaseHash: row.authorityReleaseHash,
+        bundleDigest: row.bundleDigest,
+        captureRevision: row.captureRevision,
       })),
   };
 }
@@ -152,6 +158,20 @@ function loadAuthorityCanonicalIds(): string[] {
     readFileSync(join(authorityPaths.releasesDir, current.snapshotId, 'engineering.json'), 'utf8'),
   ) as { objects: Array<{ canonicalId: string }> };
   return engineering.objects.map((object) => object.canonicalId);
+}
+
+function loadAuthorityIdentityPin(): AuthorityIdentityPin {
+  const bundle = readJson<{
+    release: { release_id: string; release_hash: string };
+    bundle_digest: string;
+    source_revision: { commit: string };
+  }>(BUNDLE_MANIFEST_REL);
+  return {
+    authorityReleaseId: bundle.release.release_id,
+    authorityReleaseHash: bundle.release.release_hash,
+    bundleDigest: bundle.bundle_digest,
+    captureRevision: bundle.source_revision.commit,
+  };
 }
 
 function option(name: string): string | undefined {
@@ -204,6 +224,7 @@ function main(): void {
     textbookLocators: textbookLocators.v1,
     textbookLocatorsV2: textbookLocators.v2,
     authorityCanonicalIds: loadAuthorityCanonicalIds(),
+    authorityIdentityPin: loadAuthorityIdentityPin(),
     taskSims: loadTaskSims(),
   });
 

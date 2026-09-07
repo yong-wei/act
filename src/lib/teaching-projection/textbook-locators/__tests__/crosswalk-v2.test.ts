@@ -30,6 +30,12 @@ function planWith(locatorsV2: Parameters<typeof planRuntimeFullBinding>[0]['text
     cards: [],
     authorityCardCanonicalIds: [],
     authorityCanonicalIds: ['ctc:core-a', 'ctc:authority-only'],
+    authorityIdentityPin: {
+      authorityReleaseId: RELEASE_V037,
+      authorityReleaseHash: 'h'.repeat(64),
+      bundleDigest: 'b'.repeat(64),
+      captureRevision: 'c'.repeat(40),
+    },
     textbookLocators: [],
     textbookLocatorsV2: locatorsV2,
     taskSims: [],
@@ -140,6 +146,26 @@ describe('runtime full binding v2 textbook channel', () => {
       role: 'EXPLAINS',
     }));
     expect(plan.ledger).toHaveLength(0);
+  });
+
+  it('fails v2 rows whose identity hash diverges from the pinned bundle', () => {
+    const plan = planWith([{ ...V2_ROW, authorityReleaseHash: '1'.repeat(64) }]);
+    expect(plan.ledger).toContainEqual(expect.objectContaining({
+      reason: 'stale-authority-binding',
+    }));
+    expect(plan.authoring.bindings.filter((row) => row.canonicalId === 'ctc:core-a')).toHaveLength(0);
+  });
+
+  it('ledgers each unknown canonical on a mixed v2 row and still binds overlay hits', () => {
+    const plan = planWith([{ ...V2_ROW, canonicalIds: ['ctc:core-a', 'ctc:not-in-release'] }]);
+    expect(plan.ledger).toContainEqual(expect.objectContaining({
+      reason: 'unknown-canonical',
+      detail: 'ctc:not-in-release',
+    }));
+    expect(plan.authoring.bindings).toContainEqual(expect.objectContaining({
+      canonicalId: 'ctc:core-a',
+      role: 'EXPLAINS',
+    }));
   });
 
   it('fails v2 rows bound to a superseded release into the exception ledger', () => {

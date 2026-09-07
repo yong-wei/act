@@ -56,3 +56,9 @@ export {
 } from './ledger';
 export { assertCoverageGate, computeCoverage } from './coverage';
 export type { CoverageComputation } from './coverage';
+export {
+  buildGovernedSourcesEntries,
+  citationLabelForCandidate,
+  sourceDocumentIdForReaderBook,
+  verifySourcesInputMatchesApprovedMappings,
+} from './sources-input';

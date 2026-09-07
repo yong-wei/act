@@ -15,10 +15,14 @@ import {
   MAPPING_COVERAGE_GATE,
   MAPPING_EXCEPTIONS_CONTRACT,
   MAPPING_REVIEWS_CONTRACT,
+  MAPPING_SOURCES_INPUT_CONTRACT,
+  NODE_SOURCES_LIMIT,
   resolveTextbookAlias,
   TEXTBOOK_ID_ALIASES,
   verifyCoverageLedgerBinding,
+  verifySourcesInputMatchesApprovedMappings,
   verifyTextbookAliasesAgainstManifests,
+  buildGovernedSourcesEntries,
   type MappingCandidatesFile,
   type MappingDenominatorFile,
   type MappingExceptionRow,
@@ -356,6 +360,60 @@ describe('review ledger append-only ordering', () => {
       }
     } finally {
       rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('governed sources-input binding', () => {
+  it('rebuilds citations from the approved mapping ledger', () => {
+    const candidates = candidatesFixture();
+    const reviews = [reviewRow(1, 'ctc:a1', 'approved')];
+    const entries = buildGovernedSourcesEntries({
+      candidateRows: candidates.rows,
+      reviews,
+    });
+    expect(entries).toEqual([
+      {
+        nodeId: 'ctc:a1',
+        sources: [
+          {
+            sourceEditionId: 'dorf-modern-control-systems-14th',
+            sectionId: UNIT_DORF,
+            label: expect.stringContaining('Modern Control Systems'),
+          },
+        ],
+      },
+    ]);
+  });
+
+  it('fails closed when sources-input entries diverge while coverageDigest is unchanged', () => {
+    const candidates = candidatesFixture();
+    const reviews = [reviewRow(1, 'ctc:a1', 'approved')];
+    const honest = buildGovernedSourcesEntries({
+      candidateRows: candidates.rows,
+      reviews,
+    });
+    const sources = {
+      contract: MAPPING_SOURCES_INPUT_CONTRACT,
+      authorityReleaseId: RELEASE,
+      coverageDigest: 'd'.repeat(64),
+      nodeLimit: NODE_SOURCES_LIMIT,
+      entries: [
+        {
+          nodeId: honest[0]!.nodeId,
+          sources: [{ ...honest[0]!.sources[0]!, sectionId: 'forged-unit' }],
+        },
+      ],
+    };
+    try {
+      verifySourcesInputMatchesApprovedMappings({
+        sources,
+        candidateRows: candidates.rows,
+        reviews,
+      });
+      expect.unreachable();
+    } catch (error) {
+      expect((error as EngineeringTextbookMappingError).code).toBe('sources-ledger-mismatch');
     }
   });
 });

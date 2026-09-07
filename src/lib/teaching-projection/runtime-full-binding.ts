@@ -92,6 +92,17 @@ export interface TextbookLocatorRowV2 {
   unitTitle?: string;
   canonicalIds: string[];
   authorityReleaseId: string;
+  authorityReleaseHash?: string;
+  bundleDigest?: string;
+  captureRevision?: string;
+}
+
+/** Pinned Authority identity for v2 locator rows (emit bundle, not v0.12 locators). */
+export interface AuthorityIdentityPin {
+  authorityReleaseId: string;
+  authorityReleaseHash: string;
+  bundleDigest: string;
+  captureRevision: string;
 }
 
 export interface TaskSimInput {
@@ -122,6 +133,30 @@ export interface RuntimeFullBindingPlan {
     addedResources: number;
     ledgerCount: number;
   };
+}
+
+function v2LocatorIdentityMismatch(
+  locator: TextbookLocatorRowV2,
+  expectedReleaseId: string,
+  pin?: AuthorityIdentityPin,
+): string | null {
+  if (locator.authorityReleaseId !== expectedReleaseId) {
+    return locator.authorityReleaseId;
+  }
+  if (!pin) return null;
+  if (locator.authorityReleaseId !== pin.authorityReleaseId) {
+    return locator.authorityReleaseId;
+  }
+  if (locator.authorityReleaseHash !== pin.authorityReleaseHash) {
+    return locator.authorityReleaseHash ?? 'missing-authorityReleaseHash';
+  }
+  if (locator.bundleDigest !== pin.bundleDigest) {
+    return locator.bundleDigest ?? 'missing-bundleDigest';
+  }
+  if (locator.captureRevision !== pin.captureRevision) {
+    return locator.captureRevision ?? 'missing-captureRevision';
+  }
+  return null;
 }
 
 export function unitTokenFromResourceId(resourceId: string): string | null {
@@ -180,6 +215,8 @@ export function planRuntimeFullBinding(input: {
    * governance ledgers, not this course projection ledger).
    */
   authorityCanonicalIds?: ReadonlySet<string> | readonly string[];
+  /** When set, v2 rows must match all four identity fields or go to the ledger. */
+  authorityIdentityPin?: AuthorityIdentityPin;
   taskSims: readonly TaskSimInput[];
 }): RuntimeFullBindingPlan {
   const overlay = new Set(input.overlayCores);
@@ -398,29 +435,37 @@ export function planRuntimeFullBinding(input: {
       });
       continue;
     }
-    if (locator.authorityReleaseId !== input.authorityReleaseId) {
+    const identityMismatch = v2LocatorIdentityMismatch(locator, input.authorityReleaseId, input.authorityIdentityPin);
+    if (identityMismatch) {
       ledger.push({
         resourceId: `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`,
         reason: 'stale-authority-binding',
-        detail: locator.authorityReleaseId,
+        detail: identityMismatch,
       });
       continue;
     }
     const authorityIds = input.authorityCanonicalIds
       ? new Set(input.authorityCanonicalIds)
       : null;
+    const sectionLedgerId = `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`;
+    if (authorityIds) {
+      for (const canonicalId of locator.canonicalIds) {
+        if (!authorityIds.has(canonicalId)) {
+          ledger.push({
+            resourceId: sectionLedgerId,
+            reason: 'unknown-canonical',
+            detail: canonicalId,
+          });
+        }
+      }
+    }
     const authorityKnown = authorityIds
       ? locator.canonicalIds.filter((id) => authorityIds.has(id))
       : [...locator.canonicalIds];
     if (authorityKnown.length === 0) {
-      ledger.push({
-        resourceId: `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`,
-        reason: 'unknown-canonical',
-        detail: locator.canonicalIds.join(','),
-      });
       continue;
     }
-    const hitIds = locator.canonicalIds.filter((id) => overlay.has(id));
+    const hitIds = authorityKnown.filter((id) => overlay.has(id));
     if (hitIds.length === 0) continue;
     // Single-token section identity per the projection resource grammar;
     // toResourceIdToken keeps it reversible back to the structural unit id.
