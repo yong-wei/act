@@ -38,15 +38,17 @@ export type RagProductionAuthorityDial = 'legacy' | 'canonical-composed';
 export const RAG_PRODUCTION_AUTHORITY_ENV = 'KONLING_RAG_PRODUCTION_AUTHORITY';
 
 /**
- * 读取生产权威拨盘：`legacy` 回滚，`canonical-composed` 为 #2047 授权切换
- * 后的缺省。未配置视为 composed；非法值 fail-safe 回 LEGACY。
+ * 读取生产权威拨盘：缺省 LEGACY——konling-agent-runtime spec 要求影子
+ * 比较门禁通过并显式授权前生产答案继续 LEGACY，因此未配置不切换。
+ * `canonical-composed` 仅在部署配置显式设置（门禁通过后的切换步骤）；
+ * 非法值 fail-safe 回 LEGACY。
  */
 export function readRagProductionAuthorityDial(
   env: Record<string, string | undefined> = process.env,
 ): RagProductionAuthorityDial {
   const raw = (env[RAG_PRODUCTION_AUTHORITY_ENV] ?? '').trim();
-  if (raw === '' || raw === 'canonical-composed') return 'canonical-composed';
-  if (raw === 'legacy') return 'legacy';
+  if (raw === 'canonical-composed') return 'canonical-composed';
+  if (raw === '' || raw === 'legacy') return 'legacy';
   console.warn(
     `Invalid ${RAG_PRODUCTION_AUTHORITY_ENV}=${raw}; falling back to legacy production RAG authority`,
   );
@@ -56,8 +58,8 @@ export function readRagProductionAuthorityDial(
 /**
  * RAG authority selector.
  *
- * - PRODUCTION_ANSWER → composed（#2047 授权切换，canonical-composed 通道）
- *   或 LEGACY（拨盘回滚），由 KONLING_RAG_PRODUCTION_AUTHORITY 决定
+ * - PRODUCTION_ANSWER → LEGACY（缺省，影子门禁前）或 composed（部署
+ *   显式配置 KONLING_RAG_PRODUCTION_AUTHORITY=canonical-composed 后）
  * - SHADOW_COMPARISON / OFFLINE_EVAL → CANONICAL_SHADOW (non-production)
  * - CUTOVER_ACTIVATION → always throws; no executable local path yields
  *   productionAuthoritative CANONICAL in #1112 (reserved for #1117).

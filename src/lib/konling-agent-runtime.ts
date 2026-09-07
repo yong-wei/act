@@ -4142,6 +4142,55 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
           corpus: engineeringCorpusFromLayeredPayload(payload),
         });
         const hits = result.hits.slice(0, limit);
+        // RAG hit 的语料种子不携带端点：从 payload 关系补齐邻居与方向，
+        // 模型必须能区分「谁指向谁」（#2047 review P1）。
+        const relationsById = new Map(
+          payload.engineering.relations.map((relation) => [relation.relationId, relation]),
+        );
+        const labelsByCanonicalId = new Map(
+          payload.engineering.nodes.map((node) => [node.canonicalId, node.semanticName]),
+        );
+        type EngineeringGraphToolEntry = {
+          canonicalId: string;
+          label: string | null;
+          predicate: string | null;
+          relationId: string | null;
+          direction: 'outgoing' | 'incoming' | null;
+          neighborCanonicalId: string | null;
+          neighborLabel: string | null;
+          citationTargetId: string | null;
+          relationKind: ReturnType<typeof runEngineeringRagQuery>['hits'][number]['citation']['relationKind'];
+        };
+        const entries: EngineeringGraphToolEntry[] = hits.flatMap((hit): EngineeringGraphToolEntry[] => {
+          const relation = hit.relationId ? relationsById.get(hit.relationId) : undefined;
+          if (!relation) {
+            return [{
+              canonicalId: hit.canonicalId,
+              label: hit.label,
+              predicate: null,
+              relationId: null,
+              direction: null,
+              neighborCanonicalId: null,
+              neighborLabel: null,
+              citationTargetId: hit.citation.citationTargetId,
+              relationKind: hit.citation.relationKind,
+            }];
+          }
+          // 种子按焦点过滤，hit.canonicalId 即焦点端点；另一端为邻居。
+          const outgoing = relation.sourceId === hit.canonicalId;
+          const neighborCanonicalId = outgoing ? relation.targetId : relation.sourceId;
+          return [{
+            canonicalId: hit.canonicalId,
+            label: hit.label,
+            predicate: relation.relationType,
+            relationId: relation.relationId,
+            direction: outgoing ? 'outgoing' as const : 'incoming' as const,
+            neighborCanonicalId,
+            neighborLabel: labelsByCanonicalId.get(neighborCanonicalId) ?? null,
+            citationTargetId: hit.citation.citationTargetId,
+            relationKind: hit.citation.relationKind,
+          }] satisfies EngineeringGraphToolEntry[];
+        });
         // 工程节点的受治理教材出处（Change 2 映射）；未映射节点保持无出处。
         const textbook = await resolveKonlingEngineeringTextbookCitations({
           canonicalIds: hits.map((hit) => hit.canonicalId),
@@ -4152,14 +4201,7 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
             ? 'ready'
             : 'unavailable',
           authorityReleaseId: result.metadata.authorityReleaseId,
-          entries: hits.map((hit) => ({
-            canonicalId: hit.canonicalId,
-            label: hit.label,
-            predicate: hit.predicate,
-            relationId: hit.relationId,
-            citationTargetId: hit.citation.citationTargetId,
-            relationKind: hit.citation.relationKind,
-          })),
+          entries,
           textbookCitations: citations.map((citation) => ({
             displayNumber: citation.displayNumber,
             title: citation.displayTitle,

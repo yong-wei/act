@@ -26,7 +26,9 @@
 
 ### 4. PRODUCTION_ANSWER 切换与回滚（cutover 治理）
 
-- 拨盘：`KONLING_RAG_PRODUCTION_AUTHORITY`。**缺省 `canonical-composed`（本次 #2047 授权切换即生效）**；`legacy` 为回滚位；非法值 fail-safe 回 LEGACY 并告警。选择器纯函数化（`readRagProductionAuthorityDial` + `SelectRagAuthorityOptions.productionAuthority` 显式覆盖供测试），切换可回滚、无数据迁移。
+> review 修正（PR #2062 P1）：切换语义为「缺省 LEGACY + 部署显式配置 `canonical-composed`」，见下文拨盘条目。
+
+- 拨盘：`KONLING_RAG_PRODUCTION_AUTHORITY`。**缺省 LEGACY**（review P1 修正：konling-agent-runtime spec 要求影子比较门禁通过并显式授权前生产答案保持 LEGACY，未配置不得切换）；`canonical-composed` 仅在部署配置显式设置（门禁收据通过后的切换步骤，随 5.4 生产发布执行）；`legacy` 为回滚位；非法值 fail-safe 回 LEGACY 并告警。选择器纯函数化（`readRagProductionAuthorityDial` + `SelectRagAuthorityOptions.productionAuthority` 显式覆盖供测试），切换可回滚、无数据迁移。
 - 语义边界：composed 拨盘下教学资源命中合并进回答（分配编号、模型可引用、面板芯片）；legacy 拨盘下 composed 仅产出影子指标（不合并、不分配新编号），但**上下文层 linkedResources 引用芯片不受拨盘影响**——引用面板能力独立于检索权威（提案回滚方案：芯片移除与权威拨回是两个独立开关）。
 - 不变量：`assertProductionSelectorUnchanged` 从「恒 LEGACY」改为「与配置拨盘一致」——legacy 拨盘禁止暴露 Canonical expansion，shadow 成功不得越过拨盘；`assertShadowCannotActivateCutover` 与 `CUTOVER_ACTIVATION` 抛错语义不变（composed 生产来自拨盘而非 shadow 自举）。
 - 门禁指标（4.3）：影子样本随生产回答持久化（命中率 = 教学域 hitCount 与 linkedResources 交集 `sharedTeachingResourceIds`；引用可验证率 = `teachingCitationVerifiableRate`；答案差异采样 = `onlyInComposedResourceIds` + LEGACY 前台结构单元身份）。本地离线证据：`konling-consumes-graphs-and-resources.test.ts` 在两种拨盘态产出对照样本；生产流量采样随 5.4 部署后累积。

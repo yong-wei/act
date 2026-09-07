@@ -32,6 +32,8 @@
 - [x] 4.3 采集影子对比指标（命中率、引用可验证率、答案差异采样）并达标
 - [x] 4.4 经授权后将 `selectRagAuthority('PRODUCTION_ANSWER')` 从 LEGACY 切到 composed；验证回滚路径（拨回 LEGACY）可用
 
+（review P1 修正：拨盘缺省保持 LEGACY——spec 要求影子门禁通过并显式授权前不切换；`canonical-composed` 经部署配置 `KONLING_RAG_PRODUCTION_AUTHORITY` 显式启用，切换步骤随 5.4 生产发布单独授权执行，回滚即移除该配置。）
+
 实现与结论见 `implementation-record.md`。要点：#1112 影子输入（版本绑定 crosswalk 证据集）无生产调用方可供，属死代码，已删除并由 composed 真实数据通路（`runKonlingComposedRagShadowDiagnostic`，随消息 metadata `konlingComposedRagShadow` 持久化采样）取代；teaching-resource 通道定为独立通道合并（search_textbook 内并行执行、命中去重合入同一编号空间）；生产权威拨盘 `KONLING_RAG_PRODUCTION_AUTHORITY`（缺省 canonical-composed 即授权切换，`legacy` 回滚，非法值 fail-safe LEGACY）。测试：`canonical-rag-authority-cutover-2047.test.ts`（缺省/回滚/非法值/不变量）、`konling-consumes-graphs-and-resources.test.ts`（composed 合并 vs legacy 影子-only）、`canonical-rag.test.ts`（离线 harness 固定 legacy fixture 语义）。
 
 ## 5. 验证与发布

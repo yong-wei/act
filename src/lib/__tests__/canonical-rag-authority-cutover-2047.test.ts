@@ -14,9 +14,14 @@ afterEach(() => {
 });
 
 describe('RAG 生产权威拨盘（#2047 cutover 治理）', () => {
-  it('未配置时缺省为授权切换后的 composed 通道', () => {
-    expect(readRagProductionAuthorityDial({})).toBe('canonical-composed');
-    const selector = selectRagAuthority('PRODUCTION_ANSWER');
+  it('未配置缺省 LEGACY：影子门禁通过并显式配置后才切换 composed（#2047 review P1）', () => {
+    expect(readRagProductionAuthorityDial({})).toBe('legacy');
+    expect(productionAnswerUsesLegacy(selectRagAuthority('PRODUCTION_ANSWER'))).toBe(true);
+
+    // 显式配置 canonical-composed（门禁通过后的部署切换步骤）后生效。
+    expect(readRagProductionAuthorityDial({ KONLING_RAG_PRODUCTION_AUTHORITY: 'canonical-composed' }))
+      .toBe('canonical-composed');
+    const selector = selectRagAuthority('PRODUCTION_ANSWER', { productionAuthority: 'canonical-composed' });
     expect(selector).toMatchObject({
       authority: 'CANONICAL',
       productionAuthoritative: true,
@@ -60,7 +65,7 @@ describe('RAG 生产权威拨盘（#2047 cutover 治理）', () => {
     expect(() => assertProductionSelectorUnchanged({
       requestedConsumer: 'PRODUCTION_ANSWER',
       // legacy 拨盘下混入 composed 选择器：不变量必须拒绝。
-      selected: selectRagAuthority('PRODUCTION_ANSWER'),
+      selected: selectRagAuthority('PRODUCTION_ANSWER', { productionAuthority: 'canonical-composed' }),
       shadowSucceeded: false,
       productionAuthority: 'legacy',
     })).toThrow(/does not match the configured dial/);

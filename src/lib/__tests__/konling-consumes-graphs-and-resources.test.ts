@@ -295,6 +295,8 @@ function mockNoopDb() {
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.KONLING_SERVER_MODE_CONTEXT_SECRET = 'unit-test-strong-secret-0f3a1b';
+  // 缺省拨盘为 LEGACY（影子门禁前）；composed 用例显式切换。
+  process.env[RAG_PRODUCTION_AUTHORITY_ENV] = 'canonical-composed';
   retrieveProgressive.mockResolvedValue({
     foreground: { candidates: [] },
     optimizationPending: false,
@@ -401,13 +403,36 @@ describe('konling composed RAG 通道与工程图谱工具（#2047）', () => {
     const result = await runtime.searchEngineeringGraph({ query: '根轨迹' }) as {
       status: string;
       authorityReleaseId: string | null;
-      entries: Array<{ relationId: string; predicate: string | null }>;
+      entries: Array<{
+        relationId: string | null;
+        predicate: string | null;
+        direction: 'outgoing' | 'incoming' | null;
+        canonicalId: string;
+        neighborCanonicalId: string | null;
+        neighborLabel: string | null;
+      }>;
       textbookCitations: Array<{ displayNumber: number; href: string | null }>;
     };
     expect(result.status).toBe('ready');
     expect(result.authorityReleaseId).toBe('ctr:release:test-1');
     // rel-2 的 prerequisite 谓词不在白名单内，被拒绝。
     expect(result.entries.map((entry) => entry.relationId)).toEqual(['rel-1', 'rel-5']);
+    // 条目必须携带邻居端点与方向：模型才能区分「谁指向谁」（#2047 review P1）。
+    expect(result.entries[0]).toMatchObject({
+      canonicalId: 'ctc:focus-1',
+      predicate: 'is_a',
+      direction: 'outgoing',
+      neighborCanonicalId: 'ctc:neighbor-1',
+      neighborLabel: '开环增益',
+    });
+    // rel-5 命中的种子是 DORF 节点：焦点指向它 → 对该节点为 incoming，
+    // 邻居端点为焦点本身（方向与端点随种子节点视角给出）。
+    expect(result.entries[1]).toMatchObject({
+      canonicalId: DORF_MAPPED_CANONICAL_ID,
+      predicate: 'is_a',
+      direction: 'incoming',
+      neighborCanonicalId: 'ctc:focus-1',
+    });
     expect(result.textbookCitations.length).toBeGreaterThan(0);
     expect(result.textbookCitations[0]!.href).toContain('/textbooks/dorf-modern-control-systems/');
 
