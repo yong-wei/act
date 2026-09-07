@@ -561,11 +561,11 @@ function sanitizeResourceBindings(
   if (closed.bindings.state !== 'available') {
     return { bindings: closed.bindings, registryIndex: null };
   }
-  const bindings = sanitizePublicResourceBindingLaunches(closed.bindings, nodeId);
-  const stillAvailable = bindings.state === 'available'
-    && bindings.items.some((item) => item.availability === 'available');
+  const sanitized = sanitizePublicResourceBindingLaunches(closed.bindings, nodeId);
+  const stillAvailable = sanitized.state === 'available'
+    && sanitized.items.some((item) => item.availability === 'available');
   return {
-    bindings,
+    bindings: sanitized,
     registryIndex: stillAvailable ? closed.registryIndex : null,
   };
 }
