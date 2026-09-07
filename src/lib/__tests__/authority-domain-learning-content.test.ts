@@ -291,6 +291,17 @@ describe('Authority learning-content delivery', () => {
     });
   });
 
+  it('does not fall back to live teaching for a v2-listed token when the manifest is unsealed', () => {
+    withAlignedRuntime(() => {
+      const token = 'ctc_modeling-865eb1c8824e157c2f05a903';
+      const bytes = readFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, `${token}.png`));
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        identityRepoRoot: REPO_ROOT,
+        liveInfographicTokens: new Map([[token, sha256(bytes)]]),
+      })).toBeNull();
+    });
+  });
+
   it('serves a binding infograph only when the live teaching inventory lists it', () => {
     withAlignedRuntime(() => {
       const token = 'lesson-infograph-token';

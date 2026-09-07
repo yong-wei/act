@@ -465,20 +465,18 @@ function resolvePublishedInfographBytes(
   const manifest = readManifest(paths);
   const envelope = options.envelope
     ?? tryActiveEnvelope(options.identityRepoRoot ?? repoRoot);
-  const v2Ready = Boolean(
-    manifest
-    && envelope
-    && matchesAuthorityIdentity(manifest, envelope.authority)
-    && matchesTeachingSeal(manifest, envelope.teaching),
-  );
-  const v2Entry = v2Ready
-    ? manifest!.nodes.find((node) => node.safeId === token) ?? null
-    : null;
-  if (v2Entry) {
-    if (v2Entry.infograph.state !== 'available' || !v2Entry.infograph.sha256) return null;
+  const listed = manifest?.nodes.find((node) => node.safeId === token);
+  if (manifest && listed) {
+    const v2Ready = Boolean(
+      envelope
+      && matchesAuthorityIdentity(manifest, envelope.authority)
+      && matchesTeachingSeal(manifest, envelope.teaching),
+    );
+    if (!v2Ready) return null;
+    if (listed.infograph.state !== 'available' || !listed.infograph.sha256) return null;
     return readInfographIfHashMatches(
-      join(/*turbopackIgnore: true*/ paths.infographRoot, `${v2Entry.safeId}.png`),
-      v2Entry.infograph.sha256,
+      join(/*turbopackIgnore: true*/ paths.infographRoot, `${listed.safeId}.png`),
+      listed.infograph.sha256,
       bindingHash,
     );
   }
