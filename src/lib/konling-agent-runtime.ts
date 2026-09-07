@@ -42,9 +42,19 @@ import {
   buildAdaptivePathStrategyView,
 } from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
 import {
-  resolveAdaptivePathRuntimeObjectKey,
-  verifyAdaptivePathObjectKeys,
-} from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+  deriveAdaptivePathRuntimeBindingLimitationCodes,
+  resolveAdaptivePathNodeRuntimeBindings,
+  summarizeAdaptivePathRuntimeBindings,
+  type AdaptivePathNodeRuntimeBinding,
+  type RuntimeReleaseFileIndex,
+  type TeachingProjectionResourceIndex,
+} from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
+import { verifyAdaptivePathObjectKeys } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+import {
+  resolveActiveTeachingProjection,
+  resolveTeachingProjectionStorePaths,
+} from '@/lib/teaching-projection/store';
+import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
 import { buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
 import {
   projectGovernedCopilotProfile,
@@ -4332,7 +4342,106 @@ function applySmartLessonCollectionPatches(
     .concat(additions);
 }
 
-// #2033：批次定稿时解析候选资源到 Runtime manifest 对象键并产出读取验证记录。
+// #2055：活动教学投影资源索引（身份 + sourcePath）；投影不可用时返回 null，
+// 绑定解析按 no-runtime-identity/projection-unavailable 显式记录。
+function loadTeachingProjectionResourceIndex(): TeachingProjectionResourceIndex | null {
+  try {
+    const projection = resolveActiveTeachingProjection(
+      resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
+    );
+    if (projection.status !== 'available' || !projection.staged) return null;
+    const resourcesByResourceId = new Map(
+      projection.staged.artifacts.resources.map((resource) => [
+        resource.resourceId,
+        { resourceType: resource.resourceType, sourcePath: resource.sourcePath },
+      ]),
+    );
+    return { projectionId: projection.staged.projectionId, resourcesByResourceId };
+  } catch (error) {
+    console.error('[KonlingRuntime] teaching projection resource index load failed:', error);
+    return null;
+  }
+}
+
+// #2055：活动 Runtime release 文件索引（manifest 是可绑定的唯一真源）。
+async function loadRuntimeReleaseFileIndex(): Promise<RuntimeReleaseFileIndex | null> {
+  try {
+    const manifestRaw = await readActiveRuntimeReleaseManifest();
+    if (!manifestRaw) return null;
+    const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
+    const filesByPath = new Map<string, { sha256: string }>();
+    const filesBySha256 = new Map<string, { path: string }>();
+    for (const file of manifest.files) {
+      filesByPath.set(file.path, { sha256: file.sha256 });
+      // 同一 sha 可被多文件声明复用；绑定只关心 release 是否持有该内容。
+      if (!filesBySha256.has(file.sha256)) filesBySha256.set(file.sha256, { path: file.path });
+    }
+    return { releaseId: manifest.releaseId, filesByPath, filesBySha256 };
+  } catch (error) {
+    console.error('[KonlingRuntime] active runtime release index load failed:', error);
+    return null;
+  }
+}
+
+// #2055：批次定稿时为候选节点解析 Runtime 资源绑定并写回 plan 节点字段。
+// 绑定独立于导航 target（destination contract 不变）；失败逐节点显式记录。
+export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPathPlan): Promise<{
+  plan: AdaptiveLearningPathPlan;
+  bindings: AdaptivePathNodeRuntimeBinding[];
+  limitationCodes: string[];
+}> {
+  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
+  const nodeTypeById = new Map<string, string>();
+  const collect = (nodes: readonly AdaptiveLearningPathPlanNode[] | undefined) => {
+    for (const node of nodes ?? []) nodeTypeById.set(node.nodeId, node.type);
+  };
+  collect(plan.mainPath);
+  for (const path of plan.policyBundle?.paths ?? []) collect(path.planNodes);
+  const bindings = resolveAdaptivePathNodeRuntimeBindings({
+    nodes: [...nodeTypeById].map(([nodeId, nodeType]) => ({ nodeId, nodeType })),
+    projection,
+    release,
+  });
+  const bindingByNodeId = new Map(bindings.map((binding) => [binding.nodeId, binding]));
+  const enrichNode = (node: AdaptiveLearningPathPlanNode): AdaptiveLearningPathPlanNode => {
+    const binding = bindingByNodeId.get(node.nodeId);
+    return binding ? { ...node, runtimeResourceBinding: binding } : node;
+  };
+  const enrichedPlan: AdaptiveLearningPathPlan = {
+    ...plan,
+    mainPath: plan.mainPath.map(enrichNode),
+    policyBundle: plan.policyBundle
+      ? {
+          ...plan.policyBundle,
+          paths: plan.policyBundle.paths.map((path) => ({
+            ...path,
+            planNodes: Array.isArray(path.planNodes) ? path.planNodes.map(enrichNode) : path.planNodes,
+          })),
+        }
+      : plan.policyBundle,
+  };
+  // 候选归属装饰：学生安全投影按 styleId 分组逐节点绑定状态。
+  const styleIdsByNodeId = new Map<string, string[]>();
+  for (const option of buildSerializablePathOptions(enrichedPlan)) {
+    for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
+      const styleIds = styleIdsByNodeId.get(node.nodeId) ?? [];
+      styleIds.push(option.styleId);
+      styleIdsByNodeId.set(node.nodeId, styleIds);
+    }
+  }
+  const bindingsWithStyles = bindings.map((binding) => ({
+    ...binding,
+    candidateStyleIds: styleIdsByNodeId.get(binding.nodeId) ?? [],
+  }));
+  return {
+    plan: enrichedPlan,
+    bindings: bindingsWithStyles,
+    limitationCodes: deriveAdaptivePathRuntimeBindingLimitationCodes(bindings),
+  };
+}
+
+// #2033/#2055：批次定稿时对候选节点的 runtime 绑定执行读取验证并产出记录。
+// 输入来自节点绑定字段（不再从导航 target 反解）；绑定状态随批次元数据持久化。
 async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPlan) {
   // 候选资源解析不依赖网络：先构建完整条目集，验证层不可用时对其统一
   // 产出 unverified 记录（fail-closed，未验证资源不得当可信输入）。
@@ -4340,11 +4449,11 @@ async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPla
   for (const option of buildSerializablePathOptions(plan)) {
     // #2033 复审修复：按候选自己的 planNodes 解析（策略候选可含主推荐路径之外的节点）。
     for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
-      const { state, objectKey } = resolveAdaptivePathRuntimeObjectKey(node.target);
-      if (state === 'non-runtime' || !objectKey) continue;
+      const binding = node.runtimeResourceBinding;
+      if (binding?.state !== 'bound' || !binding.objectKey) continue;
       entries.push({
-        objectKey,
-        resourceId: node.resourceId ?? node.resourceNodeId ?? node.nodeId,
+        objectKey: binding.objectKey,
+        resourceId: binding.resourceId ?? node.resourceId ?? node.resourceNodeId ?? node.nodeId,
         candidateStyleId: option.styleId,
         nodeNodeId: node.nodeId,
       });
@@ -4571,7 +4680,7 @@ async function buildAdaptivePathToolOutput(
     goalId,
   });
   const previousPathFacts = previousPathFactsFromPlanOptions(input.context.planContext?.pathOptions);
-  const plan = planLearningPath({
+  const rawPlan = planLearningPath({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
     learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
@@ -4605,6 +4714,12 @@ async function buildAdaptivePathToolOutput(
     previousPathFacts,
     now: new Date(),
   });
+  // #2055：批次定稿时为候选节点解析 Runtime 资源绑定（独立于导航 target）。
+  const {
+    plan,
+    bindings: runtimeResourceBindings,
+    limitationCodes: runtimeBindingLimitationCodes,
+  } = await attachAdaptivePathRuntimeBindings(rawPlan);
   const timeBudget = resolveAdaptivePathTimeBudget(
     args.timeBudgetMinutes,
     plan,
@@ -4671,6 +4786,8 @@ async function buildAdaptivePathToolOutput(
       candidatePoolLimited,
       candidatePoolLimitationCodes,
       candidatePoolStatus,
+      runtimeBindingLimited: runtimeBindingLimitationCodes.length > 0,
+      runtimeBindingLimitationCodes,
       configurationFulfillment: plan.explanations.configurationFulfillment,
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
@@ -4685,6 +4802,8 @@ async function buildAdaptivePathToolOutput(
     && typeof candidateBatchStore.create === 'function';
   const candidateBatchInput = {
     objectKeyReadRecords,
+    runtimeResourceBindings,
+    runtimeBindingLimitationCodes,
     generationRequestId: args.idempotencyKey,
     plan: persistedPlan,
     classId: input.scope.classId ?? null,
@@ -4829,6 +4948,7 @@ async function buildAdaptivePathToolOutput(
     limitations: uniqueStringList([
       ...fallbackReasons,
       ...candidatePoolLimitationCodes,
+      ...runtimeBindingLimitationCodes,
       ...(noMaterialDifference ? ['no-material-difference'] : []),
     ]),
     candidatePoolLimited,
@@ -5725,9 +5845,23 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
     textbooks: runtimeTextbooks.map((entry) => entry.textbook),
     textbookSections: runtimeTextbooks.flatMap(toTextbookUnitNodeInputs),
   };
+  // #2055：池级 Runtime 绑定摘要（按族可绑定 OSS 资源计数，连接活动 release 后的真实可用数）。
+  const teachingProjectionIndex = loadTeachingProjectionResourceIndex();
+  const runtimeReleaseIndex = await loadRuntimeReleaseFileIndex();
+  const buildRuntimeBindingSummary = (registry: ResourceNodeRegistry) =>
+    summarizeAdaptivePathRuntimeBindings(
+      resolveAdaptivePathNodeRuntimeBindings({
+        nodes: registry.nodes.map((node) => ({ nodeId: node.id, nodeType: node.type })),
+        projection: teachingProjectionIndex,
+        release: runtimeReleaseIndex,
+      }),
+      new Map(registry.nodes.map((node) => [node.id, node.sourceKind])),
+    );
   const withDiagnostics = (registry: ResourceNodeRegistry) => ({
     registry,
-    diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies),
+    diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies, {
+      runtimeResourceBindings: buildRuntimeBindingSummary(registry),
+    }),
   });
   const buildGenericRegistry = () => buildResourceNodeRegistryFromTeachingResources(
     teachingResources,

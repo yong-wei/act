@@ -9,7 +9,7 @@ import {
   type AdaptivePathDifferentiationCandidate,
   type AdaptivePathPairDifferentiationMetrics,
 } from '@/features/personalization/path-planning/adaptive-path-differentiation';
-import { resolveAdaptivePathRuntimeObjectKey } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+import type { AdaptivePathNodeRuntimeBinding } from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
 
 export interface AdaptivePathCandidateSnapshot {
   id: string;
@@ -60,6 +60,10 @@ export interface AdaptivePathCandidateBatchPersistenceInput {
     contentSha256: string | null;
     verifiedAt: string;
   }>;
+  /** 批次定稿时的逐节点 Runtime 资源绑定记录（#2055），含失败状态与原因。 */
+  runtimeResourceBindings?: AdaptivePathNodeRuntimeBinding[];
+  /** 绑定层限制码（#2055）：零绑定时显式受限，不静默空记录。 */
+  runtimeBindingLimitationCodes?: string[];
 }
 
 export interface AdaptivePathCandidateDifferenceSummary {
@@ -131,9 +135,12 @@ export async function persistAdaptivePathCandidateBatch(
       objectKeyReadRecords: input.objectKeyReadRecords,
       styleIds: candidates.map((candidate) => candidate.styleId),
     });
-    const limitations = differentiation?.insufficientVerifiedResources
-      ? uniqueStrings([...gated.limitations, 'insufficient-verified-resources'])
-      : gated.limitations;
+    const limitations = uniqueStrings([
+      ...(differentiation?.insufficientVerifiedResources
+        ? [...gated.limitations, 'insufficient-verified-resources']
+        : gated.limitations),
+      ...(input.runtimeBindingLimitationCodes ?? []),
+    ]);
     const record = await tx.adaptivePathCandidateBatch.create({
       data: {
         id: batchId,
@@ -157,6 +164,9 @@ export async function persistAdaptivePathCandidateBatch(
           diversityLimitations: limitations,
           differentiation,
           objectKeyReadRecords: input.objectKeyReadRecords ?? [],
+          runtimeResourceBindings: input.runtimeResourceBindings ?? [],
+          runtimeBindingLimited: (input.runtimeBindingLimitationCodes ?? []).length > 0,
+          runtimeBindingLimitationCodes: input.runtimeBindingLimitationCodes ?? [],
           ...(input.derivation ? {
             derivation: {
               ...input.derivation,
@@ -255,22 +265,23 @@ export function computeAdaptivePathBatchDifferentiation(
   const inputs: AdaptivePathDifferentiationCandidate[] = serialized.map((candidate, index) => {
     const countedNodes = (nodesByCandidate[index] ?? []).filter((node) => {
       if (sharedExcludedNodeIds.has(node.nodeId)) return false;
-      // 读验证失败（missing/forbidden/checksum-mismatch/unverified）的对象键资源不进入统计。
-      const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
-      return !(provenance.objectKey && unreadableObjectKeys.has(provenance.objectKey));
+      // 读验证失败（missing/forbidden/checksum-mismatch/unverified）的对象键资源不进入统计；
+      // 对象键来自节点 runtime 绑定字段（#2055），不再从导航 target 反解。
+      const objectKey = node.runtimeResourceBinding?.objectKey ?? null;
+      return !(objectKey && unreadableObjectKeys.has(objectKey));
     });
     // 复审修复：候选核心资源中必须存在可验证的 Runtime 对象键资源；
-    // 纯站内路由（无 OSS 来源面）的候选无法提供读取证明，视为资源不足。
+    // 无 OSS 来源面（未绑定）的候选无法提供读取证明，视为资源不足。
     const hasVerifiableRuntimeResource = countedNodes.some((node) =>
-      resolveAdaptivePathRuntimeObjectKey(node.target).objectKey !== null);
+      node.runtimeResourceBinding?.objectKey != null);
     const objectKeys = new Set<string>();
     const typeCounts: Record<string, number> = {};
     const checkpointSignature: string[] = [];
     let estimatedMinutes = 0;
     const total = countedNodes.length;
     countedNodes.forEach((node, index) => {
-      const provenance = resolveAdaptivePathRuntimeObjectKey(node.target);
-      if (provenance.objectKey) objectKeys.add(provenance.objectKey);
+      const objectKey = node.runtimeResourceBinding?.objectKey ?? null;
+      if (objectKey) objectKeys.add(objectKey);
       typeCounts[node.type] = (typeCounts[node.type] ?? 0) + 1;
       // 检查点签名编码归一化相对位置（前半程/后半程），区分安排差异。
       if (node.terminalConstraints?.includes('terminal-validation')) checkpointSignature.push('terminal');
