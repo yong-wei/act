@@ -1,4 +1,5 @@
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { getTeachingLaunchRouteRecords } from '@/lib/teaching-launch-route-records';
 
 import { createPublishedArtifactAdapter } from './adapters/published-artifact';
 import { createRenderMetadataAdapter } from './adapters/render-metadata';
@@ -18,7 +19,10 @@ function publishedArtifactsNoneDeclared(sharedRevision: string) {
 
 export function captureLiveResourceRegistryIndex(): RegistryIndex {
   const sharedRevision = resolveLiveResourceIndexRevision();
-  const records = getAllRegisteredResourceMetadata();
+  const records = [
+    ...getAllRegisteredResourceMetadata(),
+    ...getTeachingLaunchRouteRecords(),
+  ];
   return buildResourceRegistryIndex([
     createRenderMetadataAdapter({
       records,

@@ -178,7 +178,7 @@ export const ACTIVE_RESOURCE_BINDING_ROLES = ['讲解', '练习', '评价', '引
 export type ActiveResourceBindingRole = (typeof ACTIVE_RESOURCE_BINDING_ROLES)[number];
 
 export interface ActiveResourceLaunchDescriptor {
-  kind: 'direct-route' | 'registry-resource' | 'unavailable';
+  kind: 'direct-route' | 'registry-resource' | 'viewer-shell' | 'unavailable';
   href: string | null;
 }
 

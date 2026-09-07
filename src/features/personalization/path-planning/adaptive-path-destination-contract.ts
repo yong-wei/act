@@ -93,6 +93,25 @@ export function resolveAdaptivePathCenterOwnedTargetHref(resourceType: string, t
   return normalizePathCenterOwnedRawTarget(target);
 }
 
+export function resolvePathCenterViewerHref(input: {
+  disposition: AdaptivePathDestinationDisposition;
+  canonicalTarget: string | null;
+}): string | null {
+  if (input.disposition !== 'destination-control') return null;
+  const canonical = input.canonicalTarget;
+  if (!canonical?.startsWith('/') || canonical.startsWith('//') || canonical.startsWith('/course-runtime/')) {
+    return null;
+  }
+  try {
+    if (new URL(canonical, 'https://act.local').pathname === '/assessment/adaptive-practice') {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+  return canonical;
+}
+
 export function canonicalizeAdaptivePathInternalHref(target: string): string | null {
   if (!target.startsWith('/') || target.startsWith('//') || target.includes('\\') || /[\s\p{Cc}]/u.test(target)) {
     return null;

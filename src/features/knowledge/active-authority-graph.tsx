@@ -68,6 +68,10 @@ import {
   createAuthorityGraphViewModel,
   defaultEnabledTeachingFamilies,
 } from './authority-graph-view-model';
+import {
+  openResourceViewer,
+  UniversalResourceViewerHost,
+} from './universal-resource-viewer';
 import type { GraphDimension } from './graph-runtime-session';
 import {
   AUTHORITY_DOMAIN_SEARCH_CONTRACT,
@@ -992,16 +996,41 @@ function ActiveNodeDetail({
                       <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
                       <div className="mt-1 space-y-1">
                         {items.map((item) => (
-                          item.availability === 'available' && item.launch.href ? (
-                            <a
+                          item.availability === 'available'
+                          && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
+                            <button
+                              type="button"
                               key={`${role}-${item.title}`}
-                              href={item.launch.href}
+                              onClick={() => openResourceViewer({
+                                title: item.title,
+                                resourceKind: item.resourceKind,
+                                href: item.launch.href,
+                                node: item.resourceKind === '知识卡'
+                                  ? {
+                                      name: item.title,
+                                      description: node?.description ?? item.title,
+                                      nodeType: node?.canonicalType ?? 'KnowledgeStatement',
+                                      metadata: node?.learningContent?.card.state === 'available'
+                                        ? {
+                                            content: [
+                                              node.learningContent.card.summary,
+                                              node.learningContent.card.insight,
+                                              node.learningContent.card.explanation,
+                                            ].filter(Boolean).join('\n\n'),
+                                          }
+                                        : undefined,
+                                    }
+                                  : undefined,
+                                imageSrc: item.resourceKind === '信息图'
+                                  ? shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)
+                                  : undefined,
+                              })}
                               data-active-resource-launch={item.launch.kind}
-                              className="block rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
+                              className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
                             >
                               {item.title}
                               <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
-                            </a>
+                            </button>
                           ) : (
                             <p
                               key={`${role}-${item.title}`}
@@ -2014,6 +2043,7 @@ export function ActiveAuthorityGraph({
           {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} pinned={runtimeLayout.pinnedNodeIds.has(selectedNodeKey)} onUnpin={() => runtimeLayout.unpinNode(selectedNodeKey)} /> : null}
         </div>
       )}
+      <UniversalResourceViewerHost />
     </div>
   );
 }

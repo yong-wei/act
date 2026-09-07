@@ -58,7 +58,7 @@ export function capturesMatch(
   return expectedCaptureRevision.trim().toLowerCase() === indexCaptureRevision;
 }
 
-function indexOwnsLaunchHref(index: RegistryIndex, href: string): boolean {
+export function indexOwnsLaunchHref(index: RegistryIndex, href: string): boolean {
   if (isGovernedTextbookReaderHref(href)) return true;
   return index.entries.some((entry) => {
     const launcherRef = entry.descriptor.launcher?.launcherRef;

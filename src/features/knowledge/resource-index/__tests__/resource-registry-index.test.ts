@@ -6,6 +6,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { getTeachingLaunchRouteRecords } from '@/lib/teaching-launch-route-records';
 
 import { createPublishedArtifactAdapter } from '../adapters/published-artifact';
 import { createRenderMetadataAdapter } from '../adapters/render-metadata';
@@ -513,7 +514,10 @@ describe('resource registry index', () => {
   });
 
   it('reconciles live render-metadata entries one-for-one with the source-owned table', () => {
-    const sourceIds = getAllRegisteredResourceMetadata().map((record) => record.id).sort();
+    const sourceIds = [
+      ...getAllRegisteredResourceMetadata(),
+      ...getTeachingLaunchRouteRecords(),
+    ].map((record) => record.id).sort();
     const index = captureLiveResourceRegistryIndex();
     const indexedIds = index.entries
       .filter((entry) => entry.descriptor.identity.sourceKind === RENDER_METADATA_SOURCE_KIND)

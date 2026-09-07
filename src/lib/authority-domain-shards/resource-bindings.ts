@@ -36,9 +36,6 @@ import type {
 
 import type { KnowledgeRole } from '@/lib/authoritative-knowledge';
 import type { AuthorityNodeDetailShard } from './contracts';
-import { fromResourceIdToken } from '@/lib/teaching-projection/textbook-locators/identity';
-import { buildTextbookReaderHref } from '@/lib/textbook-reader';
-import { TEXTBOOK_ID_ALIASES } from '@/lib/engineering-textbook-mapping';
 
 const ROLE_LABEL: Record<TeachingProjectionRole, ActiveResourceBindingRole> = {
   EXPLAINS: '讲解',
@@ -50,7 +47,7 @@ const ROLE_LABEL: Record<TeachingProjectionRole, ActiveResourceBindingRole> = {
 const ROLE_ORDER: readonly ActiveResourceBindingRole[] = ['讲解', '练习', '评价', '引用'];
 
 export function humanTitleFromResourceId(resourceId: string): string | null {
-  const match = resourceId.match(/^act:(audio|video|handout|exercise|card|simulation|lesson):(.+)$/);
+  const match = resourceId.match(/^act:(audio|video|handout|exercise|card|infographic|simulation|lesson):(.+)$/);
   if (!match) return null;
   const kind = match[1];
   const rest = match[2];
@@ -61,6 +58,7 @@ export function humanTitleFromResourceId(resourceId: string): string | null {
     handout: '讲义',
     exercise: '练习',
     card: '知识卡',
+    infographic: '信息图',
     simulation: '仿真',
     lesson: '课程',
   };
@@ -86,6 +84,17 @@ function resourceKindLabel(resourceType: TeachingResourceType | null): string {
       return '教材';
     case 'card':
       return '知识卡';
+    case 'video':
+      return '视频';
+    case 'audio':
+    case 'podcast':
+      return '音频';
+    case 'exercise':
+      return '练习';
+    case 'simulation':
+      return '仿真';
+    case 'infographic':
+      return '信息图';
     default:
       return '教学资源';
   }
@@ -102,36 +111,6 @@ function isUnsafeHref(href: string, nodeId: string): boolean {
 function isHiddenFromViewer(href: string, role: KnowledgeRole | undefined): boolean {
   if (role !== 'STUDENT') return false;
   return /^(?:\/teacher|\/admin|\/api\/teacher|\/api\/admin)(?:\/|$)/.test(href);
-}
-
-/**
- * v2 textbook-section launch (#2043): decode the single-token section identity
- * back to its structural coordinate and resolve the unified reader href via
- * the alias table. Fails closed (null) on any drift — no href is fabricated.
- */
-function textbookSectionReaderHref(resourceId: string): string | null {
-  const token = resourceId.slice('act:textbook-section:'.length);
-  if (!token || token.includes(':')) return null;
-  let decoded: string;
-  try {
-    decoded = fromResourceIdToken(token);
-  } catch {
-    return null;
-  }
-  const segments = decoded.split(':');
-  if (segments.length < 2 || segments.some((segment) => !segment)) return null;
-  const bookId = segments[0]!;
-  const alias = TEXTBOOK_ID_ALIASES.find((row) => row.readerBookId === bookId);
-  if (!alias) return null;
-  try {
-    return buildTextbookReaderHref({
-      bookId,
-      edition: alias.edition,
-      unitPath: segments.slice(1),
-    });
-  } catch {
-    return null;
-  }
 }
 
 export function projectAuthorityNodeResourceBindings(input: {
@@ -154,30 +133,25 @@ export function projectAuthorityNodeResourceBindings(input: {
       || (resource ? humanTitleFromResourceId(resource.resourceId) : null);
     if (!title) continue;
     const candidateHref = launchMaps.resourceLaunchTargets[binding.resourceId] ?? null;
-    // v2 textbook sections launch into the unified reader; the edition route
-    // segment legitimately percent-encodes spaces (e.g. 14th%20Global%20Edition),
-    // which the generic encoded-space guard would reject. The href is derived
-    // from the sealed alias table and governed structural paths — not external
-    // input — and still passes the unsafe/hidden gates below.
-    const readerHref = resource?.resourceType === 'textbook-section'
-      ? textbookSectionReaderHref(binding.resourceId)
-      : null;
-    const resolved = readerHref
-      ? { href: readerHref }
+    const resolved = resource?.resourceType === 'textbook-section' && candidateHref
+      ? { href: candidateHref }
       : resolveSafeLaunchTarget(candidateHref);
     const href = resolved.href
       && !isUnsafeHref(resolved.href, input.nodeId)
       && !isHiddenFromViewer(resolved.href, input.viewerRole)
       ? resolved.href
       : null;
-    const kind = href
+    const viewerShell = launchMaps.resourceRegistryIds[binding.resourceId] === 'viewer-shell';
+    const kind = viewerShell
+      ? 'viewer-shell'
+      : href
       ? (launchMaps.resourceRegistryIds[binding.resourceId] ? 'registry-resource' : 'direct-route')
       : 'unavailable';
     items.push({
       title,
       bindingRole: ROLE_LABEL[binding.role],
       resourceKind: resourceKindLabel(resource?.resourceType ?? null),
-      availability: href ? 'available' : 'unavailable',
+      availability: href || viewerShell ? 'available' : 'unavailable',
       launch: { kind, href },
     });
   }

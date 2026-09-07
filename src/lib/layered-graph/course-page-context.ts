@@ -17,6 +17,11 @@ import {
   resolveInteractiveLessonIdentity,
   type InteractiveLessonIdentityRecord,
 } from '@/lib/interactive-lesson-identity';
+import { TEXTBOOK_ID_ALIASES } from '@/lib/engineering-textbook-mapping';
+import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { unitTokenFromResourceId } from '@/lib/teaching-projection/runtime-full-binding';
+import { fromResourceIdToken } from '@/lib/teaching-projection/textbook-locators/identity';
+import { buildTextbookReaderHref } from '@/lib/textbook-reader';
 import {
   DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE,
   type TeachingCoreNodeRuntime,
@@ -44,6 +49,7 @@ import {
   resolveCourseLayeredGraph,
   type CourseLayeredGraphConsumerInput,
 } from './consumers';
+import { resolveExerciseStepMapping } from './exercise-step-map';
 import { buildCoursePackageLayeredScope } from './scope';
 
 export { buildCoursePackageLayeredScope } from './scope';
@@ -168,12 +174,46 @@ function extractStepIdFromResource(
   return parts[3] ?? null;
 }
 
+function textbookSectionReaderHref(resourceId: string): string | null {
+  const token = resourceId.slice('act:textbook-section:'.length);
+  if (!token || token.includes(':')) return null;
+  try {
+    const segments = fromResourceIdToken(token).split(':');
+    if (segments.length < 2 || segments.some((segment) => !segment)) return null;
+    const alias = TEXTBOOK_ID_ALIASES.find((row) => row.readerBookId === segments[0]);
+    return alias
+      ? buildTextbookReaderHref({
+          bookId: alias.readerBookId,
+          edition: alias.edition,
+          unitPath: segments.slice(1),
+        })
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveSimulationRegistryId(key: string): string | null {
+  const parts = key.split('-');
+  for (let length = parts.length; length > 0; length -= 1) {
+    const candidate = parts.slice(0, length).join('-');
+    if (getRegisteredResourceMetadata(candidate)) return candidate;
+  }
+  return null;
+}
+
 /**
  * Map Teaching Projection resources to existing course/registry launch routes.
  * Never invents routes from Canonical node IDs.
  */
 export function buildTeachingResourceLaunchMaps(
   resources: readonly TeachingResourceRuntime[],
+  options?: {
+    exerciseStepByResourceId?: Readonly<Record<string, {
+      lessonKey: string;
+      stepId: string;
+    }>>;
+  },
 ): {
   resourceLaunchTargets: Record<string, string | null>;
   resourceRegistryIds: Record<string, string>;
@@ -182,7 +222,10 @@ export function buildTeachingResourceLaunchMaps(
   const resourceRegistryIds: Record<string, string> = {};
 
   for (const resource of resources) {
-    const lessonToken = extractLessonKeyFromResource(resource);
+    const lessonToken = extractLessonKeyFromResource(resource)
+      ?? (['video', 'audio', 'podcast'].includes(resource.resourceType)
+        ? unitTokenFromResourceId(resource.resourceId)
+        : null);
     const identity = lessonToken
       ? resolveLessonIdentityFromToken(lessonToken)
       : null;
@@ -190,7 +233,10 @@ export function buildTeachingResourceLaunchMaps(
     const runtimeLessonDir = identity?.runtimeLessonDir ?? lessonToken;
 
     switch (resource.resourceType) {
-      case 'lesson': {
+      case 'lesson':
+      case 'video':
+      case 'audio':
+      case 'podcast': {
         if (routeSegment) {
           resourceLaunchTargets[resource.resourceId] =
             `/interactive-learning/courses/${routeSegment}`;
@@ -215,9 +261,55 @@ export function buildTeachingResourceLaunchMaps(
         }
         break;
       }
+      case 'exercise': {
+        const mapping = options?.exerciseStepByResourceId?.[resource.resourceId]
+          ?? resolveExerciseStepMapping(resource.resourceId);
+        const exerciseIdentity = mapping
+          ? resolveLessonIdentityFromToken(mapping.lessonKey)
+          : null;
+        const exerciseRoute = exerciseIdentity?.routeSegments[0];
+        if (exerciseRoute && mapping?.stepId) {
+          resourceLaunchTargets[resource.resourceId] =
+            `/interactive-learning/courses/${exerciseRoute}/student/demo?step=${mapping.stepId}`;
+          resourceRegistryIds[resource.resourceId] = `${exerciseRoute}:${mapping.stepId}`;
+        }
+        break;
+      }
+      case 'simulation': {
+        if (!resource.resourceId.startsWith('act:simulation:')) break;
+        const key = resource.resourceId.slice('act:simulation:'.length);
+        if (key.startsWith('arena-task-')) {
+          resourceLaunchTargets[resource.resourceId] = `/arena/challenges/task-${key.slice('arena-task-'.length)}`;
+          resourceRegistryIds[resource.resourceId] = key;
+          break;
+        }
+        if (key.startsWith('sim-scene-') && getRegisteredResourceMetadata(key)) {
+          resourceLaunchTargets[resource.resourceId] = `/simulations/${key.slice('sim-scene-'.length)}`;
+          resourceRegistryIds[resource.resourceId] = key;
+          break;
+        }
+        const registryId = resolveSimulationRegistryId(key);
+        const metadata = registryId ? getRegisteredResourceMetadata(registryId) : null;
+        if (metadata?.id === 'control-odyssey-v1' || key.includes('control-odyssey')) {
+          resourceLaunchTargets[resource.resourceId] = '/interactive-learning/control-odyssey';
+          resourceRegistryIds[resource.resourceId] = metadata?.id ?? 'control-odyssey-v1';
+        } else if (metadata) {
+          resourceLaunchTargets[resource.resourceId] = `/interactive-learning/resources/${metadata.id}`;
+          resourceRegistryIds[resource.resourceId] = metadata.id;
+        }
+        break;
+      }
+      case 'card':
+      case 'infographic': {
+        resourceRegistryIds[resource.resourceId] = 'viewer-shell';
+        break;
+      }
+      case 'textbook-section': {
+        const href = textbookSectionReaderHref(resource.resourceId);
+        if (href) resourceLaunchTargets[resource.resourceId] = href;
+        break;
+      }
       default:
-        // textbook/card and other types stay without a course launch unless a
-        // caller later supplies a registry-owned route.
         break;
     }
   }

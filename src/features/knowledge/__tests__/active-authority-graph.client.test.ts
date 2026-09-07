@@ -375,6 +375,7 @@ describe('active Authority knowledge workspace client boundary', () => {
   let root: Root;
   let fetchMock: ReturnType<typeof vi.fn>;
   let detailLearningContentMode: 'available' | 'unavailable';
+  let detailResourceBindingsEnabled: boolean;
 
   beforeEach(() => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
@@ -382,6 +383,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     document.body.appendChild(container);
     root = createRoot(container);
     detailLearningContentMode = 'available';
+    detailResourceBindingsEnabled = false;
     fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
@@ -418,6 +420,21 @@ describe('active Authority knowledge workspace client boundary', () => {
             ...nodeDetail(nodeId).node,
             teachingFields: {},
             media: { cardAvailable: false, infographAvailable: false },
+            ...(detailResourceBindingsEnabled ? {
+              resourceBindings: {
+                state: 'available',
+                items: [{
+                  title: '稳定性课程',
+                  bindingRole: '讲解',
+                  resourceKind: '课程',
+                  availability: 'available',
+                  launch: {
+                    kind: 'registry-resource',
+                    href: '/interactive-learning/courses/unit-3-2-routh-stability-boundary',
+                  },
+                }],
+              },
+            } : {}),
             learningContent: detailLearningContentMode === 'unavailable'
               ? {
                 card: { state: 'missing', message: '当前节点暂无已发布学习卡片。' },
@@ -1163,6 +1180,27 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(drawer?.getAttribute('aria-modal')).toBe('true');
     expect(drawer?.getAttribute('data-active-inspector-focus-contract')).toBe('mobile-contained-drawer');
     expect(container.querySelector('[data-active-authority-main]')?.hasAttribute('inert')).toBe(true);
+  });
+
+  it('opens an inspector resource in the shared viewer and restores focus', async () => {
+    detailResourceBindingsEnabled = true;
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const launch = container.querySelector<HTMLButtonElement>('[data-active-resource-launch="registry-resource"]');
+    expect(launch).not.toBeNull();
+    launch!.focus();
+    await act(async () => launch!.click());
+    expect(document.querySelector('[data-universal-resource-viewer="true"]')).not.toBeNull();
+    const close = document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]');
+    await act(async () => close!.click());
+    expect(document.querySelector('[data-universal-resource-viewer="true"]')).toBeNull();
+    expect(document.activeElement).toBe(launch);
   });
 
   it('renders selection-bound learning content and keeps semantic detail usable after an image failure', async () => {

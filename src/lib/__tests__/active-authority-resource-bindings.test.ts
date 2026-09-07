@@ -16,6 +16,7 @@ import type {
   TeachingBindingRuntime,
   TeachingResourceRuntime,
 } from '@/lib/teaching-projection/contracts';
+import { toResourceIdToken } from '@/lib/teaching-projection/textbook-locators/identity';
 
 function resource(overrides: Partial<TeachingResourceRuntime> & Pick<TeachingResourceRuntime, 'resourceId' | 'resourceType' | 'title'>): TeachingResourceRuntime {
   return {
@@ -146,8 +147,64 @@ describe('active Authority resource binding projection', () => {
     expect(humanTitleFromResourceId('act:audio:3-2')).toBe('3-2 音频');
     expect(projected).toEqual(expect.objectContaining({
       state: 'available',
-      items: [expect.objectContaining({ title: '3-2 音频' })],
+      items: [expect.objectContaining({
+        title: '3-2 音频',
+        resourceKind: '音频',
+        availability: 'available',
+        launch: {
+          kind: 'registry-resource',
+          href: '/interactive-learning/courses/unit-3-2-routh-stability-boundary',
+        },
+      })],
     }));
+  });
+
+  it('keeps cards in shell and resolves governed textbook sections', () => {
+    const textbookId = `act:textbook-section:${toResourceIdToken(
+      'dorf-modern-control-systems:chapter-01:section-01',
+      'sourceAnchorId',
+    )}`;
+    const projected = projectAuthorityNodeResourceBindings({
+      nodeId: 'ctc:modeling-node',
+      resources: [
+        resource({ resourceId: 'act:card:safe-card', resourceType: 'card', title: '稳定性卡片' }),
+        resource({ resourceId: textbookId, resourceType: 'textbook-section', title: '第一章第一节' }),
+      ],
+      bindings: [
+        binding({
+          bindingId: 'bind-card',
+          resourceId: 'act:card:safe-card',
+          canonicalId: 'ctc:modeling-node',
+          role: 'EXPLAINS',
+        }),
+        binding({
+          bindingId: 'bind-textbook',
+          resourceId: textbookId,
+          canonicalId: 'ctc:modeling-node',
+          role: 'COVERS',
+        }),
+      ],
+    });
+    expect(projected).toEqual(expect.objectContaining({
+      state: 'available',
+      items: expect.arrayContaining([
+        expect.objectContaining({
+          title: '稳定性卡片',
+          availability: 'available',
+          launch: { kind: 'viewer-shell', href: null },
+        }),
+        expect.objectContaining({
+          title: '第一章第一节',
+          availability: 'available',
+          launch: {
+            kind: 'direct-route',
+            href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-01/section-01',
+          },
+        }),
+      ]),
+    }));
+    expect(JSON.stringify(projected)).not.toContain('act:card:');
+    expect(JSON.stringify(projected)).not.toContain('course-content/');
   });
 
   it('does not treat overlay vs course projection id as identity mismatch', () => {
