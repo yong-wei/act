@@ -52,6 +52,11 @@ describe('teaching resource launch maps', () => {
     }).resourceLaunchTargets[exercise.resourceId]).toBe(
       '/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo?step=step-03',
     );
+    expect(
+      buildTeachingResourceLaunchMaps([
+        resource('act:exercise:cruise-comfort-boppps', 'exercise'),
+      ]).resourceLaunchTargets['act:exercise:cruise-comfort-boppps'],
+    ).toBe('/interactive-learning/courses/cruise-comfort-boppps');
   });
 
   it('maps simulations only from exact resource origins', () => {

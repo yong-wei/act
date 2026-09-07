@@ -2,16 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
-import { createHash } from 'node:crypto';
-import {
-  copyFileSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { loadNodeDetailShard } from '@/lib/authority-domain-shards';
@@ -20,6 +10,7 @@ import {
   humanTitleFromResourceId,
   projectAuthorityNodeResourceBindings,
 } from '@/lib/authority-domain-shards/resource-bindings';
+import { resolveBindingViewerContent } from '@/lib/authority-domain-shards/binding-viewer-content';
 import * as teachingProjectionStore from '@/lib/teaching-projection/store';
 import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/contracts';
 import type {
@@ -293,151 +284,84 @@ describe('active Authority resource binding projection', () => {
     expect(JSON.stringify(projected)).not.toContain('act:infographic:');
   });
 
-  it('loads each bound card and infograph from that resource file, not the node slot', () => {
-    const repoRoot = process.cwd();
-    const root = mkdtempSync(join(tmpdir(), 'binding-viewer-content-'));
-    const originalCwd = process.cwd();
-    const originalProjectionRoot = process.env.ACT_TEACHING_PROJECTION_STORE_ROOT;
-    const trackedInfograph = join(
-      repoRoot,
-      'course-content/runtime/knowledge/infographs/authority/nodes/ctc_modeling-865eb1c8824e157c2f05a903.png',
-    );
-    const infographHash = createHash('sha256').update(readFileSync(trackedInfograph)).digest('hex');
-    const cardMarkdown = (summary: string) => `---
-node_id: fixture
-name: fixture
----
-
-## 首页
-
-# fixture
-
-**一句话定义**：${summary}
-
-## 详情
-
-### 完整解释
-
-${summary} 的完整解释。
-`;
-    try {
-      mkdirSync(join(root, 'course-content/runtime/knowledge/cards/nodes'), { recursive: true });
-      mkdirSync(join(root, 'course-content/runtime/knowledge/infographs/authority/nodes'), { recursive: true });
-      writeFileSync(
-        join(root, 'course-content/runtime/knowledge/cards/nodes/card-alpha-file.md'),
-        cardMarkdown('甲卡摘要'),
-      );
-      writeFileSync(
-        join(root, 'course-content/runtime/knowledge/cards/nodes/card-beta-file.md'),
-        cardMarkdown('乙卡摘要'),
-      );
-      copyFileSync(
-        trackedInfograph,
-        join(root, 'course-content/runtime/knowledge/infographs/authority/nodes/infograph-alpha-file.png'),
-      );
-      copyFileSync(
-        trackedInfograph,
-        join(root, 'course-content/runtime/knowledge/infographs/authority/nodes/infograph-beta-file.png'),
-      );
-      writeFileSync(
-        join(root, 'course-content/runtime/knowledge/authority-learning-content-manifest.json'),
-        `${JSON.stringify({
-          contract: 'act-authority-learning-content-manifest/v2',
-          authorityReleaseId: 'rel-fixture',
-          authorityReleaseSetId: 'set-fixture',
-          authoritySnapshotId: 'snap-fixture',
-          authoritySnapshotHash: 'a'.repeat(64),
-          nodes: [
-            {
-              canonicalId: 'ctc:fixture-a',
-              safeId: 'infograph-alpha-file',
-              card: { state: 'missing', sha256: null },
-              infograph: { state: 'available', sha256: infographHash },
-            },
-            {
-              canonicalId: 'ctc:fixture-b',
-              safeId: 'infograph-beta-file',
-              card: { state: 'missing', sha256: null },
-              infograph: { state: 'available', sha256: infographHash },
-            },
-          ],
-        })}\n`,
-      );
-      process.chdir(root);
-      process.env.ACT_TEACHING_PROJECTION_STORE_ROOT = join(root, 'missing-projection');
-      const projected = projectAuthorityNodeResourceBindings({
-        nodeId: 'ctc:fixture-node',
-        resources: [
-          resource({
-            resourceId: 'act:card:card-alpha-file',
-            resourceType: 'card',
-            title: '卡片甲',
-            sourcePath: null,
-          }),
-          resource({
-            resourceId: 'act:card:card-beta-file',
-            resourceType: 'card',
-            title: '卡片乙',
-            sourcePath: null,
-          }),
-          resource({
-            resourceId: 'act:infographic:infograph-alpha-file',
-            resourceType: 'infographic',
-            title: '图甲',
-            sourcePath: null,
-          }),
-          resource({
-            resourceId: 'act:infographic:infograph-beta-file',
-            resourceType: 'infographic',
-            title: '图乙',
-            sourcePath: null,
-          }),
-        ],
-        bindings: [
-          binding({
-            bindingId: 'bind-card-a',
-            resourceId: 'act:card:card-alpha-file',
-            canonicalId: 'ctc:fixture-node',
-            role: 'EXPLAINS',
-          }),
-          binding({
-            bindingId: 'bind-card-b',
-            resourceId: 'act:card:card-beta-file',
-            canonicalId: 'ctc:fixture-node',
-            role: 'EXPLAINS',
-          }),
-          binding({
-            bindingId: 'bind-inf-a',
-            resourceId: 'act:infographic:infograph-alpha-file',
-            canonicalId: 'ctc:fixture-node',
-            role: 'EXPLAINS',
-          }),
-          binding({
-            bindingId: 'bind-inf-b',
-            resourceId: 'act:infographic:infograph-beta-file',
-            canonicalId: 'ctc:fixture-node',
-            role: 'EXPLAINS',
-          }),
-        ],
-      });
-      expect(projected.state).toBe('available');
-      if (projected.state !== 'available') return;
-      const byTitle = Object.fromEntries(projected.items.map((item) => [item.title, item]));
-      expect(byTitle['卡片甲']?.availability).toBe('available');
-      expect(byTitle['卡片乙']?.availability).toBe('available');
-      expect(byTitle['卡片甲']?.viewer?.summary).toBe('甲卡摘要');
-      expect(byTitle['卡片乙']?.viewer?.summary).toBe('乙卡摘要');
-      expect(byTitle['图甲']?.viewer?.imageSrc).toBe('/api/knowledge/published-infograph/infograph-alpha-file');
-      expect(byTitle['图乙']?.viewer?.imageSrc).toBe('/api/knowledge/published-infograph/infograph-beta-file');
-      expect(JSON.stringify(projected)).not.toContain('act:card:');
-      expect(JSON.stringify(projected)).not.toContain('act:infographic:');
-      expect(JSON.stringify(projected)).not.toContain('course-content/');
-    } finally {
-      process.chdir(originalCwd);
-      if (originalProjectionRoot === undefined) delete process.env.ACT_TEACHING_PROJECTION_STORE_ROOT;
-      else process.env.ACT_TEACHING_PROJECTION_STORE_ROOT = originalProjectionRoot;
-      rmSync(root, { recursive: true, force: true });
-    }
+  it('loads each bound card from that resource file, not the node slot', () => {
+    const projected = projectAuthorityNodeResourceBindings({
+      nodeId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+      resources: [
+        resource({
+          resourceId: 'act:card:稳态跟踪误差_9_73c6314b',
+          resourceType: 'card',
+          title: '稳态跟踪误差九',
+          sourcePath: null,
+        }),
+        resource({
+          resourceId: 'act:card:稳态跟踪误差_7_222f853d',
+          resourceType: 'card',
+          title: '稳态跟踪误差七',
+          sourcePath: null,
+        }),
+        resource({
+          resourceId: 'act:infographic:infograph-alpha-file',
+          resourceType: 'infographic',
+          title: '图甲',
+          sourcePath: null,
+        }),
+        resource({
+          resourceId: 'act:infographic:infograph-beta-file',
+          resourceType: 'infographic',
+          title: '图乙',
+          sourcePath: null,
+        }),
+      ],
+      bindings: [
+        binding({
+          bindingId: 'bind-card-9',
+          resourceId: 'act:card:稳态跟踪误差_9_73c6314b',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+        binding({
+          bindingId: 'bind-card-7',
+          resourceId: 'act:card:稳态跟踪误差_7_222f853d',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+        binding({
+          bindingId: 'bind-inf-a',
+          resourceId: 'act:infographic:infograph-alpha-file',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+        binding({
+          bindingId: 'bind-inf-b',
+          resourceId: 'act:infographic:infograph-beta-file',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+      ],
+      resolveViewerContent: (entry) => {
+        if (entry.resourceId === 'act:infographic:infograph-alpha-file') {
+          return { imageSrc: '/api/knowledge/published-infograph/infograph-alpha-file' };
+        }
+        if (entry.resourceId === 'act:infographic:infograph-beta-file') {
+          return { imageSrc: '/api/knowledge/published-infograph/infograph-beta-file' };
+        }
+        return resolveBindingViewerContent(entry);
+      },
+    });
+    expect(projected.state).toBe('available');
+    if (projected.state !== 'available') return;
+    const byTitle = Object.fromEntries(projected.items.map((item) => [item.title, item]));
+    expect(byTitle['稳态跟踪误差九']?.availability).toBe('available');
+    expect(byTitle['稳态跟踪误差七']?.availability).toBe('available');
+    expect(byTitle['稳态跟踪误差九']?.viewer?.summary).toBeTruthy();
+    expect(byTitle['稳态跟踪误差七']?.viewer?.summary).toBeTruthy();
+    expect(byTitle['稳态跟踪误差九']?.viewer?.summary).not.toBe(byTitle['稳态跟踪误差七']?.viewer?.summary);
+    expect(byTitle['图甲']?.viewer?.imageSrc).toBe('/api/knowledge/published-infograph/infograph-alpha-file');
+    expect(byTitle['图乙']?.viewer?.imageSrc).toBe('/api/knowledge/published-infograph/infograph-beta-file');
+    expect(JSON.stringify(projected)).not.toContain('act:card:');
+    expect(JSON.stringify(projected)).not.toContain('act:infographic:');
+    expect(JSON.stringify(projected)).not.toContain('course-content/');
   });
 
   it('does not treat overlay vs course projection id as identity mismatch', () => {

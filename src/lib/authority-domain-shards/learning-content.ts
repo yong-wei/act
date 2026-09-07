@@ -21,7 +21,9 @@ import {
 import type {
   AuthorityNodeDetailShard,
   AuthorityNodeLearningContent,
+  AuthorityShardEnvelope,
 } from './contracts';
+import { resolveActiveShardIdentity } from './identity';
 
 const LEARNING_CONTENT_MANIFEST_CONTRACT =
   'act-authority-learning-content-manifest/v2' as const;
@@ -236,17 +238,43 @@ function envelopeTeachingAvailable(shard: AuthorityNodeDetailShard): boolean {
   );
 }
 
-function matchesShardAuthority(
+function matchesAuthorityIdentity(
   manifest: AuthorityLearningContentManifest,
-  shard: AuthorityNodeDetailShard,
+  authority: AuthorityShardEnvelope['authority'],
 ): boolean {
-  const authority = shard.envelope.authority;
   return (
     manifest.authorityReleaseId === authority.releaseId
     && manifest.authorityReleaseSetId === authority.releaseSetId
     && manifest.authoritySnapshotId === authority.snapshotId
     && manifest.authoritySnapshotHash === authority.snapshotHash
   );
+}
+
+function matchesTeachingSeal(
+  manifest: AuthorityLearningContentManifest,
+  teaching: AuthorityShardEnvelope['teaching'],
+): boolean {
+  if (!manifest.teachingProjectionId || !manifest.teachingProjectionHash) return true;
+  return (
+    teaching.status === 'available'
+    && manifest.teachingProjectionId === teaching.projectionId
+    && manifest.teachingProjectionHash === teaching.projectionHash
+  );
+}
+
+function matchesShardAuthority(
+  manifest: AuthorityLearningContentManifest,
+  shard: AuthorityNodeDetailShard,
+): boolean {
+  return matchesAuthorityIdentity(manifest, shard.envelope.authority);
+}
+
+function tryActiveEnvelope(repoRoot: string): AuthorityShardEnvelope | null {
+  try {
+    return resolveActiveShardIdentity({ repoRoot }).envelope;
+  } catch {
+    return null;
+  }
 }
 
 function resolveNodeLearningContent(
@@ -426,6 +454,8 @@ function resolvePublishedInfographBytes(
   options: {
     sourcePath?: string | null;
     liveInfographicTokens?: ReadonlyMap<string, string | null>;
+    envelope?: AuthorityShardEnvelope;
+    identityRepoRoot?: string;
   } = {},
 ): Buffer | null {
   if (!isBindingContentToken(token)) return null;
@@ -433,7 +463,17 @@ function resolvePublishedInfographBytes(
   const bindingHash = contentHashFromSourcePath(options.sourcePath);
   const paths = runtimePaths(repoRoot);
   const manifest = readManifest(paths);
-  const v2Entry = manifest?.nodes.find((node) => node.safeId === token) ?? null;
+  const envelope = options.envelope
+    ?? tryActiveEnvelope(options.identityRepoRoot ?? repoRoot);
+  const v2Ready = Boolean(
+    manifest
+    && envelope
+    && matchesAuthorityIdentity(manifest, envelope.authority)
+    && matchesTeachingSeal(manifest, envelope.teaching),
+  );
+  const v2Entry = v2Ready
+    ? manifest!.nodes.find((node) => node.safeId === token) ?? null
+    : null;
   if (v2Entry) {
     if (v2Entry.infograph.state !== 'available' || !v2Entry.infograph.sha256) return null;
     return readInfographIfHashMatches(
@@ -471,7 +511,11 @@ export function publishedInfographSafeIdForToken(
 
 export function readPublishedAuthorityInfographBySafeId(
   safeId: string,
-  options?: { liveInfographicTokens?: ReadonlyMap<string, string | null> },
+  options?: {
+    liveInfographicTokens?: ReadonlyMap<string, string | null>;
+    envelope?: AuthorityShardEnvelope;
+    identityRepoRoot?: string;
+  },
 ): Buffer | null {
   return resolvePublishedInfographBytes(safeId, options);
 }

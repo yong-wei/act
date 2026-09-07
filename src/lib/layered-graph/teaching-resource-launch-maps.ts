@@ -29,6 +29,13 @@ function resolveLessonIdentityFromToken(
   return null;
 }
 
+function mediaOrExerciseLessonToken(resourceId: string): string | null {
+  const token = resourceId.split(':').slice(2).join(':');
+  if (!token) return null;
+  if (resolveLessonIdentityFromToken(token)) return token;
+  return unitTokenFromResourceId(resourceId);
+}
+
 function extractLessonKeyFromResource(
   resource: TeachingResourceRuntime,
 ): string | null {
@@ -100,7 +107,7 @@ export function buildTeachingResourceLaunchMaps(
   for (const resource of resources) {
     const lessonToken = extractLessonKeyFromResource(resource)
       ?? (['video', 'audio', 'podcast', 'exercise'].includes(resource.resourceType)
-        ? unitTokenFromResourceId(resource.resourceId)
+        ? mediaOrExerciseLessonToken(resource.resourceId)
         : null);
     const identity = lessonToken
       ? resolveLessonIdentityFromToken(lessonToken)
