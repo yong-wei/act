@@ -11,6 +11,7 @@
 - [x] 2.3 发布断言脚本接入 `deploy:runtime` 的 resume 与新鲜发布两条路径：从候选 `sourceRevision` 读取 Teaching Projection authoringRevision，与部署目标容器 `/app/.app-revision` 比较（`-dirty` 判不一致），不一致 fail closed
 - [x] 2.4 教材阅读 href 由活 Teaching Projection launch map 登记为 live index 条目；`indexOwnsLaunchHref` 不再用教材路径形态白名单代替精确持有
 - [x] 2.5 知识卡/信息图 viewer-shell 绑定在服务端投影中携带该资源自己的学习者可见载荷；无法解析则 unavailable，不打开占位内容
+- [x] 2.6 live RegistryIndex 按活动 Teaching Projection pointer 的 projectionId/hash 键控缓存；投影切换且应用未重启时不得复用旧索引
 
 ## 3. 统一查看器壳
 

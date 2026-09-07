@@ -42,6 +42,11 @@ Every href the inspector exposes as available MUST be exactly owned by a live re
 - **THEN** it SHALL assert the candidate source revision's Teaching Projection authoringRevision against the deployed application's `/app/.app-revision`
 - **AND** a mismatch, a missing candidate pointer, or a `-dirty` capture SHALL fail the release closed before the release is served
 
+#### Scenario: Live registry index follows a teaching projection switch
+- **WHEN** the active Teaching Projection pointer identity changes without an application restart
+- **THEN** the next live registry index read SHALL rebuild from that pointer
+- **AND** it SHALL NOT reuse a memoized index captured under a previous projection identity
+
 ### Requirement: Viewer-shell bindings carry the selected resource payload
 Each available viewer-shell binding MUST carry learner-safe content for that resource. Card bindings MUST include that card's published summary; infographic bindings MUST include a published image URL that identifies that infographic without `act:` resource ids, canonical ids, or source paths. A viewer-shell binding whose published payload cannot be resolved MUST be unavailable.
 

@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -20,6 +20,7 @@ import { resolveLiveResourceIndexRevision } from '../revision';
 import {
   captureLiveResourceRegistryIndex,
   getLiveResourceRegistryIndex,
+  readLiveResourceRegistryIndexMemoKey,
   resetLiveResourceRegistryIndexCache,
 } from '../sources';
 import { projectStudentReadFromIndex } from '../student-read';
@@ -613,6 +614,58 @@ describe('resource registry index', () => {
     const first = getLiveResourceRegistryIndex();
     const second = getLiveResourceRegistryIndex();
     expect(second).toBe(first);
+  });
+
+  it('changes the live index memo key when the teaching projection identity changes', () => {
+    const cwd = createTempGitRepo();
+    try {
+      const projectionRoot = path.join(cwd, 'course-content/runtime/knowledge/projection');
+      mkdirSync(projectionRoot, { recursive: true });
+      const pointer = {
+        contract: 'act-teaching-projection-current/v1',
+        projectionId: `proj-${'a'.repeat(64)}`,
+        projectionHash: 'b'.repeat(64),
+        authorityReleaseId: 'rel-test',
+        activatedAt: '2026-01-01T00:00:00.000Z',
+      };
+      writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+      const first = readLiveResourceRegistryIndexMemoKey(EMPTY_ENV, cwd);
+      pointer.projectionHash = 'c'.repeat(64);
+      writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+      const second = readLiveResourceRegistryIndexMemoKey(EMPTY_ENV, cwd);
+      expect(first).toContain(`proj-${'a'.repeat(64)}`);
+      expect(second).not.toBe(first);
+      expect(second).toContain('c'.repeat(64));
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('rebuilds the memoized live index when the teaching projection identity changes', () => {
+    resetLiveResourceRegistryIndexCache();
+    const cwd = createTempGitRepo();
+    try {
+      const projectionRoot = path.join(cwd, 'course-content/runtime/knowledge/projection');
+      mkdirSync(projectionRoot, { recursive: true });
+      const pointer = {
+        contract: 'act-teaching-projection-current/v1',
+        projectionId: `proj-${'a'.repeat(64)}`,
+        projectionHash: 'b'.repeat(64),
+        authorityReleaseId: 'rel-test',
+        activatedAt: '2026-01-01T00:00:00.000Z',
+      };
+      writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+      const first = getLiveResourceRegistryIndex(EMPTY_ENV, cwd);
+      const reused = getLiveResourceRegistryIndex(EMPTY_ENV, cwd);
+      expect(reused).toBe(first);
+      pointer.projectionHash = 'c'.repeat(64);
+      writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+      const rebuilt = getLiveResourceRegistryIndex(EMPTY_ENV, cwd);
+      expect(rebuilt).not.toBe(first);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+      resetLiveResourceRegistryIndexCache();
+    }
   });
 
   it('orders identities by locale-independent code-unit comparison', () => {

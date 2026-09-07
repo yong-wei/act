@@ -88,7 +88,7 @@
 
 ## 🚀 Next phase
 
-- 2026-09-07：#2044 / PR #2057 正在按根因修第二轮 Codex（P1 候选/部署修订、P2 绑定级 viewer 载荷、P2 教材 href 精确持有）。修完后一次提交推送、只请求一次复审。不要关 #1033。不要 `deploy:app` / `deploy:runtime`。不要主动调用 Claude。
+- 2026-09-07：#2044 / PR #2057 第三轮 Codex 新 P1：live RegistryIndex 模块级 memo 在 `deploy:runtime` 切换 Teaching Projection 且进程不重启时复用旧索引。已按 `APP/Git 修订 + projectionId/hash` 键控缓存；提交推送后对 latest HEAD 只请求一次复审。不要关 #1033。不要 `deploy:app` / `deploy:runtime`。不要主动调用 Claude。不要改 overlay A / `activation-0b72f577`。
 
 - 2026-09-03：先 claim #1916，按 claim 时 clean `origin/integration` 重建完整 tracked payload path/byte 分母，闭合当前 authority/consumer/retention/privacy/materialization/recovery/rollback 与 full-inventory 实际字节验证。旧 #1881 的 52,159 个 unresolved 与 `package-unqualified` 只作历史比较；输出未达到 unresolved=0 时继续 fail closed。不得迁移、删除、外置、物化载荷，不得改 active baseline/fitness/test qualification 或生产状态。
 
