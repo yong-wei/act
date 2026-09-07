@@ -1,0 +1,5211 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "classical-control-design",
+  "family": "association",
+  "objects": [
+    {
+      "id": "ctkg:m1t-v2c:01c79541df32c50b537caddf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "二阶最小拍系统系数 α",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:0480a93d2e9b094b89e08e01",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最小拍响应特性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:10bd9535274635b749e19e9c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "四阶最小拍系统系数 α, β, γ",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:1c95be4e3984bf5631ffefe8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "三阶最小拍系统的超调量百分比",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:2d8e452e1634cae42e17cc9e",
+      "canonicalType": "Formula",
+      "label": "由调节时间计算 ωn",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:2e65293c6a9ec3c075295a1d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "六阶最小拍系统系数 α, β, γ, δ, ε",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:38e8289de72938d2d082d241",
+      "canonicalType": "Formula",
+      "label": "例 10.12 闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:4a8456f10e37689778cef532",
+      "canonicalType": "Formula",
+      "label": "三阶最小拍系统的归一化调节时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:4ce028db3fa74394219eb999",
+      "canonicalType": "KnowledgeStatement",
+      "label": "三阶最小拍系统系数 α 与 β",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:6f5eba2319bd7584711fc21c",
+      "canonicalType": "Formula",
+      "label": "三阶最小拍系统所需的特征方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:796690d3d284ec098f0f30b5",
+      "canonicalType": "Formula",
+      "label": "例 10.12 补偿器传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:8721d664ef60096aa559e1aa",
+      "canonicalType": "Formula",
+      "label": "最小拍响应归一化三阶闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:88450b082ec4df2fdccd3a62",
+      "canonicalType": "Formula",
+      "label": "三阶闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:93c6cdd33a610f6c0c4372d7",
+      "canonicalType": "Formula",
+      "label": "例10.12前置滤波器传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:9a7b907af1ca0bce6e806cda",
+      "canonicalType": "KnowledgeStatement",
+      "label": "四阶最小拍系统的下冲百分比",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:9d109e0c6a5ccedf2cd060f1",
+      "canonicalType": "Formula",
+      "label": "例 10.12 系统被控对象传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:b99f52ac206f37d6df5ea426",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例10.12 最小拍响应设计结果",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:ce5dfbf490efb0c5132dabef",
+      "canonicalType": "Formula",
+      "label": "归一化三阶闭环传递函数（另一种形式）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:d0771ff4f89a48e9d85c9dfa",
+      "canonicalType": "KnowledgeStatement",
+      "label": "二阶最小拍系统的超调量百分比",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "canonicalType": "KnowledgeStatement",
+      "label": "表 10.2 系数与响应指标",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2i:source-object:74a2c1f89ffbf3418d9576a5",
+      "canonicalType": "Formula",
+      "label": "三阶无超调响应传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:6faaa6a3c11dc8ea826ea785",
+      "canonicalType": "Formula",
+      "label": "PID控制器传递函数（因式分解形式）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2m:canonical-object:70e4132858533f5df42bea2a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID控制器引入一个原点极点和两个零点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2m:canonical-object:a3b6575807baa3520c99ebe5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID参数难以直接映射到性能",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+      "canonicalType": "KnowledgeStatement",
+      "label": "三阶无差拍系统2%调节时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:9d4f09cc74fe3270f9de3140",
+      "canonicalType": "Formula",
+      "label": "大KD近似闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:e2f7eea06f8edf062d2c828a",
+      "canonicalType": "Formula",
+      "label": "含PID控制器的闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "canonicalType": "DomainConcept",
+      "label": "稳态误差e_ss",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-object-014f6693990b1578b499a342",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正设计的典型目标是在低频段提供额外的 alpha 增益，并为系统保留足够的相位裕度（PM）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-13e019508386927213063551",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后零点位于 0.1 rad/sec，滞后极点位于 0.01 rad/sec。该选择产生 50 度的相角裕度（PM）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-147bf5c4a7db5867bdd6f395",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=K_{p}+\\frac{K_{I}}{s}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-176639b33a9daac027b2a280",
+      "canonicalType": "KnowledgeStatement",
+      "label": "超前-滞后网络兼具相位滞后校正器的衰减作用和相位超前校正器的超前相角特性。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1823dbf4998770386dea4242",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过叠加校正网络的频率响应，可直接在伯德图上计入串联传递函数的影响。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-194c13c7f52c7a627f4c0e34",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1） 根据稳态误差要求，确定开环增益K。2） 利用已确定的开环增益，计算待校正系统的相角裕度。3） 根据截止频率ωc''的要求，计算超前网络参数a和T。4） 验算已校正系统的相角裕度γ''。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1c71dc62bf24d2c2b8a60211",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正器的相角在截止频率处几乎完全消失。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1eba11d51d5deb2f8688550b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "含 D1(s) 系统的伯德图相角裕度为 16 度。由于超前校正将截止频率从 1.7 rad/sec 移动到了 2.3 rad/sec，因而未能达到期望的 30 度相角裕度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-202c124842319bb06b07de78",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当设计指标包含误差常数要求时，波特图法更为适用，因为在s平面上设计的系统，其误差常数必须在选定校正装置的极点和零点之后才能确定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-211d8f19c0a40a2aebd9b260",
+      "canonicalType": "KnowledgeStatement",
+      "label": "开环频率特性的低频段表征了闭环系统的稳态性能；中频段表征了闭环系统的动态性能；高频段表征了闭环系统的复杂性和噪声抑制性能。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2315b1481ebb105b24203828",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根据 T(s) 的期望零极点位置定义性能指标",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-23dc59744a6f7a5a26d8047d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "为了提供较大的误差常数（通常为 Kp 和 Kv），必须考虑采用积分型校正装置。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-26dc00e8e926791fd4186758",
+      "canonicalType": "KnowledgeStatement",
+      "label": "引入形式为 G_c(s)=K_P+K_I/s 的积分环节也可用于减小斜坡输入 r(t)=t, t >= 0 下的稳态误差。若未校正系统 G(s) 包含一个积分环节，则由 G_c(s) 引入的附加积分环节将使斜坡输入下的稳态误差为零。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-28220f1e65fba7cdfcba5c00",
+      "canonicalType": "KnowledgeStatement",
+      "label": "I控制器对系统稳定性的影响",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2a7fd1331440e72829a155d9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在需要极高误差系数的系统中，超前校正装置不适用于提供高稳态精度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2d538d6b6e5d971bac278b99",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无前置滤波器的闭环传递函数（PI校正器示例）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-30edd20ab5e6fbc9d74c9c9b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在滞后校正中，alpha > 1 使得极点的转折频率低于零点的转折频率。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-310369c5257cf73b748d9f32",
+      "canonicalType": "KnowledgeStatement",
+      "label": "设计一个最大超前相角为 22° + 8° = 30° 的补偿器，以补偿由较高截止频率引起的附加相角滞后。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-33a9459b2acbd581575fe960",
+      "canonicalType": "KnowledgeStatement",
+      "label": "使用超前校正器会展宽反馈系统的频带宽度，这对于受到大量噪声干扰的系统可能是不利的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3746bf149d4e2d38ab392212",
+      "canonicalType": "KnowledgeStatement",
+      "label": "采用MPZ法为被控对象G(s)=1/s^2设计数字控制器，使其闭环自然频率ω_n ≈ 0.3 rad/sec、阻尼比ζ=0.7。连续校正D_c(s)=0.81*(s+0.2)/(s+2)以采样周期T=1 sec进行离散化。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-379731f0b79780c8ea63352e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "超前校正将截止频率从 1.7 rad/sec 移动到 2.3 rad/sec，增加了超前校正所需的相位提升量。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-39fb1ccb12311d32ad28e60f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "确定 alpha 以满足低频增益误差要求。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-417684e47428a4c8111ccce6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于相同的被控对象和稳态误差要求，超前校正得到的截止频率为 5 rad/sec，而滞后校正得到的截止频率为 0.8 rad/sec。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-41a28f031de43095e8c2da06",
+      "canonicalType": "KnowledgeStatement",
+      "label": "实际控制系统中广泛采用无源网络进行串联校正，但在放大器级间接入无源校正网络后，由于负载效应问题，有时难以实现希望的控制规律。此外，复杂网络的设计和调整也不方便。因此，有时需要采用有源校正装置。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4256d649311b70da5706abb0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于带有超前校正器或 PI 校正器的系统通常会加入前置滤波器，但对于带有滞后校正器的系统则通常不加，因为在后一种情况下零点的影响通常微不足道。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-42c9ed17186a827d795ea6d8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "含 D1(s) 系统的伯德图具有 16 度的相角裕度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-493167c9580087d508fb43bf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "z = ω_m / √α = 4.8 且 p = α z = 14.4。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4a018dfdcec4be7fdb58749f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统在采用 D1(s) 时的阶跃响应呈现出强烈的振荡响应，正如 16 度的低相角裕度所预期的那样。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4c1d2ed287aea3539b0c56de",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=K_{P}+\\frac{K_{I}}{s}=\\frac{K_{P} s+K_{I}}{s}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4d7f374c304579037c1c0063",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极点和零点的位置不必低于必要限度，因为滞后环节引入的附加系统根将与校正零点处于同一频率范围，并会对输出响应（尤其是对扰动输入的响应）产生一定影响。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5025bb309483df1d997e2725",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正引入的慢实根导致响应大约需要 25 秒才能稳定下来，且上升时间 t_r = 2 秒。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5312b0d674bdc6334962e024",
+      "canonicalType": "KnowledgeStatement",
+      "label": "有前置滤波器时，系统单位阶跃扰动响应表明系统能有效抑制扰动的影响。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-568c8ddb030ab03bc0694053",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正器提高了开环直流增益，改善了稳态响应特性，而不会显著改变暂态响应特性。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-56d1f3028a2b00a6c3bcb818",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在截止频率 ω_c = 6.2 rad/s 处，相角裕度为 P.M. = 18°。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-60314da560052fc788de6000",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统由原来的I型提高到含PI控制器时的II型。若输入信号为斜坡函数r（t）=R₁t，无PI控制器时稳态误差为R₁/K₀；接入PI控制器后，稳态误差为零。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6363ebec796609d3c74b419c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1/T_I 通常设置在远低于截止频率的频率处，以使系统的相位裕度不受显著影响。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-654b0a9d54c7fbf3cfca108c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "尽管滞后校正传递函数形式上与超前校正相似，但 alpha>1 使得极点转角频率低于零点转角频率，从而产生低频幅值提升和相角滞后（减小）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-66926d13971b8a280d1cdd1c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于同一系统，采用超前校正的系统带宽大于采用滞后校正的系统带宽。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-682a0c492e52536192ea9958",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID 补偿大致等效于在同一设计中结合超前和滞后补偿器，有时也称为超前-滞后补偿器。它能同时改善暂态和稳态响应。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6bdfe7fea36b026062abac2e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正器的极点和零点选在远低于未校正系统截止频率的频段，以最大程度减小对相位裕度的影响。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6fb52bb727ac5afe33014667",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在此情况下，截止频率 omega_c 约为 0.8 rad/sec。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7124cf51202417f01bc8dcbf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "为满足可接受的稳态及低频误差性能，存在允许的最小低频增益 (W1)；为满足可接受的噪声性能并降低不稳定概率，存在允许的最大高频增益 (W2^-1)。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-71b295bfa93e9b16d8b8f6ff",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正设计的截止频率约为 0.8 rad/sec，而例 6.15 中超前校正设计约为 5 rad/sec。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7572b812f994f30ab6f5b279",
+      "canonicalType": "KnowledgeStatement",
+      "label": "为了满足严格的稳态性能要求，当采用无源校正网络时，超前校正要求一定的附加增益，而滞后校正一般不需要附加增益。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-75d40a81661dece19a4b607d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "截止频率处的斜率必须为 -1 或略陡，以获得良好的相位裕度与阻尼。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7a2e1b227c265f6a135d175f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "不加前置滤波器时，阶跃响应的超调百分比为 P.O. = 21%。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7ab62eba6898dc5eae2596ec",
+      "canonicalType": "KnowledgeStatement",
+      "label": "引入校正装置以满足系统性能指标",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7ac3bfcccf5a878ad68ff094",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在 omega_c' = 1.58 rad/s 处的相角裕度为 46.9 度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7ea554f6da2dba3e9d663995",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通常，带有滞后补偿器的系统不使用前置滤波器，因为由于零极点的近似对消，零点的影响预计可以忽略。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-812140e2bfc6438f85b850c4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当校正后系统的幅值渐近线以 -20 dB/decade 的斜率穿越 0-dB 线时，系统设计满足要求。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-880cf1197e94fe16da323d6c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "校正后系统的相角裕度为 P.M. = 43.7°。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-89687be96daa792e6294467e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 G_p(s)=8/(s+8) 时，超调百分比为 4.5%，调节时间为 0.5 s。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8abaebaa590e6fc412afd8f1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在磁盘驱动读取系统设计中，PD控制器引入的零点（s+z）会对闭环动态性能产生不利影响，通过配置前置滤波器Gp（s）可以消除该零点的影响，从而改善系统动态性能。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8f20f3e445c8158b3e5dad3c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无前置滤波器时，超调量百分比为 P.O. = 46.6%，调节时间为 T_s = 3.8 s。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-90802e060546394e0b064374",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无前置滤波器时，系统单位阶跃响应仿真表明闭环零点可以提升系统的上升时间，但恶化了系统的超调量。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9427118977867385c5121661",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相位滞后校正器在保持合适误差常数的同时减小系统的闭环带宽。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-964c6e0842b21b9e48f5abbd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.15 与例 6.19 针对同一被控对象满足相同的性能指标：超前校正得到的截止频率为 5 rad/sec（带宽约为 6 rad/sec），而滞后校正得到的截止频率约为 0.8 rad/sec（带宽约为 0.9 rad/sec）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-96843b77f1375617df4e6bc1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "校正后的截止频率在 G(jω) 的幅值为 -4.8 dB 处求得，从而 ω_m = ω_c = 8.4。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-98526e5633c39075b28584f5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID控制有如下特点：1）对被控对象的数学模型要求不高；2）调节方便；3）适用面广。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9d4310c9300b10d88c068ad2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "有前置滤波器时，系统单位阶跃输入响应动态性能大为改善，超调量 σ% = 0.1%，调节时间 t_s = 40 ms （Δ=2%）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9f83a061afb3a7ee5cf27579",
+      "canonicalType": "KnowledgeStatement",
+      "label": "带前置滤波器的闭环传递函数（超前校正器示例）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a7f614bcb3e53bed639ad43e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根据性能指标确定的 PI 校正器增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-adf355a765dc9c77e3dd5319",
+      "canonicalType": "KnowledgeStatement",
+      "label": "空间站设计示例的性能指标为闭环固有频率 ω_n ≈ 0.3 rad/sec 及阻尼比 ζ=0.7。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b37fb2d60a2da4cebdb477cd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正设计的截止频率约为 0.8 rad/sec。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b9742f23f8b34a49efc89a07",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于需要在 omega_c 处提高相角裕度并提高低频增益的问题，同时采用微分控制和积分控制是有效的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bc48f9746a3ec931067fd918",
+      "canonicalType": "KnowledgeStatement",
+      "label": "然而，由此产生的瞬态响应可能是不可接受的，甚至是不稳定的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bc7cc65c339764afac2c5c2a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若精确已知谐振特性，则专门设计的校正（例如在谐振频率处设置陷波器）可以改变特定频率处的相位以避免包围 -1 点，即使幅值大于 1 也能使系统稳定；这就是相位稳定化。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bd2b615ffcc777ad58288217",
+      "canonicalType": "Formula",
+      "label": "T_{s}=\\frac{4}{\\zeta \\omega_{n}}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c24af39f3b7c4714b01c7b21",
+      "canonicalType": "KnowledgeStatement",
+      "label": "滞后校正产生低频幅值增加和相角减小，具备积分控制的基本特征——提高低频增益。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c34c435419433d52dcca23c1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "陷波滤波器校正衰减被控对象谐振频率附近的输入以防止不稳定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c483a5c85ea2de471d0e997d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当给定误差常数时，根轨迹法通常会导致迭代设计过程。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c7ad688f45a317219892bd63",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当通过调整高频幅值使其永不超过1来保证具有谐振特性的系统稳定性时，该过程称为增益镇定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d5c19a0d84a7484402363efb",
+      "canonicalType": "KnowledgeStatement",
+      "label": "未校正系统的伯德图显示相角裕度约为 -4 度，截止频率约为 4 rad/sec。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d7a58d1e0e8c436032ce2ece",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由于校正后的穿越频率大于未校正系统的穿越频率，因此未校正系统的相位滞后也更大。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-dd150d2a617f630448ba5250",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=K \\frac{s+z}{s+p}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-dd685f8f1ac034d3c74bd85c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "闭环传递函数 T(s) 会包含 G_c(s) 的零点作为 T(s) 的零点，从而显著影响响应。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-de9363a5fec11c2bdee77270",
+      "canonicalType": "KnowledgeStatement",
+      "label": "性能指标：调节时间（2% 准则）T_s = 0.5 s，超调量约为 4%。取 zeta = 1/sqrt(2)。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e05d15bab63827f18d660cba",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若控制系统必须在 0 到 ω1 范围内跟踪正弦参考输入且误差不大于 1%，则在 ω=0 到 ω1 范围内加权函数 W1 应取为 100。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e18f6dc2480a3620e96a49d2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "绘制单一系统参数变化的根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e6377394f1448bc48960d513",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在频域内进行系统设计是一种间接设计方法，因为设计结果满足的是一些频域指标，而不是时域指标。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e68de122c97abc5690da4535",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PI控制器对系统稳态性能的改善",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e72ceb2da2920ad93d10c33d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过引入滞后网络来满足误差要求可能更为合适，从而使闭环带宽保持在更合理的频率范围内。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e7321fbac782469d84124e76",
+      "canonicalType": "KnowledgeStatement",
+      "label": "阶跃响应得到的超调量为 P.O. = 28%，调节时间为 T_s = 0.9 s。校正后系统对斜坡输入的稳态误差为 5%。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e959c0ebcd95a230633db9d5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "用频域性能指标描述系统性能",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ea071b1e7a8b1c9e24ea13ae",
+      "canonicalType": "KnowledgeStatement",
+      "label": "增大前向通道的增益可以提高许多反馈系统的稳态精度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-eabc8583da36ca06d31c20b4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若极点和零点彼此相对靠近且位于原点附近（TI 较大），则低频增益可提高 alpha 倍，而不会显著移动闭环极点。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-eb7b5b0782aa3c092b29a510",
+      "canonicalType": "KnowledgeStatement",
+      "label": "前置滤波器后的闭环传递函数（第一例）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-eb9410d3ff9834c7294e3878",
+      "canonicalType": "KnowledgeStatement",
+      "label": "阶跃响应的上升时间tr=2秒，且大约需要25秒稳定至零稳态值。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ef1ad54a5ef03ee908aac5a2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "相位稳定法对被控对象模型误差更为敏感，因为谐振信息往往无法以足够的精度获得，或者随时间变化。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ef2eca32902c37338d4e45d2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "超前校正装置通过增加正（超前）相角来改变系统的频率响应，从而提高截止频率处的相位裕度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ff2e6e2a650b23fc1008979f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "阶跃响应显示无稳态误差（1型系统），但滞后校正引入的慢实根导致响应需要约 25 秒才能进入稳态，上升时间 tr=2 秒，而例 6.15 的上升时间为 tr=0.33 秒。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m3-v2m:relation:022968fbd2711cc68f0c6717",
+      "predicate": "association",
+      "sourceId": "ctkg:m3-v2m:source-object:e2f7eea06f8edf062d2c828a",
+      "targetId": "ctkg:m3-v2m:source-object:9d4f09cc74fe3270f9de3140",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:48b2f2f518167ce0a1cb7dfc",
+      "predicate": "association",
+      "sourceId": "ctkg:m3-v2m:canonical-object:a3b6575807baa3520c99ebe5",
+      "targetId": "ctkg:m3-v2l:canonical-object:8754168bda2726334aedb505",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:662a9942bc8c1b5eef491bcd",
+      "predicate": "association",
+      "sourceId": "ctkg:m3-v2m:canonical-object:70e4132858533f5df42bea2a",
+      "targetId": "ctkg:m3-v2l:source-object:6faaa6a3c11dc8ea826ea785",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:ada271b5bfd660039e58389d",
+      "predicate": "association",
+      "sourceId": "ctkg:m3-v2i:source-object:74a2c1f89ffbf3418d9576a5",
+      "targetId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:bcd7b52d68a136df63ac6ef9",
+      "predicate": "association",
+      "sourceId": "ctkg:m3-v2l:canonical-object:719aca16350961351ae12c72",
+      "targetId": "ctkg:m3-v2l:canonical-object:8754168bda2726334aedb505",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:db216fb2c40509c55788bda7",
+      "predicate": "association",
+      "sourceId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+      "targetId": "ctkg:m3-v2l:canonical-object:8754168bda2726334aedb505",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:148ef9e7f117751bf30fbf50",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:796690d3d284ec098f0f30b5",
+      "targetId": "ctkg:m1t-v2c:9d109e0c6a5ccedf2cd060f1",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:14ba576ada7870f95012c06e",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:4ce028db3fa74394219eb999",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:201f665efe264cfdc051a39a",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:676b8bb84ce7267dd520deca",
+      "targetId": "ctkg:m1t-v2c:0480a93d2e9b094b89e08e01",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:224996c4fea2d88cd8fe1322",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:b99f52ac206f37d6df5ea426",
+      "targetId": "ctkg:m1t-v2c:6f5eba2319bd7584711fc21c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:3c8cc229832b23f1cec2cf41",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:10bd9535274635b749e19e9c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:58136ea12ecfc0236e26137a",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:8721d664ef60096aa559e1aa",
+      "targetId": "ctkg:m1t-v2c:4a8456f10e37689778cef532",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:5a72c23bfcd6efe0d70dfef4",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:93c6cdd33a610f6c0c4372d7",
+      "targetId": "ctkg:m1t-v2c:38e8289de72938d2d082d241",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:672762ad9b003f79f1b5ce61",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:d0771ff4f89a48e9d85c9dfa",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:69ade9f731678f78d288889f",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:38e8289de72938d2d082d241",
+      "targetId": "ctkg:m1t-v2c:6f5eba2319bd7584711fc21c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:76b928045228641f8c9ec956",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:796690d3d284ec098f0f30b5",
+      "targetId": "ctkg:m1t-v2c:93c6cdd33a610f6c0c4372d7",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:9ff60f8576282b152365ac0f",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:4a8456f10e37689778cef532",
+      "targetId": "ctkg:m1t-v2c:104e736cd8917d320576a48e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:a7c2b2c179d3ccb83827471d",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:2e65293c6a9ec3c075295a1d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:ab01bff1a4482984588379bb",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:ce5dfbf490efb0c5132dabef",
+      "targetId": "ctkg:m1t-v2c:88450b082ec4df2fdccd3a62",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:b6839a4d1f1baea85e802349",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:4a8456f10e37689778cef532",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:baeea5c7f0a3342d8e28224b",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:9a7b907af1ca0bce6e806cda",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:cd5897f28311a0fd29412cc4",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:8721d664ef60096aa559e1aa",
+      "targetId": "ctkg:m1t-v2c:104e736cd8917d320576a48e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:ce3207571ab7082e5429530b",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:1c95be4e3984bf5631ffefe8",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:f000bf6eb1f43b5ac556fa12",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:2d8e452e1634cae42e17cc9e",
+      "targetId": "ctkg:m1t-v2c:104e736cd8917d320576a48e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1t-v2c-relation:f9d7d7e7be102fde5a0e3e6b",
+      "predicate": "association",
+      "sourceId": "ctkg:m1t-v2c:f4f50ded403f5b85058cd432",
+      "targetId": "ctkg:m1t-v2c:01c79541df32c50b537caddf",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-0015727c4f54ef52309d97c7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-dd150d2a617f630448ba5250",
+      "targetId": "ctkg:v3e-object-dd685f8f1ac034d3c74bd85c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-01ac16a2ab287a5752331b68",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-13e019508386927213063551",
+      "targetId": "ctkg:v3e-object-4d7f374c304579037c1c0063",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-02eb91a9bc0430ef161bc442",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2a7fd1331440e72829a155d9",
+      "targetId": "ctkg:v3e-object-33a9459b2acbd581575fe960",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-07924fa47d7a562daa07d2bd",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-eb9410d3ff9834c7294e3878",
+      "targetId": "ctkg:v3e-object-ff2e6e2a650b23fc1008979f",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-08d91436d875abd40955d1c3",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1823dbf4998770386dea4242",
+      "targetId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-09e41acd5d24ca61dad50193",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-bd2b615ffcc777ad58288217",
+      "targetId": "ctkg:v3e-object-de9363a5fec11c2bdee77270",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-0c1a3ce7d611133707e73514",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-654b0a9d54c7fbf3cfca108c",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-0c7eeafad9252ab49745786a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-89687be96daa792e6294467e",
+      "targetId": "ctkg:v3e-object-eb7b5b0782aa3c092b29a510",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-0e0fbf231c8d4192bdcbd360",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-110c156932e90fe902935cb1",
+      "targetId": "ctkg:v3e-object-ef1ad54a5ef03ee908aac5a2",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-14a9293f880b928ce0105e9d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b202f2a7c47a97c1f0e1efe8",
+      "targetId": "ctkg:v3e-object-e9769878ab175b13dde19719",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-1683cde1ec9989f7c336eea6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+      "targetId": "ctkg:v3e-object-98526e5633c39075b28584f5",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-1c8b6848f43c6f2d29216146",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-23dc59744a6f7a5a26d8047d",
+      "targetId": "ctkg:v3e-object-33a9459b2acbd581575fe960",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-1ff3c2b952b7725a127e4f8e",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-147bf5c4a7db5867bdd6f395",
+      "targetId": "ctkg:v3e-object-26dc00e8e926791fd4186758",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-303e4e2ce43c945530a09c8f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1eba11d51d5deb2f8688550b",
+      "targetId": "ctkg:v3e-object-379731f0b79780c8ea63352e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-30e23d6afde397001e270185",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+      "targetId": "ctkg:v3e-object-fbebd7b09546031f82f974ed",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-33accbcb4be162b72951e865",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-568c8ddb030ab03bc0694053",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-3a27cd0aa1834ac8473bced2",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-c257d94caf0f579cc0a8dd67",
+      "targetId": "ctkg:v3e-object-c7ad688f45a317219892bd63",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-3b45714e857524417499d035",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-42c9ed17186a827d795ea6d8",
+      "targetId": "ctkg:v3e-object-4a018dfdcec4be7fdb58749f",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-3d6878197aec47307f243421",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "targetId": "ctkg:v3e-object-964c6e0842b21b9e48f5abbd",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-4ad965ce680902bcabafedea",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-493167c9580087d508fb43bf",
+      "targetId": "ctkg:v3e-object-96843b77f1375617df4e6bc1",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-520e90eb16126556bd345f39",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-682a0c492e52536192ea9958",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-5385ce2020ce561ac8b6133a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-7124cf51202417f01bc8dcbf",
+      "targetId": "ctkg:v3e-object-75d40a81661dece19a4b607d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-548feae191a0b92117e00429",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-202c124842319bb06b07de78",
+      "targetId": "ctkg:v3e-object-c483a5c85ea2de471d0e997d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-549beece27efd7fe07bdc0f5",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-812140e2bfc6438f85b850c4",
+      "targetId": "ctkg:v3e-object-9427118977867385c5121661",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-5b3a7b5e368ed0218280afc7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-60e97b106df3b47840a4b6fd",
+      "targetId": "ctkg:v3e-object-fa4f7e4a46c0790f96077531",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-605112fe3c088e8ecdbc7f83",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-211d8f19c0a40a2aebd9b260",
+      "targetId": "ctkg:v3e-object-e6377394f1448bc48960d513",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-623a18ea8614467f2ad1d03f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-96843b77f1375617df4e6bc1",
+      "targetId": "ctkg:v3e-object-ad9dd2d6032f3c150c03fc49",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-6754cddc50929ab0c8deacbe",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "targetId": "ctkg:v3e-object-964c6e0842b21b9e48f5abbd",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-6947b6e0dcc4ec82e3ee32e4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+      "targetId": "ctkg:v3e-object-62fdc01d171ed1ecf803d7d9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-69d19d5032b14841adbe148a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-30edd20ab5e6fbc9d74c9c9b",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-6c4d29b7eb919d44e014f20f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-4256d649311b70da5706abb0",
+      "targetId": "ctkg:v3e-object-7ea554f6da2dba3e9d663995",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-6dee3e9f7c7edc9c0cff8d98",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1c71dc62bf24d2c2b8a60211",
+      "targetId": "ctkg:v3e-object-7ac3bfcccf5a878ad68ff094",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-75e45630f08ec85517c98410",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-56d1f3028a2b00a6c3bcb818",
+      "targetId": "ctkg:v3e-object-d7a58d1e0e8c436032ce2ece",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-776de4e0f11ca4a7832f7c45",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-417684e47428a4c8111ccce6",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-7866f8c3b7e71e5c827c537b",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "targetId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-795b799485d8aedf225b452d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-4c1d2ed287aea3539b0c56de",
+      "targetId": "ctkg:v3e-object-a7f614bcb3e53bed639ad43e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-79e410e43c56d37eab79a9b7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-3efb972a33b0a45162a5d04a",
+      "targetId": "ctkg:v3e-object-e18f6dc2480a3620e96a49d2",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-7a4778b697860b56f630b9d6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "targetId": "ctkg:v3e-object-a4bbf36e5da58c0e926d8829",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-7abdc60e588664385f1f721a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-23dc59744a6f7a5a26d8047d",
+      "targetId": "ctkg:v3e-object-2a7fd1331440e72829a155d9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-7f3041aeee53b18e98e4187f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-8f20f3e445c8158b3e5dad3c",
+      "targetId": "ctkg:v3e-object-9f83a061afb3a7ee5cf27579",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-7f793067fcfc0cb7da54f455",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "targetId": "ctkg:v3e-object-7572b812f994f30ab6f5b279",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-81c5f0d736b1265bcfdd8647",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5c2ad2da07903ca99b2b1f08",
+      "targetId": "ctkg:v3e-object-e959c0ebcd95a230633db9d5",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-8235a8d3e8b70a95aa8c1238",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5025bb309483df1d997e2725",
+      "targetId": "ctkg:v3e-object-ff2e6e2a650b23fc1008979f",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-84560cb8d44b0ad4cec8e797",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-60314da560052fc788de6000",
+      "targetId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-861dafdb311da50f3c6acab7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-6bdfe7fea36b026062abac2e",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-87acd022e7b91ceaef43c6ae",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-110c156932e90fe902935cb1",
+      "targetId": "ctkg:v3e-object-bc7cc65c339764afac2c5c2a",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-88d9476c1f25b5221a00846d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5312b0d674bdc6334962e024",
+      "targetId": "ctkg:v3e-object-8abaebaa590e6fc412afd8f1",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-8bee41c0202b4d95bf1d899d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "targetId": "ctkg:v3e-object-b9742f23f8b34a49efc89a07",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-8c3ae67db8ac40381551b7cb",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-7124cf51202417f01bc8dcbf",
+      "targetId": "ctkg:v3e-object-e05d15bab63827f18d660cba",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-8e6a8e0dd8cf62dd0a92e083",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+      "targetId": "ctkg:v3e-object-e68de122c97abc5690da4535",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-8fa2c80fc4a699e8d4d15438",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "targetId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-925c120e835fccf9d152b483",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-682a0c492e52536192ea9958",
+      "targetId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-9801567a550cf391f8c0ca5b",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "targetId": "ctkg:v3e-object-2315b1481ebb105b24203828",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-99d950d72efdb0582a729c11",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "targetId": "ctkg:v3e-object-af604268b1e07a0ddba886f3",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-9a12992fb861b691da5efa69",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-41a28f031de43095e8c2da06",
+      "targetId": "ctkg:v3e-object-924174fe69be3e335cca76d8",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-9a2ac3b7bf60dd8083373025",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+      "targetId": "ctkg:v3e-object-83d0805f5bcd8a6654402540",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-a31837a7b024ff2ac3f23d6f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-66926d13971b8a280d1cdd1c",
+      "targetId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-a3e6cb92e2e3d7d562169ae2",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+      "targetId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-a68c864648a256a7e2d38f96",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "targetId": "ctkg:v3e-object-7ab62eba6898dc5eae2596ec",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-ab7a6bef8faeb72b54055ac2",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-176639b33a9daac027b2a280",
+      "targetId": "ctkg:v3e-object-ef2eca32902c37338d4e45d2",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-ac22d3bd3adbbd2273b42624",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "targetId": "ctkg:v3e-object-c24af39f3b7c4714b01c7b21",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-af88263288cca5d66c3b2071",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2d538d6b6e5d971bac278b99",
+      "targetId": "ctkg:v3e-object-7a2e1b227c265f6a135d175f",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-b464bcd1a438b1d25effa0a6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-28220f1e65fba7cdfcba5c00",
+      "targetId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-c7c5ccfb81a01d5baa7413ce",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+      "targetId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-cbca59e7a5c09bf40fc8a398",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-8abaebaa590e6fc412afd8f1",
+      "targetId": "ctkg:v3e-object-9d4310c9300b10d88c068ad2",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-d04e58fd7c4c1916ed4b7c3d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "targetId": "ctkg:v3e-object-eabc8583da36ca06d31c20b4",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-d12e19cc08aa143e3ec6ac80",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-71b295bfa93e9b16d8b8f6ff",
+      "targetId": "ctkg:v3e-object-b37fb2d60a2da4cebdb477cd",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-d3f09b02817d49db048426d7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-7572b812f994f30ab6f5b279",
+      "targetId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-d5b6528224a8a0cb693f6c76",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-880cf1197e94fe16da323d6c",
+      "targetId": "ctkg:v3e-object-e7321fbac782469d84124e76",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-db1b1667b7312a3159e00da6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-6fb52bb727ac5afe33014667",
+      "targetId": "ctkg:v3e-object-71b295bfa93e9b16d8b8f6ff",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-dbcfeb63bed8af5496c02d74",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "targetId": "ctkg:v3e-object-4cccd13f596146e4afdba37c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-de29944dfd4a0b3c63986ad7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-417684e47428a4c8111ccce6",
+      "targetId": "ctkg:v3e-object-964c6e0842b21b9e48f5abbd",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-df9b692758f0ee728203d42c",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "targetId": "ctkg:v3e-object-e72ceb2da2920ad93d10c33d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-dfebe60472b7fc8a39de9f56",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2315b1481ebb105b24203828",
+      "targetId": "ctkg:v3e-object-4cccd13f596146e4afdba37c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-e012d133160231e718139e13",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-014f6693990b1578b499a342",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-e28e0a7f742d38f5b4d0ca1f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "targetId": "ctkg:v3e-object-d5c19a0d84a7484402363efb",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-e2f09d7421e97b0fc7418d4f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-417684e47428a4c8111ccce6",
+      "targetId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-e5decfe703c965075fb3488e",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-6363ebec796609d3c74b419c",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-e7b87856964251039ef0494d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-e931aaeb9dca01ed668f9745",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+      "targetId": "ctkg:v3e-object-66926d13971b8a280d1cdd1c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-ec5db3389ff7abac94e1c48a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+      "targetId": "ctkg:v3e-object-310369c5257cf73b748d9f32",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-ef6df76999d474e330bfcf4b",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "targetId": "ctkg:v3e-object-3efb972a33b0a45162a5d04a",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-f0ae271004a75434e33c7e99",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+      "targetId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-f7b6ffed206ade922374a9eb",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "targetId": "ctkg:v3e-object-3efb972a33b0a45162a5d04a",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-f7bf0b1d57e06af9843b40c0",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-bc48f9746a3ec931067fd918",
+      "targetId": "ctkg:v3e-object-ea071b1e7a8b1c9e24ea13ae",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-f82f2340e8d394ce13fb4df5",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-39fb1ccb12311d32ad28e60f",
+      "targetId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-fc9d17ec0ce87047cdbb4029",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-8abaebaa590e6fc412afd8f1",
+      "targetId": "ctkg:v3e-object-90802e060546394e0b064374",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-fcfc8253f1edc4e1aa354883",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-194c13c7f52c7a627f4c0e34",
+      "targetId": "ctkg:v3e-object-a4a5ad4fbaf4f8f87fa5f49c",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1k:relation-b6b673dc82f9d615e6ab5e3b",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "targetId": "ctkg:v3e-object-adf355a765dc9c77e3dd5319",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1k:relation-fc8f2c434ebc644c6eeb6c60",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-3746bf149d4e2d38ab392212",
+      "targetId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1m:relation-27dfb6736aa2142f5a325ca9",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-53d71370dc7c98dc11b24a37",
+      "targetId": "ctkg:v3e-object-c34c435419433d52dcca23c1",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctkg:m3-v2m:canonical-object:bf8187368ce131ee0e8a2918",
+      "label": "三阶无差拍系统2%调节时间",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "label": "稳态误差e_ss",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3746bf149d4e2d38ab392212",
+      "label": "采用MPZ法为被控对象G(s)=1/s^2设计数字控制器，使其闭环自然频率ω_n ≈ 0.3 rad/sec、阻尼比ζ=0.7。连续校正D_c(s)=0.81*(s+0.2)/(s+2)以采样周期T=1 sec进行离散化。",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "discrete-time-control-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "label": "奈奎斯特图",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "frequency-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-adf355a765dc9c77e3dd5319",
+      "label": "空间站设计示例的性能指标为闭环固有频率 ω_n ≈ 0.3 rad/sec 及阻尼比 ζ=0.7。",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "discrete-time-control-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-c34c435419433d52dcca23c1",
+      "label": "陷波滤波器校正衰减被控对象谐振频率附近的输入以防止不稳定",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "nonlinear-system-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "label": "伯德图",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "frequency-domain-analysis"
+      ]
+    }
+  ]
+}

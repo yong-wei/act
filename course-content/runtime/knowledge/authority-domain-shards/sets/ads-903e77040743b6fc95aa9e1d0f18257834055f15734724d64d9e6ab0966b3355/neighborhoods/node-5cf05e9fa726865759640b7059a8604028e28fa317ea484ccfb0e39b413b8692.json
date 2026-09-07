@@ -1,0 +1,642 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "canonicalType": "DomainConcept",
+      "label": "特征值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+      "canonicalType": "Formula",
+      "label": "q(s)= a_{n} s^{n}-a_{n}\\left(r_{1}+r_{2}+\\cdots+r_{n}\\right) s^{n-1} +a_{n}\\left(r_{1} r_{2}+r_{2} r_{3}+r_{1} r_{3}+\\cdots\\right) s^{n-2} -a_{n}\\left(r_{1} r_{2} r_{3}+r_{1} r_{2} r_{4} \\cdots\\right) s^{n-3}+\\cdots +a_{n}(-1)^{n} r_{1} r_{2} r_{3} \\cdots r_{n}=0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-44b910a1514a524f420e462c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况 4：虚轴（jω 轴）上的重根",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4e28487b74c0c23419180c66",
+      "canonicalType": "KnowledgeStatement",
+      "label": "表6.1总结了最高至六阶归一化特征方程的稳定性判据",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+      "canonicalType": "Formula",
+      "label": "q(s)= a_{n} s^{n}-a_{n}(\\text { 所有根之和 }) s^{n-1} +a_{n}(\\text { 每次取2个根的乘积之和 }) s^{n-2} -a_{n}(\\text { 每次取3个根的乘积之和 }) s^{n-3} +\\cdots+a_{n}(-1)^{n}(\\text { 所有 } n \\text { 个根的乘积 })=0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "canonicalType": "DomainConcept",
+      "label": "特征方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况 3：第一列为零且该行其余元素也为零",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+      "canonicalType": "Formula",
+      "label": "\\Delta(s)=q(s)=a_{n} s^{n}+a_{n-1} s^{n-1}+\\cdots+a_{1} s+a_{0}=0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+      "canonicalType": "Formula",
+      "label": "a_{n}\\left(s-r_{1}\\right)\\left(s-r_{2}\\right) \\cdots\\left(s-r_{n}\\right)=0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9f1606b73125aef81218d3e9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况3发生在某一行元素全为零，或该行仅包含单个零元素时。当多项式包含关于s平面原点对称分布的奇点时会出现这种情况。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯-赫尔维茨稳定性判据法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据基于将特征方程的系数排列成阵列",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯-赫尔维茨稳定性判据",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据是线性系统稳定的充分必要判据。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1g-156b95833a1444175b86fee0",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1g-241300a582549dd934f40937",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1g-37e2950108e1b17009dd8761",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-44b910a1514a524f420e462c",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1g-4983df6f4bdae01b9a1aa361",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "targetId": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-5640087474ddbba6e152834e",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-9f1606b73125aef81218d3e9",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1g-6b6b2e275caa8d3a899dcfff",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "targetId": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-8a32b8a7aef66326a6f67b83",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1g-c0584dd351da80644ef2761b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-4e28487b74c0c23419180c66",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-ce6936e1e6d41ab6ac7894c6",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1g-d308b1061f5e63f79cf5d60a",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "targetId": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-db036e185713b25cd82e3db1",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-44b910a1514a524f420e462c",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1g-df7d77819e2ae0cbdd2fda00",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "targetId": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-e0b23a73f0018eabe22f946f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-c84d6823b95051f36df4b748",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": []
+}

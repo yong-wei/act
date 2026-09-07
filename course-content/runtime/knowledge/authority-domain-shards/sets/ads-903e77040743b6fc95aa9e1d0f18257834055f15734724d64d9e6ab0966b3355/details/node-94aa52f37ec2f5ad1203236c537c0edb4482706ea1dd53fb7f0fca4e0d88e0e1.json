@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-ceab0b56a84ecb791ea193d5",
+    "canonicalType": "KnowledgeStatement",
+    "label": "对于 T=1 s 的闭环系统，闭环传递函数为 Y(z)/R(z) = (0.3678z + 0.2644)/(z^2 - z + 0.6322)。单位阶跃响应得到 Y(z) = 0.3678z^{-1} + z^{-2} + 1.4z^{-3} + 1.4z^{-4} + 1.147z^{-5} ...。超调量为 45%，调节时间为连续系统的两倍。",
+    "aliases": [],
+    "description": "For a closed-loop system with T=1 s, the closed-loop transfer function is Y(z)/R(z) = (0.3678z + 0.2644)/(z^2 - z + 0.6322). The unit step response yields Y(z) = 0.3678z^{-1} + z^{-2} + 1.4z^{-3} + 1.4z^{-4} + 1.147z^{-5} ... The overshoot is 45% and settling time is twice that of the continuous system.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

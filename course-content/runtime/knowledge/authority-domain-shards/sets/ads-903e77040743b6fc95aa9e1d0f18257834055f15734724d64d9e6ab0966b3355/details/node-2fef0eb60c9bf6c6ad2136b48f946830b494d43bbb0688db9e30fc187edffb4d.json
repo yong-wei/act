@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-cc27a70e11d80e523a389eff",
+    "canonicalType": "KnowledgeStatement",
+    "label": "在给定增益下，K_v=2 sec^{-1}，但需要 K_v=10 sec^{-1}。自主估计器不改变 K_v；误差控制法会在未知位置引入零点；结合 Truxal 公式的零点配置法可同时满足动态和稳态要求。",
+    "aliases": [],
+    "description": "With the given gain, K_v=2 sec^{-1}, but K_v=10 sec^{-1} is needed. The autonomous estimator does not change K_v; the error-control method introduces a zero at an unknown location; the zero-placement method with Truxal's formula can satisfy both dynamic and steady-state requirements.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-b249504792ef43b97772169a",
+    "canonicalType": "KnowledgeStatement",
+    "label": "采用反证法。反设系统为不完全可控，则根据格拉姆矩阵判据可知 W（0, t1） 为奇异，存在非零向量 α 使 α^T e^{-At} B = 0。将式求导直至 n-1 次，再令 t=0，得到 α^T B = 0, α^T A B = 0, ..., α^T A^{n-1} B = 0，即 α^T S = 0，这意味着 rank S < n，与已知 rank S = n 矛盾。",
+    "aliases": [],
+    "description": "采用反证法。反设系统为不完全可控，则根据格拉姆矩阵判据可知 W(0, t1) 为奇异，存在非零向量 α 使 α^T e^{-At} B = 0。将式求导直至 n-1 次，再令 t=0，得到 α^T B = 0, α^T A B = 0, ..., α^T A^{n-1} B = 0，即 α^T S = 0，这意味着 rank S < n，与已知 rank S = n 矛盾。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

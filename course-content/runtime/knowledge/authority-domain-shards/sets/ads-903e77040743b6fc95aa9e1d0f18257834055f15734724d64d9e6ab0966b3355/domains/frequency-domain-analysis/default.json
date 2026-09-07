@@ -1,0 +1,3987 @@
+{
+  "shardClass": "domain-default",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "frequency-domain-analysis",
+  "visualRole": "frequency",
+  "objects": [
+    {
+      "id": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+      "canonicalType": "DomainConcept",
+      "label": "增益裕度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:20448a001e59617c2e708fc6",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特围线Γ_s",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:43343a22abd9d016669936c8",
+      "canonicalType": "DomainConcept",
+      "label": "s 平面到 F(s) 平面的映射",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+      "canonicalType": "DomainConcept",
+      "label": "相位裕度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:a3540280ac59812cd380ef38",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特围线",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:a8c779f0b9e471f5e03bc307",
+      "canonicalType": "DomainConcept",
+      "label": "保角映射",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:c5fe9ef29f45f3e3b54ce512",
+      "canonicalType": "DomainConcept",
+      "label": "闭环频率响应最大幅值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+      "canonicalType": "DomainConcept",
+      "label": "帕德近似",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:m3-v1k:source-object:399d60c19f3d57071aa2d6d6",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特图评估时延效应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:0288016a76137a098bdb289a",
+      "canonicalType": "DomainConcept",
+      "label": "闭环带宽",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:0cfddb7e1b46a0cef03676a8",
+      "canonicalType": "DomainConcept",
+      "label": "M_{pω}指标",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:40708b499a9b9f5df963a33e",
+      "canonicalType": "DomainConcept",
+      "label": "谐振频率ωr",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+      "canonicalType": "DomainConcept",
+      "label": "闭环控制系统带宽",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:61290f3ec779c443f0bb411b",
+      "canonicalType": "DomainConcept",
+      "label": "帕德近似",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+      "canonicalType": "DomainConcept",
+      "label": "时延",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "canonicalType": "DomainConcept",
+      "label": "开环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:e265cacbe18fcfaa9c659fb3",
+      "canonicalType": "DomainConcept",
+      "label": "时延参数T",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:ef0b844542631dd52de75ff9",
+      "canonicalType": "DomainConcept",
+      "label": "闭环频率响应的最大幅值Mpω",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:3722770d10927826d39038aa",
+      "canonicalType": "DomainConcept",
+      "label": "利用Nichols图调整增益K以提供合适相位裕度和Mpω的方法",
+      "aliases": [
+        "尼氏图增益调整"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:3afdffa9e0c2f17bcdc59490",
+      "canonicalType": "DomainConcept",
+      "label": "利用Nichols图确定闭环频率响应",
+      "aliases": [
+        "尼氏图求闭环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:595fda73e4dbf107f4ef8fba",
+      "canonicalType": "DomainConcept",
+      "label": "等M圆",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:8371ec05a8583bc4c3804379",
+      "canonicalType": "DomainConcept",
+      "label": "轧钢机控制系统中的时延T=d/v",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:ce484458638cd1045936e0c5",
+      "canonicalType": "DomainConcept",
+      "label": "等N圆（恒定闭环相角圆）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:d3f1ac1eff57ff58977f9585",
+      "canonicalType": "DomainConcept",
+      "label": "利用等M圆从开环频率响应求闭环频率响应",
+      "aliases": [
+        "等幅值圆法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:d869815552dccc11bd9f2c54",
+      "canonicalType": "DomainConcept",
+      "label": "尼科尔斯图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:e846be1d3291b9f011299dea",
+      "canonicalType": "DomainConcept",
+      "label": "液位控制系统时延",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:f038c072583a2f4349ff3a57",
+      "canonicalType": "DomainConcept",
+      "label": "从M圆估计闭环频率响应幅值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "canonicalType": "DomainConcept",
+      "label": "谐振峰值",
+      "aliases": [
+        "谐振峰值"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-01d6ba4cfbef38693c611d4a",
+      "canonicalType": "DomainConcept",
+      "label": "辐角原理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-02ce94d02ad32ee9bc5528e9",
+      "canonicalType": "DomainConcept",
+      "label": "谐振峰值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-07c345d26a1c74830e0a5c94",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特图中的无穷远弧",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "canonicalType": "DomainConcept",
+      "label": "转折点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0b94edb93771b955eedd5d9f",
+      "canonicalType": "DomainConcept",
+      "label": "闭环频率特性计算方法",
+      "aliases": [
+        "确定闭环频率特性的MATLAB方法",
+        "闭环对数频率特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0bfd48327659b66aa7d95f32",
+      "canonicalType": "DomainConcept",
+      "label": "从根轨迹确定增益裕度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "canonicalType": "DomainConcept",
+      "label": "实验频率响应测定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+      "canonicalType": "DomainConcept",
+      "label": "穿越频率",
+      "aliases": [
+        "穿越频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-13e696ca025028445460f1df",
+      "canonicalType": "DomainConcept",
+      "label": "带宽频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+      "canonicalType": "DomainConcept",
+      "label": "谐振频率",
+      "aliases": [
+        "谐振频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-18c55a9b153179a638ff5dc2",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应评估增益变化",
+      "aliases": [
+        "频响增益试探"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图（对数图）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-195ec8a545b19a1f37188170",
+      "canonicalType": "DomainConcept",
+      "label": "扰动抑制带宽 （ω_DRB）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "canonicalType": "DomainConcept",
+      "label": "穿越频率",
+      "aliases": [
+        "穿越频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "canonicalType": "DomainConcept",
+      "label": "相角裕度",
+      "aliases": [
+        "相角裕度"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "canonicalType": "DomainConcept",
+      "label": "截止频率",
+      "aliases": [
+        "截止频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-24049f89f0fc4303e892fc37",
+      "canonicalType": "DomainConcept",
+      "label": "尼科尔斯图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "canonicalType": "DomainConcept",
+      "label": "对数幅相曲线",
+      "aliases": [
+        "对数幅相曲线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "canonicalType": "DomainConcept",
+      "label": "幅相频率特性曲线",
+      "aliases": [
+        "幅相频率特性曲线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2e91a0da0c74ca85ce8f952b",
+      "canonicalType": "DomainConcept",
+      "label": "从伯德图确定相位裕度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "canonicalType": "DomainConcept",
+      "label": "增益裕度（GM）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-35b4c7c6116be04938f2e7a4",
+      "canonicalType": "DomainConcept",
+      "label": "非周期函数的频谱",
+      "aliases": [
+        "非周期函数的频谱"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3847cfa432063f1287f51ce5",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应稳定性测试",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "canonicalType": "DomainConcept",
+      "label": "频率特性",
+      "aliases": [
+        "频率特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3af39a858b2949296df5387f",
+      "canonicalType": "DomainConcept",
+      "label": "幅值谱",
+      "aliases": [
+        "幅值谱"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "canonicalType": "DomainConcept",
+      "label": "带宽",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3ede6055b0d6c0cf75f44e89",
+      "canonicalType": "DomainConcept",
+      "label": "自然无激励响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼自然频率",
+      "aliases": [
+        "阻尼自然频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-43b963b5d880cd12d43fd450",
+      "canonicalType": "DomainConcept",
+      "label": "利用矢量裕度评估稳定性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4a235944f67a06a4209d2422",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图技术",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4a74e178b598d5d576c2ad57",
+      "canonicalType": "DomainConcept",
+      "label": "开环幅相特性曲线起点",
+      "aliases": [
+        "开环幅相特性曲线起点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4e9d614060ecb62c201b58d8",
+      "canonicalType": "DomainConcept",
+      "label": "围道求值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-531c51135a4903c618a0fc8b",
+      "canonicalType": "DomainConcept",
+      "label": "谐振频率",
+      "aliases": [
+        "谐振频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-552526e2ba53ccbf629d1cd8",
+      "canonicalType": "DomainConcept",
+      "label": "一型系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "canonicalType": "DomainConcept",
+      "label": "低频段",
+      "aliases": [
+        "低频段"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-57afdf17705015f8527052c5",
+      "canonicalType": "DomainConcept",
+      "label": "中性稳定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5856b2f2fd4c962c52631609",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼比",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-58cea2373f68416e096759a9",
+      "canonicalType": "DomainConcept",
+      "label": "主导根",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+      "canonicalType": "DomainConcept",
+      "label": "傅里叶系数",
+      "aliases": [
+        "傅里叶系数"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "canonicalType": "DomainConcept",
+      "label": "非最小相位环节",
+      "aliases": [
+        "非最小相位环节"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "canonicalType": "DomainConcept",
+      "label": "对数幅频渐近特性曲线",
+      "aliases": [
+        "对数幅频渐近特性曲线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "canonicalType": "DomainConcept",
+      "label": "相位裕度 （PM）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5ed6282c976442e9747881b4",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图构造方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-62bfe5336223892d2ee2592a",
+      "canonicalType": "DomainConcept",
+      "label": "从伯德图确定增益裕度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-64830154d494eaf7d38d905c",
+      "canonicalType": "DomainConcept",
+      "label": "高阶系统时域指标估算经验公式法",
+      "aliases": [
+        "高阶系统时域指标估算经验公式法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "canonicalType": "DomainConcept",
+      "label": "带宽频率",
+      "aliases": [
+        "带宽频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "canonicalType": "DomainConcept",
+      "label": "闭环带宽",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "canonicalType": "DomainConcept",
+      "label": "交接频率",
+      "aliases": [
+        "交接频率"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特稳定判据（奈氏判据）",
+      "aliases": [
+        "奈奎斯特稳定判据（奈氏判据）"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7055a0e2be50abb18ea92c6a",
+      "canonicalType": "DomainConcept",
+      "label": "分贝 （dB）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "canonicalType": "DomainConcept",
+      "label": "穿越频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "canonicalType": "DomainConcept",
+      "label": "奈奎斯特稳定判据",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-78558546607d8234fb2ce368",
+      "canonicalType": "DomainConcept",
+      "label": "周期信号的频谱",
+      "aliases": [
+        "周期信号的频谱"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7aef0becfa3e700facb7a80e",
+      "canonicalType": "DomainConcept",
+      "label": "开环幅相特性曲线终点",
+      "aliases": [
+        "开环幅相特性曲线终点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+      "canonicalType": "DomainConcept",
+      "label": "固有频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-806d8586fa5ceca0613b844d",
+      "canonicalType": "DomainConcept",
+      "label": "连续谱",
+      "aliases": [
+        "连续谱"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-81a7cae1259fabcfe3390cd2",
+      "canonicalType": "DomainConcept",
+      "label": "谐振峰值幅值Mr",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8496155b16d82318d90949d0",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "canonicalType": "DomainConcept",
+      "label": "零型系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f",
+      "canonicalType": "DomainConcept",
+      "label": "谐振频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "canonicalType": "DomainConcept",
+      "label": "条件稳定系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-96f2adc33e58f93e24be1b42",
+      "canonicalType": "DomainConcept",
+      "label": "从奈奎斯特图确定相位裕度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-983964fdaa7a8bf62f5dc787",
+      "canonicalType": "DomainConcept",
+      "label": "幅相频率特性曲线绘制方法",
+      "aliases": [
+        "幅相频率特性曲线绘制方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "canonicalType": "DomainConcept",
+      "label": "相频特性",
+      "aliases": [
+        "相频特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9acaab765d45527c6988c564",
+      "canonicalType": "DomainConcept",
+      "label": "极坐标图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a95a8e278a89a433477bc1e0",
+      "canonicalType": "DomainConcept",
+      "label": "对数幅相图绘制",
+      "aliases": [
+        "对数幅相曲线（尼科尔斯曲线）绘制方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ac5da367d445afc46b4baca3",
+      "canonicalType": "DomainConcept",
+      "label": "谐振峰值",
+      "aliases": [
+        "谐振峰值"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-aecaf4cad61113646c40ec0c",
+      "canonicalType": "DomainConcept",
+      "label": "对数幅相图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "canonicalType": "DomainConcept",
+      "label": "延迟环节",
+      "aliases": [
+        "延迟环节"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "canonicalType": "DomainConcept",
+      "label": "最小相位系统",
+      "aliases": [
+        "最小相位系统"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "canonicalType": "DomainConcept",
+      "label": "最小相位环节",
+      "aliases": [
+        "最小相位环节"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "canonicalType": "DomainConcept",
+      "label": "对数频率特性曲线",
+      "aliases": [
+        "对数频率特性曲线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "canonicalType": "DomainConcept",
+      "label": "幅值裕度",
+      "aliases": [
+        "幅值裕度"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c39d1d0090637db4b51bde73",
+      "canonicalType": "DomainConcept",
+      "label": "绘制概略开环幅相特性曲线方法",
+      "aliases": [
+        "绘制概略开环幅相特性曲线方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cfee5cc12bf4f8da26e41ff1",
+      "canonicalType": "DomainConcept",
+      "label": "矢量裕度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d8ef97d0d84c5b3d7b209fd7",
+      "canonicalType": "DomainConcept",
+      "label": "对数频率特性曲线绘制方法",
+      "aliases": [
+        "对数频率特性曲线绘制方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-db0fc6571dad5000caf9cbf7",
+      "canonicalType": "DomainConcept",
+      "label": "环索线平面曲线",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ddbe1d931c3e5677361c2470",
+      "canonicalType": "DomainConcept",
+      "label": "位置误差常数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-de79f06574782620fb5a2094",
+      "canonicalType": "DomainConcept",
+      "label": "双T网络",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-de873c97a924107857f79242",
+      "canonicalType": "DomainConcept",
+      "label": "幅频特性",
+      "aliases": [
+        "幅频特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-dee6731dcc0faa231340dac9",
+      "canonicalType": "DomainConcept",
+      "label": "分贝",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-df82d7abb92fef100c7944eb",
+      "canonicalType": "DomainConcept",
+      "label": "十倍频程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "canonicalType": "DomainConcept",
+      "label": "转折频率（拐角频率）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e472548752b2e2acc7854586",
+      "canonicalType": "DomainConcept",
+      "label": "谐振幅值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "canonicalType": "DomainConcept",
+      "label": "频率特性实验确定方法",
+      "aliases": [
+        "频率特性实验确定方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "canonicalType": "DomainConcept",
+      "label": "正弦稳态响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ee95c608a2f3782742d28d92",
+      "canonicalType": "DomainConcept",
+      "label": "利用 s 平面向量图解极坐标图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "canonicalType": "DomainConcept",
+      "label": "非最小相位系统",
+      "aliases": [
+        "非最小相位系统"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f61357354fd32305fac8755b",
+      "canonicalType": "DomainConcept",
+      "label": "利用开环频域指标估算时域性能方法",
+      "aliases": [
+        "利用开环频域指标估算时域性能方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f86059edf7249257b142b471",
+      "canonicalType": "DomainConcept",
+      "label": "C1 围道",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f91e625707410c1dc36188cb",
+      "canonicalType": "DomainConcept",
+      "label": "速度常数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fb97ed4cffee0e2317af990e",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0",
+      "canonicalType": "DomainConcept",
+      "label": "贝尔",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "teachingRelations": [
+    {
+      "id": "dt-edge-00c1a4e574873f8f010a0739",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "targetId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-02699c7f5121e26c38643d2d",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "targetId": "ctkg:v3e-object-de873c97a924107857f79242",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-068f8441e0293e3497bb951e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "targetId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-0d2c06f712243fce28d02cd5",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+      "targetId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-19804e45e9bfb99dd2141b98",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+      "targetId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2aeacd1e5a2642ff37b9560d",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "targetId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2b58532d792231f092cb9e5e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "targetId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-3029df8251f001b94863f1b4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+      "targetId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-36e9d14fbf338c348f2b3985",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+      "targetId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-44b78e5f9019f0ccdacf7478",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "targetId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-454cd95f9b5389c196fb4e73",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "targetId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4b287caf1a0a8ae2d2ab014b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "targetId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4f8dad6529d2bc2188dda3fe",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+      "targetId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-518a0723668fccd1e9f78156",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "targetId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-56c57b5d9b259507e21b2745",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "targetId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-5a5c2c4d517dd6f07be45653",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+      "targetId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-62884d94fa5df8cee5473752",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "targetId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-65e202a8cc84a0eeb3fa95fd",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "targetId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6b62ee6c96f9c28faf185d1b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "targetId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6b6f78612aeea0f8e630a903",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+      "targetId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-727a8f45185cf9bcb51138e3",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1l:canonical-object:61290f3ec779c443f0bb411b",
+      "targetId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-72b96ddaf87d157f37e79f7a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "targetId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-769c262e20b3c53f3de25ff4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+      "targetId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-7737d31b61766968401d01ce",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+      "targetId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-86b4faf12f851cfa36776449",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "targetId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-88f763ceaa4c4ebc46f0bf93",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-13e696ca025028445460f1df",
+      "targetId": "ctkg:v3e-object-232e387ed53e92abee078346",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-895d71f63c84811761c153b5",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "targetId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-8b29309d21449eb25ec95c82",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+      "targetId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-8f627bfd7c467b2f011a238c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "targetId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9b613fef7db63404a6db9b4e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "targetId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-b471fdc8469498dd68a3ee12",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+      "targetId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-b8ca835f776adc23aefccf42",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+      "targetId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-b90f0d1f4d0219d26d93cc61",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+      "targetId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-be7494e6af8ecd7141c58151",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "targetId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-c109fc5c9116af6ae6321fa9",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "targetId": "ctkg:m3-v1l:canonical-object:0288016a76137a098bdb289a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-c4307d1671882494d4eb89c5",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+      "targetId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d003b91f6c5ac5e6572ab49f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+      "targetId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d5a217c40c70f083eaf6104d",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "targetId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-dc68627f46fed681ca9d36e2",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "targetId": "ctkg:v3e-object-191274d4aa5307678e583641",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-de5d4d77b9e64d3ec97a9ec7",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+      "targetId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-e060878fc3ca5844d053513e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+      "targetId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f1cead6cd1fe445b28e8d3e4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "targetId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f31ff63c45003a42a9b4ad39",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+      "targetId": "ctkg:v3e-object-13e696ca025028445460f1df",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f3fa08c09f8438c868cfd66f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+      "targetId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f83d0d6433c4e8ac254053a9",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+      "targetId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f955c7cea054563817e6077a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+      "targetId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    }
+  ],
+  "teachingCoverage": {
+    "status": "available",
+    "domainId": "frequency-domain-analysis",
+    "relationCount": 46,
+    "coreNodeCount": 70,
+    "uncoveredCoreNodeCount": 0,
+    "note": "该领域已发布可用的教学关系覆盖"
+  }
+}

@@ -1,0 +1,1924 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "system-modeling",
+  "family": "derivation-and-representation",
+  "objects": [
+    {
+      "id": "ctc:v11g-13a9994c50acce777819aa2a",
+      "canonicalType": "DomainConcept",
+      "label": "闭环极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-5845390ded447e37f06ea222",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctf:01256183f3cb12d0b79d39e8",
+      "canonicalType": "Formula",
+      "label": "y(t)=\\frac{A}{2}\\left[H(j \\omega) e^{j \\omega t}+H(-j \\omega) e^{-j \\omega t}\\right]",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:02dc4af9451855798e29d8cb",
+      "canonicalType": "Formula",
+      "label": "\\ddot{\\theta} + \\frac{g}{l} \\theta = \\frac{T_c}{m l^2}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:2584c11ec39c5b092e6c0276",
+      "canonicalType": "Formula",
+      "label": "X_{3}(s)=G_{2}(s) X_{2}(s)=G_{2}(s) G_{1}(s) X_{1}(s)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:271493cf25b80d68408cd792",
+      "canonicalType": "Formula",
+      "label": "C(s)=\\frac{G(s)}{1 \\mp G(s) H(s)} R(s)=\\Phi(s) R(s)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:3ff70faf36c28f41c773b5c9",
+      "canonicalType": "Formula",
+      "label": "\\boldsymbol{x}(t)=\\mathrm{e}^{\\boldsymbol{A} t} \\boldsymbol{x}(0)+\\int_{0}^{t} \\mathrm{e}^{\\boldsymbol{A}(t-\\tau)} \\boldsymbol{B} \\boldsymbol{u}(\\tau) \\mathrm{d} \\tau=\\boldsymbol{\\Phi}(t) \\boldsymbol{x}(0)+\\int_{0}^{t} \\boldsymbol{\\Phi}(t-\\tau) \\boldsymbol{B} \\boldsymbol{u}(\\tau) \\mathrm{d} \\tau",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalType": "Formula",
+      "label": "y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": false
+        },
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:8d7c027b3b3b4751e5052156",
+      "canonicalType": "Formula",
+      "label": "\\boldsymbol{x}(t)=\\mathrm{e}^{A t} \\boldsymbol{x}(0)+\\int_{0}^{t} \\mathrm{e}^{A(t-\\tau)} \\boldsymbol{B} \\boldsymbol{u}(\\tau) \\mathrm{d} \\tau=\\boldsymbol{\\Phi}(t) \\boldsymbol{x}(0)+\\int_{0}^{t} \\boldsymbol{\\Phi}(t-\\tau) \\boldsymbol{B} \\boldsymbol{u}(\\tau) \\mathrm{d} \\tau",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:998c24c3f7c3fa9b20bdb39b",
+      "canonicalType": "Formula",
+      "label": "s=-b / M",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:9f14297493820e37dfe72327",
+      "canonicalType": "Formula",
+      "label": "X(s)=\\frac{x(0)}{s-a}+\\frac{b}{s-a} U(s)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:a7d5363159ef3d23f97a32f4",
+      "canonicalType": "Formula",
+      "label": "\\boldsymbol{x}(t)=\\boldsymbol{\\Phi}(t) \\boldsymbol{x}(0)+\\int_{0}^{t} \\boldsymbol{\\Phi}(\\tau) \\boldsymbol{B} \\boldsymbol{u}(t-\\tau) \\mathrm{d} \\tau",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:a828018138ac7716fd4ad42d",
+      "canonicalType": "Formula",
+      "label": "\\sum C(s) = \\frac{1}{1+G_1(s)G_2(s)H(s)} [G_1(s)G_2(s)R(s) + G_2(s)N(s)]",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:be90492202bdd2cb878366b1",
+      "canonicalType": "Formula",
+      "label": "T_{m}(s) = K_{m} I_{f}(s)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:e6e4710d220c4b76abbee70d",
+      "canonicalType": "Formula",
+      "label": "\\sum C(s) \\approx \\frac{1}{H(s)} R(s)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:f20ef76bc87b67a17ccb6408",
+      "canonicalType": "Formula",
+      "label": "\\boldsymbol{x}(k)=\\boldsymbol{\\Phi}^{k}(T) \\boldsymbol{x}(0)+\\sum_{i=0}^{k-1} \\boldsymbol{\\Phi}^{k-1-i}(T) \\boldsymbol{G}(T) \\boldsymbol{u}(i)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:fe5e80617919fdd4f194d8a0",
+      "canonicalType": "Formula",
+      "label": "\\dot{\\mathbf{x}}(t)=\\mathbf{A x}(t)+\\mathbf{B} u(t)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "canonicalType": "Formula",
+      "label": "T(s)=\\frac{Y(s)}{R(s)}=\\frac{p(s)}{q(s)}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "canonicalType": "Formula",
+      "label": "\\Phi(s)=\\frac{G(s)}{1+G(s) H(s)}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "canonicalType": "Formula",
+      "label": "\\prod_{i=1}^{n}\\left(s-p_{i}\\right)+K^{*} \\prod_{j=1}^{m}\\left(s-z_{j}\\right)=0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctk:2eca590e462a748ac631f2fc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Condition for linearizing the DC motor torque equation: one of the currents (field or armature) must be held constant.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctk:c1a1b07b18731a97ae408246",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：齐次状态方程的解为 $\\boldsymbol{x}(t)=\\mathrm{e}^{A t} \\boldsymbol{x}(0)$，其中矩阵指数 $\\mathrm{e}^{A t}$ 定义为幂级数 $\\mathrm{e}^{A t}=\\boldsymbol{I}+\\boldsymbol{A} t+\\frac{1}{2} \\boldsymbol{A}^{2} t^{2}+\\cdots+\\frac{1}{k!} \\boldsymbol{A}^{k} t^{k}+\\cdots$，也可通过拉普拉斯反变换 $\\mathrm{e}^{A t}=\\mathscr{S}^{-1}\\left[(s \\boldsymbol{I}-\\boldsymbol{A})^{-1}\\right]$ 求得闭合形式。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2h:source-object:5d058f6165e1125f40b93508",
+      "canonicalType": "Formula",
+      "label": "Δ2q的类似方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2h:source-object:c3a63a3f640bdd72ba0290d0",
+      "canonicalType": "Formula",
+      "label": "M2q的定义公式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2l:canonical-object:31e41f4057fcb9d60a470fb7",
+      "canonicalType": "SystemModel",
+      "label": "带扰动的反馈控制系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:f09f82fc152bdf059f8ef516",
+      "canonicalType": "Formula",
+      "label": "含PID控制器的闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:e2f7eea06f8edf062d2c828a",
+      "canonicalType": "Formula",
+      "label": "含PID控制器的闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "canonicalType": "DomainConcept",
+      "label": "系统模态",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6bf91deef8df83aa32011a0b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：Numerator influences coefficient size in partial-fraction expansion",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-daf84a56d5b06c9372f9f94e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "属性断言：The impulse response is h(t) = -e^{-t} + 3e^{-2t} for t >= 0, and 0 for t < 0. The poles are at s = -1 and s = -2, and the zero is at s = -1/2.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-24abf351ed0af6684efdb4b7",
+      "canonicalType": "DomainConcept",
+      "label": "非齐次状态方程",
+      "aliases": [
+        "非齐次状态方程"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若每个有界输入都产生有界输出，则称系统具有有界输入-有界输出（BIBO）稳定性。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7555b4760da0d42ee2e4c36a",
+      "canonicalType": "DomainConcept",
+      "label": "积分法求解非齐次状态方程",
+      "aliases": [
+        "积分法求解非齐次状态方程"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-865b301177a623225344064f",
+      "canonicalType": "DomainConcept",
+      "label": "有界输入有界输出稳定性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9437ed78146c997638e87747",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于矩阵 A = [[-2,0],[d,-3]] 且 B = [1,0]^T 的系统，其可控性矩阵 P_c = [[1,-2],[0,d]] 的行列式为 d，只要 d 非零该行列式即非零。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b202af6c06c27c558d00e9f4",
+      "canonicalType": "DomainConcept",
+      "label": "拉普拉斯变换法求解非齐次状态方程",
+      "aliases": [
+        "拉普拉斯变换法求解非齐次状态方程"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-db136008334687a7a78cd203",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 11.2：能控性矩阵",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e9cca8b64237e6628fd70917",
+      "canonicalType": "KnowledgeStatement",
+      "label": "P_c = [[1,-2],[0,d]]；det(P_c) = d，因此当 d ≠ 0 时系统是可控的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m3-v2h:relation:a973fe214d5e65373b5ff55d",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:m3-v2h:source-object:575387c0e3d2ebef6b39c435",
+      "targetId": "ctkg:m3-v2h:source-object:5d058f6165e1125f40b93508",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2h:relation:d4a8eb6a66e9e1ed8361ec17",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:m3-v2h:source-object:575387c0e3d2ebef6b39c435",
+      "targetId": "ctkg:m3-v2h:source-object:c3a63a3f640bdd72ba0290d0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2l:relation:938009223763b6d3de14856a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2l:source-object:f09f82fc152bdf059f8ef516",
+      "targetId": "ctkg:m3-v2l:canonical-object:31e41f4057fcb9d60a470fb7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:9f9868c800fbde59ce06b45a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2m:source-object:e2f7eea06f8edf062d2c828a",
+      "targetId": "ctkg:m3-v2l:canonical-object:31e41f4057fcb9d60a470fb7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:058f689891f85ca0e31600fe",
+      "predicate": "derived_from",
+      "sourceId": "ctf:f20ef76bc87b67a17ccb6408",
+      "targetId": "ctc:modeling-3296b051e82a7e96fa31dcd9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:1bf6964520ab756bcd3f0084",
+      "predicate": "derived_from",
+      "sourceId": "ctf:e6e4710d220c4b76abbee70d",
+      "targetId": "ctf:a828018138ac7716fd4ad42d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:300c517d60c42763b9bb2991",
+      "predicate": "derived_from",
+      "sourceId": "ctf:2584c11ec39c5b092e6c0276",
+      "targetId": "ctc:modeling-92585a5a20a461e4bd471802",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:3415afbd9ff59072bd350b92",
+      "predicate": "derived_from",
+      "sourceId": "ctc:modeling-8010502b57930c3dcb915af9",
+      "targetId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:36e9cb723dc1ee903eac5cd9",
+      "predicate": "derived_from",
+      "sourceId": "ctf:01256183f3cb12d0b79d39e8",
+      "targetId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:37d37ca2d2a3b2cb9cc57f22",
+      "predicate": "has_representation",
+      "sourceId": "ctc:modeling-227e674315b4da2f1a20ee31",
+      "targetId": "ctc:90af7a0497e616bbe6249c30",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:3a60b741065340962f460c6b",
+      "predicate": "has_representation",
+      "sourceId": "ctc:modeling-227e674315b4da2f1a20ee31",
+      "targetId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:3c8a4ef50d031af2624409d7",
+      "predicate": "has_formula",
+      "sourceId": "ctc:c782502fe412ef828c662650",
+      "targetId": "ctf:271493cf25b80d68408cd792",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:46a5d13922dd341c5456a92a",
+      "predicate": "derived_from",
+      "sourceId": "ctf:be90492202bdd2cb878366b1",
+      "targetId": "ctk:2eca590e462a748ac631f2fc",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:580ca7fc464d33e2d64405d9",
+      "predicate": "derived_from",
+      "sourceId": "ctf:9f14297493820e37dfe72327",
+      "targetId": "ctc:modeling-74c7bd3161fdfc16eaf91e7d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:6972470803145bc84e16eeb8",
+      "predicate": "has_representation",
+      "sourceId": "ctc:modeling-227e674315b4da2f1a20ee31",
+      "targetId": "ctc:modeling-6e03c54be64721caf66c75c5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:8630c75eb2e8819a9e8d8513",
+      "predicate": "derived_from",
+      "sourceId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "targetId": "ctc:90af7a0497e616bbe6249c30",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:ee85fdaa4af0781879cd7b5c",
+      "predicate": "derived_from",
+      "sourceId": "ctk:c1a1b07b18731a97ae408246",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:ef0fdb777f335802201cdc08",
+      "predicate": "derived_from",
+      "sourceId": "ctc:modeling-8d3c115cdb81c364733e1e43",
+      "targetId": "ctf:02dc4af9451855798e29d8cb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:fb88cc16809e670adc4174fe",
+      "predicate": "derived_from",
+      "sourceId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "targetId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:ffe93ec5c57500761369ef91",
+      "predicate": "derived_from",
+      "sourceId": "ctc:modeling-745a1d21b416613f01958a3e",
+      "targetId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-0c9a5619ccd07957c5601f61",
+      "predicate": "has_formula",
+      "sourceId": "ctc:c782502fe412ef828c662650",
+      "targetId": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-3f542c35aaee6bc8c9682b8a",
+      "predicate": "derived_from",
+      "sourceId": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "targetId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-6b2093d6ba083c03bff07816",
+      "predicate": "derived_from",
+      "sourceId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "targetId": "ctf:998c24c3f7c3fa9b20bdb39b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-830409381546c9331019e1ec",
+      "predicate": "derived_from",
+      "sourceId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "targetId": "ctc:c782502fe412ef828c662650",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-91340965c12a8276c6b25008",
+      "predicate": "derived_from",
+      "sourceId": "ctc:v11g-5845390ded447e37f06ea222",
+      "targetId": "ctf:998c24c3f7c3fa9b20bdb39b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-96b5c05e34bad50f90098d50",
+      "predicate": "derived_from",
+      "sourceId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "targetId": "ctf:271493cf25b80d68408cd792",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-b496048ed7c4a0e4c19dabc8",
+      "predicate": "has_formula",
+      "sourceId": "ctc:c782502fe412ef828c662650",
+      "targetId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-ee23370fcf90ff1b81f59362",
+      "predicate": "derived_from",
+      "sourceId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "targetId": "ctf:998c24c3f7c3fa9b20bdb39b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1f-bridge-relation-0ba4f7b34cf6815201d6cbed",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-canonical-daf84a56d5b06c9372f9f94e",
+      "targetId": "ctc:modeling-5da44f2fc98d268259459e04",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1f-bridge-relation-25893586db87467660eba278",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-canonical-6bf91deef8df83aa32011a0b",
+      "targetId": "ctc:modeling-8010502b57930c3dcb915af9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1f-bridge-relation-4b1943e88bf4d6e13d93a9bd",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "targetId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1f-bridge-relation-e5f1a8a86063c66c0adfbbfc",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-canonical-daf84a56d5b06c9372f9f94e",
+      "targetId": "ctc:modeling-8010502b57930c3dcb915af9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-27ddabb8a5b3271b99cddb05",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-865b301177a623225344064f",
+      "targetId": "ctf:55e4737318f3b1e2d5f90372",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1g-fcf7712580af91ae21977be6",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+      "targetId": "ctf:55e4737318f3b1e2d5f90372",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-0e396266056341f1d286d1a8",
+      "predicate": "derived_from",
+      "sourceId": "ctf:3ff70faf36c28f41c773b5c9",
+      "targetId": "ctkg:v3e-object-7555b4760da0d42ee2e4c36a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-20279de14ab632e3a0562da2",
+      "predicate": "derived_from",
+      "sourceId": "ctf:8d7c027b3b3b4751e5052156",
+      "targetId": "ctkg:v3e-object-b202af6c06c27c558d00e9f4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-3d632986a1928a8b32fe8b5c",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-9437ed78146c997638e87747",
+      "targetId": "ctf:fe5e80617919fdd4f194d8a0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-4245d7c32aa1f6b575c44a6e",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-db136008334687a7a78cd203",
+      "targetId": "ctf:fe5e80617919fdd4f194d8a0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-d17b57a1ba34c252703063d6",
+      "predicate": "derived_from",
+      "sourceId": "ctf:a7d5363159ef3d23f97a32f4",
+      "targetId": "ctkg:v3e-object-24abf351ed0af6684efdb4b7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-fbdb475279d5fef7e7155c10",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-e9cca8b64237e6628fd70917",
+      "targetId": "ctf:fe5e80617919fdd4f194d8a0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+      "label": "闭环极点",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+      "label": "根轨迹",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "label": "根轨迹法",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "label": "T(s)=\\frac{Y(s)}{R(s)}=\\frac{p(s)}{q(s)}",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "label": "\\Phi(s)=\\frac{G(s)}{1+G(s) H(s)}",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "label": "\\prod_{i=1}^{n}\\left(s-p_{i}\\right)+K^{*} \\prod_{j=1}^{m}\\left(s-z_{j}\\right)=0",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:source-object:f09f82fc152bdf059f8ef516",
+      "label": "含PID控制器的闭环传递函数",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "classical-control-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2m:source-object:e2f7eea06f8edf062d2c828a",
+      "label": "含PID控制器的闭环传递函数",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "classical-control-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "label": "系统模态",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-6bf91deef8df83aa32011a0b",
+      "label": "属性断言：Numerator influences coefficient size in partial-fraction expansion",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-daf84a56d5b06c9372f9f94e",
+      "label": "属性断言：The impulse response is h(t) = -e^{-t} + 3e^{-2t} for t >= 0, and 0 for t < 0. The poles are at s = -1 and s = -2, and the zero is at s = -1/2.",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-24abf351ed0af6684efdb4b7",
+      "label": "非齐次状态方程",
+      "aliases": [
+        "非齐次状态方程"
+      ],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+      "label": "若每个有界输入都产生有界输出，则称系统具有有界输入-有界输出（BIBO）稳定性。",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "stability-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7555b4760da0d42ee2e4c36a",
+      "label": "积分法求解非齐次状态方程",
+      "aliases": [
+        "积分法求解非齐次状态方程"
+      ],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+      "label": "有界输入有界输出稳定性",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "stability-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-9437ed78146c997638e87747",
+      "label": "对于矩阵 A = [[-2,0],[d,-3]] 且 B = [1,0]^T 的系统，其可控性矩阵 P_c = [[1,-2],[0,d]] 的行列式为 d，只要 d 非零该行列式即非零。",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-b202af6c06c27c558d00e9f4",
+      "label": "拉普拉斯变换法求解非齐次状态方程",
+      "aliases": [
+        "拉普拉斯变换法求解非齐次状态方程"
+      ],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-db136008334687a7a78cd203",
+      "label": "例 11.2：能控性矩阵",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-e9cca8b64237e6628fd70917",
+      "label": "P_c = [[1,-2],[0,d]]；det(P_c) = d，因此当 d ≠ 0 时系统是可控的。",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    }
+  ]
+}

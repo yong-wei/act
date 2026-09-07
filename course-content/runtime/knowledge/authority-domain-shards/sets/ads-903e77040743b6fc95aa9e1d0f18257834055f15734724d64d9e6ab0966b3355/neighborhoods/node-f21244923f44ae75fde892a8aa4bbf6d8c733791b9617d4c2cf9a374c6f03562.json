@@ -1,0 +1,154 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-526906541f641018cd576367",
+      "canonicalType": "DomainConcept",
+      "label": "通过变量替换检验给定稳定度的方法",
+      "aliases": [
+        "通过变量替换检验给定稳定度的方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "给定稳定度概念",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "canonicalType": "DomainConcept",
+      "label": "给定稳定度检验方法",
+      "aliases": [
+        "给定稳定度检验方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1g-2ad71ca5050df774ebb836dd",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-526906541f641018cd576367",
+      "targetId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1g-46f4c99a0e35bc01b675a349",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "targetId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": []
+}

@@ -1,0 +1,63 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-ebb06a79cd52919b7374464d",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-ebb06a79cd52919b7374464d",
+      "canonicalType": "Formula",
+      "label": "\\boldsymbol{T} A \\boldsymbol{T}^{-1}=\\left[\\begin{array}{c|c} \\hat{\\boldsymbol{A}}_{11} & 0 \\\\ \\hdashline \\hat{\\boldsymbol{A}}_{21} & \\hat{\\boldsymbol{A}}_{22} \\end{array}\\right] \\underset{n-l \\text { 行 }}{l} \\text { 行 } \\quad \\boldsymbol{T B}=\\left[\\begin{array}{c} \\hat{\\boldsymbol{B}}_{1} \\\\ \\hat{\\boldsymbol{B}}_{2} \\end{array}\\right] \\underset{n-l \\text { 行 }}{l \\text { 行 }} \\quad \\begin{array}{c} n-l \\text { 列 } \\\\ p \\text { 列 } \\end{array} \\\\ C T^{-1}=\\left[\\begin{array}{c:c} \\hat{\\boldsymbol{C}}_{1} & 0 \\end{array}\\right] q \\text { 行 } \\\\ l \\text { 例 } \\quad n-\\text { l列 }",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [],
+  "boundaries": []
+}

@@ -1,0 +1,322 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-2285afd8a6acb4f8addc8f44",
+      "canonicalType": "KnowledgeStatement",
+      "label": "确定 Ko(jω)^n 项的 n，并在 ω=1 处通过点 Ko 绘制斜率为 n（或每十倍频程 n×20 dB）的低频幅值渐近线。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2cf8e60bb77ae94e24514e0e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "图解法叠加各相角曲线；使用网格可获得约 ±5° 的精度，若允许较低精度亦可目测估算。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3a12147611c7645cd80b54d2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "绘制相频特性曲线的低频渐近线为 φ = n × 90°。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5ed6282c976442e9747881b4",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图构造方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9b127583598d7baac07b59bf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在一阶分子转折频率处将幅值增加 1.4 倍（+3 dB），在一阶分母转折频率处将幅值减小至 0.707 倍（-3 dB）；对于二阶转折频率，则根据图 6.3(a) 使用谐振峰值修正。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+      "canonicalType": "KnowledgeStatement",
+      "label": "绘制伯德图的分步步骤：1) 将传递函数化为伯德标准型；2) 确定 n 并绘制低频幅值渐近线；3) 在转折频率处改变斜率以完成复合幅值渐近线；4) 修正转折频率处的幅值曲线；5) 绘制低频相角渐近线；6) 指导绘制相角曲线的近似变化走向；7) 确定各单项相角曲线的渐近线；8) 图解叠加各相角曲线。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-dc1a9ea3dae1046c5a98a3a8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "将传递函数化为式 (6.16) 给出的伯德形式。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1h:relation-2013150dfc80585e620fc70e",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2cf8e60bb77ae94e24514e0e",
+      "targetId": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1h:relation-232a6ad0a13e65725b3768a7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-9b127583598d7baac07b59bf",
+      "targetId": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1h:relation-518c5b7f2308e51667e865b3",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+      "targetId": "ctkg:v3e-object-5ed6282c976442e9747881b4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1h:relation-53d0f688b8335ebd0ba26ce7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-3a12147611c7645cd80b54d2",
+      "targetId": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1h:relation-6b726da0328287604f7e2bcf",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2285afd8a6acb4f8addc8f44",
+      "targetId": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1h:relation-82ae3b619a068c9a732974c8",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-bdc70b087ed8d9f1b8c71005",
+      "targetId": "ctkg:v3e-object-dc1a9ea3dae1046c5a98a3a8",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": []
+}

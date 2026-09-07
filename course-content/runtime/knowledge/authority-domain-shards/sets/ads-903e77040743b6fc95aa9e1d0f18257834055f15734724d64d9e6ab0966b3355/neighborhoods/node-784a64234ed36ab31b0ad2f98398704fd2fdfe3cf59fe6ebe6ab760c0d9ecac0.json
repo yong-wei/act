@@ -1,0 +1,259 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-3d63786a8fe79b558dc20cff",
+      "canonicalType": "Formula",
+      "label": "e^{*}(t)=e(t) \\delta_{T}(t)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6d5e31a008cf94ca048b1be2",
+      "canonicalType": "Formula",
+      "label": "\\delta_{T}(t)=\\sum_{n=0}^{\\infty} \\delta(t-n T)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-762239378940cb45b78991b3",
+      "canonicalType": "DomainConcept",
+      "label": "采样器",
+      "aliases": [
+        "采样器"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7986902c8f6b08f2cacccb82",
+      "canonicalType": "KnowledgeStatement",
+      "label": "理想采样器可以看成是一个载波为 δ_T（t） 的幅值调制器。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "canonicalType": "DomainConcept",
+      "label": "理想采样器",
+      "aliases": [
+        "理想采样器"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m4-u2u5:prerequisite:da515399fee49e0e2377991c",
+      "predicate": "prerequisite",
+      "sourceId": "ctkg:v3e-object-762239378940cb45b78991b3",
+      "targetId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "direction": "earlier_to_later",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "prerequisite-order"
+    },
+    {
+      "id": "m1k:relation-5c8a366d985f9bbc62fb3241",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "targetId": "ctkg:v3e-object-6d5e31a008cf94ca048b1be2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-72f7556c3a7bd0dfd0aef781",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "targetId": "ctkg:v3e-object-762239378940cb45b78991b3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1k:relation-902d794d359c57f84ebcca9e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "targetId": "ctkg:v3e-object-3d63786a8fe79b558dc20cff",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-c8547c95eeef1ec8dbc77dbd",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-7986902c8f6b08f2cacccb82",
+      "targetId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": []
+}

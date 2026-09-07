@@ -1,0 +1,1598 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "lyapunov-stability",
+  "family": "derivation-and-representation",
+  "objects": [
+    {
+      "id": "ctkg:condition:04902ac05e581b306b33def7",
+      "canonicalType": "Condition",
+      "label": "系统存在李雅普诺夫函数 V(x)（即 V(0)=0，当 x≠0 时 V(x)>0，V 连续且具有连续导数，沿轨迹满足 V̇(x) ≤ 0）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:23c91fa21e83938a05c0aa84",
+      "canonicalType": "Condition",
+      "label": "对于线性系统 dx/dt = A x，存在对称正定矩阵 Q，使得李雅普诺夫方程 A^T P + P A = -Q 具有唯一的对称正定解 P。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:35cb5822b388b7520dcebf3d",
+      "canonicalType": "Condition",
+      "label": "系统存在李雅普诺夫函数 V(x) 且此外 V̇(x) < 0。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:44d67a20d3cdb505de9d455f",
+      "canonicalType": "Condition",
+      "label": "A 至少有一个特征值位于右半平面（RHP）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:59b725664bb10da9686be518",
+      "canonicalType": "Condition",
+      "label": "For the linear time-invariant system ẋ = Ax, x(0)=x₀, t≥0; for any given positive definite symmetric matrix Q, there exists a unique positive definite symmetric matrix P such that AᵀP + PA = -Q holds",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:775dd9a0c354deacc6c76ef7",
+      "canonicalType": "Condition",
+      "label": "Time-invariant system ẋ = f(x), t≥0, f(0)=0; there exists a scalar function V(x) with continuous first derivatives such that V(0)=0, and for all non-zero points x in state space X: 1) V(x) is positive definite; 2) V̇(x) is negative definite; 3) V(x)→∞ as ||x||→∞",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:81fb20afc3c72d73fa2595c0",
+      "canonicalType": "Condition",
+      "label": "系统在平衡点附近线性化，得到雅可比矩阵 A。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:8db8e46a1cdbe08f5bb1980c",
+      "canonicalType": "Condition",
+      "label": "Linear time-invariant system ẋ = Ax, x(0)=x₀, t≥0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:93ba25670b4879ee1135ba08",
+      "canonicalType": "Condition",
+      "label": "A 为稳定矩阵（所有特征值均在左半平面），Q 为任意正定矩阵。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:9f364a9a01d6135de28f85c7",
+      "canonicalType": "Condition",
+      "label": "A（线性化系统矩阵）的所有特征值均位于左半平面（LHP）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:d330e58cf06c60c6c7f4dff5",
+      "canonicalType": "Condition",
+      "label": "For the time-invariant system ẋ = f(x), t≥0, f(0)=0; there exist a scalar function V(x) with continuous first derivatives (where V(0)=0) and a domain Ω surrounding the origin such that for all x∈Ω and all t≥t₀: 1) V(x) is positive definite; 2) V̇(x) is positive definite.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:d457bb24d6d33c85bfac4998",
+      "canonicalType": "Condition",
+      "label": "Time-invariant system ẋ = f(x), t ≥ 0, f(0) = 0; there exists a scalar function V(x) with continuous first derivatives, V(0) = 0, and for all non-zero x in the state space X satisfies: 1) V(x) is positive definite; 2) V̇(x) is negative semidefinite; 3) for any x ∈ X, V̇(x(t; x₀, 0)) ≠ 0; 4) V(x) → ∞ as ||x|| → ∞",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:condition:e7c0d34ff00eeb09acf404a5",
+      "canonicalType": "Condition",
+      "label": "对于线性系统 dx/dt = A x，若 A 为 Hurwitz 矩阵（所有特征值均具有负实部），则对于任意对称正定矩阵 Q，李雅普诺夫方程 A^T P + P A = -Q 存在唯一的对称正定解 P。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:297f33c80823ca555aaaa059",
+      "canonicalType": "Formula",
+      "label": "二次型李雅普诺夫函数及其导数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:3926bd18006fe07d71199286",
+      "canonicalType": "Formula",
+      "label": "定常系统状态方程（第二法）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:ef639bf35386bdf2d3f8665d",
+      "canonicalType": "Formula",
+      "label": "连续李雅普诺夫方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:0e5f181eebc17f7eb2d647a5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-5（线性定常系统渐近稳定李雅普诺夫方程判据）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:0f258d88612353ebb86bdb0a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-2（定常系统大范围渐近稳定判别定理1）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:21c9a381ce1ca948a433cb1d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于李雅普诺夫方法的赫尔维茨稳定性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:233fffbe3f9073a1a8d1acf2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫直接法渐近稳定性定理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:78038e3fe88218c9dfd64749",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统的李雅普诺夫方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:79cd9b3c1a9da579fa049889",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫间接法稳定性定理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:7c2862c1e68ede0f556ed607",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-3（定常系统大范围渐近稳定判别定理2）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:80fd9cbb987af7039f3468d0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫直接法稳定性定理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:8a793953be37bd1f58e51cf6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫方程正定性结果",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:a6042a3bfc3f85b2a9e121ae",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫间接法稳定性条件",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:aad8c63ae4bcc3d491a1a035",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-4（不稳定判别定理）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:d361c0d4677388d948bbe5b6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-1（线性定常系统特征值判据）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:knowledgestatement:f7f321e54cb1465922959091",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫间接法不稳定条件",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:1387459aed77efa87ed44279",
+      "canonicalType": "StatementArgument",
+      "label": "原点不稳定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:139cc8229ceb7bc703bfce9b",
+      "canonicalType": "StatementArgument",
+      "label": "The equilibrium state of the system is unstable.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:2a35e3a8d4ec76a1a71a504d",
+      "canonicalType": "StatementArgument",
+      "label": "The equilibrium state at the origin of the system, xₑ=0, is asymptotically stable.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:3badc1f49e14f02bc0b98692",
+      "canonicalType": "StatementArgument",
+      "label": "平衡点 x = 0 全局渐近稳定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:6adb7453ee0e4d94d9f9edd7",
+      "canonicalType": "StatementArgument",
+      "label": "原点周围存在一个稳定区域。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:6e41ad36a72d8679504ddafa",
+      "canonicalType": "StatementArgument",
+      "label": "运动是稳定的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:c255b4c873ab774dd41e4f21",
+      "canonicalType": "StatementArgument",
+      "label": "若 A 的所有特征值均具有负实部，则平衡点局部渐近稳定。若任一特征值具有正实部，则平衡点不稳定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:d2e280e0f16bc706fe39a647",
+      "canonicalType": "StatementArgument",
+      "label": "The equilibrium state at the origin of the system is globally asymptotically stable.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:d80c3a968d3513039de80c34",
+      "canonicalType": "StatementArgument",
+      "label": "系统全局渐近稳定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:e27311b1bbd5b64b647d7fdc",
+      "canonicalType": "StatementArgument",
+      "label": "A^T P + P A = -Q 的解 P 为正定矩阵。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:eca0246ceb9874f6cb034ab0",
+      "canonicalType": "StatementArgument",
+      "label": "The equilibrium state at the origin of the system is globally asymptotically stable.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:f80186ee6c03d998fdc49342",
+      "canonicalType": "StatementArgument",
+      "label": "1) A necessary and sufficient condition for every equilibrium state of the system to be stable in the sense of Lyapunov is that all eigenvalues of A have non-positive (negative or zero) real parts, and any eigenvalue with zero real part is a simple root of the minimal polynomial of A. 2) A necessary and sufficient condition for the unique equilibrium state xₑ=0 of the system to be asymptotically stable is that all eigenvalues of A have negative real parts.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:statement-argument:fed220917fe13b8a5f1e457a",
+      "canonicalType": "StatementArgument",
+      "label": "运动是渐近稳定的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": false,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:relation:0616ceba48f2a054021ccd05",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:d361c0d4677388d948bbe5b6",
+      "targetId": "ctkg:condition:8db8e46a1cdbe08f5bb1980c",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:10a1bad1488f951264e13140",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:7c2862c1e68ede0f556ed607",
+      "targetId": "ctkg:condition:d457bb24d6d33c85bfac4998",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:175aa44163be30ed1002d326",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:80fd9cbb987af7039f3468d0",
+      "targetId": "ctkg:condition:04902ac05e581b306b33def7",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:1ab4bf34db29845aafb9ec12",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:aad8c63ae4bcc3d491a1a035",
+      "targetId": "ctkg:condition:d330e58cf06c60c6c7f4dff5",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:2c546089e8556a6268c08d1b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:d2e280e0f16bc706fe39a647",
+      "targetId": "ctkg:knowledgestatement:0f258d88612353ebb86bdb0a",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:2d0a4b1fc189c3c2f93675dd",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:233fffbe3f9073a1a8d1acf2",
+      "targetId": "ctkg:condition:35cb5822b388b7520dcebf3d",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:326be54f83977a8fede2363c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:a6042a3bfc3f85b2a9e121ae",
+      "targetId": "ctkg:condition:9f364a9a01d6135de28f85c7",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:3cac1e235bcf44913b764819",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:6adb7453ee0e4d94d9f9edd7",
+      "targetId": "ctkg:knowledgestatement:a6042a3bfc3f85b2a9e121ae",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:3f875d78f367003a6104590b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:f80186ee6c03d998fdc49342",
+      "targetId": "ctkg:knowledgestatement:d361c0d4677388d948bbe5b6",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:531fe6e791de95a70625414b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:e27311b1bbd5b64b647d7fdc",
+      "targetId": "ctkg:knowledgestatement:8a793953be37bd1f58e51cf6",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:55318346779d4d11b07f8632",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:fed220917fe13b8a5f1e457a",
+      "targetId": "ctkg:knowledgestatement:233fffbe3f9073a1a8d1acf2",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:5b1443d3824d37cc661c37a8",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:79cd9b3c1a9da579fa049889",
+      "targetId": "ctkg:condition:81fb20afc3c72d73fa2595c0",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:602fcdba97076cfa1a1f43a7",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:8a793953be37bd1f58e51cf6",
+      "targetId": "ctkg:condition:93ba25670b4879ee1135ba08",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:60370755e334ca4ba8bc009c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:eca0246ceb9874f6cb034ab0",
+      "targetId": "ctkg:knowledgestatement:7c2862c1e68ede0f556ed607",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:62f04cb78485311e15f35a25",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:d80c3a968d3513039de80c34",
+      "targetId": "ctkg:knowledgestatement:21c9a381ce1ca948a433cb1d",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:64b7b17eb6c62ef766871c9d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:21c9a381ce1ca948a433cb1d",
+      "targetId": "ctkg:condition:e7c0d34ff00eeb09acf404a5",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:70b0736fa82ac34bdcd86844",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:1387459aed77efa87ed44279",
+      "targetId": "ctkg:knowledgestatement:f7f321e54cb1465922959091",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:7566057d6cd6e79a4f337843",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:knowledgestatement:aad8c63ae4bcc3d491a1a035",
+      "targetId": "ctkg:formula:297f33c80823ca555aaaa059",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:7813785473c5ba2b19bb661f",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:knowledgestatement:78038e3fe88218c9dfd64749",
+      "targetId": "ctkg:formula:ef639bf35386bdf2d3f8665d",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:84db04b3774ceadaa6cede85",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:139cc8229ceb7bc703bfce9b",
+      "targetId": "ctkg:knowledgestatement:aad8c63ae4bcc3d491a1a035",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:911c1ad298cfa951e76d1271",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:0e5f181eebc17f7eb2d647a5",
+      "targetId": "ctkg:condition:59b725664bb10da9686be518",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:aa0432b43bc3a10354f1d9ae",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:3badc1f49e14f02bc0b98692",
+      "targetId": "ctkg:knowledgestatement:78038e3fe88218c9dfd64749",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:b4918f7c6722cf10ac850e0f",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:knowledgestatement:0f258d88612353ebb86bdb0a",
+      "targetId": "ctkg:formula:3926bd18006fe07d71199286",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:c5896dd6d92c0a1a8528d41b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:2a35e3a8d4ec76a1a71a504d",
+      "targetId": "ctkg:knowledgestatement:0e5f181eebc17f7eb2d647a5",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:da102920536fe0b25001110b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:c255b4c873ab774dd41e4f21",
+      "targetId": "ctkg:knowledgestatement:79cd9b3c1a9da579fa049889",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:db883f32ac1aa57e605343af",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:f7f321e54cb1465922959091",
+      "targetId": "ctkg:condition:44d67a20d3cdb505de9d455f",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:e0200881279ffb4e9ee16edc",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:0f258d88612353ebb86bdb0a",
+      "targetId": "ctkg:condition:775dd9a0c354deacc6c76ef7",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:ef2dab0c8633b25e68e6c087",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:statement-argument:6e41ad36a72d8679504ddafa",
+      "targetId": "ctkg:knowledgestatement:80fd9cbb987af7039f3468d0",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:relation:fb7a424eaf30c6a32cc0a500",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:knowledgestatement:78038e3fe88218c9dfd64749",
+      "targetId": "ctkg:condition:23c91fa21e83938a05c0aa84",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

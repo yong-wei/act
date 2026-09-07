@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-64e8549199026a2420cefce4",
+    "canonicalType": "KnowledgeStatement",
+    "label": "在满足 |KG(jω)|=1 的截止频率处，闭环幅值 |T(jω)| 很大程度上取决于相角裕度 (PM)。当 PM 为 90° 时，|T(jω_c)|=0.707；而当 PM 为 45° 时，|T(jω_c)|=1.31。",
+    "aliases": [],
+    "description": "At the crossover frequency where |KG(jω)|=1, the closed-loop magnitude |T(jω)| depends heavily on the phase margin (PM). A PM of 90° gives |T(jω_c)|=0.707, while a PM of 45° gives |T(jω_c)|=1.31.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}
