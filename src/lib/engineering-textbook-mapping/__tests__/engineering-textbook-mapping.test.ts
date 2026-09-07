@@ -24,6 +24,7 @@ import {
   verifyTextbookAliasesAgainstManifests,
   buildGovernedSourcesEntries,
   assertLedgerBytesAreAppendOnlyPrefix,
+  committedLedgerBytesFromGitShow,
   type MappingCandidatesFile,
   type MappingDenominatorFile,
   type MappingExceptionRow,
@@ -356,6 +357,30 @@ describe('review ledger append-only ordering', () => {
       expect.unreachable();
     } catch (error) {
       expect((error as EngineeringTextbookMappingError).code).toBe('ledger-rewrite');
+    }
+  });
+
+  it('treats only a missing HEAD path as an empty ledger baseline', () => {
+    const committed = Buffer.from('line-1\n');
+    expect(committedLedgerBytesFromGitShow({
+      ok: true,
+      stdout: committed,
+      stderr: '',
+    }).equals(committed)).toBe(true);
+    expect(committedLedgerBytesFromGitShow({
+      ok: false,
+      stdout: Buffer.alloc(0),
+      stderr: "fatal: path 'reviews.jsonl' exists on disk, but not in 'HEAD'\n",
+    }).length).toBe(0);
+    try {
+      committedLedgerBytesFromGitShow({
+        ok: false,
+        stdout: Buffer.alloc(0),
+        stderr: 'fatal: not a git repository\n',
+      });
+      expect.unreachable();
+    } catch (error) {
+      expect((error as EngineeringTextbookMappingError).code).toBe('ledger-git-unreadable');
     }
   });
 

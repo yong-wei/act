@@ -155,6 +155,25 @@ export function assertLedgerBytesAreAppendOnlyPrefix(input: {
   }
 }
 
+const GIT_MISSING_HEAD_PATH = /exists on disk, but not in ['"]HEAD['"]|does not exist in ['"]HEAD['"]|pathspec '.+' did not match/i;
+
+/**
+ * Map `git show HEAD:<ledger>` to committed bytes. Only a missing HEAD path
+ * is an empty baseline; any other Git failure must abort re-sign.
+ */
+export function committedLedgerBytesFromGitShow(input: {
+  ok: boolean;
+  stdout: Buffer;
+  stderr: string;
+}): Buffer {
+  if (input.ok) return input.stdout;
+  if (GIT_MISSING_HEAD_PATH.test(input.stderr)) return Buffer.alloc(0);
+  throw new EngineeringTextbookMappingError(
+    'ledger-git-unreadable',
+    `cannot read committed review ledger: ${input.stderr.trim() || 'git show failed'}`,
+  );
+}
+
 export function loadDenominator(repoRoot: string): MappingDenominatorFile {
   const file = readJsonArtifact<MappingDenominatorFile>(
     mappingArtifactPath(repoRoot, 'denominator.json'),

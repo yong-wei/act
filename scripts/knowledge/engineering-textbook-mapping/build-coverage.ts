@@ -27,6 +27,7 @@ import {
   mappingArtifactPath,
   ENGINEERING_TEXTBOOK_MAPPING_ROOT,
   assertLedgerBytesAreAppendOnlyPrefix,
+  committedLedgerBytesFromGitShow,
   type MappingExceptionRow,
 } from '@/lib/engineering-textbook-mapping';
 
@@ -60,12 +61,20 @@ function readProposedExceptions(): Array<{
 
 function readCommittedLedger(relativePath: string): Buffer {
   try {
-    return execFileSync('git', ['show', `HEAD:${relativePath}`], {
+    const stdout = execFileSync('git', ['show', `HEAD:${relativePath}`], {
       cwd: ROOT,
       maxBuffer: 32 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
-  } catch {
-    return Buffer.alloc(0);
+    return committedLedgerBytesFromGitShow({ ok: true, stdout, stderr: '' });
+  } catch (error) {
+    const err = error as { stderr?: Buffer | string };
+    const stderr = Buffer.isBuffer(err.stderr) ? err.stderr.toString('utf8') : String(err.stderr ?? '');
+    return committedLedgerBytesFromGitShow({
+      ok: false,
+      stdout: Buffer.alloc(0),
+      stderr,
+    });
   }
 }
 

@@ -53,6 +53,7 @@ export {
   readJsonArtifact,
   sha256Text,
   assertLedgerBytesAreAppendOnlyPrefix,
+  committedLedgerBytesFromGitShow,
   verifyCoverageLedgerBinding,
 } from './ledger';
 export { assertCoverageGate, computeCoverage } from './coverage';
