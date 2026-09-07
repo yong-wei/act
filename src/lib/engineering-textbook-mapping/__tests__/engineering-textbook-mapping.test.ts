@@ -23,6 +23,7 @@ import {
   verifySourcesInputMatchesApprovedMappings,
   verifyTextbookAliasesAgainstManifests,
   buildGovernedSourcesEntries,
+  assertLedgerBytesAreAppendOnlyPrefix,
   type MappingCandidatesFile,
   type MappingDenominatorFile,
   type MappingExceptionRow,
@@ -327,6 +328,35 @@ describe('review ledger append-only ordering', () => {
   it('fails closed on non-increasing reviewOrdinal', () => {
     const file = writeLedger([reviewRow(2, 'ctc:a1', 'approved'), reviewRow(2, 'ctc:a2', 'rejected')]);
     expect(() => loadReviewLedger({ filePath: file })).toThrow(EngineeringTextbookMappingError);
+  });
+
+  it('allows equal or appended ledger bytes and rejects in-place rewrites', () => {
+    const previous = Buffer.from(`${JSON.stringify(reviewRow(1, 'ctc:a1', 'approved'))}\n`);
+    const appended = Buffer.concat([
+      previous,
+      Buffer.from(`${JSON.stringify(reviewRow(2, 'ctc:a1', 'rejected'))}\n`),
+    ]);
+    const rewritten = Buffer.from(`${JSON.stringify(reviewRow(1, 'ctc:a1', 'rejected'))}\n`);
+    expect(() => assertLedgerBytesAreAppendOnlyPrefix({
+      previousBytes: previous,
+      currentBytes: previous,
+      label: 'reviews.jsonl',
+    })).not.toThrow();
+    expect(() => assertLedgerBytesAreAppendOnlyPrefix({
+      previousBytes: previous,
+      currentBytes: appended,
+      label: 'reviews.jsonl',
+    })).not.toThrow();
+    try {
+      assertLedgerBytesAreAppendOnlyPrefix({
+        previousBytes: previous,
+        currentBytes: rewritten,
+        label: 'reviews.jsonl',
+      });
+      expect.unreachable();
+    } catch (error) {
+      expect((error as EngineeringTextbookMappingError).code).toBe('ledger-rewrite');
+    }
   });
 
   it('fails closed on tampered coverage ledger binding', () => {

@@ -52,6 +52,7 @@ export {
   mappingArtifactPath,
   readJsonArtifact,
   sha256Text,
+  assertLedgerBytesAreAppendOnlyPrefix,
   verifyCoverageLedgerBinding,
 } from './ledger';
 export { assertCoverageGate, computeCoverage } from './coverage';

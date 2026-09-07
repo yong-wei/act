@@ -133,6 +133,28 @@ export function artifactDigest(filePath: string): string {
   return sha256Text(readFileSync(/*turbopackIgnore: true*/ filePath, 'utf8'));
 }
 
+/**
+ * Historical ledger bytes MUST be an exact prefix of the current file.
+ * Equal files are allowed (idempotent re-sign). Empty previous means the
+ * file is new and has no committed baseline.
+ */
+export function assertLedgerBytesAreAppendOnlyPrefix(input: {
+  previousBytes: Buffer;
+  currentBytes: Buffer;
+  label: string;
+}): void {
+  if (input.previousBytes.length === 0) return;
+  if (
+    input.currentBytes.length < input.previousBytes.length
+    || !input.currentBytes.subarray(0, input.previousBytes.length).equals(input.previousBytes)
+  ) {
+    throw new EngineeringTextbookMappingError(
+      'ledger-rewrite',
+      `${input.label} is not an append-only prefix of the previously signed ledger; in-place edits fail closed`,
+    );
+  }
+}
+
 export function loadDenominator(repoRoot: string): MappingDenominatorFile {
   const file = readJsonArtifact<MappingDenominatorFile>(
     mappingArtifactPath(repoRoot, 'denominator.json'),

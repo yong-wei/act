@@ -8,6 +8,7 @@
  * gate closed; the receipt binds every ledger digest.
  */
 
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -24,6 +25,8 @@ import {
   MAPPING_EXCEPTIONS_PROPOSED_CONTRACT,
   MAPPING_COVERAGE_CONTRACT,
   mappingArtifactPath,
+  ENGINEERING_TEXTBOOK_MAPPING_ROOT,
+  assertLedgerBytesAreAppendOnlyPrefix,
   type MappingExceptionRow,
 } from '@/lib/engineering-textbook-mapping';
 
@@ -55,7 +58,24 @@ function readProposedExceptions(): Array<{
   return [...byNode.values()];
 }
 
+function readCommittedLedger(relativePath: string): Buffer {
+  try {
+    return execFileSync('git', ['show', `HEAD:${relativePath}`], {
+      cwd: ROOT,
+      maxBuffer: 32 * 1024 * 1024,
+    });
+  } catch {
+    return Buffer.alloc(0);
+  }
+}
+
 function main(): void {
+  const reviewsPath = mappingArtifactPath(ROOT, 'reviews.jsonl');
+  assertLedgerBytesAreAppendOnlyPrefix({
+    previousBytes: readCommittedLedger(`${ENGINEERING_TEXTBOOK_MAPPING_ROOT}/reviews.jsonl`),
+    currentBytes: readFileSync(reviewsPath),
+    label: 'reviews.jsonl',
+  });
   const denominator = loadDenominator(ROOT);
   const candidates = loadCandidates(ROOT);
   const reviews = loadReviewLedger({ filePath: mappingArtifactPath(ROOT, 'reviews.jsonl') });
