@@ -219,11 +219,14 @@ import {
   buildResourceCandidatePoolDiagnostics,
   buildResourceNodeRegistryFromTeachingResources,
   loadRuntimeResourceProjectionInputs,
-  toTextbookUnitNodeInputs,
   type ResourceCandidatePoolDiagnostics,
   type ResourceCandidatePoolSourceStatus,
 } from '@/lib/teacher-resource-node-data';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
+import {
+  loadTeachingProjectionBindingFamily,
+  mergeResourceNodeRegistryInput,
+} from '@/lib/teaching-projection-path-binding-adapter';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile } from '@/types/ai-context';
 import {
@@ -6221,11 +6224,18 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
   registry: ResourceNodeRegistry;
   diagnostics: ResourceCandidatePoolDiagnostics;
 }> {
-  const [teachingResourcesSource, runtimeLessonsSource, runtimeTextbooksSource, runtimeResourceProjectionsSource] = await Promise.all([
+  const [
+    teachingResourcesSource,
+    runtimeLessonsSource,
+    runtimeTextbooksSource,
+    runtimeResourceProjectionsSource,
+    teachingProjectionBindings,
+  ] = await Promise.all([
     loadCandidateSourceFamily('teaching-resources', () => loadAdaptivePathTeachingResources(input.db)),
     loadCandidateSourceFamily('runtime-lessons', () => loadAllLessonRuntimeResourceCatalogEntries()),
     loadCandidateSourceFamily('runtime-textbooks', () => loadAllTextbookStructureRuntimeCatalogEntries()),
     loadCandidateSourceFamily('runtime-resource-projections', () => loadRuntimeResourceProjectionInputs({ allowMissing: false })),
+    loadTeachingProjectionBindingFamily(),
   ]);
   const teachingResources = teachingResourcesSource.items;
   const runtimeLessons = runtimeLessonsSource.items;
@@ -6236,6 +6246,7 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
     runtimeLessonsSource.status,
     runtimeTextbooksSource.status,
     runtimeResourceProjectionsSource.status,
+    teachingProjectionBindings.status,
   ];
   const registeredResources = getAllRegisteredResourceMetadata();
   const runtimeTextbookInput = {
@@ -6254,6 +6265,7 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
       }),
       new Map(registry.nodes.map((node) => [node.id, node.sourceKind])),
     );
+  const bindingInput = teachingProjectionBindings.extraInput;
   const withDiagnostics = (registry: ResourceNodeRegistry) => ({
     registry,
     diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies, {
@@ -6266,6 +6278,7 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
     runtimeLessons,
     runtimeTextbooks,
     runtimeResourceProjections,
+    bindingInput,
   );
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
     return withDiagnostics(buildGenericRegistry());
@@ -6277,7 +6290,10 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
       runtimeLessons,
       runtimeTextbooks,
       runtimeResourceProjections,
-      buildFrequencyResponseFoundationsResourceSeedInput(),
+      mergeResourceNodeRegistryInput(
+        buildFrequencyResponseFoundationsResourceSeedInput(),
+        bindingInput,
+      ),
     ));
   }
   if (getRegisteredAdaptiveLearningPathGoal(goalId)) {

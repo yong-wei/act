@@ -3316,7 +3316,15 @@ export const CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH = {
   ],
 } as const;
 
-const reviewedSourceRefSet = new Set<string>(CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedSourceRefs);
+const TEACHING_PROJECTION_EXERCISE_PATH_REVIEW_REFS = [
+  'exercise:bode-drill|exercise:act:exercise:bode-drill|resource-node-registry.v1',
+  'exercise:path-binding-sample|exercise:act:exercise:path-binding-sample|resource-node-registry.v1',
+] as const;
+
+const reviewedSourceRefSet = new Set<string>([
+  ...CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.reviewedSourceRefs,
+  ...TEACHING_PROJECTION_EXERCISE_PATH_REVIEW_REFS,
+]);
 
 export function coreResourcePathReadinessReviewRef(node: Pick<ResourceNode, 'id' | 'sourceKind' | 'sourceRef' | 'runtimeProjection'>): string {
   const sourceVersionRef = node.runtimeProjection?.sourceVersionRef ?? CORE_RESOURCE_PATH_READINESS_REVIEW_BATCH.defaultSourceVersionRef;

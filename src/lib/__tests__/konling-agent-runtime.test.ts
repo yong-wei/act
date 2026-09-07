@@ -103,6 +103,24 @@ vi.mock('@/lib/teacher-resource-node-data', async () => {
   };
 });
 
+vi.mock('@/lib/teaching-projection-path-binding-adapter', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/teaching-projection-path-binding-adapter')>(
+    '@/lib/teaching-projection-path-binding-adapter',
+  );
+  return {
+    ...actual,
+    loadTeachingProjectionBindingFamily: vi.fn(async () => ({
+      extraInput: {},
+      status: {
+        family: 'teaching-projection-bindings',
+        status: 'empty' as const,
+        count: 0,
+        reason: null,
+      },
+    })),
+  };
+});
+
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import { AuthoritativeKnowledgeProjectionService } from '@/lib/authoritative-knowledge';
 import {
@@ -9321,6 +9339,13 @@ describe('konling agent runtime', () => {
       }),
     });
     expect(result.candidatePoolLimited).toBe(false);
+    expect(result.diagnostics.candidatePool.sourceFamilies).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        family: 'teaching-projection-bindings',
+        status: 'empty',
+        reason: null,
+      }),
+    ]));
     expect(result.diagnostics.candidatePool.missingSourceReasons).not.toHaveProperty('missing-evidence-instrumentation');
     expect(result.diagnostics.candidatePool.nodeEligibilityMissingReasons).toMatchObject({
       'missing-evidence-instrumentation': expect.any(Number),
