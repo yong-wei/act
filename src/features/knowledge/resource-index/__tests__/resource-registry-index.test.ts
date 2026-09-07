@@ -1,11 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { getTeachingLaunchRouteRecords } from '@/lib/teaching-launch-route-records';
 
 import { createPublishedArtifactAdapter } from '../adapters/published-artifact';
 import { createRenderMetadataAdapter } from '../adapters/render-metadata';
@@ -19,6 +20,7 @@ import { resolveLiveResourceIndexRevision } from '../revision';
 import {
   captureLiveResourceRegistryIndex,
   getLiveResourceRegistryIndex,
+  readLiveResourceRegistryIndexMemoKey,
   resetLiveResourceRegistryIndexCache,
 } from '../sources';
 import { projectStudentReadFromIndex } from '../student-read';
@@ -30,6 +32,26 @@ import {
 
 const SHARED = 'rev-test-1';
 const EMPTY_ENV = { APP_REVISION: '', GIT_SHA: '' };
+
+function withTeachingProjectionStoreRoot<T>(root: string | undefined, run: () => T): T {
+  const previousAct = process.env.ACT_TEACHING_PROJECTION_STORE_ROOT;
+  const previousTeaching = process.env.TEACHING_PROJECTION_STORE_ROOT;
+  try {
+    if (root) {
+      process.env.ACT_TEACHING_PROJECTION_STORE_ROOT = root;
+      delete process.env.TEACHING_PROJECTION_STORE_ROOT;
+    } else {
+      delete process.env.ACT_TEACHING_PROJECTION_STORE_ROOT;
+      delete process.env.TEACHING_PROJECTION_STORE_ROOT;
+    }
+    return run();
+  } finally {
+    if (previousAct === undefined) delete process.env.ACT_TEACHING_PROJECTION_STORE_ROOT;
+    else process.env.ACT_TEACHING_PROJECTION_STORE_ROOT = previousAct;
+    if (previousTeaching === undefined) delete process.env.TEACHING_PROJECTION_STORE_ROOT;
+    else process.env.TEACHING_PROJECTION_STORE_ROOT = previousTeaching;
+  }
+}
 
 function git(cwd: string, args: string[]): string {
   return execFileSync('git', args, {
@@ -513,7 +535,10 @@ describe('resource registry index', () => {
   });
 
   it('reconciles live render-metadata entries one-for-one with the source-owned table', () => {
-    const sourceIds = getAllRegisteredResourceMetadata().map((record) => record.id).sort();
+    const sourceIds = [
+      ...getAllRegisteredResourceMetadata(),
+      ...getTeachingLaunchRouteRecords(),
+    ].map((record) => record.id).sort();
     const index = captureLiveResourceRegistryIndex();
     const indexedIds = index.entries
       .filter((entry) => entry.descriptor.identity.sourceKind === RENDER_METADATA_SOURCE_KIND)
@@ -609,6 +634,98 @@ describe('resource registry index', () => {
     const first = getLiveResourceRegistryIndex();
     const second = getLiveResourceRegistryIndex();
     expect(second).toBe(first);
+  });
+
+  it('changes the live index memo key when the teaching projection identity changes', () => {
+    const cwd = createTempGitRepo();
+    try {
+      withTeachingProjectionStoreRoot(undefined, () => {
+        const projectionRoot = path.join(cwd, 'course-content/runtime/knowledge/projection');
+        mkdirSync(projectionRoot, { recursive: true });
+        const pointer = {
+          contract: 'act-teaching-projection-current/v1',
+          projectionId: `proj-${'a'.repeat(64)}`,
+          projectionHash: 'b'.repeat(64),
+          authorityReleaseId: 'rel-test',
+          activatedAt: '2026-01-01T00:00:00.000Z',
+        };
+        writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+        const first = readLiveResourceRegistryIndexMemoKey(EMPTY_ENV, cwd);
+        pointer.projectionHash = 'c'.repeat(64);
+        writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+        const second = readLiveResourceRegistryIndexMemoKey(EMPTY_ENV, cwd);
+        expect(first).toContain(`proj-${'a'.repeat(64)}`);
+        expect(second).not.toBe(first);
+        expect(second).toContain('c'.repeat(64));
+      });
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('rebuilds the memoized live index when the teaching projection identity changes', () => {
+    resetLiveResourceRegistryIndexCache();
+    const cwd = createTempGitRepo();
+    try {
+      withTeachingProjectionStoreRoot(undefined, () => {
+        const projectionRoot = path.join(cwd, 'course-content/runtime/knowledge/projection');
+        mkdirSync(projectionRoot, { recursive: true });
+        const pointer = {
+          contract: 'act-teaching-projection-current/v1',
+          projectionId: `proj-${'a'.repeat(64)}`,
+          projectionHash: 'b'.repeat(64),
+          authorityReleaseId: 'rel-test',
+          activatedAt: '2026-01-01T00:00:00.000Z',
+        };
+        writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+        const first = getLiveResourceRegistryIndex(EMPTY_ENV, cwd);
+        const reused = getLiveResourceRegistryIndex(EMPTY_ENV, cwd);
+        expect(reused).toBe(first);
+        pointer.projectionHash = 'c'.repeat(64);
+        writeFileSync(path.join(projectionRoot, 'current.json'), `${JSON.stringify(pointer)}\n`);
+        const rebuilt = getLiveResourceRegistryIndex(EMPTY_ENV, cwd);
+        expect(rebuilt).not.toBe(first);
+      });
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+      resetLiveResourceRegistryIndexCache();
+    }
+  });
+
+  it('keys the live index from the configured teaching projection store root', () => {
+    const cwd = createTempGitRepo();
+    const configuredRoot = mkdtempSync(path.join(tmpdir(), 'configured-projection-'));
+    try {
+      mkdirSync(configuredRoot, { recursive: true });
+      writeFileSync(path.join(configuredRoot, 'current.json'), `${JSON.stringify({
+        contract: 'act-teaching-projection-current/v1',
+        projectionId: `proj-${'d'.repeat(64)}`,
+        projectionHash: 'e'.repeat(64),
+        authorityReleaseId: 'rel-configured',
+        activatedAt: '2026-01-01T00:00:00.000Z',
+      })}\n`);
+      mkdirSync(path.join(cwd, 'course-content/runtime/knowledge/projection'), { recursive: true });
+      writeFileSync(path.join(cwd, 'course-content/runtime/knowledge/projection/current.json'), `${JSON.stringify({
+        contract: 'act-teaching-projection-current/v1',
+        projectionId: `proj-${'a'.repeat(64)}`,
+        projectionHash: 'b'.repeat(64),
+        authorityReleaseId: 'rel-default',
+        activatedAt: '2026-01-01T00:00:00.000Z',
+      })}\n`);
+      const configured = withTeachingProjectionStoreRoot(configuredRoot, () => (
+        readLiveResourceRegistryIndexMemoKey(EMPTY_ENV, cwd)
+      ));
+      const fallback = withTeachingProjectionStoreRoot(undefined, () => (
+        readLiveResourceRegistryIndexMemoKey(EMPTY_ENV, cwd)
+      ));
+      expect(configured).toContain(`proj-${'d'.repeat(64)}`);
+      expect(configured).toContain('e'.repeat(64));
+      expect(fallback).toContain(`proj-${'a'.repeat(64)}`);
+      expect(configured).not.toBe(fallback);
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+      rmSync(configuredRoot, { recursive: true, force: true });
+    }
   });
 
   it('orders identities by locale-independent code-unit comparison', () => {

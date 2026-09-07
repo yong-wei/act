@@ -6,6 +6,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({ data: null, status: 'unauthenticated' }),
+}));
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/knowledge',
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+}));
+
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 import {
   selectActiveAuthorityMembership,
@@ -375,6 +384,15 @@ describe('active Authority knowledge workspace client boundary', () => {
   let root: Root;
   let fetchMock: ReturnType<typeof vi.fn>;
   let detailLearningContentMode: 'available' | 'unavailable';
+  let detailResourceBindingsEnabled: boolean;
+  let detailResourceBindingItems: Array<{
+    title: string;
+    bindingRole: '讲解' | '练习' | '评价' | '引用';
+    resourceKind: string;
+    availability: 'available' | 'unavailable';
+    launch: { kind: 'direct-route' | 'registry-resource' | 'viewer-shell' | 'unavailable'; href: string | null };
+    viewer?: { summary?: string; insight?: string | null; explanation?: string | null; imageSrc?: string };
+  }> | null;
 
   beforeEach(() => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
@@ -382,6 +400,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     document.body.appendChild(container);
     root = createRoot(container);
     detailLearningContentMode = 'available';
+    detailResourceBindingsEnabled = false;
+    detailResourceBindingItems = null;
     fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
@@ -418,6 +438,21 @@ describe('active Authority knowledge workspace client boundary', () => {
             ...nodeDetail(nodeId).node,
             teachingFields: {},
             media: { cardAvailable: false, infographAvailable: false },
+            ...(detailResourceBindingsEnabled ? {
+              resourceBindings: {
+                state: 'available',
+                items: detailResourceBindingItems ?? [{
+                  title: '稳定性课程',
+                  bindingRole: '讲解',
+                  resourceKind: '课程',
+                  availability: 'available',
+                  launch: {
+                    kind: 'registry-resource',
+                    href: '/interactive-learning/courses/unit-3-2-routh-stability-boundary',
+                  },
+                }],
+              },
+            } : {}),
             learningContent: detailLearningContentMode === 'unavailable'
               ? {
                 card: { state: 'missing', message: '当前节点暂无已发布学习卡片。' },
@@ -1163,6 +1198,106 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(drawer?.getAttribute('aria-modal')).toBe('true');
     expect(drawer?.getAttribute('data-active-inspector-focus-contract')).toBe('mobile-contained-drawer');
     expect(container.querySelector('[data-active-authority-main]')?.hasAttribute('inert')).toBe(true);
+  });
+
+  it('opens an inspector resource in the shared viewer and restores focus', async () => {
+    detailResourceBindingsEnabled = true;
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const launch = container.querySelector<HTMLButtonElement>('[data-active-resource-launch="registry-resource"]');
+    expect(launch).not.toBeNull();
+    launch!.focus();
+    await act(async () => launch!.click());
+    expect(document.querySelector('[data-universal-resource-viewer="true"]')).not.toBeNull();
+    const close = document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]');
+    await act(async () => close!.click());
+    expect(document.querySelector('[data-universal-resource-viewer="true"]')).toBeNull();
+    expect(document.activeElement).toBe(launch);
+  });
+
+  it('opens each inspector card and infograph with that binding identity', async () => {
+    detailResourceBindingsEnabled = true;
+    detailResourceBindingItems = [
+      {
+        title: '卡片甲',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '甲的摘要', insight: '甲的直觉', explanation: '甲的解释' },
+      },
+      {
+        title: '卡片乙',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '乙的摘要', insight: '乙的直觉', explanation: '乙的解释' },
+      },
+      {
+        title: '图甲',
+        bindingRole: '讲解',
+        resourceKind: '信息图',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { imageSrc: '/api/knowledge/published-infograph/safe-a' },
+      },
+      {
+        title: '图乙',
+        bindingRole: '讲解',
+        resourceKind: '信息图',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { imageSrc: '/api/knowledge/published-infograph/safe-b' },
+      },
+    ];
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+    const firstCard = container.querySelector<HTMLButtonElement>('[data-active-resource-title="卡片甲"]');
+    const secondCard = container.querySelector<HTMLButtonElement>('[data-active-resource-title="卡片乙"]');
+    const firstInfograph = container.querySelector<HTMLButtonElement>('[data-active-resource-title="图甲"]');
+    expect(firstCard).not.toBeNull();
+    expect(secondCard).not.toBeNull();
+    expect(firstInfograph).not.toBeNull();
+
+    await act(async () => firstCard!.click());
+    const firstViewer = document.querySelector('[data-universal-resource-viewer="true"]');
+    expect(firstViewer?.textContent).toContain('卡片甲');
+    expect(firstViewer?.textContent).toContain('甲的摘要');
+    expect(firstViewer?.textContent).not.toContain('卡片乙');
+    expect(firstViewer?.textContent).not.toContain('乙的摘要');
+    expect(firstViewer?.textContent).not.toContain('稳定性描述用于判断系统响应是否收敛。');
+    await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]')!.click());
+
+    await act(async () => secondCard!.click());
+    const secondViewer = document.querySelector('[data-universal-resource-viewer="true"]');
+    expect(secondViewer?.textContent).toContain('卡片乙');
+    expect(secondViewer?.textContent).toContain('乙的摘要');
+    expect(secondViewer?.textContent).not.toContain('卡片甲');
+    expect(secondViewer?.textContent).not.toContain('甲的摘要');
+    expect(secondViewer?.textContent).not.toContain('稳定性描述用于判断系统响应是否收敛。');
+    await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]')!.click());
+
+    await act(async () => firstInfograph!.click());
+    const infographViewer = document.querySelector('[data-universal-resource-viewer="true"]');
+    expect(infographViewer?.textContent).toContain('图甲');
+    const infograph = infographViewer?.querySelector('img');
+    expect(infograph).not.toBeNull();
+    expect(infograph?.getAttribute('src')).toContain('/api/knowledge/published-infograph/safe-a');
+    expect(infographViewer?.textContent).not.toContain('当前信息图暂无可显示图像。');
   });
 
   it('renders selection-bound learning content and keeps semantic detail usable after an image failure', async () => {

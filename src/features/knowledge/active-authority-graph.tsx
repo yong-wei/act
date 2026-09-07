@@ -68,6 +68,10 @@ import {
   createAuthorityGraphViewModel,
   defaultEnabledTeachingFamilies,
 } from './authority-graph-view-model';
+import {
+  openResourceViewer,
+  UniversalResourceViewerHost,
+} from './universal-resource-viewer';
 import type { GraphDimension } from './graph-runtime-session';
 import {
   AUTHORITY_DOMAIN_SEARCH_CONTRACT,
@@ -981,27 +985,47 @@ function ActiveNodeDetail({
             <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
             {node?.resourceBindings?.state === 'available' ? (
               <div className="mt-2 space-y-3">
-                {ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
-                  const bindings = node.resourceBindings;
-                  const items = bindings?.state === 'available'
-                    ? bindings.items.filter((item) => item.bindingRole === role)
+                {(() => {
+                  const boundItems = node.resourceBindings.state === 'available'
+                    ? node.resourceBindings.items
                     : [];
-                  if (items.length === 0) return null;
-                  return (
+                  return ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
+                    const items = boundItems.filter((item) => item.bindingRole === role);
+                    if (items.length === 0) return null;
+                    return (
                     <div key={role} data-active-resource-role={role}>
                       <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
                       <div className="mt-1 space-y-1">
                         {items.map((item) => (
-                          item.availability === 'available' && item.launch.href ? (
-                            <a
+                          item.availability === 'available'
+                          && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
+                            <button
+                              type="button"
                               key={`${role}-${item.title}`}
-                              href={item.launch.href}
+                              onClick={() => openResourceViewer({
+                                title: item.title,
+                                resourceKind: item.resourceKind,
+                                href: item.launch.href,
+                                node: item.resourceKind === '知识卡' && item.viewer?.summary
+                                  ? {
+                                      name: item.title,
+                                      description: item.viewer.summary,
+                                      nodeType: 'KnowledgeStatement',
+                                      content: {
+                                        insight: item.viewer.insight,
+                                        explanation: item.viewer.explanation,
+                                      },
+                                    }
+                                  : undefined,
+                                imageSrc: item.viewer?.imageSrc,
+                              })}
                               data-active-resource-launch={item.launch.kind}
-                              className="block rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
+                              data-active-resource-title={item.title}
+                              className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
                             >
                               {item.title}
                               <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
-                            </a>
+                            </button>
                           ) : (
                             <p
                               key={`${role}-${item.title}`}
@@ -1015,7 +1039,8 @@ function ActiveNodeDetail({
                       </div>
                     </div>
                   );
-                })}
+                });
+                })()}
               </div>
             ) : (
               <p className="mt-2 text-sm text-platform-fg-muted">
@@ -2014,6 +2039,7 @@ export function ActiveAuthorityGraph({
           {selectedNodeKey ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} pinned={runtimeLayout.pinnedNodeIds.has(selectedNodeKey)} onUnpin={() => runtimeLayout.unpinNode(selectedNodeKey)} /> : null}
         </div>
       )}
+      <UniversalResourceViewerHost />
     </div>
   );
 }

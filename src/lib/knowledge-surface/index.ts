@@ -62,6 +62,7 @@ export {
 export {
   closeResourceBlockWithLiveRegistryIndex,
   closeResourceBlockWithRegistryIndex,
+  sanitizePublicResourceBindingLaunches,
   tryLiveRegistryIndexIdentity,
 } from './registry-closure';
 

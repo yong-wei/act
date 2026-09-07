@@ -178,8 +178,15 @@ export const ACTIVE_RESOURCE_BINDING_ROLES = ['讲解', '练习', '评价', '引
 export type ActiveResourceBindingRole = (typeof ACTIVE_RESOURCE_BINDING_ROLES)[number];
 
 export interface ActiveResourceLaunchDescriptor {
-  kind: 'direct-route' | 'registry-resource' | 'unavailable';
+  kind: 'direct-route' | 'registry-resource' | 'viewer-shell' | 'unavailable';
   href: string | null;
+}
+
+export interface ActiveResourceViewerContent {
+  summary?: string;
+  insight?: string | null;
+  explanation?: string | null;
+  imageSrc?: string;
 }
 
 export interface ActiveResourceBinding {
@@ -188,6 +195,7 @@ export interface ActiveResourceBinding {
   resourceKind: string;
   availability: 'available' | 'unavailable';
   launch: ActiveResourceLaunchDescriptor;
+  viewer?: ActiveResourceViewerContent;
 }
 
 export type ActiveNodeResourceBindings =

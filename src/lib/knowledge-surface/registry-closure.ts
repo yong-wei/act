@@ -1,11 +1,14 @@
-import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
+import type {
+  ActiveNodeResourceBindings,
+  ActiveResourceBinding,
+} from '@/features/knowledge/active-authority-graph-contracts';
 import {
   getLiveResourceRegistryIndex,
 } from '@/features/knowledge/resource-index/public-api';
 import type { RegistryIndex } from '@/features/knowledge/resource-index/types';
 
+import { sanitizePublicLaunchHref } from './launch';
 import type { KnowledgeSurfaceRegistryIndexIdentity } from './types';
-import { isGovernedTextbookReaderHref } from './launch';
 
 const GIT_SHA = /^[a-f0-9]{40}$/i;
 const IDENTITY_MISMATCH_MESSAGE = '当前系统资源与所选对象身份不一致。';
@@ -58,8 +61,38 @@ export function capturesMatch(
   return expectedCaptureRevision.trim().toLowerCase() === indexCaptureRevision;
 }
 
-function indexOwnsLaunchHref(index: RegistryIndex, href: string): boolean {
-  if (isGovernedTextbookReaderHref(href)) return true;
+export function sanitizePublicResourceBindingLaunches(
+  bindings: ActiveNodeResourceBindings,
+  nodeId: string,
+): ActiveNodeResourceBindings {
+  if (bindings.state !== 'available') return bindings;
+  const items = bindings.items.map((item): ActiveResourceBinding => {
+    if (item.launch.kind === 'viewer-shell') {
+      const keep = item.availability === 'available' && item.viewer != null;
+      const next: ActiveResourceBinding = {
+        title: item.title,
+        bindingRole: item.bindingRole,
+        resourceKind: item.resourceKind,
+        availability: keep ? 'available' : 'unavailable',
+        launch: { kind: keep ? 'viewer-shell' : 'unavailable', href: null },
+      };
+      if (keep && item.viewer) next.viewer = item.viewer;
+      return next;
+    }
+    const href = sanitizePublicLaunchHref(item.launch.href, nodeId);
+    return {
+      ...item,
+      availability: href ? 'available' : 'unavailable',
+      launch: {
+        kind: href ? item.launch.kind : 'unavailable',
+        href,
+      },
+    };
+  });
+  return { state: 'available', items };
+}
+
+export function indexOwnsLaunchHref(index: RegistryIndex, href: string): boolean {
   return index.entries.some((entry) => {
     const launcherRef = entry.descriptor.launcher?.launcherRef;
     const registryId = entry.descriptor.foreignRefs.registryId;

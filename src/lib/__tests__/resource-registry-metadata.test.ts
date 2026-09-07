@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { getRegisteredResourceMetadataByNodeId } from '../resource-registry-metadata';
+import {
+  getAllRegisteredResourceMetadata,
+  getRegisteredResourceMetadataByNodeId,
+} from '../resource-registry-metadata';
+import { getTeachingLaunchRouteRecords } from '../teaching-launch-route-records';
 
 describe('getRegisteredResourceMetadataByNodeId', () => {
   it('resolves registry resource node ids to their canonical metadata', () => {
@@ -21,5 +25,12 @@ describe('getRegisteredResourceMetadataByNodeId', () => {
   it('does not synthesize metadata for unknown resource node ids', () => {
     expect(getRegisteredResourceMetadataByNodeId('arena-task:unknown-task')).toBeUndefined();
     expect(getRegisteredResourceMetadataByNodeId('external:unknown-resource')).toBeUndefined();
+  });
+});
+
+describe('teaching launch route records', () => {
+  it('keeps synthetic course routes out of the curated resource inventory', () => {
+    expect(getAllRegisteredResourceMetadata().some((row) => row.id.startsWith('teaching-launch-route:'))).toBe(false);
+    expect(getTeachingLaunchRouteRecords().some((row) => row.id.startsWith('teaching-launch-route:'))).toBe(true);
   });
 });

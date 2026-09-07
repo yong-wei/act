@@ -95,6 +95,9 @@ import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { StudentFeedbackTaskPanel } from '@/features/assessment/student-feedback-task-panel';
 import { StudentMicroTutoringPanel } from '@/features/assessment/student-micro-tutoring-panel';
 import {
+  UniversalResourceViewerHost,
+} from '@/features/knowledge/universal-resource-viewer';
+import {
   studentMicroTutoringStageLabel,
   studentMicroTutoringUnavailableCopy,
   type StudentMicroTutoringEligibility,
@@ -7228,6 +7231,7 @@ export default function AdaptivePracticePage() {
           </section>
           ) : null}
         </section>
+        <UniversalResourceViewerHost />
       </AppShell>
     );
 }

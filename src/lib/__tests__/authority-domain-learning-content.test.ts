@@ -21,7 +21,9 @@ import {
   attachActiveAuthorityLearningContent,
   loadNodeDetailShard,
   readActiveAuthorityInfograph,
+  readPublishedAuthorityInfographBySafeId,
 } from '@/lib/authority-domain-shards';
+import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 
 const REPO_ROOT = process.cwd();
 const ACCEPTED_NODE = 'ctc:modeling-865eb1c8824e157c2f05a903';
@@ -30,6 +32,42 @@ const NO_CARD_NODE = 'ctkg:v3e-canonical-62bea9217008b56901615d9a';
 const MANIFEST_RELATIVE = 'course-content/runtime/knowledge/authority-learning-content-manifest.json';
 const CARD_RELATIVE = 'course-content/runtime/knowledge/cards/authority/nodes';
 const INFOGRAPH_RELATIVE = 'course-content/runtime/knowledge/infographs/authority/nodes';
+const TRACKED_INFOGRAPH = join(REPO_ROOT, INFOGRAPH_RELATIVE, 'ctc_modeling-865eb1c8824e157c2f05a903.png');
+const FIXTURE_ONLY_SAFE_ID = 'fixture-only-infograph';
+
+function trackedInfographHash() {
+  return sha256(readFileSync(TRACKED_INFOGRAPH));
+}
+
+function addFixtureOnlyInfograph(manifest: Record<string, unknown>) {
+  const nodes = manifest.nodes as Array<Record<string, unknown>>;
+  nodes.push({
+    canonicalId: 'ctc:fixture-only-infograph',
+    safeId: FIXTURE_ONLY_SAFE_ID,
+    card: { state: 'missing', sha256: null },
+    infograph: { state: 'available', sha256: trackedInfographHash() },
+  });
+}
+
+function copyFixtureOnlyInfograph() {
+  copyFileSync(TRACKED_INFOGRAPH, join(process.cwd(), INFOGRAPH_RELATIVE, `${FIXTURE_ONLY_SAFE_ID}.png`));
+}
+
+function liveOverlayTeachingSeal() {
+  const teaching = resolveActiveShardIdentity({ repoRoot: REPO_ROOT }).envelope.teaching;
+  expect(teaching.status).toBe('available');
+  expect(teaching.projectionId).toBeTruthy();
+  expect(teaching.projectionHash).toBeTruthy();
+  return {
+    teachingProjectionId: teaching.projectionId,
+    teachingProjectionHash: teaching.projectionHash,
+  };
+}
+
+function sealFixtureOnlyInfograph(manifest: Record<string, unknown>) {
+  addFixtureOnlyInfograph(manifest);
+  Object.assign(manifest, liveOverlayTeachingSeal());
+}
 
 function sha256(value: Buffer | string) {
   return createHash('sha256').update(value).digest('hex');
@@ -180,6 +218,117 @@ describe('Authority learning-content delivery', () => {
         summary: expect.stringMatching(/(?:ctc:|ctkg:|[a-f0-9]{64}|course-content\/)/i),
       });
       expect(readActiveAuthorityInfograph(accepted)?.byteLength).toBeGreaterThan(1000);
+    });
+  });
+
+  it('serves published infograph GET only from the active v2 inventory and matching hash', () => {
+    withAlignedRuntime(() => {
+      copyFixtureOnlyInfograph();
+      const served = readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      });
+      expect(served?.byteLength).toBeGreaterThan(1000);
+
+      const leftoverId = 'leftover-infograph-token';
+      const leftoverDir = join(process.cwd(), 'course-content/runtime/knowledge/infographs/nodes');
+      mkdirSync(leftoverDir, { recursive: true });
+      copyFileSync(TRACKED_INFOGRAPH, join(leftoverDir, `${leftoverId}.png`));
+      expect(readPublishedAuthorityInfographBySafeId(leftoverId, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
+
+      writeFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, `${FIXTURE_ONLY_SAFE_ID}.png`), 'not-the-accepted-bytes');
+      expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
+    }, sealFixtureOnlyInfograph);
+  });
+
+  it('does not serve a v2 infograph when the teaching seal is missing', () => {
+    withAlignedRuntime(() => {
+      copyFixtureOnlyInfograph();
+      expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
+    }, addFixtureOnlyInfograph);
+  });
+
+  it('does not serve a v2 infograph when only one teaching seal field is present', () => {
+    withAlignedRuntime(() => {
+      copyFixtureOnlyInfograph();
+      expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
+    }, (manifest) => {
+      sealFixtureOnlyInfograph(manifest);
+      delete manifest.teachingProjectionHash;
+    });
+  });
+
+  it('does not serve a v2 infograph when the active Authority identity has drifted', () => {
+    withAlignedRuntime(() => {
+      copyFixtureOnlyInfograph();
+      expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
+    }, (manifest) => {
+      sealFixtureOnlyInfograph(manifest);
+      manifest.authoritySnapshotHash = '0'.repeat(64);
+    });
+  });
+
+  it('does not serve a v2 infograph when the teaching seal has drifted', () => {
+    withAlignedRuntime(() => {
+      copyFixtureOnlyInfograph();
+      expect(readPublishedAuthorityInfographBySafeId(FIXTURE_ONLY_SAFE_ID, {
+        identityRepoRoot: REPO_ROOT,
+      })).toBeNull();
+    }, (manifest) => {
+      addFixtureOnlyInfograph(manifest);
+      Object.assign(manifest, liveOverlayTeachingSeal());
+      manifest.teachingProjectionId = 'proj-0000000000000000000000000000000000000000000000000000000000000000';
+      manifest.teachingProjectionHash = '0'.repeat(64);
+    });
+  });
+
+  it('does not fall back to live teaching when a v2 entry exists but the manifest is unsealed', () => {
+    withAlignedRuntime(() => {
+      const token = 'ctc_modeling-865eb1c8824e157c2f05a903';
+      const bytes = readFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, `${token}.png`));
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        identityRepoRoot: REPO_ROOT,
+        liveInfographicTokens: new Map([[token, sha256(bytes)]]),
+      })).toBeNull();
+    });
+  });
+
+  it('does not fall back to live teaching when the v2 manifest exists but cannot be parsed', () => {
+    withAlignedRuntime(() => {
+      writeFileSync(join(process.cwd(), MANIFEST_RELATIVE), '{not-json');
+      const token = 'ctc_modeling-865eb1c8824e157c2f05a903';
+      const bytes = readFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, `${token}.png`));
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        identityRepoRoot: REPO_ROOT,
+        liveInfographicTokens: new Map([[token, sha256(bytes)]]),
+      })).toBeNull();
+    });
+  });
+
+  it('serves a binding infograph only when the live teaching inventory lists it', () => {
+    withAlignedRuntime(() => {
+      const token = 'lesson-infograph-token';
+      const bytes = readFileSync(join(process.cwd(), INFOGRAPH_RELATIVE, 'ctc_modeling-865eb1c8824e157c2f05a903.png'));
+      const lessonDir = join(process.cwd(), 'course-content/runtime/knowledge/infographs/nodes');
+      mkdirSync(lessonDir, { recursive: true });
+      writeFileSync(join(lessonDir, `${token}.png`), bytes);
+      expect(readPublishedAuthorityInfographBySafeId(token)).toBeNull();
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        identityRepoRoot: REPO_ROOT,
+        liveInfographicTokens: new Map([[token, sha256(bytes)]]),
+      })?.equals(bytes)).toBe(true);
+      expect(readPublishedAuthorityInfographBySafeId(token, {
+        liveInfographicTokens: new Map([[token, '0'.repeat(64)]]),
+      })).toBeNull();
     });
   });
 

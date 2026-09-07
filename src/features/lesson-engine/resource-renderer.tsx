@@ -276,6 +276,15 @@ export function ResourceRenderer({
                   >
                       <track kind="captions" srcLang="zh-CN" label="中文说明" src={TEMPORARY_CAPTION_TRACK_SRC} />
                   </video>
+              ) : resource.content && /\.(?:mp3|m4a|wav|ogg|aac)$/i.test(resource.content) ? (
+                  <audio
+                    aria-label={effectiveTitle}
+                    src={resource.content}
+                    controls
+                    onPlay={() => onMediaStateChange?.(true)}
+                    onPause={() => onMediaStateChange?.(false)}
+                    onEnded={() => onMediaStateChange?.(false)}
+                  />
               ) : (
                   <div className="relative h-full w-full">
                       {resource.content ? (

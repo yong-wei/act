@@ -11,6 +11,7 @@ import {
   knowledgeSurfaceFromLearnerShard,
   projectSourceOwnedLaunchDescriptor,
   readKnowledgeSurface,
+  sanitizePublicResourceBindingLaunches,
 } from '@/lib/knowledge-surface';
 import type { AuthorityNodeDetailShard, AuthorityRootShard } from '@/lib/authority-domain-shards/contracts';
 
@@ -456,7 +457,29 @@ describe('RegistryIndex resource closure', () => {
     expect(closed.bindings.state).toBe('unavailable');
   });
 
-  it('keeps governed textbook reader hrefs without a RegistryIndex launcherRef match', () => {
+  it('keeps textbook reader hrefs only when an index entry holds the exact href', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-03/section-3.8';
+    const closed = closeResourceBlockWithRegistryIndex({
+      bindings: {
+        state: 'available',
+        items: [{
+          title: 'Dorf 3.8',
+          bindingRole: '讲解',
+          resourceKind: '教材',
+          availability: 'available',
+          launch: { kind: 'direct-route', href: textbookHref },
+        }],
+      },
+      index: indexAt(capture, textbookHref),
+      expectedCaptureRevision: capture,
+    });
+    expect(closed.bindings.state).toBe('available');
+    if (closed.bindings.state !== 'available') return;
+    expect(closed.bindings.items[0]?.launch.href).toBe(textbookHref);
+    expect(closed.registryIndex?.captureRevision).toBe(capture);
+  });
+
+  it('does not treat textbook reader path shape as ownership', () => {
     const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-03/section-3.8';
     const closed = closeResourceBlockWithRegistryIndex({
       bindings: {
@@ -472,10 +495,62 @@ describe('RegistryIndex resource closure', () => {
       index: indexAt(capture),
       expectedCaptureRevision: capture,
     });
+    expect(closed.registryIndex).toBeNull();
+    expect(closed.bindings.state).toBe('unavailable');
+  });
+
+  it('keeps a payload-bearing viewer-shell binding available without a page href', () => {
+    const closed = closeResourceBlockWithRegistryIndex({
+      bindings: {
+        state: 'available',
+        items: [{
+          title: '稳定性卡片',
+          bindingRole: '讲解',
+          resourceKind: '知识卡',
+          availability: 'available',
+          launch: { kind: 'viewer-shell', href: null },
+          viewer: { summary: '摘要' },
+        }],
+      },
+      index: indexAt(capture),
+      expectedCaptureRevision: capture,
+    });
     expect(closed.bindings.state).toBe('available');
-    if (closed.bindings.state !== 'available') return;
-    expect(closed.bindings.items[0]?.launch.href).toBe(textbookHref);
-    expect(closed.registryIndex?.captureRevision).toBe(capture);
+    const sanitized = sanitizePublicResourceBindingLaunches(closed.bindings, 'ctc:modeling-node');
+    expect(sanitized).toEqual({
+      state: 'available',
+      items: [{
+        title: '稳定性卡片',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '摘要' },
+      }],
+    });
+  });
+
+  it('does not keep a viewer-shell binding available after the public launch sanitizer drops a missing href', () => {
+    const sanitized = sanitizePublicResourceBindingLaunches({
+      state: 'available',
+      items: [{
+        title: '稳定性卡片',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+      }],
+    }, 'ctc:modeling-node');
+    expect(sanitized).toEqual({
+      state: 'available',
+      items: [{
+        title: '稳定性卡片',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'unavailable',
+        launch: { kind: 'unavailable', href: null },
+      }],
+    });
   });
 });
 
