@@ -86,6 +86,8 @@ export interface ControlOdysseyLevel {
   model: ModelConfigTF | ModelConfigZPK;
   disturbanceTau?: number;
   tiers: LevelTierConfig[];
+  /** Canonical knowledge anchors consumed by the teaching projection restage (#2042). */
+  relatedCanonicalIds?: string[];
 }
 
 export interface ShopItem {
@@ -417,6 +419,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 01: 积分环节',
     description: '积分对象，理解累积响应与稳态误差。',
     plantLabel: '积分环节',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-8d214840417a4c3b5780c715',
+    ],
     difficulty: 1,
     unlocked: true,
     highScore: 0,
@@ -429,6 +434,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 02: 一阶惯性',
     description: '一阶惯性对象，响应滞后。',
     plantLabel: '一阶惯性',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c',
+    ],
     difficulty: 2,
     unlocked: true,
     model: inertialModel(120, 0.6),
@@ -440,6 +448,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 03: 积分 + 小惯性',
     description: '积分与惯性耦合，容易超调。',
     plantLabel: '积分 + 小惯性',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-3311578f3f7796d3b9ff0830',
+    ],
     difficulty: 3,
     unlocked: true,
     model: integratorInertiaModel(120, 0.6),
@@ -451,6 +462,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 04: 积分 + 大惯性',
     description: '大惯性对象，需要提前预判。',
     plantLabel: '积分 + 大惯性',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627',
+    ],
     difficulty: 4,
     unlocked: false,
     model: integratorInertiaModel(120, 1.8),
@@ -462,6 +476,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 05: 积分 + 纯延时',
     description: '控制延时带来的相位滞后。',
     plantLabel: '积分 + 延时',
+    relatedCanonicalIds: [
+      'ctkg:v3e-object-b0cbf122498bca9269e55406',
+    ],
     difficulty: 5,
     unlocked: false,
     model: integratorModel(120, 0.5),
@@ -473,6 +490,10 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 06: 惯性 + 延时',
     description: '惯性与延时叠加，响应更慢。',
     plantLabel: '惯性 + 延时',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-3311578f3f7796d3b9ff0830',
+      'ctkg:v3e-object-b0cbf122498bca9269e55406',
+    ],
     difficulty: 6,
     unlocked: false,
     model: integratorInertiaModel(120, 1.2, 0.6),
@@ -484,6 +505,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 07: 双重积分',
     description: '加速度控制，必须引入阻尼。',
     plantLabel: '双重积分',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-772065f42947b660c72584f3',
+    ],
     difficulty: 7,
     unlocked: false,
     model: doubleIntegratorModel(80),
@@ -495,6 +519,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 08: 欠阻尼二阶',
     description: '低阻尼振荡特性。',
     plantLabel: '欠阻尼二阶',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98',
+    ],
     difficulty: 8,
     unlocked: false,
     model: secondOrderModel(100, 0.35, 2.2),
@@ -506,6 +533,10 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 09: 欠阻尼 + 延时',
     description: '振荡系统叠加延时。',
     plantLabel: '欠阻尼 + 延时',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98',
+      'ctkg:v3e-object-b0cbf122498bca9269e55406',
+    ],
     difficulty: 9,
     unlocked: false,
     model: secondOrderModel(100, 0.25, 2.0, 0.4),
@@ -517,6 +548,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 10: 非最小相位零点',
     description: '反向响应的非最小相位对象。',
     plantLabel: '非最小相位零点',
+    relatedCanonicalIds: [
+      'ctkg:v3e-object-5a7582dcb72b1d33d09ca641',
+    ],
     difficulty: 10,
     unlocked: false,
     model: nonMinimumPhaseModel(100, 0.8, 1.2),
@@ -528,6 +562,10 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 11: 非最小相位 + 积分',
     description: '反向响应伴随累积环节。',
     plantLabel: '非最小相位 + 积分',
+    relatedCanonicalIds: [
+      'ctkg:v3e-object-5a7582dcb72b1d33d09ca641',
+      'ctkg:v3e-canonical-8d214840417a4c3b5780c715',
+    ],
     difficulty: 11,
     unlocked: false,
     model: nonMinimumPhaseIntegratorModel(80, 0.9, 1.0),
@@ -539,6 +577,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 12: 开环不稳定',
     description: '右半平面极点导致发散。',
     plantLabel: '开环不稳定',
+    relatedCanonicalIds: [
+      'ctkg:v3e-object-d09d1eba56a786a96d39d085',
+    ],
     difficulty: 12,
     unlocked: false,
     model: unstablePoleModel(60, 1.8),
@@ -550,6 +591,10 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 13: 不稳定 + 延时',
     description: '不稳定对象叠加延时。',
     plantLabel: '不稳定 + 延时',
+    relatedCanonicalIds: [
+      'ctkg:v3e-object-d09d1eba56a786a96d39d085',
+      'ctkg:v3e-object-b0cbf122498bca9269e55406',
+    ],
     difficulty: 13,
     unlocked: false,
     model: unstablePoleModel(60, 1.8, 0.3),
@@ -561,6 +606,9 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 14: 三阶惯性链',
     description: '多极点慢动态。',
     plantLabel: '三阶惯性链',
+    relatedCanonicalIds: [
+      'ctkg:m3-v2h:source-object:552dae0908d9e549e2e5603d',
+    ],
     difficulty: 14,
     unlocked: false,
     model: highOrderInertiaModel(100, 0.4, 0.9, 1.6),
@@ -572,6 +620,10 @@ export const CONTROL_ODYSSEY_LEVELS: ControlOdysseyLevel[] = [
     name: 'Level 15: 终极混合',
     description: '非最小相位 + 不稳定 + 延时。',
     plantLabel: '终极混合',
+    relatedCanonicalIds: [
+      'ctkg:v3e-canonical-772065f42947b660c72584f3',
+      'ctkg:v3e-object-d09d1eba56a786a96d39d085',
+    ],
     difficulty: 15,
     unlocked: false,
     model: nonMinimumPhaseUnstableModel(60, 0.6, 1.5, 0.8, 0.3),

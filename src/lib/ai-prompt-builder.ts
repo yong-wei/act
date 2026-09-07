@@ -125,6 +125,14 @@ interface KonlingPromptRuntimeContext {
     }>;
     missingCitationClasses?: string[];
     lowConfidenceReasons?: string[];
+    /**
+     * #2039：evidence-required 章节的逐单元分配编号（章节标题 → 主源
+     * 编号 + 备用编号）。存在时渲染为逐单元映射行，替代全局清单式指引。
+     */
+    unitCitations?: Array<{
+      sectionTitle: string;
+      displayNumbers: readonly number[];
+    }>;
   };
   permittedTools?: string[];
   missingContext?: string[];
@@ -495,7 +503,17 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
         const derivedTitles = STUDY_QUESTION_SECTIONS[studyIntent]
           .filter((section) => section.citationPolicy === 'model-derived')
           .map((section) => section.title);
-        if (evidenceTitles.length) {
+        // #2039：有逐单元分配时渲染显式映射（章节标题 → 分配编号），
+        // 替代「各章可用编号」的全局清单式指引；映射必须逐单元给出，
+        // 同一编号可在多个确实相关的章节重复使用（一源多单元合法）。
+        const unitCitations = runtime.citationContext?.unitCitations ?? [];
+        if (unitCitations.length) {
+          lines.push('  - 逐单元引用映射（章节 → 分配编号，首个为主源，斜杠后为备用）:');
+          for (const unit of unitCitations) {
+            lines.push(`    - 「${unit.sectionTitle}」→ 使用编号 ${unit.displayNumbers.map((number) => `[${number}]`).join('/')}`);
+          }
+          lines.push('  - 同一编号可在多个确实相关的章节重复使用；映射行给出的编号必须用于对应章节的关键结论行末，不得挪到其他章节。');
+        } else if (evidenceTitles.length) {
           lines.push(`  - 逐单元引用映射：「${evidenceTitles.join('、')}」各章的每个关键结论行末必须紧跟可用编号 [n]，不得只在段末集中引用。`);
         }
         if (derivedTitles.length) {

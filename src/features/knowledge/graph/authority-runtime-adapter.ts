@@ -12,7 +12,7 @@ export const ACTIVE_RUNTIME_GRAPH_VERSION = 'active-authority';
 export const ACTIVE_ROOT_RUNTIME_GRAPH_VERSION = 'active-root-catalog';
 export const ACTIVE_ROOT_PRESENTATION_KIND = 'active-root-navigation';
 
-function runtimeNodeTypeFor(shape: string): NodeType {
+export function runtimeNodeTypeFor(shape: string): NodeType {
   if (shape === 'hexagon') return 'ETHICS';
   if (shape === 'square' || shape === 'rounded') return 'SCENARIO';
   return 'THEORY';

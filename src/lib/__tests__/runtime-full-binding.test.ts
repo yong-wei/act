@@ -8,6 +8,7 @@ import {
 import {
   classroomSimHasLessonUnit,
   encodeCardToken,
+  evaluateLedgerQuotas,
   EXTRACTION_SOURCE_BOOKS,
   planRuntimeFullBinding,
   unitTokenFromResourceId,
@@ -141,5 +142,157 @@ describe('runtime full binding planner', () => {
       projectionHash: null,
       authorityReleaseId: 'ctr:release:x',
     }, live).projectionId).toBeNull();
+  });
+
+  it('binds cards through the reviewed crosswalk and records listed exemptions explicitly (#2042)', () => {
+    const plan = planRuntimeFullBinding({
+      scopeId: 'act-control-theory',
+      authoringRevision: 'a'.repeat(40),
+      authorityReleaseId: 'ctr:release:x',
+      overlayCores: ['ctc:core-a'],
+      nodeUnits: new Map(),
+      resources: [
+        {
+          resourceId: 'act:card:Bode图_1_1',
+          resourceType: 'card',
+          projectionMode: 'OPTIONAL',
+          scopeId: 'act-control-theory',
+        },
+        {
+          resourceId: 'act:card:ANFIS_5_448b947a',
+          resourceType: 'card',
+          projectionMode: 'OPTIONAL',
+          scopeId: 'act-control-theory',
+        },
+        {
+          resourceId: 'act:card:未评审卡_2_abcdef',
+          resourceType: 'card',
+          projectionMode: 'OPTIONAL',
+          scopeId: 'act-control-theory',
+        },
+      ],
+      bindings: [],
+      prerequisites: [],
+      cards: [],
+      authorityCardCanonicalIds: [],
+      textbookLocators: [],
+      taskSims: [],
+      cardCrosswalk: [{ cardId: 'Bode图_1_1', canonicalId: 'ctc:core-a' }],
+      cardExemptions: [{ cardId: 'ANFIS_5_448b947a', exemptionReason: 'no-overlay-equivalent' }],
+    });
+
+    expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:card:Bode图_1_1' && row.canonicalId === 'ctc:core-a')).toBe(true);
+    expect(plan.authoring.cards.some((card) => card.cardId === 'Bode图_1_1' && card.canonicalId === 'ctc:core-a')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:card:ANFIS_5_448b947a' && row.reason === 'explicit-exemption')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:card:未评审卡_2_abcdef' && row.reason === 'no-exact-identity')).toBe(true);
+  });
+
+  it('binds infographs by authority token and legacy crosswalk with ledger fallbacks (#2042)', () => {
+    const plan = planRuntimeFullBinding({
+      scopeId: 'act-control-theory',
+      authoringRevision: 'a'.repeat(40),
+      authorityReleaseId: 'ctr:release:x',
+      overlayCores: ['ctc:core-a'],
+      nodeUnits: new Map(),
+      resources: [],
+      bindings: [],
+      prerequisites: [],
+      cards: [],
+      authorityCardCanonicalIds: [],
+      textbookLocators: [],
+      taskSims: [],
+      cardCrosswalk: [{ cardId: 'Bode图_1_1', canonicalId: 'ctc:core-a' }],
+      infographsAuthority: [
+        { resourceId: 'act:infographic:ctc_core-a', canonicalId: 'ctc:core-a' },
+        { resourceId: 'act:infographic:ctc_missing', canonicalId: 'ctc:missing' },
+      ],
+      infographsLegacy: [
+        { resourceId: 'act:infographic:Bode图_1_1', cardId: 'Bode图_1_1' },
+        { resourceId: 'act:infographic:未评审图_1_1', cardId: '未评审图_1_1' },
+      ],
+    });
+
+    expect(plan.authoring.resources.filter((row) => row.resourceType === 'infographic').length).toBe(4);
+    expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:infographic:ctc_core-a' && row.canonicalId === 'ctc:core-a')).toBe(true);
+    expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:infographic:Bode图_1_1' && row.canonicalId === 'ctc:core-a')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:infographic:ctc_missing' && row.reason === 'explicit-exemption' && row.detail === 'authority-infograph-outside-overlay')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:infographic:未评审图_1_1' && row.reason === 'no-exact-identity')).toBe(true);
+  });
+
+  it('feeds core nodes from the prerequisite publication and binds multi-unit cores via nodeUnitSets (#2042)', () => {
+    const coreNodes = [{
+      canonicalId: 'ctc:core-a',
+      pathEligible: true,
+      cardPolicy: 'optional',
+      moduleId: null,
+      scopeId: 'act-control-theory',
+      rationale: null,
+    }] as const;
+    const plan = planRuntimeFullBinding({
+      scopeId: 'act-control-theory',
+      authoringRevision: 'a'.repeat(40),
+      authorityReleaseId: 'ctr:release:x',
+      overlayCores: ['ctc:core-a'],
+      nodeUnitSets: new Map([['ctc:core-a', ['3-1', '3-9']]]),
+      nodeUnits: new Map([['ctc:core-a', '3-1']]),
+      resources: [
+        { resourceId: 'act:handout:3-9', resourceType: 'handout', projectionMode: 'OPTIONAL', scopeId: 'act-control-theory' },
+      ],
+      bindings: [],
+      prerequisites: [],
+      cards: [],
+      authorityCardCanonicalIds: [],
+      textbookLocators: [],
+      taskSims: [],
+      coreNodes,
+    });
+
+    expect(plan.authoring.coreNodes?.length).toBe(1);
+    expect(plan.authoring.coreNodes?.[0]?.canonicalId).toBe('ctc:core-a');
+    // 3-9 keeps its own cores under nodeUnitSets instead of collapsing to the earliest unit.
+    expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:handout:3-9' && row.canonicalId === 'ctc:core-a')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:handout:3-9')).toBe(false);
+  });
+
+  it('classifies declared and exempt classroom sims instead of ledgering them as without-unit (#2042)', () => {
+    const plan = planRuntimeFullBinding({
+      scopeId: 'act-control-theory',
+      authoringRevision: 'a'.repeat(40),
+      authorityReleaseId: 'ctr:release:x',
+      overlayCores: ['ctc:core-a'],
+      nodeUnits: new Map(),
+      resources: [
+        { resourceId: 'act:simulation:sim-pid-v1-sim-pid-v1', resourceType: 'simulation', projectionMode: 'OPTIONAL', scopeId: 'act-control-theory' },
+        { resourceId: 'act:simulation:classroom-poll-classroom-poll', resourceType: 'simulation', projectionMode: 'OPTIONAL', scopeId: 'act-control-theory' },
+      ],
+      bindings: [],
+      prerequisites: [],
+      cards: [],
+      authorityCardCanonicalIds: [],
+      textbookLocators: [],
+      taskSims: [],
+      simCanonicalDeclarations: [{ resourceKey: 'sim-pid-v1', canonicalId: 'ctc:core-a' }],
+      classroomSimExemptions: [{ resourceKey: 'classroom-poll-classroom-poll', exemptionReason: 'no-knowledge-anchor' }],
+    });
+
+    expect(plan.authoring.bindings.some((row) => row.resourceId === 'act:simulation:sim-pid-v1-sim-pid-v1' && row.canonicalId === 'ctc:core-a')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:simulation:classroom-poll-classroom-poll' && row.reason === 'explicit-exemption')).toBe(true);
+    expect(plan.ledger.some((row) => row.resourceId === 'act:simulation:sim-pid-v1-sim-pid-v1')).toBe(false);
+  });
+
+  it('enforces per-reason ledger quotas (#2042)', () => {
+    const ledger = [
+      { resourceId: 'a', reason: 'no-exact-identity' },
+      { resourceId: 'b', reason: 'no-exact-identity' },
+      { resourceId: 'c', reason: 'explicit-exemption' },
+    ] as const;
+    expect(evaluateLedgerQuotas(ledger, { 'no-exact-identity': 2, 'explicit-exemption': 1 }).passed).toBe(true);
+    const breached = evaluateLedgerQuotas(ledger, { 'no-exact-identity': 1 });
+    expect(breached.passed).toBe(false);
+    expect(breached.breaches).toEqual(['no-exact-identity: 2 > 1']);
+    expect(evaluateLedgerQuotas(ledger, {}).countsByReason).toEqual({
+      'explicit-exemption': 1,
+      'no-exact-identity': 2,
+    });
   });
 });

@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-06
-摘要: 生产应用 `v0.7.4-8d661f5`（main `8d661f58e…`，app-only，tar SHA256 `fa7f6a62…`）已发布并验收通过：integration（fe9343dd2，含 #1985/#2004/#2021/#2024/#2032/#2034 等）合入 main；画像 fence 验收脚本抽样缺陷已热修（#2005 引入的抽样命中零事实学生，已限定为迁移覆盖人群，修复 `48741377f` 已回传 integration）。英文切换 Dockerfile 修复随本次镜像上线，#1942 生产验收（archived tasks 4.2/4.3）已完成并关闭 Issue：demo 登录 `/knowledge` 中英文双向切换正常，14 个领域英文完整呈现，证据存 `artifacts/issue-1942-en-acceptance-2026-09-06/`。注意：demo 账号的累计画像仍显示"未通过版本或完整性校验"，对应已知残余——学生 `cmjtgw3ov00008f1njzx4bg7l` 的画像 current state 停留在 v2/gen1（current-state-version-mismatch），未被 v3 迁移覆盖，待后续对账。生产知识面维持 Authority v0.37（LEGACY），Runtime 仍为 `runtime-150a505a…`。Wolfram Cloud 仍维护 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：学生 `cmjtgw3ov00008f1njzx4bg7l` 的画像 current state 停留在 v2/gen1（current-state-version-mismatch），未被 v3 迁移覆盖，待后续对账。
+最后更新: 2026-09-07
+摘要: 生产应用 `v0.7.4-8d661f5`（main `8d661f58e…`，app-only，tar SHA256 `fa7f6a62…`）已发布并验收通过：integration（fe9343dd2，含 #1985/#2004/#2021/#2024/#2032/#2034 等）合入 main；画像 fence 验收脚本抽样缺陷已热修（`48741377f`，已回传 integration）。英文切换修复随镜像上线，#1942 生产验收完成并关闭（中英文双向切换正常）。生产知识面维持 Authority v0.37；Runtime active 仍为 `runtime-150a505a…`，但 lifecycle `desired=runtime-18187f40…` 处于待激活：该 release（源 24535a192，携带 domain-fragments 新指针 proj-05984a0f 的工件）被 #2045 学习清单 closure 门禁挡住（旧 manifest 不含当前密封学习清单资产），且 integration 上教学投影/学习清单仍在快速演进（B′′ #2051、#2053），下一次常规 runtime 发布会携带最新指针完成切换；图谱「教学关系 0 条」的根因就是该指针未发布。生产视图、容器与 active receipt 一致，服务健康。Wolfram Cloud 仍 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：demo 学生（`cmjtgw3ov00008f1njzx4bg7l`）画像 current state 停留 v2/gen1（version-mismatch），未被 v3 迁移覆盖，待对账。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -15,6 +15,8 @@
 - [docs/ProjectDescription.md](../ProjectDescription.md)
 
 ## 最近最重要的稳定变化
+
+- 2026-09-07 新版知识图谱五个生产问题完成根因调查并立项 #2052（buddy propose，待其他代理实现）：① hover 全图漂移=hover 重渲染使 graphData memo 失效（runtime-canvas 每次新建 materializedNodeIds/默认参数数组）+ force-graph 摄入即 `stop().alpha(1)` 全量重热 + fx/fy 沉降冻结被坐标续承刻意丢弃；`computeKnowledgeForceStructureSignature` 设计未接线。② 22/85 根轨迹节点标签是定义长句（v0.37 上游数据）。③ 「教学关系 0 条」=生产 domain-fragments 指针停在 proj-eb4d2d63（其唯一关系端点不在概览内）；#2032 的新指针 proj-05984a0f（root-locus 37 条可用）从未发布——view 切换保留选择器，指针切换是独立手术（参照 runtime-24535a192 artifact 的 apply-on-host.sh 模式）。④ 进入领域 16→27→85 三段跳变=visibleKeys 渐进并入+逐段重热重取景。⑤ 跨领域横幅=boundaryCues 顶部 section。deploy:runtime 运维教训：候选激活曾因 act-obe.env 持久化的 ACT_COORDINATED_ACTIVE_RECEIPT_PATH 与候选 mktemp 目录错位而失败回滚（修复 `a3c6498`/`4279c0038`）；resume 预检 staged 动作被 bash 门禁误判（修复 `e4fc5db6`）；`desired` 选择器需 `set-desired` 显式设置后 resume 才接受；发布命令经管道时必须回显真实 EXIT（tail 会掩盖失败）。
 
 - 2026-09-06 生产应用 `v0.7.4-8d661f5` 已发布并验收通过（`deploymentScope=app-only`，main `8d661f58e…`，tar SHA256 `fa7f6a62…`，app/worker OCI revision 与冻结 main 一致）：integration fe9343dd2 合入 main，版本 0.7.2→0.7.4；ActKG/CourseCoverage/资源绑定影子 verify-only 通过，知识图谱同步 838 节点/16571 关系，readyz app/db/redis 全 true，Redis noeviction，DATABASE_URL 连接池参数正确。部署期发现并热修：#2005 新增的画像 fence 验收脚本抽样「最早创建的 STUDENT」，在生产命中零事实账户（backfill 候选只含有 LearningFact 的学生，零事实账户按设计无 current state），改为抽样迁移覆盖学生（`48741377f`，已回传 integration）。操作教训：`remote-deploy.sh --skip-build` 默认读取 `deploy/images/act-obe.tar`，指定版本化 tar 必须显式传 `LOCAL_IMAGE_TAR`，且 `REMOTE_APP_IMAGE` 必须显式传目标标签（默认 `20260301-amd64` 会在装载后报 image not known）。生产数据残余：119/293 学生有画像 current state，175 个零事实账户无（按设计），1 个学生滞留 v2/gen1。
 

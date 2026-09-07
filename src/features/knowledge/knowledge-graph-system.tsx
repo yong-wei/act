@@ -135,6 +135,8 @@ export interface KnowledgeNodeData {
   importance?: number;
   /** Renderer-only label visibility priority; it is not learning-domain rank. */
   labelPriority?: boolean;
+  /** #2052：跨领域聚类标记（节点所属目标领域名；仅新版 2D 画布消费）。 */
+  crossDomainClusterDomain?: string;
   /**
    * Projection-shaped governance attributes (ActKG adapter). Absent means
    * "unknown"; `candidate: true` marks a governance candidate that

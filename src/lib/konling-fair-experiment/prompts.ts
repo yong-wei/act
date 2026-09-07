@@ -1,5 +1,6 @@
 import {
   buildKonlingTeachingAssistantRuntimeContract,
+  type KonlingCitationContext,
   type KonlingRuntimeContext,
   type KonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -10,6 +11,11 @@ import {
   type StudyQuestionIntent,
 } from '@/lib/konling-study-question-structure';
 import type { PageContext, UserProfile } from '@/types/ai-context';
+
+import {
+  buildKonlingFairExperimentCitationAssembly,
+  type KonlingFairExperimentCitationAssembly,
+} from './evidence-pool';
 
 import type {
   KonlingFairExperimentArm,
@@ -120,9 +126,16 @@ export function buildKonlingFairExperimentSystemPrompt(input: {
   arm: KonlingFairExperimentArm;
   item: KonlingFairExperimentBankItem;
   context: KonlingFairExperimentPromptContext;
+  /**
+   * #2039：full-feature 臂的证据装配输入（题库版本 + 生成修订）。存在时
+   * 经生产分配模块装配 citationContext 并随返回值交出，供 runner 冻结
+   * 与补证；基线臂必须不传（保持零引用能力）。
+   */
+  evidence?: { bankVersion: string; sourceRevision: string };
 }): {
   systemPrompt: string;
   contractIntent: string | null;
+  citationAssembly?: KonlingFairExperimentCitationAssembly;
 } {
   const { arm, item, context } = input;
   if (arm === 'plain-baseline' || arm === 'enhanced-baseline') {
@@ -139,7 +152,17 @@ export function buildKonlingFairExperimentSystemPrompt(input: {
     return { systemPrompt, contractIntent: item.intent };
   }
 
+  const citationAssembly = input.evidence
+    ? buildKonlingFairExperimentCitationAssembly({
+      item,
+      bankVersion: input.evidence.bankVersion,
+      sourceRevision: input.evidence.sourceRevision,
+    })
+    : undefined;
   const runtimeContext = buildKonlingFairExperimentRuntimeContext(context);
+  if (citationAssembly) {
+    runtimeContext.citationContext = buildFairExperimentCitationContext(citationAssembly);
+  }
   const scope: KonlingRuntimeScope = {
     authenticatedUserId: 'fair-experiment',
     targetUserId: 'fair-experiment',
@@ -181,7 +204,53 @@ export function buildKonlingFairExperimentSystemPrompt(input: {
     adaptiveRuntime: {
       teachingAssistantMode,
       knowledgeCapabilityContext: contract.groundingContext,
+      ...(runtimeContext.citationContext ? { citationContext: runtimeContext.citationContext } : {}),
     },
   });
-  return { systemPrompt, contractIntent: contract.studyQuestion?.intent ?? null };
+  return {
+    systemPrompt,
+    contractIntent: contract.studyQuestion?.intent ?? null,
+    ...(citationAssembly ? { citationAssembly } : {}),
+  };
+}
+
+/**
+ * #2039：把分配表映射为生产 `KonlingCitationContext` 形状（prompt 渲染
+ * 与运行时合同共用）；逐单元映射附在 contentCitations 的同源数据上。
+ * 未分配章节进入 lowConfidenceReasons，供模型如实降级而不是伪造覆盖。
+ */
+function buildFairExperimentCitationContext(
+  assembly: KonlingFairExperimentCitationAssembly,
+): KonlingCitationContext {
+  const contentCitations = assembly.citations.map((citation) => ({
+    id: citation.id,
+    sourceType: 'content' as const,
+    displayTitle: `参考材料引用 ${citation.displayNumber}`,
+    href: citation.href,
+    confidence: 'medium' as const,
+    evidenceBasis: citation.answerRelevanceBasis ?? 'unspecified',
+    owner: 'answer' as const,
+    citationTargetId: citation.citationTargetId,
+    verified: citation.verified,
+    displayNumber: citation.displayNumber ?? undefined,
+    answerRelevanceBasis: citation.answerRelevanceBasis ?? undefined,
+  }));
+  const unassignedTitles = assembly.plan.unassignedSectionIds
+    .map((sectionId) => assembly.plan.assignments.find((row) => row.sectionId === sectionId)?.sectionTitle ?? sectionId);
+  return {
+    required: true,
+    contentCitations,
+    evidenceCitations: [],
+    missingCitationClasses: unassignedTitles.length ? ['content'] : [],
+    lowConfidenceReasons: unassignedTitles.map((title) => `章节「${title}」无可直接支撑的分配来源`),
+    unitCitations: assembly.unitMappings.map((mapping) => ({
+      sectionTitle: mapping.sectionTitle,
+      displayNumbers: mapping.displayNumbers,
+    })),
+    responseProtocol: {
+      requiredOwners: ['answer'],
+      minimum: { content: 1, evidenceWhenAvailable: 1 },
+      fallbackWhenMissing: 'low-confidence',
+    },
+  };
 }

@@ -84,6 +84,8 @@ export function readDomainOverviews(repoRoot: string): Array<{
 export interface CourseTeachingContent {
   contentNodeIds: string[];
   nodeUnits: Map<string, string>;
+  /** Every unit with binding evidence for a canonical node (#2042); unlike nodeUnits it does not collapse to the earliest unit. */
+  nodeUnitSets: Map<string, string[]>;
   existingTeaching: Array<{
     sourceNodeId: string;
     targetNodeId: string;
@@ -125,6 +127,18 @@ export function readCourseTeachingContent(repoRoot: string): CourseTeachingConte
     resources.set(row.resourceId, row);
   }
   const nodeUnits = new Map<string, string>();
+  const nodeUnitSets = new Map<string, string[]>();
+  const recordUnit = (canonicalId: string, unit: string) => {
+    const current = nodeUnits.get(canonicalId);
+    if (!current || unitRank(unit) < unitRank(current)) nodeUnits.set(canonicalId, unit);
+    const units = nodeUnitSets.get(canonicalId);
+    if (!units) {
+      nodeUnitSets.set(canonicalId, [unit]);
+    } else if (!units.includes(unit)) {
+      units.push(unit);
+      units.sort((left, right) => unitRank(left) - unitRank(right));
+    }
+  };
   const content = new Set<string>();
   for (const line of readFileSync(join(projectionDir, 'bindings.jsonl'), 'utf8').split('\n')) {
     if (!line.trim()) continue;
@@ -142,8 +156,7 @@ export function readCourseTeachingContent(repoRoot: string): CourseTeachingConte
       resource?.resourceId ?? '',
     ]);
     if (!unit) continue;
-    const current = nodeUnits.get(row.canonicalId);
-    if (!current || unitRank(unit) < unitRank(current)) nodeUnits.set(row.canonicalId, unit);
+    recordUnit(row.canonicalId, unit);
   }
 
   const prereqPointer = readJson<{ publicationId: string }>(
@@ -161,8 +174,7 @@ export function readCourseTeachingContent(repoRoot: string): CourseTeachingConte
     content.add(core.canonicalId);
     const unit = earliestUnit(core.sourceEvidence ?? []);
     if (!unit) continue;
-    const current = nodeUnits.get(core.canonicalId);
-    if (!current || unitRank(unit) < unitRank(current)) nodeUnits.set(core.canonicalId, unit);
+    recordUnit(core.canonicalId, unit);
   }
   const edges = readJson<Array<{
     sourceNodeId: string;
@@ -181,8 +193,7 @@ export function readCourseTeachingContent(repoRoot: string): CourseTeachingConte
     const unit = earliestUnit(edge.evidenceRefs ?? []);
     if (unit) {
       for (const nodeId of [edge.sourceNodeId, edge.targetNodeId]) {
-        const current = nodeUnits.get(nodeId);
-        if (!current || unitRank(unit) < unitRank(current)) nodeUnits.set(nodeId, unit);
+        recordUnit(nodeId, unit);
       }
     }
     existingTeaching.push({
@@ -199,6 +210,7 @@ export function readCourseTeachingContent(repoRoot: string): CourseTeachingConte
   return {
     contentNodeIds: [...content],
     nodeUnits,
+    nodeUnitSets,
     existingTeaching,
   };
 }

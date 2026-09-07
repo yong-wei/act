@@ -248,6 +248,64 @@ describe('Authority learning-content delivery', () => {
     expect(result.stdout).toContain('sidecar=');
   });
 
+  it('fails closed when the teaching seal differs from the active envelope (#2045)', () => {
+    withAlignedRuntime(({ accepted }) => {
+      expectUnavailable(accepted);
+    }, (manifest) => {
+      manifest.teachingProjectionId = 'proj-0000000000000000000000000000000000000000000000000000000000000000';
+      manifest.teachingProjectionHash = '0'.repeat(64);
+    });
+  });
+
+  it('serves a missing-state infograph as an honest gap while the card stays available (#2045)', () => {
+    withAlignedRuntime(({ accepted }) => {
+      const resolved = attachActiveAuthorityLearningContent(accepted);
+      expect(resolved.node.learningContent?.card.state).toBe('available');
+      expect(resolved.node.learningContent?.infograph).toEqual({
+        state: 'missing',
+        message: '当前节点暂无可用信息图。',
+      });
+      expect(readActiveAuthorityInfograph(accepted)).toBeNull();
+    }, (manifest) => {
+      const nodes = manifest.nodes as Array<Record<string, unknown>>;
+      manifest.nodes = nodes.map((node) => (
+        node.canonicalId === ACCEPTED_NODE
+          ? { ...node, infograph: { state: 'missing', sha256: null } }
+          : node
+      ));
+    });
+  });
+
+  it('classifies the shipped v2 manifest as available with a script-produced seal (#2045)', async () => {
+    const { classifyLearningContentManifest } = await import('@/lib/knowledge-surface/learning-content');
+    const manifest = JSON.parse(readFileSync(join(REPO_ROOT, MANIFEST_RELATIVE), 'utf8')) as Record<string, unknown>;
+    const shardEnvelope = loadNodeDetailShard(ACCEPTED_NODE).envelope.authority;
+    const classification = classifyLearningContentManifest(manifest, {
+      releaseId: shardEnvelope.releaseId,
+      releaseSetId: shardEnvelope.releaseSetId,
+      snapshotId: shardEnvelope.snapshotId,
+      snapshotHash: shardEnvelope.snapshotHash,
+    });
+    expect(classification.status).toBe('available');
+    expect(manifest.nodes.length).toBeGreaterThanOrEqual(1236);
+    const overlay = JSON.parse(
+      readFileSync(join(REPO_ROOT, 'course-content/runtime/knowledge/teaching-projection/domain-fragments/current.json'), 'utf8'),
+    ) as { projectionId: string; projectionHash: string };
+    expect(manifest.teachingProjectionId).toBe(overlay.projectionId);
+    expect(manifest.teachingProjectionHash).toBe(overlay.projectionHash);
+  });
+
+  it('re-exports the v2 manifest byte-stably (#2045)', () => {
+    const manifestPath = join(REPO_ROOT, MANIFEST_RELATIVE);
+    const before = readFileSync(manifestPath);
+    const result = spawnSync('python3', ['scripts/knowledge/export-authority-learning-content-v2.py'], {
+      encoding: 'utf8',
+      cwd: REPO_ROOT,
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(readFileSync(manifestPath).equals(before)).toBe(true);
+  });
+
   it('does not read the course teaching pointer when shard teaching is unavailable', () => {
     const projectionResolver = vi.spyOn(teachingProjectionStore, 'resolveActiveTeachingProjection');
     const live = loadNodeDetailShard(ACCEPTED_NODE);
