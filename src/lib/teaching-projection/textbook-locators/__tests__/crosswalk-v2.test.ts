@@ -156,7 +156,7 @@ describe('runtime full binding v2 textbook channel', () => {
     expect(plan.authoring.bindings.filter((row) => row.canonicalId === 'ctc:core-a')).toHaveLength(0);
   });
 
-  it('ledgers each unknown canonical on a mixed v2 row and still binds overlay hits', () => {
+  it('ledgers each unknown canonical on a mixed v2 row and still binds authority-known endpoints', () => {
     const plan = planWith([{ ...V2_ROW, canonicalIds: ['ctc:core-a', 'ctc:not-in-release'] }]);
     expect(plan.ledger).toContainEqual(expect.objectContaining({
       reason: 'unknown-canonical',
@@ -183,9 +183,52 @@ describe('runtime full binding v2 textbook channel', () => {
     }));
   });
 
-  it('skips v2 rows whose endpoints are authority-known but outside the course overlay', () => {
+  it('binds authority-known endpoints even when they sit outside overlay cores', () => {
     const plan = planWith([{ ...V2_ROW, canonicalIds: ['ctc:authority-only'] }]);
     expect(plan.ledger).toHaveLength(0);
+    expect(plan.authoring.bindings).toContainEqual(expect.objectContaining({
+      canonicalId: 'ctc:authority-only',
+      role: 'EXPLAINS',
+    }));
+  });
+
+  it('ledgers v2 rows whose book identity diverges from the alias table', () => {
+    const plan = planWith([{ ...V2_ROW, bookId: 'not-the-aliased-book' }]);
+    expect(plan.ledger).toContainEqual(expect.objectContaining({
+      reason: 'out-of-round-textbook',
+      detail: 'book-id-mismatch:not-the-aliased-book',
+    }));
+    expect(plan.authoring.bindings).toHaveLength(0);
+  });
+
+  it('ledgers v2 rows whose structural unit fails the restage coordinate check', () => {
+    const plan = planRuntimeFullBinding({
+      scopeId: 'act-control-theory',
+      authoringRevision: 'a'.repeat(40),
+      authorityReleaseId: RELEASE_V037,
+      overlayCores: ['ctc:core-a'],
+      nodeUnits: new Map(),
+      resources: [],
+      bindings: [],
+      prerequisites: [],
+      cards: [],
+      authorityCardCanonicalIds: [],
+      authorityCanonicalIds: ['ctc:core-a', 'ctc:authority-only'],
+      authorityIdentityPin: {
+        authorityReleaseId: RELEASE_V037,
+        authorityReleaseHash: 'h'.repeat(64),
+        bundleDigest: 'b'.repeat(64),
+        captureRevision: 'c'.repeat(40),
+      },
+      textbookLocators: [],
+      textbookLocatorsV2: [V2_ROW],
+      textbookCoordinateCheck: () => 'coordinate-unresolved:missing-unit',
+      taskSims: [],
+    });
+    expect(plan.ledger).toContainEqual(expect.objectContaining({
+      reason: 'stale-authority-binding',
+      detail: 'coordinate-unresolved:missing-unit',
+    }));
     expect(plan.authoring.bindings).toHaveLength(0);
   });
 

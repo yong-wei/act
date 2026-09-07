@@ -4,6 +4,7 @@
  */
 
 import { humanTitleFromResourceId } from '@/lib/authority-domain-shards/resource-bindings';
+import { TEXTBOOK_ID_ALIASES } from '@/lib/engineering-textbook-mapping/aliases';
 import {
   TEACHING_PROJECTION_AUTHORING_CONTRACT,
   type TeachingBindingAuthoring,
@@ -187,6 +188,20 @@ export interface RuntimeFullBindingPlan {
   };
 }
 
+function v2LocatorAliasMismatch(locator: TextbookLocatorRowV2): string | null {
+  const alias = TEXTBOOK_ID_ALIASES.find((row) => row.sourceDocumentId === locator.sourceDocumentId);
+  if (!alias) {
+    return `unaliased-source:${locator.sourceDocumentId}`;
+  }
+  if (alias.readerBookId !== locator.bookId) {
+    return `book-id-mismatch:${locator.bookId}`;
+  }
+  if (alias.edition !== locator.edition) {
+    return `edition-mismatch:${locator.edition}`;
+  }
+  return null;
+}
+
 function v2LocatorIdentityMismatch(
   locator: TextbookLocatorRowV2,
   expectedReleaseId: string,
@@ -286,14 +301,17 @@ export function planRuntimeFullBinding(input: {
   textbookLocatorsV2?: readonly TextbookLocatorRowV2[];
   /**
    * Canonical ids present in the pinned Authority release (#2043): v2 rows
-   * naming endpoints outside it fail into the exception ledger; rows whose
-   * endpoints are authority-known but outside the course overlay are simply
-   * not projected in course scope (their mapping coverage is tracked by the
-   * governance ledgers, not this course projection ledger).
+   * naming endpoints outside it fail into the exception ledger. Admitted rows
+   * bind every authority-known endpoint, including those outside overlay cores.
    */
   authorityCanonicalIds?: ReadonlySet<string> | readonly string[];
   /** When set, v2 rows must match all four identity fields or go to the ledger. */
   authorityIdentityPin?: AuthorityIdentityPin;
+  /**
+   * Optional restage-time structural-unit check against textbooks-v2.
+   * Return a detail string to ledger the row as stale-authority-binding.
+   */
+  textbookCoordinateCheck?: (locator: TextbookLocatorRowV2) => string | null;
   taskSims: readonly TaskSimInput[];
   cardCrosswalk?: readonly CardCrosswalkInput[];
   cardExemptions?: readonly CardExemptionInput[];
@@ -328,8 +346,15 @@ export function planRuntimeFullBinding(input: {
     resources.set(id, { ...row, title: titleFor(id, row.title) });
   };
 
-  const addBinding = (row: TeachingBindingAuthoring) => {
-    if (!overlay.has(row.canonicalId) && !input.bindings.some((b) => b.canonicalId === row.canonicalId)) {
+  const addBinding = (
+    row: TeachingBindingAuthoring,
+    options?: { allowOutsideOverlay?: boolean },
+  ) => {
+    if (
+      !options?.allowOutsideOverlay
+      && !overlay.has(row.canonicalId)
+      && !input.bindings.some((b) => b.canonicalId === row.canonicalId)
+    ) {
       return false;
     }
     const key = bindingKey(row);
@@ -690,19 +715,37 @@ export function planRuntimeFullBinding(input: {
       });
       continue;
     }
+    const sectionLedgerId = `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`;
     const identityMismatch = v2LocatorIdentityMismatch(locator, input.authorityReleaseId, input.authorityIdentityPin);
     if (identityMismatch) {
       ledger.push({
-        resourceId: `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`,
+        resourceId: sectionLedgerId,
         reason: 'stale-authority-binding',
         detail: identityMismatch,
+      });
+      continue;
+    }
+    const aliasMismatch = v2LocatorAliasMismatch(locator);
+    if (aliasMismatch) {
+      ledger.push({
+        resourceId: sectionLedgerId,
+        reason: 'out-of-round-textbook',
+        detail: aliasMismatch,
+      });
+      continue;
+    }
+    const coordinateMismatch = input.textbookCoordinateCheck?.(locator) ?? null;
+    if (coordinateMismatch) {
+      ledger.push({
+        resourceId: sectionLedgerId,
+        reason: 'stale-authority-binding',
+        detail: coordinateMismatch,
       });
       continue;
     }
     const authorityIds = input.authorityCanonicalIds
       ? new Set(input.authorityCanonicalIds)
       : null;
-    const sectionLedgerId = `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`;
     if (authorityIds) {
       for (const canonicalId of locator.canonicalIds) {
         if (!authorityIds.has(canonicalId)) {
@@ -720,8 +763,6 @@ export function planRuntimeFullBinding(input: {
     if (authorityKnown.length === 0) {
       continue;
     }
-    const hitIds = authorityKnown.filter((id) => overlay.has(id));
-    if (hitIds.length === 0) continue;
     // Single-token section identity per the projection resource grammar;
     // toResourceIdToken keeps it reversible back to the structural unit id.
     const sectionToken = toResourceIdToken(
@@ -748,19 +789,19 @@ export function planRuntimeFullBinding(input: {
       title: locator.unitTitle
         ?? `${BOOK_TITLES[locator.sourceDocumentId] ?? locator.bookId} ${locator.structuralPath.join('/')}`,
     });
-    for (const canonicalId of hitIds) {
+    for (const canonicalId of authorityKnown) {
       addBinding({
         resourceId: sectionId,
         canonicalId,
         role: 'EXPLAINS',
         scopeId: input.scopeId,
-      });
+      }, { allowOutsideOverlay: true });
       addBinding({
         resourceId: bookId,
         canonicalId,
         role: 'EXPLAINS',
         scopeId: input.scopeId,
-      });
+      }, { allowOutsideOverlay: true });
     }
   }
 

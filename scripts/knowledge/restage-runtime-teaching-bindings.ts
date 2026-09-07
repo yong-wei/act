@@ -46,6 +46,15 @@ import {
   type TextbookLocatorRowV2,
 } from '@/lib/teaching-projection/runtime-full-binding';
 import { loadSourceResourceCrosswalkMixed } from '@/lib/teaching-projection/textbook-locators/crosswalk';
+import {
+  TEXTBOOK_ID_ALIASES,
+  verifyTextbookAliasesAgainstManifests,
+} from '@/lib/engineering-textbook-mapping/aliases';
+import { EngineeringTextbookMappingError } from '@/lib/engineering-textbook-mapping/contracts';
+import {
+  loadStructuralUnitIndex,
+  resolveStructuralUnit,
+} from '@/lib/engineering-textbook-mapping/coordinates';
 const ROOT = process.cwd();
 const OVERLAY_REL = 'course-content/runtime/knowledge/teaching-projection/domain-fragments';
 const PROJECTION_REL = 'course-content/runtime/knowledge/projection';
@@ -323,7 +332,7 @@ function currentHead(): string {
   return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const pointer = readJson<{
     projectionId: string;
     projectionHash: string;
@@ -360,6 +369,10 @@ function main(): void {
   const cardsIndex = readJson<{ cards: RuntimeCardRow[] }>(`${releaseDir}/cards-index.json`);
   const overlayCores = loadOverlayCores();
   const textbookLocators = loadTextbookLocators();
+  verifyTextbookAliasesAgainstManifests();
+  const structuralUnits = await loadStructuralUnitIndex({
+    bookIds: TEXTBOOK_ID_ALIASES.map((row) => row.readerBookId),
+  });
   const course = readCourseTeachingContent(ROOT);
   const overlayPointer = readJson<{
     projectionId: string;
@@ -428,6 +441,23 @@ function main(): void {
     textbookLocatorsV2: textbookLocators.v2,
     authorityCanonicalIds: loadAuthorityCanonicalIds(),
     authorityIdentityPin: loadAuthorityIdentityPin(),
+    textbookCoordinateCheck: (locator) => {
+      try {
+        const unit = resolveStructuralUnit(structuralUnits, {
+          bookId: locator.bookId,
+          structuralUnitId: locator.structuralUnitId,
+          structuralPath: locator.structuralPath,
+        });
+        if (unit.edition !== locator.edition) {
+          return `edition-mismatch:${locator.edition}`;
+        }
+        return null;
+      } catch (error) {
+        return error instanceof EngineeringTextbookMappingError || error instanceof Error
+          ? error.message
+          : String(error);
+      }
+    },
     taskSims: loadTaskSims(),
     cardCrosswalk,
     cardExemptions,
@@ -525,4 +555,7 @@ function main(): void {
   }, null, 2)}\n`);
 }
 
-main();
+main().catch((error) => {
+  process.stderr.write(`${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+  process.exit(1);
+});
