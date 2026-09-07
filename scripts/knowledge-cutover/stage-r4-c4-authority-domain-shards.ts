@@ -21,7 +21,7 @@ import {
   AUTHORITY_SHARD_ENVELOPE_CONTRACT,
   type AuthorityShardEnvelope,
 } from '@/lib/authority-domain-shards/contracts';
-import { createTeachingOverlay } from '@/lib/authority-domain-shards/teaching';
+import { createTeachingOverlay, loadOptionalDomainTeachingProjection } from '@/lib/authority-domain-shards/teaching';
 import {
   loadStagedAuthoritySnapshot,
   resolveAuthorityStorePaths,
@@ -174,9 +174,35 @@ function main(): void {
     releaseId: authority.manifest.releaseId,
   });
 
-  // No domain-fragment Teaching Projection has been staged for r4.  The core
-  // Teaching Projection is independently selected by its own pointer, so the
-  // shard surface honestly exposes unavailable optional domain overlay data.
+  // r4 staged without a domain-fragment Teaching overlay; r6 stages with the
+  // live overlay pointer bound to the same successor Authority identity.
+  const teachingOverlay = option('--teaching-overlay', '1') === '1'
+    ? loadOptionalDomainTeachingProjection({
+      repoRoot: ROOT,
+      authority: {
+        releaseId: authority.manifest.releaseId,
+        releaseSetId: authority.manifest.releaseSetId,
+        snapshotId: authority.snapshotId,
+        snapshotHash: authority.snapshotHash,
+      },
+    })
+    : null;
+  if (option('--teaching-overlay', '1') === '1' && (!teachingOverlay?.pointer || !teachingOverlay.artifacts)) {
+    throw new Error('live domain Teaching overlay does not verify against the staged Authority identity');
+  }
+  const teachingIdentity = teachingOverlay?.pointer
+    ? {
+      status: teachingOverlay.artifacts ? 'available' as const : 'unavailable' as const,
+      projectionId: teachingOverlay.pointer.projectionId,
+      projectionHash: teachingOverlay.pointer.projectionHash,
+      teachingCacheFamily: teachingOverlay.pointer.teachingCacheFamily,
+    }
+    : {
+      status: 'unavailable' as const,
+      projectionId: null,
+      projectionHash: null,
+      teachingCacheFamily: null,
+    };
   const envelope: AuthorityShardEnvelope = {
     contract: AUTHORITY_SHARD_ENVELOPE_CONTRACT,
     authority: {
@@ -194,19 +220,16 @@ function main(): void {
       catalogHash: catalog.catalogHash,
       catalogVersion: catalog.catalogVersion,
     },
-    teaching: {
-      status: 'unavailable',
-      projectionId: null,
-      projectionHash: null,
-      teachingCacheFamily: null,
-    },
-    match: { authority: true, catalog: true, teaching: null },
+    teaching: teachingIdentity,
+    match: { authority: true, catalog: true, teaching: teachingOverlay?.pointer ? (teachingOverlay.artifacts ? true : false) : null },
   };
   const materialized = buildAuthorityDomainShards({
     envelope,
     catalog,
     engineering: authority.engineering,
-    teaching: createTeachingOverlay(null),
+    teaching: createTeachingOverlay(teachingOverlay?.pointer ?? null, {
+      artifacts: teachingOverlay?.artifacts ?? null,
+    }),
     activatedAt: stagedAt,
   });
   const paths = resolveAuthorityDomainShardPaths(

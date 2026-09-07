@@ -1,0 +1,2817 @@
+{
+  "shardClass": "domain-default",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "root-locus",
+  "visualRole": "root-locus",
+  "objects": [
+    {
+      "id": "ctc:v11g-01781c7700bbf33340d39614",
+      "canonicalType": "DomainConcept",
+      "label": "临界开环增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-046d539f3b7005bb49884851",
+      "canonicalType": "DomainConcept",
+      "label": "自回路传递函数",
+      "aliases": [
+        "自回路传输"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "canonicalType": "DomainConcept",
+      "label": "反馈路径根轨迹增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-110792a593c8f23f058bf750",
+      "canonicalType": "DomainConcept",
+      "label": "一型系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "canonicalType": "DomainConcept",
+      "label": "欠阻尼系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-13a9994c50acce777819aa2a",
+      "canonicalType": "DomainConcept",
+      "label": "闭环极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-160c78d3827065aca5585f55",
+      "canonicalType": "DomainConcept",
+      "label": "埃文斯根轨迹构造法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "canonicalType": "DomainConcept",
+      "label": "稳定时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-1ebbddfa13931f700f437271",
+      "canonicalType": "DomainConcept",
+      "label": "出射角",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-21fba199a9fdef15887d600f",
+      "canonicalType": "DomainConcept",
+      "label": "滞后补偿",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+      "canonicalType": "DomainConcept",
+      "label": "废气传感器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-2628d227495a3860151a16c1",
+      "canonicalType": "DomainConcept",
+      "label": "虚轴穿越",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-29bcae62e44c52ed219e6687",
+      "canonicalType": "DomainConcept",
+      "label": "对数灵敏度",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-2c9038984a34b530385c3e4a",
+      "canonicalType": "DomainConcept",
+      "label": "首一多项式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-2d0a8b878047bb6a5effc783",
+      "canonicalType": "DomainConcept",
+      "label": "等效单位反馈系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-35bacac12472ebce3fd8ca03",
+      "canonicalType": "DomainConcept",
+      "label": "集总参数电路",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-3919da0292885d130aff2c77",
+      "canonicalType": "DomainConcept",
+      "label": "反应速率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-3a468572771e0b54e23a6ef5",
+      "canonicalType": "DomainConcept",
+      "label": "图形增益计算方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "canonicalType": "DomainConcept",
+      "label": "特征方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-40aced4eb1298f7db801690b",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹分支",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-44d931dcd9405d845e782f87",
+      "canonicalType": "DomainConcept",
+      "label": "分布电阻电容网络",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-462227b4794133f894bdd0a8",
+      "canonicalType": "DomainConcept",
+      "label": "分离点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-485febfa90a27cfcedd997ff",
+      "canonicalType": "DomainConcept",
+      "label": "临界振荡周期",
+      "aliases": [
+        "极限周期"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "canonicalType": "DomainConcept",
+      "label": "回路传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "canonicalType": "DomainConcept",
+      "label": "绘制根轨迹的七个步骤",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:v11g-4c152561a989c34245c538b6",
+      "canonicalType": "DomainConcept",
+      "label": "渐近线",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-5322cdb3c781cb7b9828732a",
+      "canonicalType": "DomainConcept",
+      "label": "非最小相位系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-546566f01ae374379ec78c1e",
+      "canonicalType": "DomainConcept",
+      "label": "两步参数设计法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-5845390ded447e37f06ea222",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "canonicalType": "DomainConcept",
+      "label": "正反馈系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-67c03c5207c095a08e761361",
+      "canonicalType": "DomainConcept",
+      "label": "过阻尼系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-69118dc66489d66b1732901b",
+      "canonicalType": "DomainConcept",
+      "label": "闭环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-6b04c8283d317cd809eae369",
+      "canonicalType": "DomainConcept",
+      "label": "陷波校正",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-6bfefff084f66202b9af9dd4",
+      "canonicalType": "DomainConcept",
+      "label": "齐格勒-尼科尔斯PID整定方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-6c5064d654265c2b32389beb",
+      "canonicalType": "DomainConcept",
+      "label": "增益镇定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+      "canonicalType": "DomainConcept",
+      "label": "常规根轨迹",
+      "aliases": [
+        "常规轨迹"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-73552d8da29fbd2073b5f21a",
+      "canonicalType": "DomainConcept",
+      "label": "前向通路时间常数增益",
+      "aliases": [
+        "时间常数增益"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-79840533ef35fdf38b995397",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹增益参数",
+      "aliases": [
+        "可变增益"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+      "canonicalType": "DomainConcept",
+      "label": "超调量百分比",
+      "aliases": [
+        "超调量"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹参数整定法",
+      "aliases": [
+        "根轨迹选参"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-8dbc090e09d5c07e280c6319",
+      "canonicalType": "DomainConcept",
+      "label": "静态速度误差常数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-91ad9d6426185f59dea4a418",
+      "canonicalType": "DomainConcept",
+      "label": "斜坡稳态误差",
+      "aliases": [
+        "速度误差"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-93b322aec104af4eb69aa152",
+      "canonicalType": "DomainConcept",
+      "label": "PID整定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-95859dcad651c20058bf8726",
+      "canonicalType": "DomainConcept",
+      "label": "开环零点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-97c34f1eca6199404a4ccf79",
+      "canonicalType": "DomainConcept",
+      "label": "反应曲线",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "canonicalType": "DomainConcept",
+      "label": "到达角",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼比",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "canonicalType": "DomainConcept",
+      "label": "振荡频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-a066f5e5a1852fcde776a250",
+      "canonicalType": "DomainConcept",
+      "label": "临界阻尼系统",
+      "aliases": [
+        "临界阻尼"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "canonicalType": "DomainConcept",
+      "label": "参数根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-a8b5ea28f2d127b68833e809",
+      "canonicalType": "DomainConcept",
+      "label": "应答器标签",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+      "canonicalType": "DomainConcept",
+      "label": "四分之一幅值衰减",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "criterion"
+    },
+    {
+      "id": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+      "canonicalType": "DomainConcept",
+      "label": "反应曲线参数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-b79da91dde120d5d6d3721cd",
+      "canonicalType": "DomainConcept",
+      "label": "b(s)=0的根，记作z_i。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+      "canonicalType": "DomainConcept",
+      "label": "临界稳定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_property"
+    },
+    {
+      "id": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+      "canonicalType": "DomainConcept",
+      "label": "开环极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "canonicalType": "DomainConcept",
+      "label": "广义根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-c3abeee0067f823ed190d79e",
+      "canonicalType": "DomainConcept",
+      "label": "开环增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-c7228e5d5d171b0633b246e3",
+      "canonicalType": "DomainConcept",
+      "label": "单位反馈系统",
+      "aliases": [
+        "单位反馈"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_kind"
+    },
+    {
+      "id": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "canonicalType": "DomainConcept",
+      "label": "积分控制器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+      "canonicalType": "DomainConcept",
+      "label": "延续根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "canonicalType": "DomainConcept",
+      "label": "时间延迟",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "phenomenon"
+    },
+    {
+      "id": "ctc:v11g-cd72ae39f59955a649bff662",
+      "canonicalType": "DomainConcept",
+      "label": "废气再循环",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-d20816e0005b7c325c7f4477",
+      "canonicalType": "DomainConcept",
+      "label": "等效开环传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "representation_kind"
+    },
+    {
+      "id": "ctc:v11g-d25e6196c789c546f7a61064",
+      "canonicalType": "DomainConcept",
+      "label": "正反馈内回路",
+      "aliases": [
+        "内环正反馈"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+      "canonicalType": "DomainConcept",
+      "label": "渐近线与实轴之间的夹角 φ_A。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+      "canonicalType": "DomainConcept",
+      "label": "三元催化器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-d81f72b09d08ab1f36c29305",
+      "canonicalType": "DomainConcept",
+      "label": "零极点偶极子",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+      "canonicalType": "DomainConcept",
+      "label": "参数偏离其标称值时根的灵敏度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-daefb900250d1b7d86e36bdd",
+      "canonicalType": "DomainConcept",
+      "label": "最终增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "canonicalType": "DomainConcept",
+      "label": "渐近线质心",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+      "canonicalType": "DomainConcept",
+      "label": "滤波器补偿器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_component"
+    },
+    {
+      "id": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "canonicalType": "DomainConcept",
+      "label": "前向通路根轨迹增益",
+      "aliases": [
+        "归一化前向增益"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "canonicalType": "DomainConcept",
+      "label": "超前校正",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+      "canonicalType": "DomainConcept",
+      "label": "传输延迟",
+      "aliases": [
+        "纯滞后"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "canonicalType": "DomainConcept",
+      "label": "开环极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v11g-f3a9655898917afa28e9c600",
+      "canonicalType": "DomainConcept",
+      "label": "比例积分微分试凑整定",
+      "aliases": [
+        "手动整定"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "design_method"
+    },
+    {
+      "id": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+      "canonicalType": "DomainConcept",
+      "label": "主导根",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "system_property"
+    },
+    {
+      "id": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "canonicalType": "DomainConcept",
+      "label": "固有频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctc:v12g-b6ec19cda5342874277159e7",
+      "canonicalType": "DomainConcept",
+      "label": "实轴根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "mathematical_object"
+    },
+    {
+      "id": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "canonicalType": "DomainConcept",
+      "label": "会合点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "phenomenon"
+    },
+    {
+      "id": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "canonicalType": "DomainConcept",
+      "label": "零度根轨迹",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    }
+  ],
+  "teachingRelations": [
+    {
+      "id": "dt-edge-023d0388ee50a397999fe3e2",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-d20816e0005b7c325c7f4477",
+      "targetId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-1788ccfd0dcf2d0d1358b6ca",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "targetId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-1943bf3cd317474c46903fc6",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "targetId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-1ebb519736f99df78d586502",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-69118dc66489d66b1732901b",
+      "targetId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2279a176b93daa89886779dc",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-c3abeee0067f823ed190d79e",
+      "targetId": "ctc:v11g-f3a9655898917afa28e9c600",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2a95b81ea48374ac0a88736c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "targetId": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-342e576624aa57d2d282ebb6",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "targetId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-3fdcd5e9c5d0c3486fb707e1",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-2628d227495a3860151a16c1",
+      "targetId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4a657098d66e2723246e9084",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "targetId": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4cdd183a99277cdaebba0b11",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "targetId": "ctc:v11g-c3abeee0067f823ed190d79e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-5287a256c92b30c8204f44df",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "targetId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-56d4abf2cdec08c9cdda20d4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-95859dcad651c20058bf8726",
+      "targetId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-59aed003bbea352e211a192e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "targetId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6b86e18c03fda3730fee5efb",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+      "targetId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6b92568ad3c6b72fd1e0b043",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+      "targetId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-71eb348e02dccb62886525d4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "targetId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-7eeb553e3cbcadafbd85cffc",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-5845390ded447e37f06ea222",
+      "targetId": "ctc:v11g-69118dc66489d66b1732901b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-881d71184629a1a702bfc7b3",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "targetId": "ctc:v11g-d20816e0005b7c325c7f4477",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9045be940ecd56e64ff68ff0",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "targetId": "ctc:v11g-95859dcad651c20058bf8726",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-922cfc98af501dbc14a5ee89",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "targetId": "ctc:v11g-4c152561a989c34245c538b6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9f5ed306f9ecbbe605f93f8f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "targetId": "ctc:v11g-462227b4794133f894bdd0a8",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ab9eda0147cb8fc5aad50827",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "targetId": "ctc:v11g-95859dcad651c20058bf8726",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-acb014f2d1aafa72a5dc0fa7",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-4c152561a989c34245c538b6",
+      "targetId": "ctc:v11g-2628d227495a3860151a16c1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-b19a1d938b6e753243e9ce66",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "targetId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-b9b4316a56630bbd290dfc80",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-40aced4eb1298f7db801690b",
+      "targetId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-bfb13353adc09230bea6949d",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "targetId": "ctc:v11g-5845390ded447e37f06ea222",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ccaad06f1c029bf465ed2fe2",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "targetId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d0996a0f52e4d7e792506ac9",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "targetId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d1ec6355dfc5cba7f74312b6",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "targetId": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d5dab9a1a7f05563fb335f64",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v12g-b6ec19cda5342874277159e7",
+      "targetId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d94c86786b4fe9bd1961e3c7",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-2628d227495a3860151a16c1",
+      "targetId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-df69c49311310b06445d0767",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-462227b4794133f894bdd0a8",
+      "targetId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-e7c481355016ebb39a91c2c2",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-546566f01ae374379ec78c1e",
+      "targetId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-eccdda8a11311a7087b1e619",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "targetId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f3aa53bb8139b017a9628273",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "targetId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f8e11bc887a530831b4bf9f9",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-f3a9655898917afa28e9c600",
+      "targetId": "ctc:v11g-21fba199a9fdef15887d600f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-fb28daccf736a388b22fb82c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctc:v11g-1ebbddfa13931f700f437271",
+      "targetId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    }
+  ],
+  "teachingCoverage": {
+    "status": "available",
+    "domainId": "root-locus",
+    "relationCount": 37,
+    "coreNodeCount": 39,
+    "uncoveredCoreNodeCount": 0,
+    "note": "该领域已发布可用的教学关系覆盖"
+  }
+}

@@ -1,0 +1,6023 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "discrete-time-control-design",
+  "entries": [
+    {
+      "id": "ctkg:condition:031b82c2261221a7e1990c32",
+      "canonicalType": "Condition",
+      "label": "K 为正实数增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:04f699f6f74d3d99d3a4e6c5",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:04f73e4774a5a12d6753cfae",
+      "canonicalType": "Condition",
+      "label": "z 平面根轨迹设计",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:08d808d0120c685c3e234c78",
+      "canonicalType": "Condition",
+      "label": "PID 控制器差分方程算法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:09109992ea9fbcd44a25e28c",
+      "canonicalType": "Condition",
+      "label": "在离散设计中，为了获得更大的噪声衰减，可以将极点移至 z=0 的右侧，从而减弱微分作用并增强平滑效果，这与连续控制设计中的权衡相同。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:09d53a0557357454c1a7cc8e",
+      "canonicalType": "Condition",
+      "label": "在任何情况下对数字控制系统进行仿真都是适宜的，因为仿真可能暴露出采用连续或离散线性分析无法检测到的不稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:0d659ced2f36280661a3026e",
+      "canonicalType": "Condition",
+      "label": "The system is a discrete system.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:102c69042491bbc8cd3c5ba0",
+      "canonicalType": "Condition",
+      "label": "当采样率相对于 ω_n 较快（ω_s ≈ 20 × ω_n）时，离散设计与离散等效设计的性能和控制方程无显著差异。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:154dd0c0fedb2d295cde0440",
+      "canonicalType": "Condition",
+      "label": "Argument that the settling time of a deadbeat system is independent of the input form",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:15c29c0983ed9a3cbe3dc8ee",
+      "canonicalType": "Condition",
+      "label": "在离散设计中，校正装置零点的位置通过试凑法确定，直至根轨迹穿过所期望的 z 平面位置。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:17197f6be19b26519855f5be",
+      "canonicalType": "Condition",
+      "label": "常用设计阻尼比 zeta = 1/sqrt(2) 对应 sigma = -omega",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:219895d4ca20c8b8caa04016",
+      "canonicalType": "Condition",
+      "label": "The system is a linear time-invariant discrete-time system.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:24147b2dc870e26c6c8dd8d9",
+      "canonicalType": "Condition",
+      "label": "The closed-loop discrete system is shown in Figure 7-73, with sampling period T varying in the range 0 ≤ T ≤ 1.2s.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2421e42a1b1a04ee0a2673f8",
+      "canonicalType": "Condition",
+      "label": "G(z) has no delay and has no zeros or poles on or outside the unit circle in the z-plane.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2687cb34927b559aba2e3cd9",
+      "canonicalType": "Condition",
+      "label": "K 为正实数增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:26b1cdea09fc0a68b9e15186",
+      "canonicalType": "Condition",
+      "label": "连续到离散设计的采样周期选择",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2856d2f356dad0d161e28636",
+      "canonicalType": "Condition",
+      "label": "The sampling period T is sufficiently small to ensure discretization accuracy.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2984828967139f058d0d3085",
+      "canonicalType": "Condition",
+      "label": "连续系统中用于求解 s 多项式根的根轨迹方法，同样无需修改即可适用于 z 多项式。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2a8630f9f355011ee8e4d31f",
+      "canonicalType": "Condition",
+      "label": "The system has unity feedback, and a one-beat response is desired.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2bef8f644b9c6bf301a7ee95",
+      "canonicalType": "Condition",
+      "label": "The system is a discrete control system, and the input signal is a typical signal (such as a unit step, unit ramp, etc.).",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2f0f96a3c790bac7bfc70cfb",
+      "canonicalType": "Condition",
+      "label": "Deadbeat system design premise holds",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2f73ef23e716de469c78b062",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:35eaf20a94b23675e6830a7f",
+      "canonicalType": "Condition",
+      "label": "一阶校正装置转换的参数关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:3641bdca4d1eda6a457d0f77",
+      "canonicalType": "Condition",
+      "label": "The increase in settling steps for a ripple-free deadbeat system equals the number of zeros of G(z) inside the unit circle.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:381cb3df98591eb4a8be6594",
+      "canonicalType": "Condition",
+      "label": "For a deadbeat system designed for a unit ramp input, select Φ(z) = 2z^{-1} - z^{-2}.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:388ebca272cb71071db2a9f1",
+      "canonicalType": "Condition",
+      "label": "在连续情形下，比例反馈产生等幅振荡运动；在离散情形下，当 K 非常小时，根轨迹与单位圆相切（ζ ≈ 0），与比例连续设计相匹配。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:398f2ed0792aa7981c9ca84e",
+      "canonicalType": "Condition",
+      "label": "离散设计的控制器与连续设计的控制器主要区别在于缺少 u(k-1) 项，该项源于连续校正中的滞后项。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:3a484f24084789d7df0511b3",
+      "canonicalType": "Condition",
+      "label": "数字控制设计包括使用式 (8.43) 至 (8.49) 的基本反馈环节，并对设计参数进行迭代，直至满足所有指标要求。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:3a7e4333ded10c2c45dd6202",
+      "canonicalType": "Condition",
+      "label": "分析具有零阶保持器（ZOH）和比例反馈的离散系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:3e5a18261983bb601e69e047",
+      "canonicalType": "Condition",
+      "label": "根轨迹可能从实轴分离并重新进入实轴",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:3e7c4c0a88b8e718d844005f",
+      "canonicalType": "Condition",
+      "label": "K 为正实数增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:3f969172bccf543d0b8dac57",
+      "canonicalType": "Condition",
+      "label": "The continuous controller is G_c(s) = K*(s+a)/(s+b), and the sampling period is T.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:4c454463e59772096bd06965",
+      "canonicalType": "Condition",
+      "label": "采样周期 T 为已知。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:4d15a0b4bf83f568734a05cf",
+      "canonicalType": "Condition",
+      "label": "采样周期 T 为常数；微分采用后向差分；积分采用前向矩形积分。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:4d95bc5cb5e2a1cd32650c6e",
+      "canonicalType": "Condition",
+      "label": "被控对象传递函数 G(z) 已知。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:51207004780cc60408073854",
+      "canonicalType": "Condition",
+      "label": "The typical input form is R(z)=A(z)/(1-z^{-1})^m.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:52109e75946d341f09824126",
+      "canonicalType": "Condition",
+      "label": "The continuous controller G_c(s) has been designed, and the sampling period T is known.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:56184a170fa56fbd37375aa8",
+      "canonicalType": "Condition",
+      "label": "K 为实正增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:56659d9e602c840bb82f82c8",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:566be2b8047710d884262953",
+      "canonicalType": "Condition",
+      "label": "离散模型由连续系统推导得出。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:57848d068270bfb0632a764b",
+      "canonicalType": "Condition",
+      "label": "The system is second-order, and the coefficients of the characteristic polynomial are real numbers.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:63aa5b40e84c9083ce5ba6c5",
+      "canonicalType": "Condition",
+      "label": "当 D(z)=1 时系统不稳定。选取数字控制器 D(z) = (z-a)/(z-b)。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:640d847d091d1bc6c4dea745",
+      "canonicalType": "Condition",
+      "label": "前置 ZOH 的连续被控对象的精确离散等效模型，是将采样输入 u(kT) 与采样输出 y(kT) 联系起来的精确离散模型，不包含任何近似。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:69d84d2aeb8a600a18a7873b",
+      "canonicalType": "Condition",
+      "label": "The system is a discrete control system, the input signal is a typical signal, and the output is required to be ripple-free between sampling instants.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:6b663e22a18fa7f138710213",
+      "canonicalType": "Condition",
+      "label": "z 平面根轨迹设计",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:6c218cb496f16a0c997389d0",
+      "canonicalType": "Condition",
+      "label": "在离散设计中，诸如 ω_n 和 ζ 等指标映射到 z 平面上的期望根位置，可用于指导设计。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:70b87f12aaf1261a31b99960",
+      "canonicalType": "Condition",
+      "label": "The input signal is r(t)=R0+R1 t+1/2 R2 t^2+...+1/(q-1)! R_{q-1} t^{q-1}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:7580d69cf6f06c9a681123f9",
+      "canonicalType": "Condition",
+      "label": "数字补偿器设计中的极点对消",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:768f76ee1044659c0fe0cf68",
+      "canonicalType": "Condition",
+      "label": "数字控制器为 D(z) = (z-a)/(z-b)。(z-a) 项对消 G(z) 的一个极点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:77ad06900b90c5972465c940",
+      "canonicalType": "Condition",
+      "label": "一般而言，若采样频率低于 10 × ω_n，应采用离散设计法；否则，离散等效设计应通过离散分析或仿真进行验证。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:77c4aec2ecddb205789fee23",
+      "canonicalType": "Condition",
+      "label": "The closed-loop transfer function of the discrete control system is Φ(z), and the gain K is an adjustable parameter.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:7c622bb46a857dffd0a66412",
+      "canonicalType": "Condition",
+      "label": "The generalized plant G(z) of the system has no delay and has no zeros or poles on or outside the unit circle in the z-plane.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:7dfbd78dd45a2efbc7a8509f",
+      "canonicalType": "Condition",
+      "label": "For a unity feedback discrete system, the desired closed-loop pulse transfer function is Φ(z) = z^{-1}, the error pulse transfer function is Φ_e(z) = 1 - z^{-1}, and the pulse transfer function of the generalized plant is G(z).",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:7f269c538356b04db5f625c8",
+      "canonicalType": "Condition",
+      "label": "Adopt the zero-order hold equivalent discretization method.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:80a0738ca4d66b0bc6f97b6d",
+      "canonicalType": "Condition",
+      "label": "The closed-loop transfer function of the discrete control system is Φ(z), and the gain K is an adjustable parameter.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:845f5b7c01cfedb1df594309",
+      "canonicalType": "Condition",
+      "label": "连续状态空间设计方法在第7章中介绍。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:8846773bfb57f189abc27dcd",
+      "canonicalType": "Condition",
+      "label": "K 为实正增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:8a840f5b8479a442afcda4e1",
+      "canonicalType": "Condition",
+      "label": "离散设计（或直接数字设计）利用被控对象和反馈系统的精确离散模型，完全在离散域中设计离散控制器。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:8c006708c24b058c3028d388",
+      "canonicalType": "Condition",
+      "label": "任何数字控制器的离散分析均包括：(1) 利用式 (8.41) 求解被控对象与零阶保持器（ZOH）的离散模型，(2) 构成包含 D_d(z) 的反馈系统，以及 (3) 分析所得的离散系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:94071087fcd4c5be7c751f30",
+      "canonicalType": "Condition",
+      "label": "The continuous controller G_c(s) is designed with sampling period T=0.1s or T=0.01s.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:9472d0cd85121ec4fdaf2357",
+      "canonicalType": "Condition",
+      "label": "基于连续系统的设计应能准确转换至 z 平面，且计算量不应过大。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:95fe54226a4d48f6389ca1d4",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。在 z 平面中绘制根轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:96077c3c7cf47b463c0ea068",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。根轨迹绘制在 z 平面中。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:96331326a301e9af180eba26",
+      "canonicalType": "Condition",
+      "label": "待对消极点位于 z = a。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:96e40b8940677c2fe3681797",
+      "canonicalType": "Condition",
+      "label": "指定期望闭环极点位置。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:a01be7620559276f22400834",
+      "canonicalType": "Condition",
+      "label": "The system is a linear time-invariant discrete system.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:a3b01cc91f8734b457162b63",
+      "canonicalType": "Condition",
+      "label": "PID 控制器的 s 域传递函数为 G_c(s) = K_P + K_I/s + K_D s。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:a66f739012d9c5245375a3a2",
+      "canonicalType": "Condition",
+      "label": "离散设计法能够获得接近期望值的阻尼（例如 ζ=0.733 对比 ζ=0.7），而离散等效法可能会出现阻尼减小和超调量增大的情况。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:a80a779df8b578226336153b",
+      "canonicalType": "Condition",
+      "label": "在模拟控制器中，滞后项用于衰减噪声并避免纯微分器；在离散设计中，等效滞后表现为 z=0 处的极点，代表通过一阶差分计算微分时产生的一个采样周期延迟。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:a90aee6da47b74daa06feb7e",
+      "canonicalType": "Condition",
+      "label": "The deadbeat system has 100% overshoot for a unit step input",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:ae5b78f9349a1426a12db5c0",
+      "canonicalType": "Condition",
+      "label": "The system is a linear time-invariant discrete system.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:ae8b8eb036d55126d509ebff",
+      "canonicalType": "Condition",
+      "label": "K 为正实数增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:aff5a8a6566081a0eea7b96b",
+      "canonicalType": "Condition",
+      "label": "如果降低采样率，校正装置中的数值差异会越来越大，且离散等效情形下的性能会显著恶化。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:b30876ca22e91baa81a470fb",
+      "canonicalType": "Condition",
+      "label": "For a second-order discrete-time system, its characteristic equation is D(z) = a_2 z^2 + a_1 z + a_0 = 0, where a_2 = 1.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:b32a5eb937a749d35e6df094",
+      "canonicalType": "Condition",
+      "label": "The sampling period T is known and constant.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:b44483c16f5d53e0245d7578",
+      "canonicalType": "Condition",
+      "label": "通过数字校正器改善性能",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:b72a59d8d95002750ac397f8",
+      "canonicalType": "Condition",
+      "label": "离散设计的控制规律可以与连续设计得到的控制方程相似，尤其是在采样速率较高时。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:ba6066f58f43d7efaaf9a6a8",
+      "canonicalType": "Condition",
+      "label": "连续系统带宽 ω_B 已知。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:ba9bde87bec1c58272799533",
+      "canonicalType": "Condition",
+      "label": "For a second-order sampled-data system with a zero-order hold, the open-loop transfer function is G_0(s) = K/(s(T_1 s+1)), the sampling period is T, and K > 0, T > 0.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:bffb22a46faf537f152a841e",
+      "canonicalType": "Condition",
+      "label": "G_c(s) = K (s+a)/(s+b) 与 D(z) = C (z-A)/(z-B) 通过 Z{G_c(s)} = D(z) 相关联。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:c16a66fd5d954306c9b4fc1b",
+      "canonicalType": "Condition",
+      "label": "根轨迹法应用于 z 的多项式。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:c504c12c7bf610a3aed7293a",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。令 z = sigma（实数），则 K = -N(z)/D(z) = F(sigma)。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d01fcc69b311c3e20663a4bb",
+      "canonicalType": "Condition",
+      "label": "The sampling period T is sufficiently small to ensure discretization accuracy.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d08643f795de379a74356226",
+      "canonicalType": "Condition",
+      "label": "采样周期选择的权衡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d32a3c6ceebc2e0742f53378",
+      "canonicalType": "Condition",
+      "label": "Require the deadbeat system to be ripple-free",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d599bd6cd2ac2c169ce236d5",
+      "canonicalType": "Condition",
+      "label": "G_c(s) 到 D(z) 的转换方法。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d62d2e65425b2c7d91f34f54",
+      "canonicalType": "Condition",
+      "label": "通常，精确匹配特定的 z 平面根位置并没有特别的优势；只需选取 K 和 α（或 T_D）以获得可接受的 z 平面根即可。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d756e899b07ef0595ce3234f",
+      "canonicalType": "Condition",
+      "label": "数字控制器为 D(z) = (z-a)/(z-b)。被控对象 G(z) 在正实轴上具有一个极点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:db8729d4616dd5ce22701f6d",
+      "canonicalType": "Condition",
+      "label": "用于零极点对消与期望根轨迹的数字控制器 D(z) = (z-a)/(z-b)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:dc15f72d75dbd60043cdf5da",
+      "canonicalType": "Condition",
+      "label": "Make e(∞) zero",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:dd73fa2a9c39b30d04c7ff37",
+      "canonicalType": "Condition",
+      "label": "The deadbeat system has ripple at non-sampling instants",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:dd7705ec1b3e72b635eb7882",
+      "canonicalType": "Condition",
+      "label": "The system is second-order, with K > 0 and T > 0.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:df0f7d6c8511637e83c10e9e",
+      "canonicalType": "Condition",
+      "label": "z 平面根轨迹设计",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:e31f5fdf5180abcb6fbcd9bf",
+      "canonicalType": "Condition",
+      "label": "K 为正实数增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:e58798a30b4fbde5cc81f689",
+      "canonicalType": "Condition",
+      "label": "Ripple-free deadbeat system requires E2(z) to be a finite polynomial",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:e8aa7ac75519b61a6ee492d1",
+      "canonicalType": "Condition",
+      "label": "由 s 平面映射 z = e^{sT} 导出的 z 平面等阻尼比线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:e8feba1a6ea2f42c02642270",
+      "canonicalType": "Condition",
+      "label": "The sampling period T is known and fixed.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:f4ddcbfc10e5e22a4a10c6c5",
+      "canonicalType": "Condition",
+      "label": "当 K 值较大时，由于零阶保持器（ZOH）和采样的影响，离散根轨迹发散进入不稳定区域。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:f7cef26ad9ab73f69dc3a091",
+      "canonicalType": "Condition",
+      "label": "本节未详细阐述离散状态空间设计方法；这些方法在配套网站的第 W8.7 节以及 Franklin、Powell 与 Workman（1998）的著作中进行了介绍。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:f8410781e665d6d486a993d3",
+      "canonicalType": "Condition",
+      "label": "The system is a discrete system.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:f98254207e96d02b1faba8d3",
+      "canonicalType": "Condition",
+      "label": "采样速率被限制为相对于系统带宽非常低（ω_s < 10 × ω_n）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:f9bb373b7470e4812936c47d",
+      "canonicalType": "Condition",
+      "label": "K 为正实数增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:faea0418d758c029175acb5b",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:fb82a334ecd55ffab55b5ade",
+      "canonicalType": "Condition",
+      "label": "绘制根轨迹需要求解特征方程 1+K G(z) D(z)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:ffbc2b2480a046b3845f4f04",
+      "canonicalType": "Condition",
+      "label": "特征方程为 1 + K G(z) D(z) = 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:01352d9fa7bd87ffcb11e7c8",
+      "canonicalType": "DomainConcept",
+      "label": "题7-22系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:05c3bce244e51f0c3dae9747",
+      "canonicalType": "DomainConcept",
+      "label": "误差脉冲传递函数",
+      "aliases": [
+        "误差脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:09da4c7fe48a9407a1d68ec5",
+      "canonicalType": "DomainConcept",
+      "label": "离散分析过程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0e906643242ab739e7ea2c35",
+      "canonicalType": "DomainConcept",
+      "label": "二阶采样系统结构图",
+      "aliases": [
+        "二阶采样系统结构图"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1126ce54b22f0fafb3f6e916",
+      "canonicalType": "DomainConcept",
+      "label": "无纹波最少拍系统设计方法",
+      "aliases": [
+        "无纹波最少拍系统设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1574c7db84468964721bb443",
+      "canonicalType": "DomainConcept",
+      "label": "主导极点",
+      "aliases": [
+        "主导极点"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1a8ef03e3724854770d0995b",
+      "canonicalType": "DomainConcept",
+      "label": "离散化设计方法",
+      "aliases": [
+        "离散化设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1b04b9a147b0c7ffb5908e4e",
+      "canonicalType": "DomainConcept",
+      "label": "最少拍系统",
+      "aliases": [
+        "最少拍系统"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1d3fbc0debb0aa898ddc8773",
+      "canonicalType": "DomainConcept",
+      "label": "题7-19闭环离散系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1de40a30b1c09d8f5bdd595a",
+      "canonicalType": "DomainConcept",
+      "label": "超调量 σ%",
+      "aliases": [
+        "超调量 σ%"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:2207a84d0bef6d71a51fe50b",
+      "canonicalType": "DomainConcept",
+      "label": "题7-25系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:236ec108cc45299398bac0b8",
+      "canonicalType": "DomainConcept",
+      "label": "数字补偿器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:275296ae58e9a926faac7ae3",
+      "canonicalType": "DomainConcept",
+      "label": "速度误差系数",
+      "aliases": [
+        "速度误差系数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:289e3beca59c9ef373836b12",
+      "canonicalType": "DomainConcept",
+      "label": "零阶保持器",
+      "aliases": [
+        "零阶保持器"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:28bfca2df331c329cea26464",
+      "canonicalType": "DomainConcept",
+      "label": "朱利稳定判据",
+      "aliases": [
+        "朱利稳定判据"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:28c066f4f9ccd20a720fc299",
+      "canonicalType": "DomainConcept",
+      "label": "单位阶跃响应曲线",
+      "aliases": [
+        "单位阶跃响应曲线"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:28c7b2fa3807573e2160fad0",
+      "canonicalType": "DomainConcept",
+      "label": "稳态误差 e(∞)",
+      "aliases": [
+        "稳态误差 e（∞）"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:357a51cbd9882d80503815d3",
+      "canonicalType": "DomainConcept",
+      "label": "误差脉冲传递函数",
+      "aliases": [
+        "误差脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:364221ded81ca2a0139d013a",
+      "canonicalType": "DomainConcept",
+      "label": "最少拍系统设计方法",
+      "aliases": [
+        "最少拍系统设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:36950d29dd27bdca0a483237",
+      "canonicalType": "DomainConcept",
+      "label": "最少拍系统设计方法",
+      "aliases": [
+        "最少拍系统设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:3741d57a147fed5d8c495e34",
+      "canonicalType": "DomainConcept",
+      "label": "数字控制设计中的零极点对消",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:38cc333389960ef01572e768",
+      "canonicalType": "DomainConcept",
+      "label": "纯离散等效系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:39456197a7214a933f3d5e83",
+      "canonicalType": "DomainConcept",
+      "label": "有纹波最小拍系统结构图",
+      "aliases": [
+        "有纹波最小拍系统"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:3bdef317703581e0a2e1b82f",
+      "canonicalType": "DomainConcept",
+      "label": "题7-20闭环离散系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:402f9f89ded980774ffb02c4",
+      "canonicalType": "DomainConcept",
+      "label": "前向矩形积分",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:42b62edf88d848137713e690",
+      "canonicalType": "DomainConcept",
+      "label": "数字滞后补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4763f84157de71b678a091e7",
+      "canonicalType": "DomainConcept",
+      "label": "题7-23数字控制系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:48988e52fe44c4738e0647cf",
+      "canonicalType": "DomainConcept",
+      "label": "闭环脉冲传递函数 Φ(z)",
+      "aliases": [
+        "闭环脉冲传递函数 Φ（z）"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:48a62baa3d95389c7fdea7f6",
+      "canonicalType": "DomainConcept",
+      "label": "相位超前补偿器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:492c3f3c5e6d3c57cc074391",
+      "canonicalType": "DomainConcept",
+      "label": "最少拍系统",
+      "aliases": [
+        "最少拍系统"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4b8188f6e3ad1985a3208055",
+      "canonicalType": "DomainConcept",
+      "label": "数字校正装置",
+      "aliases": [
+        "数字校正装置"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:51031d894f2189c8d2db8f36",
+      "canonicalType": "DomainConcept",
+      "label": "题7-26系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:53433e0044a66cd171c6e1d1",
+      "canonicalType": "DomainConcept",
+      "label": "数字补偿器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:59058addd30398485c529e9f",
+      "canonicalType": "DomainConcept",
+      "label": "数字控制器",
+      "aliases": [
+        "数字控制器"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:59abd9632700f1634517f74c",
+      "canonicalType": "DomainConcept",
+      "label": "离散状态空间设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:60729cbdf747b39c2ff781bb",
+      "canonicalType": "DomainConcept",
+      "label": "直接z域补偿器设计方法",
+      "aliases": [
+        "直接z域补偿器设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:61472f9425cd8eaba17968db",
+      "canonicalType": "DomainConcept",
+      "label": "离散设计",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:64d1931785ee06183744e4e4",
+      "canonicalType": "DomainConcept",
+      "label": "超前校正网络",
+      "aliases": [
+        "超前校正网络"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:6979e99f60e2642ff3d70d4b",
+      "canonicalType": "DomainConcept",
+      "label": "z平面根轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:69b64bbfce9e45828d270eb4",
+      "canonicalType": "DomainConcept",
+      "label": "一阶被控对象离散模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:6ab0d98e17a500ee2a2f5133",
+      "canonicalType": "DomainConcept",
+      "label": "无纹波最少拍系统",
+      "aliases": [
+        "无纹波最少拍系统"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:6e5429ed119ba2156807f7a0",
+      "canonicalType": "DomainConcept",
+      "label": "模拟化设计方法",
+      "aliases": [
+        "模拟化设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:6ec72a95052d52a56c6074ef",
+      "canonicalType": "DomainConcept",
+      "label": "题7-23系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:729526b31fd86a3f058b87ad",
+      "canonicalType": "DomainConcept",
+      "label": "z平面等阻尼比曲线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:78189b463d4f111e115c4201",
+      "canonicalType": "DomainConcept",
+      "label": "向后差分法",
+      "aliases": [
+        "向后差分法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:79bb55c4c06d07fd357ec824",
+      "canonicalType": "DomainConcept",
+      "label": "连续状态空间设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:7a638e1fe4a39f6b09d2cd5a",
+      "canonicalType": "DomainConcept",
+      "label": "调节时间 t_s",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:7ba6b61691803d7422f99c16",
+      "canonicalType": "DomainConcept",
+      "label": "闭环脉冲传递函数",
+      "aliases": [
+        "闭环脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:7d7b2c2093e1b52795076344",
+      "canonicalType": "DomainConcept",
+      "label": "z平面等阻尼比曲线",
+      "aliases": [
+        "等阻尼比曲线"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:80cea7656ffd01203a570296",
+      "canonicalType": "DomainConcept",
+      "label": "稳态跟踪误差",
+      "aliases": [
+        "稳态跟踪误差"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:819e5c8e8bb74988bfaf76cb",
+      "canonicalType": "DomainConcept",
+      "label": "z平面根轨迹",
+      "aliases": [
+        "离散根轨迹"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:821f239699f8571f105125f0",
+      "canonicalType": "DomainConcept",
+      "label": "二阶采样系统模型",
+      "aliases": [
+        "二阶采样系统模型"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:83e1bbae1654f73fec3c77f3",
+      "canonicalType": "DomainConcept",
+      "label": "无纹波最少拍系统",
+      "aliases": [
+        "无纹波最少拍系统"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:84a6b99accd85ba35da5a6a6",
+      "canonicalType": "DomainConcept",
+      "label": "开环脉冲传递函数",
+      "aliases": [
+        "开环脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:8596324a9d5a50d2998e7d97",
+      "canonicalType": "DomainConcept",
+      "label": "广义被控对象脉冲传递函数",
+      "aliases": [
+        "广义被控对象脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:86e0adb71633ae527d8afb11",
+      "canonicalType": "DomainConcept",
+      "label": "前向矩形积分用于积分近似",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:879cc307466d1a688cd3747f",
+      "canonicalType": "DomainConcept",
+      "label": "题7-25闭环离散系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9411610b02962c59cae258a3",
+      "canonicalType": "DomainConcept",
+      "label": "G_c(s)-D(z) 变换方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9431ee70cd4c3af657882c63",
+      "canonicalType": "DomainConcept",
+      "label": "直接数字设计法",
+      "aliases": [
+        "直接数字设计法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9788d660e7e83cadc79a4ba6",
+      "canonicalType": "DomainConcept",
+      "label": "G_c(s)-D(z) 变换方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:98fd8fbe7aa3340c7fe6bc08",
+      "canonicalType": "DomainConcept",
+      "label": "已校正系统根轨迹",
+      "aliases": [
+        "校正后根轨迹"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9971389501e6c9bf6d378160",
+      "canonicalType": "DomainConcept",
+      "label": "题7-20系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8",
+      "canonicalType": "DomainConcept",
+      "label": "z平面单位圆",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9bec0d6aa9ae6cf731207e85",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹z平面法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+      "canonicalType": "DomainConcept",
+      "label": "采样周期",
+      "aliases": [
+        "采样周期"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a007da62df7bd509e16eab25",
+      "canonicalType": "DomainConcept",
+      "label": "离散比例控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+      "canonicalType": "DomainConcept",
+      "label": "离散模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a45eae6f2246a7b9b35bf444",
+      "canonicalType": "DomainConcept",
+      "label": "连续到离散等效设计方法",
+      "aliases": [
+        "连续到离散等效设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a55a1dccfb81a726e05539cc",
+      "canonicalType": "DomainConcept",
+      "label": "连续校正离散化方法",
+      "aliases": [
+        "连续到离散转换"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a85bf0c53a7d633a260a63d7",
+      "canonicalType": "DomainConcept",
+      "label": "单位反馈线性定常离散系统",
+      "aliases": [
+        "单位反馈离散系统"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a9db9c0d98a9759008f3c37b",
+      "canonicalType": "DomainConcept",
+      "label": "题7-17闭环离散系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:aa8ea79b87e1a61e5f117b98",
+      "canonicalType": "DomainConcept",
+      "label": "数字控制器 D(z)",
+      "aliases": [
+        "数字控制器 D（z）"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ad75410e5a16550ce25a6d8a",
+      "canonicalType": "DomainConcept",
+      "label": "一拍系统",
+      "aliases": [
+        "一拍系统"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:adbc098775012a91ff4207e3",
+      "canonicalType": "DomainConcept",
+      "label": "无纹波最少拍系统设计方法",
+      "aliases": [
+        "无纹波最少拍系统设计方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b33901638cba88f3f2ea5a20",
+      "canonicalType": "DomainConcept",
+      "label": "离散积分控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b4252232f738d2575767fd6b",
+      "canonicalType": "DomainConcept",
+      "label": "z平面根轨迹的入射点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹",
+      "aliases": [
+        "根轨迹"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b621a897dafceaba35cce329",
+      "canonicalType": "DomainConcept",
+      "label": "题7-26闭环离散系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b6aa705c3bcc3630a4c1962b",
+      "canonicalType": "DomainConcept",
+      "label": "采样周期",
+      "aliases": [
+        "采样周期"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b7b9b4cd76509c25cf2b5b28",
+      "canonicalType": "DomainConcept",
+      "label": "z 特征方程",
+      "aliases": [
+        "z 特征方程"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b9e17d7d49dcfcec06ee70e7",
+      "canonicalType": "DomainConcept",
+      "label": "题7-17系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:bb073f59e79dbee61e794fa1",
+      "canonicalType": "DomainConcept",
+      "label": "离散微分控制",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:bbb77635a4753e2de17d81ca",
+      "canonicalType": "DomainConcept",
+      "label": "典型输入",
+      "aliases": [
+        "典型输入"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:bca773190d368f3faaaab995",
+      "canonicalType": "DomainConcept",
+      "label": "数字控制器脉冲传递函数",
+      "aliases": [
+        "数字控制器脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:bdae7eeb9e64719b93446a14",
+      "canonicalType": "DomainConcept",
+      "label": "后向差分规则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+      "canonicalType": "DomainConcept",
+      "label": "稳态误差",
+      "aliases": [
+        "稳态误差"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:bf027d00f4e69d3198aefe23",
+      "canonicalType": "DomainConcept",
+      "label": "精确离散等效",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:c762d9e6b65175bba817ef32",
+      "canonicalType": "DomainConcept",
+      "label": "具有数字控制器的离散系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼比",
+      "aliases": [
+        "阻尼比"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:c8c9bf27db6d626df6437323",
+      "canonicalType": "DomainConcept",
+      "label": "混合连续-离散系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:cd1a5e4071f81f8cf97f7eb7",
+      "canonicalType": "DomainConcept",
+      "label": "离散超前补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:cddf1c071aa52e4f1dece3ee",
+      "canonicalType": "DomainConcept",
+      "label": "带数字计算机补偿的闭环采样系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ce58ea6e6a7dad56e9b4a8cd",
+      "canonicalType": "DomainConcept",
+      "label": "零阶保持器",
+      "aliases": [
+        "零阶保持器"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ceba1e9ff71d5f284ca106d9",
+      "canonicalType": "DomainConcept",
+      "label": "闭环脉冲传递函数",
+      "aliases": [
+        "闭环脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:cec53f7d2e39cb58f30ccc8a",
+      "canonicalType": "DomainConcept",
+      "label": "题7-19系统结构图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+      "canonicalType": "DomainConcept",
+      "label": "超调量",
+      "aliases": [
+        "超调量"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d128c3dba70d4cc962b3e854",
+      "canonicalType": "DomainConcept",
+      "label": "数字超前-滞后补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d1afe8495e77510fc5846c95",
+      "canonicalType": "DomainConcept",
+      "label": "PID 数字控制器",
+      "aliases": [
+        "PID 数字控制器"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d39faa7168016a381956c62d",
+      "canonicalType": "DomainConcept",
+      "label": "相角裕度 γ",
+      "aliases": [
+        "相角裕度 γ"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d526b90368de52c39e27ffe6",
+      "canonicalType": "DomainConcept",
+      "label": "数字超前补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d53f007c903cb2a964bacf4d",
+      "canonicalType": "DomainConcept",
+      "label": "广义对象脉冲传递函数",
+      "aliases": [
+        "广义对象脉冲传递函数"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d896c1f43c2ff7a05c1543b4",
+      "canonicalType": "DomainConcept",
+      "label": "零阶保持器",
+      "aliases": [
+        "零阶保持器"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:da1326600f3311fd52008dd3",
+      "canonicalType": "DomainConcept",
+      "label": "z平面根轨迹分离点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ddb1cbf0f8a591b01ba3373b",
+      "canonicalType": "DomainConcept",
+      "label": "题7-22电机控制系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:df606d1cc343f73f1c9af59a",
+      "canonicalType": "DomainConcept",
+      "label": "PID 数字控制器实现方法",
+      "aliases": [
+        "PID 数字控制器实现方法"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e037175898e502a748c0341d",
+      "canonicalType": "DomainConcept",
+      "label": "有纹波最少拍系统结构图",
+      "aliases": [
+        "有纹波最少拍系统结构图"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+      "canonicalType": "DomainConcept",
+      "label": "闭环特征方程",
+      "aliases": [
+        "闭环特征方程"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e23f10cef7e7b7c484be97c9",
+      "canonicalType": "DomainConcept",
+      "label": "z平面等阻尼比线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e64c6ad0fa1d0483faf9aa7c",
+      "canonicalType": "DomainConcept",
+      "label": "纹波",
+      "aliases": [
+        "纹波"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e981b0bcba817f0997c460e8",
+      "canonicalType": "DomainConcept",
+      "label": "PID控制器的数字实现",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+      "canonicalType": "DomainConcept",
+      "label": "调节时间",
+      "aliases": [
+        "调节时间"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ee5adf8518a6ea2ab503ae7f",
+      "canonicalType": "DomainConcept",
+      "label": "数字控制器闭环系统",
+      "aliases": [
+        "数字闭环"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ef3b1e7fb0615020b11a78f9",
+      "canonicalType": "DomainConcept",
+      "label": "后向差分法用于导数近似",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f4736bb9065505bbc327e2b7",
+      "canonicalType": "DomainConcept",
+      "label": "采样系统的连续系统模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+      "canonicalType": "DomainConcept",
+      "label": "PID控制器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f51115d2ed968014f4f4b3e9",
+      "canonicalType": "DomainConcept",
+      "label": "单位斜坡响应",
+      "aliases": [
+        "单位斜坡响应"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:fa0849954056406029bd497f",
+      "canonicalType": "DomainConcept",
+      "label": "脉冲传递函数 G(z)",
+      "aliases": [
+        "脉冲传递函数 G（z）"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:facdf919012f47aa910cae13",
+      "canonicalType": "DomainConcept",
+      "label": "采样周期 T",
+      "aliases": [
+        "采样周期 T"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:00f6e1eaf3a819e21484f7cd",
+      "canonicalType": "Formula",
+      "label": "误差脉冲传递函数公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:0b3ff2e60198215e061a2d95",
+      "canonicalType": "Formula",
+      "label": "最少拍系统 Φ_e（z） 条件公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:0b98d0faa39e28ba093dcb9d",
+      "canonicalType": "Formula",
+      "label": "PID控制器差分方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:11177502e4a7ed8b1909e8af",
+      "canonicalType": "Formula",
+      "label": "Z变换等效条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:14a06ded326682454ac434a5",
+      "canonicalType": "Formula",
+      "label": "二阶采样系统闭环特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:1858dc4c144b150e897b4fe5",
+      "canonicalType": "Formula",
+      "label": "用于分离点计算的 F(z)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:19281f80bb3814166057df56",
+      "canonicalType": "Formula",
+      "label": "单位速度输入 z 变换",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:1c7518aa72657b6bb0245171",
+      "canonicalType": "Formula",
+      "label": "z 平面根轨迹的相角条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:22b9642084164edbfc5c3fda",
+      "canonicalType": "Formula",
+      "label": "闭环传递函数 T(z)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:23636bc2add6d6f68e4304fe",
+      "canonicalType": "Formula",
+      "label": "数字控制系统的闭环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:26e41fabdc321cd33ec51bd6",
+      "canonicalType": "Formula",
+      "label": "数字控制器通用形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:279237c8f46ea96c9c3cf6de",
+      "canonicalType": "Formula",
+      "label": "一阶数字控制器 D(z)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2cf788de14aa9e1bfea889b4",
+      "canonicalType": "Formula",
+      "label": "数字控制器设计公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2da9d0f8555adf5e05d4af3f",
+      "canonicalType": "Formula",
+      "label": "磁盘驱动广义对象脉冲传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2ddfdfee6d489b8ad88382e8",
+      "canonicalType": "Formula",
+      "label": "PID 控制器 z 域传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:38fe89bc112284d3df1bc0a4",
+      "canonicalType": "Formula",
+      "label": "单位阶跃输入最少拍系统 Φ（z） 和 Φ_e（z）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3c729e2b87361a3f58a32593",
+      "canonicalType": "Formula",
+      "label": "PID 控制器差分方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3f9997ea7d9ef57c69406125",
+      "canonicalType": "Formula",
+      "label": "z平面根轨迹的幅值条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:4268f4234a6ae3b22feea1e0",
+      "canonicalType": "Formula",
+      "label": "离散特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:452e5ebbe8e51427e60d42bd",
+      "canonicalType": "Formula",
+      "label": "稳态跟踪误差公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:45d18ff50eb571400d280edd",
+      "canonicalType": "Formula",
+      "label": "典型输入一般形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:4901960cc6fc72f2ec6370f6",
+      "canonicalType": "Formula",
+      "label": "离散系统的闭环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:4a5062b14b089af09817c1d6",
+      "canonicalType": "Formula",
+      "label": "theta = omega T 时 zeta = 1/sqrt(2) 的 z 平面表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:4a9d3452c27a426263004c2e",
+      "canonicalType": "Formula",
+      "label": "数字控制器增益匹配条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:4ce58aeb489b3a81f6ba32a1",
+      "canonicalType": "Formula",
+      "label": "单位阶跃输入最少拍系统 D（z）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:581677addcafaad600221be0",
+      "canonicalType": "Formula",
+      "label": "一阶被控对象离散传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:59adfb084a2bbc643ddd2aeb",
+      "canonicalType": "Formula",
+      "label": "单位加速度输入最少拍系统 Φ（z） 和 Φ_e（z）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:5b89535a1ab1c2c27e165a51",
+      "canonicalType": "Formula",
+      "label": "一拍系统闭环和误差脉冲传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:5c38c5d27e227eaa858d0533",
+      "canonicalType": "Formula",
+      "label": "含零阶保持器的被控对象离散传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6197b4953c9653c42e289af4",
+      "canonicalType": "Formula",
+      "label": "由 s 平面映射得到的 z 平面表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:619d7260b43881d4ed4bbe4f",
+      "canonicalType": "Formula",
+      "label": "等阻尼比线从s平面到z平面的映射",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6435cf709a0b1b0adcf16e8f",
+      "canonicalType": "Formula",
+      "label": "后向差分导数的z变换",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:65143bb6fce714abea666e60",
+      "canonicalType": "Formula",
+      "label": "G_c(s) 转换为 D(z) 的增益匹配条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:668e98cb9bbba4f6caa4e6a0",
+      "canonicalType": "Formula",
+      "label": "积分项递推公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6742642c7fca61d23c902af8",
+      "canonicalType": "Formula",
+      "label": "数字校正装置传递函数 D(z)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6c2810d95ccb712cf93e83aa",
+      "canonicalType": "Formula",
+      "label": "离散超前校正差分方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6dd3cf9302ddd6c2ba3101c6",
+      "canonicalType": "Formula",
+      "label": "数字控制系统的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6ed3a71e1ed9a13d9c41bb5d",
+      "canonicalType": "Formula",
+      "label": "单位加速度输入 z 变换",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6eeee023eee220db0edb4be2",
+      "canonicalType": "Formula",
+      "label": "磁盘驱动数字控制器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:6f80a1c8fc9000d3d2a6386d",
+      "canonicalType": "Formula",
+      "label": "前向矩形积分器的 z 域传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7640a129c18abf199a3142fd",
+      "canonicalType": "Formula",
+      "label": "一阶被控对象的 Alpha 定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7a2e7a7a18e02453a6db5a96",
+      "canonicalType": "Formula",
+      "label": "分离点与会合点的导数条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7dd3720f8622a215a1b36a15",
+      "canonicalType": "Formula",
+      "label": "数字控制器脉冲传递函数公式（由 Φ_e（z） 表示）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7e3bb62cb91a34aeac11c756",
+      "canonicalType": "Formula",
+      "label": "分离点计算的通用 F(z)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:8006c5e846d8b8735e667668",
+      "canonicalType": "Formula",
+      "label": "单位斜坡输入最少拍系统 D（z）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:82e12c4d15b3a43b96658ef2",
+      "canonicalType": "Formula",
+      "label": "单位加速度输入最少拍系统 D（z）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:87a4342ab8d63156e06da1a3",
+      "canonicalType": "Formula",
+      "label": "后向差分导数近似",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:88b65519b13dac991dfb371a",
+      "canonicalType": "Formula",
+      "label": "闭环脉冲传递函数公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:892fdb1f2ef05e10803fb928",
+      "canonicalType": "Formula",
+      "label": "z 域 PID 控制器传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:8dfd95cc048042da352b0774",
+      "canonicalType": "Formula",
+      "label": "单位斜坡输入最少拍系统 Φ（z） 和 Φ_e（z）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:8e04bba5ef9087af84f98b61",
+      "canonicalType": "Formula",
+      "label": "离散微分控制律",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:8e209931560de27ae4c7930a",
+      "canonicalType": "Formula",
+      "label": "用于根轨迹设计的数字控制器传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:910345a2bbfeb5dbbf417caf",
+      "canonicalType": "Formula",
+      "label": "已校正二阶系统的开环传递函数 G(z)D(z)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a0aff72ff8abe5ccb75586a2",
+      "canonicalType": "Formula",
+      "label": "工作台数字控制器参数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a0f79f13291bb85d2c588f90",
+      "canonicalType": "Formula",
+      "label": "离散积分控制律",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a93f10f63ce7f43e80a6a97a",
+      "canonicalType": "Formula",
+      "label": "无纹波最少拍系统附加条件公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:ae8fe6a07bdbe0f10018a426",
+      "canonicalType": "Formula",
+      "label": "zeta = 1/sqrt(2) 时的 z 平面表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:b33306ecafccb3eac92a9a64",
+      "canonicalType": "Formula",
+      "label": "稳态误差终值定理公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:bdff9961599de631b85192af",
+      "canonicalType": "Formula",
+      "label": "离散超前校正传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c520d61c825a88a7d493e271",
+      "canonicalType": "Formula",
+      "label": "单位阶跃输入 z 变换",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c5ff59a03c2f75187ba76a81",
+      "canonicalType": "Formula",
+      "label": "速度误差系数定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c8e7de75e6a2354fc9aab082",
+      "canonicalType": "Formula",
+      "label": "工作台广义对象脉冲传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:cc1df25eb7821b66fe50611c",
+      "canonicalType": "Formula",
+      "label": "离散比例控制律",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:cfea61bd0ce0baac181eb16c",
+      "canonicalType": "Formula",
+      "label": "数字控制器脉冲传递函数公式（由 Φ（z） 表示）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:da65efe979f87300e254ab02",
+      "canonicalType": "Formula",
+      "label": "误差 z 变换公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:e741d88b917ab23bb4b20408",
+      "canonicalType": "Formula",
+      "label": "Φ（z） 与 Φ_e（z） 关系公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:e777272395b96ab368ce4557",
+      "canonicalType": "Formula",
+      "label": "前向矩形积分公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:ef450df3f71c85da4fd7cdad",
+      "canonicalType": "Formula",
+      "label": "工作台数字控制器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:f5031d3526940bd7c71f6881",
+      "canonicalType": "Formula",
+      "label": "离散微分传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:f795bd18f57352e1bc8ec1c9",
+      "canonicalType": "Formula",
+      "label": "离散积分传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:f8a6ced126b965d96f8f14d2",
+      "canonicalType": "Formula",
+      "label": "微分项向后差分公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:fb79c87ed41fcbad0e4f70ee",
+      "canonicalType": "Formula",
+      "label": "前向矩形积分的 z 变换",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:fbbef56117bf5a7d8937ace0",
+      "canonicalType": "Formula",
+      "label": "恒定阻尼比下 sigma 与 omega 的关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:ff5bb626a1caa9de522481cb",
+      "canonicalType": "Formula",
+      "label": "二阶采样系统开环脉冲传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:011fbb3e5e167b08b4a9b3c1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最少拍系统调节时间与输入形式无关",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:097c45254792d19661a72d98",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计与连续设计根轨迹对比",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0b4226b18f3ad28f43f5ac27",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统稳定性条件（基于增益 K）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0be8f3886cdd74970bee6122",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由 F(sigma) 的导数确定分离点与会合点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0e27f3f0b9605671e1145e97",
+      "canonicalType": "KnowledgeStatement",
+      "label": "数字控制中仿真的重要性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0e65f44f883b16369379646b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计与连续设计控制律的相似性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0ff64a35d001e2c9393df2ca",
+      "canonicalType": "KnowledgeStatement",
+      "label": "连续状态空间设计对离散模型的适用性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:1b450139f10818765435407c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "连续控制器到数字控制器的转换方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:1e18883159fc8353c5e3f69b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "G_c（s）-D（z） 变换方法准则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:2485e31d915a7d8730645ca5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计使用的一般规则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:2be0e3c8bba0d35da2eb2f0c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无纹波最少拍系统增加拍数等于 G（z） 单位圆内零点数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:3c513ba4aa86ae371a4acad2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根位于单位圆外时不稳定的充分条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:3e1544faa0fa9cbb609d84ae",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根轨迹可能从实轴分离并重新进入实轴",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:456537663795bccd405a008d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无纹波最少拍系统必要条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:46b55e66284f3e5f56bc06fa",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计指标匹配",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:46c4dca658506579cc539223",
+      "canonicalType": "KnowledgeStatement",
+      "label": "用于零极点对消与期望根轨迹的数字控制器 D(z) = (z-a)/(z-b)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:47529cffb31af2b89cf34748",
+      "canonicalType": "KnowledgeStatement",
+      "label": "一阶校正器转换的参数关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:4b6b01db5608ef2baa8c734d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散分析步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:51849daf1dd67e5b4b313566",
+      "canonicalType": "KnowledgeStatement",
+      "label": "连续与离散校正装置参数之间的关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:548733402844713cedca59b1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最少拍系统在非采样时刻存在纹波",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:58051f60e7b62a9e5b09266e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计迭代过程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:5d86ee8f40fc11a27eaf3430",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计与连续设计阻尼特性对比",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:69297947d5156bf51cf63085",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计的实用性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6ad9351ceee52d75495890ab",
+      "canonicalType": "KnowledgeStatement",
+      "label": "常用设计阻尼比 zeta = 1/sqrt(2) 得到 sigma = -omega",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6cc8a5752304d09f4fc76cb7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根轨迹模值条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:6f7339b8df98e960a9e94d58",
+      "canonicalType": "KnowledgeStatement",
+      "label": "模拟与离散控制器中的滞后项",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:70429c911cfc1334ec904009",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无纹波最少拍系统设计准则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:77e38747716fa2d029a66c3d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计根轨迹发散",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:7aa3348efc51fb874155b5b5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最少拍系统设计原则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:7ad683871936f85a440e24cc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无纹波最少拍系统要求 E2（z） 为有限多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:7b850ca36e27774e4ac4c1c3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根轨迹的相角条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:7e0e6a9f37f2f5d06762b452",
+      "canonicalType": "KnowledgeStatement",
+      "label": "利用根轨迹法的数字控制器设计",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:84469768912b5a0d1175c8c7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根轨迹关于水平实轴对称",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:865b66b857b5e005071c2a73",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID 控制器差分方程算法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:87f9529de6e2abfa1d758eef",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计与连续设计控制律的差异",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:88ca1487d6986dd18923f899",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散系统中由零阶保持器导致的不稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:8a10ed953d67681917acb74a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于后向差分与前向矩形积分的 PID 控制器数字实现",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:8b003e030147beada0151e64",
+      "canonicalType": "KnowledgeStatement",
+      "label": "低采样率下离散设计与连续设计的差异",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:9185b36640e0f1e8cab34e34",
+      "canonicalType": "KnowledgeStatement",
+      "label": "采样周期选择准则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:986b06a8796d8d2d722780ed",
+      "canonicalType": "KnowledgeStatement",
+      "label": "连续到离散设计中的采样周期选择",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:9a198eb2a6ba9cf2536a22d0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "采样周期选择的权衡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:9a435d80852bc739f115ff8b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由 s 平面映射 z = e^{sT} 导出的 z 平面等阻尼比线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:9ca858c2e5f6ebb53761c297",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最少拍系统调节时间与输入形式无关的论证",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:9cf247fe5e0fb9d9e2a30191",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散控制器设计准则（基于连续设计）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:a0f289e68126dea924ca2d35",
+      "canonicalType": "KnowledgeStatement",
+      "label": "一拍系统数字控制器设计公式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:a240f21a63737d5ac0361daa",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最少拍系统设计准则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:a662a28495865f2307f78059",
+      "canonicalType": "KnowledgeStatement",
+      "label": "二阶采样系统稳定等价必要条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:a9f4092840366013e59fc68d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "精确离散等效定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:acb48a04522e05e35ce328d5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "满足期望根轨迹的控制器极点选择",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:b0a2c596f77b6e6f788ef834",
+      "canonicalType": "KnowledgeStatement",
+      "label": "利用数字控制器的零极点对消",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:b4839b9c0d4a5e14f6f48c00",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散根轨迹中的稳定性边界",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:b83f440b480ad27ab355f116",
+      "canonicalType": "KnowledgeStatement",
+      "label": "二阶采样系统稳定性充分必要条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:ba59c3b8af1ecbfba90c9e75",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过数字校正器改善性能",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:bb5861fbbe64feca19e9620a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "无纹波最少拍系统附加条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:bcc74a2a08ea2bb729150a71",
+      "canonicalType": "KnowledgeStatement",
+      "label": "超调量约束条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:c84055535188be11132bef45",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最少拍系统对单位阶跃输入有100%超调量",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:ca8d2cd2a81d6d696a13bc9c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "最少拍系统稳态误差为零的条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:cb2689ede46ff97ca478d053",
+      "canonicalType": "KnowledgeStatement",
+      "label": "实轴上的根轨迹位于奇数个极点和零点的左侧",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:ceeefdd63f3c93b815ac9288",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计中噪声衰减的权衡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d293fcbdab4cd7835113952b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "慢采样速率下离散设计的优势",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d54164f0bc46310120bac159",
+      "canonicalType": "KnowledgeStatement",
+      "label": "绘制根轨迹图需要求解特征方程 1+K G(z) D(z)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d6342c6e75158ff62aabf890",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d9584a72df8768467c24ffeb",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散设计根轨迹匹配",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:dee6551dbdb22531c38273a6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于根轨迹的数字控制系统稳定性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:e20b93082935a9d82a45c5e7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "数字校正装置设计中的极点对消",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f26139e2167750c13b37231b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "高采样率下离散设计与连续设计的相似性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f46dccc18d7347d61bb2aff8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根轨迹起始于极点并终止于零点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f630bcd4c46e76c1ba44918e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "离散状态空间设计方法在外部参考文献中阐述",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:fd1829c53a8bf114fbfa02f3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "采样周期对系统性能的影响",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:ff9a8a9dc4844f6c5a377260",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根轨迹在离散系统中的适用性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:03050eec261a56ebb4a7fcca",
+      "canonicalType": "Formula",
+      "label": "前向矩形积分器传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:0d1aa49ded1fe538b7e628f2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID控制器的数字实现",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:2ad95c5cb12db70492c62393",
+      "canonicalType": "Formula",
+      "label": "后向差分规则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:2c433efc6fe64c1d7561ce61",
+      "canonicalType": "Formula",
+      "label": "前向矩形积分规则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:3096b2482f9840abe600cdb0",
+      "canonicalType": "Formula",
+      "label": "前向矩形积分的z变换",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:59cc5921a01e7d90daa903a9",
+      "canonicalType": "Formula",
+      "label": "PID控制器z域传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:5c2c8d5c96e2464d188f4f7d",
+      "canonicalType": "Formula",
+      "label": "后向差分的z变换",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:762ac4d37f3b07136c93b746",
+      "canonicalType": "Formula",
+      "label": "PID控制器s域传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2d:source-object:bc5221e1b6d9b5648a193482",
+      "canonicalType": "Formula",
+      "label": "PID控制器差分方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:56f1adca244fd06087afe3ea",
+      "canonicalType": "ModelRepresentation",
+      "label": "磁盘驱动采样读取系统结构图",
+      "aliases": [
+        "磁盘驱动采样读取系统结构图"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:d59700afb9d185b8c5ad6390",
+      "canonicalType": "ModelRepresentation",
+      "label": "工作台数字控制系统结构图",
+      "aliases": [
+        "工作台数字控制系统结构图"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:0281d747a9fd92873bf7cfaf",
+      "canonicalType": "StatementArgument",
+      "label": "Determine an appropriate value of K such that the system overshoot does not exceed 30%.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:02d25c51d0bbd943c76a1472",
+      "canonicalType": "StatementArgument",
+      "label": "快采样率下离散设计与连续设计的相似性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:03a6bbff9d17a6dad31c2917",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计根轨迹匹配",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:09544487a7bfa3fe1ecc4c57",
+      "canonicalType": "StatementArgument",
+      "label": "A ripple-free deadbeat system requires E2(z) to be a finite polynomial.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:0c3d7ed242f836ca6d85a11c",
+      "canonicalType": "StatementArgument",
+      "label": "慢采样率下离散设计与连续设计的差异",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:0dc0570e9ec8b8e3134f02dd",
+      "canonicalType": "StatementArgument",
+      "label": "由于 ZOH 的滞后效应，系统阻尼比减小并出现振荡，最终变为不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:0dd22dd663ce3136481b7c9f",
+      "canonicalType": "StatementArgument",
+      "label": "Using the G_c(s)-D(z) transformation method, the corresponding digital controller D(z) can be obtained.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:1397ede338ff4b9af98b51b0",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计与连续设计的控制律差异",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:15adb584d334b6638b0ac946",
+      "canonicalType": "StatementArgument",
+      "label": "By using the G_c(s)-D(z) transformation method, a suitable digital controller D(z) can be designed.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:161ad4a3cc0fcd1aaf72d693",
+      "canonicalType": "StatementArgument",
+      "label": "Design the digital controller D(z) so that the system achieves tracking with zero steady-state error and no ripple within the minimum number of sampling periods.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:17663116fcf0f804777d53fa",
+      "canonicalType": "StatementArgument",
+      "label": "相角条件为 angle(G(z) D(z)) = 180 degrees ± k * 360 degrees，其中 k = 0, 1, 2, ...",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:18bc9241ca820489b63f15e6",
+      "canonicalType": "StatementArgument",
+      "label": "模拟控制器与离散控制器中的滞后项",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:1c16f479faed6b57ebacc8ec",
+      "canonicalType": "StatementArgument",
+      "label": "The equivalent necessary conditions for system stability are K T_1 < (1-E)/(1-E - (T/T_1)E) and K T_1 < 2(1+E)/((T/T_1)(1+E) - 2(1-E)), where E = e^{-T/T_1}.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:20c6a492bf7368ec5f094536",
+      "canonicalType": "StatementArgument",
+      "label": "根轨迹可能从实轴分离并重新进入实轴",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:294732be908a7c07de7e024b",
+      "canonicalType": "StatementArgument",
+      "label": "Proof that settling time of deadbeat systems is independent of input form",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:2a7f98d8b119b8483444964d",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计与连续设计控制律的相似性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:2ed44af8830e426d93cedb5a",
+      "canonicalType": "StatementArgument",
+      "label": "若所有闭环极点均位于 z 平面的单位圆内，则系统是稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:340fc48cb95d842dffc0e6c5",
+      "canonicalType": "StatementArgument",
+      "label": "根轨迹法可用于离散系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:3a1a55a7034318807afa98f0",
+      "canonicalType": "StatementArgument",
+      "label": "精确离散等效定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:3df913e1983a14daecb2ae93",
+      "canonicalType": "StatementArgument",
+      "label": "数字控制中仿真的重要性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:3e954135161858e4336b22d0",
+      "canonicalType": "StatementArgument",
+      "label": "Select the closed-loop pulse transfer function Φ(z) such that under typical inputs, the steady-state error of the output sequence is zero at sampling instants after the minimum number of sampling periods to achieve complete tracking, thereby determining the required pulse transfer function D(z) of the digital controller.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:3efe58f0e77de816394ee3bd",
+      "canonicalType": "StatementArgument",
+      "label": "The plant transfer function G0(s) must contain at least (q-1) integrators.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:3f616d0860bdf742472c4345",
+      "canonicalType": "StatementArgument",
+      "label": "The digital controller is D(z) = Φ(z) / (G(z) Φ_e(z)).",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:4245fc24c4f3bfb2dfb270ef",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计迭代过程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:427348910b0608c2e45d277c",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计指标匹配",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:428a490cb8ecd96c72104182",
+      "canonicalType": "StatementArgument",
+      "label": "As T increases by 0.2 s each time, the unit step input response, overshoot σ%, and settling time t_s (Δ=2%) of the system change.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:429920ee52670ed8dae0c82a",
+      "canonicalType": "StatementArgument",
+      "label": "A = e^{-aT}，B = e^{-bT}，且当 s=0 时，C (1-A)/(1-B) = K a/b。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:4ee2d5fc0cb49e95da989bfd",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计的实用性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:5cf397b3fdaf3afb7b77ae26",
+      "canonicalType": "StatementArgument",
+      "label": "采用采样周期 T ≈ 1/(10 f_B)，其中 f_B = ω_B/(2π)，ω_B 为闭环连续系统的带宽。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:5f4284964a39fcf7bdcf7d33",
+      "canonicalType": "StatementArgument",
+      "label": "一阶校正装置转换的参数关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:6f5ca1e43e5643c60a09fec4",
+      "canonicalType": "StatementArgument",
+      "label": "The necessary and sufficient condition for both characteristic roots to lie inside the unit circle in the z-plane is D(1) > 0, D(-1) > 0, and |a_0| < a_2.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:748333d017414aaf987e1e7b",
+      "canonicalType": "StatementArgument",
+      "label": "绘制根轨迹图需要求解特征方程 1+K G(z) D(z)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:79c0513c2785d440b2d662cc",
+      "canonicalType": "StatementArgument",
+      "label": "根轨迹位于实轴上奇数个极点和零点左侧的区段上。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:812f71ed2ed7d93e29e8da5e",
+      "canonicalType": "StatementArgument",
+      "label": "常用设计阻尼比 zeta = 1/sqrt(2) 得到 sigma = -omega",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:815f6866ac7b0ced947e1dcd",
+      "canonicalType": "StatementArgument",
+      "label": "By calculating the z characteristic equation of the closed-loop system, the maximum value of K for system stability can be determined.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:8178df0f73c458eb053ab49e",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计使用通则",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:81f55dfa33ff5a2de5ffeda8",
+      "canonicalType": "StatementArgument",
+      "label": "离散分析步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:886f2ba46cdaea1c3b5c9324",
+      "canonicalType": "StatementArgument",
+      "label": "控制器中的 (z-a) 项可用于对消 G(z) 位于 z 平面正实轴上的一个极点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:8b2eae9019e64fa02d3ca0a5",
+      "canonicalType": "StatementArgument",
+      "label": "Φ_e(z) contains a factor of (1-z^{-1})^m",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:8cfe5b516f087c27807d6b3a",
+      "canonicalType": "StatementArgument",
+      "label": "In addition to satisfying the required form for deadbeat response, the closed-loop pulse transfer function Φ(z) must also contain all zeros of G(z), regardless of where these zeros lie in the z-plane.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:920f0cadfae4fc6e475303d2",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计定义",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:9699830e3c91302b4d68edd6",
+      "canonicalType": "StatementArgument",
+      "label": "这些方法也可应用于离散模型。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:9c4d4199270e0f7acc9ec387",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计尤具优势。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a009db0cd09a4333d1475f78",
+      "canonicalType": "StatementArgument",
+      "label": "The corresponding digital controller is D(z) = C (z-A)/(z-B), where A = e^{-aT}, B = e^{-bT}, C = K* a (1-B) / (b (1-A)).",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a00a925a2a7f0b2a2522fb65",
+      "canonicalType": "StatementArgument",
+      "label": "Under any form of input, the system has a settling time of two sampling periods.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a010665dee597164294872cd",
+      "canonicalType": "StatementArgument",
+      "label": "采样周期选择的折中权衡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a35758d2bc8ba84c1a852ff8",
+      "canonicalType": "StatementArgument",
+      "label": "选取控制器中的 (z-b) 项，使得校正后系统的根轨迹在单位圆内的期望点处提供一组共轭复根。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a57850404ed6e8376297e1b7",
+      "canonicalType": "StatementArgument",
+      "label": "A deadbeat system has 100% overshoot for a unit step input.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a5862b11b1dd0892a7b89313",
+      "canonicalType": "StatementArgument",
+      "label": "The increase in the number of sampling periods for a ripple-free deadbeat system equals the number of zeros of G(z) inside the unit circle.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a66b4d281878bf082e2a2e6f",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计根轨迹发散",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:a957f806b96572570af50c2d",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计与连续设计阻尼对比",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:ad638615f57436e5720c1735",
+      "canonicalType": "StatementArgument",
+      "label": "若对所有 K > 0，系统在单位圆外始终有两个根，则系统始终不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:ba1df40ff9cc57a9e9beb016",
+      "canonicalType": "StatementArgument",
+      "label": "The deadbeat system has ripple at non-sampling instants",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:bb584b88d2e3b8d81d44c433",
+      "canonicalType": "StatementArgument",
+      "label": "实轴上的分离点与会合点由 dF(sigma)/d(sigma) = 0 的解确定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:c505ab0bf207696d44de0e2e",
+      "canonicalType": "StatementArgument",
+      "label": "由 s 平面映射 z = e^{sT} 导出的 z 平面等阻尼比线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:c5aea2c9ac7d1fcb1770d509",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计中的噪声衰减权衡",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:c6cb75671a895a6dc2879a64",
+      "canonicalType": "StatementArgument",
+      "label": "可利用根轨迹法设计数字控制器 D(z)，以实现指定的响应并使系统稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:c8b71fff8c574d980af65870",
+      "canonicalType": "StatementArgument",
+      "label": "连续至离散设计的采样周期选择",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:c9b18c701332a2c8127d902a",
+      "canonicalType": "StatementArgument",
+      "label": "根轨迹关于水平实轴对称。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:ccc22009a03c265a5dfd4236",
+      "canonicalType": "StatementArgument",
+      "label": "数字校正器设计中的极点对消",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:cd6bdc011d9ec01561f628aa",
+      "canonicalType": "StatementArgument",
+      "label": "通过采用后向差分法则近似微分环节、前向矩形积分法则近似积分环节，可获得 PID 控制器的数字实现，得到 z 域传递函数 G_c(z) = K_P + (K_I T z)/(z-1) + K_D (z-1)/(T z) 以及差分方程 u(k) = [K_P + K_I T + (K_D/T)] x(k) - K_D T x(k-1) + K_I u(k-1)。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:cdad09ef7e88096cb790f2c7",
+      "canonicalType": "StatementArgument",
+      "label": "PID 控制器差分方程算法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:d47ace6f50a62bcf65bbaff4",
+      "canonicalType": "StatementArgument",
+      "label": "根轨迹起始于 G(z) D(z) 的极点，并随 K 的变化趋向零点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:d7fbfd5cc2118bf6a51e9950",
+      "canonicalType": "StatementArgument",
+      "label": "离散设计与连续设计根轨迹对比",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:de2b5b1cffa216baf0e67956",
+      "canonicalType": "StatementArgument",
+      "label": "Design the digital controller D(z) so that the system achieves tracking with zero steady-state error within the minimum number of sampling periods.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:e51716abc221b106fa5bf2d2",
+      "canonicalType": "StatementArgument",
+      "label": "用于零极点对消及获得期望根轨迹的数字控制器 D(z) = (z-a)/(z-b)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:f62e765e138c5b1fd6ad91fc",
+      "canonicalType": "StatementArgument",
+      "label": "离散状态空间设计方法参见外部参考文献",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:f684f2220cb0969c32fc4ff9",
+      "canonicalType": "StatementArgument",
+      "label": "稳定性边界为单位圆而非虚轴。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:f8365b2bb9c106c75677e5a7",
+      "canonicalType": "StatementArgument",
+      "label": "通过数字校正器改善性能",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:fe0d15bf96598be7f24df828",
+      "canonicalType": "StatementArgument",
+      "label": "幅值条件为 |K G(z) D(z)| = 1。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:systemmodel:703096466a75f6381acd9faa",
+      "canonicalType": "SystemModel",
+      "label": "磁盘驱动采样读取系统模型",
+      "aliases": [
+        "磁盘驱动采样读取系统模型"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:systemmodel:b2e8dc39be1a23724e4e2d41",
+      "canonicalType": "SystemModel",
+      "label": "工作台数字控制系统模型",
+      "aliases": [
+        "工作台数字控制系统模型"
+      ],
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}

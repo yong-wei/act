@@ -18,6 +18,7 @@ export const DERIVATION_PREDICATES = [
 ] as const;
 export const APPLICATION_PREDICATES = ['applies_to', 'used_to_analyze'] as const;
 export const ASSOCIATION_PREDICATES = ['association'] as const;
+export const PREREQUISITE_ORDER_PREDICATES = ['prerequisite'] as const;
 
 const FAMILY_BY_PREDICATE: Readonly<Record<string, EngineeringRelationFamily>> = {
   has_component: 'structure',
@@ -28,6 +29,7 @@ const FAMILY_BY_PREDICATE: Readonly<Record<string, EngineeringRelationFamily>> =
   applies_to: 'application-and-analysis',
   used_to_analyze: 'application-and-analysis',
   association: 'association',
+  prerequisite: 'prerequisite-order',
 };
 
 export function engineeringFamilyForPredicate(
@@ -48,6 +50,8 @@ export function predicatesForEngineeringFamily(
       return APPLICATION_PREDICATES;
     case 'association':
       return ASSOCIATION_PREDICATES;
+    case 'prerequisite-order':
+      return PREREQUISITE_ORDER_PREDICATES;
     default: {
       const _never: never = family;
       return _never;

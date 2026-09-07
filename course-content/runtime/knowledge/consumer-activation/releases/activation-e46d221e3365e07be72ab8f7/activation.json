@@ -1,0 +1,192 @@
+{
+  "contract": "act-versioned-knowledge-consumer-activation/v1",
+  "captureRevision": "9ba68be0d1061880f41d4229387de392a2515141",
+  "stagedAt": "2026-08-26T00:23:19.000Z",
+  "consumers": [
+    {
+      "consumerId": "course-runtime",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+        "authoritySnapshotId": "snap-e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "authoritySnapshotHash": "e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "projectionId": "proj-1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "projectionHash": "1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "scopeId": null,
+        "captureRevision": "9ba68be0d1061880f41d4229387de392a2515141"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "7458f869449abb67af2c61db435e2ce901729ef27edeb48099e84ad114f326c6",
+        "engineering.json": "f80a50bda30acf9c09fd7a38f4f208a379ab8967bab7e0214db69a32de3896a2",
+        "projection-manifest.json": "3898dde329ba735fdd42c6be812e5ed44684d330decd6c27e321637483878f32",
+        "resources.jsonl": "48349a886b43520cd4fe3c9b66f1b55a8b1319d7469c94d6ddba19ebae484f39",
+        "bindings.jsonl": "27cecac209e7c6072888eb6dab57635fb84f8f3d5fe2113c6bccdaebcbfe5867",
+        "cards-index.json": "1e1ce66be0abe32d138f375b8f1e6b9c506c022b42f16e5bb2175810f43a6e49",
+        "prerequisites.jsonl": "c817f5c6b1f9e92e23b5ec4dd06a27b848423df96fccb180cca15a56976faf52",
+        "core-nodes.json": "d8837a56732b6bbfff52a43dedd7920666977271ac90802d9043b6bbf79e0d95",
+        "impact-report.json": "dad1964aa695b6034d377d52e65de6f4955110254db5cd9d19f585dd1818ddea",
+        "gate.json": "dcec38f16ccc5581846cb5a642fb32d2bd4a01a6ffd4fbe023c97fe97f2762b9"
+      },
+      "reasons": [
+        "projection-gate-failed"
+      ],
+      "activatedAt": "2026-08-26T00:23:19.000Z"
+    },
+    {
+      "consumerId": "engineering-graph",
+      "status": "READY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+        "authoritySnapshotId": "snap-e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "authoritySnapshotHash": "e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "9ba68be0d1061880f41d4229387de392a2515141"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "7458f869449abb67af2c61db435e2ce901729ef27edeb48099e84ad114f326c6",
+        "engineering.json": "f80a50bda30acf9c09fd7a38f4f208a379ab8967bab7e0214db69a32de3896a2"
+      },
+      "reasons": [
+        "engineering-only-no-projection-required",
+        "authority-ready"
+      ],
+      "activatedAt": "2026-08-26T00:23:19.000Z"
+    },
+    {
+      "consumerId": "engineering-rag",
+      "status": "READY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+        "authoritySnapshotId": "snap-e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "authoritySnapshotHash": "e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "projectionId": null,
+        "projectionHash": null,
+        "scopeId": null,
+        "captureRevision": "9ba68be0d1061880f41d4229387de392a2515141"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "7458f869449abb67af2c61db435e2ce901729ef27edeb48099e84ad114f326c6",
+        "engineering.json": "f80a50bda30acf9c09fd7a38f4f208a379ab8967bab7e0214db69a32de3896a2"
+      },
+      "reasons": [
+        "engineering-only-no-projection-required",
+        "authority-ready"
+      ],
+      "activatedAt": "2026-08-26T00:23:19.000Z"
+    },
+    {
+      "consumerId": "konling",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+        "authoritySnapshotId": "snap-e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "authoritySnapshotHash": "e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "projectionId": "proj-1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "projectionHash": "1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "scopeId": null,
+        "captureRevision": "9ba68be0d1061880f41d4229387de392a2515141"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "7458f869449abb67af2c61db435e2ce901729ef27edeb48099e84ad114f326c6",
+        "engineering.json": "f80a50bda30acf9c09fd7a38f4f208a379ab8967bab7e0214db69a32de3896a2",
+        "projection-manifest.json": "3898dde329ba735fdd42c6be812e5ed44684d330decd6c27e321637483878f32",
+        "resources.jsonl": "48349a886b43520cd4fe3c9b66f1b55a8b1319d7469c94d6ddba19ebae484f39",
+        "bindings.jsonl": "27cecac209e7c6072888eb6dab57635fb84f8f3d5fe2113c6bccdaebcbfe5867",
+        "cards-index.json": "1e1ce66be0abe32d138f375b8f1e6b9c506c022b42f16e5bb2175810f43a6e49",
+        "prerequisites.jsonl": "c817f5c6b1f9e92e23b5ec4dd06a27b848423df96fccb180cca15a56976faf52",
+        "core-nodes.json": "d8837a56732b6bbfff52a43dedd7920666977271ac90802d9043b6bbf79e0d95",
+        "impact-report.json": "dad1964aa695b6034d377d52e65de6f4955110254db5cd9d19f585dd1818ddea",
+        "gate.json": "dcec38f16ccc5581846cb5a642fb32d2bd4a01a6ffd4fbe023c97fe97f2762b9"
+      },
+      "reasons": [
+        "projection-gate-failed"
+      ],
+      "activatedAt": "2026-08-26T00:23:19.000Z"
+    },
+    {
+      "consumerId": "learning-path",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+        "authoritySnapshotId": "snap-e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "authoritySnapshotHash": "e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "projectionId": "proj-1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "projectionHash": "1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "scopeId": null,
+        "captureRevision": "9ba68be0d1061880f41d4229387de392a2515141"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "7458f869449abb67af2c61db435e2ce901729ef27edeb48099e84ad114f326c6",
+        "engineering.json": "f80a50bda30acf9c09fd7a38f4f208a379ab8967bab7e0214db69a32de3896a2",
+        "projection-manifest.json": "3898dde329ba735fdd42c6be812e5ed44684d330decd6c27e321637483878f32",
+        "resources.jsonl": "48349a886b43520cd4fe3c9b66f1b55a8b1319d7469c94d6ddba19ebae484f39",
+        "bindings.jsonl": "27cecac209e7c6072888eb6dab57635fb84f8f3d5fe2113c6bccdaebcbfe5867",
+        "cards-index.json": "1e1ce66be0abe32d138f375b8f1e6b9c506c022b42f16e5bb2175810f43a6e49",
+        "prerequisites.jsonl": "c817f5c6b1f9e92e23b5ec4dd06a27b848423df96fccb180cca15a56976faf52",
+        "core-nodes.json": "d8837a56732b6bbfff52a43dedd7920666977271ac90802d9043b6bbf79e0d95",
+        "impact-report.json": "dad1964aa695b6034d377d52e65de6f4955110254db5cd9d19f585dd1818ddea",
+        "gate.json": "dcec38f16ccc5581846cb5a642fb32d2bd4a01a6ffd4fbe023c97fe97f2762b9"
+      },
+      "reasons": [
+        "projection-gate-failed"
+      ],
+      "activatedAt": "2026-08-26T00:23:19.000Z"
+    },
+    {
+      "consumerId": "teaching-resource-rag",
+      "status": "BLOCKED_LOCAL_DEPENDENCY",
+      "combination": {
+        "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+        "authoritySnapshotId": "snap-e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "authoritySnapshotHash": "e877ad9c516b6649e2c6307f7a0fc27f65d5954ab04effabed02624abdb5967f",
+        "projectionId": "proj-1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "projectionHash": "1399cb6bfc27fc67b369acea2077d41e69a4cc252e1542311d23a9e7b9e64779",
+        "scopeId": null,
+        "captureRevision": "9ba68be0d1061880f41d4229387de392a2515141"
+      },
+      "priorCombination": null,
+      "artifactHashes": {
+        "manifest.json": "7458f869449abb67af2c61db435e2ce901729ef27edeb48099e84ad114f326c6",
+        "engineering.json": "f80a50bda30acf9c09fd7a38f4f208a379ab8967bab7e0214db69a32de3896a2",
+        "projection-manifest.json": "3898dde329ba735fdd42c6be812e5ed44684d330decd6c27e321637483878f32",
+        "resources.jsonl": "48349a886b43520cd4fe3c9b66f1b55a8b1319d7469c94d6ddba19ebae484f39",
+        "bindings.jsonl": "27cecac209e7c6072888eb6dab57635fb84f8f3d5fe2113c6bccdaebcbfe5867",
+        "cards-index.json": "1e1ce66be0abe32d138f375b8f1e6b9c506c022b42f16e5bb2175810f43a6e49",
+        "prerequisites.jsonl": "c817f5c6b1f9e92e23b5ec4dd06a27b848423df96fccb180cca15a56976faf52",
+        "core-nodes.json": "d8837a56732b6bbfff52a43dedd7920666977271ac90802d9043b6bbf79e0d95",
+        "impact-report.json": "dad1964aa695b6034d377d52e65de6f4955110254db5cd9d19f585dd1818ddea",
+        "gate.json": "dcec38f16ccc5581846cb5a642fb32d2bd4a01a6ffd4fbe023c97fe97f2762b9"
+      },
+      "reasons": [
+        "projection-gate-failed"
+      ],
+      "activatedAt": "2026-08-26T00:23:19.000Z"
+    }
+  ],
+  "impact": {
+    "readyConsumerIds": [
+      "engineering-graph",
+      "engineering-rag"
+    ],
+    "pinnedConsumerIds": [],
+    "blockedConsumerIds": [
+      "course-runtime",
+      "konling",
+      "learning-path",
+      "teaching-resource-rag"
+    ],
+    "shadowConsumerIds": []
+  },
+  "shadowReportHash": null,
+  "priorActivationId": null,
+  "priorActivationHash": null,
+  "activationId": "activation-e46d221e3365e07be72ab8f7",
+  "activationHash": "7573562add2eb23edc6295ac61ae57999d52c97b807306e8ca8eb852ba6ffadc"
+}

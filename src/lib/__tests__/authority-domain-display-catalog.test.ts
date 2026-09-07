@@ -62,9 +62,9 @@ const RELEASE_ID = 'ctr:release:control-theory-engineering-v0.9';
 const RELEASE_SET_ID =
   'actkg-authoritative-candidate-25eccfea581c79a83fa95ec9dd08fa98a9eeae1cc27da1d8549b57d1bf52c6b6';
 const SUCCESSOR_SNAPSHOT_ID =
-  'snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae';
+  'snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373';
 const SUCCESSOR_SNAPSHOT_HASH =
-  'e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae';
+  'b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373';
 const SUCCESSOR_RELEASE_ID = 'ctr:release:control-theory-engineering-v0.37';
 
 const SAMPLE_IDS = {
@@ -650,7 +650,8 @@ describe('committed authority domain display catalog store', () => {
     expect(catalog.domains).toHaveLength(15);
     expect(catalog.aggregate.entryId).toBe(AGGREGATE_ENTRY_ID);
     expect(catalog.aggregate.domainCount).toBe(15);
-    expect(catalog.memberships).toHaveLength(7476);
+    // r6 retires four v0.22-inherited members (#2058).
+    expect(catalog.memberships).toHaveLength(7472);
     expect(catalog.memberships.some((m) => m.domainIds.length > 1)).toBe(true);
     for (const domainId of REGISTERED_PEER_DOMAIN_IDS) {
       expect(catalog.domains.some((d) => d.domainId === domainId)).toBe(true);

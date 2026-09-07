@@ -1,11 +1,11 @@
 {
   "contract": "act-authority-learning-content-manifest/v2",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
-  "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
-  "authoritySnapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-  "authoritySnapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-  "teachingProjectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
-  "teachingProjectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+  "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+  "authoritySnapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+  "authoritySnapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+  "teachingProjectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+  "teachingProjectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
   "nodes": [
     {
       "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
@@ -797,18 +797,6 @@
       "infograph": {
         "state": "available",
         "sha256": "29020142fc47c3209fbe48f1f235d5357e6d38e3169f3d8d79a0ccde4fe5ea44"
-      }
-    },
-    {
-      "canonicalId": "ctc:modeling-423b845366304dc755fefcea",
-      "safeId": "ctc_modeling-423b845366304dc755fefcea",
-      "card": {
-        "state": "blocked",
-        "sha256": null
-      },
-      "infograph": {
-        "state": "available",
-        "sha256": "44522a5daf75d533347009a7c624814b3561bc336e2781cdf0c239735b7047fd"
       }
     },
     {
@@ -3089,18 +3077,6 @@
       "infograph": {
         "state": "available",
         "sha256": "aaba0e0b2fd8fe951bd0e9188d83478ab06e15b479d0f82d523e4f99ca0ba378"
-      }
-    },
-    {
-      "canonicalId": "ctc:modeling-f6940765c7e8e5b74be204e0",
-      "safeId": "ctc_modeling-f6940765c7e8e5b74be204e0",
-      "card": {
-        "state": "blocked",
-        "sha256": null
-      },
-      "infograph": {
-        "state": "available",
-        "sha256": "9fdc2c57477ea679dedc0a1100a425f22b6468c353f95fc4e704f0812b7dfb37"
       }
     },
     {

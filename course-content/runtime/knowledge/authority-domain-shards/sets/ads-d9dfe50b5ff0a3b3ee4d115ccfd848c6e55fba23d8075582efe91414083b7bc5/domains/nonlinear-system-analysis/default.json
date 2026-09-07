@@ -1,0 +1,2618 @@
+{
+  "shardClass": "domain-default",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "nonlinear-system-analysis",
+  "visualRole": "nonlinear-analysis",
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-0079fafb4b8e0579bedea1a6",
+      "canonicalType": "DomainConcept",
+      "label": "外部稳定性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-015051ab889bc2e6b3fd1b54",
+      "canonicalType": "DomainConcept",
+      "label": "稳定焦点",
+      "aliases": [
+        "稳定焦点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-01daeca5c38811f6a58fcb01",
+      "canonicalType": "DomainConcept",
+      "label": "基于根轨迹的等效增益分析",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "canonicalType": "DomainConcept",
+      "label": "极限环",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+      "canonicalType": "DomainConcept",
+      "label": "迟滞非线性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "canonicalType": "DomainConcept",
+      "label": "非线性系统",
+      "aliases": [
+        "非线性系统"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-14b61e56571539bbfb630ae7",
+      "canonicalType": "DomainConcept",
+      "label": "小偏差线性化法",
+      "aliases": [
+        "小偏差线性化法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+      "canonicalType": "DomainConcept",
+      "label": "施密特触发器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1ca4635beaad42eaac5ec29e",
+      "canonicalType": "DomainConcept",
+      "label": "正弦输入下的非线性环节",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "canonicalType": "DomainConcept",
+      "label": "相平面图",
+      "aliases": [
+        "相平面图"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "canonicalType": "DomainConcept",
+      "label": "等倾线法",
+      "aliases": [
+        "等倾线法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2472530b842ec00599809720",
+      "canonicalType": "DomainConcept",
+      "label": "继电器非线性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+      "canonicalType": "DomainConcept",
+      "label": "基于频率响应的稳定性分析",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+      "canonicalType": "DomainConcept",
+      "label": "等倾线",
+      "aliases": [
+        "等倾线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2c7489771bec99ead56be2ef",
+      "canonicalType": "DomainConcept",
+      "label": "带死区增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2d3e13db4965d78a3919bba8",
+      "canonicalType": "DomainConcept",
+      "label": "MATLAB绘制相轨迹",
+      "aliases": [
+        "MATLAB绘制相轨迹"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-37427c0ceefae90634f93312",
+      "canonicalType": "DomainConcept",
+      "label": "扇形条件",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+      "canonicalType": "DomainConcept",
+      "label": "极限环",
+      "aliases": [
+        "极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "canonicalType": "DomainConcept",
+      "label": "等效增益",
+      "aliases": [
+        "等效增益"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+      "canonicalType": "DomainConcept",
+      "label": "等效增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-411b4330ef1d812cf20b125d",
+      "canonicalType": "DomainConcept",
+      "label": "非线性系统的根轨迹法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-44abb05a48944f9fee9a9d01",
+      "canonicalType": "DomainConcept",
+      "label": "相平面法分析非线性系统",
+      "aliases": [
+        "相平面法分析非线性系统"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+      "canonicalType": "DomainConcept",
+      "label": "无记忆非线性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+      "canonicalType": "DomainConcept",
+      "label": "平衡状态",
+      "aliases": [
+        "平衡状态"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-551346c07dd0adc110d95089",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定节点",
+      "aliases": [
+        "不稳定节点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "canonicalType": "DomainConcept",
+      "label": "继电特性",
+      "aliases": [
+        "继电特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "canonicalType": "DomainConcept",
+      "label": "半稳定极限环",
+      "aliases": [
+        "半稳定极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5baddb9163a6af3f17f2522d",
+      "canonicalType": "DomainConcept",
+      "label": "小信号分析",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5ed5fc7d05f77452e100406b",
+      "canonicalType": "DomainConcept",
+      "label": "双极限环",
+      "aliases": [
+        "双极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "canonicalType": "DomainConcept",
+      "label": "饱和非线性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+      "canonicalType": "DomainConcept",
+      "label": "非线性系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+      "canonicalType": "DomainConcept",
+      "label": "死区",
+      "aliases": [
+        "死区"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-76a08234eba9eed51ed0733b",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫第一方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-78aceee1453c8c629dcfdd7e",
+      "canonicalType": "DomainConcept",
+      "label": "低速爬行现象",
+      "aliases": [
+        "低速爬行现象"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数法",
+      "aliases": [
+        "描述函数法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "canonicalType": "DomainConcept",
+      "label": "相轨迹",
+      "aliases": [
+        "相轨迹"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-80d226d08d089c2c8bbd2219",
+      "canonicalType": "DomainConcept",
+      "label": "直接积分法求相轨迹",
+      "aliases": [
+        "直接积分法求相轨迹"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+      "canonicalType": "DomainConcept",
+      "label": "稳定极限环",
+      "aliases": [
+        "稳定极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-868cdcdd22cf6d7b46ac2aa8",
+      "canonicalType": "DomainConcept",
+      "label": "线性叠加原理",
+      "aliases": [
+        "线性叠加原理"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8a3c314c47ad84ae14ce5cb8",
+      "canonicalType": "DomainConcept",
+      "label": "基于陷波校正的相位镇定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8cf39aebda1d87c8394a3f9d",
+      "canonicalType": "DomainConcept",
+      "label": "带死区的继电器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "canonicalType": "DomainConcept",
+      "label": "相平面",
+      "aliases": [
+        "相平面"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-99e2b54e9474379206799dfa",
+      "canonicalType": "DomainConcept",
+      "label": "正阻尼",
+      "aliases": [
+        "正阻尼"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+      "canonicalType": "DomainConcept",
+      "label": "分隔线",
+      "aliases": [
+        "分隔线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "canonicalType": "DomainConcept",
+      "label": "相平面法",
+      "aliases": [
+        "相平面法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+      "canonicalType": "DomainConcept",
+      "label": "奇线",
+      "aliases": [
+        "奇线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a241f1b04d77793cee60f9d5",
+      "canonicalType": "DomainConcept",
+      "label": "无记忆非线性环节",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+      "canonicalType": "DomainConcept",
+      "label": "平衡点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "canonicalType": "DomainConcept",
+      "label": "摩擦特性",
+      "aliases": [
+        "摩擦特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "canonicalType": "DomainConcept",
+      "label": "继电器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "canonicalType": "DomainConcept",
+      "label": "自激振荡",
+      "aliases": [
+        "自激振荡"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "canonicalType": "DomainConcept",
+      "label": "速度反馈",
+      "aliases": [
+        "速度反馈"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "canonicalType": "DomainConcept",
+      "label": "间隙特性",
+      "aliases": [
+        "间隙特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "canonicalType": "DomainConcept",
+      "label": "奇点",
+      "aliases": [
+        "奇点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "canonicalType": "DomainConcept",
+      "label": "自振荡",
+      "aliases": [
+        "自振荡"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c7afebd82a4a7968e83b34d7",
+      "canonicalType": "DomainConcept",
+      "label": "卢里叶问题",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定极限环",
+      "aliases": [
+        "不稳定极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ca34eff2440293f793a1aafa",
+      "canonicalType": "DomainConcept",
+      "label": "圆判据",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cbfe80d3da0902843e4ec358",
+      "canonicalType": "DomainConcept",
+      "label": "稳定节点",
+      "aliases": [
+        "稳定节点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "canonicalType": "DomainConcept",
+      "label": "饱和特性",
+      "aliases": [
+        "饱和特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d193b6e8d31cd34677110ff5",
+      "canonicalType": "DomainConcept",
+      "label": "谐波平衡分析",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数",
+      "aliases": [
+        "描述函数"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d4e994e83801bfcca363b375",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定焦点",
+      "aliases": [
+        "不稳定焦点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "canonicalType": "DomainConcept",
+      "label": "实奇点",
+      "aliases": [
+        "实奇点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+      "canonicalType": "DomainConcept",
+      "label": "库仑加粘性摩擦",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d5867ef3a2e3dc60bcbeeec5",
+      "canonicalType": "DomainConcept",
+      "label": "相变量",
+      "aliases": [
+        "相变量"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "canonicalType": "DomainConcept",
+      "label": "死区特性",
+      "aliases": [
+        "死区特性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-dd83c852f8ae95a9d7f5041f",
+      "canonicalType": "DomainConcept",
+      "label": "艾泽曼猜想",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "canonicalType": "DomainConcept",
+      "label": "虚奇点",
+      "aliases": [
+        "虚奇点"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "canonicalType": "DomainConcept",
+      "label": "负倒描述函数",
+      "aliases": [
+        "负倒描述函数"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "canonicalType": "DomainConcept",
+      "label": "量化",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ebae53fe552177ee1b57cd74",
+      "canonicalType": "DomainConcept",
+      "label": "平衡点附近增量线性化方法",
+      "aliases": [
+        "平衡点附近增量线性化方法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-edc0d1a17b9cbb23167788e0",
+      "canonicalType": "DomainConcept",
+      "label": "谐波线性化",
+      "aliases": [
+        "谐波线性化"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ef6fc9931fcf63871a394970",
+      "canonicalType": "DomainConcept",
+      "label": "含非线性的闭环系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+      "canonicalType": "DomainConcept",
+      "label": "预加载弹簧",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "canonicalType": "DomainConcept",
+      "label": "开关线",
+      "aliases": [
+        "开关线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "teachingRelations": [
+    {
+      "id": "dt-edge-0209fb99ef397aec3bbf5e60",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "targetId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-0d4985d8c83a1338d3f96056",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "targetId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-0e254596695825386723eb1f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "targetId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-0e7401b61611b8532277661f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "targetId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-1bee35572fed23abaa8d7607",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "targetId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-1c1f33cc9b4dc6ae6d09c8e4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+      "targetId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-3ae2aefa194e5e996c56e6d5",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "targetId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4309b9dfbd4ffab25a6f5f75",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+      "targetId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-5172426301a7c66dcc60e16b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "targetId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6297b2041fa598e998c4f093",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "targetId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6821cfebbe8c135655c93e33",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "targetId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6c590b66c325762714d2e382",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+      "targetId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6c5fa0fdbb6e1e15839a1570",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9d26af324690536e3ff7bbc9",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "targetId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9f07b45fdfa1c3edf2a41755",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "targetId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-a1021b656e541a369c9523f2",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+      "targetId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-a2aba79da9954fa8016dd345",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "targetId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-a501f43f8e96439de4afaecc",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "targetId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-a8a30927aa9ae827dd14b9c3",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+      "targetId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-af2fe1b258dee3a48a8634a1",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+      "targetId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-bd3b32502d74327637cab36d",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+      "targetId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ca4d8ecd4fef9e95656cb395",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+      "targetId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d1b262f6ae0a0df0d76a07d8",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+      "targetId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d9ccbe7ba422f708af4ba1c6",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+      "targetId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-dc8aa25a676989a9c7d450ff",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "targetId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-dd2f8c52e2464e62599345ec",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+      "targetId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-e57a28767f120e5bcfe3f4d1",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "targetId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ec7369b14813a3ee30073908",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+      "targetId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-eea8f4b6da09ef9bc9b411a6",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "targetId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f0c0d4c8d0664350d22467ae",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f3a0a0600056f75139f56a73",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+      "targetId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-fb365e150219ce50d848303e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+      "targetId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    }
+  ],
+  "teachingCoverage": {
+    "status": "available",
+    "domainId": "nonlinear-system-analysis",
+    "relationCount": 32,
+    "coreNodeCount": 33,
+    "uncoveredCoreNodeCount": 0,
+    "note": "该领域已发布可用的教学关系覆盖"
+  }
+}

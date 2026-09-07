@@ -45,6 +45,7 @@ export const ENGINEERING_RELATION_FAMILIES = [
   'derivation-and-representation',
   'application-and-analysis',
   'association',
+  'prerequisite-order',
 ] as const;
 
 export type EngineeringRelationFamily =

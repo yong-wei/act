@@ -1,0 +1,16 @@
+{
+  "contract": "actkg-engineering-authority-rollback-receipt/v1",
+  "receiptId": "rollback-preserve-snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae-1788796384218",
+  "kind": "pre-activation-preserve",
+  "preservedPointer": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+    "activationReceiptId": "coordinated-r4-c5-authority",
+    "activatedAt": "2026-08-30T05:18:01.000Z"
+  },
+  "preservedAt": "2026-09-07T19:10:00.000Z",
+  "forActivationReceiptId": "coordinated-r6-admission-v037"
+}

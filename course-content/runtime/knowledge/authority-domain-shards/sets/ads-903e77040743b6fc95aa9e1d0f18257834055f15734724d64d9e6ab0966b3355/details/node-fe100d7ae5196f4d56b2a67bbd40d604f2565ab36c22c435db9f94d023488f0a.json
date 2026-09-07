@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+    "canonicalType": "KnowledgeStatement",
+    "label": "例7-28中，通过综合除法将C（z）展成无穷幂级数，得到系统在单位阶跃外作用下的输出序列c（nT）的数值，包括c（0）=0.0, c（T）=0.368, c（2T）=1.0, c（3T）=1.4, c（4T）=1.4, c（5T）=1.147, c（6T）=0.895, c（7T）=0.802, c（8T）=0.868, c（9T）=0.993, c（10T）=1.077, c（11T）=1.081, c（12T）=1.032, c（13T）=0.981, c（14T）=0.961, c（15T）=0.973, c（16T）=0.997, c（17T）=1.015。",
+    "aliases": [],
+    "description": "例7-28中，通过综合除法将C(z)展成无穷幂级数，得到系统在单位阶跃外作用下的输出序列c(nT)的数值，包括c(0)=0.0, c(T)=0.368, c(2T)=1.0, c(3T)=1.4, c(4T)=1.4, c(5T)=1.147, c(6T)=0.895, c(7T)=0.802, c(8T)=0.868, c(9T)=0.993, c(10T)=1.077, c(11T)=1.081, c(12T)=1.032, c(13T)=0.981, c(14T)=0.961, c(15T)=0.973, c(16T)=0.997, c(17T)=1.015。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

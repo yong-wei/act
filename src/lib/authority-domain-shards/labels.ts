@@ -432,14 +432,18 @@ function resolvedAliases(
   entityId: string,
   canonicalType: string | null | undefined,
   trustedRuntimeProfile: boolean,
-): readonly string[] | null {
+): readonly string[] {
   const preserveWhitespace = canonicalType === 'Formula' && trustedRuntimeProfile;
-  const values = alternativeLabels(labels, entityId).map((row) => text(row.label, preserveWhitespace));
-  if (values.some((value) => value === null)) return null;
-  const safeValues = values as string[];
-  if (safeValues.some((value) => !isSafeAuthorityLabel(value, canonicalType, trustedRuntimeProfile))) return null;
+  // Governed aliases follow the same presentation-safety criteria as the
+  // preferred label, but a single unqualified alias must not blank the
+  // object's whole presentation — unsafe aliases drop themselves only
+  // (alias spec: zh-CN base behavior stays unchanged).
+  const values = alternativeLabels(labels, entityId)
+    .map((row) => text(row.label, preserveWhitespace))
+    .filter((value): value is string => value !== null)
+    .filter((value) => isSafeAuthorityLabel(value, canonicalType, trustedRuntimeProfile));
   return Object.freeze(
-    safeValues
+    values
       .slice()
       .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
       .filter((value, index, sorted) => sorted.indexOf(value) === index),
@@ -639,7 +643,6 @@ export function resolveAuthorityLabel(
       && !isSourceBoundR4PresentationLabel(preferredRow, object, label)
     )) return unavailable();
     const aliases = resolvedAliases(context.labels, entityId, object.canonicalType, trustedRuntimeProfile);
-    if (!aliases) return unavailable();
     return Object.freeze({ status: 'available', label, aliases });
   }
 
@@ -648,6 +651,5 @@ export function resolveAuthorityLabel(
   const pinnedFallback = pinnedFormulaFallbackLabel(context, object, fallback, failure);
   if (failure !== null && pinnedFallback === null) return unavailable();
   const aliases = resolvedAliases(context.labels, entityId, object.canonicalType, trustedRuntimeProfile);
-  if (!aliases) return unavailable();
   return Object.freeze({ status: 'available', label: pinnedFallback ?? fallback, aliases });
 }

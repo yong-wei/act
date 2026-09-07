@@ -1,0 +1,12 @@
+{
+  "contract": "act-authority-domain-catalog-retirement-ruling/v1",
+  "stagedAt": "2026-09-07T16:30:00.000Z",
+  "retiredMembers": [
+    "ctc:modeling-423b845366304dc755fefcea",
+    "ctc:modeling-f6940765c7e8e5b74be204e0",
+    "ctf:68d4b357bceeebe4ef1c7a35",
+    "ctf:8f245a09ee5140ef7cb0829e"
+  ],
+  "sourceCrosswalkSha256": "c1bdc2fb6e798127e7b22c879322c80f40c939efc46c114f0653cee18f555d35",
+  "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373"
+}

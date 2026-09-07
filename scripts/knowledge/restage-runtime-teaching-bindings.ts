@@ -61,7 +61,7 @@ const PROJECTION_REL = 'course-content/runtime/knowledge/projection';
 const PREREQ_REL = 'course-content/runtime/knowledge/prerequisites';
 const LEDGER_REL = 'course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl';
 const BUNDLE_MANIFEST_REL =
-  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/bundle-manifest.json';
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r6/bundle-manifest.json';
 const QUOTAS_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-quotas.json';
 const GOVERNANCE_REPORT_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-governance-report.json';
 
@@ -333,6 +333,9 @@ function currentHead(): string {
 }
 
 async function main(): Promise<void> {
+  const activationIdBefore = readJson<{ activationId: string }>(
+    'course-content/runtime/knowledge/consumer-activation/current.json',
+  ).activationId;
   const pointer = readJson<{
     projectionId: string;
     projectionHash: string;
@@ -347,6 +350,31 @@ async function main(): Promise<void> {
     authoritySnapshotId: string;
     authoritySnapshotHash: string;
   }>(`${releaseDir}/projection-manifest.json`);
+  // r6 rebind (#2058): re-staging B′′ under a successor Authority snapshot
+  // overrides the identity fields while keeping scope and authoring inputs.
+  const authorityManifestRel = option('--authority-manifest');
+  const successorAuthority = authorityManifestRel
+    ? readJson<{
+      releaseId: string;
+      releaseSetId: string;
+      snapshotId: string;
+      snapshotHash: string;
+    }>(authorityManifestRel)
+    : null;
+  if (successorAuthority) {
+    if (
+      manifest.authorityReleaseId !== successorAuthority.releaseId
+      || successorAuthority.snapshotId !== `snap-${successorAuthority.snapshotHash}`
+    ) {
+      throw new Error(`successor authority manifest does not form a sealed identity: ${successorAuthority.snapshotId}`);
+    }
+    Object.assign(manifest, {
+      authorityReleaseId: successorAuthority.releaseId,
+      authorityReleaseSetId: successorAuthority.releaseSetId,
+      authoritySnapshotId: successorAuthority.snapshotId,
+      authoritySnapshotHash: successorAuthority.snapshotHash,
+    });
+  }
   const retiredLesson02 = readJsonl<{ resourceId: string }>(
     'course-content/authoring/knowledge/teaching-projection/simulations/retired-sim-exclusions.jsonl',
   );
@@ -539,7 +567,7 @@ async function main(): Promise<void> {
     currentProjection.projectionId !== staged.projectionId
     || liveSidecar.courseProjectionId !== staged.projectionId
     || liveSidecar.envelopeProjectionId !== overlayPointer.projectionId
-    || liveActivation.activationId !== 'activation-0b72f577a3d58647e6b67246'
+    || liveActivation.activationId !== activationIdBefore
   ) {
     throw new Error('teaching pointers were not switched together without moving sealed consumer-activation');
   }

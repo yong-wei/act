@@ -1,0 +1,126 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例7-28中，通过综合除法将C（z）展成无穷幂级数，得到系统在单位阶跃外作用下的输出序列c（nT）的数值，包括c（0）=0.0, c（T）=0.368, c（2T）=1.0, c（3T）=1.4, c（4T）=1.4, c（5T）=1.147, c（6T）=0.895, c（7T）=0.802, c（8T）=0.868, c（9T）=0.993, c（10T）=1.077, c（11T）=1.081, c（12T）=1.032, c（13T）=0.981, c（14T）=0.961, c（15T）=0.973, c（16T）=0.997, c（17T）=1.015。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "canonicalType": "KnowledgeStatement",
+      "label": "解：先求开环脉冲传递函数G（z）。因为G（s）=1/（s^2（s+1））（1-e^{-s}），对上式取z变换，并由z变换的实数位移定理，可得G（z）=（1-z^{-1}）Z[1/（s^2（s+1））]。查z变换表，求出G（z）=（0.368z+0.264）/（（z-1）（z-0.368））。再求闭环脉冲传递函数Φ（z）=G（z）/（1+G（z））=（0.368z+0.264）/（z^2-z+0.632）。将R（z）=z/（z-1）代入上式，求出单位阶跃序列响应的z变换：C（z）=Φ（z）R（z）=（0.368z^{-1}+0.264z^{-2}）/（1-2z^{-1}+1.632z^{-2}-0.632z^{-3}）。通过综合除法，将C（z）展成无穷幂级数。基于z变换定义，由上式求得系统在单位阶跃外作用下的输出序列c（nT）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1k:relation-665b27b77fdaefb6dd75f202",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "targetId": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1k:relation-96dcc0c0a3fcf7eb7a0a195d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+      "targetId": "ctkg:v3e-object-829ec70897950edf1ee3b511",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}
