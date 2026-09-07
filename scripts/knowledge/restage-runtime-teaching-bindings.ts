@@ -350,6 +350,31 @@ async function main(): Promise<void> {
     authoritySnapshotId: string;
     authoritySnapshotHash: string;
   }>(`${releaseDir}/projection-manifest.json`);
+  // r6 rebind (#2058): re-staging B′′ under a successor Authority snapshot
+  // overrides the identity fields while keeping scope and authoring inputs.
+  const authorityManifestRel = option('--authority-manifest');
+  const successorAuthority = authorityManifestRel
+    ? readJson<{
+      releaseId: string;
+      releaseSetId: string;
+      snapshotId: string;
+      snapshotHash: string;
+    }>(authorityManifestRel)
+    : null;
+  if (successorAuthority) {
+    if (
+      manifest.authorityReleaseId !== successorAuthority.releaseId
+      || successorAuthority.snapshotId !== `snap-${successorAuthority.snapshotHash}`
+    ) {
+      throw new Error(`successor authority manifest does not form a sealed identity: ${successorAuthority.snapshotId}`);
+    }
+    Object.assign(manifest, {
+      authorityReleaseId: successorAuthority.releaseId,
+      authorityReleaseSetId: successorAuthority.releaseSetId,
+      authoritySnapshotId: successorAuthority.snapshotId,
+      authoritySnapshotHash: successorAuthority.snapshotHash,
+    });
+  }
   const retiredLesson02 = readJsonl<{ resourceId: string }>(
     'course-content/authoring/knowledge/teaching-projection/simulations/retired-sim-exclusions.jsonl',
   );

@@ -84,12 +84,16 @@ function main(): void {
     readonly gatePassed: boolean;
   }>(`${projectionDir}/projection-manifest.json`);
   const predecessor = readJson<ConsumerActivationManifest>(productionPredecessor);
-  if (
-    predecessor.activationId !== 'v022-cutover-9c4b2c1c2c97-1ab3029ae058'
-    || predecessor.activationHash !== '63acd3f2d9f18a4dd6800ee185b68cc860bf330f3e288747c699fa6834bb4129'
-    || predecessor.consumers.length !== 6
-  ) {
-    throw new Error('captured production v0.22 activation is not the sealed predecessor');
+  if (predecessor.consumers.length !== 6) {
+    throw new Error('captured predecessor activation must carry six consumers');
+  }
+  // r4-c4 pinned the v0.22 cutover activation; r6 pins the live r4-c4
+  // activation as its predecessor. Both directions stay explicit: the
+  // candidate may only chain onto a six-consumer sealed activation whose
+  // id/hash pair the apply step will recheck.
+  const expectPredecessorId = option('--expect-predecessor-id', 'v022-cutover-9c4b2c1c2c97-1ab3029ae058');
+  if (predecessor.activationId !== expectPredecessorId) {
+    throw new Error(`captured predecessor activation ${predecessor.activationId} is not the declared ${expectPredecessorId}`);
   }
   if (
     authority.snapshotId !== snapshotId
@@ -155,7 +159,7 @@ function main(): void {
     throw new Error('restaged r4-c4 activation does not make all six consumers READY');
   }
   const receipt = {
-    contract: 'r4-coordinated-production-predecessor-activation-restage/v2',
+    contract: 'r4-coordinated-production-predecessor-activation-restage/v3',
     stagedAt,
     predecessor: {
       activationId: predecessor.activationId,

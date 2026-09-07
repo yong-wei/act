@@ -167,9 +167,14 @@ describe('sealed v0.37 locale qualification package (#1741)', () => {
     expect(byCategory.get('object-names')).toBeGreaterThan(2800);
     expect(byCategory.get('object-explanations')).toBeGreaterThan(2300);
     expect(byCategory.get('types')).toBe(7);
-    expect(byCategory.get('relations')).toBe(9);
+    // r6 admits the published engineering prerequisite predicate (#2058).
+    expect(byCategory.get('relations')).toBe(10);
     expect(byCategory.get('domains')).toBe(0);
     expect(byCategory.get('directions')).toBe(0);
+    // Governed aliases with complete bilingual upstream rows qualify for the
+    // complete-locale denominator; readable sources stay a zh-base surface.
+    expect(byCategory.get('approved-aliases')).toBeGreaterThan(600);
+    expect(byCategory.get('readable-sources')).toBe(0);
     expect(sealed.uncovered.objectNames.length).toBeGreaterThan(0);
     expect(sealed.uncovered.objectExplanations.length).toBeGreaterThan(0);
   });
@@ -267,7 +272,12 @@ describe('v0.37 locale projection (#1741)', () => {
     ) as AuthorityNodeNeighborhoodShard;
     const zhUncovered = zh.objects.find((row) => row.id === uncoveredId)!;
     expect(zhUncovered.label).toBe('内部记录');
-    expect(zhUncovered.description).toBe('内部说明');
+    // r6：名字未覆盖不等于说明未覆盖——该对象若有 zh 说明记录则按记录
+    // 呈现，仅 en 帧才隐藏说明（uncovered 处置是按 locale 的）。
+    const zhExplanation = sealed.manifest.records.find(
+      (row) => row.category === 'object-explanations' && row.recordId === uncoveredId && row.locale === 'zh-CN',
+    );
+    expect(zhUncovered.description).toBe(zhExplanation ? zhExplanation.value : '内部说明');
   });
 
   it('exposes locale-projected object labels for search matching', () => {

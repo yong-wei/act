@@ -64,6 +64,8 @@ interface UpstreamLocalizedContentRow {
 export interface V037UncoveredReport {
   readonly objectNames: readonly string[];
   readonly objectExplanations: readonly string[];
+  readonly objectAliases: readonly string[];
+  readonly readableSources: readonly string[];
 }
 
 interface UpstreamTypeTermRow {
@@ -177,6 +179,8 @@ export function adaptV037LocaleManifest(input: {
   ).filter((row) => row.review_status === 'approved');
 
   const upstreamByName = new Map<string, Map<AdmittedLocale, string>>();
+  // 治理别名（r6 U5）：按对象聚合每语言的 approved 别名清单。
+  const upstreamByAlias = new Map<string, Map<AdmittedLocale, string[]>>();
   // 说明源 = meaning ∪ statement_text（上游两类按目标互斥：概念/公式走
   // meaning，知识陈述走 statement_text；联合回退与按类型映射等价）。
   const upstreamByExplanation = new Map<string, Map<AdmittedLocale, string>>();
@@ -186,6 +190,12 @@ export function adaptV037LocaleManifest(input: {
       const slot = upstreamByName.get(row.target_id) ?? new Map<AdmittedLocale, string>();
       slot.set(row.locale, row.value);
       upstreamByName.set(row.target_id, slot);
+    } else if (row.field_path === 'alias') {
+      const slot = upstreamByAlias.get(row.target_id) ?? new Map<AdmittedLocale, string[]>();
+      const values = slot.get(row.locale) ?? [];
+      values.push(row.value);
+      slot.set(row.locale, values);
+      upstreamByAlias.set(row.target_id, slot);
     } else if (row.field_path === 'meaning' || row.field_path === 'statement_text') {
       const slot = upstreamByExplanation.get(row.target_id) ?? new Map<AdmittedLocale, string>();
       slot.set(row.locale, row.value);
@@ -273,6 +283,40 @@ export function adaptV037LocaleManifest(input: {
   const coveredTypes = emit('types', input.inventory.types, upstreamTypes, null);
   const coveredRelations = emit('relations', input.inventory.relations, upstreamRelations, null);
 
+  // 来源引用（#2043 教材出处）：治理标题是 ACT 侧映射数据而非上游
+  // release language component，不得进入 complete-locale 分子（locale
+  // spec 232 条款）。zh-CN 基底分片照常呈现 sources；complete-locale
+  // 声明面维持 r5 先例（sources 分母为空），全量进 uncovered 报告供治理审阅。
+  const coveredSourceIds: string[] = [];
+  const uncoveredSources = [...input.inventory.sourceIds];
+
+  // 别名分母只含双语 approved 别名齐全的对象；缺任一语言行的对象走
+  // uncovered 处置（不以另一语言回填）。
+  const uncoveredAliases: string[] = [];
+  const coveredAliasIds: string[] = [];
+  for (const id of input.inventory.aliasIds) {
+    const slot = upstreamByAlias.get(id);
+    const zhValues = (slot?.get('zh-CN') ?? []).filter((value) => isSafeLocalePresentationText(value)).sort();
+    const enValues = (slot?.get('en') ?? []).filter((value) => isSafeLocalePresentationText(value)).sort();
+    if (zhValues.length === 0 || enValues.length === 0) {
+      uncoveredAliases.push(id);
+      continue;
+    }
+    coveredAliasIds.push(id);
+    const languageNeutral = zhValues.join('\uFF1B') === enValues.join('\uFF1B');
+    for (const locale of ADMITTED_LOCALES) {
+      records.push({
+        recordId: id,
+        category: 'approved-aliases',
+        locale,
+        value: (locale === 'zh-CN' ? zhValues : enValues).join('\uFF1B'),
+        source: LOCALE_RECORD_SOURCE,
+        ...(languageNeutral ? { languageNeutral: true } : {}),
+      });
+    }
+    if (languageNeutral) languageNeutralRecordIds.push(id);
+  }
+
   // 呈现真实空集类别（域名/方向枚举属 interface catalog）；别名与来源
   // 已在覆盖集中以真实清单出现（当前均为空数组）。
   const emptyCategories: MandatoryLocaleCategory[] = ['domains', 'directions'];
@@ -282,8 +326,8 @@ export function adaptV037LocaleManifest(input: {
       ['object-explanations', coveredExplanations],
       ['types', coveredTypes],
       ['relations', coveredRelations],
-      ['approved-aliases', input.inventory.aliasIds],
-      ['readable-sources', input.inventory.sourceIds],
+      ['approved-aliases', coveredAliasIds],
+      ['readable-sources', coveredSourceIds],
     ] as Array<[MandatoryLocaleCategory, readonly string[]]>).map(([category, ids]) => ({
       category,
       recordIds: [...ids].sort(),
@@ -321,6 +365,8 @@ export function adaptV037LocaleManifest(input: {
     uncovered: {
       objectNames: uncoveredNames.sort(),
       objectExplanations: uncoveredExplanations.sort(),
+      objectAliases: uncoveredAliases.sort(),
+      readableSources: uncoveredSources.sort(),
     },
   };
 }

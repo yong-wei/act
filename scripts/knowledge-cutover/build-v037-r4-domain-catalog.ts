@@ -87,6 +87,7 @@ function parseArgs(argv: readonly string[]): {
   out: string;
   stagedAt: string;
   catalogVersion: string;
+  assignmentsPath: string;
   retiredMembers: readonly string[];
 } {
   const values = new Map<string, string>();
@@ -109,7 +110,7 @@ function parseArgs(argv: readonly string[]): {
   }
   const required = (key: string): string => values.get(key) ?? fail(`missing ${key}`);
   for (const key of values.keys()) {
-    if (!['--snapshot-dir', '--predecessor-catalog', '--predecessor-authoring', '--out', '--staged-at', '--catalog-version'].includes(key)) {
+    if (!['--snapshot-dir', '--predecessor-catalog', '--predecessor-authoring', '--out', '--staged-at', '--catalog-version', '--assignments'].includes(key)) {
       fail(`unknown option ${key}`);
     }
   }
@@ -127,6 +128,7 @@ function parseArgs(argv: readonly string[]): {
     out: required('--out'),
     stagedAt,
     catalogVersion: required('--catalog-version'),
+    assignmentsPath: values.get('--assignments') ?? ASSIGNMENTS_PATH,
     retiredMembers,
   };
 }
@@ -138,7 +140,7 @@ function main(): void {
   const predecessorRuntime = readJson<AuthorityDomainCatalogRuntime>(args.predecessorCatalog);
   const predecessor = readJson<AuthorityDomainCatalogAuthoring>(args.predecessorAuthoring);
   const crosswalk = readJson<Crosswalk>(CROSSWALK_PATH);
-  const assignments = readFileSync(absolute(ASSIGNMENTS_PATH), 'utf8')
+  const assignments = readFileSync(absolute(args.assignmentsPath), 'utf8')
     .split('\n')
     .filter((line) => line.trim().length > 0)
     .map((line) => JSON.parse(line) as Assignment);
@@ -160,8 +162,8 @@ function main(): void {
     fail('captured live predecessor catalog does not reopen from the reviewed authoring catalog');
   }
   const authorityIds = new Set(engineering.objects.map((row) => row.canonicalId));
-  if (authorityIds.size !== manifest.objectCount || crosswalk.memberCount !== authorityIds.size) {
-    fail('Authority snapshot and crosswalk do not close over the same member set');
+  if (authorityIds.size !== manifest.objectCount) {
+    fail('Authority snapshot manifest does not close over its own object set');
   }
   // Crosswalk repin: the governed ASR crosswalk may still carry retired
   // predecessor members; the candidate closes over the exact snapshot set.
@@ -174,10 +176,11 @@ function main(): void {
   const repinnedCrosswalkEntries = Object.fromEntries(
     Object.entries(crosswalk.entries).filter(([canonicalId]) => !retiredSet.has(canonicalId)),
   );
-  if (Object.keys(repinnedCrosswalkEntries).length !== authorityIds.size) {
+  const repinnedIds = new Set(Object.keys(repinnedCrosswalkEntries));
+  if (repinnedIds.size !== authorityIds.size || [...authorityIds].some((canonicalId) => !repinnedIds.has(canonicalId))) {
     fail('repinned crosswalk does not close over the captured Authority member set');
   }
-  for (const canonicalId of Object.keys(repinnedCrosswalkEntries)) {
+  for (const canonicalId of repinnedIds) {
     if (!authorityIds.has(canonicalId)) fail(`crosswalk canonical id is absent from the capture: ${canonicalId}`);
   }
 
@@ -192,7 +195,6 @@ function main(): void {
   if (
     retired.length !== declaredRetired.length
     || retired.some((canonicalId) => !retiredSet.has(canonicalId))
-    || assignmentById.size !== added.length
   ) {
     fail(
       `observed member diff does not match the declared governance ruling: added ${added.length}/${assignmentById.size}, retired ${retired.length}/${declaredRetired.length}`
@@ -209,6 +211,12 @@ function main(): void {
   for (const canonicalId of assignmentById.keys()) {
     if (!authorityIds.has(canonicalId) || predecessorMembership.has(canonicalId)) {
       fail(`assignment ${canonicalId} is not a v0.37-only Authority member`);
+    }
+  }
+  // Every observed addition must carry a reviewed assignment.
+  for (const canonicalId of added) {
+    if (!assignmentById.has(canonicalId)) {
+      fail(`observed addition ${canonicalId} has no reviewed domain assignment`);
     }
   }
 
