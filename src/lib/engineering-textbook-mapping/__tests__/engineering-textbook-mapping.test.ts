@@ -123,10 +123,38 @@ describe('textbook alias table', () => {
     }
   });
 
-  it('verifies alias targets against the real v2 runtime manifests', () => {
-    expect(() =>
-      verifyTextbookAliasesAgainstManifests(),
-    ).not.toThrow();
+  it('verifies alias targets against v2 runtime manifest fixtures', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'aliases-ok-'));
+    try {
+      const bookDir = path.join(dir, 'dorf-modern-control-systems');
+      mkdirSync(bookDir);
+      writeFileSync(
+        path.join(bookDir, 'manifest.json'),
+        JSON.stringify({ bookId: 'dorf-modern-control-systems', edition: '14th Global Edition' }),
+      );
+      expect(() =>
+        verifyTextbookAliasesAgainstManifests({
+          runtimeRoot: dir,
+          aliases: [{
+            sourceDocumentId: 'dorf-modern-control-systems-14th',
+            readerBookId: 'dorf-modern-control-systems',
+            edition: '14th Global Edition',
+          }],
+        }),
+      ).not.toThrow();
+      expect(() =>
+        verifyTextbookAliasesAgainstManifests({
+          runtimeRoot: dir,
+          aliases: [{
+            sourceDocumentId: 'franklin-feedback-control-7th',
+            readerBookId: 'feedback-control-of-dynamic-systems',
+            edition: '7th edition',
+          }],
+        }),
+      ).toThrow(EngineeringTextbookMappingError);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('fails closed when the manifest edition drifts from the alias', () => {

@@ -13,7 +13,9 @@ import {
 } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
 import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 import {
+  artifactDigest,
   loadSourcesInput,
+  mappingArtifactPath,
   MAPPING_SOURCES_INPUT_CONTRACT,
   verifyCoverageLedgerBinding,
   loadCoverage,
@@ -50,8 +52,15 @@ export function materializeCommittedAuthorityDomainShards(
       `sources-input pinned to ${sourceCitations.authorityReleaseId} but active release is ${identity.envelope.authority.releaseId}`,
     );
   }
-  if (sourceCitations.coverageDigest === '') {
-    throw new Error('sources-input coverageDigest is empty; governed coverage receipt required');
+  // The sources input must bind the coverage receipt currently on disk: a
+  // regenerated coverage (new approved set) with a stale sources-input would
+  // otherwise materialize superseded citations as if they were current (#2043
+  // review P1 — fail closed before any shard is written).
+  const liveCoverageDigest = artifactDigest(mappingArtifactPath(repoRoot, 'coverage.json'));
+  if (sourceCitations.coverageDigest !== liveCoverageDigest) {
+    throw new Error(
+      `sources-input coverageDigest ${sourceCitations.coverageDigest.slice(0, 12)}… does not bind the live coverage receipt ${liveCoverageDigest.slice(0, 12)}…; regenerate sources-input from the current governed ledgers`,
+    );
   }
   const materialized = buildAuthorityDomainShards({
     envelope: identity.envelope,
