@@ -391,6 +391,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     resourceKind: string;
     availability: 'available' | 'unavailable';
     launch: { kind: 'direct-route' | 'registry-resource' | 'viewer-shell' | 'unavailable'; href: string | null };
+    viewer?: { summary?: string; insight?: string | null; explanation?: string | null; imageSrc?: string };
   }> | null;
 
   beforeEach(() => {
@@ -1229,6 +1230,7 @@ describe('active Authority knowledge workspace client boundary', () => {
         resourceKind: '知识卡',
         availability: 'available',
         launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '甲的摘要', insight: '甲的直觉', explanation: '甲的解释' },
       },
       {
         title: '卡片乙',
@@ -1236,6 +1238,7 @@ describe('active Authority knowledge workspace client boundary', () => {
         resourceKind: '知识卡',
         availability: 'available',
         launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '乙的摘要', insight: '乙的直觉', explanation: '乙的解释' },
       },
       {
         title: '图甲',
@@ -1243,6 +1246,7 @@ describe('active Authority knowledge workspace client boundary', () => {
         resourceKind: '信息图',
         availability: 'available',
         launch: { kind: 'viewer-shell', href: null },
+        viewer: { imageSrc: '/api/knowledge/published-infograph/safe-a' },
       },
       {
         title: '图乙',
@@ -1250,6 +1254,7 @@ describe('active Authority knowledge workspace client boundary', () => {
         resourceKind: '信息图',
         availability: 'available',
         launch: { kind: 'viewer-shell', href: null },
+        viewer: { imageSrc: '/api/knowledge/published-infograph/safe-b' },
       },
     ];
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
@@ -1271,22 +1276,28 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => firstCard!.click());
     const firstViewer = document.querySelector('[data-universal-resource-viewer="true"]');
     expect(firstViewer?.textContent).toContain('卡片甲');
+    expect(firstViewer?.textContent).toContain('甲的摘要');
     expect(firstViewer?.textContent).not.toContain('卡片乙');
+    expect(firstViewer?.textContent).not.toContain('乙的摘要');
     expect(firstViewer?.textContent).not.toContain('稳定性描述用于判断系统响应是否收敛。');
     await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]')!.click());
 
     await act(async () => secondCard!.click());
     const secondViewer = document.querySelector('[data-universal-resource-viewer="true"]');
     expect(secondViewer?.textContent).toContain('卡片乙');
+    expect(secondViewer?.textContent).toContain('乙的摘要');
     expect(secondViewer?.textContent).not.toContain('卡片甲');
+    expect(secondViewer?.textContent).not.toContain('甲的摘要');
     expect(secondViewer?.textContent).not.toContain('稳定性描述用于判断系统响应是否收敛。');
     await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]')!.click());
 
     await act(async () => firstInfograph!.click());
     const infographViewer = document.querySelector('[data-universal-resource-viewer="true"]');
     expect(infographViewer?.textContent).toContain('图甲');
-    expect(infographViewer?.querySelector('img')).toBeNull();
-    expect(infographViewer?.textContent).toContain('当前信息图暂无可显示图像。');
+    const infograph = infographViewer?.querySelector('img');
+    expect(infograph).not.toBeNull();
+    expect(infograph?.getAttribute('src')).toContain('/api/knowledge/published-infograph/safe-a');
+    expect(infographViewer?.textContent).not.toContain('当前信息图暂无可显示图像。');
   });
 
   it('renders selection-bound learning content and keeps semantic detail usable after an image failure', async () => {

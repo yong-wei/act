@@ -619,10 +619,35 @@ assert.match(
 );
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');
+assert.match(
+  runtimeDeploy,
+  /assert_teaching_projection_against_deployed_app/,
+  'runtime deploy must bind Teaching Projection authoringRevision to the candidate and deployed app',
+);
+assert.equal(
+  (runtimeDeploy.match(/assert_teaching_projection_against_deployed_app "\$/g) ?? []).length,
+  2,
+  'resume and fresh publish must both compare the candidate source revision with the deployed app revision',
+);
+assert.match(
+  runtimeDeploy,
+  /--source-revision "\$candidate_source_revision"/,
+  'the Teaching Projection assertion must receive the candidate source revision, not the operator worktree',
+);
+assert.match(
+  runtimeDeploy,
+  /--app-revision "\$deployed_app_revision"/,
+  'the Teaching Projection assertion must receive the deployed application revision',
+);
+assert.match(
+  runtimeDeploy,
+  /podman exec \$\{app_container\} \/bin\/sh -eu -c 'cat \/app\/\.app-revision'/,
+  'runtime deploy must read the deployed application revision from the target container',
+);
 assert.equal(
   (runtimeDeploy.match(/assert-teaching-projection-app-revision\.ts/g) ?? []).length,
-  2,
-  'resume and fresh publish must both fail closed when Teaching Projection authoringRevision drifts from the app capture',
+  1,
+  'the Teaching Projection assertion is invoked through the candidate-vs-deployed helper',
 );
 assert.match(compatibilityProof, /runtime-app-compatibility\.v1/, 'compatibility proof helper must expose the v1 receipt schema');
 assert.match(compatibilityProof, /origin\/integration|sourceRevision/, 'compatibility proof must bind the Runtime source revision');

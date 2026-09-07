@@ -182,12 +182,20 @@ export interface ActiveResourceLaunchDescriptor {
   href: string | null;
 }
 
+export interface ActiveResourceViewerContent {
+  summary?: string;
+  insight?: string | null;
+  explanation?: string | null;
+  imageSrc?: string;
+}
+
 export interface ActiveResourceBinding {
   title: string;
   bindingRole: ActiveResourceBindingRole;
   resourceKind: string;
   availability: 'available' | 'unavailable';
   launch: ActiveResourceLaunchDescriptor;
+  viewer?: ActiveResourceViewerContent;
 }
 
 export type ActiveNodeResourceBindings =

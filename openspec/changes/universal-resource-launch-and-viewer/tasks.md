@@ -8,7 +8,9 @@
 
 - [x] 2.1 在 `src/lib/resource-registry-metadata.ts` 为 launch map 引用的每个目标登记 `launchTarget`，使 `indexOwnsLaunchHref` 对每条 inspector href 精确命中
 - [x] 2.2 对照测试：launch map 产出的每条 href 必须被 live registry index 持有；未持有即 fail
-- [x] 2.3 发布断言脚本接入 `deploy:runtime` 的 resume 与新鲜发布两条路径：B′′ manifest authoringRevision == 部署目标 APP_REVISION 捕获（`-dirty` 判不一致），不一致 fail closed
+- [x] 2.3 发布断言脚本接入 `deploy:runtime` 的 resume 与新鲜发布两条路径：从候选 `sourceRevision` 读取 Teaching Projection authoringRevision，与部署目标容器 `/app/.app-revision` 比较（`-dirty` 判不一致），不一致 fail closed
+- [x] 2.4 教材阅读 href 由活 Teaching Projection launch map 登记为 live index 条目；`indexOwnsLaunchHref` 不再用教材路径形态白名单代替精确持有
+- [x] 2.5 知识卡/信息图 viewer-shell 绑定在服务端投影中携带该资源自己的学习者可见载荷；无法解析则 unavailable，不打开占位内容
 
 ## 3. 统一查看器壳
 

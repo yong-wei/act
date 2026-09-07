@@ -4,10 +4,16 @@ import path from 'node:path';
 
 import { buildLessonHandoutPrintPath } from './handout-pdf';
 import { INTERACTIVE_LESSON_IDENTITY_REGISTRY } from './interactive-lesson-identity';
+import { buildTeachingResourceLaunchMaps } from './layered-graph/teaching-resource-launch-maps';
 import {
   getAllRegisteredResourceMetadata,
   type RegisteredResourceMetadata,
 } from './resource-registry-metadata';
+import { DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE } from './teaching-projection/contracts';
+import {
+  resolveActiveTeachingProjection,
+  resolveTeachingProjectionStorePaths,
+} from './teaching-projection/store';
 
 export function createTeachingLaunchRouteRecord(href: string): RegisteredResourceMetadata {
   return {
@@ -67,6 +73,18 @@ export function getTeachingLaunchRouteRecords(): RegisteredResourceMetadata[] {
       }
     }
     hrefs.add(buildLessonHandoutPrintPath(identity.runtimeLessonDir));
+  }
+  const projection = resolveActiveTeachingProjection(
+    resolveTeachingProjectionStorePaths(path.join(
+      process.cwd(),
+      DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE,
+    )),
+  );
+  if (projection.status === 'available' && projection.staged) {
+    const maps = buildTeachingResourceLaunchMaps(projection.staged.artifacts.resources);
+    for (const href of Object.values(maps.resourceLaunchTargets)) {
+      if (href?.startsWith('/') && !href.startsWith('//')) hrefs.add(href);
+    }
   }
   return [...hrefs].sort().map(createTeachingLaunchRouteRecord);
 }

@@ -159,7 +159,7 @@ describe('active Authority resource binding projection', () => {
     }));
   });
 
-  it('keeps cards in shell and resolves governed textbook sections', () => {
+  it('keeps cards in shell when the binding carries its own published payload', () => {
     const textbookId = `act:textbook-section:${toResourceIdToken(
       'dorf-modern-control-systems:chapter-01:section-01',
       'sourceAnchorId',
@@ -167,13 +167,13 @@ describe('active Authority resource binding projection', () => {
     const projected = projectAuthorityNodeResourceBindings({
       nodeId: 'ctc:modeling-node',
       resources: [
-        resource({ resourceId: 'act:card:safe-card', resourceType: 'card', title: '稳定性卡片' }),
+        resource({ resourceId: 'act:card:alpha', resourceType: 'card', title: '稳定性卡片' }),
         resource({ resourceId: textbookId, resourceType: 'textbook-section', title: '第一章第一节' }),
       ],
       bindings: [
         binding({
           bindingId: 'bind-card',
-          resourceId: 'act:card:safe-card',
+          resourceId: 'act:card:alpha',
           canonicalId: 'ctc:modeling-node',
           role: 'EXPLAINS',
         }),
@@ -184,6 +184,11 @@ describe('active Authority resource binding projection', () => {
           role: 'COVERS',
         }),
       ],
+      resolveViewerContent: (entry) => (
+        entry.resourceId === 'act:card:alpha'
+          ? { summary: '甲的摘要', insight: '甲的直觉', explanation: '甲的解释' }
+          : null
+      ),
     });
     expect(projected).toEqual(expect.objectContaining({
       state: 'available',
@@ -192,6 +197,11 @@ describe('active Authority resource binding projection', () => {
           title: '稳定性卡片',
           availability: 'available',
           launch: { kind: 'viewer-shell', href: null },
+          viewer: {
+            summary: '甲的摘要',
+            insight: '甲的直觉',
+            explanation: '甲的解释',
+          },
         }),
         expect.objectContaining({
           title: '第一章第一节',
@@ -204,6 +214,147 @@ describe('active Authority resource binding projection', () => {
       ]),
     }));
     expect(JSON.stringify(projected)).not.toContain('act:card:');
+    expect(JSON.stringify(projected)).not.toContain('course-content/');
+  });
+
+  it('does not open a viewer-shell card without that binding payload', () => {
+    const projected = projectAuthorityNodeResourceBindings({
+      nodeId: 'ctc:modeling-node',
+      resources: [
+        resource({ resourceId: 'act:card:safe-card', resourceType: 'card', title: '稳定性卡片' }),
+      ],
+      bindings: [
+        binding({
+          bindingId: 'bind-card',
+          resourceId: 'act:card:safe-card',
+          canonicalId: 'ctc:modeling-node',
+          role: 'EXPLAINS',
+        }),
+      ],
+      resolveViewerContent: () => null,
+    });
+    expect(projected).toEqual(expect.objectContaining({
+      state: 'available',
+      items: [
+        expect.objectContaining({
+          title: '稳定性卡片',
+          availability: 'unavailable',
+          launch: { kind: 'unavailable', href: null },
+        }),
+      ],
+    }));
+  });
+
+  it('opens each card and infograph with that binding payload', () => {
+    const projected = projectAuthorityNodeResourceBindings({
+      nodeId: 'ctc:modeling-node',
+      resources: [
+        resource({ resourceId: 'act:card:alpha', resourceType: 'card', title: '卡片甲' }),
+        resource({ resourceId: 'act:card:beta', resourceType: 'card', title: '卡片乙' }),
+        resource({ resourceId: 'act:infographic:alpha', resourceType: 'infographic', title: '图甲' }),
+        resource({ resourceId: 'act:infographic:beta', resourceType: 'infographic', title: '图乙' }),
+      ],
+      bindings: [
+        binding({ bindingId: 'bind-a', resourceId: 'act:card:alpha', canonicalId: 'ctc:modeling-node', role: 'EXPLAINS' }),
+        binding({ bindingId: 'bind-b', resourceId: 'act:card:beta', canonicalId: 'ctc:modeling-node', role: 'EXPLAINS' }),
+        binding({ bindingId: 'bind-c', resourceId: 'act:infographic:alpha', canonicalId: 'ctc:modeling-node', role: 'EXPLAINS' }),
+        binding({ bindingId: 'bind-d', resourceId: 'act:infographic:beta', canonicalId: 'ctc:modeling-node', role: 'EXPLAINS' }),
+      ],
+      resolveViewerContent: (entry) => {
+        if (entry.resourceId === 'act:card:alpha') return { summary: '甲的摘要' };
+        if (entry.resourceId === 'act:card:beta') return { summary: '乙的摘要' };
+        if (entry.resourceId === 'act:infographic:alpha') {
+          return { imageSrc: '/api/knowledge/published-infograph/safe-a' };
+        }
+        if (entry.resourceId === 'act:infographic:beta') {
+          return { imageSrc: '/api/knowledge/published-infograph/safe-b' };
+        }
+        return null;
+      },
+    });
+    expect(projected.state).toBe('available');
+    if (projected.state !== 'available') return;
+    const byTitle = Object.fromEntries(projected.items.map((item) => [item.title, item]));
+    expect(byTitle['卡片甲']?.viewer?.summary).toBe('甲的摘要');
+    expect(byTitle['卡片乙']?.viewer?.summary).toBe('乙的摘要');
+    expect(byTitle['图甲']?.viewer?.imageSrc).toBe('/api/knowledge/published-infograph/safe-a');
+    expect(byTitle['图乙']?.viewer?.imageSrc).toBe('/api/knowledge/published-infograph/safe-b');
+    expect(JSON.stringify(projected)).not.toContain('act:card:');
+    expect(JSON.stringify(projected)).not.toContain('act:infographic:');
+  });
+
+  it('loads each bound card and infograph from that resource file, not the node slot', () => {
+    const projected = projectAuthorityNodeResourceBindings({
+      nodeId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+      resources: [
+        resource({
+          resourceId: 'act:card:稳态跟踪误差_9_73c6314b',
+          resourceType: 'card',
+          title: '稳态跟踪误差九',
+          sourcePath: null,
+        }),
+        resource({
+          resourceId: 'act:card:稳态跟踪误差_7_222f853d',
+          resourceType: 'card',
+          title: '稳态跟踪误差七',
+          sourcePath: null,
+        }),
+        resource({
+          resourceId: 'act:infographic:相角裕度_5_5a74b451',
+          resourceType: 'infographic',
+          title: '相角裕度图',
+          sourcePath: null,
+        }),
+        resource({
+          resourceId: 'act:infographic:ctkg_v3e-object-1c159c9cc34ce696a62bf837',
+          resourceType: 'infographic',
+          title: '相角裕度权威图',
+          sourcePath: null,
+        }),
+      ],
+      bindings: [
+        binding({
+          bindingId: 'bind-card-9',
+          resourceId: 'act:card:稳态跟踪误差_9_73c6314b',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+        binding({
+          bindingId: 'bind-card-7',
+          resourceId: 'act:card:稳态跟踪误差_7_222f853d',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+        binding({
+          bindingId: 'bind-inf-legacy',
+          resourceId: 'act:infographic:相角裕度_5_5a74b451',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+        binding({
+          bindingId: 'bind-inf-authority',
+          resourceId: 'act:infographic:ctkg_v3e-object-1c159c9cc34ce696a62bf837',
+          canonicalId: 'ctkg:v3e-object-2be71df1c8c0152ac5f69c1b',
+          role: 'EXPLAINS',
+        }),
+      ],
+    });
+    expect(projected.state).toBe('available');
+    if (projected.state !== 'available') return;
+    const byTitle = Object.fromEntries(projected.items.map((item) => [item.title, item]));
+    expect(byTitle['稳态跟踪误差九']?.availability).toBe('available');
+    expect(byTitle['稳态跟踪误差七']?.availability).toBe('available');
+    expect(byTitle['稳态跟踪误差九']?.viewer?.summary).toBeTruthy();
+    expect(byTitle['稳态跟踪误差七']?.viewer?.summary).toBeTruthy();
+    expect(byTitle['稳态跟踪误差九']?.viewer?.summary).not.toBe(byTitle['稳态跟踪误差七']?.viewer?.summary);
+    expect(byTitle['相角裕度图']?.viewer?.imageSrc).toBe(
+      `/api/knowledge/published-infograph/${encodeURIComponent('相角裕度_5_5a74b451')}`,
+    );
+    expect(byTitle['相角裕度权威图']?.viewer?.imageSrc).toBe(
+      '/api/knowledge/published-infograph/ctkg_v3e-object-1c159c9cc34ce696a62bf837',
+    );
+    expect(JSON.stringify(projected)).not.toContain('act:card:');
+    expect(JSON.stringify(projected)).not.toContain('act:infographic:');
     expect(JSON.stringify(projected)).not.toContain('course-content/');
   });
 

@@ -3,7 +3,7 @@
  * Exact identity or one-to-one crosswalk only; leftovers go to the ledger.
  */
 
-import { humanTitleFromResourceId } from '@/lib/authority-domain-shards/resource-bindings';
+import { humanTitleFromResourceId } from '@/lib/teaching-projection/resource-title';
 import { TEXTBOOK_ID_ALIASES } from '@/lib/engineering-textbook-mapping/aliases';
 import {
   TEACHING_PROJECTION_AUTHORING_CONTRACT,

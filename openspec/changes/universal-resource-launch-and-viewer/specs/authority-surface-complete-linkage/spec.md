@@ -20,7 +20,7 @@ Every resource record in the active Teaching Projection MUST have at least one b
 ## ADDED Requirements
 
 ### Requirement: Launch hrefs are owned by the live registry index and revision-aligned
-Every href the inspector exposes as available MUST be exactly owned by a live registry index entry through its launcherRef, registryId, or sourceRef. The Teaching Projection manifest authoringRevision MUST equal the deployed live registry index capture revision; a `-dirty` capture MUST NOT satisfy the assertion. Publication of a Teaching Projection whose authoringRevision disagrees with the deployment capture revision MUST fail closed before the manifest is served.
+Every href the inspector exposes as available MUST be exactly owned by a live registry index entry through its launcherRef, registryId, or sourceRef. Path-shape allowlists SHALL NOT satisfy ownership. Textbook reader hrefs MUST be registered as live index entries generated from the active Teaching Projection launch map. The Teaching Projection manifest authoringRevision MUST equal the deployed application capture revision; the publication assertion MUST read authoringRevision from the candidate source revision and the capture revision from the deployment target application, not from the operator working tree. A `-dirty` capture MUST NOT satisfy the assertion. Publication of a Teaching Projection whose authoringRevision disagrees with the deployment capture revision MUST fail closed before the manifest is served.
 
 #### Scenario: Launch href is held by the live index
 - **WHEN** the launch-target map emits an href for a bound resource
@@ -32,7 +32,21 @@ Every href the inspector exposes as available MUST be exactly owned by a live re
 - **THEN** the registry-closure gate SHALL strip that item's launch
 - **AND** the discrepancy SHALL surface as a registration gap rather than a runtime fallback
 
+#### Scenario: Textbook reader href is registered from the teaching projection
+- **WHEN** the active Teaching Projection launch map emits a textbook-section reader href
+- **THEN** `getTeachingLaunchRouteRecords` SHALL register that exact href as a live index entry
+- **AND** `indexOwnsLaunchHref` SHALL return true only because an entry holds that href, not because the path matches a textbook route pattern
+
 #### Scenario: Manifest revision disagrees with deployment
 - **WHEN** `deploy:runtime` resumes a published release or builds a fresh release
-- **THEN** it SHALL run the Teaching Projection authoringRevision assertion before the release is served
-- **AND** a mismatch or a `-dirty` capture SHALL fail the release closed
+- **THEN** it SHALL assert the candidate source revision's Teaching Projection authoringRevision against the deployed application's `/app/.app-revision`
+- **AND** a mismatch, a missing candidate pointer, or a `-dirty` capture SHALL fail the release closed before the release is served
+
+### Requirement: Viewer-shell bindings carry the selected resource payload
+Each available viewer-shell binding MUST carry learner-safe content for that resource. Card bindings MUST include that card's published summary; infographic bindings MUST include a published image URL that identifies that infographic without `act:` resource ids, canonical ids, or source paths. A viewer-shell binding whose published payload cannot be resolved MUST be unavailable.
+
+#### Scenario: Multiple cards or infographics are bound to one node
+- **WHEN** a learner selects one of several card or infographic bindings on the same node
+- **THEN** the viewer SHALL render that binding's payload
+- **AND** the payload SHALL be resolved from that resource's runtime card or infograph file, not from the node's one-slot learning-content record
+- **AND** it SHALL NOT substitute another binding's content, the node's default card, or an empty placeholder while remaining available

@@ -4,7 +4,7 @@ vi.mock('server-only', () => ({}));
 
 import type { TeachingResourceRuntime, TeachingResourceType } from '@/lib/teaching-projection/contracts';
 import { toResourceIdToken } from '@/lib/teaching-projection/textbook-locators/identity';
-import { buildTeachingResourceLaunchMaps } from '../course-page-context';
+import { buildTeachingResourceLaunchMaps } from '../teaching-resource-launch-maps';
 
 function resource(resourceId: string, resourceType: TeachingResourceType): TeachingResourceRuntime {
   return {

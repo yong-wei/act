@@ -33,6 +33,13 @@ function resolveCourseProjectionRoot(repoRoot: string, projectionRoot?: string):
   return resolve(repoRoot, DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE);
 }
 
+export function resolveConfiguredTeachingProjectionRoot(
+  repoRoot = process.cwd(),
+  projectionRoot?: string,
+): string {
+  return resolveCourseProjectionRoot(repoRoot, projectionRoot);
+}
+
 export function readAgreedLiveCourseProjection(
   repoRoot = process.cwd(),
   options: { projectionRoot?: string } = {},

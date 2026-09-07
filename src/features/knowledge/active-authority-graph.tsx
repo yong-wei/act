@@ -989,13 +989,6 @@ function ActiveNodeDetail({
                   const boundItems = node.resourceBindings.state === 'available'
                     ? node.resourceBindings.items
                     : [];
-                  const uniqueCard = boundItems.filter((item) => (
-                    item.resourceKind === '知识卡' && item.availability === 'available'
-                  )).length === 1;
-                  const uniqueInfograph = boundItems.filter((item) => (
-                    item.resourceKind === '信息图' && item.availability === 'available'
-                  )).length === 1;
-                  const card = node.learningContent?.card;
                   return ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
                     const items = boundItems.filter((item) => item.bindingRole === role);
                     if (items.length === 0) return null;
@@ -1013,18 +1006,18 @@ function ActiveNodeDetail({
                                 title: item.title,
                                 resourceKind: item.resourceKind,
                                 href: item.launch.href,
-                                node: item.resourceKind === '知识卡'
+                                node: item.resourceKind === '知识卡' && item.viewer?.summary
                                   ? {
                                       name: item.title,
-                                      description: uniqueCard && card?.state === 'available'
-                                        ? card.summary
-                                        : item.title,
+                                      description: item.viewer.summary,
                                       nodeType: 'KnowledgeStatement',
+                                      content: {
+                                        insight: item.viewer.insight,
+                                        explanation: item.viewer.explanation,
+                                      },
                                     }
                                   : undefined,
-                                imageSrc: item.resourceKind === '信息图' && uniqueInfograph
-                                  ? shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)
-                                  : undefined,
+                                imageSrc: item.viewer?.imageSrc,
                               })}
                               data-active-resource-launch={item.launch.kind}
                               data-active-resource-title={item.title}

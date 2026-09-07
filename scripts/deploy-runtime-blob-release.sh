@@ -152,6 +152,32 @@ copy_atomic() {
   remote "chmod 0755 '${remote_path}.tmp' && mv '${remote_path}.tmp' '${remote_path}'"
 }
 
+read_deployed_app_revision() {
+  local app_container="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
+  local revision
+  revision="$(remote "podman exec ${app_container} /bin/sh -eu -c 'cat /app/.app-revision'")"
+  revision="$(printf '%s' "$revision" | tr -d '[:space:]')"
+  [[ "$revision" =~ ^[a-f0-9]{40}$ ]] || {
+    echo "ERROR: deployed application revision is invalid" >&2
+    exit 1
+  }
+  printf '%s' "$revision"
+}
+
+assert_teaching_projection_against_deployed_app() {
+  local candidate_source_revision="$1"
+  [[ "$candidate_source_revision" =~ ^[a-f0-9]{40}$ ]] || {
+    echo "ERROR: candidate source revision is invalid" >&2
+    exit 1
+  }
+  local deployed_app_revision
+  deployed_app_revision="$(read_deployed_app_revision)"
+  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts" \
+    --repo-root "$ROOT_DIR" \
+    --source-revision "$candidate_source_revision" \
+    --app-revision "$deployed_app_revision"
+}
+
 if [[ "$resuming_published_release" == "1" ]]; then
   artifact_dir="$resume_artifact_dir"
   manifest="$artifact_dir/manifest.json"
@@ -170,7 +196,8 @@ if [[ "$resuming_published_release" == "1" ]]; then
   node "$ROOT_DIR/scripts/knowledge/check-release-learning-content-closure.mjs" \
     --release-manifest "$manifest" \
     --learning-manifest "$ROOT_DIR/course-content/runtime/knowledge/authority-learning-content-manifest.json"
-  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts"
+  source_revision="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sourceRevision"])' "$manifest")"
+  assert_teaching_projection_against_deployed_app "$source_revision"
   build_elapsed_milliseconds=0
   publish_elapsed_milliseconds=0
 else
@@ -208,7 +235,7 @@ else
   fi
   rm -f "$LC_TMP"
   node "$ROOT_DIR/scripts/knowledge/check-authority-surface-linkage.mjs" >/dev/null
-  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts"
+  assert_teaching_projection_against_deployed_app "$source_revision"
   build_started_seconds=$SECONDS
   build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt" --source-provenance-proof-output "$source_provenance_proof")
   build_args+=(--daily-report-output "$daily_report")

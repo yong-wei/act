@@ -456,7 +456,29 @@ describe('RegistryIndex resource closure', () => {
     expect(closed.bindings.state).toBe('unavailable');
   });
 
-  it('keeps governed textbook reader hrefs without a RegistryIndex launcherRef match', () => {
+  it('keeps textbook reader hrefs only when an index entry holds the exact href', () => {
+    const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-03/section-3.8';
+    const closed = closeResourceBlockWithRegistryIndex({
+      bindings: {
+        state: 'available',
+        items: [{
+          title: 'Dorf 3.8',
+          bindingRole: '讲解',
+          resourceKind: '教材',
+          availability: 'available',
+          launch: { kind: 'direct-route', href: textbookHref },
+        }],
+      },
+      index: indexAt(capture, textbookHref),
+      expectedCaptureRevision: capture,
+    });
+    expect(closed.bindings.state).toBe('available');
+    if (closed.bindings.state !== 'available') return;
+    expect(closed.bindings.items[0]?.launch.href).toBe(textbookHref);
+    expect(closed.registryIndex?.captureRevision).toBe(capture);
+  });
+
+  it('does not treat textbook reader path shape as ownership', () => {
     const textbookHref = '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-03/section-3.8';
     const closed = closeResourceBlockWithRegistryIndex({
       bindings: {
@@ -472,10 +494,8 @@ describe('RegistryIndex resource closure', () => {
       index: indexAt(capture),
       expectedCaptureRevision: capture,
     });
-    expect(closed.bindings.state).toBe('available');
-    if (closed.bindings.state !== 'available') return;
-    expect(closed.bindings.items[0]?.launch.href).toBe(textbookHref);
-    expect(closed.registryIndex?.captureRevision).toBe(capture);
+    expect(closed.registryIndex).toBeNull();
+    expect(closed.bindings.state).toBe('unavailable');
   });
 });
 

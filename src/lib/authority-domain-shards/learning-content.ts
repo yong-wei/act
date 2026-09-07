@@ -160,8 +160,12 @@ function cleanLearningText(value: string): string | null {
   return normalized;
 }
 
-function cardContent(value: string, canonicalId: string): Extract<AuthorityNodeLearningContent['card'], { state: 'available' }> | null {
-  if (frontmatterCanonicalId(value) !== canonicalId || /^status:\s*draft-blocked\s*$/m.test(value)) return null;
+function parseLearnerVisibleCardFields(value: string): {
+  summary: string;
+  insight: string | null;
+  explanation: string;
+} | null {
+  if (/^status:\s*draft-blocked\s*$/m.test(value)) return null;
   const body = stripCardFrontmatter(value);
   if (!body) return null;
   const front = section(body, '## 首页', '## 详情');
@@ -173,11 +177,46 @@ function cardContent(value: string, canonicalId: string): Extract<AuthorityNodeL
   const explanation = cleanLearningText(detail);
   if (!summary || !explanation) return null;
   return {
-    state: 'available',
     summary,
     insight: cleanLearningText(insightMatch?.[1] ?? ''),
     explanation,
   };
+}
+
+function cardContent(value: string, canonicalId: string): Extract<AuthorityNodeLearningContent['card'], { state: 'available' }> | null {
+  if (frontmatterCanonicalId(value) !== canonicalId) return null;
+  const parsed = parseLearnerVisibleCardFields(value);
+  return parsed ? { state: 'available', ...parsed } : null;
+}
+
+const BINDING_CONTENT_TOKEN = /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,199}$/u;
+const CARD_NODES_RELATIVE = 'course-content/runtime/knowledge/cards/nodes' as const;
+const CARD_AUTHORITY_NODES_RELATIVE = 'course-content/runtime/knowledge/cards/authority/nodes' as const;
+const INFOGRAPH_NODES_RELATIVE = 'course-content/runtime/knowledge/infographs/nodes' as const;
+const INFOGRAPH_AUTHORITY_NODES_RELATIVE =
+  'course-content/runtime/knowledge/infographs/authority/nodes' as const;
+
+export function isBindingContentToken(value: unknown): value is string {
+  return typeof value === 'string'
+    && value.length > 0
+    && value.length <= 200
+    && !value.includes('/')
+    && !value.includes('\\')
+    && !value.includes('\0')
+    && !value.includes('..')
+    && BINDING_CONTENT_TOKEN.test(value);
+}
+
+function contentHashFromSourcePath(sourcePath: string | null | undefined): string | null {
+  const match = sourcePath?.trim().match(/^content:([a-f0-9]{64})$/i);
+  return match ? match[1].toLowerCase() : null;
+}
+
+function firstExistingFile(candidates: readonly string[]): string | null {
+  for (const candidate of candidates) {
+    if (existsSync(/*turbopackIgnore: true*/ candidate)) return candidate;
+  }
+  return null;
 }
 
 function envelopeTeachingAvailable(shard: AuthorityNodeDetailShard): boolean {
@@ -290,6 +329,52 @@ export function readActiveAuthorityInfograph(
   try {
     const content = readFileSync(/*turbopackIgnore: true*/ resolved.infograph.path);
     return sha256(content) === resolved.infograph.sha256 ? content : null;
+  } catch {
+    return null;
+  }
+}
+
+export function readPublishedLearnerCardByToken(
+  token: string,
+  sourcePath?: string | null,
+): {
+  summary: string;
+  insight: string | null;
+  explanation: string;
+} | null {
+  if (!isBindingContentToken(token)) return null;
+  const repoRoot = process.cwd();
+  const cardPath = firstExistingFile([
+    join(/*turbopackIgnore: true*/ repoRoot, CARD_NODES_RELATIVE, `${token}.md`),
+    join(/*turbopackIgnore: true*/ repoRoot, CARD_AUTHORITY_NODES_RELATIVE, `${token}.md`),
+  ]);
+  if (!cardPath) return null;
+  const raw = readFileSync(/*turbopackIgnore: true*/ cardPath, 'utf8');
+  const expectedHash = contentHashFromSourcePath(sourcePath);
+  if (expectedHash && sha256(raw) !== expectedHash) return null;
+  return parseLearnerVisibleCardFields(raw);
+}
+
+export function publishedInfographSafeIdForToken(token: string): string | null {
+  if (!isBindingContentToken(token)) return null;
+  const repoRoot = process.cwd();
+  const infographPath = firstExistingFile([
+    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_NODES_RELATIVE, `${token}.png`),
+    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_AUTHORITY_NODES_RELATIVE, `${token}.png`),
+  ]);
+  return infographPath ? token : null;
+}
+
+export function readPublishedAuthorityInfographBySafeId(safeId: string): Buffer | null {
+  if (!isBindingContentToken(safeId)) return null;
+  const repoRoot = process.cwd();
+  const infographPath = firstExistingFile([
+    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_NODES_RELATIVE, `${safeId}.png`),
+    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_AUTHORITY_NODES_RELATIVE, `${safeId}.png`),
+  ]);
+  if (!infographPath) return null;
+  try {
+    return readFileSync(/*turbopackIgnore: true*/ infographPath);
   } catch {
     return null;
   }
