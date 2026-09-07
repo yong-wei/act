@@ -40,6 +40,15 @@ export type RagAuthoritySelector =
       allowsLegacyFallback: true;
     }
   | {
+      /** #2047 授权切换后的生产 composed 权威（可拨回 LEGACY，无数据迁移）。 */
+      consumer: 'PRODUCTION_ANSWER';
+      authority: 'CANONICAL';
+      productionAuthoritative: true;
+      canonicalExpansionVisible: true;
+      allowsLegacyFallback: true;
+      productionChannel: 'canonical-composed';
+    }
+  | {
       consumer: 'SHADOW_COMPARISON' | 'OFFLINE_EVAL';
       authority: 'CANONICAL_SHADOW';
       productionAuthoritative: false;

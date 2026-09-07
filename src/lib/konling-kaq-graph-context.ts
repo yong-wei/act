@@ -28,6 +28,10 @@ import {
   type KonlingTeachingProjectionClientHints,
   type KonlingTeachingProjectionContext,
 } from './konling-teaching-projection-context';
+import {
+  buildKonlingEngineeringNeighborhood,
+  type KonlingEngineeringNeighborhood,
+} from './konling-engineering-graph';
 
 export type KonlingGraphGroundingClass =
   | 'learning-goal'
@@ -99,6 +103,11 @@ export interface KonlingKaqGraphContext {
    * linked resources, prerequisite neighborhood, and optional card metadata.
    */
   teachingProjectionContext?: KonlingTeachingProjectionContext | null;
+  /**
+   * #2047 工程域有界邻域摘要（谓词白名单 + 条数上限），与教学投影证据
+   * 分域；工程层不可用时显式暴露 status=unavailable。
+   */
+  engineeringNeighborhood?: KonlingEngineeringNeighborhood | null;
   confidence: 'high' | 'medium' | 'low';
   missingGrounding: KonlingGraphMissingGrounding[];
   clientHintsAccepted: string[];
@@ -185,6 +194,11 @@ export function buildKonlingKaqGraphContext(input: KonlingKaqGraphContextInput):
   const evidenceRefs = buildEvidenceRefs(learnerOverlay, input.citationContext);
   const versionRefs = expandedSubgraph?.fixtures.konling.versionRefs ?? null;
   const teachingProjectionContext = resolveTeachingProjectionForGraphContext(input);
+  // 工程邻域以服务端校验后的教学焦点为白名单种子；不可用状态显式暴露。
+  const engineeringNeighborhood = buildKonlingEngineeringNeighborhood({
+    payload: input.layeredGraphPayload ?? null,
+    focusCanonicalIds: teachingProjectionContext?.canonicalIds ?? [],
+  });
   const missingGrounding = buildMissingGrounding({
     learningGoal,
     expandedSubgraph,
@@ -212,6 +226,7 @@ export function buildKonlingKaqGraphContext(input: KonlingKaqGraphContextInput):
     evidenceRefs,
     versionRefs,
     teachingProjectionContext,
+    engineeringNeighborhood,
     confidence: buildGraphContextConfidence(missingGrounding),
     missingGrounding,
     clientHintsAccepted: uniquePreserveOrder([

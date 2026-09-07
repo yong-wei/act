@@ -1,6 +1,7 @@
 export type KonlingCitationSourceType =
   | 'content'
   | 'textbook'
+  | 'teaching-resource'
   | 'learner-state'
   | 'path-execution'
   | 'simulation'
@@ -28,6 +29,14 @@ export type KonlingCitationIdentity =
       sourceType: 'content';
       contentId: string;
       sourceRevision?: string | null;
+    }
+  | {
+      /** 教学投影绑定资源（registry:/DB/教材单元）的服务端解析引用身份。 */
+      kind: 'teaching-resource';
+      resourceId: string;
+      resourceType?: string | null;
+      projectionId?: string | null;
+      canonicalId?: string | null;
     };
 
 export type KonlingAssignedCitation = {
@@ -102,6 +111,13 @@ export function buildKonlingCitationCanonicalKey(identity: KonlingCitationIdenti
       'content',
       keyPart(identity.contentId),
       keyPart(identity.sourceRevision || 'current'),
+    ].join(':');
+  }
+  if (identity.kind === 'teaching-resource') {
+    return [
+      'teaching-resource',
+      keyPart(identity.resourceId),
+      keyPart(identity.projectionId || 'current'),
     ].join(':');
   }
   return [

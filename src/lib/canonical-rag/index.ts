@@ -4,11 +4,14 @@ export {
   canonicalExpansionEnabled,
   legacyFallbackPermitted,
   productionAnswerUsesLegacy,
+  RAG_PRODUCTION_AUTHORITY_ENV,
   RagCutoverActivationError,
+  readRagProductionAuthorityDial,
   resolveRagAuthorityMode,
   selectRagAuthority,
   tryActivateCanonicalCutover,
   type CutoverVerificationFailure,
+  type RagProductionAuthorityDial,
   type SelectRagAuthorityOptions,
 } from './authority';
 export {

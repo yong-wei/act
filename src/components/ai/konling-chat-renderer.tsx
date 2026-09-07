@@ -4,8 +4,9 @@ import { useRef, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { AIMessageContent } from './ai-message-content';
-import { KonlingCitationPanel, extractKonlingCitationMetadata } from './konling-citation-presentation';
+import { KonlingCitationPanel } from './konling-citation-presentation';
 import { CompanionResourceCards } from '@/features/ai/companion/companion-resource-cards';
+import { UniversalResourceViewerHost } from '@/features/knowledge/universal-resource-viewer/universal-resource-viewer';
 import { summarizeAiToolResult } from '@/lib/ai-task-boundary-contracts';
 import type { useAIThemeStyles } from '@/lib/ai-theme-styles';
 
@@ -51,6 +52,8 @@ export function KonlingChatMessageList({
 }) {
   return (
     <div className="space-y-4" data-konling-chat-renderer="shared">
+      {/* #2047：控灵引用芯片的统一查看器壳（未打开时不渲染内容）。 */}
+      <UniversalResourceViewerHost />
       {messages.map((message, index) => (
         <KonlingMessageBubble
           key={message.id ?? index}
@@ -104,7 +107,7 @@ export function KonlingMessageBubble({
         {message.content ? (
           <div className="text-sm leading-relaxed" data-konling-message-content>
             <AIMessageContent content={message.content} sanitizeContent={!isUser} />
-            {!isUser ? <KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} /> : null}
+            {!isUser ? <KonlingCitationPanel metadata={message.metadata} /> : null}
           </div>
         ) : null}
         {!isUser ? <CompanionResourceCards message={message} /> : null}

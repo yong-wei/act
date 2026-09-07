@@ -224,6 +224,8 @@ AI 能力嵌入多个教学场景：
 
 AI 可以解释、提示、总结和建议，但不能伪造学习事实、不能代替官方评测器给出 Arena 成绩、不能跳过课堂契约直接改变课程步骤。未来 Konling 模式需要按诊断、路径建议、资源辅导、批改反馈、班级摘要和备课共创分别声明上下文、工具、引用类别、隐私边界和 fallback。
 
+控灵全量资源与工程图谱消费（#2047）：教学投影绑定资源经共享三段解析器（教材 `textbook-unit:` 单元 / DB TeachingResource / 治理注册表）解析为服务端验证引用，以可点击芯片进入引用面板并在统一查看器壳打开，教材单元带 vbh 句柄重校验，teacherOnly 对学生 fail closed；新增只读工具 `search_engineering_graph` 以教学焦点 canonicalIds 为白名单提供有界工程邻域 grounding（谓词白名单为 canonical RAG 治理谓词集，先后修谓词留给独立消费线），工程节点经受治理映射台账产出教材出处引用；`PRODUCTION_ANSWER` 检索权威按 cutover 治理从 LEGACY 切到 composed（`KONLING_RAG_PRODUCTION_AUTHORITY` 缺省 canonical-composed，拨回 `legacy` 即回滚），composed 教学资源通道在 `search_textbook` 内独立合并，影子对比样本随消息 metadata 持久化。
+
 ## 权威知识候选与 ActKG 协议变基
 
 当前候选权威知识底座锁定为 ActKG CTKG 0.2 聚合工程包 `control-theory-engineering-v0.2`：841 个 release entries、744 个投影节点、97 条投影关系和 1302 条唯一上游 RAG crosswalk，谓词词表共九种。两个组件发布只用于校验聚合包声明的血缘与哈希，不作为并列导入项。

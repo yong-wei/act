@@ -230,7 +230,9 @@ export function buildEvidenceRequiredUnitSourcePlan(input: {
     id: candidate.id,
     sourceType: candidate.identity.kind === 'textbook'
       ? 'textbook' as const
-      : candidate.identity.kind === 'content' ? 'content' as const : candidate.identity.sourceType,
+      : candidate.identity.kind === 'content'
+        ? 'content' as const
+        : candidate.identity.kind === 'evidence' ? candidate.identity.sourceType : 'teaching-resource' as const,
     displayTitle: candidate.displayTitle,
     href: candidate.href,
     identity: candidate.identity,
