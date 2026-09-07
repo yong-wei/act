@@ -32,7 +32,7 @@ import { TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2 } from '@/lib/teaching-projectio
 
 const ROOT = process.cwd();
 const CROSSWALK_REL = 'course-content/authoring/knowledge/teaching-projection/textbook-locators/source-resource-crosswalk.jsonl';
-const BUNDLE_MANIFEST_REL = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/bundle-manifest.json';
+const BUNDLE_MANIFEST_REL = 'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r6/bundle-manifest.json';
 
 interface BundleManifest {
   release: { release_id: string; release_hash: string };

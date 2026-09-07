@@ -61,7 +61,7 @@ const PROJECTION_REL = 'course-content/runtime/knowledge/projection';
 const PREREQ_REL = 'course-content/runtime/knowledge/prerequisites';
 const LEDGER_REL = 'course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl';
 const BUNDLE_MANIFEST_REL =
-  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/bundle-manifest.json';
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r6/bundle-manifest.json';
 const QUOTAS_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-quotas.json';
 const GOVERNANCE_REPORT_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-governance-report.json';
 
@@ -333,6 +333,9 @@ function currentHead(): string {
 }
 
 async function main(): Promise<void> {
+  const activationIdBefore = readJson<{ activationId: string }>(
+    'course-content/runtime/knowledge/consumer-activation/current.json',
+  ).activationId;
   const pointer = readJson<{
     projectionId: string;
     projectionHash: string;
@@ -539,7 +542,7 @@ async function main(): Promise<void> {
     currentProjection.projectionId !== staged.projectionId
     || liveSidecar.courseProjectionId !== staged.projectionId
     || liveSidecar.envelopeProjectionId !== overlayPointer.projectionId
-    || liveActivation.activationId !== 'activation-0b72f577a3d58647e6b67246'
+    || liveActivation.activationId !== activationIdBefore
   ) {
     throw new Error('teaching pointers were not switched together without moving sealed consumer-activation');
   }

@@ -163,6 +163,12 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
     directionLabel: '由前者指向后者',
     supported: true,
   },
+  prerequisite: {
+    label: '先修',
+    kind: 'directed',
+    directionLabel: '由前者指向后者',
+    supported: true,
+  },
   used_to_analyze: {
     label: '用于分析',
     kind: 'directed',
@@ -180,7 +186,7 @@ const RELATION_TYPES: Readonly<Record<string, Omit<ActiveRelationPresentation, '
 // 大小写敏感：machine token 是固定形式（小写谓词 / 大写 PREREQUISITE）。
 // 忽略大小写会把受治理英文 label（如 Prerequisite）误判为机器 token
 // 而回退中文（#1741）。
-const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/u;
+const RAW_SEMANTIC_MACHINE_TOKEN = /(?:^|[^\p{L}\p{N}])(?:applies_to|derived_from|has_component|has_formula|has_representation|is_a|part_of|prerequisite|used_to_analyze|PREREQUISITE)(?:$|[^\p{L}\p{N}])/u;
 
 const GOVERNANCE_KEYS: Readonly<Record<string, GraphInterfaceKey>> = {
   approved: 'inspector.governance.approved',

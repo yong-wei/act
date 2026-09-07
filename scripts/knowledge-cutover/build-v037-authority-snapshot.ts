@@ -361,25 +361,61 @@ function buildR4LabelEvidence(input: {
   const nodeIds = new Set(input.nodes.map((node) => node.entity_id));
   if (nodeIds.size !== input.nodes.length) throw new Error('r4 domain projection repeats an entity id');
   const indexedLabels = new Map<string, MultilingualLabelRow>();
+  const indexedAliases = new Map<string, MultilingualLabelRow[]>();
   for (const row of readJsonl<MultilingualLabelRow>(`${input.bundleDir}/multilingual-label-index.jsonl`)) {
     if (!nodeIds.has(row.entity_id)) throw new Error(`r4 terminology label references unknown object ${row.entity_id}`);
-    if (row.language !== 'zh-CN' || row.label_type !== 'canonical_preferred') continue;
+    if (row.language !== 'zh-CN' || row.label_type !== 'canonical_preferred') {
+      // Governed aliases (r6 U5): zh-CN alternative rows ride along with the
+      // same node-scope guarantee; other locales stay with the locale bundle.
+      if (row.language === 'zh-CN' && row.label_type === 'alternative') {
+        if (!row.label.trim() || !row.terminology_assertion_id) {
+          throw new Error(`r4 terminology index has an invalid alternative label for ${row.entity_id}`);
+        }
+        const rows = indexedAliases.get(row.entity_id) ?? [];
+        rows.push(row);
+        indexedAliases.set(row.entity_id, rows);
+      }
+      continue;
+    }
     if (!row.label.trim() || !row.terminology_assertion_id || indexedLabels.has(row.entity_id)) {
       throw new Error(`r4 terminology index has an invalid or duplicate canonical label for ${row.entity_id}`);
     }
     indexedLabels.set(row.entity_id, row);
   }
   const localizedNames = new Map<string, LocalizedNameRow>();
+  const localizedAliases = new Map<string, LocalizedNameRow[]>();
   for (const row of readJsonl<LocalizedNameRow>(`${input.bundleDir}/localized-content-index.jsonl`)) {
-    if (row.locale !== 'zh-CN' || row.field_path !== 'name' || row.review_status !== 'approved') continue;
-    if (!nodeIds.has(row.target_id)) continue;
-    if (!row.id || !row.value.trim() || !isSha256(row.content_hash) || localizedNames.has(row.target_id)) {
-      throw new Error(`r4 localized name index has an invalid or duplicate approved label for ${row.target_id}`);
+    if (row.locale !== 'zh-CN' || row.review_status !== 'approved') continue;
+    if (row.field_path === 'name') {
+      if (!nodeIds.has(row.target_id)) continue;
+      if (!row.id || !row.value.trim() || !isSha256(row.content_hash) || localizedNames.has(row.target_id)) {
+        throw new Error(`r4 localized name index has an invalid or duplicate approved label for ${row.target_id}`);
+      }
+      localizedNames.set(row.target_id, row);
+      continue;
     }
-    localizedNames.set(row.target_id, row);
+    if (row.field_path === 'alias') {
+      // Governed alias rows (r6 U5, zh/en symmetric upstream; only the zh-CN
+      // base locale enters the snapshot evidence).
+      if (!nodeIds.has(row.target_id)) {
+        throw new Error(`r4 localized alias references unknown object ${row.target_id}`);
+      }
+      if (!row.id || !row.value.trim() || !isSha256(row.content_hash)) {
+        throw new Error(`r4 localized alias index has an invalid approved alias for ${row.target_id}`);
+      }
+      const rows = localizedAliases.get(row.target_id) ?? [];
+      rows.push(row);
+      localizedAliases.set(row.target_id, rows);
+    }
   }
 
-  const sourceCounts = { terminology: 0, localizedName: 0, projectionDisplayName: 0 };
+  const sourceCounts = {
+    terminology: 0,
+    localizedName: 0,
+    projectionDisplayName: 0,
+    terminologyAlias: 0,
+    localizedAlias: 0,
+  };
   const multilingualLabels: AuthoritativeV2MultilingualLabelRecord[] = input.nodes
     .slice()
     .sort((left, right) => left.entity_id.localeCompare(right.entity_id))
@@ -438,7 +474,61 @@ function buildR4LabelEvidence(input: {
         },
       } satisfies AuthoritativeV2MultilingualLabelRecord;
     });
-  if (multilingualLabels.length !== input.nodes.length) throw new Error('r4 label evidence does not cover every projection object');
+  const preferredCount = multilingualLabels.length;
+  if (preferredCount !== input.nodes.length) throw new Error('r4 label evidence does not cover every projection object');
+  // Governed aliases append after the preferred rows; each alias row binds the
+  // same sealed bundle artifacts and stays scoped to admitted nodes.
+  const aliasRows = input.nodes
+    .slice()
+    .sort((left, right) => left.entity_id.localeCompare(right.entity_id))
+    .flatMap((node) => {
+      const terminology = indexedAliases.get(node.entity_id) ?? [];
+      const localized = localizedAliases.get(node.entity_id) ?? [];
+      return [
+        ...terminology.map((row) => ({
+          entityId: node.entity_id,
+          label: row.label,
+          artifact: labelArtifact,
+          recordId: row.terminology_assertion_id,
+          recordHash: authorityDigest(row),
+          source: 'multilingual-label-index-alias' as const,
+        })),
+        ...localized.map((row) => ({
+          entityId: node.entity_id,
+          label: row.value,
+          artifact: localizedArtifact,
+          recordId: row.id,
+          recordHash: row.content_hash,
+          source: 'localized-content-alias' as const,
+        })),
+      ];
+    });
+  let aliasOrdinal = preferredCount;
+  for (const row of aliasRows) {
+    sourceCounts[row.source === 'multilingual-label-index-alias' ? 'terminologyAlias' : 'localizedAlias'] += 1;
+    multilingualLabels.push({
+      releaseId: input.releaseId,
+      ordinal: aliasOrdinal,
+      entityId: row.entityId,
+      language: 'zh-CN',
+      label: row.label,
+      labelType: 'alternative',
+      terminologyAssertionId: row.recordId,
+      payload: {
+        contract: 'actkg-r4-sealed-presentation-label/v1',
+        source: row.source,
+        entityId: row.entityId,
+        labelSha256: sha256Text(row.label),
+        sourceArtifact: row.artifact.path,
+        sourceArtifactSha256: row.artifact.sha256,
+        sourceRecordId: row.recordId,
+        sourceRecordHash: row.recordHash,
+        bundleDigest: input.bundleDigest,
+        manifestSha256: input.manifestSha256,
+      },
+    } satisfies AuthoritativeV2MultilingualLabelRecord);
+    aliasOrdinal += 1;
+  }
   const bindingPayload = {
     provenance: 'registry',
     verificationScope: 'admission-time',

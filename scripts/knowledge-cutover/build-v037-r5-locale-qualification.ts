@@ -81,9 +81,9 @@ const pkg = {
   shardSet: { shardSetId: pointer.shardSetId, shardSetHash: pointer.shardSetHash },
   sourceBundle: {
     relativePath: V037_BILINGUAL_BUNDLE_RELATIVE,
-    bundleId: upstreamManifest.bundle_id ?? 'ctb:control-theory-engineering-v0.37:r5',
+    bundleId: upstreamManifest.bundle_id ?? 'ctb:control-theory-engineering-v0.37:r6',
     releaseHash: upstreamManifest.release.hash,
-    sourceTag: 'control-theory-engineering-v0.37-source-r6',
+    sourceTag: 'control-theory-engineering-v0.37-source-r7',
   },
   manifest,
   qualification,

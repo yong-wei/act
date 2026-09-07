@@ -45,6 +45,7 @@ import {
   type AuthorityShardObject,
   type AuthorityShardRelation,
   type AuthorityShardSetManifest,
+  type AuthorityShardTeachingCoverage,
   type EngineeringRelationFamily,
 } from './contracts';
 import type { NodeSourceCitation } from '@/lib/engineering-textbook-mapping';
@@ -85,6 +86,7 @@ const SUPPORTED_PREDICATES = new Set([
   'has_representation',
   'is_a',
   'part_of',
+  'prerequisite',
   'used_to_analyze',
 ]);
 
@@ -440,10 +442,21 @@ export function buildAuthorityDomainShards(
     const overviewIds = new Set(overviewObjects.map((object) => object.id));
     // Teaching edges are real published relations; in the overview only
     // edges whose endpoints are both eligible concept-overview members.
+    // Teaching edges are real published relations; in the overview only
+    // edges whose endpoints are both eligible concept-overview members.
     const teachingRelations = teaching.relations(domainId)
       .filter((relation) => overviewIds.has(relation.sourceId) && overviewIds.has(relation.targetId))
       .slice()
       .sort(compareId);
+    // U6: coverage receipts are computed from the final payload, never copied
+    // from the projection's declared counts — the overview delivers only
+    // relations whose endpoints are both overview members, so the receipt must
+    // count exactly those rows.
+    const declaredCoverage = teaching.coverage(domainId);
+    const teachingCoverage: AuthorityShardTeachingCoverage = {
+      ...declaredCoverage,
+      relationCount: teachingRelations.length,
+    };
     const domainDefault: AuthorityDomainDefaultShard = {
       shardClass: 'domain-default',
       envelope: input.envelope,
@@ -451,7 +464,7 @@ export function buildAuthorityDomainShards(
       visualRole: domain.visualRole,
       objects: overviewObjects,
       teachingRelations,
-      teachingCoverage: teaching.coverage(domainId),
+      teachingCoverage,
     };
     const serializedDefault = JSON.stringify(domainDefault);
     if (serializedDefault.includes('"media"') || serializedDefault.includes('"cardMarkdown"')) {
@@ -501,17 +514,28 @@ export function buildAuthorityDomainShards(
         if (engineeringFamilyForPredicate(relation.relationType) !== family) return false;
         return members.has(relation.sourceId) || members.has(relation.targetId);
       });
+      // U1 bounded endpoint closure: every delivered relation ships its
+      // endpoints in this shard unless the endpoint is already delivered by the
+      // parent domain-default overview. Membership alone is not delivery —
+      // non-overview member types (statements, formulas) must ship here too.
       const extraIds = new Set<string>();
       for (const relation of incident) {
-        if (!members.has(relation.sourceId)) extraIds.add(relation.sourceId);
-        if (!members.has(relation.targetId)) extraIds.add(relation.targetId);
-        seedIds.add(relation.sourceId);
-        seedIds.add(relation.targetId);
+        for (const endpoint of [relation.sourceId, relation.targetId]) {
+          if (!overviewIds.has(endpoint)) extraIds.add(endpoint);
+          seedIds.add(endpoint);
+        }
       }
       const familyObjects = [...extraIds]
-        .map((id) => objectsById.get(id))
-        .filter((object): object is AuthorityEngineeringObject => Boolean(object))
-        .map((object) => projectAuthorityObject(object, input.catalog, labels))
+        .map((id) => {
+          const object = objectsById.get(id);
+          if (!object) {
+            throw new AuthorityShardMaterializeError(
+              'relation-endpoint-missing',
+              `relation-family ${domainId}:${family} endpoint ${id} is absent from the Authority snapshot; refusing to ship a dangling relation`,
+            );
+          }
+          return projectAuthorityObject(object, input.catalog, labels);
+        })
         .sort(compareId);
       const familyShard: AuthorityRelationFamilyShard = {
         shardClass: 'relation-family',
@@ -688,6 +712,21 @@ export function buildAuthorityDomainShards(
       'domain-search-coverage-missing',
       'every catalog domain must seal exactly one search index shard',
     );
+  }
+  // U6: every coverage receipt row must match the sealed domain-default
+  // payload it describes; a drifted count fails the whole materialization.
+  for (const [domainId, domainDefault] of Object.entries(domainDefaults)) {
+    const receiptRow = coverage.domains.find((row) => row.domainId === domainId);
+    if (
+      !receiptRow
+      || receiptRow.teachingRelationCount !== domainDefault.teachingRelations.length
+      || domainDefault.teachingCoverage.relationCount !== domainDefault.teachingRelations.length
+    ) {
+      throw new AuthorityShardMaterializeError(
+        'coverage-receipt-drift',
+        `domain ${domainId} coverage receipt does not match its final payload`,
+      );
+    }
   }
 
   const files: Record<string, unknown> = {

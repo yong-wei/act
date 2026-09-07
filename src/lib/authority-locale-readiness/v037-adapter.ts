@@ -31,7 +31,7 @@ import type { LocalePresentationInventory } from './presentation-denominator';
 
 /** The exact admitted upstream bilingual bundle; never resolves `latest`. */
 export const V037_BILINGUAL_BUNDLE_RELATIVE =
-  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r5' as const;
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r6' as const;
 
 
 const UPSTREAM_LOCALE_MANIFEST_CONTRACT = 'ctkg-locale-manifest/1';
