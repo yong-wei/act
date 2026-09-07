@@ -1,0 +1,5086 @@
+{
+  "shardClass": "domain-default",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "time-domain-analysis",
+  "visualRole": "time",
+  "objects": [
+    {
+      "id": "ctkg:m3-v1j:canonical-object:4f003638ec565661ed87c75c",
+      "canonicalType": "DomainConcept",
+      "label": "直流增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1j:canonical-object:a917ed3f93905afc7ffab697",
+      "canonicalType": "DomainConcept",
+      "label": "瞬态响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+      "canonicalType": "DomainConcept",
+      "label": "稳态误差",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1j:source-object:3ad016a91b6761632737a05c",
+      "canonicalType": "DomainConcept",
+      "label": "闭环瞬态响应指数参数p",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1j:source-object:556e8772a71e6aff86bcfcdb",
+      "canonicalType": "DomainConcept",
+      "label": "增益常数K1",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+      "canonicalType": "DomainConcept",
+      "label": "时间常数τ1",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-00c82f915797f85ae708834a",
+      "canonicalType": "DomainConcept",
+      "label": "前馈通路",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+      "canonicalType": "DomainConcept",
+      "label": "终值定理法求稳态误差",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-02cce0b1ff76d0c0dbaba18a",
+      "canonicalType": "DomainConcept",
+      "label": "一阶系统的单位加速度响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+      "canonicalType": "DomainConcept",
+      "label": "单边拉普拉斯变换",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+      "canonicalType": "DomainConcept",
+      "label": "部分分式展开的覆盖法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-09a1d7c35806072ff403281d",
+      "canonicalType": "DomainConcept",
+      "label": "主回路",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+      "canonicalType": "DomainConcept",
+      "label": "静态误差系数法求稳态误差",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-0a39d839518b55dc77e9d083",
+      "canonicalType": "DomainConcept",
+      "label": "基于零极点位置的定性分析",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-0ac685dbd2c95e94576fcf5b",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼自然频率 ω_d",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-0c0b4e9e214ae42d511dda74",
+      "canonicalType": "DomainConcept",
+      "label": "s平面",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "canonicalType": "DomainConcept",
+      "label": "正弦函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+      "canonicalType": "DomainConcept",
+      "label": "非主导极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+      "canonicalType": "DomainConcept",
+      "label": "稳态响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "canonicalType": "DomainConcept",
+      "label": "终值定理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-11f09aa0d0d4b13271f48dc5",
+      "canonicalType": "DomainConcept",
+      "label": "主调节器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-128a0f144821b8292a40f391",
+      "canonicalType": "DomainConcept",
+      "label": "前馈控制",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "canonicalType": "DomainConcept",
+      "label": "动态性能指标",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "canonicalType": "DomainConcept",
+      "label": "无阻尼自然频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+      "canonicalType": "DomainConcept",
+      "label": "测速反馈控制改善系统性能的方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "canonicalType": "DomainConcept",
+      "label": "自然响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-1c6e0da621b7f363c81a8901",
+      "canonicalType": "DomainConcept",
+      "label": "ℒ_ 拉普拉斯变换",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-1ea3eb2ff15aa544b230f02f",
+      "canonicalType": "DomainConcept",
+      "label": "使用拉普拉斯变换确定y（t）（五步法）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-207d2721a1e69d2051980b49",
+      "canonicalType": "DomainConcept",
+      "label": "极点-零点星座图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-22a72191e400b17e9a066416",
+      "canonicalType": "DomainConcept",
+      "label": "用矩形脉动函数近似单位脉冲函数的方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+      "canonicalType": "DomainConcept",
+      "label": "系统模态",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-23e85dbf38c6880d27e4d02b",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼系数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "canonicalType": "DomainConcept",
+      "label": "比例-积分控制器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-262c2f2661df3c6d1086a95e",
+      "canonicalType": "DomainConcept",
+      "label": "二次扰动",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-26666fcfa05a85fef00fa4dd",
+      "canonicalType": "DomainConcept",
+      "label": "过阻尼二阶系统动态性能指标工程估算方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+      "canonicalType": "DomainConcept",
+      "label": "稳态性能",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+      "canonicalType": "DomainConcept",
+      "label": "卷积",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "canonicalType": "DomainConcept",
+      "label": "阶跃输入",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "canonicalType": "DomainConcept",
+      "label": "单位阶跃响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "canonicalType": "DomainConcept",
+      "label": "时间常数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-3484a3239128bda292d300f9",
+      "canonicalType": "DomainConcept",
+      "label": "利用解析法求解高阶系统单位阶跃响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-37b4b074acb6cd0044127737",
+      "canonicalType": "DomainConcept",
+      "label": "覆盖法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-39f6714b8cafaaf18e43b898",
+      "canonicalType": "DomainConcept",
+      "label": "串级控制方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "canonicalType": "DomainConcept",
+      "label": "测速反馈控制",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+      "canonicalType": "DomainConcept",
+      "label": "单位脉冲函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼比ζ",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "canonicalType": "DomainConcept",
+      "label": "位置误差常数 (K_p)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-423faabaff2ff11b70399228",
+      "canonicalType": "DomainConcept",
+      "label": "临界阻尼系数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-471a0b49b030d7d76e7e7159",
+      "canonicalType": "DomainConcept",
+      "label": "频带中心",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "canonicalType": "DomainConcept",
+      "label": "极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "canonicalType": "DomainConcept",
+      "label": "闭环极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-47b1f3cc3b2b99907ed5541d",
+      "canonicalType": "DomainConcept",
+      "label": "抛物线输入",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-4b313e6e83be36dcd1a914f3",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼比 ζ",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-4c11f89842e11d4bc17a5b71",
+      "canonicalType": "DomainConcept",
+      "label": "副调节器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+      "canonicalType": "DomainConcept",
+      "label": "有零点的二阶系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "canonicalType": "DomainConcept",
+      "label": "左半平面 （LHP）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "canonicalType": "DomainConcept",
+      "label": "单位阶跃函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-502e49562e7e2a940900a00f",
+      "canonicalType": "DomainConcept",
+      "label": "通过假设指数解求传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-503d2c6683ea029b37af79d3",
+      "canonicalType": "DomainConcept",
+      "label": "因果系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+      "canonicalType": "DomainConcept",
+      "label": "复合控制系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-55743366373a5197b074831b",
+      "canonicalType": "DomainConcept",
+      "label": "单位阶跃函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+      "canonicalType": "DomainConcept",
+      "label": "相位（频率响应）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+      "canonicalType": "DomainConcept",
+      "label": "时间常数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+      "canonicalType": "DomainConcept",
+      "label": "单位斜坡函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-62cf713a7c61ab2457825678",
+      "canonicalType": "DomainConcept",
+      "label": "一阶系统的单位斜坡响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "canonicalType": "DomainConcept",
+      "label": "速度误差系数 (K_v)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-677f91cec4356ce5a40ceb97",
+      "canonicalType": "DomainConcept",
+      "label": "降阶的劳斯近似法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "canonicalType": "DomainConcept",
+      "label": "临界阻尼",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "canonicalType": "DomainConcept",
+      "label": "比例-微分控制",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6dbb5c144b45c1f35822330c",
+      "canonicalType": "DomainConcept",
+      "label": "无零点的二阶系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "canonicalType": "DomainConcept",
+      "label": "加速度误差常数 (K_a)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6f4cdd499aa7be5c5b2ffa0f",
+      "canonicalType": "DomainConcept",
+      "label": "利用初始斜率确定一阶系统时间常数的方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "canonicalType": "DomainConcept",
+      "label": "闭环主导极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-7173c7880ad344bc6a0d012d",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应匹配降阶法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "canonicalType": "DomainConcept",
+      "label": "二阶系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "canonicalType": "DomainConcept",
+      "label": "传输零点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-7dd23917c751bd4b10cfc11f",
+      "canonicalType": "DomainConcept",
+      "label": "非零初始条件响应分量",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "canonicalType": "DomainConcept",
+      "label": "自然频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "canonicalType": "DomainConcept",
+      "label": "动态性能",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-85a699e349c4185cc163c16e",
+      "canonicalType": "DomainConcept",
+      "label": "双边拉普拉斯变换",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-85a8c51ad4bbae148e040776",
+      "canonicalType": "DomainConcept",
+      "label": "利用单位脉冲响应求闭环传递函数的方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-8821eda7812d88a26a449d71",
+      "canonicalType": "DomainConcept",
+      "label": "利用MATLAB进行高阶系统建模和单位阶跃响应计算",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+      "canonicalType": "DomainConcept",
+      "label": "右半平面（RHP）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "canonicalType": "DomainConcept",
+      "label": "稳态误差",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e",
+      "canonicalType": "DomainConcept",
+      "label": "非主导极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "canonicalType": "DomainConcept",
+      "label": "一阶系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "canonicalType": "DomainConcept",
+      "label": "开环增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "canonicalType": "DomainConcept",
+      "label": "峰值时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "canonicalType": "DomainConcept",
+      "label": "固有频率 ω_n",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "canonicalType": "DomainConcept",
+      "label": "调节时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-9cfc0f6b382440f46c1f3302",
+      "canonicalType": "DomainConcept",
+      "label": "上升时间 T_r",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+      "canonicalType": "DomainConcept",
+      "label": "峰值时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "canonicalType": "DomainConcept",
+      "label": "系统型别",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-a9b5aa38cf8c93e8dc4533da",
+      "canonicalType": "DomainConcept",
+      "label": "品质因数Q",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "canonicalType": "DomainConcept",
+      "label": "上升时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼比",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ac9111bcfe5798a35bf92638",
+      "canonicalType": "DomainConcept",
+      "label": "机电时间常数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "canonicalType": "DomainConcept",
+      "label": "欠阻尼",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "canonicalType": "DomainConcept",
+      "label": "部分分式展开",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+      "canonicalType": "DomainConcept",
+      "label": "上升时间",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "canonicalType": "DomainConcept",
+      "label": "直流增益",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-af59ae82af84ba274864a121",
+      "canonicalType": "DomainConcept",
+      "label": "一阶系统的单位脉冲响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "canonicalType": "DomainConcept",
+      "label": "典型输入信号",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b09a84cc18c0b52151894b0f",
+      "canonicalType": "DomainConcept",
+      "label": "比例-微分控制改善系统性能的方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b13c33b1236afe625bffacb7",
+      "canonicalType": "DomainConcept",
+      "label": "调节时间 T_s",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+      "canonicalType": "DomainConcept",
+      "label": "不同极点部分分式展开法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+      "canonicalType": "DomainConcept",
+      "label": "峰值时间T_p",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b2d966c11bb22eca4c7bd77e",
+      "canonicalType": "DomainConcept",
+      "label": "T(s) 的极点与零点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+      "canonicalType": "DomainConcept",
+      "label": "过阻尼",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "canonicalType": "DomainConcept",
+      "label": "稳态误差e_ss",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-bd426885220680f04a9aed17",
+      "canonicalType": "DomainConcept",
+      "label": "复合控制方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "canonicalType": "DomainConcept",
+      "label": "瞬态响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-bdaced0dc441be53ee6a1b64",
+      "canonicalType": "DomainConcept",
+      "label": "时不变性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "canonicalType": "DomainConcept",
+      "label": "临界阻尼响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-c02b9566a9d9964dbab5cc5d",
+      "canonicalType": "DomainConcept",
+      "label": "通过卷积计算响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-c036bd461db04fbed7e079fd",
+      "canonicalType": "DomainConcept",
+      "label": "实验测定一阶系统时间常数的方法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼自然频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "canonicalType": "DomainConcept",
+      "label": "稳态过程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-c97db3319c6da0c0371648d5",
+      "canonicalType": "DomainConcept",
+      "label": "无阻尼振荡频率",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+      "canonicalType": "DomainConcept",
+      "label": "利用闭环主导极点概念近似分析高阶系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+      "canonicalType": "DomainConcept",
+      "label": "单位加速度函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-cdaeaeb76fbe3feb33aa40b3",
+      "canonicalType": "DomainConcept",
+      "label": "无阻尼自然频率 ω_n",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-d0323a65e86911f11fa1e579",
+      "canonicalType": "DomainConcept",
+      "label": "副回路",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "canonicalType": "DomainConcept",
+      "label": "过阻尼响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-d2d3366e7f924f0ab8b19205",
+      "canonicalType": "DomainConcept",
+      "label": "串级控制系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-d510dc60d0922c1ec40e6df2",
+      "canonicalType": "DomainConcept",
+      "label": "特鲁克萨尔公式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-d798b1df9c92d6d95229853b",
+      "canonicalType": "DomainConcept",
+      "label": "幅值比",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-d970bf0f83666cbccb0fbd76",
+      "canonicalType": "DomainConcept",
+      "label": "稳态",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+      "canonicalType": "DomainConcept",
+      "label": "使用时域指标的设计综合",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-de2d118612aaa2d2d0061b93",
+      "canonicalType": "DomainConcept",
+      "label": "通过ODE的拉普拉斯变换求传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+      "canonicalType": "DomainConcept",
+      "label": "叠加原理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "canonicalType": "DomainConcept",
+      "label": "超调量",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-e13adcff8a7f8bc37a3579c2",
+      "canonicalType": "DomainConcept",
+      "label": "忽略次要极点降阶法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "canonicalType": "DomainConcept",
+      "label": "误差信号",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-e3d758f51052980656178128",
+      "canonicalType": "DomainConcept",
+      "label": "系统类型",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-e48cc89f8ed152e7f44ba43f",
+      "canonicalType": "DomainConcept",
+      "label": "一阶系统的单位阶跃响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-e5eec53e01f5ac974d074ac4",
+      "canonicalType": "DomainConcept",
+      "label": "误差响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ea380a2917dde24b49c608e4",
+      "canonicalType": "DomainConcept",
+      "label": "利用MATLAB进行高阶系统时域分析",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctkg:v3e-canonical-eac850b3c1b21e7bef64f738",
+      "canonicalType": "DomainConcept",
+      "label": "百分比超调量 P.O.",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+      "canonicalType": "DomainConcept",
+      "label": "超调量",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "canonicalType": "DomainConcept",
+      "label": "稳定性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "canonicalType": "DomainConcept",
+      "label": "调节与扰动抑制的系统类型",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ef5630b5a74449df22ea0222",
+      "canonicalType": "DomainConcept",
+      "label": "快极点和慢极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-f04d9bd8bbd3d7197e2c3b56",
+      "canonicalType": "DomainConcept",
+      "label": "极点负实部",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-f1592d0294e49b97a717c2f0",
+      "canonicalType": "DomainConcept",
+      "label": "斜坡输入",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-f5ab87cb5fc7e1f248b279e0",
+      "canonicalType": "DomainConcept",
+      "label": "无穷远零点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+      "canonicalType": "DomainConcept",
+      "label": "单位脉冲函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "canonicalType": "DomainConcept",
+      "label": "动态过程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-fabd3ae6177fe2f84e1bde6a",
+      "canonicalType": "DomainConcept",
+      "label": "筛选性质",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-fc1c6377378e65e48e0f12fc",
+      "canonicalType": "DomainConcept",
+      "label": "时间常数τ",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "canonicalType": "DomainConcept",
+      "label": "闭环零点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    }
+  ],
+  "teachingRelations": [
+    {
+      "id": "dt-edge-00bef6fb20fad8cd8b576b98",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1j:canonical-object:4f003638ec565661ed87c75c",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-00f755725ed4f421823c98fb",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "targetId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-04a5209b6cda7742b80186d9",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e",
+      "targetId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-09080f20e6f9b1101dd57e23",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "targetId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-0ba3d88a5a3127f1c0216576",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "targetId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-0d0969e20be90a1a39b7ee3a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "targetId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-0d30c99d754f3246d6056222",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-165791bf208af14645692196",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+      "targetId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-1d037b0e3d2b92e171b45bef",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+      "targetId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-1ed08d77f0f671894f774e8a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+      "targetId": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2625f3f71550695b2063e9aa",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "targetId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-266d61758df41a67583a9fb1",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "targetId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2b0c0d2808b3fc16d618380a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+      "targetId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2ef4e4527e23f41200b2044b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+      "targetId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2f3781ff4a0b7578be07c722",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "targetId": "ctkg:m3-v1j:canonical-object:4f003638ec565661ed87c75c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-2fb2aa1a8cade575f420e89b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "targetId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-34adaa1df78de8963f250b8e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "targetId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-36073511427c76208717c8b8",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-38237bc8d541d4cd3054ea0f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+      "targetId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-44bc7b16b485f84e65aa1150",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+      "targetId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4901569b61266a013a434d1a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+      "targetId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4aa5cf4186d79e6576fc4618",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4bc4d06705ed8f30e5021338",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+      "targetId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-4dac6b74ec61c0d96760710c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "targetId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-53380ffed6d5cf7a91cc2f86",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+      "targetId": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-5871d23f8b6bcb3b1ce414bf",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-128a0f144821b8292a40f391",
+      "targetId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-641d967d8e499fb177f51aa0",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "targetId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-665d923a449b2cd1f1769e9c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-6764a01270d90d8824335883",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-78a5013944bc3bc8e8de22cd",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "targetId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-78c32c96c0eca7f584c0f64c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+      "targetId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-7d5f834ca429646c0d607232",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "targetId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-7d6ebfade251ff3455080293",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-7f97323f8bf38fd15f5c4e72",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "targetId": "ctkg:m3-v1j:canonical-object:a917ed3f93905afc7ffab697",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-8025c2d4f4d33b7f77166cea",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-82dda29bce404bb6b8bcf29e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+      "targetId": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-89c590b74958709a62608e7e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+      "targetId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9265c04c80e573c836635957",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "targetId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-97cdea576a0d301f6de2da51",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+      "targetId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-98de8bbfee8fc472eae8c41f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "targetId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9982757acbf3efaf9ff56f43",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "targetId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9da0f03389444f4dcff50c16",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "targetId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9e410347d040c126808c7af0",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "targetId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9eea14c1a9f46328630f0dba",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+      "targetId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-9f2a3c1e840df2cd74922543",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+      "targetId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-a28946c3fb85a2c435228f3f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "targetId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-a798df1a8d1283714d9e4c0e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ac5e07988ace86d30078ab8b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-b76502520add40f2321245e4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "targetId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-c7bfe30cde27a4c5d87ff21e",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+      "targetId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-c9d565a020d5192633468d36",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+      "targetId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ca1d0c9e3cc158a8a5ce4ef9",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "targetId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-cbef214125aa5144af6676ae",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "targetId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ce1c4fdc591767127b102c17",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "targetId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ce20904f43c9f4d410cc2a0a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "targetId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d3849cc25cc1ce6c18651047",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+      "targetId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-d4d2997ba95251db6a062182",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-dac8c3c858e74ca51873da6a",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+      "targetId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-db9953beafee670f0f4f95b6",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+      "targetId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-dd7eca518bef1c0ca68c8e2d",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+      "targetId": "ctkg:v3e-canonical-128a0f144821b8292a40f391",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-dec48cb63c969fe1f2e01c9f",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+      "targetId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-dfe61b21b625d1f5cf5c40db",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-e0eaf41ac1e53d9df9ffa29c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "targetId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-e2cd47fd705da014b040ffe6",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+      "targetId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-e71cacbdced0b49b2488237c",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+      "targetId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-ef717d9f927a008043a7e6aa",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+      "targetId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f196c3464f76791a65436770",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+      "targetId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f3b367414182376df3f1114b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+      "targetId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-f70cd598ee7ea7a4eb5b7e3d",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "targetId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-fce6c48be0231a7d308cd94b",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+      "targetId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-fe40dbad01aa1f7b8dda2e17",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+      "targetId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    },
+    {
+      "id": "dt-edge-fef36ec3f9b578b7232165a4",
+      "predicate": "PREREQUISITE",
+      "sourceId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+      "targetId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": "published"
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ACT_TEACHING",
+      "relationFamily": "teaching-prerequisite"
+    }
+  ],
+  "teachingCoverage": {
+    "status": "available",
+    "domainId": "time-domain-analysis",
+    "relationCount": 110,
+    "coreNodeCount": 111,
+    "uncoveredCoreNodeCount": 0,
+    "note": "该领域已发布可用的教学关系覆盖"
+  }
+}

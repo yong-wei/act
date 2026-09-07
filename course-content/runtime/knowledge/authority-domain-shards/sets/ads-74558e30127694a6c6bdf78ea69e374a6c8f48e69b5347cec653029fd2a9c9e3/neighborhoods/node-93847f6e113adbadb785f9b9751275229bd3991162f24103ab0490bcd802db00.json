@@ -1,0 +1,279 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯稳定判据为表格形式，见表 3－4 劳斯表。劳斯表的前两行由系统特征方程（3－68）的系数直接构成。劳斯表中的第一行，由特征方程的第一，三，五，⋯项系数组成；第二行，由第二，四，六，⋯项系数组成。劳斯表中以后各行的数值，需按表3－4所示逐行计算，凡在运算过程中出现的空位，均置以零，这种过程一直进行到第 n 行为止，第 n+1 行仅第一列有值，且正好等于特征方程最后一项系数 an。表中系数排列呈上三角形。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7ea6ab6dc66f6eb4b9ff682a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "为了克服这种困难，可以用因子 （s+a） 乘以原特征方程，其中 a 可为任意正数，再对新的特征方程应用劳斯稳定判据，可以防止上述特殊情况的出现。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "按照劳斯稳定判据，由特征方程（3－68）所表征的线性系统稳定的充分且必要条件是：劳斯表中第一列各值为正。如果劳斯表第一列中出现小于零的数值，系统就不稳定，且第一列各系数符号的改变次数，代表特征方程（3－68）的正实部根的数目。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c0d49bc2853beb3f432436a7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当应用劳斯稳定判据分析线性系统的稳定性时，有时会遇到下面两种特殊情况，使得劳斯表中的计算无法进行到底，因此需要进行相应的数学处理，处理的原则是不影响劳斯稳定判据的判别结果。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当劳斯表中出现全零行时，可用全零行上面一行的系数构造一个辅助方程 F（s）=0，并将辅助方程对复变量 s 求导，用所得导数方程的系数取代全零行的元，便可按劳斯稳定判据的要求继续运算下去，直到得出完整的劳斯计算表。辅助方程的次数通常为偶数，它表明数值相同但符号相反的根数。所有那些数值相同但符号相异的根，均可由辅助方程求得。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fa5430787e0f52c1b769a7fd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯稳定判据与赫尔维茨稳定判据在实质上是相同的。显然，劳斯表中第一列各数与各顺序赫尔维茨行列式之间，存在如下关系：a1=Δ1, c13=Δ2/Δ1, c14=Δ3/Δ2, c15=Δ4/Δ3, ...，c1,n=Δn-1/Δn-2, c1,n+1=Δn/Δn-1。因此，在 a0>0 的情况下，如果所有的顺序赫尔维茨行列式为正，则劳斯表中第一列的所有元素必大于零。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1g-064e732eb0dc7aafd5d34b82",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-c0d49bc2853beb3f432436a7",
+      "targetId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1g-1f452fecdf8fb00a64b9e2a3",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-fa5430787e0f52c1b769a7fd",
+      "targetId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1g-a3456c2855814285e1fb0330",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+      "targetId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1g-b07ab36ecea2afb5c9da158a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+      "targetId": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1g-ec76e40f531701ca44ecacf2",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-7ea6ab6dc66f6eb4b9ff682a",
+      "targetId": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": []
+}

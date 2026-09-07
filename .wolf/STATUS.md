@@ -88,6 +88,8 @@
 
 ## 🚀 Next phase
 
+- 2026-09-07：#2043 / PR #2056 已把 v2 教材绑定扩到 pinned release 内全部 3183 个 Authority 已知端点（`proj-b0b02692`），overlay A 与 sealed activation 未动。下一步：提交推送后对 latest HEAD 请求一次 Codex 复审，清场后合并并归档 Issue。不要关 #1033。不要 `deploy:app` / `deploy:runtime`。不要在未修完 finding 时另开 review。
+
 - 2026-09-03：先 claim #1916，按 claim 时 clean `origin/integration` 重建完整 tracked payload path/byte 分母，闭合当前 authority/consumer/retention/privacy/materialization/recovery/rollback 与 full-inventory 实际字节验证。旧 #1881 的 52,159 个 unresolved 与 `package-unqualified` 只作历史比较；输出未达到 unresolved=0 时继续 fail closed。不得迁移、删除、外置、物化载荷，不得改 active baseline/fitness/test qualification 或生产状态。
 
 - 2026-09-03：#1898 `integrate-type055-nanchang-v2-model-release` 已在 `act-dev2` 认领并完成实现：接收 3DModels v2.0.0 六文件包（`public/assets/model-releases/type055-nanchang-101/v2.0.0/` + 收据）、ACT 描述符/验证器（`src/resources/simulations/model-packages/`）、共享 `VersionedShipModel`（档位→LOD、就绪前保留、失败回退旧候选链）、destroyer 场景 `?model=type055-v2` 候选开关 + 唯一坐标基适配（+X 艏→+Z 艏）、QA 路由 `/simulations/type055-model-candidate`。单测 18+5、Playwright 7 项全过；typecheck/lint 0；未生产发布、未切默认模型。待 PR + Codex 清场。不要关 #1033。不要生产 `deploy:app` / `deploy:runtime`。

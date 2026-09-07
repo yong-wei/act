@@ -1,0 +1,72 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctc:modeling-c499b71d908bd8fe4124c533",
+    "canonicalType": "DomainConcept",
+    "label": "首先考虑负载效应分别列写系统各元部件的微分方程或传递函数，并将它们用方框表示；然后根据各元部件的信号流向，用信号线依次将各方框连接便得到系统的结构图。",
+    "aliases": [],
+    "description": "首先考虑负载效应分别列写系统各元部件的微分方程或传递函数，并将它们用方框表示；然后根据各元部件的信号流向，用信号线依次将各方框连接便得到系统的结构图。",
+    "teachingFields": {
+      "concept_kind": "analysis_method"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/example-2.10",
+        "label": "自动控制原理（胡寿松，第8版） · 图2－22是一个电压测量装置，也是一个反馈控制系统。 $e_{1}$ 是待测量电压，$e_{2}$ 是指示的电压测量值。如果 $e_{2}$ 不同于 $e_{1}$ ，就产生误差电压 $e=e_{1}-e_{2}$ ，经调制、放大以后，驱动两相"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3",
+        "label": "自动控制原理（胡寿松，第8版） · 控制系统的结构图与信号流图"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.3/item-1",
+        "label": "自动控制原理（胡寿松，第8版） · 系统结构图的组成和绘制"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

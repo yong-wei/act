@@ -1,0 +1,65 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+    "canonicalType": "KnowledgeStatement",
+    "label": "当劳斯表中出现全零行时，可用全零行上面一行的系数构造一个辅助方程 F（s）=0，并将辅助方程对复变量 s 求导，用所得导数方程的系数取代全零行的元，便可按劳斯稳定判据的要求继续运算下去，直到得出完整的劳斯计算表。辅助方程的次数通常为偶数，它表明数值相同但符号相反的根数。所有那些数值相同但符号相异的根，均可由辅助方程求得。",
+    "aliases": [],
+    "description": "当劳斯表中出现全零行时，可用全零行上面一行的系数构造一个辅助方程 F(s)=0，并将辅助方程对复变量 s 求导，用所得导数方程的系数取代全零行的元，便可按劳斯稳定判据的要求继续运算下去，直到得出完整的劳斯计算表。辅助方程的次数通常为偶数，它表明数值相同但符号相反的根数。所有那些数值相同但符号相异的根，均可由辅助方程求得。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/example-3.10",
+        "label": "自动控制原理（胡寿松，第8版） · 已知系统特征方程为"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-4/item-2",
+        "label": "自动控制原理（胡寿松，第8版） · 劳斯表中出现全零行"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

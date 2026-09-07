@@ -1,0 +1,70 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-872d87db98d621f9108fa8ba",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1. 确定增益 K 以满足误差要求：选取 K 以满足误差常数（Kp、Kv 或 Ka），从而满足稳态误差 ess 指标。2. 利用步骤 1 中得到的 K 值计算未校正系统的相位裕度 PM。3. 留出额外裕量（约 10°），并确定所需的最大超前相位 φmax。4. 根据式 (6.40) 或图 6.53 确定 α。5. 选取 ωmax 为截止频率；因此零点位于 1/TD = ωmax √α，极点位于 1/αTD = ωmax / √α。6. 绘制校正后的频率响应曲线并检验 PM。7. 对设计进行迭代。",
+    "aliases": [],
+    "description": "1. Determine the gain K to satisfy error requirements: pick K to satisfy error constants (Kp, Kv, or Ka) so that ess error specification is met. 2. Evaluate the PM of the uncompensated system using the value of K obtained from Step 1. 3. Allow for extra margin (about 10°), and determine the needed phase lead φmax. 4. Determine α from Eq. (6.40) or Fig. 6.53. 5. Pick ωmax to be at the crossover frequency; thus the zero is at 1/TD = ωmax √α and the pole is at 1/αTD = ωmax / √α. 6. Draw the compensated frequency response and check the PM. 7. Iterate on the design.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-10/section-10.8",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · PHASE-LAG DESIGN USING THE BODE PLOT"
+      },
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-10/section-10.4/example-10.1",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · A lead compensator for a type-two system"
+      },
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-10/section-10.4",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · PHASE-LEAD DESIGN USING THE BODE PLOT"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

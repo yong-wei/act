@@ -10,7 +10,9 @@ import path from 'node:path';
 
 import {
   DEFAULT_TEXTBOOK_LOCATOR_AUTHORING_RELATIVE,
+  TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2,
   type SourceResourceCrosswalkRow,
+  type SourceResourceCrosswalkRowV2,
   type TextbookAccessMode,
   type TextbookLocatorAuthorityBinding,
   type TextbookSliceFailure,
@@ -153,10 +155,113 @@ export function parseSourceResourceCrosswalkText(text: string): SourceResourceCr
   return rows;
 }
 
-export function loadSourceResourceCrosswalk(input?: {
+/** Parse a v2 structural-unit crosswalk row; v1 rows fail closed here. */
+export function parseSourceResourceCrosswalkLineV2(
+  line: string,
+  rowNumber: number,
+): SourceResourceCrosswalkRowV2 {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(line) as unknown;
+  } catch {
+    throw new TextbookCrosswalkError('schema-invalid', `row ${rowNumber}: invalid JSON`);
+  }
+  if (!isRecord(raw)) {
+    throw new TextbookCrosswalkError('schema-invalid', `row ${rowNumber}: crosswalk row must be an object`);
+  }
+  if (raw.contract !== TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2) {
+    throw new TextbookCrosswalkError(
+      'schema-invalid',
+      `row ${rowNumber}: v2 row must declare contract ${TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2}`,
+    );
+  }
+  for (const key of FORBIDDEN_BODY_KEYS) {
+    if (key in raw && raw[key] != null && raw[key] !== '') {
+      throw new TextbookCrosswalkError(
+        'raw-text-forbidden',
+        `row ${rowNumber}: field ${key} is forbidden (no textbook body)`,
+      );
+    }
+  }
+  if (!isTextbookAccessMode(raw.accessMode)) {
+    throw new TextbookCrosswalkError(
+      'schema-invalid',
+      `row ${rowNumber}: invalid accessMode ${String(raw.accessMode)}`,
+    );
+  }
+  const canonicalIdsRaw = raw.canonicalIds;
+  if (!Array.isArray(canonicalIdsRaw) || canonicalIdsRaw.length === 0) {
+    throw new TextbookCrosswalkError(
+      'schema-invalid',
+      `row ${rowNumber}: canonicalIds must be a non-empty string array`,
+    );
+  }
+  const canonicalIds = canonicalIdsRaw.map((id, index) => {
+    if (typeof id !== 'string' || id.trim().length === 0) {
+      throw new TextbookCrosswalkError(
+        'schema-invalid',
+        `row ${rowNumber}: canonicalIds[${index}] must be a non-empty string`,
+      );
+    }
+    return id;
+  });
+  const structuralPathRaw = raw.structuralPath;
+  if (
+    !Array.isArray(structuralPathRaw)
+    || structuralPathRaw.length === 0
+    || structuralPathRaw.some((segment) => typeof segment !== 'string' || segment.length === 0)
+  ) {
+    throw new TextbookCrosswalkError(
+      'schema-invalid',
+      `row ${rowNumber}: structuralPath must be a non-empty string array`,
+    );
+  }
+  return {
+    contract: TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2,
+    sourceDocumentId: nonEmptyString(raw.sourceDocumentId, 'sourceDocumentId', rowNumber),
+    canonicalIds: [...new Set(canonicalIds)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)),
+    accessMode: raw.accessMode as TextbookAccessMode,
+    authorityReleaseId: nonEmptyString(raw.authorityReleaseId, 'authorityReleaseId', rowNumber),
+    authorityReleaseHash: nonEmptyString(raw.authorityReleaseHash, 'authorityReleaseHash', rowNumber),
+    bundleDigest: nonEmptyString(raw.bundleDigest, 'bundleDigest', rowNumber),
+    captureRevision: nonEmptyString(raw.captureRevision, 'captureRevision', rowNumber),
+    bookId: nonEmptyString(raw.bookId, 'bookId', rowNumber),
+    edition: nonEmptyString(raw.edition, 'edition', rowNumber),
+    structuralUnitId: nonEmptyString(raw.structuralUnitId, 'structuralUnitId', rowNumber),
+    structuralPath: structuralPathRaw as string[],
+    unitTitle: typeof raw.unitTitle === 'string' && raw.unitTitle.trim().length > 0
+      ? raw.unitTitle
+      : undefined,
+    rowNumber,
+  };
+}
+
+/**
+ * Parse the crosswalk sidecar mixing v1 locator rows and v2 structural-unit
+ * rows. Rows declare their generation: a `contract` field naming the v2
+ * contract is a v2 row; rows without it parse as legacy v1.
+ */
+export function parseSourceResourceCrosswalkTextMixed(input: {
+  text: string;
+}): { v1: SourceResourceCrosswalkRow[]; v2: SourceResourceCrosswalkRowV2[] } {
+  const lines = input.text.split(/\r?\n/u);
+  const v1: SourceResourceCrosswalkRow[] = [];
+  const v2: SourceResourceCrosswalkRowV2[] = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i]!.trim();
+    if (!line || line.startsWith('#')) continue;
+    const isV2 = line.includes(`"contract":"${TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2}"`)
+      || line.includes(`"contract": "${TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2}"`);
+    if (isV2) v2.push(parseSourceResourceCrosswalkLineV2(line, i + 1));
+    else v1.push(parseSourceResourceCrosswalkLine(line, i + 1));
+  }
+  return { v1, v2 };
+}
+
+export function loadSourceResourceCrosswalkMixed(input?: {
   repoRoot?: string;
   crosswalkPath?: string;
-}): SourceResourceCrosswalkRow[] {
+}): { v1: SourceResourceCrosswalkRow[]; v2: SourceResourceCrosswalkRowV2[] } {
   const root = input?.repoRoot ?? process.cwd();
   const filePath = input?.crosswalkPath
     ?? path.join(
@@ -179,7 +284,16 @@ export function loadSourceResourceCrosswalk(input?: {
       `source-resource-crosswalk is empty: ${filePath}`,
     );
   }
-  return parseSourceResourceCrosswalkText(text);
+  return parseSourceResourceCrosswalkTextMixed({ text });
+}
+
+export function loadSourceResourceCrosswalk(input?: {
+  repoRoot?: string;
+  crosswalkPath?: string;
+}): SourceResourceCrosswalkRow[] {
+  // v2 structural-unit rows are consumed by the runtime channel; the legacy
+  // v1 locator projection continues to see only v1 rows.
+  return loadSourceResourceCrosswalkMixed(input).v1;
 }
 
 /**

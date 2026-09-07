@@ -1,0 +1,255 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-ee2bd77380a7ea3eee8e8cb9",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-3bf1898067640e30699011bd",
+      "canonicalType": "Formula",
+      "label": "\\int_{0}^{t_{1}} \\mathrm{e}^{\\boldsymbol{A}^{\\top} t} \\boldsymbol{C}^{\\mathrm{T}} \\boldsymbol{y}(t) \\mathrm{d} t=\\int_{0}^{t_{1}} \\mathrm{e}^{\\boldsymbol{A}^{\\mathrm{T}} t} \\boldsymbol{C}^{\\mathrm{T}} \\boldsymbol{C} \\mathrm{e}^{\\boldsymbol{A} t} \\mathrm{~d} t \\boldsymbol{x}_{0}=\\boldsymbol{M}\\left(0, t_{1}\\right) \\boldsymbol{x}_{0}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4fde5d6c36b6c04c14edbc0e",
+      "canonicalType": "Formula",
+      "label": "\\boldsymbol{y}(t)=\\boldsymbol{C} \\boldsymbol{\\Phi}(t, 0) \\boldsymbol{x}_{0}=\\boldsymbol{C} \\mathrm{e}^{A t} \\boldsymbol{x}_{0}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e78cae49031592647b83c7ad",
+      "canonicalType": "Formula",
+      "label": "\\boldsymbol{x}_{0}=\\boldsymbol{M}^{-1}\\left(0, t_{1}\\right) \\int_{0}^{t_{1}} \\mathrm{e}^{\\boldsymbol{A}^{\\mathrm{T}} t} \\boldsymbol{C}^{\\mathrm{T}} \\boldsymbol{y}(t) \\mathrm{d} t",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-edc6137e2989a626cb47825c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性定常连续系统完全可观测的充分必要条件是，存在有限时刻t1>0，使格拉姆矩阵M（0,t）为非奇异。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ee2bd77380a7ea3eee8e8cb9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "已知M（0,t1）非奇异，由y（t）=Ce^{At}x0左乘e^{A^T t}C^T并积分，得M（0,t1）x0，从而可唯一确定x0。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1l:relation-0aa59f8f325f1e7c78e2b35e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-ee2bd77380a7ea3eee8e8cb9",
+      "targetId": "ctkg:v3e-object-edc6137e2989a626cb47825c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-8d3ad22a836b83b018d0820e",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ee2bd77380a7ea3eee8e8cb9",
+      "targetId": "ctkg:v3e-object-e78cae49031592647b83c7ad",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-a8f67c64de5f7f95ee6079df",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-ee2bd77380a7ea3eee8e8cb9",
+      "targetId": "ctkg:v3e-object-3bf1898067640e30699011bd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-ce016052122511c333ffc03c",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ee2bd77380a7ea3eee8e8cb9",
+      "targetId": "ctkg:v3e-object-4fde5d6c36b6c04c14edbc0e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-ef8937af6946f10e606fadca",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-ee2bd77380a7ea3eee8e8cb9",
+      "targetId": "ctkg:v3e-object-3bf1898067640e30699011bd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}
