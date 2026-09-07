@@ -12,6 +12,10 @@ import {
   type KonlingTeachingProjectionContext,
 } from './konling-teaching-projection-context';
 import {
+  buildKonlingEngineeringNeighborhoodGroundingLines,
+  type KonlingEngineeringNeighborhood,
+} from './konling-engineering-graph';
+import {
   buildStudyQuestionOutputContractLines,
   STUDY_QUESTION_INTENTS,
   STUDY_QUESTION_SECTIONS,
@@ -102,6 +106,7 @@ interface KonlingPromptRuntimeContext {
       severity?: string;
     }>;
     teachingProjectionContext?: KonlingTeachingProjectionContext | null;
+    engineeringNeighborhood?: KonlingEngineeringNeighborhood | null;
   } | null;
   citationContext?: {
     required?: boolean;
@@ -416,6 +421,17 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       if (teachingProjection?.optionalCardStatus === 'absent') {
         lines.push('  - 可选知识卡缺失时，使用 Canonical 摘要或其他已投影资源，不得声称节点不存在。');
       }
+    }
+    // #2047 工程域邻域 grounding：与教学投影分域自证，条数有界。
+    const engineeringNeighborhood =
+      runtime.graphContext?.engineeringNeighborhood ?? null;
+    const engineeringLines = buildKonlingEngineeringNeighborhoodGroundingLines(engineeringNeighborhood);
+    if (engineeringLines.length > 0) {
+      lines.push('- Engineering graph grounding (server-owned, read-only):');
+      for (const line of engineeringLines) {
+        lines.push(`  - ${line}`);
+      }
+      lines.push('  - 工程关系仅来自 ActKG Authority 工程层（谓词白名单内），不得与教学先修关系混写，不得推断未交付的工程关系。');
     }
   }
   if (runtime.citationContext?.required) {

@@ -21,6 +21,7 @@ import {
   buildKonlingCitationGuard,
   buildKonlingCitationRetrievalSources,
   buildKonlingDualDomainProvenanceMetadataPayload,
+  extendKonlingDualDomainProvenanceTeachingResourceIds,
   buildKonlingRuntimeContext,
   buildKonlingSarAssociatedGroundingMetadataPayload,
   buildKonlingTeachingAssistantRuntimeContract,
@@ -514,9 +515,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const sarAssociatedGroundingMetadataPayload = buildKonlingSarAssociatedGroundingMetadataPayload(
       modeContract.groundingContext.sarAssociatedGrounding,
     );
-    const dualDomainProvenanceMetadataPayload = buildKonlingDualDomainProvenanceMetadataPayload(
-      modeRuntimeContext,
+    // #2047：composed 通道新增的教学资源引用并入终稿 provenance；影子样本随消息持久化。
+    const dualDomainProvenanceMetadataPayload = extendKonlingDualDomainProvenanceTeachingResourceIds(
+      buildKonlingDualDomainProvenanceMetadataPayload(modeRuntimeContext),
+      toolRuntime.getAssignedCitations(),
     );
+    const composedRagShadowSamples = toolRuntime.getComposedRagShadowSamples();
 
     // 添加助手回复
     const assistantParts: Message['parts'] = structuredAssistant.message.parts
@@ -554,6 +558,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
         },
         konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
         konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
+        ...(composedRagShadowSamples.length > 0 ? {
+          konlingComposedRagShadow: composedRagShadowSamples,
+        } : {}),
         konlingStructuredCorrection: {
           status: structuredCorrectionStatus,
           attempts: structuredCorrectionStatus === 'not-required' ? 0 : 1,

@@ -592,4 +592,57 @@ describe('Konling verified citation presentation', () => {
     expect(html).toContain('模型推导章节：关键变形');
     expect(html).toContain('非来源原文');
   });
+  it('renders teaching-resource citations as viewer-shell chips and reconciles persisted provenance (#2047)', () => {
+    const metadata = {
+      konlingCitationGuard: {
+        status: 'verified',
+        citations: [
+          {
+            id: 'teach-res:res-handout',
+            sourceType: 'teaching-resource',
+            displayTitle: '根轨迹课堂讲义',
+            href: '/interactive-learning/resources/res-handout',
+            confidence: 'high',
+            evidenceBasis: 'teaching-projection:interactive-resource',
+            displayNumber: 2,
+            identity: { kind: 'teaching-resource', resourceId: 'res-handout' },
+          },
+          {
+            id: 'teach-res:res-foreign',
+            sourceType: 'teaching-resource',
+            displayTitle: '未入 provenance 的资源',
+            href: '/interactive-learning/resources/res-foreign',
+            confidence: 'high',
+            evidenceBasis: 'teaching-projection:interactive-resource',
+            displayNumber: 3,
+            identity: { kind: 'teaching-resource', resourceId: 'res-foreign' },
+          },
+        ],
+      },
+      konlingDualDomainProvenance: {
+        source: 'teaching-projection-dual-domain',
+        teaching: { resourceIds: ['res-handout'] },
+      },
+    };
+
+    const presentation = normalizeKonlingCitationPresentation(metadata);
+    const byResourceId = new Map(presentation.items.map((item) => [item.resourceId, item]));
+    expect(byResourceId.get('res-handout')?.limitation).toBeNull();
+    // resourceId 不在持久化 provenance 中：按未核验降级，不呈现可点击芯片。
+    expect(byResourceId.get('res-foreign')?.limitation).toBe('unverified-provenance');
+
+    const html = renderToStaticMarkup(
+      React.createElement(KonlingCitationPanel, { metadata }),
+    );
+    expect(html).toContain('data-konling-resource-citation-chip');
+    expect(html).toContain('教学资源');
+    expect(html).toContain('data-citation-target="/interactive-learning/resources/res-handout"');
+    expect(html).toContain('data-citation-limited="unverified-provenance"');
+    expect(html).toContain('来源未核验');
+    // 无 provenance 记录时（旧消息兼容）不做对账降级。
+    const legacy = normalizeKonlingCitationPresentation({
+      konlingCitationGuard: metadata.konlingCitationGuard,
+    });
+    expect(legacy.items.every((item) => item.limitation !== 'unverified-provenance')).toBe(true);
+  });
 });

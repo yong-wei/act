@@ -60,6 +60,7 @@ import {
   buildKonlingCitationGuard,
   buildKonlingCitationRetrievalSources,
   buildKonlingDualDomainProvenanceMetadataPayload,
+  extendKonlingDualDomainProvenanceTeachingResourceIds,
   buildKonlingStreamingCitationGuard,
   buildKonlingRuntimeContext,
   buildKonlingSarAssociatedGroundingMetadataPayload,
@@ -481,6 +482,9 @@ export async function POST(request: Request) {
     let getTextbookOptimizations:
       | ReturnType<typeof buildKonlingToolRuntime>['getTextbookOptimizations']
       | null = null;
+    let getComposedRagShadowSamples:
+      | ReturnType<typeof buildKonlingToolRuntime>['getComposedRagShadowSamples']
+      | null = null;
     let citationRepairUsed = false;
     let citationRepairServerContext: KonlingCitationRepairRequest['serverContext'] | null = null;
     let citationRepairPrivateValues: readonly string[] = [];
@@ -892,6 +896,7 @@ export async function POST(request: Request) {
       });
       getAssignedCitationTable = toolRuntime.getAssignedCitations;
       getTextbookOptimizations = toolRuntime.getTextbookOptimizations;
+      getComposedRagShadowSamples = toolRuntime.getComposedRagShadowSamples;
       agentSessionResponseHeaders = {
         'X-Konling-Agent-Session-Id': agentSession.id,
         ...(conversationId ? { 'X-Konling-Conversation-Id': conversationId } : {}),
@@ -1204,6 +1209,13 @@ export async function POST(request: Request) {
             });
             const finalOutcome = buildFinalCitationGuardOutcome!(normalized.body, assignedCitations);
             const finalAssistantBody = finalOutcome.body;
+            // #2047：composed 通道新增的教学资源引用并入终稿 provenance；
+            // 影子对比样本随消息 metadata 持久化（cutover 治理指标采集）。
+            const finalDualDomainProvenanceMetadataPayload = extendKonlingDualDomainProvenanceTeachingResourceIds(
+              dualDomainProvenanceMetadataPayload,
+              assignedCitations,
+            );
+            const composedRagShadowSamples = getComposedRagShadowSamples?.() ?? [];
             const baseMetadata = buildCitationGuardMetadataPayload(
               finalOutcome.guard,
               citationGuardMetadataContext?.missingContext ?? [],
@@ -1229,8 +1241,11 @@ export async function POST(request: Request) {
               ...(sarAssociatedGroundingMetadataPayload ? {
                 konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
               } : {}),
-              ...(dualDomainProvenanceMetadataPayload ? {
-                konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
+              ...(finalDualDomainProvenanceMetadataPayload ? {
+                konlingDualDomainProvenance: finalDualDomainProvenanceMetadataPayload,
+                ...(composedRagShadowSamples.length > 0 ? {
+                  konlingComposedRagShadow: composedRagShadowSamples,
+                } : {}),
               } : {}),
               konlingMessageRevision: {
                 revision: 1,
@@ -1341,6 +1356,11 @@ export async function POST(request: Request) {
             });
             const optimizedOutcome = buildFinalCitationGuardOutcome!(normalized.body, finalCitationTable);
             const optimizedBody = optimizedOutcome.body;
+            const optimizedDualDomainProvenanceMetadataPayload = extendKonlingDualDomainProvenanceTeachingResourceIds(
+              dualDomainProvenanceMetadataPayload,
+              finalCitationTable,
+            );
+            const optimizedComposedRagShadowSamples = getComposedRagShadowSamples?.() ?? [];
             const baseMetadata = buildCitationGuardMetadataPayload(
               optimizedOutcome.guard,
               citationGuardMetadataContext?.missingContext ?? [],
@@ -1366,8 +1386,11 @@ export async function POST(request: Request) {
               ...(sarAssociatedGroundingMetadataPayload ? {
                 konlingSarAssociatedGrounding: sarAssociatedGroundingMetadataPayload,
               } : {}),
-              ...(dualDomainProvenanceMetadataPayload ? {
-                konlingDualDomainProvenance: dualDomainProvenanceMetadataPayload,
+              ...(optimizedDualDomainProvenanceMetadataPayload ? {
+                konlingDualDomainProvenance: optimizedDualDomainProvenanceMetadataPayload,
+                ...(optimizedComposedRagShadowSamples.length > 0 ? {
+                  konlingComposedRagShadow: optimizedComposedRagShadowSamples,
+                } : {}),
               } : {}),
               konlingMessageRevision: {
                 revision: 2,

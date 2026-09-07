@@ -25,21 +25,61 @@ export interface SelectRagAuthorityOptions {
    * activate Canonical production in #1112. Always ignored for activation.
    */
   cutoverReceipt?: RagCutoverAuthorityReceipt | null;
+  /**
+   * 显式覆盖生产权威拨盘（测试用）。缺省读
+   * KONLING_RAG_PRODUCTION_AUTHORITY；未配置时为已授权的 composed 切换。
+   */
+  productionAuthority?: RagProductionAuthorityDial | null;
+}
+
+/** 生产答案检索权威拨盘（#2047 cutover 治理）。 */
+export type RagProductionAuthorityDial = 'legacy' | 'canonical-composed';
+
+export const RAG_PRODUCTION_AUTHORITY_ENV = 'KONLING_RAG_PRODUCTION_AUTHORITY';
+
+/**
+ * 读取生产权威拨盘：缺省 LEGACY——konling-agent-runtime spec 要求影子
+ * 比较门禁通过并显式授权前生产答案继续 LEGACY，因此未配置不切换。
+ * `canonical-composed` 仅在部署配置显式设置（门禁通过后的切换步骤）；
+ * 非法值 fail-safe 回 LEGACY。
+ */
+export function readRagProductionAuthorityDial(
+  env: Record<string, string | undefined> = process.env,
+): RagProductionAuthorityDial {
+  const raw = (env[RAG_PRODUCTION_AUTHORITY_ENV] ?? '').trim();
+  if (raw === 'canonical-composed') return 'canonical-composed';
+  if (raw === '' || raw === 'legacy') return 'legacy';
+  console.warn(
+    `Invalid ${RAG_PRODUCTION_AUTHORITY_ENV}=${raw}; falling back to legacy production RAG authority`,
+  );
+  return 'legacy';
 }
 
 /**
  * RAG authority selector.
  *
- * - PRODUCTION_ANSWER → LEGACY
+ * - PRODUCTION_ANSWER → LEGACY（缺省，影子门禁前）或 composed（部署
+ *   显式配置 KONLING_RAG_PRODUCTION_AUTHORITY=canonical-composed 后）
  * - SHADOW_COMPARISON / OFFLINE_EVAL → CANONICAL_SHADOW (non-production)
  * - CUTOVER_ACTIVATION → always throws; no executable local path yields
  *   productionAuthoritative CANONICAL in #1112 (reserved for #1117).
  */
 export function selectRagAuthority(
   consumer: RagAuthorityConsumer = 'PRODUCTION_ANSWER',
-  _options: SelectRagAuthorityOptions = {},
+  options: SelectRagAuthorityOptions = {},
 ): RagAuthoritySelector {
   if (consumer === 'PRODUCTION_ANSWER') {
+    const dial = options.productionAuthority ?? readRagProductionAuthorityDial();
+    if (dial === 'canonical-composed') {
+      return {
+        consumer,
+        authority: 'CANONICAL',
+        productionAuthoritative: true,
+        canonicalExpansionVisible: true,
+        allowsLegacyFallback: true,
+        productionChannel: 'canonical-composed',
+      };
+    }
     return {
       consumer,
       authority: 'LEGACY',
@@ -85,23 +125,31 @@ export function productionAnswerUsesLegacy(selector: RagAuthoritySelector): bool
   return selector.consumer === 'PRODUCTION_ANSWER' && selector.authority === 'LEGACY';
 }
 
+/**
+ * Production selector invariants (#2047)：选择器必须与配置拨盘一致；
+ * legacy 拨盘不得暴露 Canonical expansion；shadow 成功不得越过拨盘激活
+ * composed。拨盘本身（环境/显式参数）是唯一切换真源。
+ */
 export function assertProductionSelectorUnchanged(input: {
   requestedConsumer: RagAuthorityConsumer;
   selected: RagAuthoritySelector;
   shadowSucceeded: boolean;
+  productionAuthority?: RagProductionAuthorityDial | null;
 }): void {
   if (input.requestedConsumer !== 'PRODUCTION_ANSWER') return;
-  if (input.selected.authority !== 'LEGACY') {
+  const dial = input.productionAuthority ?? readRagProductionAuthorityDial();
+  const expectedAuthority = dial === 'canonical-composed' ? 'CANONICAL' : 'LEGACY';
+  if (input.selected.authority !== expectedAuthority) {
     throw new Error(
-      'RAG authority invariant violated: production answer selector left LEGACY',
+      `RAG authority invariant violated: production answer selector does not match the configured dial (${dial} expected ${expectedAuthority})`,
     );
   }
-  if (input.selected.canonicalExpansionVisible) {
+  if (dial === 'legacy' && input.selected.canonicalExpansionVisible) {
     throw new Error(
-      'RAG authority invariant violated: production answer exposed Canonical expansion',
+      'RAG authority invariant violated: production answer exposed Canonical expansion under the legacy dial',
     );
   }
-  if (input.shadowSucceeded && input.selected.authority !== 'LEGACY') {
+  if (input.shadowSucceeded && dial === 'legacy' && input.selected.authority !== 'LEGACY') {
     throw new Error(
       'RAG authority invariant violated: shadow success activated production Canonical',
     );

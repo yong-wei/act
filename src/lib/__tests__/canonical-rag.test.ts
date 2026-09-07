@@ -41,9 +41,9 @@ import type { SourcePackItem } from '@/lib/source-pack/types';
 import type { ActStructuralCitationTarget } from '@/lib/canonical-rag';
 
 describe('canonical-rag authority (preserved)', () => {
-  it('keeps production Legacy and never activates cutover', () => {
-    expect(selectRagAuthority('PRODUCTION_ANSWER').authority).toBe('LEGACY');
-    expect(productionAnswerUsesLegacy(selectRagAuthority('PRODUCTION_ANSWER'))).toBe(true);
+  it('legacy dial keeps production Legacy and never activates cutover', () => {
+    expect(selectRagAuthority('PRODUCTION_ANSWER', { productionAuthority: 'legacy' }).authority).toBe('LEGACY');
+    expect(productionAnswerUsesLegacy(selectRagAuthority('PRODUCTION_ANSWER', { productionAuthority: 'legacy' }))).toBe(true);
     expect(() => selectRagAuthority('CUTOVER_ACTIVATION')).toThrow(RagCutoverActivationError);
     expect(() => tryActivateCanonicalCutover({
       cutoverReceipt: validCutoverReceipt(),

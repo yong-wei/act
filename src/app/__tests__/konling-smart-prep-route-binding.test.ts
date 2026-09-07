@@ -130,7 +130,11 @@ vi.mock('@/lib/konling-agent-runtime', async (importOriginal) => {
       citations: [],
     })),
     buildKonlingTeachingAssistantRuntimeContract: mocks.buildRuntimeContract,
-    buildKonlingToolRuntime: vi.fn(() => ({ getAssignedCitations: () => [] })),
+    buildKonlingToolRuntime: vi.fn(() => ({
+      getAssignedCitations: () => [],
+      getTeachingResourceCitations: () => [],
+      getComposedRagShadowSamples: () => [],
+    })),
     buildScopedKonlingAiTools: mocks.buildScopedTools,
     getOrCreateKonlingAgentSession: mocks.getOrCreateAgentSession,
     normalizeKonlingKnowledgeWorkspaceHint: vi.fn(() => null),

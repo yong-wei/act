@@ -2,6 +2,10 @@
 
 import React, { useState } from 'react';
 import { extractVersionBoundHandle } from '@/lib/textbook-resource-coach/href';
+import {
+  isResourceViewerAvailable,
+  openResourceViewer,
+} from '@/features/knowledge/universal-resource-viewer/open-resource-viewer';
 
 type CitationConfidence = 'none' | 'low' | 'medium' | 'high';
 type PresentationConfidence = 'unknown' | 'low' | 'medium' | 'high';
@@ -53,6 +57,10 @@ type CitationLike = {
   privacyScope?: string | null;
   displayNumber?: number | null;
   canonicalKey?: string | null;
+  identity?: {
+    kind?: string | null;
+    resourceId?: string | null;
+  } | null;
 };
 
 type KonlingCitationGuardLike = {
@@ -107,6 +115,8 @@ type PresentationCitation = {
   confidence: PresentationConfidence;
   evidenceBasis: string;
   limitation: string | null;
+  /** teaching-resource 引用的稳定资源身份（#2047 双域 provenance 对账）。 */
+  resourceId: string | null;
 };
 
 type PresentationAnswerUnit = {
@@ -184,7 +194,20 @@ export function normalizeKonlingCitationPresentation(metadata: unknown): Konling
       ? guard.retrievalSources
       : [];
   const diagnostics = Array.isArray(guard.diagnosticReasons) ? guard.diagnosticReasons : [];
-  const citations = dedupePresentationCitations(rawCitations);
+  // #2047：教学资源引用与持久化双域 provenance 对账；resourceId 不在
+  // provenance resourceIds 中的引用按未核验降级（konling-agent-runtime spec）。
+  const provenanceResourceIds = extractDualDomainProvenanceResourceIds(metadata);
+  const citations = dedupePresentationCitations(rawCitations)
+    .map((citation) => {
+      if (
+        citation.sourceType !== 'teaching-resource'
+        || !citation.resourceId
+        || provenanceResourceIds === null
+      ) return citation;
+      return provenanceResourceIds.has(citation.resourceId)
+        ? citation
+        : { ...citation, limitation: 'unverified-provenance' };
+    });
   const missingReasons = [
     ...(Array.isArray(guard.missingCitationClasses) ? guard.missingCitationClasses : []),
     ...(Array.isArray(guard.lowConfidenceReasons) ? guard.lowConfidenceReasons : []),
@@ -278,7 +301,21 @@ function normalizePresentationCitation(citation: CitationLike): PresentationCita
     confidence,
     evidenceBasis: stringValue(citation.evidenceBasis, 'server-owned metadata'),
     limitation: citationLimitation(citation, href, confidence),
+    resourceId: citation.identity?.kind === 'teaching-resource' && typeof citation.identity.resourceId === 'string'
+      ? citation.identity.resourceId
+      : null,
   };
+}
+
+/**
+ * 读取消息 metadata.konlingDualDomainProvenance.teaching.resourceIds。
+ * 返回 null 表示本条消息没有持久化 provenance（不做对账降级）。
+ */
+function extractDualDomainProvenanceResourceIds(metadata: unknown): Set<string> | null {
+  if (!isRecord(metadata) || !isRecord(metadata.konlingDualDomainProvenance)) return null;
+  const teaching = (metadata.konlingDualDomainProvenance as Record<string, unknown>).teaching;
+  if (!isRecord(teaching) || !Array.isArray(teaching.resourceIds)) return null;
+  return new Set(teaching.resourceIds.filter((id): id is string => typeof id === 'string'));
 }
 
 function normalizeSourceType(value: unknown) {
@@ -419,6 +456,8 @@ function sourceTypeLabel(sourceType: string) {
       return '知识节点';
     case 'textbook':
       return '教材片段';
+    case 'teaching-resource':
+      return '教学资源';
     case 'learner-state':
       return '学习证据';
     case 'path-execution':
@@ -445,6 +484,7 @@ function limitationLabel(value: string | null) {
   if (value === 'insufficient-authority') return '权限受限';
   if (value === 'stale-source') return '来源已过期';
   if (value === 'unavailable-address') return '暂不可跳转';
+  if (value === 'unverified-provenance') return '来源未核验';
   return value.replace(/-/g, ' ');
 }
 
@@ -503,6 +543,42 @@ function TextbookCitationLink({
   );
 }
 
+/**
+ * #2047 教学资源引用芯片：优先在统一查看器壳内打开；壳未挂载（未随页面
+ * 交付）时降级为现有整页路由默认导航。
+ */
+function TeachingResourceCitationChip({
+  href,
+  title,
+  citationKey,
+  children,
+}: {
+  href: string;
+  title: string;
+  citationKey: string;
+  children: React.ReactNode;
+}) {
+  const onClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isResourceViewerAvailable()) return;
+    event.preventDefault();
+    openResourceViewer({ title, resourceKind: 'teaching-resource', href });
+  };
+
+  return (
+    <a
+      href={href}
+      onClick={onClick}
+      className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-100 hover:border-emerald-400"
+      data-konling-citation-chip
+      data-konling-resource-citation-chip
+      data-citation-key={citationKey}
+      data-citation-target={href}
+    >
+      {children}
+    </a>
+  );
+}
+
 function citationPanelTitle(status: KonlingCitationPresentationStatus) {
   if (status === 'verified') return '已验证引用';
   if (status === 'limited') return '部分引用未能核验';
@@ -536,6 +612,18 @@ export function KonlingCitationPanel({ metadata }: { metadata: unknown }) {
               </>
             );
             if (citation.href && !citation.limitation) {
+              if (citation.sourceType === 'teaching-resource') {
+                return (
+                  <TeachingResourceCitationChip
+                    key={citation.key}
+                    href={citation.href}
+                    title={citation.title}
+                    citationKey={citation.key}
+                  >
+                    {body}
+                  </TeachingResourceCitationChip>
+                );
+              }
               return (
                 <TextbookCitationLink
                   key={citation.key}
