@@ -4,6 +4,7 @@
  */
 
 import { humanTitleFromResourceId } from '@/lib/authority-domain-shards/resource-bindings';
+import { TEXTBOOK_ID_ALIASES } from '@/lib/engineering-textbook-mapping/aliases';
 import {
   TEACHING_PROJECTION_AUTHORING_CONTRACT,
   type TeachingBindingAuthoring,
@@ -15,7 +16,6 @@ import {
   type TeachingResourceType,
 } from './contracts';
 import { toResourceIdToken } from './textbook-locators/identity';
-
 export const EXTRACTION_SOURCE_BOOKS = [
   'dorf-modern-control-systems-14th',
   'franklin-feedback-control-7th',
@@ -79,6 +79,32 @@ export interface TextbookLocatorRow {
   sourceAnchorId: string;
   chapterKey: string;
   canonicalIds: string[];
+}
+
+/**
+ * v2 structural-unit crosswalk row (#2043). Carries the pinned Authority
+ * release so stale-bound rows fail closed row-wise into the exception ledger.
+ */
+export interface TextbookLocatorRowV2 {
+  sourceDocumentId: string;
+  bookId: string;
+  edition: string;
+  structuralUnitId: string;
+  structuralPath: string[];
+  unitTitle?: string;
+  canonicalIds: string[];
+  authorityReleaseId: string;
+  authorityReleaseHash?: string;
+  bundleDigest?: string;
+  captureRevision?: string;
+}
+
+/** Pinned Authority identity for v2 locator rows (emit bundle, not v0.12 locators). */
+export interface AuthorityIdentityPin {
+  authorityReleaseId: string;
+  authorityReleaseHash: string;
+  bundleDigest: string;
+  captureRevision: string;
 }
 
 export interface TaskSimInput {
@@ -145,6 +171,8 @@ export interface ExceptionLedgerRow {
     | 'classroom-sim-without-unit'
     | 'classroom-sim-unit-unmapped'
     | 'out-of-round-textbook'
+    | 'stale-authority-binding'
+    | 'unknown-canonical'
     | 'explicit-exemption';
   detail?: string;
 }
@@ -158,6 +186,44 @@ export interface RuntimeFullBindingPlan {
     addedResources: number;
     ledgerCount: number;
   };
+}
+
+function v2LocatorAliasMismatch(locator: TextbookLocatorRowV2): string | null {
+  const alias = TEXTBOOK_ID_ALIASES.find((row) => row.sourceDocumentId === locator.sourceDocumentId);
+  if (!alias) {
+    return `unaliased-source:${locator.sourceDocumentId}`;
+  }
+  if (alias.readerBookId !== locator.bookId) {
+    return `book-id-mismatch:${locator.bookId}`;
+  }
+  if (alias.edition !== locator.edition) {
+    return `edition-mismatch:${locator.edition}`;
+  }
+  return null;
+}
+
+function v2LocatorIdentityMismatch(
+  locator: TextbookLocatorRowV2,
+  expectedReleaseId: string,
+  pin?: AuthorityIdentityPin,
+): string | null {
+  if (locator.authorityReleaseId !== expectedReleaseId) {
+    return locator.authorityReleaseId;
+  }
+  if (!pin) return null;
+  if (locator.authorityReleaseId !== pin.authorityReleaseId) {
+    return locator.authorityReleaseId;
+  }
+  if (locator.authorityReleaseHash !== pin.authorityReleaseHash) {
+    return locator.authorityReleaseHash ?? 'missing-authorityReleaseHash';
+  }
+  if (locator.bundleDigest !== pin.bundleDigest) {
+    return locator.bundleDigest ?? 'missing-bundleDigest';
+  }
+  if (locator.captureRevision !== pin.captureRevision) {
+    return locator.captureRevision ?? 'missing-captureRevision';
+  }
+  return null;
 }
 
 /** Per-reason ledger quotas (#2042 task 6.2); a category breaches when its count exceeds the quota. */
@@ -232,6 +298,20 @@ export function planRuntimeFullBinding(input: {
   cards: readonly RuntimeCardRow[];
   authorityCardCanonicalIds: readonly string[];
   textbookLocators: readonly TextbookLocatorRow[];
+  textbookLocatorsV2?: readonly TextbookLocatorRowV2[];
+  /**
+   * Canonical ids present in the pinned Authority release (#2043): v2 rows
+   * naming endpoints outside it fail into the exception ledger. Admitted rows
+   * bind every authority-known endpoint, including those outside overlay cores.
+   */
+  authorityCanonicalIds?: ReadonlySet<string> | readonly string[];
+  /** When set, v2 rows must match all four identity fields or go to the ledger. */
+  authorityIdentityPin?: AuthorityIdentityPin;
+  /**
+   * Optional restage-time structural-unit check against textbooks-v2.
+   * Return a detail string to ledger the row as stale-authority-binding.
+   */
+  textbookCoordinateCheck?: (locator: TextbookLocatorRowV2) => string | null;
   taskSims: readonly TaskSimInput[];
   cardCrosswalk?: readonly CardCrosswalkInput[];
   cardExemptions?: readonly CardExemptionInput[];
@@ -266,8 +346,15 @@ export function planRuntimeFullBinding(input: {
     resources.set(id, { ...row, title: titleFor(id, row.title) });
   };
 
-  const addBinding = (row: TeachingBindingAuthoring) => {
-    if (!overlay.has(row.canonicalId) && !input.bindings.some((b) => b.canonicalId === row.canonicalId)) {
+  const addBinding = (
+    row: TeachingBindingAuthoring,
+    options?: { allowOutsideOverlay?: boolean },
+  ) => {
+    if (
+      !options?.allowOutsideOverlay
+      && !overlay.has(row.canonicalId)
+      && !input.bindings.some((b) => b.canonicalId === row.canonicalId)
+    ) {
       return false;
     }
     const key = bindingKey(row);
@@ -616,6 +703,105 @@ export function planRuntimeFullBinding(input: {
         role: 'EXPLAINS',
         scopeId: input.scopeId,
       });
+    }
+  }
+
+  for (const locator of input.textbookLocatorsV2 ?? []) {
+    if (!admittedBooks.has(locator.sourceDocumentId)) {
+      ledger.push({
+        resourceId: `act:textbook-section:${locator.bookId}`,
+        reason: 'out-of-round-textbook',
+        detail: locator.sourceDocumentId,
+      });
+      continue;
+    }
+    const sectionLedgerId = `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`;
+    const identityMismatch = v2LocatorIdentityMismatch(locator, input.authorityReleaseId, input.authorityIdentityPin);
+    if (identityMismatch) {
+      ledger.push({
+        resourceId: sectionLedgerId,
+        reason: 'stale-authority-binding',
+        detail: identityMismatch,
+      });
+      continue;
+    }
+    const aliasMismatch = v2LocatorAliasMismatch(locator);
+    if (aliasMismatch) {
+      ledger.push({
+        resourceId: sectionLedgerId,
+        reason: 'out-of-round-textbook',
+        detail: aliasMismatch,
+      });
+      continue;
+    }
+    const coordinateMismatch = input.textbookCoordinateCheck?.(locator) ?? null;
+    if (coordinateMismatch) {
+      ledger.push({
+        resourceId: sectionLedgerId,
+        reason: 'stale-authority-binding',
+        detail: coordinateMismatch,
+      });
+      continue;
+    }
+    const authorityIds = input.authorityCanonicalIds
+      ? new Set(input.authorityCanonicalIds)
+      : null;
+    if (authorityIds) {
+      for (const canonicalId of locator.canonicalIds) {
+        if (!authorityIds.has(canonicalId)) {
+          ledger.push({
+            resourceId: sectionLedgerId,
+            reason: 'unknown-canonical',
+            detail: canonicalId,
+          });
+        }
+      }
+    }
+    const authorityKnown = authorityIds
+      ? locator.canonicalIds.filter((id) => authorityIds.has(id))
+      : [...locator.canonicalIds];
+    if (authorityKnown.length === 0) {
+      continue;
+    }
+    // Single-token section identity per the projection resource grammar;
+    // toResourceIdToken keeps it reversible back to the structural unit id.
+    const sectionToken = toResourceIdToken(
+      `${locator.bookId}:${locator.structuralPath.join(':')}`,
+      'structuralPath',
+    );
+    const sectionId = `act:textbook-section:${sectionToken}`;
+    const bookId = `act:textbook:${locator.sourceDocumentId}`;
+    addResource({
+      resourceId: bookId,
+      resourceType: 'textbook',
+      projectionMode: 'OPTIONAL',
+      scopeId: input.scopeId,
+      sourceDocumentId: locator.sourceDocumentId,
+      title: BOOK_TITLES[locator.sourceDocumentId] ?? locator.sourceDocumentId,
+    });
+    addResource({
+      resourceId: sectionId,
+      resourceType: 'textbook-section',
+      projectionMode: 'OPTIONAL',
+      scopeId: input.scopeId,
+      sourceDocumentId: locator.sourceDocumentId,
+      sectionId: sectionToken,
+      title: locator.unitTitle
+        ?? `${BOOK_TITLES[locator.sourceDocumentId] ?? locator.bookId} ${locator.structuralPath.join('/')}`,
+    });
+    for (const canonicalId of authorityKnown) {
+      addBinding({
+        resourceId: sectionId,
+        canonicalId,
+        role: 'EXPLAINS',
+        scopeId: input.scopeId,
+      }, { allowOutsideOverlay: true });
+      addBinding({
+        resourceId: bookId,
+        canonicalId,
+        role: 'EXPLAINS',
+        scopeId: input.scopeId,
+      }, { allowOutsideOverlay: true });
     }
   }
 

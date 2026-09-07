@@ -1,0 +1,123 @@
+{
+  "contract": "engineering-textbook-mapping-coverage/v1",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+  "denominatorTotal": 7476,
+  "denominatorDigest": "3708252a81f5284fe0b472f4cfd77f37091bd114fdb68eb37d9a815461f9b621",
+  "candidatesDigest": "43ab782030684b6652dd22eb1d8cd9ee649874149213e35a48484945cbf81b47",
+  "reviewsDigest": "2a7953db0e1319710cc04cd1ac81862ec99ac013a93e391de20edc84bbd1e56c",
+  "exceptionsDigest": "3e164d2291ecfbeb9de4062271f810097eefa9f6754bb97e72321917198269d9",
+  "approvedCount": 3183,
+  "exceptionCount": 4293,
+  "coveredCount": 7476,
+  "coverageRate": 1,
+  "gate": 0.95,
+  "passed": true,
+  "perDomain": [
+    {
+      "domainId": "classical-control-design",
+      "denominator": 776,
+      "approved": 402,
+      "exceptions": 374,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "denominator": 619,
+      "approved": 294,
+      "exceptions": 325,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "discrete-time-control-design",
+      "denominator": 450,
+      "approved": 212,
+      "exceptions": 238,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "denominator": 954,
+      "approved": 472,
+      "exceptions": 482,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "lyapunov-stability",
+      "denominator": 141,
+      "approved": 63,
+      "exceptions": 78,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "nonlinear-control-design",
+      "denominator": 104,
+      "approved": 0,
+      "exceptions": 104,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "nonlinear-system-analysis",
+      "denominator": 349,
+      "approved": 216,
+      "exceptions": 133,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+      "denominator": 200,
+      "approved": 0,
+      "exceptions": 200,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "robust-control-analysis-and-design",
+      "denominator": 707,
+      "approved": 1,
+      "exceptions": 706,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "robustness-sensitivity-analysis",
+      "denominator": 259,
+      "approved": 98,
+      "exceptions": 161,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "root-locus",
+      "denominator": 104,
+      "approved": 53,
+      "exceptions": 51,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "stability-analysis",
+      "denominator": 263,
+      "approved": 142,
+      "exceptions": 121,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "denominator": 1300,
+      "approved": 589,
+      "exceptions": 711,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "system-modeling",
+      "denominator": 666,
+      "approved": 322,
+      "exceptions": 344,
+      "coverageRate": 1
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "denominator": 584,
+      "approved": 319,
+      "exceptions": 265,
+      "coverageRate": 1
+    }
+  ],
+  "generatedAt": "2026-09-07T01:46:14.560Z"
+}

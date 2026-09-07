@@ -1,6 +1,6 @@
 {
   "contract": "teaching-projection-ledger-governance-report/v1",
-  "generatedAt": "2026-09-06T15:12:20.132Z",
+  "generatedAt": "2026-09-07T05:31:09.413Z",
   "ledgerPath": "course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl",
   "quotas": {
     "contract": "teaching-projection-ledger-quotas/v1",

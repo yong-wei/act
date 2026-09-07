@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-32c97138cf980b3e1e0e3c5a",
+    "canonicalType": "KnowledgeStatement",
+    "label": "在已知离散系统结构和参数情况下，应用z变换法分析系统动态性能时，通常假定外作用为单位阶跃函数1（t）。如果可以求出离散系统的闭环脉冲传递函数Φ（z）=C（z）/R（z），其中R（z）=z/（z-1），则系统输出量的z变换函数C（z）=z/（z-1）Φ（z）。将上式展成幂级数，通过z反变换，可以求出输出信号的脉冲序列c*（t）。",
+    "aliases": [],
+    "description": "在已知离散系统结构和参数情况下，应用z变换法分析系统动态性能时，通常假定外作用为单位阶跃函数1(t)。如果可以求出离散系统的闭环脉冲传递函数Φ(z)=C(z)/R(z)，其中R(z)=z/(z-1)，则系统输出量的z变换函数C(z)=z/(z-1)Φ(z)。将上式展成幂级数，通过z反变换，可以求出输出信号的脉冲序列c*(t)。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

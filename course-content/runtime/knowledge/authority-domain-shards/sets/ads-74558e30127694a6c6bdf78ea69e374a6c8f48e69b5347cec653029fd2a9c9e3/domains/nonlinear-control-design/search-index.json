@@ -1,0 +1,1387 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "nonlinear-control-design",
+  "entries": [
+    {
+      "id": "ctkg:m1s-object-01b4067454d6530986b6189f",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{A+6}{A+2}(A>0)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-044e6154fd37eaf191be4804",
+      "canonicalType": "SystemModel",
+      "label": "系统模型（图 8-58）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-04e7640d99664ce73bc11293",
+      "canonicalType": "Formula",
+      "label": "\\int_{0}^{\\infty} y(t) u(t) d t =\\frac{1}{2 \\pi} \\int_{-\\infty}^{\\infty} U(j \\omega) Y(-j \\omega) d \\omega",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-05c154887bcb9d03f9ccc826",
+      "canonicalType": "Formula",
+      "label": "\\int_{0}^{\\infty} y(t) u(t) d t =\\frac{1}{2 \\pi} \\int_{-\\infty}^{\\infty}|U(j \\omega)|^{2} R(\\omega) d \\omega",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-0813469ffc59ae5114caeb78",
+      "canonicalType": "Formula",
+      "label": "G(\\mathrm{j} \\omega)=-\\frac{1}{N(A)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-085dbcc5040d55942ce777c6",
+      "canonicalType": "SystemModel",
+      "label": "汽车引擎油-气比反馈控制系统的结构图模型，包含PI控制器、快速流、慢速流、时滞和传感器滞后",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-0a785d3bda3bbd86472fb59f",
+      "canonicalType": "Formula",
+      "label": "\\frac{Y(s)}{R(s)}=\\frac{1}{s^{n}+\\sum_{i=0}^{n-1} a_{i} s^{i}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-0d018aa0f3add044f1cb408d",
+      "canonicalType": "Formula",
+      "label": "Y(s)=\\frac{1}{s^{n}} \\Phi(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-0f041fb25853885ba12760d3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "传感器高增益与Kp",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-11f08e7cd52ace0ac843262f",
+      "canonicalType": "SystemModel",
+      "label": "系统模型（图 8-55）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-12e26eefe7617d594c305b67",
+      "canonicalType": "DomainConcept",
+      "label": "l 阶积分逆系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-160e7683bea6bf613b3c8317",
+      "canonicalType": "KnowledgeStatement",
+      "label": "指定自振条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-199d014e87c30323fdf36140",
+      "canonicalType": "Formula",
+      "label": "\\int_{0}^{\\infty} y(t) u(t) d t =\\frac{1}{2 \\pi} \\int_{-\\infty}^{\\infty} U(j \\omega) U(-j \\omega) G(-j \\omega) d \\omega",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-1a565603bcbebd5ede41aa2d",
+      "canonicalType": "DomainConcept",
+      "label": "反馈线性化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-1a66d030893d563a2e3da2a0",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+\\sin x=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-1c0272693d1de504390e4e29",
+      "canonicalType": "Formula",
+      "label": "\\phi=\\ddot{y}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-1ee32fc36d64c3760754149b",
+      "canonicalType": "Formula",
+      "label": "\\phi=r-v, \\quad v=\\sum_{i=0}^{n-1} k_{i} y^{(i)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-20eb0bfefeea84f79471a070",
+      "canonicalType": "Formula",
+      "label": "G(s)=\\frac{2}{s(s+1)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-23d67924a8a5d8696fdf96eb",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统模型（图 8-58）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-24285bff29e105ee6358a074",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+x \\dot{x}+x=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-2637c406e79652b0b926aff1",
+      "canonicalType": "Formula",
+      "label": "\\int_{0}^{\\infty} y(t) u(t) d t =\\frac{1}{2 \\pi} \\int_{-\\infty}^{\\infty}|U(j \\omega)|^{2}(R-j X) d \\omega",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-267e4b4656d681f1b24f42f5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "执行器饱和与积分器漂移",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-26873599f6d7f12c5e952180",
+      "canonicalType": "Formula",
+      "label": "\\int_{0}^{\\infty} y(t) f(y, t) d t =\\int_{0}^{\\infty} \\frac{[f(y, t)]^{2}}{\\frac{f(y, t)}{y(t)}} d t \\\\ \\geqq \\frac{\\|f(y, t)\\|^{2}}{K} \\\\ \\geqq \\frac{\\|u(t)\\|^{2}}{K}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-275f1811f33e31ca5f4b5b31",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=\\frac{b_{0}+b_{1} s}{s}, \\quad H(s)=k_{0}+k_{1} s",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-2ce2e2dd44688b16823d91c2",
+      "canonicalType": "DomainConcept",
+      "label": "严格无源阻抗",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-2cfc4a7fa504452bf1d71a14",
+      "canonicalType": "Formula",
+      "label": "\\dot{x}=-x+x^{3}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-2d3bcb43d93c3e0b974ada8c",
+      "canonicalType": "Formula",
+      "label": "k_{i}=a_{i} ; \\quad i=0,1, \\cdots, n-1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-2d5050fb34d2e8dd81da0f4b",
+      "canonicalType": "SystemModel",
+      "label": "用于积分器抗漂移分析的小信号对象传递函数模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-2e1e94010d3abbe9bc125d24",
+      "canonicalType": "Formula",
+      "label": "t_{r}=\\int_{20}^{200} \\frac{100}{605-T_{c}} \\mathrm{~d} T_{c}=100 \\ln \\frac{585}{405}=36.77 \\mathrm{~s}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-2fe37f0a92a3aa1a4ebc28d8",
+      "canonicalType": "Formula",
+      "label": "\\int_{0}^{\\infty} y(t) u(t) d t =<y, u> \\\\ \\|u\\|^{2} =\\int_{0}^{\\infty}[u(t)]^{2} d t=<u, u>",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-30097236b348e7c10fd971c8",
+      "canonicalType": "SystemModel",
+      "label": "系统模型（图 8-56）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-32dfe929ff32d4e22799e9a1",
+      "canonicalType": "DomainConcept",
+      "label": "将扇区 [k1,k2] 化简为零扇区",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-35b0cc093c47248615b4c159",
+      "canonicalType": "KnowledgeStatement",
+      "label": "指定自振条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-3a167ce8464af79df24fb1f7",
+      "canonicalType": "Formula",
+      "label": "\\ddot{y}=f(y, \\dot{y})+u",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-3b6627a75236540ecca11111",
+      "canonicalType": "KnowledgeStatement",
+      "label": "状态反馈",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-3d141f73abd2ced33c7ad131",
+      "canonicalType": "KnowledgeStatement",
+      "label": "反馈线性化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-3d521351bf68579eca43f0ed",
+      "canonicalType": "Formula",
+      "label": "u=v-f(y, \\dot{y})",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-3e4598e8df86dbc1ddc619ac",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\mathrm{e}^{-\\mathrm{j} \\frac{\\pi}{4}} / A",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-3f76c77ac15f94e5022ccc83",
+      "canonicalType": "Formula",
+      "label": "G(s)=15 / s(0.5 s+1)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-4b5fc534cd2e28fbb7f03175",
+      "canonicalType": "SystemModel",
+      "label": "当执行器饱和时，积分器通过抗漂移反馈等效变换为一阶超前装置的模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-4bcdc8552600033209642fd3",
+      "canonicalType": "Formula",
+      "label": "H(s)=\\frac{V(s)}{Y(s)}=\\sum_{i=0}^{n-1} k_{i} s^{i}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-50b1c218b49d77df642c3f90",
+      "canonicalType": "Formula",
+      "label": "G(s)=\\frac{2(1.5 s+1)}{s(s+1)(0.1 s+1)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-53efdaa36719e78773ba815b",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+|x|=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-561b1215b672a721f11b7a5b",
+      "canonicalType": "Formula",
+      "label": "G(s)=\\frac{1}{s(0.1 s+1)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-572d6b27615fd26898b8c117",
+      "canonicalType": "KnowledgeStatement",
+      "label": "闭环零极点配置",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-5807b5650af54368150172ca",
+      "canonicalType": "KnowledgeStatement",
+      "label": "式 (9.100) 能量正定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-583b540b191d9a974e69b40d",
+      "canonicalType": "Formula",
+      "label": "\\dddot{y}+a f(\\ddot{y}, \\dot{y}, y)=\\ddot{u}+b g(\\dot{u}, u)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-5b303321c59e600b0f43ad8f",
+      "canonicalType": "SystemModel",
+      "label": "带死区仪表伺服线性模型（一）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-5c03ff7c01cd30b21185b2be",
+      "canonicalType": "Formula",
+      "label": "y^{(n)}=f\\left[y, \\dot{y}, \\cdots, y^{(n-1)}, u, \\dot{u}, \\cdots, u^{(m)}\\right]",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-5ca538da2c65a4bd52a68890",
+      "canonicalType": "KnowledgeStatement",
+      "label": "抗漂移的目的",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-5df7a5c839136dcf822a286d",
+      "canonicalType": "DomainConcept",
+      "label": "积分器抗漂移控制方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-5f32430fb74092334f1a6d6d",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{Re}\\left\\{1+\\left(k_{2}-k_{1}\\right) \\frac{G}{1+k_{1} G}\\right\\}>0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-5f9ee607698d576a63deb905",
+      "canonicalType": "DomainConcept",
+      "label": "逆系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-6218173e8bd1b20cd5adc9bf",
+      "canonicalType": "Formula",
+      "label": "\\dot{u}=\\frac{1}{2} \\ddot{y}-\\dot{y} y+y^{2}-\\frac{1}{2} u",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-6ad12498c892f17b6c15d04a",
+      "canonicalType": "Formula",
+      "label": "\\frac{Y(s)}{R(s)}=\\frac{\\frac{b_{0}+b_{1} s}{s} \\cdot \\frac{1}{s^{2}+k_{1} s+k_{0}}}{1+\\frac{b_{0}+b_{1} s}{s} \\cdot \\frac{1}{s^{2}+k_{1} s+k_{0}}}=\\frac{b_{1} s+b_{0}}{s^{3}+k_{1} s^{2}+\\left(k_{0}+b_{1}\\right) s+b_{0}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-6fc31530d83e3c8b1d6d4b66",
+      "canonicalType": "SystemModel",
+      "label": "系统模型（图8-54）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-755ee8081b176fa893b1b21b",
+      "canonicalType": "Formula",
+      "label": "\\left\\{\\begin{array}{l}\\dot{x}_{1}=x_{1}+x_{2} \\\\ \\dot{x}_{2}=2 x_{1}+x_{2}\\end{array}\\right.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-767d7949d335ae5194971596",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=\\frac{\\sum_{i=0}^{l+1} b_{i} s^{i}}{s^{l+1}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-7aa146717efe6d41c37f718b",
+      "canonicalType": "Formula",
+      "label": "\\left\\{\\begin{array}{l}\nb_{0}=\\sigma \\omega_{n}^{2} \\\\\nk_{0}+b_{1}=\\omega_{n}^{2}+2 \\zeta \\omega_{n} \\sigma \\\\\nk_{1}=\\sigma+2 \\zeta \\omega_{n}\n\\end{array}\\right.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-7d106ba17ce598d4b215848e",
+      "canonicalType": "DomainConcept",
+      "label": "状态反馈控制设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-7e24e2d5780edd1851739567",
+      "canonicalType": "Formula",
+      "label": "(s+\\sigma)\\left(s^{2}+2 \\zeta \\omega_{n} s+\\omega_{n}^{2}\\right)=s^{3}+\\left(\\sigma+2 \\zeta \\omega_{n}\\right) s^{2}+\\left(\\omega_{n}^{2}+2 \\zeta \\omega_{n} \\sigma\\right) s+\\sigma \\omega_{n}^{2}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-834afd6275831838fafa12cf",
+      "canonicalType": "SystemModel",
+      "label": "用于积分器抗漂移例子的PI控制器传递函数模型",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-83dd51199b51fd3fb2ccfdeb",
+      "canonicalType": "DomainConcept",
+      "label": "卡尔曼-雅库波维奇-波波夫引理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-85939bd6eccc7014d53707d8",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+x+\\operatorname{sign} \\dot{x}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-931a2aaedeb193ce9eb60d5b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "速度反馈系数 β",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-93c6d7f7d1b062eb4209ee04",
+      "canonicalType": "Formula",
+      "label": "\\ddot{y}=v",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-97ee5680773daff364fbd9e1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "尾气传感器 F/A 非线性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-9a47b36c99c86209e7778b9a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "F=(1+k2 G)/(1+k1 G)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-9b77004ba1748396e37025cb",
+      "canonicalType": "SystemModel",
+      "label": "经化简后，动态系统被替换为 H=G/(1+k1 G)，函数被替换为 f'=f-k1，其位于扇区 [k2-k1, 0] 内",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-9dcf989d46c81c1f67a86a32",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{Re}\\left\\{\\frac{1+k_{1} G+\\left(k_{2}-k_{1}\\right) G}{1+k_{1} G}\\right\\} >0 \\\\ \\operatorname{Re}\\left\\{\\frac{1+k_{2} G(j \\omega)}{1+k_{1} G(j \\omega)}\\right\\} >0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-a2822e9af523ea2e6d849e26",
+      "canonicalType": "KnowledgeStatement",
+      "label": "抗偏移增益Ka",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统参数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-a512c06312a40a7fbe5fd412",
+      "canonicalType": "Formula",
+      "label": "\\frac{Y(s)}{R(s)}=\\frac{\\omega_{n}^{2}(s+\\sigma)}{\\left(s^{2}+2 \\zeta \\omega_{n} s+\\omega_{n}^{2}\\right)(s+\\sigma)}=\\frac{\\omega_{n}^{2}}{s^{2}+2 \\zeta \\omega_{n} s+\\omega_{n}^{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-acad6eaacf29bbde373d1402",
+      "canonicalType": "Formula",
+      "label": "<y, u>\\geqq \\delta\\|u\\|^{2}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-acb5d0f3253e1ef9ad8b299e",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{2}{\\pi}\\left[\\frac{\\pi}{2}-\\arcsin \\frac{1}{A}-\\frac{1}{A} \\sqrt{1-\\left(\\frac{1}{A}\\right)^{2}}\\right], \\quad A \\geqslant 1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-ad156c223b87700ff66914d8",
+      "canonicalType": "SystemModel",
+      "label": "系统模型（图 8-57）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-adb4524bdc08a2e44c8dd90e",
+      "canonicalType": "SystemModel",
+      "label": "带死区仪表伺服线性模型（二）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-af3fb023ac4f2e3d31f98868",
+      "canonicalType": "Formula",
+      "label": "\\ddot{y}=\\phi",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-afe3179099c086168165d4dd",
+      "canonicalType": "Formula",
+      "label": "Y(s)=\\frac{1}{s^{2}} \\Phi(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-b0e026888d9d93088c93c85f",
+      "canonicalType": "Formula",
+      "label": "y=x^{3}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-b111d019de805856d03f309c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "判断非线性系统自振稳定性的判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-b2114491ce785b09f623d280",
+      "canonicalType": "Formula",
+      "label": "T \\hat{T} y=T u=y",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-b3efd8e51fc5b64269d85dba",
+      "canonicalType": "Formula",
+      "label": "N(A)=\\frac{4 M}{\\pi A}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-b61f2c03c9988eff4f451b3a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "逆系统方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-b68276223a40f4ef9aef8be9",
+      "canonicalType": "Formula",
+      "label": "u^{(m)}=g\\left[y, \\dot{y}, \\cdots, y^{(n)}, u, \\dot{u}, \\cdots, u^{(m-1)}\\right]",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-b686c8977afdf538396e2b64",
+      "canonicalType": "DomainConcept",
+      "label": "伪线性系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-ba55a0b2d3900c3708dbddc4",
+      "canonicalType": "DomainConcept",
+      "label": "逆系统设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-ba6610f841c5eec1936cdb28",
+      "canonicalType": "DomainConcept",
+      "label": "逆系统方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-baa4d33ddcd1546fa0b7e20e",
+      "canonicalType": "Formula",
+      "label": "b_{1}=\\omega_{n}^{2}, \\quad k_{0}=2 \\zeta \\omega_{n} \\sigma",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-bca47883b992e6cebad2537b",
+      "canonicalType": "Formula",
+      "label": "T \\hat{T}_{n} y^{(n)}=\\phi",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-bd25da31445ef585b118b094",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+(3 \\dot{x}-0.5) \\dot{x}+x+x^{2}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-bf426abcad47b9d4ffa31198",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=K_{p}+\\frac{K_{l}}{s}=\\frac{K_{p}}{s}(s+z)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-c083ad87b10599683f059fc3",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+\\dot{x}+|x|=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-c5aca478ef60404c2b7b14a4",
+      "canonicalType": "Formula",
+      "label": "\\ddot{x}+\\dot{x}^{2}+x=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-c65cd4968ac955d4f15939d1",
+      "canonicalType": "Formula",
+      "label": "\\frac{b_{0}}{b_{1}}=\\sigma",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-c6701913b06efd66b3715872",
+      "canonicalType": "Formula",
+      "label": "T \\hat{T}_{t} \\phi=T u=y",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-cd4708a4c8bd0d1cf90a6e65",
+      "canonicalType": "Formula",
+      "label": "\\ddot{y}-2 \\dot{y} y+2 y^{2}=u+2 \\dot{u}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-d9e065459b3844ab4a1e4b24",
+      "canonicalType": "DomainConcept",
+      "label": "渐近跟踪控制设计方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-dd9eafc96b3082023957be63",
+      "canonicalType": "KnowledgeStatement",
+      "label": "自振参数为正",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-e61bb7fdafc62d7093bacffe",
+      "canonicalType": "SystemModel",
+      "label": "具有线性阻抗 Z(jω)=R(ω)+jX(ω) 的电路根据欧姆定律可描述为 V=I Z(s)。被控对象方程为 Y=U G(s)，其中 Y 为电压，U 为电流，G(s)=R+jX 为阻抗。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-f0693efbe71af4e363cb16e2",
+      "canonicalType": "Formula",
+      "label": "\\dot{u}=\\frac{1}{2} \\phi-\\dot{y} y+y^{2}-\\frac{1}{2} u",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-f12ab09bd05a051dcee2a96f",
+      "canonicalType": "Formula",
+      "label": "\\delta\\|u\\|^{2}+\\frac{\\|u(t)\\|^{2}}{K} >0 \\\\ {\\left[\\operatorname{Re}\\{G(j \\omega)\\}+\\frac{1}{K}\\right]\\|u(t)\\|^{2} } >0 \\\\ \\operatorname{Re}\\{K G(j \\omega)+1\\} >0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-f328434cad7acdb323014b84",
+      "canonicalType": "KnowledgeStatement",
+      "label": "伪线性系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m1s-object-ff31bab527e338890d7b97f9",
+      "canonicalType": "SystemModel",
+      "label": "系统模型（图 8-53）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "nonlinear-control-design",
+          "visualRole": "nonlinear-design",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}

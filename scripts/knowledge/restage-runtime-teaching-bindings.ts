@@ -7,6 +7,10 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { join } from 'node:path';
+
+import { resolveConfiguredAuthorityRoot } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
+import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 
 import { ARENA_CHALLENGE_OBJECTS, ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 import { CONTROL_ODYSSEY_LEVELS } from '@/resources/interactive-learning/control-odyssey/level-data';
@@ -26,6 +30,7 @@ import {
   EXTRACTION_SOURCE_BOOKS,
   evaluateLedgerQuotas,
   planRuntimeFullBinding,
+  type AuthorityIdentityPin,
   type CardCrosswalkInput,
   type CardExemptionInput,
   type ClassroomSimExemptionInput,
@@ -38,12 +43,25 @@ import {
   type SimCanonicalDeclarationInput,
   type TaskSimInput,
   type TextbookLocatorRow,
+  type TextbookLocatorRowV2,
 } from '@/lib/teaching-projection/runtime-full-binding';
+import { loadSourceResourceCrosswalkMixed } from '@/lib/teaching-projection/textbook-locators/crosswalk';
+import {
+  TEXTBOOK_ID_ALIASES,
+  verifyTextbookAliasesAgainstManifests,
+} from '@/lib/engineering-textbook-mapping/aliases';
+import { EngineeringTextbookMappingError } from '@/lib/engineering-textbook-mapping/contracts';
+import {
+  loadStructuralUnitIndex,
+  resolveStructuralUnit,
+} from '@/lib/engineering-textbook-mapping/coordinates';
 const ROOT = process.cwd();
 const OVERLAY_REL = 'course-content/runtime/knowledge/teaching-projection/domain-fragments';
 const PROJECTION_REL = 'course-content/runtime/knowledge/projection';
 const PREREQ_REL = 'course-content/runtime/knowledge/prerequisites';
 const LEDGER_REL = 'course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl';
+const BUNDLE_MANIFEST_REL =
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r4/bundle-manifest.json';
 const QUOTAS_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-quotas.json';
 const GOVERNANCE_REPORT_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-governance-report.json';
 
@@ -94,10 +112,36 @@ function loadAuthorityCardCanonicalIds(): string[] {
   return ids;
 }
 
-function loadTextbookLocators(): TextbookLocatorRow[] {
-  return readJsonl<TextbookLocatorRow>(
-    'course-content/authoring/knowledge/teaching-projection/textbook-locators/source-resource-crosswalk.jsonl',
-  ).filter((row) => (EXTRACTION_SOURCE_BOOKS as readonly string[]).includes(row.sourceDocumentId));
+function loadTextbookLocators(): {
+  v1: TextbookLocatorRow[];
+  v2: TextbookLocatorRowV2[];
+} {
+  const mixed = loadSourceResourceCrosswalkMixed();
+  return {
+    v1: mixed.v1
+      .filter((row) => (EXTRACTION_SOURCE_BOOKS as readonly string[]).includes(row.sourceDocumentId))
+      .map((row) => ({
+        sourceDocumentId: row.sourceDocumentId,
+        sourceAnchorId: row.sourceAnchorId,
+        chapterKey: row.chapterKey,
+        canonicalIds: row.canonicalIds,
+      })),
+    v2: mixed.v2
+      .filter((row) => (EXTRACTION_SOURCE_BOOKS as readonly string[]).includes(row.sourceDocumentId))
+      .map((row) => ({
+        sourceDocumentId: row.sourceDocumentId,
+        bookId: row.bookId,
+        edition: row.edition,
+        structuralUnitId: row.structuralUnitId,
+        structuralPath: row.structuralPath,
+        unitTitle: row.unitTitle,
+        canonicalIds: row.canonicalIds,
+        authorityReleaseId: row.authorityReleaseId,
+        authorityReleaseHash: row.authorityReleaseHash,
+        bundleDigest: row.bundleDigest,
+        captureRevision: row.captureRevision,
+      })),
+  };
 }
 
 function loadTaskSims(): TaskSimInput[] {
@@ -124,6 +168,32 @@ function loadTaskSims(): TaskSimInput[] {
       relatedNodeIds: [],
     },
   ];
+}
+
+function loadAuthorityCanonicalIds(): string[] {
+  const current = readJson<{
+    releaseId: string;
+    snapshotId: string;
+  }>('course-content/authoring/knowledge/authority/current.json');
+  const authorityPaths = resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot(ROOT));
+  const engineering = JSON.parse(
+    readFileSync(join(authorityPaths.releasesDir, current.snapshotId, 'engineering.json'), 'utf8'),
+  ) as { objects: Array<{ canonicalId: string }> };
+  return engineering.objects.map((object) => object.canonicalId);
+}
+
+function loadAuthorityIdentityPin(): AuthorityIdentityPin {
+  const bundle = readJson<{
+    release: { release_id: string; release_hash: string };
+    bundle_digest: string;
+    source_revision: { commit: string };
+  }>(BUNDLE_MANIFEST_REL);
+  return {
+    authorityReleaseId: bundle.release.release_id,
+    authorityReleaseHash: bundle.release.release_hash,
+    bundleDigest: bundle.bundle_digest,
+    captureRevision: bundle.source_revision.commit,
+  };
 }
 
 /** Canonical labels from the CURRENT authority shard set only; historical or candidate sets must not shadow it (#2042). */
@@ -262,7 +332,7 @@ function currentHead(): string {
   return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const pointer = readJson<{
     projectionId: string;
     projectionHash: string;
@@ -298,6 +368,11 @@ function main(): void {
   const prerequisites = readJsonl<TeachingPrerequisiteAuthoring>(`${releaseDir}/prerequisites.jsonl`);
   const cardsIndex = readJson<{ cards: RuntimeCardRow[] }>(`${releaseDir}/cards-index.json`);
   const overlayCores = loadOverlayCores();
+  const textbookLocators = loadTextbookLocators();
+  verifyTextbookAliasesAgainstManifests();
+  const structuralUnits = await loadStructuralUnitIndex({
+    bookIds: TEXTBOOK_ID_ALIASES.map((row) => row.readerBookId),
+  });
   const course = readCourseTeachingContent(ROOT);
   const overlayPointer = readJson<{
     projectionId: string;
@@ -324,7 +399,7 @@ function main(): void {
   );
   const overlaySet = new Set(overlayCores);
   const exemptTextbookSections = new Set<string>();
-  for (const locator of loadTextbookLocators()) {
+  for (const locator of textbookLocators.v1) {
     const hits = locator.canonicalIds.filter((id) => overlaySet.has(id));
     const exemptHits = locator.canonicalIds.filter((id) => exemptEndpointIds.has(id));
     if (hits.length === 0 && exemptHits.length > 0) {
@@ -362,7 +437,27 @@ function main(): void {
     prerequisites,
     cards: cardsIndex.cards,
     authorityCardCanonicalIds: loadAuthorityCardCanonicalIds(),
-    textbookLocators: loadTextbookLocators(),
+    textbookLocators: textbookLocators.v1,
+    textbookLocatorsV2: textbookLocators.v2,
+    authorityCanonicalIds: loadAuthorityCanonicalIds(),
+    authorityIdentityPin: loadAuthorityIdentityPin(),
+    textbookCoordinateCheck: (locator) => {
+      try {
+        const unit = resolveStructuralUnit(structuralUnits, {
+          bookId: locator.bookId,
+          structuralUnitId: locator.structuralUnitId,
+          structuralPath: locator.structuralPath,
+        });
+        if (unit.edition !== locator.edition) {
+          return `edition-mismatch:${locator.edition}`;
+        }
+        return null;
+      } catch (error) {
+        return error instanceof EngineeringTextbookMappingError || error instanceof Error
+          ? error.message
+          : String(error);
+      }
+    },
     taskSims: loadTaskSims(),
     cardCrosswalk,
     cardExemptions,
@@ -460,4 +555,7 @@ function main(): void {
   }, null, 2)}\n`);
 }
 
-main();
+main().catch((error) => {
+  process.stderr.write(`${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+  process.exit(1);
+});

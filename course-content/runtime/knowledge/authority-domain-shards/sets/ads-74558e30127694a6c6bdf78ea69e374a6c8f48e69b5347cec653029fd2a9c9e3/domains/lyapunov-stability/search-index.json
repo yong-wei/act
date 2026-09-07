@@ -1,0 +1,1868 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "lyapunov-stability",
+  "entries": [
+    {
+      "id": "ctkg:condition:0413d990ad64216cb81b6c81",
+      "canonicalType": "Condition",
+      "label": "系统在平衡点处连续可微。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:04902ac05e581b306b33def7",
+      "canonicalType": "Condition",
+      "label": "系统存在李雅普诺夫函数 V(x)（即 V(0)=0，当 x≠0 时 V(x)>0，V 连续且具有连续导数，沿轨迹满足 V̇(x) ≤ 0）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:0c9f36e7ac3a991f81c8543f",
+      "canonicalType": "Condition",
+      "label": "系统由常微分方程（ODE）描述。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:0fb1add4b13501cb9e88f154",
+      "canonicalType": "Condition",
+      "label": "A 为常数矩阵。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:0fbe7a6f786c19ed27015cb6",
+      "canonicalType": "Condition",
+      "label": "A为非奇异矩阵",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:2069a4bbd6576c966e62f2f7",
+      "canonicalType": "Condition",
+      "label": "系统由常微分方程（ODE）描述。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:23c91fa21e83938a05c0aa84",
+      "canonicalType": "Condition",
+      "label": "对于线性系统 dx/dt = A x，存在对称正定矩阵 Q，使得李雅普诺夫方程 A^T P + P A = -Q 具有唯一的对称正定解 P。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:32609ca2b6631401e8e3944c",
+      "canonicalType": "Condition",
+      "label": "g(x) 满足 lim_{||x||→0} ||g(x)||/||x|| = 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:35cb5822b388b7520dcebf3d",
+      "canonicalType": "Condition",
+      "label": "系统存在李雅普诺夫函数 V(x) 且此外 V̇(x) < 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:44d67a20d3cdb505de9d455f",
+      "canonicalType": "Condition",
+      "label": "A 至少有一个特征值位于右半平面（RHP）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:59b725664bb10da9686be518",
+      "canonicalType": "Condition",
+      "label": "线性定常系统ẋ = Ax, x(0)=x₀, t≥0；对于任意给定的一个正定对称矩阵Q，有唯一的正定对称矩阵P使AᵀP + PA = -Q成立",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:775dd9a0c354deacc6c76ef7",
+      "canonicalType": "Condition",
+      "label": "定常系统ẋ = f(x), t≥0, f(0)=0；存在一个具有连续一阶导数的标量函数V(x), V(0)=0，并且对于状态空间X中的一切非零点x满足：1) V(x)为正定；2) V̇(x)为负定；3) 当||x||→∞时V(x)→∞",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:81fb20afc3c72d73fa2595c0",
+      "canonicalType": "Condition",
+      "label": "系统在平衡点附近线性化，得到雅可比矩阵 A。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:85c59d96180fb2dfb8939945",
+      "canonicalType": "Condition",
+      "label": "f(0)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:8db8e46a1cdbe08f5bb1980c",
+      "canonicalType": "Condition",
+      "label": "线性定常系统ẋ = Ax, x(0)=x₀, t≥0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:93ba25670b4879ee1135ba08",
+      "canonicalType": "Condition",
+      "label": "A 为稳定矩阵（所有特征值均在左半平面），Q 为任意正定矩阵。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:964d7fe35d437c5d7812f1f3",
+      "canonicalType": "Condition",
+      "label": "A 为常数矩阵。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:9cf9b8fb59f711fa90388bc2",
+      "canonicalType": "Condition",
+      "label": "g(x) 满足 lim_{||x||→0} ||g(x)||/||x|| = 0。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:9f364a9a01d6135de28f85c7",
+      "canonicalType": "Condition",
+      "label": "A（线性化系统矩阵）的所有特征值均位于左半平面（LHP）。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:b057aa1c4d09fb6b73dc4202",
+      "canonicalType": "Condition",
+      "label": "f(0)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:b0f347943fcdbf4ab42c9bd4",
+      "canonicalType": "Condition",
+      "label": "系统为线性定常",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:c2790bef0553b0f4dd2b6cda",
+      "canonicalType": "Condition",
+      "label": "f(0)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:c63492124c3bf26ddd55f8a9",
+      "canonicalType": "Condition",
+      "label": "A 为稳定矩阵。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d330e58cf06c60c6c7f4dff5",
+      "canonicalType": "Condition",
+      "label": "定常系统ẋ = f(x), t≥0, f(0)=0；存在一个具有连续一阶导数的标量函数V(x)（其中V(0)=0），和围绕原点的域Ω，使得对于一切x∈Ω和一切t≥t₀满足：1) V(x)为正定；2) V̇(x)为正定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:d457bb24d6d33c85bfac4998",
+      "canonicalType": "Condition",
+      "label": "定常系统ẋ = f(x), t≥0, f(0)=0；存在一个具有连续一阶导数的标量函数V(x), V(0)=0，并且对状态空间X中的一切非零点x满足：1) V(x)为正定；2) V̇(x)为负半定；3) 对任意x∈X, V̇(x(t; x₀,0)) ≠ 0；4) 当||x||→∞时V(x)→∞",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:condition:e7c0d34ff00eeb09acf404a5",
+      "canonicalType": "Condition",
+      "label": "对于线性系统 dx/dt = A x，若 A 为 Hurwitz 矩阵（所有特征值均具有负实部），则对于任意对称正定矩阵 Q，李雅普诺夫方程 A^T P + P A = -Q 存在唯一的对称正定解 P。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:00c33c72030aa254c651c5ad",
+      "canonicalType": "DomainConcept",
+      "label": "正定性（标量函数）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0d613f0b723fa4a95a006064",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:0dfe26d4bf0c2174a0a4b176",
+      "canonicalType": "DomainConcept",
+      "label": "负半定性（标量函数）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1e4a6b47555798ad4ccae81d",
+      "canonicalType": "DomainConcept",
+      "label": "正定矩阵",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:1fe958ff9947220990074dbc",
+      "canonicalType": "DomainConcept",
+      "label": "正半定性（标量函数）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
+      "canonicalType": "DomainConcept",
+      "label": "平衡状态",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:3f2b9364d6712170bfd6fb24",
+      "canonicalType": "DomainConcept",
+      "label": "稳定性矩阵",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+      "canonicalType": "DomainConcept",
+      "label": "能量函数（李雅普诺夫）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4440d7aea649c55d0359385c",
+      "canonicalType": "DomainConcept",
+      "label": "特征值",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:471808457837d110fa167faf",
+      "canonicalType": "DomainConcept",
+      "label": "负定性（标量函数）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4b98e3fbe8d7e5267277361f",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫第一法（间接法）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:4dd405f4b14b1c56c98340c1",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:57f94170125768449cdfa1ba",
+      "canonicalType": "DomainConcept",
+      "label": "受扰运动",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:599dd42ca76813165e301c5b",
+      "canonicalType": "DomainConcept",
+      "label": "正定矩阵",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫函数候选",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+      "canonicalType": "DomainConcept",
+      "label": "一致稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:7b0f2a56598df8c8638bc63f",
+      "canonicalType": "DomainConcept",
+      "label": "吸引域",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:7ea75380edbf9be4e15dd503",
+      "canonicalType": "DomainConcept",
+      "label": "特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:8985a8b639467c8e28fad417",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫第二法（直接法）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:8a31109fa1ad3612b30e7a9a",
+      "canonicalType": "DomainConcept",
+      "label": "欧几里得范数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:8daad3ce03210f036d591c02",
+      "canonicalType": "DomainConcept",
+      "label": "大范围稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:951014d55276cafabac48a25",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9a8a7e75e47dc5117ebb7adc",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9f0b378f72741e96820b891b",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫第一法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫直接法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:a3186afbaab04b331226cdc9",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b00a275496bb3493dc1436b9",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫第二方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b35807c25dd0d822dda119c8",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b4aa88340e051572c027eb23",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫间接法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:b7fc2ba69b902e77c74aea53",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+      "canonicalType": "DomainConcept",
+      "label": "正定函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:bcb984982bdc0a405f967351",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫间接法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "canonicalType": "DomainConcept",
+      "label": "渐近稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "canonicalType": "DomainConcept",
+      "label": "一致渐近稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫意义下的稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:dbcf19cd7faa70a7b71ba715",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫直接法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:dd4c15f1669f9b04911032e5",
+      "canonicalType": "DomainConcept",
+      "label": "不定性（标量函数）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:de6aac43614a90c9b0d828a9",
+      "canonicalType": "DomainConcept",
+      "label": "临界稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd",
+      "canonicalType": "DomainConcept",
+      "label": "渐近稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
+      "canonicalType": "DomainConcept",
+      "label": "平衡状态",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f2d758b656ba6d55337462e6",
+      "canonicalType": "DomainConcept",
+      "label": "指数稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:f713a296511f858ae3f3bfde",
+      "canonicalType": "DomainConcept",
+      "label": "大范围（全局）渐近稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:fe96c44d0bc1b877a573201e",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫函数候选",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:domainconcept:ff2d00a3489f08f635fff5b4",
+      "canonicalType": "DomainConcept",
+      "label": "吸引域",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:0059627bd7923b648a35c66e",
+      "canonicalType": "Formula",
+      "label": "线性定常系统状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:061f05e1da58fe16c42006d2",
+      "canonicalType": "Formula",
+      "label": "由行列式求得的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:0d8e6acaad93a69c7277e444",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫意义下稳定性的轨迹约束不等式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:13a3e72894c81576e4110f24",
+      "canonicalType": "Formula",
+      "label": "由行列式 (λI - A) 确定的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:21833bab62af4f5d10e52c4f",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:297f33c80823ca555aaaa059",
+      "canonicalType": "Formula",
+      "label": "二次型李雅普诺夫函数及其导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2a8d599ce2b230268af31693",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫函数严格导数条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:2d0594bfa8b24f92cb49856e",
+      "canonicalType": "Formula",
+      "label": "二次型李雅普诺夫函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:30caef0eac5efa1a5eb73eb1",
+      "canonicalType": "Formula",
+      "label": "受扰运动与平衡状态之差表达式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:33d40e575c11ccb0cf9fe338",
+      "canonicalType": "Formula",
+      "label": "约当规范型变换关系",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3744b08787067a274630d436",
+      "canonicalType": "Formula",
+      "label": "含非线性项的二次李雅普诺夫函数导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3926bd18006fe07d71199286",
+      "canonicalType": "Formula",
+      "label": "定常系统状态方程（第二法）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3a0c62770ccccc1065cb6832",
+      "canonicalType": "Formula",
+      "label": "系统状态方程（展开式）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:3a4a907df98fa7b5625bdcd8",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫意义下稳定性的初始条件不等式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:470d82ac22d299de9355ff1d",
+      "canonicalType": "Formula",
+      "label": "约当规范型矩阵指数元素形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:53328801022159ab48c99cc1",
+      "canonicalType": "Formula",
+      "label": "由状态矩阵求特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7bd891182dc62424d28a2882",
+      "canonicalType": "Formula",
+      "label": "特征值方程 (λI - A)x = 0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:7c86ba208ff8408ee5896e2b",
+      "canonicalType": "Formula",
+      "label": "位置反馈系统的类能量李雅普诺夫函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:8d7a2bd9636830ebcf434a44",
+      "canonicalType": "Formula",
+      "label": "渐近稳定性极限条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:945a3f4f34a4fdee4678c833",
+      "canonicalType": "Formula",
+      "label": "二次型李雅普诺夫函数的导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:9afd8c91f5be4dba0292c5e0",
+      "canonicalType": "Formula",
+      "label": "系统状态方程（一般形式）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:9b698724528dc316adc0638e",
+      "canonicalType": "Formula",
+      "label": "状态转移矩阵表达式（线性定常系统）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a0647d01e1b347aea406358b",
+      "canonicalType": "Formula",
+      "label": "二次型李雅普诺夫函数导数（用Q表示）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:a68331419f6b4332436525b0",
+      "canonicalType": "Formula",
+      "label": "无输入状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:aa81fd18795e0b58fb59315b",
+      "canonicalType": "Formula",
+      "label": "平衡状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:b51174ce90b5ad7f25b132bb",
+      "canonicalType": "Formula",
+      "label": "二次型李雅普诺夫候选函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c6a376e1dd76637f7e41fb6b",
+      "canonicalType": "Formula",
+      "label": "指数解形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c6c179af450bbb6e6d309d25",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫函数导数条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:c90cba1f5338b7b640c27b38",
+      "canonicalType": "Formula",
+      "label": "二次型李雅普诺夫函数的导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:cecc9af40ec75fba560cebc4",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫方程（连续系统）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:d006c4547aea7eb68d9a81b7",
+      "canonicalType": "Formula",
+      "label": "基于李雅普诺夫方程的二次李雅普诺夫函数导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:d7e5c1e2c6705a655df29d0a",
+      "canonicalType": "Formula",
+      "label": "特征值方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:dd819f9fb0f37d57d8675219",
+      "canonicalType": "Formula",
+      "label": "类能量李雅普诺夫函数的导数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:eaa4c189029c2356c5717699",
+      "canonicalType": "Formula",
+      "label": "线性定常系统平衡状态方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:ef639bf35386bdf2d3f8665d",
+      "canonicalType": "Formula",
+      "label": "连续李雅普诺夫方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:formula:f2f6f4b150f6ed28e1cb3acf",
+      "canonicalType": "Formula",
+      "label": "线性系统的李雅普诺夫方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0e5f181eebc17f7eb2d647a5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-5（线性定常系统渐近稳定李雅普诺夫方程判据）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:0f258d88612353ebb86bdb0a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-2（定常系统大范围渐近稳定判别定理1）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:21c9a381ce1ca948a433cb1d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于李雅普诺夫方法的赫尔维茨稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:233fffbe3f9073a1a8d1acf2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫直接法渐近稳定性定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:78038e3fe88218c9dfd64749",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统的李雅普诺夫方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:79cd9b3c1a9da579fa049889",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫间接法稳定性定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:7c2862c1e68ede0f556ed607",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-3（定常系统大范围渐近稳定判别定理2）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:80fd9cbb987af7039f3468d0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫直接法稳定性定理",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:8a793953be37bd1f58e51cf6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫方程正定性结果",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:a6042a3bfc3f85b2a9e121ae",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫间接法稳定性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:aad8c63ae4bcc3d491a1a035",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-4（不稳定判别定理）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:d361c0d4677388d948bbe5b6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-1（线性定常系统特征值判据）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:knowledgestatement:f7f321e54cb1465922959091",
+      "canonicalType": "KnowledgeStatement",
+      "label": "李雅普诺夫间接法不稳定条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:42faa6d08b26b664c081ec25",
+      "canonicalType": "ModelRepresentation",
+      "label": "二次型李雅普诺夫函数候选",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:bdf84a64ab19daef95d6c305",
+      "canonicalType": "ModelRepresentation",
+      "label": "李雅普诺夫矩阵代数方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:modelrepresentation:cd417f39e4c9da05e3638546",
+      "canonicalType": "ModelRepresentation",
+      "label": "二次型李雅普诺夫函数（线性系统）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:1387459aed77efa87ed44279",
+      "canonicalType": "StatementArgument",
+      "label": "原点不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:139cc8229ceb7bc703bfce9b",
+      "canonicalType": "StatementArgument",
+      "label": "系统平衡状态为不稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:2a35e3a8d4ec76a1a71a504d",
+      "canonicalType": "StatementArgument",
+      "label": "系统的原点平衡状态xₑ=0为渐近稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:3badc1f49e14f02bc0b98692",
+      "canonicalType": "StatementArgument",
+      "label": "平衡点 x = 0 全局渐近稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:6adb7453ee0e4d94d9f9edd7",
+      "canonicalType": "StatementArgument",
+      "label": "原点周围存在一个稳定区域。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:6e41ad36a72d8679504ddafa",
+      "canonicalType": "StatementArgument",
+      "label": "运动是稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:c255b4c873ab774dd41e4f21",
+      "canonicalType": "StatementArgument",
+      "label": "若 A 的所有特征值均具有负实部，则平衡点局部渐近稳定。若任一特征值具有正实部，则平衡点不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:d2e280e0f16bc706fe39a647",
+      "canonicalType": "StatementArgument",
+      "label": "系统的原点平衡状态是大范围渐近稳定的",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:d80c3a968d3513039de80c34",
+      "canonicalType": "StatementArgument",
+      "label": "系统全局渐近稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:e27311b1bbd5b64b647d7fdc",
+      "canonicalType": "StatementArgument",
+      "label": "A^T P + P A = -Q 的解 P 为正定矩阵。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:eca0246ceb9874f6cb034ab0",
+      "canonicalType": "StatementArgument",
+      "label": "系统的原点平衡状态是大范围渐近稳定的",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:f80186ee6c03d998fdc49342",
+      "canonicalType": "StatementArgument",
+      "label": "1) 系统的每一平衡状态是在李雅普诺夫意义下稳定的充分必要条件是，A的所有特征值均具有非正（负或零）实部，且具有零实部的特征值为A的最小多项式的单根。2) 系统的唯一平衡状态xₑ=0是渐近稳定的充分必要条件是，A的所有特征值均具有负实部。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:statement-argument:fed220917fe13b8a5f1e457a",
+      "canonicalType": "StatementArgument",
+      "label": "运动是渐近稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:systemmodel:2006fb59e060c23067a2a5ef",
+      "canonicalType": "SystemModel",
+      "label": "用于李雅普诺夫分析的线性近似系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:systemmodel:b53fee2f466d10d12d8fca14",
+      "canonicalType": "SystemModel",
+      "label": "定常非线性系统（状态空间模型）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:systemmodel:c1abae76a4bcff675aa0e60d",
+      "canonicalType": "SystemModel",
+      "label": "线性定常系统（状态空间模型）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:systemmodel:e02f42ef966a239ad29096fe",
+      "canonicalType": "SystemModel",
+      "label": "线性状态变量系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:systemmodel:e0c4239133cfdd003dff075b",
+      "canonicalType": "SystemModel",
+      "label": "用于李雅普诺夫分析的时不变常微分方程组",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}
