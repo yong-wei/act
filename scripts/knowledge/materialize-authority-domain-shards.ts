@@ -13,6 +13,12 @@ import {
 } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
 import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 import {
+  loadSourcesInput,
+  MAPPING_SOURCES_INPUT_CONTRACT,
+  verifyCoverageLedgerBinding,
+  loadCoverage,
+} from '@/lib/engineering-textbook-mapping';
+import {
   createTeachingOverlay,
   resolveActiveShardIdentity,
   resolveAuthorityDomainShardPaths,
@@ -33,6 +39,20 @@ export function materializeCommittedAuthorityDomainShards(
   const engineering = JSON.parse(
     readFileSync(engineeringPath, 'utf8'),
   ) as AuthorityEngineeringBody;
+  const coverage = loadCoverage(repoRoot);
+  verifyCoverageLedgerBinding({ coverage, repoRoot });
+  const sourceCitations = loadSourcesInput(repoRoot);
+  if (sourceCitations.contract !== MAPPING_SOURCES_INPUT_CONTRACT) {
+    throw new Error(`sources-input contract mismatch: ${sourceCitations.contract}`);
+  }
+  if (sourceCitations.authorityReleaseId !== identity.envelope.authority.releaseId) {
+    throw new Error(
+      `sources-input pinned to ${sourceCitations.authorityReleaseId} but active release is ${identity.envelope.authority.releaseId}`,
+    );
+  }
+  if (sourceCitations.coverageDigest === '') {
+    throw new Error('sources-input coverageDigest is empty; governed coverage receipt required');
+  }
   const materialized = buildAuthorityDomainShards({
     envelope: identity.envelope,
     catalog: identity.catalog,
@@ -40,6 +60,10 @@ export function materializeCommittedAuthorityDomainShards(
     teaching: createTeachingOverlay(identity.teachingPointer, {
       artifacts: identity.teachingArtifacts,
     }),
+    sourceCitations: new Map(
+      sourceCitations.entries.map((entry) => [entry.nodeId, entry.sources]),
+    ),
+    sourceCitationsContract: sourceCitations.contract,
     activatedAt: '2026-08-13T00:00:00.000Z',
   });
   writeAuthorityDomainShards(resolveAuthorityDomainShardPaths(repoRoot), materialized);

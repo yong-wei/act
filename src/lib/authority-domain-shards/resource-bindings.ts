@@ -36,6 +36,9 @@ import type {
 
 import type { KnowledgeRole } from '@/lib/authoritative-knowledge';
 import type { AuthorityNodeDetailShard } from './contracts';
+import { fromResourceIdToken } from '@/lib/teaching-projection/textbook-locators/identity';
+import { buildTextbookReaderHref } from '@/lib/textbook-reader';
+import { TEXTBOOK_ID_ALIASES } from '@/lib/engineering-textbook-mapping';
 
 const ROLE_LABEL: Record<TeachingProjectionRole, ActiveResourceBindingRole> = {
   EXPLAINS: '讲解',
@@ -101,6 +104,36 @@ function isHiddenFromViewer(href: string, role: KnowledgeRole | undefined): bool
   return /^(?:\/teacher|\/admin|\/api\/teacher|\/api\/admin)(?:\/|$)/.test(href);
 }
 
+/**
+ * v2 textbook-section launch (#2043): decode the single-token section identity
+ * back to its structural coordinate and resolve the unified reader href via
+ * the alias table. Fails closed (null) on any drift — no href is fabricated.
+ */
+function textbookSectionReaderHref(resourceId: string): string | null {
+  const token = resourceId.slice('act:textbook-section:'.length);
+  if (!token || token.includes(':')) return null;
+  let decoded: string;
+  try {
+    decoded = fromResourceIdToken(token);
+  } catch {
+    return null;
+  }
+  const segments = decoded.split(':');
+  if (segments.length < 2 || segments.some((segment) => !segment)) return null;
+  const bookId = segments[0]!;
+  const alias = TEXTBOOK_ID_ALIASES.find((row) => row.readerBookId === bookId);
+  if (!alias) return null;
+  try {
+    return buildTextbookReaderHref({
+      bookId,
+      edition: alias.edition,
+      unitPath: segments.slice(1),
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function projectAuthorityNodeResourceBindings(input: {
   nodeId: string;
   bindings: readonly TeachingBindingRuntime[];
@@ -121,7 +154,17 @@ export function projectAuthorityNodeResourceBindings(input: {
       || (resource ? humanTitleFromResourceId(resource.resourceId) : null);
     if (!title) continue;
     const candidateHref = launchMaps.resourceLaunchTargets[binding.resourceId] ?? null;
-    const resolved = resolveSafeLaunchTarget(candidateHref);
+    // v2 textbook sections launch into the unified reader; the edition route
+    // segment legitimately percent-encodes spaces (e.g. 14th%20Global%20Edition),
+    // which the generic encoded-space guard would reject. The href is derived
+    // from the sealed alias table and governed structural paths — not external
+    // input — and still passes the unsafe/hidden gates below.
+    const readerHref = resource?.resourceType === 'textbook-section'
+      ? textbookSectionReaderHref(binding.resourceId)
+      : null;
+    const resolved = readerHref
+      ? { href: readerHref }
+      : resolveSafeLaunchTarget(candidateHref);
     const href = resolved.href
       && !isUnsafeHref(resolved.href, input.nodeId)
       && !isHiddenFromViewer(resolved.href, input.viewerRole)

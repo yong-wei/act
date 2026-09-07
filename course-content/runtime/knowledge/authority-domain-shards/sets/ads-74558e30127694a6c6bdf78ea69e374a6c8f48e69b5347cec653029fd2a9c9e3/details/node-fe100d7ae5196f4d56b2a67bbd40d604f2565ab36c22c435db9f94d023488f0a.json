@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-75e5d6e02c36435bc9cde87f",
+    "canonicalType": "KnowledgeStatement",
+    "label": "例7-28中，通过综合除法将C（z）展成无穷幂级数，得到系统在单位阶跃外作用下的输出序列c（nT）的数值，包括c（0）=0.0, c（T）=0.368, c（2T）=1.0, c（3T）=1.4, c（4T）=1.4, c（5T）=1.147, c（6T）=0.895, c（7T）=0.802, c（8T）=0.868, c（9T）=0.993, c（10T）=1.077, c（11T）=1.081, c（12T）=1.032, c（13T）=0.981, c（14T）=0.961, c（15T）=0.973, c（16T）=0.997, c（17T）=1.015。",
+    "aliases": [],
+    "description": "例7-28中，通过综合除法将C(z)展成无穷幂级数，得到系统在单位阶跃外作用下的输出序列c(nT)的数值，包括c(0)=0.0, c(T)=0.368, c(2T)=1.0, c(3T)=1.4, c(4T)=1.4, c(5T)=1.147, c(6T)=0.895, c(7T)=0.802, c(8T)=0.868, c(9T)=0.993, c(10T)=1.077, c(11T)=1.081, c(12T)=1.032, c(13T)=0.981, c(14T)=0.961, c(15T)=0.973, c(16T)=0.997, c(17T)=1.015。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-07/chapter-7/section-7.6/example-7.28",
+        "label": "自动控制原理（胡寿松，第8版） · 设有零阶保持器的离散系统如图7－36所示，其中 $r(t)=1(t), T=1 \\mathrm{~s}, K=1$ 。试分析该系统的动态性能。"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

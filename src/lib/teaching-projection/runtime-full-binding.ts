@@ -14,7 +14,6 @@ import {
   type TeachingResourceType,
 } from './contracts';
 import { toResourceIdToken } from './textbook-locators/identity';
-
 export const EXTRACTION_SOURCE_BOOKS = [
   'dorf-modern-control-systems-14th',
   'franklin-feedback-control-7th',
@@ -80,6 +79,21 @@ export interface TextbookLocatorRow {
   canonicalIds: string[];
 }
 
+/**
+ * v2 structural-unit crosswalk row (#2043). Carries the pinned Authority
+ * release so stale-bound rows fail closed row-wise into the exception ledger.
+ */
+export interface TextbookLocatorRowV2 {
+  sourceDocumentId: string;
+  bookId: string;
+  edition: string;
+  structuralUnitId: string;
+  structuralPath: string[];
+  unitTitle?: string;
+  canonicalIds: string[];
+  authorityReleaseId: string;
+}
+
 export interface TaskSimInput {
   taskKey: string;
   displayName: string;
@@ -93,7 +107,9 @@ export interface ExceptionLedgerRow {
     | 'no-exact-identity'
     | 'classroom-sim-without-unit'
     | 'classroom-sim-unit-unmapped'
-    | 'out-of-round-textbook';
+    | 'out-of-round-textbook'
+    | 'stale-authority-binding'
+    | 'unknown-canonical';
   detail?: string;
 }
 
@@ -155,6 +171,15 @@ export function planRuntimeFullBinding(input: {
   cards: readonly RuntimeCardRow[];
   authorityCardCanonicalIds: readonly string[];
   textbookLocators: readonly TextbookLocatorRow[];
+  textbookLocatorsV2?: readonly TextbookLocatorRowV2[];
+  /**
+   * Canonical ids present in the pinned Authority release (#2043): v2 rows
+   * naming endpoints outside it fail into the exception ledger; rows whose
+   * endpoints are authority-known but outside the course overlay are simply
+   * not projected in course scope (their mapping coverage is tracked by the
+   * governance ledgers, not this course projection ledger).
+   */
+  authorityCanonicalIds?: ReadonlySet<string> | readonly string[];
   taskSims: readonly TaskSimInput[];
 }): RuntimeFullBindingPlan {
   const overlay = new Set(input.overlayCores);
@@ -351,6 +376,81 @@ export function planRuntimeFullBinding(input: {
       });
       addBinding({
         resourceId: chapterId,
+        canonicalId,
+        role: 'EXPLAINS',
+        scopeId: input.scopeId,
+      });
+      addBinding({
+        resourceId: bookId,
+        canonicalId,
+        role: 'EXPLAINS',
+        scopeId: input.scopeId,
+      });
+    }
+  }
+
+  for (const locator of input.textbookLocatorsV2 ?? []) {
+    if (!admittedBooks.has(locator.sourceDocumentId)) {
+      ledger.push({
+        resourceId: `act:textbook-section:${locator.bookId}`,
+        reason: 'out-of-round-textbook',
+        detail: locator.sourceDocumentId,
+      });
+      continue;
+    }
+    if (locator.authorityReleaseId !== input.authorityReleaseId) {
+      ledger.push({
+        resourceId: `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`,
+        reason: 'stale-authority-binding',
+        detail: locator.authorityReleaseId,
+      });
+      continue;
+    }
+    const authorityIds = input.authorityCanonicalIds
+      ? new Set(input.authorityCanonicalIds)
+      : null;
+    const authorityKnown = authorityIds
+      ? locator.canonicalIds.filter((id) => authorityIds.has(id))
+      : [...locator.canonicalIds];
+    if (authorityKnown.length === 0) {
+      ledger.push({
+        resourceId: `act:textbook-section:${locator.bookId}:${locator.structuralPath.join(':')}`,
+        reason: 'unknown-canonical',
+        detail: locator.canonicalIds.join(','),
+      });
+      continue;
+    }
+    const hitIds = locator.canonicalIds.filter((id) => overlay.has(id));
+    if (hitIds.length === 0) continue;
+    // Single-token section identity per the projection resource grammar;
+    // toResourceIdToken keeps it reversible back to the structural unit id.
+    const sectionToken = toResourceIdToken(
+      `${locator.bookId}:${locator.structuralPath.join(':')}`,
+      'structuralPath',
+    );
+    const sectionId = `act:textbook-section:${sectionToken}`;
+    const bookId = `act:textbook:${locator.sourceDocumentId}`;
+    addResource({
+      resourceId: bookId,
+      resourceType: 'textbook',
+      projectionMode: 'OPTIONAL',
+      scopeId: input.scopeId,
+      sourceDocumentId: locator.sourceDocumentId,
+      title: BOOK_TITLES[locator.sourceDocumentId] ?? locator.sourceDocumentId,
+    });
+    addResource({
+      resourceId: sectionId,
+      resourceType: 'textbook-section',
+      projectionMode: 'OPTIONAL',
+      scopeId: input.scopeId,
+      sourceDocumentId: locator.sourceDocumentId,
+      sectionId: sectionToken,
+      title: locator.unitTitle
+        ?? `${BOOK_TITLES[locator.sourceDocumentId] ?? locator.bookId} ${locator.structuralPath.join('/')}`,
+    });
+    for (const canonicalId of hitIds) {
+      addBinding({
+        resourceId: sectionId,
         canonicalId,
         role: 'EXPLAINS',
         scopeId: input.scopeId,

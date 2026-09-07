@@ -4,8 +4,12 @@
  * and switch every teaching-semantic consumer together.
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { join } from 'node:path';
+
+import { resolveConfiguredAuthorityRoot } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
+import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 
 import { ARENA_CHALLENGE_OBJECTS, ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 import { CONTROL_ODYSSEY_LEVELS } from '@/resources/interactive-learning/control-odyssey/level-data';
@@ -28,7 +32,9 @@ import {
   type RuntimeResourceRow,
   type TaskSimInput,
   type TextbookLocatorRow,
+  type TextbookLocatorRowV2,
 } from '@/lib/teaching-projection/runtime-full-binding';
+import { loadSourceResourceCrosswalkMixed } from '@/lib/teaching-projection/textbook-locators/crosswalk';
 const ROOT = process.cwd();
 const OVERLAY_REL = 'course-content/runtime/knowledge/teaching-projection/domain-fragments';
 const PROJECTION_REL = 'course-content/runtime/knowledge/projection';
@@ -81,10 +87,33 @@ function loadAuthorityCardCanonicalIds(): string[] {
   return ids;
 }
 
-function loadTextbookLocators(): TextbookLocatorRow[] {
-  return readJsonl<TextbookLocatorRow>(
-    'course-content/authoring/knowledge/teaching-projection/textbook-locators/source-resource-crosswalk.jsonl',
-  ).filter((row) => (EXTRACTION_SOURCE_BOOKS as readonly string[]).includes(row.sourceDocumentId));
+function loadTextbookLocators(): {
+  v1: TextbookLocatorRow[];
+  v2: TextbookLocatorRowV2[];
+} {
+  const mixed = loadSourceResourceCrosswalkMixed();
+  return {
+    v1: mixed.v1
+      .filter((row) => (EXTRACTION_SOURCE_BOOKS as readonly string[]).includes(row.sourceDocumentId))
+      .map((row) => ({
+        sourceDocumentId: row.sourceDocumentId,
+        sourceAnchorId: row.sourceAnchorId,
+        chapterKey: row.chapterKey,
+        canonicalIds: row.canonicalIds,
+      })),
+    v2: mixed.v2
+      .filter((row) => (EXTRACTION_SOURCE_BOOKS as readonly string[]).includes(row.sourceDocumentId))
+      .map((row) => ({
+        sourceDocumentId: row.sourceDocumentId,
+        bookId: row.bookId,
+        edition: row.edition,
+        structuralUnitId: row.structuralUnitId,
+        structuralPath: row.structuralPath,
+        unitTitle: row.unitTitle,
+        canonicalIds: row.canonicalIds,
+        authorityReleaseId: row.authorityReleaseId,
+      })),
+  };
 }
 
 function loadTaskSims(): TaskSimInput[] {
@@ -113,6 +142,18 @@ function loadTaskSims(): TaskSimInput[] {
   ];
 }
 
+function loadAuthorityCanonicalIds(): string[] {
+  const current = readJson<{
+    releaseId: string;
+    snapshotId: string;
+  }>('course-content/authoring/knowledge/authority/current.json');
+  const authorityPaths = resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot(ROOT));
+  const engineering = JSON.parse(
+    readFileSync(join(authorityPaths.releasesDir, current.snapshotId, 'engineering.json'), 'utf8'),
+  ) as { objects: Array<{ canonicalId: string }> };
+  return engineering.objects.map((object) => object.canonicalId);
+}
+
 function option(name: string): string | undefined {
   const index = process.argv.indexOf(name);
   return index < 0 ? undefined : process.argv[index + 1];
@@ -139,6 +180,7 @@ function main(): void {
   const prerequisites = readJsonl<TeachingPrerequisiteAuthoring>(`${releaseDir}/prerequisites.jsonl`);
   const cardsIndex = readJson<{ cards: RuntimeCardRow[] }>(`${releaseDir}/cards-index.json`);
   const overlayCores = loadOverlayCores();
+  const textbookLocators = loadTextbookLocators();
   const course = readCourseTeachingContent(ROOT);
   const overlayPointer = readJson<{
     projectionId: string;
@@ -159,7 +201,9 @@ function main(): void {
     prerequisites,
     cards: cardsIndex.cards,
     authorityCardCanonicalIds: loadAuthorityCardCanonicalIds(),
-    textbookLocators: loadTextbookLocators(),
+    textbookLocators: textbookLocators.v1,
+    textbookLocatorsV2: textbookLocators.v2,
+    authorityCanonicalIds: loadAuthorityCanonicalIds(),
     taskSims: loadTaskSims(),
   });
 

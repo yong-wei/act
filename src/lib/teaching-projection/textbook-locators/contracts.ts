@@ -11,6 +11,8 @@ export const TEXTBOOK_LOCATOR_CONTRACT =
   'act-textbook-locator-projection/v1' as const;
 export const TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT =
   'act-textbook-source-resource-crosswalk/v1' as const;
+export const TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2 =
+  'act-textbook-source-resource-crosswalk/v2' as const;
 export const TEXTBOOK_LOCATOR_AUTHORITY_BINDING_CONTRACT =
   'act-textbook-locator-authority-binding/v1' as const;
 export const TEXTBOOK_LOCATOR_BUILDER_VERSION =
@@ -118,6 +120,30 @@ export interface SourceResourceCrosswalkRow {
   captureRevision: string;
   /** Optional authorized runtime content ref — never raw textbook body. */
   authorizedContentRef?: string | null;
+  /** 1-based line number in the sidecar file (diagnostics). */
+  rowNumber?: number;
+}
+
+/**
+ * v2 crosswalk row (#2043): textbooks-v2 structural-unit coordinates instead
+ * of ActKG SourceAnchor locators. Still locator-only — no textbook body.
+ */
+export interface SourceResourceCrosswalkRowV2 {
+  contract: typeof TEXTBOOK_LOCATOR_CROSSWALK_CONTRACT_V2;
+  sourceDocumentId: string;
+  canonicalIds: string[];
+  accessMode: TextbookAccessMode;
+  authorityReleaseId: string;
+  authorityReleaseHash: string;
+  bundleDigest: string;
+  captureRevision: string;
+  /** Unified-reader book id (alias-resolved from sourceDocumentId). */
+  bookId: string;
+  edition: string;
+  structuralUnitId: string;
+  structuralPath: string[];
+  /** Display label of the target unit (no textbook body). */
+  unitTitle?: string;
   /** 1-based line number in the sidecar file (diagnostics). */
   rowNumber?: number;
 }

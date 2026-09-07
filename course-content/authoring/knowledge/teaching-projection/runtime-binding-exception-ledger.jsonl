@@ -737,7 +737,3 @@
 {"resourceId":"act:simulation:odyssey-level-14","reason":"no-exact-identity","detail":"odyssey:level-14"}
 {"resourceId":"act:simulation:odyssey-level-15","reason":"no-exact-identity","detail":"odyssey:level-15"}
 {"resourceId":"act:simulation:control-workbench-free","reason":"no-exact-identity","detail":"control-workbench:free"}
-{"resourceId":"act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-02","reason":"no-exact-identity"}
-{"resourceId":"act:textbook-chapter:franklin-feedback-control-7th:ch-root-locus-01","reason":"no-exact-identity"}
-{"resourceId":"act:textbook-chapter:franklin-feedback-control-7th:ch-root-locus-02","reason":"no-exact-identity"}
-{"resourceId":"act:textbook:franklin-feedback-control-7th","reason":"no-exact-identity"}

@@ -1,0 +1,3472 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "stability-analysis",
+  "entries": [
+    {
+      "id": "ctf:55e4737318f3b1e2d5f90372",
+      "canonicalType": "Formula",
+      "label": "y(t)=\\int_{-\\infty}^{\\infty} h(\\tau) u(t-\\tau) d \\tau",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": false
+        },
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:canonical-object:12f9f8b6f6fcb55e6fda7f84",
+      "canonicalType": "DomainConcept",
+      "label": "相对稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:canonical-object:3ed16711b862a82d767ce305",
+      "canonicalType": "DomainConcept",
+      "label": "轴平移法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:canonical-object:9275aaa56098fb48e1ed598e",
+      "canonicalType": "DomainConcept",
+      "label": "相对阻尼系数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:source-object:3dde22225f47bb2bbcde4b2b",
+      "canonicalType": "Formula",
+      "label": "特征方程q(s)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:source-object:3f3cf2020b9054c957783d6a",
+      "canonicalType": "Formula",
+      "label": "移位特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:source-object:8bf7fff26521a9c78458487c",
+      "canonicalType": "Formula",
+      "label": "辅助多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:source-object:b25d682cf6846bc880f4b09e",
+      "canonicalType": "DomainConcept",
+      "label": "移位变量",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2b:source-object:f7a0552cfddba3b956028a81",
+      "canonicalType": "ModelRepresentation",
+      "label": "移位特征方程的劳斯阵列",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2c:source-object:136c72dc12727185d55c09b1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "阶跃输入下系统稳定的条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2c:source-object:3e88ffe42ed2e06718eb6e5a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "单位负反馈控制系统的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:8d0c6470c62c1469ff425f38",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统稳定增益范围",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:91256c721d84a652519732aa",
+      "canonicalType": "SystemModel",
+      "label": "含右半平面零点的闭环系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2k:source-object:f7550344c6b867ee724f8edf",
+      "canonicalType": "Formula",
+      "label": "含右半平面零点系统的闭环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:471c9775fec005b51eb28722",
+      "canonicalType": "Formula",
+      "label": "三阶特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:c80184255f9dc45cfcac0592",
+      "canonicalType": "Formula",
+      "label": "特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:6f24469a649646c86dab24d4",
+      "canonicalType": "Formula",
+      "label": "示例系统特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+      "canonicalType": "Formula",
+      "label": "闭环特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2r:canonical-object:43796246fc41ae3fa4fe6c82",
+      "canonicalType": "KnowledgeStatement",
+      "label": "反馈稳定性特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2r:canonical-object:9ac16bf52d9b4863fc508987",
+      "canonicalType": "KnowledgeStatement",
+      "label": "开环稳定性要求",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-006e5276f9c8e6d41fed8b72",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例：包含 jω 轴重根的情形 4",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-00bc31c66979e1b4ca29dfec",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11变量替换后的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-03b16fad0404c4dd8faf890e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由电流源驱动的电容其冲激响应为 h(t)=1(t)（单位阶跃）；|h| 的积分无界，因此该电容不是 BIBO 稳定的。其传递函数 1/s 在虚轴上具有一个极点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-04ae640742aad70aa69b194b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过平移 s 平面虚轴来确定系统的相对稳定性是一种非常有效的方法，特别是对于包含多对闭环复数共轭根的高阶系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0674245bbf1762695193cfa8",
+      "canonicalType": "Formula",
+      "label": "\\lim _{t \\rightarrow \\infty} c(t)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-068eb8697a3eeaec29fe8c76",
+      "canonicalType": "KnowledgeStatement",
+      "label": "将特征多项式的系数排列成两行（第一和第二系数，然后是偶数项和奇数项系数），随后利用前两行的行列式计算并添加后续各行。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-06da478c63df32f958ccb33a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "已知系统特征方程为 D（s）=s^6+s^5-2s^4-3s^3-7s^2-4s-4=0，试用劳斯稳定判据分析系统的稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0bf4e8e7d4442f1b5c71a1fe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例6.4多项式除以辅助多项式后的商",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0c2428053f75b115f075c134",
+      "canonicalType": "KnowledgeStatement",
+      "label": "电容脉冲响应积分",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0c95c7a03ede0b2ff917ea86",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于稳定的线性系统，必然在大范围内和小范围内都能稳定；只有非线性系统才可能有小范围稳定而大范围不稳定的情况。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0cb2701bdfded72d72bf7808",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 K=10 且 K_I=5 时，闭环极点位于 -0.46 和 -1.26 ± 3.3j，零点位于 -0.5。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0cef8900607559a26de997cc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "该判据要求对于稳定系统，第一列元素不得改变符号。这一要求是充分且必要的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-0f0a952947b11d14d329702e",
+      "canonicalType": "Formula",
+      "label": "q(s)=a_{3} s^{3}+a_{2} s^{2}+a_{1} s+a_{0}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-10b5819d0d443ede60d2ba1c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 K=1 且 K_I=0 时，闭环极点位于 0 与 -1.5 ± 0.86j，且原点处存在一个零点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1211ad963441a60ba9ae6bde",
+      "canonicalType": "Formula",
+      "label": "q(s)= a_{n} s^{n}-a_{n}\\left(r_{1}+r_{2}+\\cdots+r_{n}\\right) s^{n-1} +a_{n}\\left(r_{1} r_{2}+r_{2} r_{3}+r_{1} r_{3}+\\cdots\\right) s^{n-2} -a_{n}\\left(r_{1} r_{2} r_{3}+r_{1} r_{2} r_{4} \\cdots\\right) s^{n-3}+\\cdots +a_{n}(-1)^{n} r_{1} r_{2} r_{3} \\cdots r_{n}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1472ae88c04a791a1cb96179",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当K=K_I=1时，极点和零点均位于-1处。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-150d418d638a2861be369aa3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况 3 例题的稳定性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-166681519b0bd66e0bea52d8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统极点在 s 平面上的位置反映了其相应的瞬态响应。s 平面左半部分的极点使系统对扰动输入产生衰减响应。位于 jω 轴和右半平面上的极点则分别导致等幅响应和发散响应。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1757f38ee7689067748a7b27",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.34 特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-18093182807aacf13187d33b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11闭环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-18ef510f584cac663f6b98fd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11新劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1bec89fe061b3db5f56a7b7b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "设比例－积分（PI）控制系统如图 3－32 所示。其中，K1 为与积分器时间常数有关的待定参数。已知参数 ζ=0.2 及 ωn=86.6，试用劳斯稳定判据确定使闭环系统稳定的 K1 取值范围。如果要求闭环系统的极点全部位于 s=-1 垂线之左，问 K1 值范围又应取多大？",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1e6e6e4b6871662fcb4c03c5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况4示例的劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1f006788439504cf6e5bee05",
+      "canonicalType": "KnowledgeStatement",
+      "label": "具有两个右半平面根的示例多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-1ff4286be8d997db84f4f092",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据中必须考虑第一列阵列的四种不同情形",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2265b9d4d567045c0e01d062",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于增益 K 的所有取值，系统均不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2360f80ce087d9cff8bd5ee6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "归一化示例：除以 ω_n^3",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "canonicalType": "DomainConcept",
+      "label": "辅助多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-23cfd45cc09cdaaf6a05d0b5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "具有虚轴重根的情况 4 示例特征多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-258b42cef31585c4159bc46f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "焊接控制的稳定性不等式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-25f8175180c74d1acddaa5ed",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统稳定的充要条件是劳斯表第一列的所有元素均为正数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-27b68e7bc42b98de2b3890f3",
+      "canonicalType": "Formula",
+      "label": "b_{1}=-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} 1 & a_{2} \\\\ a_{1} & a_{3} \\end{array}\\right]}{a_{1}}=\\frac{a_{1} a_{2}-a_{3}}{a_{1}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2a5966ffcdc5ee0964bf02e1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据指出，q(s)具有正实部的根数等于劳斯表第一列元素符号改变的次数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2c93fc0e64f11cb746560a16",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统稳定的充要条件是其脉冲响应 g(t) 的绝对值在无穷区间上的积分有限。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2d3fc506b74f5c4a57720caf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过利用劳斯表中紧邻零元素前一行的辅助多项式 U(s)，可以规避这一问题。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2dd14d2ca692ed9dd5281ec8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系数全为正但不稳定的特征方程示例",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2dd75669fa53b88a2c7778c1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯判据不能保证系统具备满意的动态性能",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+      "canonicalType": "DomainConcept",
+      "label": "对称根对",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-308e82671458823c736c225b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统的相对稳定性也可以根据每对复数根的相对阻尼系数 ζ 来定义，从而根据响应速度和超调量（而非调节时间）来表征。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-32266a64feaa077e3a3d1464",
+      "canonicalType": "KnowledgeStatement",
+      "label": "闭环系统的分母多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-327cafd07ac8956536bab418",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯法参数范围确定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-340c40de80ac89222ca59cb6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例6.3情形2的劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3496e007d3d6b86331d55269",
+      "canonicalType": "KnowledgeStatement",
+      "label": "用于构建闭环系统分母多项式以进行稳定性分析的MATLAB命令。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3584625f5f11346155d538d3",
+      "canonicalType": "DomainConcept",
+      "label": "平衡状态稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-368b6d1024a140b22eb94a7b",
+      "canonicalType": "Formula",
+      "label": "\\int_{-\\infty}^{\\infty}|h(\\tau)| d \\tau<\\infty",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-38db240fe66d9da83dfb95a5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在线性控制系统中，劳斯判据主要用来判断系统的稳定性。如果系统不稳定，则这种判据并不能直接指出使系统稳定的方法；如果系统稳定，则劳斯判据也不能保证系统具备满意的动态性能。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3912357dc593f019141d8c29",
+      "canonicalType": "KnowledgeStatement",
+      "label": "二阶系统稳定的条件是所有系数均为正或所有系数均为负。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-39903086002f9e7c1d7feacb",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况2示例的特征多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3bcd50d563a6344e58ba2dac",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统稳定的充分必要条件是：闭环系统特征方程的所有根均具有负实部；或者说，闭环传递函数的极点均位于 s 左半平面。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3c13b1922c1b128e1e87705e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "焊接控制特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3e917474953b8ca4d2158dd7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若每个有界输入都产生有界输出，则称系统具有有界输入-有界输出（BIBO）稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3eadba5d5e22a6f60e5d19f6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根据稳定的充分必要条件判别线性系统的稳定性，需要求出系统的全部特征根，因此希望使用一种间接判断系统特征根是否全部位于 s 左半平面的代替方法。劳斯和赫尔维茨分别于1877年和1895年独立提出了判断系统稳定性的代数判据，称为劳斯－赫尔维茨稳定判据。这种判据以线性系统特征方程的系数为依据。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3f131b1a1233f692a731044b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当所有极点均严格位于左半平面时，系统具有内部稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-3f401adcb327fad07ef29ff6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在特征方程的所有系数为正的条件下，若所有奇次顺序赫尔维茨行列式为正，则所有偶次顺序赫尔维茨行列式亦必为正；反之亦然。这就是所谓李纳德－戚帕特稳定判据。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-400aa145c81b92ce9b0664ef",
+      "canonicalType": "Formula",
+      "label": "\\begin{array}{c|cc} s^{2} & a_{2} & a_{0} \\\\ s^{1} & a_{1} & 0, \\\\ s^{0} & b_{1} & 0 \\end{array}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-416bc5396a07b8895bd8f184",
+      "canonicalType": "Formula",
+      "label": "\\begin{aligned} b_{2} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} 1 & a_{4} \\\\ a_{1} & a_{5} \\end{array}\\right]}{a_{1}}=\\frac{a_{1} a_{4}-a_{5}}{a_{1}}, \\\\ b_{3} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} 1 & a_{6} \\\\ a_{1} & a_{7} \\end{array}\\right]}{a_{1}}=\\frac{a_{1} a_{6}-a_{7}}{a_{1}}, \\\\ c_{1} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} a_{1} & a_{3} \\\\ b_{1} & b_{2} \\end{array}\\right]}{b_{1}}=\\frac{b_{1} a_{3}-a_{1} b_{2}}{b_{1}}, \\\\ c_{2} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} a_{1} & a_{5} \\\\ b_{1} & b_{3} \\end{array}\\right]}{b_{1}}=\\frac{b_{1} a_{5}-a_{1} b_{3}}{b_{1}}, \\\\ c_{3} & =-\\frac{\\operatorname{det}\\left[\\begin{array}{cc} a_{1} & a_{7} \\\\ b_{1} & b_{4} \\end{array}\\right]}{b_{1}}=\\frac{b_{1} a_{7}-a_{1} b_{4}}{b_{1}} . \\end{aligned}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-44b85903417762e876a3cbc8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例6.4的劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-44b910a1514a524f420e462c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况 4：虚轴（jω 轴）上的重根",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-46332a35facdf88977e655c9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.34 稳定性条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-46830a97b093d5250e8bf713",
+      "canonicalType": "Formula",
+      "label": "a_{n} s^{n}+a_{n-1} s^{n-1}+a_{n-2} s^{n-2}+\\cdots+a_{1} s+a_{0}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-46aab00af4ef3e0163a6e5ee",
+      "canonicalType": "KnowledgeStatement",
+      "label": "numT = [K KI]; % 构造分子",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-48b61d1e62cb23367138fe4f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若 K=40，则要求 a ≤ 0.639。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4a0df2541966f21b7474a608",
+      "canonicalType": "KnowledgeStatement",
+      "label": "机械共振引起大位移的一个实例发生在韩国首尔的一座 39 层商场中。在 12 楼约二十人进行 Tae Bo 健身操锻炼后，大楼晃动了 10 分钟，导致人员被疏散了两天。专家组得出的结论是，剧烈运动很可能引发了大楼的机械共振。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4afce8349b77117bdae7b453",
+      "canonicalType": "KnowledgeStatement",
+      "label": "IHMC 仿人机器人本身并不具备固有稳定性，行走时需要主动控制以保持直立。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4c1139ac90c58aae414980c7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统的闭环零点位于 -K_I / K。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-4e28487b74c0c23419180c66",
+      "canonicalType": "KnowledgeStatement",
+      "label": "表6.1总结了最高至六阶归一化特征方程的稳定性判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+      "canonicalType": "DomainConcept",
+      "label": "稳定系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-521899e2aa37f3bcb04efbe0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "针对情形3，利用劳斯表中全零行上一行的辅助多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-526906541f641018cd576367",
+      "canonicalType": "DomainConcept",
+      "label": "通过变量替换检验给定稳定度的方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-527f16dacd77760a8ecc802f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "设线性系统在初始条件为零时，作用一个理想单位脉冲δ（t），这时系统的输出增量为脉冲响应c（t）。若t→∞时，脉冲响应c（t）趋于0，则线性系统是稳定的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5559ec0ce76661c53fac59e2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯判据可确定一个或两个可调参数对稳定性的影响",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-55d9257b6c74ab5202eb2229",
+      "canonicalType": "Formula",
+      "label": "s^{n}+a_{1} s^{n-1}+a_{2} s^{n-2}+\\cdots+a_{n}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-563cfa2e327d2ed8e0f87e9d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "反馈可能导致系统不稳定的一个常见例子是礼堂扩音系统中的音频放大器与扬声器反馈。当扬声器与传声器之间的距离减小时，若传声器放得离扬声器过近，系统就会不稳定，导致音频信号过度放大失真并产生自激啸叫。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "canonicalType": "DomainConcept",
+      "label": "临界稳定系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5826984bbdaae585fa46559c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "焊接控制劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-582ba4056b0e8959170a3c4d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过求分子多项式的根来计算闭环系统零点的步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+      "canonicalType": "DomainConcept",
+      "label": "有界输入有界输出稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-592ae79b5fc586a27e9dd7f2",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5950f0c8d930f48df5bef6cc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.33 稳定条件",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5af66aa867667163af3ca825",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于线性系统，运动稳定性与平衡状态稳定性是等价的。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5b758f6663299a97ab99e923",
+      "canonicalType": "KnowledgeStatement",
+      "label": "暂态响应对比突出了控制系统整定中响应速度、稳定性与稳态精度之间的权衡折中。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5d8d533c786b32df70bc5632",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3.33开环特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-5ebe9605f472c8470c156abf",
+      "canonicalType": "Formula",
+      "label": "q(s)= a_{n} s^{n}-a_{n}(\\text { 所有根之和 }) s^{n-1} +a_{n}(\\text { 每次取2个根的乘积之和 }) s^{n-2} -a_{n}(\\text { 每次取3个根的乘积之和 }) s^{n-3} +\\cdots+a_{n}(-1)^{n}(\\text { 所有 } n \\text { 个根的乘积 })=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-61bcb3c4f8a81d0dd8c5d2f4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "哈里托诺夫定理（1978）利用劳斯判据检验四个哈里托诺夫多项式，以判断参数摄动下的系统稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+      "canonicalType": "DomainConcept",
+      "label": "大范围稳定系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "canonicalType": "DomainConcept",
+      "label": "特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-65817d2012cc0b385538d24b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统稳定的一个必要条件是特征多项式的所有系数均为正。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-65a20d13b18c4bffda9675f5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.3 情况 2 特征多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-674e2f84a1653bdfe725af0c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "单摆在外界扰动力去除后，在重力作用下经来回几次减幅摆动，可以回到原平衡点 a，故称 a 为稳定平衡点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6877b35880ea442923e49a5e",
+      "canonicalType": "DomainConcept",
+      "label": "内部稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6ab46bf62c3e7fe105d56351",
+      "canonicalType": "Formula",
+      "label": "a(s)=s^{n}+a_{1} s^{n-1}+a_{2} s^{n-2}+\\cdots+a_{n-1} s+a_{n}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6acd2cc6bde9aeabf58d3447",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯稳定判据为表格形式，见表 3－4 劳斯表。劳斯表的前两行由系统特征方程（3－68）的系数直接构成。劳斯表中的第一行，由特征方程的第一，三，五，⋯项系数组成；第二行，由第二，四，六，⋯项系数组成。劳斯表中以后各行的数值，需按表3－4所示逐行计算，凡在运算过程中出现的空位，均置以零，这种过程一直进行到第 n 行为止，第 n+1 行仅第一列有值，且正好等于特征方程最后一项系数 an。表中系数排列呈上三角形。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6aefbc7a47f0f17e7548a835",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况 3：第一列为零且该行其余元素也为零",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6b36ffd8bd9cfb032fa2c858",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统的稳定性仅取决于系统自身的固有特性，而与外界条件无关。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6b8961a28ee810cd2fcac8b4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若线性控制系统在初始扰动的影响下，其动态过程随时间的推移逐渐衰减并趋于零（原平衡工作点），则称系统渐近稳定，简称稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6bb62eff295daf3b6280eecb",
+      "canonicalType": "Formula",
+      "label": "\\begin{array}{lcclll} s^{n} & : & 1 & a_{2} & a_{4} & \\cdots \\\\ s^{n-1} & : & a_{1} & a_{3} & a_{5} & \\cdots \\end{array}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+      "canonicalType": "DomainConcept",
+      "label": "相对稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6f33ccd1e8c172b2e686f9d3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况1：第一列中没有元素为零",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-6ff0fffa58a6744d7475e83c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据的基础是将特征方程的系数排列成如下阵列：前两行分别为由交替系数构成的 s^n 行和 s^(n-1) 行；后续各行由基于行列式的公式计算得出。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "给定稳定度概念",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7113590a392d062c1ef7f80d",
+      "canonicalType": "Formula",
+      "label": "y(t)=\\sum_{k=1}^{Q} A_{k} e^{-\\sigma_{k} t}+\\sum_{m=1}^{R} B_{m}\\left(\\frac{1}{\\omega_{m}}\\right) e^{-\\alpha_{m} t} \\sin \\left(\\omega_{m} t+\\theta_{m}\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-73247769835fa0fee0255533",
+      "canonicalType": "KnowledgeStatement",
+      "label": "则使线性系统稳定的必要条件是：在特征方程（3—68）中各项系数为正数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-73efa711e60db7c64de62b1c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.6 的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-74126f64d18203f6c6cea13b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "平移纵轴所需的正确幅值必须通过试凑法确定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-74e7c10bacba901647c5f622",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在 Matlab 中计算特征多项式的根时，定义系数行向量 denT = [1 5 K-6 K] 并使用函数 roots(denT)。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7651d26dccbea83fb4add144",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于情况 2，用微小正数 epsilon 代替第一列中的零",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-767d0e89bc119267ab5736e2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况3示例的劳斯表（式6.12）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-78aab6b7276d4a7234c395c3",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{Re}\\left\\{p_{i}\\right\\}<0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-795b6d002f98390eadbe4b70",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性系统稳定的充分必要条件是：闭环系统特征方程的所有根均具有负实部；或者说，闭环传递函数的极点均位于s左半平面。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7aaa2d3ecec627719fb4757b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若劳斯表某行的首个元素为零或整行均为零，则需要进行特殊修正。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+      "canonicalType": "DomainConcept",
+      "label": "中性稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7dffa1be35907d0dc039fb60",
+      "canonicalType": "Formula",
+      "label": "\\Delta(s)=q(s)=a_{n} s^{n}+a_{n-1} s^{n-1}+\\cdots+a_{1} s+a_{0}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7e93787bebbb427bd59b0d98",
+      "canonicalType": "Formula",
+      "label": "\\left.\\begin{array}{rlrl}\n\\frac{a_{1}}{a_{0}} & =-\\sum_{i=1}^{n} s_{i}, & \\frac{a_{2}}{a_{0}} & =\\sum_{\\substack{i, j=1 \\\\\ni \\neq j}}^{n} s_{i} s_{j} \\\\\n\\frac{a_{3}}{a_{0}} & =-\\sum_{\\substack{i, j, k=1 \\\\\n(i \\neq j \\neq k)}}^{n} s_{i} s_{j} s_{k}, & \\cdots, & \\frac{a_{n}}{a_{0}}\n\\end{array}=(-1)^{n} \\prod_{i=1}^{n} s_{i}\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7ea6ab6dc66f6eb4b9ff682a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "为了克服这种困难，可以用因子 （s+a） 乘以原特征方程，其中 a 可为任意正数，再对新的特征方程应用劳斯稳定判据，可以防止上述特殊情况的出现。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7eaf9b4b69cbde2cbeb86ea9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "平移特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7edcf4a9fa5492e1fbc84190",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.33 闭环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-7fbb56489c4331aa88c6dd62",
+      "canonicalType": "Formula",
+      "label": "a_{n}\\left(s-r_{1}\\right)\\left(s-r_{2}\\right) \\cdots\\left(s-r_{n}\\right)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-81939eff73552b8937c06b84",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据无法揭示虚轴重根引起的不稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-824b853ff897a09b2926da9d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "单摆处于另一平衡点 d，一旦受到外界扰动力的作用偏离了原平衡位置后，即使外界扰动力消失，无论经过多长时间，单摆不可能再回到原平衡点 d。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-84490159b28143a9c04cea1d",
+      "canonicalType": "Formula",
+      "label": "y(t)=\\sum_{i=1}^{n} K_{i} e^{p_{i} t}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-85afdc741cce3b1a5bfc94ef",
+      "canonicalType": "Formula",
+      "label": "\\Delta_{1}=a_{1}>0, \\quad \\Delta_{2}=\\left|\\begin{array}{ll}\na_{1} & a_{3} \\\\\na_{0} & a_{2}\n\\end{array}\\right|>0, \\quad \\Delta_{3}=\\left|\\begin{array}{ccc}\na_{1} & a_{3} & a_{5} \\\\\na_{0} & a_{2} & a_{4} \\\\\n0 & a_{1} & a_{3}\n\\end{array}\\right|>0, \\quad \\cdots, \\quad \\Delta_{n}>0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-863069c1389e01dcca80138a",
+      "canonicalType": "DomainConcept",
+      "label": "临界稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-865b301177a623225344064f",
+      "canonicalType": "DomainConcept",
+      "label": "有界输入有界输出稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-86add70d7a20e65586c10105",
+      "canonicalType": "KnowledgeStatement",
+      "label": "这种情况表明特征方程中存在一些绝对值相同但符号相异的特征根。例如，两个大小相等但符号相反的实根和（或）一对共轭纯虚根，或者是对称于实轴的两对共轭复根。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-86d8c30e9bb243ddcd23e599",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.4 中商多项式的劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-89414b1095600b2af39cce0a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若传递函数分母多项式的所有根均具有负实部（即位于 s 平面左半部），则 LTI 系统是稳定的；否则不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8a33a28289dbd5b5abd9daa5",
+      "canonicalType": "Formula",
+      "label": "\\begin{aligned} b_{n-1} &= \\frac{a_{n-1} a_{n-2} - a_{n} a_{n-3}}{a_{n-1}} = \\frac{-1}{a_{n-1}} \\left|\\begin{array}{ll} a_{n} & a_{n-2} \\\\ a_{n-1} & a_{n-3} \\end{array}\\right|, \\\\ b_{n-3} &= -\\frac{1}{a_{n-1}} \\left|\\begin{array}{cc} a_{n} & a_{n-4} \\\\ a_{n-1} & a_{n-5} \\end{array}\\right|, \\cdots \\\\ c_{n-1} &= \\frac{-1}{b_{n-1}} \\left|\\begin{array}{ll} a_{n-1} & a_{n-3} \\\\ b_{n-1} & b_{n-3} \\end{array}\\right|, \\cdots \\end{aligned}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8bdb501223cebaa22efc5b7f",
+      "canonicalType": "Formula",
+      "label": "b_{n-1}=\\frac{a_{n-1} a_{n-2}-a_{n} a_{n-3}}{a_{n-1}}=\\frac{-1}{a_{n-1}}\\left|\\begin{array}{ll} a_{n} & a_{n-2} \\\\ a_{n-1} & a_{n-3} \\end{array}\\right|, b_{n-3}=-\\frac{1}{a_{n-1}}\\left|\\begin{array}{cc} a_{n} & a_{n-4} \\\\ a_{n-1} & a_{n-5} \\end{array}\\right|, \\cdots c_{n-1}=\\frac{-1}{b_{n-1}}\\left|\\begin{array}{ll} a_{n-1} & a_{n-3} \\\\ b_{n-1} & b_{n-3} \\end{array}\\right|, \\cdots",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8c4ae68de59350da99046135",
+      "canonicalType": "KnowledgeStatement",
+      "label": "焊接控制中的b3与c3",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8fae1e29c01c2715c1959d5c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "临界稳定系统的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-8febbacce7243f4fa8086290",
+      "canonicalType": "SystemModel",
+      "label": "图 6.5 给出了焊头定位系统的结构图。焊头移动到车身上的不同位置，要求系统具有快速且精确的响应。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-904f40c2ad21dd880b1653db",
+      "canonicalType": "Formula",
+      "label": "\\begin{array}{c|cc} s^{3} & a_{3} & a_{1} \\\\ s^{2} & a_{2} & a_{0} \\\\ s^{1} & b_{1} & 0 \\\\ s^{0} & c_{1} & 0 \\end{array}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-906d58a041e874cb7914d610",
+      "canonicalType": "KnowledgeStatement",
+      "label": "如果劳斯表第一列的元素不全为正，则右半平面的根数等于该列符号改变的次数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9103ed62af432260b2436f00",
+      "canonicalType": "KnowledgeStatement",
+      "label": "设某单位反馈系统的开环传递函数为 G（s）=K（s+1）/[s（Ts+1）（2s+1）]，试用赫尔维茨稳定判据确定使闭环系统稳定的 K 及 T 的取值范围。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-91d2b0c54a7778878a9f5840",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11整理后的新特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-930475fd096df1a1fe75674d",
+      "canonicalType": "Formula",
+      "label": "c(t)= \\sum_{j=1}^{q} A_{j} \\mathrm{e}^{s_{j} t}+\\sum_{k=1}^{r} B_{k} \\mathrm{e}^{-\\zeta_{k} \\omega_{k} t} \\cos \\left(\\omega_{k} \\sqrt{1-\\zeta_{k}^{2}}\\right) t +\\sum_{k=1}^{r} \\frac{C_{k}-B_{k} \\zeta_{k} \\omega_{k}}{\\omega_{k} \\sqrt{1-\\zeta_{k}^{2}}} \\mathrm{e}^{-\\zeta_{k} \\omega_{k} t} \\sin \\left(\\omega_{k} \\sqrt{1-\\zeta_{k}^{2}}\\right) t, \\quad t \\geqslant 0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9324b4194a263316921b55ed",
+      "canonicalType": "KnowledgeStatement",
+      "label": "研究稳定性问题的三种方法为：(1) s 平面法，(2) 频域 (jω) 法，(3) 时域法。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9374d45c76123cf3c68e9b7d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若阵列中只有一个元素为零，可用微小正数 ε 代替，并在完成阵列后令其趋近于零。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-93f40588759e636c002f9aba",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.4 的辅助多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-93f57211c1e038c80dd43089",
+      "canonicalType": "KnowledgeStatement",
+      "label": "归一化示例：最终归一化形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-94ab50df201f12ed2ff86819",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在Matlab中计算闭环传递函数的阶跃响应：使用 s=tf('s') 定义拉普拉斯变量，定义传递函数 sysT = K*(s+1)/(s^3+5*s^2+(K-6)*s+K)，然后使用 step(sysT)。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-95337ad9c2ce1377d65823f5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "三组反馈增益下的瞬态响应结果：(K=1, K_I=0)、(K=1, K_I=1)、(K=10, K_I=5)。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-996f8cfb90886bae3eecad26",
+      "canonicalType": "Formula",
+      "label": "C(s)=\\sum_{j=1}^{q} \\frac{A_{j}}{s-s_{j}}+\\sum_{k=1}^{r} \\frac{B_{k} s+C_{k}}{s^{2}+2 \\zeta_{k} \\omega_{k} s+\\omega_{k}^{2}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-997018715efe8ecb7bcddbd6",
+      "canonicalType": "Formula",
+      "label": "T(s)=\\frac{p(s)}{q(s)}=\\frac{K \\prod_{i=1}^{M}\\left(s+z_{i}\\right)}{s^{N} \\prod_{k=1}^{Q}\\left(s+\\sigma_{k}\\right) \\prod_{m=1}^{R}\\left[s^{2}+2 \\alpha_{m} s+\\left(\\alpha_{m}^{2}+\\omega_{m}^{2}\\right)\\right]}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-99f4b9b214860588b3306c5a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "设系统特征方程为 s^4+2s^3+3s^2+4s+5=0，试用劳斯稳定判据判别该系统的稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-99f97bb6a3dbaa98d7004fa9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "按照劳斯稳定判据，由特征方程（3－68）所表征的线性系统稳定的充分且必要条件是：劳斯表中第一列各值为正。如果劳斯表第一列中出现小于零的数值，系统就不稳定，且第一列各系数符号的改变次数，代表特征方程（3－68）的正实部根的数目。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9a1527a39fe9ab702fbec095",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.34 劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9be373d41f24289811b1343b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "辅助多项式的阶数总是偶数，且表示对称根对的数量。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9d41615ec8d8cef559a502bc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于线性定常（LTI）系统，BIBO稳定性等价于所有极点均严格位于左半平面（LHP）；虚轴上或右半平面（RHP）中的任何极点都会导致BIBO不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9dc82ce0173803420ef89358",
+      "canonicalType": "KnowledgeStatement",
+      "label": "用于稳定性判据总结的规范化特征方程形式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-9f1606b73125aef81218d3e9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况3发生在某一行元素全为零，或该行仅包含单个零元素时。当多项式包含关于s平面原点对称分布的奇点时会出现这种情况。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a03703a178c7496c8acaee87",
+      "canonicalType": "Formula",
+      "label": "q(s)=a_{2} s^{2}+a_{1} s+a_{0}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a1c9746e09be2a51f6337956",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.33 劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a4841c0774ad75c2aecb88a6",
+      "canonicalType": "Formula",
+      "label": "C(s)=\\frac{M(s)}{D(s)}=\\sum_{i=1}^{n} \\frac{A_{i}}{s-s_{i}}=\\frac{K \\prod_{i=1}^{m}\\left(s-z_{i}\\right)}{\\prod_{j=1}^{q}\\left(s-s_{j}\\right) \\prod_{k=1}^{r}\\left(s^{2}+2 \\zeta_{k} \\omega_{k} s+\\omega_{k}^{2}\\right)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a4caed97afa5648edabbacbe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于 n ≤ 4 的线性系统，其稳定的充分必要条件还可以表示为如下简单形式：n=2：特征方程的各项系数为正。n=3：特征方程的各项系数为正，且 a1 a2 - a0 a3 > 0。n=4：特征方程的各项系数为正，且 Δ2 = a1 a2 - a0 a3 > 0，以及 Δ2 > a1^2 a4 / a3。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯阵列第一列",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-a9bc0f34547142e79d17146f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.3 情况 2 中的 c1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-aa6546dc4dac93a0c05e2020",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情形2算例中的 c1 与 d1",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-aaec4598c2b819e7b4d7c9e3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若在初始扰动影响下，系统的动态过程随时间的推移而发散，则称系统不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ac40802813262332cb115daf",
+      "canonicalType": "Formula",
+      "label": "|y| \\leq M \\int_{-\\infty}^{\\infty}|h(\\tau)| d \\tau",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+      "canonicalType": "DomainConcept",
+      "label": "稳定性边界",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b2db4c45d82c99790ab8ca35",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫稳定性分析方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b3465eb4492a845b41e6a29a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况 2：第一列出现零但该行其他元素非零",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b3b49089c68e2b5af62f0cd2",
+      "canonicalType": "Formula",
+      "label": "A_{j}=\\lim _{s \\rightarrow s_{j}}\\left(s-s_{j}\\right) C(s) ; \\quad j=1,2, \\cdots, q",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+      "canonicalType": "DomainConcept",
+      "label": "绝对稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-b5dcdf6e5488de031d9f939b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当且仅当系统的特征根全部具有负实部时，脉冲响应c（t）趋于0，系统稳定；若特征根中有一个或一个以上正实部根，则系统不稳定；若特征根中具有一个或一个以上零实部根，而其余的特征根均具有负实部，则脉冲响应c（t）趋于常数或等幅正弦振荡，系统不是渐近稳定的，称为临界稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ba4785dad8cd6ce021217957",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于特征方程为 s^3+5s^2+(K-6)s+K=0 的系统，劳斯判据给出的稳定性条件为 K>7.5。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bab4514d83fa63eeedfec2c4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统稳定的必要（但非充分）条件是特征多项式的所有系数均为正。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "canonicalType": "DomainConcept",
+      "label": "相对稳定性的轴偏移法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-bec07962922afb75c3729ef1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3.34 开环特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c0d49bc2853beb3f432436a7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当应用劳斯稳定判据分析线性系统的稳定性时，有时会遇到下面两种特殊情况，使得劳斯表中的计算无法进行到底，因此需要进行相应的数学处理，处理的原则是不影响劳斯稳定判据的判别结果。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c2d61fb5964e61c1d43b4c7a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若系统具有 jω 轴上的非重极点，则称其为临界稳定；jω 轴上的重极点会导致系统不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+      "canonicalType": "DomainConcept",
+      "label": "运动稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c429eb75a78f367236589b27",
+      "canonicalType": "DomainConcept",
+      "label": "中性稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c431d1667cf3472e08e8bf4b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若闭环系统的特征方程为 (s+10)(s^2+16)=0，则称该系统是临界稳定的。若该系统受到频率为 ω=4 的正弦信号激励，输出将变得无界。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c4e828da272374abcfa8c36a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.4 特征多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c562bde02b2d80a2b984c67d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11稳定K1范围",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c5a37b3e9d347948085f31c1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统的相对稳定性可定义为通过各个根或各对根的相对实部来度量的性质。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c609ac68010c1f7e98a961e0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "K=8 时情况3示例的辅助多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯-赫尔维茨稳定性判据法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c72037599edf78cbcdc16977",
+      "canonicalType": "KnowledgeStatement",
+      "label": "根据赫尔维茨稳定判据，线性系统稳定的充分且必要条件应是：由系统特征方程（3－68）各项系数所构成的主行列式及其顺序主子式全部为正。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c798b3e99c91d8876565d869",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于多项式 a(s)=s^6+4s^5+3s^4+2s^3+s^2+4s+4，劳斯表第一列不全为正，表明存在两个右半平面根。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c7fa6f8faa23e8b9a134563a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "焊接控制的稳定性条件（a 为正）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c8d2465e3e80b37b0bdf9897",
+      "canonicalType": "Formula",
+      "label": "D(s)=a_{0} s^{n}+a_{1} s^{n-1}+\\cdots+a_{n-1} s+a_{n}=0, \\quad a_{0}>0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c8e6b61daf10f74a94a58710",
+      "canonicalType": "Formula",
+      "label": "s^{n}+a_{n-1} s^{n-1}+a_{n-2} s^{n-2}+\\cdots+a_{1} s+\\omega_{n}^{n}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据基于将特征方程的系数排列成阵列",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c9a8d2b9908677b92feb7564",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据指出，q(s) 具有正实部的根的个数等于劳斯表第一列符号改变的次数。对于稳定系统，该判据要求第一列中不得出现符号改变。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c9abd42497d942a87922154d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11极点位于s=-1左侧的K1范围",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-c9d323a6559df045d2cb415a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若 jω 轴上存在重根，系统响应将呈现 t sin(ωt+φ) 形式而不稳定。劳斯-赫尔维茨判据无法揭示这种形式的不稳定性。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ca1deef94714481e6a61555d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "K=8 时情况 3 示例的因式分解特征多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cb73ce641b67dfa9d18b4621",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当劳斯表中出现全零行时，可用全零行上面一行的系数构造一个辅助方程 F（s）=0，并将辅助方程对复变量 s 求导，用所得导数方程的系数取代全零行的元，便可按劳斯稳定判据的要求继续运算下去，直到得出完整的劳斯计算表。辅助方程的次数通常为偶数，它表明数值相同但符号相反的根数。所有那些数值相同但符号相异的根，均可由辅助方程求得。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cb94b27a46a9754c9c429adc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11代入参数后的特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cbbab19b11fc34557c78b5c6",
+      "canonicalType": "DomainConcept",
+      "label": "归一化特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+      "canonicalType": "DomainConcept",
+      "label": "右半平面根",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cd90ce8052411bdb187f151b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 jω 轴上的根为单根时系统处于临界稳定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cef321303ea6fceb23452460",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于三阶特征方程 q(s)=s^3+4s^2+6s+4，通过平移 s_n = s+1 得到包含全零行的劳斯表，表明平移后的虚轴上存在根，可由辅助多项式 s_n^2+1 求得。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cf5cc8d7b0c21a68d5e31352",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11闭环特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "canonicalType": "DomainConcept",
+      "label": "劳斯-赫尔维茨稳定性判据",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+      "canonicalType": "DomainConcept",
+      "label": "稳定性",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d1f657c47ce4b5513d0f0137",
+      "canonicalType": "KnowledgeStatement",
+      "label": "三阶系统稳定的充分必要条件是各项系数均为正且 a2 a1 > a0 a3。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d28427304161c758470479d6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例：三阶多项式的归一化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d4859320ca5d006cd18cc576",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例：采用 epsilon 法的情况 2（式 6.10）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d4d25ff410f335fae3ac2621",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过分子和分母定义系统并计算阶跃响应的 MATLAB 命令。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d55bd94c0daf47e1f56561e5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况 2 示例的劳斯表（式 6.10）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d5648e2431a7c751e4cbb2ba",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.34 闭环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d6bbb218a10c1417b5be167b",
+      "canonicalType": "Formula",
+      "label": "T(s)=\\frac{Y(s)}{R(s)}=\\frac{K \\prod_{i=1}^{m}\\left(s-z_{i}\\right)}{\\prod_{i=1}^{n}\\left(s-p_{i}\\right)}, \\quad m \\leq n",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d832b275fcf04c9d2a7d15cc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若特征根中有一个或一个以上正实部根，则 lim_{t→∞} c（t） → ∞，表明系统不稳定。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d936710484645940b76063d6",
+      "canonicalType": "Formula",
+      "label": "\\Delta_{n}=\\left|\\begin{array}{cccccc}\na_{1} & a_{3} & a_{5} & \\cdots & 0 & 0 \\\\\na_{0} & a_{2} & a_{4} & \\cdots & 0 & 0 \\\\\n0 & a_{1} & a_{3} & \\cdots & 0 & 0 \\\\\n0 & a_{0} & a_{2} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{1} & \\cdots & 0 & 0 \\\\\n0 & 0 & a_{0} & \\cdots & 0 & 0 \\\\\n\\vdots & \\vdots & \\vdots & & \\vdots & \\vdots \\\\\n0 & 0 & 0 & \\cdots & a_{n} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-1} & 0 \\\\\n0 & 0 & 0 & \\cdots & a_{n-2} & a_{n}\n\\end{array}\\right|",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-d949ba9a0c35ea493a048b98",
+      "canonicalType": "KnowledgeStatement",
+      "label": "利用 s 平面形式的第一种方法是将劳斯-赫尔维茨判据进行推广以确定相对稳定性。这可以通过变量替换来实现，该变换平移 s 平面坐标轴以利用劳斯-赫尔维茨判据。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-db265bb55206fea4d038b505",
+      "canonicalType": "KnowledgeStatement",
+      "label": "待定参数不能超过两个",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-de7bb55c5f9159206342ada0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯判据不能表明系统特征根在s平面上相对于虚轴的距离",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e0e2f067633af75045da2e5e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "反馈系统稳定的充要条件是系统传递函数的所有极点都具有负实部。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e1f57376b170eab299d1a9ad",
+      "canonicalType": "Formula",
+      "label": "\\stackrel{*}{s}^{n}+b \\stackrel{* n-1}{s}+c \\stackrel{* n-2}{s}+\\cdots+1=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e20f487306737e032e4c7b61",
+      "canonicalType": "Formula",
+      "label": "\\begin{array}{l|cccc} s^{n} & a_{n} & a_{n-2} & a_{n-4} & \\cdots \\\\ s^{n-1} & a_{n-1} & a_{n-3} & a_{n-5} & \\cdots \\end{array}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e251935a976e8aa1a362f196",
+      "canonicalType": "Formula",
+      "label": "b_{1}=\\frac{a_{1} a_{0}-(0) a_{2}}{a_{1}}=\\frac{-1}{a_{1}}\\left|\\begin{array}{cc} a_{2} & a_{0} \\\\ a_{1} & 0 \\end{array}\\right|=a_{0}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e4364a63a0cb19584fafff02",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于特征方程为 s^3+3s^2+(2+K)s+K_I=0 的PI反馈系统，稳定性要求 K_I>0 且 K > (1/3)K_I - 2。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e50bb87ac88b352b972ffd9c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "虚轴上具有单极点且其余所有极点均位于左半平面的系统是临界稳定的；对于有界输入，系统会出现持续振荡，除非输入频率与极点频率相重合。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+      "canonicalType": "DomainConcept",
+      "label": "小范围稳定系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e58bcbfaf82964bf587444a0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于试凑法将 s 平面的垂直轴平移至 -σ1，然后对平移后的多项式应用劳斯-赫尔维茨判据，无需直接求解原多项式即可确定主导根的实部。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e5eeb633370c81fdd5349d17",
+      "canonicalType": "KnowledgeStatement",
+      "label": "可利用MATLAB软件解决稳定性分析及参数选择问题",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e661ab47605bded23c92fcd2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "归一化示例：原始多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e6ab11b185b97c36ba89ccd6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "平移系统的辅助多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e785e657cafcc979bfea904f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "除以 ω_n^n 进行特征方程归一化",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-e98b6c6fe22f236d8eed9b3e",
+      "canonicalType": "Formula",
+      "label": "b_{1}=\\frac{a_{2} a_{1}-a_{0} a_{3}}{a_{2}} \\quad \\text { 且 } \\quad c_{1}=\\frac{b_{1} a_{0}}{b_{1}}=a_{0}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ea1d7854c123fa2e53fb717d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若特征根中具有一个或一个以上零实部根，而其余的特征根均具有负实部，则脉冲响应 c（t） 趋于常数，或趋于等幅正弦振荡，此时系统不是渐近稳定的，称为临界稳定情况。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ea1ebd6cf15a5caa099efe4c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "研究每个根的相对稳定性非常重要，因为闭环极点在s平面上的位置决定了系统的性能。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eb75ed988d9eae5ce87779c5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯判据不能直接指出使系统稳定的方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eb7dfee16a7d49cdba8e537f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "情况3示例特征多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ec7d9890887cbba965f49b43",
+      "canonicalType": "KnowledgeStatement",
+      "label": "第一列中符号改变两次表明在右半平面存在两个根，系统不稳定。右半平面的根为 s=+1 ± j√6。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ecdf6b17af0c070069a8fd15",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例：系数全为正但不稳定的多项式（式 6.7）",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-eed504770777fa381a2a1135",
+      "canonicalType": "KnowledgeStatement",
+      "label": "示例：K=8 时的临界稳定情况 3",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-ef6d8f424b4533cb4bed7e86",
+      "canonicalType": "KnowledgeStatement",
+      "label": "如果所有根都在左半平面，多项式的所有系数都将具有相同的符号。此外，稳定系统的所有系数都必须非零。这些要求是必要条件，但不是充分条件。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-efc16e3143675f8268793253",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在 MATLAB 中绘制 (K_I, K) 平面上的容许稳定区域：定义匿名函数 fh=@(KI,K) 6+3*K-KI 与 f=@(KI,K) KI，然后使用 hold on 配合 ezplot(fh) 和 ezplot(f) 进行绘制。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f1b74d4fff76a5bf2dd0af2b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 6.6 中平移系统的劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f2d6fc57bf35f48b9769ef8c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据是线性系统稳定的充分必要判据。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f4f5ef101b23cdb2db015a1c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "闭环系统的分子多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f5c8e6ae5ea35d4daea6be14",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例3-11劳斯表",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-f7b9bade2d076c93e03191b8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 K_I=0 时存在较大的稳态误差。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fa5430787e0f52c1b769a7fd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯稳定判据与赫尔维茨稳定判据在实质上是相同的。显然，劳斯表中第一列各数与各顺序赫尔维茨行列式之间，存在如下关系：a1=Δ1, c13=Δ2/Δ1, c14=Δ3/Δ2, c15=Δ4/Δ3, ...，c1,n=Δn-1/Δn-2, c1,n+1=Δn/Δn-1。因此，在 a0>0 的情况下，如果所有的顺序赫尔维茨行列式为正，则劳斯表中第一列的所有元素必大于零。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "canonicalType": "DomainConcept",
+      "label": "给定稳定度检验方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fd5067cee3fb3cd591ea3e2f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "焊接控制特征多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:v3e-object-fd6baf667b8745f5d1f9679a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 3.33 特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}

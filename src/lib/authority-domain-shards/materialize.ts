@@ -47,6 +47,8 @@ import {
   type AuthorityShardSetManifest,
   type EngineeringRelationFamily,
 } from './contracts';
+import type { NodeSourceCitation } from '@/lib/engineering-textbook-mapping';
+import { NODE_SOURCES_LIMIT } from '@/lib/engineering-textbook-mapping';
 import { engineeringFamilyForPredicate } from './families';
 import { shardDigest, shardSha256 } from './hash';
 import {
@@ -142,6 +144,19 @@ export interface MaterializeAuthorityDomainShardsInput {
   teaching?: TeachingOverlay;
   neighborhoodLimit?: number;
   activatedAt?: string;
+  /**
+   * Governed engineering-textbook mapping ledger input (#2043). Node-detail
+   * `sources` stay empty by explicit default when absent; the absence is
+   * recorded on the coverage receipt.
+   */
+  sourceCitations?: ReadonlyMap<string, readonly NodeSourceCitation[]>;
+  /** Contract id of the governed ledger when provided (receipt visibility). */
+  sourceCitationsContract?: string | null;
+  /**
+   * Per-node cap for emitted sources (#2043 risk budget). Callers exceeding
+   * the cap are truncated and counted on the receipt.
+   */
+  sourceCitationsLimit?: number;
 }
 
 export interface MaterializedAuthorityDomainShards {
@@ -236,6 +251,45 @@ function teachingFields(payload: JsonObject): Record<string, unknown> {
       .filter((field) => source[field] !== undefined && source[field] !== null)
       .map((field) => [field, source[field]]),
   );
+}
+
+/**
+ * Snapshot-carried source provenance (#2043): a non-empty snapshot
+ * `sourceMappings`/`sourceObjects` pair must survive the projection into
+ * node-detail sources rather than being blanked. Rows whose source-object
+ * payload lacks a citable locator are counted as preserved-but-not-citable,
+ * never dropped silently.
+ */
+function snapshotSourceCitations(
+  engineering: AuthorityEngineeringBody,
+): {
+  byNode: Map<string, NodeSourceCitation[]>;
+  preservedCount: number;
+} {
+  const byNode = new Map<string, NodeSourceCitation[]>();
+  if (engineering.sourceMappings.length === 0) {
+    return { byNode, preservedCount: 0 };
+  }
+  const sourceObjectById = new Map(
+    engineering.sourceObjects.map((row) => [row.sourceObjectId, row]),
+  );
+  let preserved = 0;
+  for (const mapping of engineering.sourceMappings) {
+    preserved += 1;
+    const sourceObject = sourceObjectById.get(mapping.sourceObjectId);
+    const payload = sourceObject ? asObject(sourceObject.payload) : {};
+    const sourceEditionId = stringOrNull(payload.source_id)
+      ?? stringOrNull(payload.sourceDocumentId)
+      ?? stringOrNull(payload.source_edition_id);
+    const sectionId = stringOrNull(payload.section_id)
+      ?? stringOrNull(payload.sourceAnchorId);
+    if (!sourceEditionId || !sectionId) continue;
+    const label = stringOrNull(payload.preferred_label);
+    const list = byNode.get(mapping.canonicalId) ?? [];
+    list.push({ sourceEditionId, sectionId, label });
+    byNode.set(mapping.canonicalId, list);
+  }
+  return { byNode, preservedCount: preserved };
 }
 
 function domainMembers(
@@ -516,6 +570,12 @@ export function buildAuthorityDomainShards(
   const neighborhoods: Record<string, AuthorityNodeNeighborhoodShard> = {};
   const details: Record<string, AuthorityNodeDetailShard> = {};
 
+  const sourceCitationLimit = input.sourceCitationsLimit ?? NODE_SOURCES_LIMIT;
+  const ledgerCitations = input.sourceCitations;
+  const snapshotCitations = snapshotSourceCitations(input.engineering);
+  let nodesWithSources = 0;
+  let nodesCappedToLimit = 0;
+
   for (const nodeId of [...seedIds].sort()) {
     const center = objectsById.get(nodeId);
     if (!center) continue;
@@ -551,6 +611,13 @@ export function buildAuthorityDomainShards(
     const payload = asObject(center.payload);
     const nested = asObject(payload.payload);
     const presentation = projectAuthorityObject(center, input.catalog, labels);
+    // Governed ledger citations first (ranked), then snapshot-carried
+    // provenance; capped with the cap recorded on the coverage receipt.
+    const ledgerRows = ledgerCitations?.get(nodeId) ?? [];
+    const combinedSources = [...ledgerRows, ...(snapshotCitations.byNode.get(nodeId) ?? [])];
+    if (combinedSources.length > sourceCitationLimit) nodesCappedToLimit += 1;
+    const sources = combinedSources.slice(0, sourceCitationLimit);
+    if (sources.length > 0) nodesWithSources += 1;
     const detail: AuthorityNodeDetailShard = {
       shardClass: 'node-detail',
       envelope: input.envelope,
@@ -566,7 +633,7 @@ export function buildAuthorityDomainShards(
           publicationStatus: center.publicationStatus,
           lifecycleStatus: center.lifecycleStatus,
         },
-        sources: [],
+        sources,
         media: {
           cardAvailable: false,
           infographAvailable: false,
@@ -595,6 +662,13 @@ export function buildAuthorityDomainShards(
       neighborhoodCount: Object.keys(neighborhoods).length,
       detailCount: Object.keys(details).length,
       complete: [...memberIds].every((id) => Boolean(neighborhoods[id]) && Boolean(details[id])),
+    },
+    sourceCitations: {
+      ledgerProvided: Boolean(ledgerCitations),
+      ledgerContract: ledgerCitations ? (input.sourceCitationsContract ?? null) : null,
+      nodesWithSources,
+      nodesCappedToLimit,
+      snapshotSourceMappingsPreserved: snapshotCitations.preservedCount,
     },
   };
   if (!coverage.closure.complete) {
