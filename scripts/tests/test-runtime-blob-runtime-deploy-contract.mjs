@@ -667,8 +667,8 @@ assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh
 assert.equal(packageJson.scripts['deploy:all'], 'bash ./scripts/deploy-all-with-runtime-blobs.sh');
 assert.match(
   deployAll,
-  /deploy-runtime-blob-release\.sh" "\$@"/,
-  'combined deployment must forward release arguments only to the runtime operation',
+  /deploy-runtime-blob-release\.sh" "\$@" --stage-only/,
+  'combined fresh publish must stage a non-selectable Runtime before replacing the application',
 );
 assert.match(
   deployAll,
@@ -680,13 +680,26 @@ assert.match(
   /git -C "\$ROOT_DIR" rev-parse HEAD/,
   'combined deployment must take the coordinated application revision from the same git HEAD that build.sh stamps',
 );
-assert.ok(
-  deployAll.indexOf('deploy-runtime-blob-release.sh') < deployAll.indexOf('remote-deploy.sh" --app-only'),
-  'combined deployment must publish runtime before replacing the application',
+assert.match(
+  deployAll,
+  /--stage-only/,
+  'combined fresh publish must keep the new Runtime non-selectable until the app is replaced',
 );
 assert.ok(
-  deployAll.indexOf('remote-deploy.sh" --app-only') < deployAll.indexOf('assert-teaching-projection-app-revision.ts'),
-  'combined deployment must re-assert Teaching Projection against the coordinated app revision after application deploy',
+  deployAll.indexOf('"$@" --stage-only') < deployAll.indexOf('remote-deploy.sh" --app-only'),
+  'combined fresh publish must stage Runtime before replacing the application',
+);
+assert.ok(
+  deployAll.indexOf('unset ACT_RUNTIME_TARGET_APP_REVISION') < deployAll.lastIndexOf('--resume-published-artifact-dir'),
+  'combined fresh publish must select the staged Runtime against the live app revision after deploy',
+);
+assert.ok(
+  deployAll.indexOf('remote-deploy.sh" --app-only') < deployAll.lastIndexOf('--resume-published-artifact-dir'),
+  'combined deployment must select Runtime only after the application is replaced',
+);
+assert.ok(
+  deployAll.lastIndexOf('--resume-published-artifact-dir') < deployAll.lastIndexOf('assert_after_activation'),
+  'combined deployment must re-assert Teaching Projection after Runtime selection',
 );
 assert.match(
   runtimeDeploy,

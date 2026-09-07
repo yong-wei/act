@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Keep runtime and application deployment as two independent operations. The
-# runtime command owns its immutable release arguments; application deployment
-# uses the selected view without redistributing runtime content.
-#
-# Combined deploys publish runtime before replacing the app, so Teaching
-# Projection assertions must target the application revision about to be
-# installed (git HEAD, the same capture build.sh stamps), not the still-running
-# previous container. After app deploy, the same candidate is re-asserted
-# against that coordinated target.
+# Combined deploys must not select a new Runtime while the previous
+# application is still running. Fresh publishes stage a NON_SELECTABLE
+# Runtime against the upcoming git HEAD (the same capture build.sh stamps),
+# replace the app, then resume/select that staged release against the live
+# container. Resume-only combined deploys replace the app first, then select
+# the already published Runtime.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -22,6 +19,7 @@ target_app_revision="$(printf '%s' "$target_app_revision" | tr -d '[:space:]')"
 
 source_revision=""
 resume_artifact_dir=""
+artifact_dir=""
 args=("$@")
 for ((i = 0; i < ${#args[@]}; i++)); do
   case "${args[$i]}" in
@@ -30,6 +28,9 @@ for ((i = 0; i < ${#args[@]}; i++)); do
       ;;
     --resume-published-artifact-dir)
       resume_artifact_dir="${args[$((i + 1))]:-}"
+      ;;
+    --artifact-dir)
+      artifact_dir="${args[$((i + 1))]:-}"
       ;;
   esac
 done
@@ -42,10 +43,35 @@ source_revision="$(printf '%s' "$source_revision" | tr -d '[:space:]')"
   exit 1
 }
 
-export ACT_RUNTIME_TARGET_APP_REVISION="$target_app_revision"
-bash "$ROOT_DIR/scripts/deploy-runtime-blob-release.sh" "$@"
+assert_after_activation() {
+  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts" \
+    --repo-root "$ROOT_DIR" \
+    --source-revision "$source_revision" \
+    --app-revision "$target_app_revision"
+}
+
+if [[ -z "$resume_artifact_dir" ]]; then
+  [[ -n "$artifact_dir" && "$artifact_dir" = /* ]] || {
+    echo "ERROR: deploy:all requires --artifact-dir so the staged Runtime can be selected after the app deploy" >&2
+    exit 1
+  }
+  if [[ -e "$artifact_dir" ]]; then
+    [[ -d "$artifact_dir" && ! -L "$artifact_dir" ]] || {
+      echo "ERROR: --artifact-dir must be an absolute real directory" >&2
+      exit 1
+    }
+  fi
+  export ACT_RUNTIME_TARGET_APP_REVISION="$target_app_revision"
+  bash "$ROOT_DIR/scripts/deploy-runtime-blob-release.sh" "$@" --stage-only
+  unset ACT_RUNTIME_TARGET_APP_REVISION
+  bash "$ROOT_DIR/scripts/remote-deploy.sh" --app-only
+  bash "$ROOT_DIR/scripts/deploy-runtime-blob-release.sh" \
+    --resume-published-artifact-dir "$artifact_dir"
+  assert_after_activation
+  exit 0
+fi
+
 bash "$ROOT_DIR/scripts/remote-deploy.sh" --app-only
-npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts" \
-  --repo-root "$ROOT_DIR" \
-  --source-revision "$source_revision" \
-  --app-revision "$target_app_revision"
+bash "$ROOT_DIR/scripts/deploy-runtime-blob-release.sh" \
+  --resume-published-artifact-dir "$resume_artifact_dir"
+assert_after_activation
