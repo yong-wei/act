@@ -24,6 +24,7 @@ import {
   framePerspectiveCameraToBox,
 } from '@/resources/simulations/scene/camera';
 import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { XUELONG_ICEBREAKER_PARAMS } from '@/resources/simulations/core/constants';
 
 type QaApi = {
   ready: boolean;
@@ -88,7 +89,12 @@ function QaShip({
   const { scene, animations } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
-  const { model, scale, waterlineOffset, podNodes, propNodes } = useMemo(() => {
+  const versioned = url.startsWith(XUE_LONG_2_V0.baseUrl);
+
+  // 装配参数与主仿真页逐分支对齐：版本化 = 声明主尺度/水线/基旋转；
+  // legacy 回退 = bbox 最大边缩放 + DRAFT 垂向推导 + 零基旋转（旧模型已是 +Z 艏），
+  // 否则旧 glb（bbox≈1 单位）以错误尺度/朝向产生假阳性取景断言。
+  const { model, scale, waterlineOffset, basisYawRad, podNodes, propNodes } = useMemo(() => {
     const cloned = cloneSkinnedScene(scene);
     const box = new THREE.Box3().setFromObject(cloned);
     const size = new THREE.Vector3();
@@ -99,28 +105,37 @@ function QaShip({
     cloned.traverse((child) => {
       if (child instanceof THREE.Mesh) child.frustumCulled = false;
     });
-    const calculatedScale = XUE_LONG_2_V0.modelLengthMeters
-      ? 122.5 / XUE_LONG_2_V0.modelLengthMeters
-      : 1;
-    const offset = XUE_LONG_2_V0.verticalAnchor
-      ? (center.y - XUE_LONG_2_V0.verticalAnchor.designWaterlineY) * calculatedScale
-      : 0;
+    if (versioned) {
+      const declaredScale = XUE_LONG_2_V0.modelLengthMeters
+        ? 122.5 / XUE_LONG_2_V0.modelLengthMeters
+        : 1;
+      return {
+        model: cloned,
+        scale: declaredScale,
+        waterlineOffset: XUE_LONG_2_V0.verticalAnchor
+          ? (center.y - XUE_LONG_2_V0.verticalAnchor.designWaterlineY) * declaredScale
+          : 0,
+        basisYawRad: XUE_LONG_2_BASIS_YAW_RAD,
+        podNodes: {
+          port: cloned.getObjectByName('XL2_POD_P') ?? null,
+          starboard: cloned.getObjectByName('XL2_POD_S') ?? null,
+        },
+        propNodes: {
+          port: cloned.getObjectByName('XL2_PROP_P') ?? null,
+          starboard: cloned.getObjectByName('XL2_PROP_S') ?? null,
+        },
+      };
+    }
+    const legacyScale = 122.5 / (Math.max(size.x, size.y, size.z) || 1);
     return {
       model: cloned,
-      scale: calculatedScale,
-      waterlineOffset: offset,
-      podNodes: {
-        port: cloned.getObjectByName('XL2_POD_P') ?? null,
-        starboard: cloned.getObjectByName('XL2_POD_S') ?? null,
-      },
-      propNodes: {
-        port: cloned.getObjectByName('XL2_PROP_P') ?? null,
-        starboard: cloned.getObjectByName('XL2_PROP_S') ?? null,
-      },
+      scale: legacyScale,
+      waterlineOffset: (size.y * legacyScale) * 0.5 - XUELONG_ICEBREAKER_PARAMS.DRAFT,
+      basisYawRad: 0,
+      podNodes: { port: null, starboard: null },
+      propNodes: { port: null, starboard: null },
     };
-  }, [scene]);
-
-  const versioned = url.startsWith(XUE_LONG_2_V0.baseUrl);
+  }, [scene, versioned]);
   useEffect(() => {
     onVersionedMount(versioned);
     return () => onVersionedMount(false);
@@ -151,7 +166,7 @@ function QaShip({
       groupRef.current = node;
       frameTargetRef.current = node;
     }}>
-      <group rotation-y={XUE_LONG_2_BASIS_YAW_RAD}>
+      <group rotation-y={basisYawRad}>
         <primitive object={model} scale={scale} />
         {versioned ? (
           <SemanticBindingsRig
