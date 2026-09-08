@@ -101,4 +101,3 @@ Resource features SHALL preserve baseline attributes and separately derive obser
 - **WHEN** the available event is a click, opening, or path-option selection
 - **THEN** it MAY update usage or preference features
 - **AND** it SHALL NOT be interpreted as answer correctness, mastery, or resource difficulty evidence by itself
-
