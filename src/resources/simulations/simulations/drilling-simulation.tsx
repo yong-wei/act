@@ -976,7 +976,7 @@ export function DrillingSimulation() {
 
       platformStateRef.current.thrusters = allocationResult.thrusters;
 
-      // 实际推力 kN → N：semisub3dof 契约为 SI 单位（N、N·m），内核不再换算（#1943）
+      // 实际推力 kN → N：semisub3dof 契约为 SI 单位（N、N·m），内核不再换算（issue 1943）
       const thrusterForce: [number, number, number] = [
         allocationResult.totalForceX * 1000,
         allocationResult.totalForceY * 1000,

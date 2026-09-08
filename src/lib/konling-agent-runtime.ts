@@ -39,7 +39,7 @@ import { parseAnyRuntimeReleaseManifest } from '@/lib/runtime-release';
 import {
   buildAdaptivePathBatchComparisonView,
   buildAdaptivePathStrategyView,
-} from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
+} from '@/features/personalization/path-planning/public-api';
 import {
   deriveAdaptivePathRuntimeBindingLimitationCodes,
   resolveAdaptivePathNodeRuntimeBindings,
@@ -47,8 +47,8 @@ import {
   type AdaptivePathNodeRuntimeBinding,
   type RuntimeReleaseFileIndex,
   type TeachingProjectionResourceIndex,
-} from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
-import { buildIndexedCandidateResourceRecords } from '@/features/personalization/path-planning/indexed-resource-verification';
+} from '@/features/personalization/path-planning/public-api';
+
 import type { PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
 import { loadPublishedResourceFeatureIndex } from '@/lib/published-resource-index';
 import { attachPublishedResourcesToRegistry } from '@/lib/published-resource-planning';
@@ -58,7 +58,7 @@ import {
   resolveTeachingProjectionStorePaths,
 } from '@/lib/teaching-projection/store';
 import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
-import { buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
+import { buildIndexedCandidateResourceRecords, buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
 import {
   projectGovernedCopilotProfile,
   toServerOwnedUserProfile,

@@ -3,31 +3,31 @@
   "builderVersion": "act-domain-teaching-composition-builder/v1",
   "authorityBinding": {
     "releaseId": "ctr:release:control-theory-engineering-v0.37",
-    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
-    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+    "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373"
   },
   "authoritySelection": {
     "authorityBinding": {
       "releaseId": "ctr:release:control-theory-engineering-v0.37",
-      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
-      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373"
     },
     "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
-    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+    "captureRevision": "13af98237cf88cc650ee2440386e6ebcc54f2b64",
     "nodeIndexDigest": "025e7623f0be2ec4d9e2a928a50d7b2e2ca69753b6d1f686405169d073170c08"
   },
-  "authoringRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
-  "sourceInventoryDigest": "c7bee3cb356dde042f877e1f38cb9aa8624b214d251a62f66186c9e91fec26d5",
-  "authorityDigest": "e8d1dd3f873a57765ed9b8b50a07fd205d82a7acb59a77f09cbb680976f9060d",
+  "authoringRevision": "13af98237cf88cc650ee2440386e6ebcc54f2b64",
+  "sourceInventoryDigest": "9bed4f5de2dd35f1c6c977c82bd12253e5c0340aaad8d209b1ee5f7c6ca23263",
+  "authorityDigest": "d6cc1b4416457a75d151fe7515579cda0cfe34c82b578f3eb13c75e05952c90d",
   "fragments": [
     {
       "order": 0,
-      "fragmentId": "dtf-e818143e1ca125bc8f30a1dd35d1cf076339b8908c7b3c5a6dcb96422a2fe63b",
+      "fragmentId": "dtf-8660ce8a578e17f56a0160cb522fa6f2a7c6c8f47a6f88d5b633f9c92f362fc6",
       "fragmentKey": "foundation-published-v1",
       "fragmentVersion": "1",
-      "fragmentDigest": "e818143e1ca125bc8f30a1dd35d1cf076339b8908c7b3c5a6dcb96422a2fe63b",
+      "fragmentDigest": "8660ce8a578e17f56a0160cb522fa6f2a7c6c8f47a6f88d5b633f9c92f362fc6",
       "sourceInventoryDigest": "a6065975057175f73fa29f2346e85eeb2514bed6ba7d08a580b1e03bb13b581c",
       "domainKeys": [
         "stability-analysis",
@@ -106,10 +106,10 @@
   "gateStatus": "PUBLISHED",
   "gatePassed": true,
   "sourceHashes": {
-    "fragments": "9ae58dd16ddf742465adda9b957d65f0e0c4047037b8d6c7d8869412c65ba39b",
-    "sourceInventory": "c7bee3cb356dde042f877e1f38cb9aa8624b214d251a62f66186c9e91fec26d5",
-    "body": "d851d9b59c6bc6a6f859a9a203f768187ef536bd30288ab3bccf166662216e12"
+    "fragments": "5a164d5f050c78dc20086d30a5122fccedc476dd6492448a3854d99be536e3e7",
+    "sourceInventory": "9bed4f5de2dd35f1c6c977c82bd12253e5c0340aaad8d209b1ee5f7c6ca23263",
+    "body": "d9d414ef3a7e44ff9b89791a6e288a37a77034b4c406998dffb0de138899af19"
   },
-  "projectionId": "proj-95e41dd9695c0bb967dd06b6e264e9e58308afb059fd31389f68e65be7e0c6f7",
-  "projectionHash": "95e41dd9695c0bb967dd06b6e264e9e58308afb059fd31389f68e65be7e0c6f7"
+  "projectionId": "proj-4d8fa75de528714fa75be4139b4c2a4542a282730798c63cfbfd6dc987504990",
+  "projectionHash": "4d8fa75de528714fa75be4139b4c2a4542a282730798c63cfbfd6dc987504990"
 }

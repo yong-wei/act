@@ -704,10 +704,16 @@ describe('universal AppShell frame contract', () => {
       );
       if (!isOrdinaryProductException) continue;
 
+      // 非通配的具体路径允许作为孤立 QA 验收表面（visual-review-only）登记；
+      // 通配的产品族例外仍然只能是临时阻塞类别。
+      const isConcreteQaSurface = exception.category === 'visual-review-surface'
+        && exception.type === 'visual-review-only'
+        && !exception.routePattern.includes('*');
       expect(
-        ['legacy-lesson-runtime', 'classroom-runtime', 'redirect-shim', 'print-surface', 'embed-surface'].includes(
-          exception.category,
-        ),
+        isConcreteQaSurface
+          || ['legacy-lesson-runtime', 'classroom-runtime', 'redirect-shim', 'print-surface', 'embed-surface'].includes(
+            exception.category,
+          ),
         exception.routePattern,
       ).toBe(true);
       expect(exception.removalCondition, exception.routePattern).toMatch(

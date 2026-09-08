@@ -1,23 +1,23 @@
 {
-  "sourceRevision": "ca394e872a457aa646bac64061e0a320bac155ae",
-  "sourceTree": "68167a73f69e88f88de0891bb3ea8025658b0015",
+  "sourceRevision": "c253a4bdee893ae877dca8ab8f1d2468548e6615",
+  "sourceTree": "356eb70b25f899fecc543bc264c4737c09f8c2d7",
   "generatedInputs": [],
   "counts": {
     "course-content/scripts": 41,
-    "scripts/knowledge": 7,
-    "scripts/knowledge-cutover": 76,
-    "scripts/runtime-release": 42,
+    "scripts/knowledge": 19,
+    "scripts/knowledge-cutover": 80,
+    "scripts/runtime-release": 44,
     "scripts/release": 5
   },
   "roleCounts": {
     "reader": 22,
-    "compiler": 69,
-    "validator": 13,
-    "operator-adapter": 48,
+    "compiler": 83,
+    "validator": 15,
+    "operator-adapter": 50,
     "candidate-adapter": 13,
     "publication-writer": 6
   },
-  "commandCount": 171,
+  "commandCount": 189,
   "commands": [
     {
       "path": "course-content/scripts/authority-cards/README.md",
@@ -395,7 +395,7 @@
       "owner": "knowledge",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "62c7d43f09fabfb2e3ff983892e7e805b46bfc303222c4989c22324022b103e0"
+      "contentHash": "159bb7eb93050b54c566a5eb77069e32ac56972353d7266acd720dee6df05cd7"
     },
     {
       "path": "scripts/knowledge-cutover/activate-actkg-v022-production-cutover.ts",
@@ -575,7 +575,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "bd4815ea627c6f7b392a5fe6ccefaa31d4faf5ac78c79b0b0708e7d82eb0a4e8"
+      "contentHash": "e6a12a1647f04cc638f5e24ce93f493b1f0a885f347fe5be8c526922e3e0e0bb"
     },
     {
       "path": "scripts/knowledge-cutover/build-v037-knowledge-surfaces.ts",
@@ -593,7 +593,16 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "bca84fdf3d5a7bccbee5f7896d8ed81d0b85d9d9b27acc5314b1942cc99427c0"
+      "contentHash": "484bb62af5ef98e37565078a1db1954fff6042ab564f9727fa0601b955d2f0ee"
+    },
+    {
+      "path": "scripts/knowledge-cutover/build-v037-r5-locale-qualification.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/build-v037-r5-locale-qualification.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "ce26ac2cd7e3e56f72bbedfca50a8f51a7d79c46c6b5000c93e68bc74975ebf7"
     },
     {
       "path": "scripts/knowledge-cutover/capture-active-course-runtime-sources.ts",
@@ -720,6 +729,15 @@
       "role": "compiler",
       "safetyMode": "apply-gated",
       "contentHash": "102127b8c1d81f40128fcbf0d87f329c11f313091ea6df7d22f4a198552f098b"
+    },
+    {
+      "path": "scripts/knowledge-cutover/install-successor-control-plane-overlays.py",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/install-successor-control-plane-overlays.py",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "0b29a948f593ea950843725ec7c9ca647ab4c7212c9e4bf68288f82c25691169"
     },
     {
       "path": "scripts/knowledge-cutover/negative-acceptance-remediation.ts",
@@ -983,6 +1001,15 @@
       "contentHash": "cc24f7144314ca762fbac4575e83886883e41f0664b814f3388dd71109313829"
     },
     {
+      "path": "scripts/knowledge-cutover/remote-install-successor-control-plane-overlays.sh",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/remote-install-successor-control-plane-overlays.sh",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "d288d160255a2e6de72fbffa4660a64e075798f046992840ea46f6d69383634c"
+    },
+    {
       "path": "scripts/knowledge-cutover/remote-production-cutover.sh",
       "commandId": "release:knowledge-release:scripts/knowledge-cutover/remote-production-cutover.sh",
       "toolchain": "knowledge-release",
@@ -1034,7 +1061,7 @@
       "owner": "knowledge",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "62a6ad9b4c3169d8498e47bc23605f41c9bfc0ec3f68b2ec0a6aee1cce6e2cf9"
+      "contentHash": "cea6171c9c105651eb3061becb816212c00984a0dd5a8a34999cd4e07926f179"
     },
     {
       "path": "scripts/knowledge-cutover/seal-remediation-handoff.ts",
@@ -1052,7 +1079,16 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "5c333bad63d1e92845fe61c9bee6e355641c7df80de40b1f88053d06a84bc621"
+      "contentHash": "0bc5e6fbb066c76c7cc4d1ec2a568c9222afb284bd6514c5cf9ba53b95d950b3"
+    },
+    {
+      "path": "scripts/knowledge-cutover/stage-successor-domain-teaching-runtime.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/stage-successor-domain-teaching-runtime.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "9e477db2faa636956d0e7659c25588c8acfbdd0a5ac082132b084a2412e689e4"
     },
     {
       "path": "scripts/knowledge-cutover/verify-actkg-v018-host-shadow.ts",
@@ -1061,7 +1097,7 @@
       "owner": "knowledge",
       "role": "validator",
       "safetyMode": "read-only",
-      "contentHash": "8e7e471ce7732dd6ad938b9c1782e2036e42d57d2ec3cc873690447acacf0b8a"
+      "contentHash": "9955c1dad45b7a648f040d31bbc0b4844cbc22c20564c83e460f199d22a5925b"
     },
     {
       "path": "scripts/knowledge-cutover/verify-r4-authority-presentation-labels.ts",
@@ -1073,6 +1109,33 @@
       "contentHash": "08074145a30f01b502a8af8e4f6dfd0a0f3ca31c7c9cfe8fb45175306ef228cb"
     },
     {
+      "path": "scripts/knowledge/assert-teaching-projection-app-revision.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/assert-teaching-projection-app-revision.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "afb3716cd483e685ae6365737724f9e43e6d8674437e4709a5a6c23994eaf441"
+    },
+    {
+      "path": "scripts/knowledge/check-authority-surface-linkage.mjs",
+      "commandId": "release:knowledge-release:scripts/knowledge/check-authority-surface-linkage.mjs",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "050f95ef57e4c900d7364b5e223069e2b35be0e4e510197cb7e44bd5255c1f61"
+    },
+    {
+      "path": "scripts/knowledge/check-release-learning-content-closure.mjs",
+      "commandId": "release:knowledge-release:scripts/knowledge/check-release-learning-content-closure.mjs",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "5ff642791d5131c45208eacbaccaff866f9564c48f830d5d92cff18adfeafb81"
+    },
+    {
       "path": "scripts/knowledge/check-runtime-relation-coverage.ts",
       "commandId": "release:knowledge-release:scripts/knowledge/check-runtime-relation-coverage.ts",
       "toolchain": "knowledge-release",
@@ -1080,6 +1143,69 @@
       "role": "validator",
       "safetyMode": "read-only",
       "contentHash": "ad06c3acfb2f886e2051e2f09e651d78ee90d92767d3f3a180b0faa73eb82f64"
+    },
+    {
+      "path": "scripts/knowledge/engineering-textbook-mapping/apply-review-batch.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/engineering-textbook-mapping/apply-review-batch.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "743c4e924982d58f72cc716b469a7550c562a579bf6a2d7a9f3af38ffa4476e1"
+    },
+    {
+      "path": "scripts/knowledge/engineering-textbook-mapping/build-coverage.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/engineering-textbook-mapping/build-coverage.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "4f8290cbe957b9f2bce0740198e031ff5cd05c28968dcec9a3361410e3f8c1be"
+    },
+    {
+      "path": "scripts/knowledge/engineering-textbook-mapping/build-denominator.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/engineering-textbook-mapping/build-denominator.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "3cb8ce1ab053e26c0318b7d85941b5153f9c810930a9b398cf9a6f9328ab9c05"
+    },
+    {
+      "path": "scripts/knowledge/engineering-textbook-mapping/build-review-work.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/engineering-textbook-mapping/build-review-work.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "8968672d50668d09fd61190ac6ff6c3f312d0a9fcb6aea19595a12b5d8c2221f"
+    },
+    {
+      "path": "scripts/knowledge/engineering-textbook-mapping/emit-crosswalk-and-sources.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/engineering-textbook-mapping/emit-crosswalk-and-sources.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "dc19442ce6f68c11f630574fd4418218da67062ccc72352d26aa8b4791e547e8"
+    },
+    {
+      "path": "scripts/knowledge/engineering-textbook-mapping/generate-candidates.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/engineering-textbook-mapping/generate-candidates.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "ed33deb4530c96d015503c2041f85b56871d93cc34030ce7c75c0e041663f20a"
+    },
+    {
+      "path": "scripts/knowledge/export-authority-learning-content-v2.py",
+      "commandId": "release:knowledge-release:scripts/knowledge/export-authority-learning-content-v2.py",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "7ce14e8f2ec2dad741c7dd2eba73afc57373a2f6ee50982bdb113694939b4935"
     },
     {
       "path": "scripts/knowledge/generate-cross-domain-teaching.ts",
@@ -1133,7 +1259,25 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "22729bab26db5974641f5d96426e756fdaa8951e18537bcda9203272ec4571e4"
+      "contentHash": "8fa6f53217493f13786b60759ac8c946c31b2daef5c7609bb08ad0c54059c32a"
+    },
+    {
+      "path": "scripts/knowledge/rebuild-engineering-learning-order-prerequisites.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/rebuild-engineering-learning-order-prerequisites.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "efcb36df3f2d183ffae8ce1d62d7407d116c606d50b718521917a018061051b5"
+    },
+    {
+      "path": "scripts/knowledge/restage-runtime-teaching-bindings.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/restage-runtime-teaching-bindings.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "cf07461f4016782b50e4924871704733181337ef0066db6a3898471a6ea101d0"
     },
     {
       "path": "scripts/release/export-textbook-runtime-v2.mjs",
@@ -1223,7 +1367,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "78d7269a9bf15417759fd20e642e4ac7a00107988d1fa8fa97f625552c0965f1"
+      "contentHash": "45dc31c8b67a480fb00ba03976c6cd90d6ee9e7a4fed8dd49e0f7b671b340f68"
     },
     {
       "path": "scripts/runtime-release/activate-runtime-release.sh",
@@ -1277,7 +1421,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "0afb8ee1016ea663818329a03a8beab9e8565501823744e205a4543909a4148b"
+      "contentHash": "06ba64b588bb7c5fca0b65fbbc7de7d66e238d816bcec37b92ffc220c0546850"
     },
     {
       "path": "scripts/runtime-release/developer-oss/act-runtime-dev-read.policy.json",
@@ -1295,7 +1439,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "8489f018f44afdc7b1c2fcdd89f2ffad227881279504f1e632172c6b8cd08299"
+      "contentHash": "074c0e7634d28afe6a76ce7df02e9fda2a4a2f1e880b27dced928f91ac76bf85"
     },
     {
       "path": "scripts/runtime-release/developer-oss/cli.py",
@@ -1304,7 +1448,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "80edf6153d0a43e9bcb307d7b7047df070021fbc7a56db528352631e1224c19c"
+      "contentHash": "0eb28708cf5ddf48f8352e8a923568ddbe87ce8cb23cd4b479a52bd1493fd83e"
     },
     {
       "path": "scripts/runtime-release/developer-oss/common.py",
@@ -1313,7 +1457,16 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "6a89201a6fc49d6d1c55c9d940119899649ae943b486b3c4cf79e63e41770368"
+      "contentHash": "8b374817b9d88b3293078c7c1df013369994e6d02ee35fada79ab72535f225a0"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/consumer_readiness.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/consumer_readiness.py",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "fa838fdaab0fc8666346c4bc6d457f6e2d9be318b7ea37abd15918f32e656763"
     },
     {
       "path": "scripts/runtime-release/developer-oss/credential.py",
@@ -1322,7 +1475,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "9aae041d3d26765f553cf276d24f34b76cabe0c5056d3912380f61d6b0dcb783"
+      "contentHash": "6d7319bf709d32338bf1546909d73dc6cbb9c8c51386ae479d2265c0000b59b8"
     },
     {
       "path": "scripts/runtime-release/developer-oss/gateway_client.py",
@@ -1331,7 +1484,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "6aeb93a18aaaaf04dbe4a6028d420cfdc1671c816b32846f58651b020d471bf1"
+      "contentHash": "7dd9511a582736bd43139cb09475c2080af3e9bfd0702457780592c0ddad8505"
     },
     {
       "path": "scripts/runtime-release/developer-oss/gateway_fuse.py",
@@ -1340,7 +1493,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "cf385d5c6de0081600e2b28b296d8bf6f0eac51a12117ed30a0891814312641a"
+      "contentHash": "fc3dd9e72ebbaf1bda4b3f80f8a9c6326c130c969ed8754b5f2ad929b8cf165e"
     },
     {
       "path": "scripts/runtime-release/developer-oss/gateway_host.py",
@@ -1349,7 +1502,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "3b1269e0a812677c4d085e7c56d210a7bb10f72eb4b66953b0827ef18e20a6b4"
+      "contentHash": "2cfb457b5d39e54f015000ff5b619c4afb0fec10f530d75d56792b0e34654a46"
     },
     {
       "path": "scripts/runtime-release/developer-oss/gateway_http.py",
@@ -1358,7 +1511,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "99f7d04792ddc663df93e11a9d0ce1f1fe0c82b86bce4764dd89ad1decddb762"
+      "contentHash": "dcf43f1cd2b19db41381435fe30b900c6171fce9517185da1c883378cf181438"
     },
     {
       "path": "scripts/runtime-release/developer-oss/gateway_service.py",
@@ -1367,7 +1520,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "0df2c517e20abadccb4ac4754e701b55a10849e1f7be1e92ed3dba0b42b54db2"
+      "contentHash": "c4e6f4e2f771f79539e99a686bf74ddf235cf01db78c302f3e74fee2b7fb0a30"
     },
     {
       "path": "scripts/runtime-release/developer-oss/gateway_token.py",
@@ -1403,7 +1556,16 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "0946c39c2d7479ced7a7d0d6fb70795e743ec46bf27c0330e5bc4e063e20748d"
+      "contentHash": "d2aad9c91c5735877fe21e44800f8cd63e5bc85e8b0dd71bf162a75e2f39e0dd"
+    },
+    {
+      "path": "scripts/runtime-release/developer-oss/runtime_requirements.json",
+      "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/runtime_requirements.json",
+      "toolchain": "runtime-release",
+      "owner": "platform",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "8227e1cb512b707c6c121688b811118e58b5566e4d0a6e4aacbb61924006c3ed"
     },
     {
       "path": "scripts/runtime-release/developer-oss/shared_mount.py",
@@ -1412,7 +1574,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "97d45375d276dc29361778b6f2f32845bdb6b12356bd0e7f9f0c72e6df98a897"
+      "contentHash": "8ca4479e7854a25c3ee488d1bf09e7bfa194bd0d1f4e6e2d2425697bfa4804b9"
     },
     {
       "path": "scripts/runtime-release/execute-production-runtime-cutover.sh",
@@ -1439,7 +1601,7 @@
       "owner": "platform",
       "role": "publication-writer",
       "safetyMode": "apply-gated",
-      "contentHash": "30e43403786327a34c23307197f08ebeb5476e63aa2323c361a66eb9f6bd3c13"
+      "contentHash": "d6e177f19e03a3a67ff22b2d7d2258cca90fcc429be17ee1832abed82f5b0205"
     },
     {
       "path": "scripts/runtime-release/perform-production-runtime-cutover.sh",
@@ -1493,7 +1655,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "86d007a3152a3bcbb0441578ef88da26fb5b6a76bc6b4d72e0b8a0531380bbbb"
+      "contentHash": "a4a8b123c40d57b864a640550321417331dcd2b856983961a4a4ca59bf90a32f"
     },
     {
       "path": "scripts/runtime-release/runtime-blob-release-gc.py",
@@ -1511,7 +1673,7 @@
       "owner": "platform",
       "role": "publication-writer",
       "safetyMode": "apply-gated",
-      "contentHash": "6f362ba6c1010819f441a8a5a592df882952e62bc01c6e10052d1e4275a0dbc4"
+      "contentHash": "a9954ee67e59c6a607f06db5083abaea849305ce35748d338a8d18795a032daa"
     },
     {
       "path": "scripts/runtime-release/runtime-media-inventory.ts",
@@ -1529,7 +1691,7 @@
       "owner": "platform",
       "role": "reader",
       "safetyMode": "read-only",
-      "contentHash": "58f496233b7fbf1ad0eb6fec9cd67a34b7ddaed6eb6364fe0b4bc67815ecf519"
+      "contentHash": "2d3c43c24fb58235c14f53bc586a0060803314373e858d921dfc245513a4deaf"
     },
     {
       "path": "scripts/runtime-release/runtime-release-oss-publisher-bridge.py",

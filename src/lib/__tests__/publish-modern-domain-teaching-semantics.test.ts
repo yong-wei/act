@@ -16,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 import {
   composeDomainTeachingProjection,
   detectDomainRequiredCycles,
+  LIVE_AUTHORITY_DOMAIN_TEACHING_BINDING,
   liveAuthorityEnvelopeForModernControl,
   MODERN_CONTROL_AUTHORITY_RELATIVE,
   MODERN_CONTROL_CATALOG_RELATIVE,
@@ -95,7 +96,7 @@ describe('publish-modern-domain-teaching-semantics', () => {
     }
     expect(envelope.nodes.every((node) => node.lifecycleStatus === 'active')).toBe(true);
     expect(envelope.binding.snapshotId).toBe(
-      'snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae',
+      LIVE_AUTHORITY_DOMAIN_TEACHING_BINDING.snapshotId,
     );
   });
 

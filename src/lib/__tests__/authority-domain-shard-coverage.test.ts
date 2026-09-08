@@ -625,7 +625,7 @@ describe('pre-change denominator baseline (#1738 task 1.1)', () => {
   it('anchors the recorded baseline to the sealed historical shard set', () => {
     const baseline = JSON.parse(readFileSync(path.join(
       process.cwd(),
-      'openspec/changes/establish-three-level-authority-graph-navigation/baseline.json',
+      'openspec/changes/archive/2026-09-01-establish-three-level-authority-graph-navigation/baseline.json',
     ), 'utf8')) as {
       sourceShardSetId: string;
       catalogDomainCount: number;

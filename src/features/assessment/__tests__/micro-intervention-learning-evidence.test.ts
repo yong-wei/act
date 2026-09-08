@@ -222,7 +222,8 @@ describe('micro-intervention learning evidence', () => {
       evidenceId: 'src',
       canonicalNodeId: 'kn:autocontrol:controller-correction',
       isCorrect: true,
-      occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+      // 衰减窗口（14 天）内的新鲜证据：绝对日期会随墙钟漂移过窗。
+      occurredAt: new Date(Date.now() - 60_000),
     }]);
     expect(consumed[0]?.profileWeight).toBe(0.25);
     expect(JSON.stringify([...outbox.values()])).not.toContain('source-q-1');
@@ -278,7 +279,7 @@ describe('micro-intervention learning evidence', () => {
       evidenceId: 'mi-1',
       knowledgeTag: 'phase-margin',
       isCorrect: true,
-      occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+      occurredAt: new Date(Date.now() - 60_000),
       profileWeight: 0.25,
       limitations: ['not-terminal-mastery'],
     }];
@@ -305,7 +306,7 @@ describe('micro-intervention learning evidence', () => {
         evidenceId: 'src',
         canonicalNodeId: 'kn:autocontrol:controller-correction',
         isCorrect: true,
-        occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+        occurredAt: new Date(Date.now() - 60_000),
       }]),
     });
     expect(mapped[0]?.knowledgeTag).toBe('control-correction');
@@ -323,7 +324,7 @@ describe('micro-intervention learning evidence', () => {
           evidenceId: 'pass',
           canonicalNodeId: 'kn:autocontrol:controller-correction',
           isCorrect: true,
-          occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+          occurredAt: new Date(Date.now() - 60_000),
         },
         {
           evidenceId: 'fail',
@@ -356,7 +357,7 @@ describe('micro-intervention learning evidence', () => {
           evidenceId: 'pass',
           canonicalNodeId: 'kn:autocontrol:controller-correction',
           isCorrect: true,
-          occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+          occurredAt: new Date(Date.now() - 60_000),
         },
         {
           evidenceId: 'fail',
@@ -517,14 +518,14 @@ describe('micro-intervention learning evidence', () => {
       evidenceId: 'src',
       canonicalNodeId: 'kn:autocontrol:controller-correction',
       isCorrect: true,
-      occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+      occurredAt: new Date(Date.now() - 60_000),
     }]);
     expect(evidence.map((item) => item.knowledgeTag)).toEqual(['control-correction']);
     expect(applyMicroInterventionMasteryPolicy([{
       evidenceId: 'src',
       canonicalNodeId: 'kn:autocontrol:simulation-validation',
       isCorrect: true,
-      occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+      occurredAt: new Date(Date.now() - 60_000),
     }]).map((item) => item.knowledgeTag)).toEqual(['simulation-validation-practice']);
 
     const answerId = 'answer-goal';
@@ -532,7 +533,7 @@ describe('micro-intervention learning evidence', () => {
       id: answerId,
       questionId: 'control-correction-practice-01',
       isCorrect: true,
-      answeredAt: new Date('2026-08-21T00:10:00.000Z'),
+      answeredAt: new Date(Date.now() - 30_000),
       knowledgeTags: ['control-correction', 'practice'],
     }], {
       consumeMicroInterventionEvidence: true,
@@ -550,7 +551,7 @@ describe('micro-intervention learning evidence', () => {
         evidenceId: 'mi-1',
         knowledgeTag: 'phase-margin',
         isCorrect: true,
-        occurredAt: new Date('2026-08-21T00:05:00.000Z'),
+        occurredAt: new Date(Date.now() - 60_000),
         profileWeight: 0.25,
         limitations: [],
       }],

@@ -5,20 +5,20 @@
   "domainId": "state-space-control-analysis-and-design",
   "authorityBinding": {
     "releaseId": "ctr:release:control-theory-engineering-v0.37",
-    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
-    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+    "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373"
   },
   "authoritySelection": {
     "authorityBinding": {
       "releaseId": "ctr:release:control-theory-engineering-v0.37",
-      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
-      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373"
     },
     "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
-    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
-    "nodeIndexDigest": "76bc76cac975c8ace294fb4d51d726a927ec0dd2b537181cd6fee1dc389dacf5"
+    "captureRevision": "13af98237cf88cc650ee2440386e6ebcc54f2b64",
+    "nodeIndexDigest": "65d089254f5a0331a3a7fb75eb8783fd3b0702ac7e9ca8648559ea66973fde5a"
   },
   "authorityNodeIds": [
     "ctc:0f418dc24d2aacaaafdcdcc0",
@@ -87,7 +87,6 @@
     "ctc:modeling-3d5825588c001e4faf3af7bc",
     "ctc:modeling-3d919906545f3c2891c3f444",
     "ctc:modeling-405a39dbba1f6754b8e08afc",
-    "ctc:modeling-423b845366304dc755fefcea",
     "ctc:modeling-42946f0d5ec8b73ea7158b0d",
     "ctc:modeling-42c9620057d98bfd31df8233",
     "ctc:modeling-42e60317a7f829d9743436fb",
@@ -278,7 +277,6 @@
     "ctc:modeling-f657ca93b0857c4560ba8c77",
     "ctc:modeling-f67b645861d91ec61618959b",
     "ctc:modeling-f6875bd8fd4ad1250d8980d8",
-    "ctc:modeling-f6940765c7e8e5b74be204e0",
     "ctc:modeling-f6fc65484fb95cf89b67364f",
     "ctc:modeling-f7f31cc3da9f59e28b9239f5",
     "ctc:modeling-fc65ded76a1e17c5fddcbd66",
@@ -453,7 +451,6 @@
     "ctf:631bd83b6d92380a201d685d",
     "ctf:6506e9a1e1f7fb090f870abd",
     "ctf:6781ef0b1900205a1bbc84eb",
-    "ctf:68d4b357bceeebe4ef1c7a35",
     "ctf:6bb69269cefda5a399015db9",
     "ctf:6d0d3992bf6535b1f06ff4c8",
     "ctf:6eab18bbd6dcea5868101887",
@@ -483,7 +480,6 @@
     "ctf:8c9779217d0d5bff8891efa8",
     "ctf:8d42320f80e84f5a040c41c4",
     "ctf:8d7c027b3b3b4751e5052156",
-    "ctf:8f245a09ee5140ef7cb0829e",
     "ctf:8fd11ec93afa6a1637e88767",
     "ctf:8fe1e822af07bcef20f11f28",
     "ctf:8ff23a59b555f8c892879807",
@@ -7529,5 +7525,5 @@
       "reason": "非 catalog 工程邻接不是 ACT_TEACHING 证据，明确排除出本地分片。"
     }
   ],
-  "sourceDigest": "bf7c571ec9a0d63bb81504ef25974f7bc519a1c153fc443683ddae621cb24338"
+  "sourceDigest": "2effd8da2d4874f0877414f96ac1137f72e6b904e2f813106d99d0114435c841"
 }

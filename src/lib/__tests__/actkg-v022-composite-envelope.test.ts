@@ -20,6 +20,8 @@ describe('v0.22 composite envelope registry', () => {
       'control-theory-engineering-v0.9',
       'control-theory-engineering-v0.18',
       'control-theory-engineering-v0.22',
+      // v0.37 envelope 自 #1741 双语权威图谱切换起登记（#2061 更新为 r6 快照身份）。
+      'control-theory-engineering-v0.37',
     ]);
   });
 

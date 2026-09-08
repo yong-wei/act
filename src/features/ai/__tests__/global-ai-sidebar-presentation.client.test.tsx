@@ -17,6 +17,7 @@ const testState = vi.hoisted(() => ({
   chatError: null as Error | null,
   closeSidebar: vi.fn(),
   suppressDock: vi.fn(() => vi.fn()),
+  setStreamingOrComposing: vi.fn(),
 }));
 
 vi.mock('@/hooks/useLegacyChat', async () => {
@@ -112,6 +113,7 @@ vi.mock('@/components/providers/global-ai-provider', () => ({
     quickQuestions: [],
     clearUnread: vi.fn(),
     pathname: '/workspace',
+    setStreamingOrComposing: testState.setStreamingOrComposing,
   }),
 }));
 

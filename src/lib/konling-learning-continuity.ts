@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { buildAdaptivePracticePathExecutionHref } from '@/lib/adaptive-practice-path-navigation';
+import { buildAdaptivePracticePathExecutionHref } from '@/lib/practice-path-navigation';
 
 export type KonlingContinuityState = 'unfinished_task' | 'recent_mistake' | 'cold_start';
 

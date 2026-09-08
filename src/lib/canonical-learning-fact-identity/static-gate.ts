@@ -37,6 +37,10 @@ const ADAPTER_CALL_MARKERS = [
   'writeKnowledgeScopedLearningFacts',
   'writeLegacyKnowledgeScopedLearningFacts',
   'writeCanonicalKnowledgeScopedLearningFacts',
+  // #1583 统一摄取后，worker 经 learning-record ingestion 公开入口写入，
+  // 该管线内部完成 adapter 裁决、边界检查与去重，同为受管 canonical 入口。
+  'ingestLearningFact',
+  'applyStagedLearningFactIngestions',
 ];
 
 // Built from fragments so this gate module is not classified as a sink itself.

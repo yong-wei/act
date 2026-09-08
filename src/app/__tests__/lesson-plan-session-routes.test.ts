@@ -37,6 +37,8 @@ const mocks = vi.hoisted(() => ({
     $executeRaw: vi.fn(),
     smartCoursewarePublicationRevision: { findUnique: vi.fn() },
     classSessionIntegrityIncident: { upsert: vi.fn() },
+    // 85e724a 起会话结束经 watermark closure 写 sessionClosureOutbox。
+    sessionClosureOutbox: { create: vi.fn() },
     lessonPlan: {
       create: vi.fn(),
       findUnique: vi.fn(),
@@ -945,7 +947,14 @@ describe('lesson plan empty-item guards', () => {
       coursewareDisplayName: identity.displayName,
       coursewareRevisionNumber: 1,
       coursewarePlanRevisionNumber: 2,
+      // watermark closure（85e724a）：结束事务读取提交序号与闭包修订号。
+      submissionSequence: 7,
+      closureRevision: 3,
+      acceptedSubmissionWatermark: 6,
+      plan: { title: identity.displayName },
+      class: { name: '2026 控制班' },
     });
+    mocks.prisma.$transaction.mockImplementation(async (operation) => operation(mocks.prisma));
     mocks.prisma.classSession.update.mockResolvedValue({
       id: 'session-v1',
       joinCode: '123456',

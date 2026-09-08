@@ -128,7 +128,7 @@ interface SimulationMetrics {
 }
 
 /**
- * 定位精度告警（#1944）：与伦理红线解耦的独立告警通道——误差持续超限才触发，
+ * 定位精度告警（issue 1944）：与伦理红线解耦的独立告警通道——误差持续超限才触发，
  * 恢复到清理阈值后自动解除（滞回），HUD 不再显示「伦理违规」。
  */
 const POSITION_ALARM_THRESHOLD_M = 0.1;
@@ -396,7 +396,7 @@ function HUD({
         </CardContent>
       </Card>
 
-      {/* 定位精度告警（与伦理红线解耦，#1944） */}
+      {/* 定位精度告警（与伦理红线解耦，issue 1944） */}
       {positionAlarm && (
         <Card className={`w-64 border-[hsl(var(--platform-brand-evidence)/0.35)] bg-[hsl(var(--platform-brand-evidence)/0.12)] ${simulationUi.panel}`}>
           <CardHeader className="py-2">
@@ -765,7 +765,7 @@ export function DredgerSimulation() {
     const stepSimulation = (dt: number) => {
       timeRef.current += dt;
 
-      // 扰动 = 挖掘冲击 + 风流定常环境载荷（Rust 统一契约 #1944，含方向分解）
+      // 扰动 = 挖掘冲击 + 风流定常环境载荷（Rust 统一契约 issue 1944，含方向分解）
       const dredging = config.dredgingEnabled
         ? dredgingModelRef.current.compute(timeRef.current)
         : { forceX: 0, forceY: 0, momentN: 0 };
@@ -821,7 +821,7 @@ export function DredgerSimulation() {
         dpStateRef.current = dpResult.newState;
         rudderCommand = dpResult.output.rudderCommand;
         dpMetrics = dpResult.metrics;
-        // 四通道执行（#1944）：DP 推力经 mmg3dof 可选入口直接驱动被控对象
+        // 四通道执行（issue 1944）：DP 推力经 mmg3dof 可选入口直接驱动被控对象
         //（含倒车/反向推力），rpm 路径置零避免螺旋桨推力重复计入。
         thruster = {
           surgeKN: dpResult.output.surgeThrust / 1000,
@@ -848,7 +848,7 @@ export function DredgerSimulation() {
           }
         } else if (!alarm.active || dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
           // 未激活时回到阈值内即重置连续计时（防止两段短超限拼接提前触发，
-          // review #1944）；已激活时保留 0.05m 清除滞回。
+          // review issue 1944）；已激活时保留 0.05m 清除滞回。
           alarm.since = null;
           if (alarm.active && dpMetrics.positionError < POSITION_ALARM_CLEAR_M) {
             alarm.active = false;
@@ -856,7 +856,7 @@ export function DredgerSimulation() {
           }
         }
       } else {
-        // 切离 DP 模式（review #1944）：告警仅对 DP 定位语义有效，离开即复位
+        // 切离 DP 模式（review issue 1944）：告警仅对 DP 定位语义有效，离开即复位
         const alarm = positionAlarmRef.current;
         if (alarm.since !== null || alarm.active) {
           positionAlarmRef.current = { since: null, active: false };
@@ -876,7 +876,7 @@ export function DredgerSimulation() {
         profile.dimensions.draft,
         disturbance,
         thruster,
-        // 扰动按世界系表达传入（挖掘+风流），由 Rust 契约旋入船体系（review #1944）
+        // 扰动按世界系表达传入（挖掘+风流），由 Rust 契约旋入船体系（review issue 1944）
         true
       );
 
@@ -935,7 +935,7 @@ export function DredgerSimulation() {
   const handlePause = () => setIsRunning(false);
   const handleReset = () => {
     setIsRunning(false);
-    // DP 定位从静止开始（#1944）：不再带 2 m/s 前进初速
+    // DP 定位从静止开始（issue 1944）：不再带 2 m/s 前进初速
     mmgStateRef.current = createMMG3DOFState(0, 0, 0, 0);
     dpStateRef.current = createDPState();
     dredgingModelRef.current.reset();
@@ -963,7 +963,7 @@ export function DredgerSimulation() {
     if ('dredgingEnabled' in updates) {
       dredgingModelRef.current.setEnabled(updates.dredgingEnabled ?? true);
     }
-    // 告警只对 DP 定位语义有效：模式切换即时复位（含暂停状态，review #1944）
+    // 告警只对 DP 定位语义有效：模式切换即时复位（含暂停状态，review issue 1944）
     if (updates.controlMode && updates.controlMode !== 'dp') {
       positionAlarmRef.current = { since: null, active: false };
       setPositionAlarm(null);

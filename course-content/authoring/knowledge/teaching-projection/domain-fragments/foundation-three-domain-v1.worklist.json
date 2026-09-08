@@ -4,19 +4,19 @@
   "fragmentVersion": "1",
   "authorityBinding": {
     "releaseId": "ctr:release:control-theory-engineering-v0.37",
-    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
-    "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-    "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+    "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373"
   },
   "authoritySelection": {
     "authorityBinding": {
       "releaseId": "ctr:release:control-theory-engineering-v0.37",
-      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
-      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
-      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae"
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373"
     },
     "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
-    "captureRevision": "87d2e5df2a097051e35e02ead0b2cfec74bf7c77",
+    "captureRevision": "13af98237cf88cc650ee2440386e6ebcc54f2b64",
     "nodeIndexDigest": "bf6c2cccf0ee1adc1601d2bb2fe9d1f831d40f3f108fa9733ee8b38bf89630e9"
   },
   "authorityNodeIds": [
@@ -217,5 +217,5 @@
     }
   ],
   "candidateCount": 3,
-  "inputDigest": "368b4fa5eb8f95e5fcb1cde2160bcb2c6dd7a130735d118e2b1ae6874371d8ad"
+  "inputDigest": "b47b7eff8e3e68530a6c90b93f67cebf1733b174a66e428bdb8a267ac23ff7d4"
 }

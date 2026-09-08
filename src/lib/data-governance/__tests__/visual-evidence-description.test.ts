@@ -126,7 +126,8 @@ describe('visual evidence description', () => {
     await expect(describeVisualEvidence({
       ...input,
       provider: { id: 'other-provider', provider: 'other-provider', version: 'vision-model.v1', capabilities: { vision: true }, evaluate: vi.fn() },
-    })).rejects.toThrow('provider-policy-provider-mismatch');
+    // dda125c0 起身份校验统一走 policy gate：provider-policy-blocked:provider-mismatch。
+    })).rejects.toThrow('provider-policy-blocked:provider-mismatch');
     await expect(describeVisualEvidence({
       ...input,
       provider: { id: 'vision-provider', provider: 'ai-evaluator', version: 'vision-model.v1', evaluate: vi.fn() },

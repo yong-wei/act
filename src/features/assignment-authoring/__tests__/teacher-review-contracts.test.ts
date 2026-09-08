@@ -106,12 +106,16 @@ describe("teacher assignment review UI contracts", () => {
     );
     expect(
       normalizeTeacherReviewDetail({
-        submission: { id: "submission-1" },
-        question: {
-          id: "question-1",
-          responseType: "SUBJECTIVE_FILE",
+        review: {
+          id: "review-1",
+          submission: { id: "submission-1" },
+          gradingRun: {
+            question: {
+              id: "question-1",
+              responseType: "SUBJECTIVE_FILE",
+            },
+          },
         },
-        review: { id: "review-1" },
       })?.responseKind,
     ).toBe("DOCUMENT");
   });
@@ -264,18 +268,18 @@ describe("teacher assignment review UI contracts", () => {
 
   it("normalizes nested queue and review payloads without inventing review evidence", () => {
     const queue = normalizeTeacherSubmissionQueue({
-      assignment: { title: "控制作业" },
-      submissions: [
+      items: [
         {
-          id: "s1",
-          student: { id: "u1", name: "学生甲" },
+          submissionId: "s1",
+          studentId: "u1",
+          studentName: "学生甲",
           state: "SUBMITTED",
-          answers: [
+          questions: [
             {
-              questionId: "q1",
+              id: "q1",
               title: "题目",
               responseKind: "SUBJECTIVE_TEXT",
-              reviewStatus: "AWAITING_REVIEW",
+              status: "AWAITING_REVIEW",
               reviewId: "review-1",
               gradingRunId: "run-1",
             },
@@ -300,35 +304,40 @@ describe("teacher assignment review UI contracts", () => {
 
     expect(
       normalizeTeacherReviewDetail({
-        submission: {
-          id: "s1",
-          student: { name: "学生甲", profile: { studentNumber: "2026001" } },
+        review: {
+          id: "review-1",
+          version: 1,
+          submission: {
+            id: "s1",
+            student: { name: "学生甲", profile: { studentNumber: "2026001" } },
+          },
+          gradingRun: { question: { id: "q1" } },
         },
-        question: { id: "q1" },
-        review: { id: "review-1", version: 1, criteria: [] },
       }),
     ).toMatchObject({ submissionId: "s1", questionId: "q1", studentNumber: "2026001", originalResponse: null });
     expect(
       normalizeTeacherReviewDetail({
-        submission: { id: "s1" },
-        question: {
-          id: "q1",
-          rubric: {
-            criteria: [
-              {
-                id: "model",
-                label: "建模",
-                maxPoints: 4,
-                levels: [
-                  { id: "full", label: "完整", minPoints: 3, maxPoints: 4 },
-                ],
-              },
-            ],
-          },
-        },
         review: {
           id: "review-1",
           version: 1,
+          submission: { id: "s1" },
+          gradingRun: {
+            question: { id: "q1" },
+            questionSnapshot: {
+              rubric: {
+                criteria: [
+                  {
+                    id: "model",
+                    label: "建模",
+                    maxPoints: 4,
+                    levels: [
+                      { id: "full", label: "完整", minPoints: 3, maxPoints: 4 },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
           criterionValues: [
             {
               criterionId: "model",
@@ -348,23 +357,25 @@ describe("teacher assignment review UI contracts", () => {
     });
     expect(
       normalizeTeacherReviewDetail({
-        submission: { id: "s1" },
-        question: {
-          id: "q1",
-          rubric: {
-            schemaVersion: "assignment-scoring-rubric.v2",
-            criteria: [{
-              id: "quality",
-              label: "完成质量",
-              maxPoints: 10,
-              detailedRubricEnabled: false,
-              levels: [],
-            }],
-          },
-        },
         review: {
           id: "review-1",
           version: 1,
+          submission: { id: "s1" },
+          gradingRun: {
+            question: { id: "q1" },
+            questionSnapshot: {
+              rubric: {
+                schemaVersion: "assignment-scoring-rubric.v2",
+                criteria: [{
+                  id: "quality",
+                  label: "完成质量",
+                  maxPoints: 10,
+                  detailedRubricEnabled: false,
+                  levels: [],
+                }],
+              },
+            },
+          },
           criterionValues: [{
             criterionId: "quality",
             levelId: null,
@@ -381,11 +392,7 @@ describe("teacher assignment review UI contracts", () => {
       levels: [],
     });
     expect(
-      normalizeTeacherReviewDetail({
-        submission: {},
-        question: {},
-        review: {},
-      }),
+      normalizeTeacherReviewDetail({ review: {} }),
     ).toBeNull();
   });
 
@@ -415,16 +422,20 @@ describe("teacher assignment review UI contracts", () => {
 
   it("maps the persisted WORKING review state to an editable review detail", () => {
     expect(normalizeTeacherReviewDetail({
-      submission: { id: "submission-1", status: "READY" },
-      question: { id: "question-1", title: "Question" },
-      review: { id: "review-1", submissionId: "submission-1", questionId: "question-1", state: "WORKING", version: 1 },
+      review: {
+        id: "review-1",
+        state: "WORKING",
+        version: 1,
+        submission: { id: "submission-1" },
+        gradingRun: {
+          question: { id: "question-1", promptSnapshot: { title: "Question" } },
+        },
+      },
     })?.status).toBe("IN_REVIEW");
   });
 
   it("lists ready attachments with truncation limitations for confirmation", () => {
     const detail = normalizeTeacherReviewDetail({
-      submission: { id: "submission-1" },
-      question: { id: "question-1" },
       review: {
         id: "review-1",
         incompleteEvidence: true,
@@ -432,6 +443,8 @@ describe("teacher assignment review UI contracts", () => {
           assetId: "asset-truncated",
           displayName: "\u061c\u202alarge\u2060\u200b.pdf",
         }],
+        submission: { id: "submission-1" },
+        gradingRun: { question: { id: "question-1" } },
       },
     });
 
@@ -447,8 +460,6 @@ describe("teacher assignment review UI contracts", () => {
       review: {
         id: "review-1",
         version: 3,
-        submissionId: "submission-1",
-        questionId: "question-1",
         originalResponse: {
           textSnapshot: "# 解答\n\n$G(s)=1/s$",
           attachmentOrderProvenance: "student-frozen-order.v1",
@@ -480,9 +491,11 @@ describe("teacher assignment review UI contracts", () => {
           assetId: "asset-doc",
           displayName: "\u00ad\u061c\u180e\u202a\u2060\u206a\u206f\u200b\ufff9report.docx",
         }],
+        submission: { id: "submission-1" },
+        gradingRun: {
+          question: { id: "question-1", responseType: "SUBJECTIVE_FILE" },
+        },
       },
-      submission: { id: "submission-1" },
-      question: { id: "question-1", responseType: "SUBJECTIVE_FILE" },
     });
 
     expect(detail?.originalResponse).toMatchObject({
@@ -631,11 +644,12 @@ describe("teacher assignment review UI contracts", () => {
       }],
     }));
 
-    expect(html).toContain("AI 草评：");
+    // #1852 起建议卡文案改为「自动预评分」。
+    expect(html).toContain("自动预评分：");
     expect(html).toContain("模型结构与题意一致");
     expect(html).toContain("证据锚点");
     expect(html).toContain("第 2 页");
-    expect(html).toContain("证据块 block-2");
+    expect(html).toContain("第 2 页 · 作答片段");
     expect(html).toContain("&lt;script&gt;原始证据摘录&lt;/script&gt;");
     expect(html).not.toContain("<script>");
     expect(html).not.toContain("内部批注不应替代定位");

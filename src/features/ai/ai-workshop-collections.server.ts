@@ -5,7 +5,7 @@ import type { PrismaClient } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { sceneTraceSourceRefId } from '@/lib/data-governance/simulation-scene-run-persistence';
-import { buildAdaptivePracticePathExecutionHref } from '@/lib/adaptive-practice-path-navigation';
+import { buildAdaptivePracticePathExecutionHref } from '@/lib/practice-path-navigation';
 import { studentListAssignments, type StudentAssignmentDto } from '@/lib/assignments/public-api';
 import {
   AI_WORKSHOP_COLLECTION_ACTIONS,

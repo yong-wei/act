@@ -833,11 +833,13 @@ describe('resource field completion audit', () => {
       frozenRows: legacyRows,
       materializationPhase: 'legacy',
     })).not.toThrow();
+    // materialized 阶段先做行级 reviewAudit 一致性校验：legacy 形态行
+    // （reviewBatchId 缺失）先触发行不匹配，同样 fail closed。
     expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
       ...input,
       frozenRows: legacyRows,
       materializationPhase: 'materialized',
-    })).toThrow('Frozen core semantic formal blocker projection mismatch');
+    })).toThrow('Frozen core semantic formal row mismatch');
     expect(() => assertFrozenCoreRegisteredKnowledgeResourceSemanticArtifacts({
       ...input,
       reviewItems: [

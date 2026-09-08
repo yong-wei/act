@@ -178,7 +178,8 @@ describe('arena preview control-engine migration', () => {
 
     const workbenchSource = readFileSync(path.join(repoRoot, 'src/features/arena/submissions/workbench-preview.ts'), 'utf8');
     expect(workbenchSource).not.toMatch(/prisma\.\w+\.create|ArenaSubmission\.create|ArenaEvaluationRun/);
-    expect(workbenchSource).toContain("evaluationVisibility: 'preview'");
-    expect(workbenchSource).toContain('persisted: false');
+    // #1853 起工作台预览统一消费 practice-lab run contract 的共享边界常量。
+    expect(workbenchSource).toContain('evaluationVisibility: PREVIEW_DISPLAY_BOUNDARY.evaluationVisibility');
+    expect(workbenchSource).toContain('persisted: PREVIEW_DISPLAY_BOUNDARY.persisted');
   });
 });
