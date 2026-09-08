@@ -11,12 +11,14 @@ import { describe, expect, it } from 'vitest';
 import {
   adoptEngineeringLearningOrder,
   applyEngineeringLearningOrderToBuildInput,
+  assertEngineeringAdoptedReceipts,
   buildPrerequisitePublication,
   canAutoPublishFromCandidate,
   candidatesFromEngineeringRelations,
   createPrerequisiteAuthorDecision,
   isEngineeringLearningOrderPredicate,
   loadPrerequisitePublication,
+  projectionDigest,
   resolvePrerequisiteStorePaths,
   stagePrerequisitePublication,
   type CoreNodeAuthoringRow,
@@ -261,7 +263,7 @@ describe('engineering learning-order adoption (#2059)', () => {
 
     const tamperedReceipts = (artifacts.receipts ?? []).map((receipt) => ({
       ...receipt,
-      snapshotHash: 'c'.repeat(64),
+      authorityReleaseId: `${AUTHORITY}-tampered`,
     }));
     const tampered = buildPrerequisitePublication({
       scopeId: SCOPE,
@@ -282,6 +284,43 @@ describe('engineering learning-order adoption (#2059)', () => {
     expect(tampered.manifest.sourceHashes.receipts).not.toBe(
       artifacts.manifest.sourceHashes.receipts,
     );
+
+    expect(() => buildPrerequisitePublication({
+      scopeId: SCOPE,
+      authoringRevision: REVISION,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'proj-capture-1',
+      authorityNodes: coreNodes.map((n) => ({
+        canonicalId: n.canonicalId,
+        lifecycleStatus: 'active',
+      })),
+      coreNodes,
+      edges: merged.edges,
+      decisions: merged.decisions,
+      candidates: merged.candidates,
+      receipts: (merged.receipts ?? []).map((receipt) => (
+        receipt.disposition === 'adopted'
+          ? { ...receipt, relationId: 'ctkg:missing-relation' }
+          : receipt
+      )),
+    })).toThrow(/missing receipt ctkg:m4-u2u5:prerequisite:adopt/);
+
+    expect(() => assertEngineeringAdoptedReceipts({
+      edges: artifacts.edges,
+      receipts: (artifacts.receipts ?? []).map((receipt) => ({
+        ...receipt,
+        snapshotHash: 'c'.repeat(64),
+      })),
+    })).toThrow(/snapshot mismatch/);
+
+    expect(() => assertEngineeringAdoptedReceipts({
+      edges: artifacts.edges.map((edge) => (
+        edge.candidateOrigin === 'ENGINEERING_RELATION'
+          ? { ...edge, targetNodeId: 'node.block-diagram' }
+          : edge
+      )),
+      receipts: artifacts.receipts,
+    })).toThrow(/endpoint mismatch/);
 
     const root = mkdtempSync(path.join(tmpdir(), 'prereq-receipts-'));
     try {
@@ -311,32 +350,101 @@ describe('engineering learning-order adoption (#2059)', () => {
         /receipts drifted/,
       );
 
-      const missingReceiptsRoot = mkdtempSync(path.join(tmpdir(), 'prereq-missing-receipts-'));
-      try {
-        const missingPaths = resolvePrerequisiteStorePaths(missingReceiptsRoot);
-        const missing = stagePrerequisitePublication(missingPaths, {
-          useCurrentAsPrior: false,
-          scopeId: SCOPE,
-          authoringRevision: REVISION,
-          authorityReleaseId: AUTHORITY,
-          projectionCaptureId: 'proj-capture-1',
-          authorityNodes: coreNodes.map((n) => ({
-            canonicalId: n.canonicalId,
-            lifecycleStatus: 'active',
-          })),
-          coreNodes,
-          edges: merged.edges,
-          decisions: merged.decisions,
-          candidates: merged.candidates,
-        });
-        expect(() => loadPrerequisitePublication(missingPaths, missing.publicationId)).toThrow(
-          /without hashed receipts/,
-        );
-      } finally {
-        rmSync(missingReceiptsRoot, { recursive: true, force: true });
-      }
+      expect(() => stagePrerequisitePublication(paths, {
+        useCurrentAsPrior: false,
+        scopeId: SCOPE,
+        authoringRevision: REVISION,
+        authorityReleaseId: AUTHORITY,
+        projectionCaptureId: 'proj-capture-1',
+        authorityNodes: coreNodes.map((n) => ({
+          canonicalId: n.canonicalId,
+          lifecycleStatus: 'active',
+        })),
+        coreNodes,
+        edges: merged.edges,
+        decisions: merged.decisions,
+        candidates: merged.candidates,
+      })).toThrow(/missing receipt/);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+
+    const mismatchRoot = mkdtempSync(path.join(tmpdir(), 'prereq-receipt-match-'));
+    try {
+      const mismatchPaths = resolvePrerequisiteStorePaths(mismatchRoot);
+      const mismatch = stagePrerequisitePublication(mismatchPaths, {
+        useCurrentAsPrior: false,
+        scopeId: SCOPE,
+        authoringRevision: REVISION,
+        authorityReleaseId: AUTHORITY,
+        projectionCaptureId: 'proj-capture-1',
+        authorityNodes: coreNodes.map((n) => ({
+          canonicalId: n.canonicalId,
+          lifecycleStatus: 'active',
+        })),
+        coreNodes,
+        edges: merged.edges,
+        decisions: merged.decisions,
+        candidates: merged.candidates,
+        receipts: merged.receipts,
+      });
+      const rewrittenReceipts = [{
+        relationId: 'ctkg:unrelated-rejected',
+        sourceId: 'node.block-diagram',
+        targetId: 'node.transfer-function',
+        snapshotHash: SNAPSHOT,
+        authorityReleaseId: AUTHORITY,
+        disposition: 'rejected-not-core' as const,
+        teachingPair: null,
+      }];
+      writeFileSync(
+        path.join(mismatch.releaseDir, 'engineering-learning-order-receipts.json'),
+        `${JSON.stringify(rewrittenReceipts)}\n`,
+      );
+      const manifestPath = path.join(mismatch.releaseDir, 'publication-manifest.json');
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+        sourceHashes: { receipts?: string };
+      };
+      manifest.sourceHashes.receipts = projectionDigest(rewrittenReceipts);
+      writeFileSync(manifestPath, `${JSON.stringify(manifest)}\n`);
+      expect(() => loadPrerequisitePublication(mismatchPaths, mismatch.publicationId)).toThrow(
+        /missing receipt ctkg:m4-u2u5:prerequisite:adopt/,
+      );
+    } finally {
+      rmSync(mismatchRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('loads live publications with per-edge receipt matching', () => {
+    const root = path.resolve(
+      process.cwd(),
+      'course-content/runtime/knowledge/prerequisites',
+    );
+    const current = JSON.parse(
+      readFileSync(path.join(root, 'current.json'), 'utf8'),
+    ) as { publicationId: string };
+    const artifacts = loadPrerequisitePublication(
+      resolvePrerequisiteStorePaths(root),
+      current.publicationId,
+    );
+    const adopted = artifacts.edges.filter((edge) => (
+      edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
+    ));
+    expect(adopted).toHaveLength(1);
+    expect(artifacts.receipts?.some((receipt) => (
+      receipt.disposition === 'adopted'
+      && adopted[0]?.evidenceRefs.includes(`engineering-relation:${receipt.relationId}`)
+      && receipt.sourceId === adopted[0]?.sourceNodeId
+      && receipt.targetId === adopted[0]?.targetNodeId
+    ))).toBe(true);
+
+    const teachingOnly = loadPrerequisitePublication(
+      resolvePrerequisiteStorePaths(root),
+      'proj-7f3859860d6a452464c6e43f389fa07a3f7ecba983240b4ea180d6f1ae3b9d32',
+    );
+    expect(teachingOnly.edges.some((edge) => (
+      edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
+    ))).toBe(false);
+    expect(teachingOnly.manifest.sourceHashes.receipts).toBeUndefined();
   });
 });

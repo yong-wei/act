@@ -19,6 +19,10 @@ import {
 import { dirname, join } from 'node:path';
 
 import { projectionCanonicalJson, projectionSha256 } from '../hash';
+import {
+  assertEngineeringAdoptedReceipts,
+  EngineeringLearningOrderReceiptError,
+} from './adopt-engineering-learning-order';
 import { projectionDigest } from './hash-compat';
 import {
   type PrerequisitePublicationArtifacts,
@@ -160,6 +164,17 @@ export function loadPrerequisitePublication(
       'hash-invalid',
       `publication ${publicationId} has unbound engineering-learning-order receipts`,
     );
+  }
+  try {
+    assertEngineeringAdoptedReceipts({
+      edges: artifacts.edges,
+      receipts: artifacts.receipts,
+    });
+  } catch (error) {
+    if (error instanceof EngineeringLearningOrderReceiptError) {
+      throw new PrerequisiteBuildError('hash-invalid', error.message);
+    }
+    throw error;
   }
   return artifacts;
 }

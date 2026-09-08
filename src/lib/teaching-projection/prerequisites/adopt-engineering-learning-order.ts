@@ -16,6 +16,7 @@ import {
   type PrerequisiteAuthorDecision,
   type PrerequisiteCandidateRecord,
   type PrerequisiteEdgeAuthoring,
+  type PrerequisiteEdgePublished,
 } from './contracts';
 import { detectRequiredCycles, edgeIdentityKey } from './edges';
 import { createPrerequisiteAuthorDecision } from './publication';
@@ -183,8 +184,8 @@ export function adoptEngineeringLearningOrder(
     }
 
     const evidenceRefs = [
-      `engineering-relation:${relation.id}`,
-      `engineering-snapshot:${input.snapshotHash}`,
+      `${ENGINEERING_RELATION_EVIDENCE_PREFIX}${relation.id}`,
+      `${ENGINEERING_SNAPSHOT_EVIDENCE_PREFIX}${input.snapshotHash}`,
     ];
     const decision = createPrerequisiteAuthorDecision({
       sourceNodeId: relation.sourceId,
@@ -226,6 +227,94 @@ export function adoptEngineeringLearningOrder(
     receipts,
     candidates: candidatesFromEngineeringRelations(remainingForCandidates),
   };
+}
+
+export const ENGINEERING_RELATION_EVIDENCE_PREFIX = 'engineering-relation:';
+export const ENGINEERING_SNAPSHOT_EVIDENCE_PREFIX = 'engineering-snapshot:';
+
+export class EngineeringLearningOrderReceiptError extends Error {
+  readonly code = 'hash-invalid';
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'EngineeringLearningOrderReceiptError';
+  }
+}
+
+export function assertEngineeringAdoptedReceipts(input: {
+  edges: readonly Pick<
+    PrerequisiteEdgePublished,
+    'status' | 'candidateOrigin' | 'sourceNodeId' | 'targetNodeId' | 'evidenceRefs'
+  >[];
+  receipts: readonly EngineeringLearningOrderReceipt[] | undefined;
+}): void {
+  const adoptedEdges = input.edges.filter((edge) => (
+    edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
+  ));
+
+  const byRelation = new Map<string, EngineeringLearningOrderReceipt>();
+  for (const receipt of input.receipts ?? []) {
+    if (byRelation.has(receipt.relationId)) {
+      throw new EngineeringLearningOrderReceiptError(
+        `duplicate engineering-learning-order receipt ${receipt.relationId}`,
+      );
+    }
+    byRelation.set(receipt.relationId, receipt);
+  }
+
+  for (const edge of adoptedEdges) {
+    const relationRef = edge.evidenceRefs.find((ref) => (
+      ref.startsWith(ENGINEERING_RELATION_EVIDENCE_PREFIX)
+    ));
+    const snapshotRef = edge.evidenceRefs.find((ref) => (
+      ref.startsWith(ENGINEERING_SNAPSHOT_EVIDENCE_PREFIX)
+    ));
+    if (!relationRef || !snapshotRef) {
+      throw new EngineeringLearningOrderReceiptError(
+        'published engineering-order edge missing relation or snapshot evidence',
+      );
+    }
+    const relationId = relationRef.slice(ENGINEERING_RELATION_EVIDENCE_PREFIX.length);
+    const snapshotHash = snapshotRef.slice(ENGINEERING_SNAPSHOT_EVIDENCE_PREFIX.length);
+    const receipt = byRelation.get(relationId);
+    if (!receipt) {
+      throw new EngineeringLearningOrderReceiptError(
+        `published engineering-order edge missing receipt ${relationId}`,
+      );
+    }
+    if (receipt.disposition !== 'adopted' && receipt.disposition !== 'already-teaching') {
+      throw new EngineeringLearningOrderReceiptError(
+        `engineering-order receipt ${relationId} is not an adoption receipt`,
+      );
+    }
+    if (receipt.sourceId !== edge.sourceNodeId || receipt.targetId !== edge.targetNodeId) {
+      throw new EngineeringLearningOrderReceiptError(
+        `engineering-order receipt ${relationId} endpoint mismatch`,
+      );
+    }
+    if (receipt.snapshotHash !== snapshotHash) {
+      throw new EngineeringLearningOrderReceiptError(
+        `engineering-order receipt ${relationId} snapshot mismatch`,
+      );
+    }
+  }
+
+  for (const receipt of input.receipts ?? []) {
+    if (receipt.disposition !== 'adopted') continue;
+    const matched = adoptedEdges.some((edge) => {
+      const relationRef = edge.evidenceRefs.find((ref) => (
+        ref.startsWith(ENGINEERING_RELATION_EVIDENCE_PREFIX)
+      ));
+      return relationRef?.slice(ENGINEERING_RELATION_EVIDENCE_PREFIX.length) === receipt.relationId
+        && receipt.sourceId === edge.sourceNodeId
+        && receipt.targetId === edge.targetNodeId;
+    });
+    if (!matched) {
+      throw new EngineeringLearningOrderReceiptError(
+        `adopted receipt ${receipt.relationId} has no published engineering-order edge`,
+      );
+    }
+  }
 }
 
 export function applyEngineeringLearningOrderToBuildInput(input: {

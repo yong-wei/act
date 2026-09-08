@@ -19,6 +19,10 @@ import {
 } from './contracts';
 import { normalizeCandidates } from './candidates';
 import {
+  assertEngineeringAdoptedReceipts,
+  EngineeringLearningOrderReceiptError,
+} from './adopt-engineering-learning-order';
+import {
   publishCoreNodes,
   toProjectionCoreNodeAuthoring,
 } from './core-nodes';
@@ -290,6 +294,20 @@ export function buildPrerequisitePublication(
     const receipts = (input.receipts && input.receipts.length > 0)
       ? normalizeReceipts(input.receipts)
       : undefined;
+
+    try {
+      assertEngineeringAdoptedReceipts({
+        edges: materialized.edges,
+        receipts,
+      });
+    } catch (error) {
+      if (error instanceof EngineeringLearningOrderReceiptError) {
+        throw new PrerequisiteBuildError('hash-invalid', error.message, {
+          priorArtifacts: prior,
+        });
+      }
+      throw error;
+    }
 
     const manifest = buildManifest({
       scopeId: input.scopeId,
