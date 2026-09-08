@@ -1,4 +1,9 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
+import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 
 import {
   buildPublishedResourceFeatureIndex,
@@ -9,7 +14,7 @@ import {
   publishedResourcePathType,
   type PublishedResourceIdentity,
 } from '@/lib/published-resource-reference';
-import type { TeachingProjectionArtifacts } from '@/lib/teaching-projection/contracts';
+import type { TeachingProjectionArtifacts, TeachingResourceRuntime } from '@/lib/teaching-projection/contracts';
 import type { AuthorityEngineeringBody } from '@/lib/authoritative-knowledge/authority-snapshot';
 
 const HASH_A = 'a'.repeat(64);
@@ -108,6 +113,73 @@ function fixtureEngineering(): AuthorityEngineeringBody {
   };
 }
 
+function versionResource(
+  resourceId: string,
+  resourceType: TeachingResourceRuntime['resourceType'],
+  sourcePath: string | null = null,
+  bindingDigest: string | null = HASH_C,
+): TeachingResourceRuntime {
+  return {
+    resourceId, resourceType, projectionMode: 'REQUIRED', scopeId: 'fixture', title: resourceId,
+    sourcePath, legacyCrosswalkRef: null, bindingCount: 1, bindingStatus: 'BOUND',
+    projectionStatus: 'BOUND', bindingDigest,
+  };
+}
+
+function versionFixtureArtifacts(
+  resources: TeachingResourceRuntime[],
+  projectionHash: string,
+): TeachingProjectionArtifacts {
+  const base = fixtureArtifacts();
+  const bindings = resources.map((resource, index) => ({
+    bindingId: `binding-version-${index}`, resourceId: resource.resourceId,
+    canonicalId: 'node.fixture', role: 'COVERS' as const, scopeId: 'fixture',
+    sourcePath: null, primary: true, rationale: 'version fixture',
+  }));
+  return {
+    ...base,
+    resources,
+    bindings,
+    manifest: {
+      ...base.manifest,
+      projectionId: `proj-${projectionHash}`,
+      projectionHash,
+      resourceCount: resources.length,
+      bindingCount: bindings.length,
+    },
+    impactReport: {
+      ...base.impactReport,
+      projectionId: `proj-${projectionHash}`,
+      projectionHash,
+      summary: {
+        ...base.impactReport.summary,
+        includedResourceCount: resources.length,
+        includedBindingCount: bindings.length,
+      },
+    },
+  };
+}
+
+function buildVersionIndex(
+  resources: TeachingResourceRuntime[],
+  options: {
+    projectionHash?: string;
+    runtimeReleaseId?: string | null;
+    runtimeRoot?: string;
+    infographTokens?: ReadonlySet<string>;
+  } = {},
+) {
+  return buildPublishedResourceFeatureIndex({
+    artifacts: versionFixtureArtifacts(resources, options.projectionHash ?? HASH_A),
+    engineering: fixtureEngineering(),
+    runtimeReleaseId: options.runtimeReleaseId ?? null,
+    runtimeRoot: options.runtimeRoot,
+    cardReader: () => null,
+    infographTokens: options.infographTokens ?? new Set(),
+    now: new Date('2026-09-08T00:00:00.000Z'),
+  });
+}
+
 describe('published resource feature references', () => {
   it('round-trips opaque IDs, including textbook section-1 through section-5', () => {
     for (const section of ['section-1', 'section-2', 'section-3', 'section-4', 'section-5', 'section-1..5']) {
@@ -156,6 +228,124 @@ describe('published resource feature references', () => {
     }));
     expect(parsePublishedResourceHref(buildPublishedResourceHref(feature.identity))).toEqual(feature.identity);
     expect(feature.version).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('keeps no-content resource versions stable across unrelated projection and runtime releases', () => {
+    const root = mkdtempSync(join(tmpdir(), 'published-resource-version-'));
+    const infographToken = 'fixture-infographic';
+    const stepPath = join(root, 'lessons/fixture/interactive-manifest.json');
+    const textbookUnitsPath = join(root, 'resources/textbooks-v2/dorf-modern-control-systems/units.jsonl');
+    try {
+      mkdirSync(join(root, 'knowledge/infographs/nodes'), { recursive: true });
+      mkdirSync(join(root, 'lessons/fixture'), { recursive: true });
+      mkdirSync(join(root, 'resources/textbooks-v2/dorf-modern-control-systems'), { recursive: true });
+      writeFileSync(join(root, 'knowledge/infographs/nodes', `${infographToken}.png`), 'infographic bytes');
+      writeFileSync(stepPath, JSON.stringify({ steps: {
+        'step-01': { title: 'Step one', content: ['stable'] },
+        'step-02': { title: 'Step two', content: ['unrelated'] },
+      } }));
+      writeFileSync(textbookUnitsPath, JSON.stringify({
+        structuralPath: ['chapter-chapter-01', 'section-1.1'],
+        chapterId: 'chapter-01', markdown: 'Textbook section body',
+      }) + '\n');
+
+      const resources = [
+        versionResource(`act:infographic:${infographToken}`, 'infographic'),
+        versionResource('act:step:fixture:step-01', 'step', 'lessons/fixture/interactive-manifest.json#step-01'),
+        versionResource('act:textbook-section:dorf-modern-control-systems.chapter-chapter-01.section-1..1', 'textbook-section'),
+      ];
+      const first = buildVersionIndex(resources, {
+        projectionHash: HASH_A, runtimeReleaseId: 'runtime-a', runtimeRoot: root,
+        infographTokens: new Set([infographToken]),
+      });
+      const repackaged = buildVersionIndex(resources, {
+        projectionHash: HASH_B, runtimeReleaseId: 'runtime-b', runtimeRoot: root,
+        infographTokens: new Set([infographToken]),
+      });
+
+      for (const resource of resources) {
+        expect(repackaged.resources.find((entry) => entry.identity.resourceId === resource.resourceId)?.version)
+          .toBe(first.resources.find((entry) => entry.identity.resourceId === resource.resourceId)?.version);
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('changes a resource version when its own body or binding changes', () => {
+    const root = mkdtempSync(join(tmpdir(), 'published-resource-version-change-'));
+    const infographToken = 'fixture-infographic';
+    const stepPath = join(root, 'lessons/fixture/interactive-manifest.json');
+    const textbookUnitsPath = join(root, 'resources/textbooks-v2/dorf-modern-control-systems/units.jsonl');
+    try {
+      mkdirSync(join(root, 'knowledge/infographs/nodes'), { recursive: true });
+      mkdirSync(join(root, 'lessons/fixture'), { recursive: true });
+      mkdirSync(join(root, 'resources/textbooks-v2/dorf-modern-control-systems'), { recursive: true });
+      writeFileSync(join(root, 'knowledge/infographs/nodes', `${infographToken}.png`), 'infographic bytes');
+      writeFileSync(stepPath, JSON.stringify({ steps: {
+        'step-01': { title: 'Step one', content: ['stable'] },
+        'step-02': { title: 'Step two', content: ['unrelated'] },
+      } }));
+      writeFileSync(textbookUnitsPath, JSON.stringify({
+        structuralPath: ['chapter-chapter-01', 'section-1.1'],
+        chapterId: 'chapter-01', markdown: 'Textbook section body',
+      }) + '\n');
+      const resources = [
+        versionResource(`act:infographic:${infographToken}`, 'infographic'),
+        versionResource('act:step:fixture:step-01', 'step', 'lessons/fixture/interactive-manifest.json#step-01'),
+        versionResource('act:textbook-section:dorf-modern-control-systems.chapter-chapter-01.section-1..1', 'textbook-section'),
+      ];
+      const base = buildVersionIndex(resources, { runtimeRoot: root, infographTokens: new Set([infographToken]) });
+
+      writeFileSync(stepPath, JSON.stringify({ steps: {
+        'step-01': { title: 'Step one', content: ['stable'] },
+        'step-02': { title: 'Step two changed', content: ['unrelated'] },
+      } }));
+      const unrelatedStep = buildVersionIndex(resources, { runtimeRoot: root, infographTokens: new Set([infographToken]) });
+      expect(unrelatedStep.resources.find((entry) => entry.type === 'step')?.version)
+        .toBe(base.resources.find((entry) => entry.type === 'step')?.version);
+
+      writeFileSync(stepPath, JSON.stringify({ steps: {
+        'step-01': { title: 'Step one changed', content: ['changed'] },
+        'step-02': { title: 'Step two changed', content: ['unrelated'] },
+      } }));
+      const changedStep = buildVersionIndex(resources, { runtimeRoot: root, infographTokens: new Set([infographToken]) });
+      expect(changedStep.resources.find((entry) => entry.type === 'step')?.version)
+        .not.toBe(base.resources.find((entry) => entry.type === 'step')?.version);
+
+      writeFileSync(join(root, 'knowledge/infographs/nodes', `${infographToken}.png`), 'changed infographic bytes');
+      const changedInfograph = buildVersionIndex(resources, { runtimeRoot: root, infographTokens: new Set([infographToken]) });
+      expect(changedInfograph.resources.find((entry) => entry.type === 'infographic')?.version)
+        .not.toBe(base.resources.find((entry) => entry.type === 'infographic')?.version);
+
+      writeFileSync(textbookUnitsPath, JSON.stringify({
+        structuralPath: ['chapter-chapter-01', 'section-1.1'],
+        chapterId: 'chapter-01', markdown: 'Changed textbook section body',
+      }) + '\n');
+      const changedTextbook = buildVersionIndex(resources, { runtimeRoot: root, infographTokens: new Set([infographToken]) });
+      expect(changedTextbook.resources.find((entry) => entry.type === 'textbook-section')?.version)
+        .not.toBe(base.resources.find((entry) => entry.type === 'textbook-section')?.version);
+
+      const changedBinding = buildVersionIndex(resources.map((resource) => resource.resourceType === 'step'
+        ? { ...resource, bindingDigest: HASH_A } : resource), { runtimeRoot: root, infographTokens: new Set([infographToken]) });
+      expect(changedBinding.resources.find((entry) => entry.type === 'step')?.version)
+        .not.toBe(base.resources.find((entry) => entry.type === 'step')?.version);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('changes the version when a registered simulation default configuration changes', () => {
+    const metadata = getRegisteredResourceMetadata('sim-pid-v1')!;
+    const config = metadata.defaultConfig!;
+    const original = config.kp;
+    const resource = versionResource('act:simulation:sim-pid-v1', 'simulation');
+    try {
+      const first = buildVersionIndex([resource]);
+      expect(first.resources[0]!.backend.kind).toBe('route');
+      config.kp = 42;
+      expect(buildVersionIndex([resource]).resources[0]!.version).not.toBe(first.resources[0]!.version);
+    } finally { config.kp = original; }
   });
 
   it('maps published resource kinds to governed path node kinds', () => {

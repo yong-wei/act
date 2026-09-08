@@ -62,3 +62,7 @@
 整合后全量比原整改唯一新增失败是 `authority-locale-readiness` 的工作区指针与 HEAD 字节对齐断言：上游 prerequisite/current.json 已在合并工作区，但合并尚未提交。该指针与 origin/integration 字节一致；其余失败集合没有新增业务回归，tooling CLI 的 dirty denominator 断言由失败转为通过。提交后该断言单独复测通过，最终全量中也通过。与原整改完成结果相比，最终失败集合没有新增项；全部剩余失败名称记录于 `artifacts/graph-path-redesign/test-summary.json`。
 
 88e8ad0 源码验证结束时，工作区没有未提交源码改动，原有用户文件 `debug-drag-tmp.ts` 保留未跟踪状态。当时仅完成本地分支与提交，没有推送、合并到 integration 或生产部署；用户随后授权提交推送合并，交付状态以实时 GitHub 为准。最终全量以后只补充本验证记录与精简测试清单，未改动源码。
+
+## GitHub 首次审查整改
+
+PR #2065 首次外部审查范围为 `99307d709630dc2898be76a4a07c0680f50d45e8..35d825670799d8e01a516d67f97c73966a33176f`。ACCEPT P1：缺少 content 来源的资源版本 fallback 混入全局 projectionHash/runtimeReleaseId，导致无关发布使未变资源的历史互动失去版本匹配。整改覆盖各资源族的自身内容/后端版本、绑定版本与索引缓存；版本计算现采用自身内容 SHA、步骤片段、教材单元及图片、后端目标/注册配置与 bindingDigest；媒体排除 releaseId 和文件 mtime。索引 revision 升为 9，元数据水位覆盖相关内容与后端配置，保持捕获身份共同返回校验。37 项相关测试、ESLint 与类型检查通过（仍有既有 documentation 边界诊断）；真实索引 4,038 条、2,330 条可推荐，重复读取约 141ms，正文/媒体读取 0 次。该整改提交的最终全量结果记录在 PR #2065 的验证评论中。此前本地审查未识别该 fallback 缺陷，不能沿用原本地结论直接合并。

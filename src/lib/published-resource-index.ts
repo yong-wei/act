@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 
 import { buildTeachingResourceLaunchMaps } from './layered-graph/teaching-resource-launch-maps';
+import { getAllRegisteredResourceMetadata, getRegisteredResourceMetadata } from './resource-registry-metadata';
+import { ARENA_CHALLENGE_OBJECTS, ARENA_CHALLENGE_TASKS, getArenaChallengeObject, getArenaChallengeTask } from '@/features/arena/domain';
 import { TEXTBOOK_ID_ALIASES } from './engineering-textbook-mapping/aliases';
 import { fromResourceIdToken } from './teaching-projection/textbook-locators/identity';
 import { humanTitleFromResourceId } from './teaching-projection/resource-title';
@@ -23,7 +25,7 @@ import type { AuthorityEngineeringBody } from './authoritative-knowledge/authori
 import type { PublishedResourceBackend, PublishedResourceFeature, PublishedResourceFeatureIndex, PublishedResourceIdentity } from './published-resource-reference';
 
 const INDEX_VERSION = 'published-resource-features/v1';
-const INDEX_IMPLEMENTATION_REVISION = 8;
+const INDEX_IMPLEMENTATION_REVISION = 9;
 const indexPromises = new Map<string, Promise<PublishedResourceFeatureIndex>>();
 const ESTIMATED_MINUTES: Record<TeachingResourceType, number> = {
   card: 5, infographic: 3, handout: 12, video: 8, audio: 15, podcast: 15,
@@ -45,10 +47,19 @@ const CARD_SOURCE_ROOTS = [
   'course-content/runtime/knowledge/cards/nodes',
   'course-content/runtime/knowledge/cards/authority/nodes',
 ] as const;
+const INFOGRAPH_SOURCE_ROOTS = [
+  'knowledge/infographs/nodes',
+  'knowledge/infographs/authority/nodes',
+] as const;
+const TEXTBOOK_RUNTIME_RELATIVE = 'resources/textbooks-v2' as const;
 type RuntimeMediaPathValidator = (runtimePath: string) => boolean;
 
 function digest(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
+}
+
+function sha256Bytes(value: string | Buffer): string {
+  return createHash('sha256').update(value).digest('hex');
 }
 
 function cacheRoot(): string {
@@ -64,6 +75,24 @@ function sourceStamp(paths: readonly string[]): string {
       return [file, null];
     }
   }));
+}
+
+function stableFileBytes(file: string): Buffer | null {
+  try {
+    const before = lstatSync(file);
+    if (!before.isFile() || before.isSymbolicLink()) return null;
+    const bytes = readFileSync(file);
+    const after = lstatSync(file);
+    if (before.size !== after.size || before.mtimeMs !== after.mtimeMs) return null;
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function stableFileDigest(file: string): string | null {
+  const bytes = stableFileBytes(file);
+  return bytes ? sha256Bytes(bytes) : null;
 }
 
 function listMetadataFiles(root: string, predicate: (file: string) => boolean): string[] {
@@ -88,9 +117,22 @@ function runtimeMetadataStamp(): string {
     const runtimePath = relative(runtimeRoot, file).replaceAll('\\', '/');
     return isSafeRuntimeMediaPath(runtimePath);
   });
+  const lessonContentFiles = listMetadataFiles(join(runtimeRoot, 'lessons'), (file) => /\.(?:json|jsonl)$/iu.test(file));
+  const infographFiles = INFOGRAPH_SOURCE_ROOTS.flatMap((root) => listMetadataFiles(join(runtimeRoot, root), (file) => file.endsWith('.png')));
+  const infographPaths = INFOGRAPH_SOURCE_ROOTS.flatMap((root) => [
+    join(runtimeRoot, root),
+    ...infographFiles.filter((file) => file.startsWith(join(runtimeRoot, root))),
+  ]);
+  const textbookAssets = listMetadataFiles(join(runtimeRoot, 'resources/textbooks'), () => true);
+  const textbookFiles = listMetadataFiles(join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE), (file) => /(?:manifest\.json|\.jsonl)$/iu.test(file));
   const cardFiles = CARD_SOURCE_ROOTS.flatMap((root) => listMetadataFiles(join(process.cwd(), root), (file) => file.endsWith('.md')));
   return digest({
     media: sourceStamp([join(runtimeRoot, 'lessons'), ...mediaFiles]),
+    lessonContent: sourceStamp([join(runtimeRoot, 'lessons'), ...lessonContentFiles]),
+    infographs: sourceStamp(infographPaths),
+    textbooks: sourceStamp([join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE), ...textbookFiles,
+      join(runtimeRoot, 'resources/textbooks'), ...textbookAssets]),
+    backendConfiguration: digest([getAllRegisteredResourceMetadata(), ARENA_CHALLENGE_TASKS, ARENA_CHALLENGE_OBJECTS]),
     cards: sourceStamp([
       join(process.cwd(), 'course-content/runtime/knowledge/authority-learning-content-manifest.json'),
       ...CARD_SOURCE_ROOTS.flatMap((root) => [join(process.cwd(), root)]),
@@ -162,11 +204,14 @@ function localMediaResolution(
 ): { backend: Extract<PublishedResourceBackend, { kind: 'media' }>; versionStamp: string } | { reason: string } {
   if (!isCompatibleMediaPath(runtimePath, mediaType, mediaPathValidator)) return { reason: '媒体路径或后缀无效。' };
   try {
-    const details = lstatSync(join(runtimeRoot, ...runtimePath.split('/')));
+    const file = join(runtimeRoot, ...runtimePath.split('/'));
+    const details = lstatSync(file);
     if (!details.isFile() || details.isSymbolicLink()) return { reason: '媒体文件尚未发布。' };
+    const contentHash = stableFileDigest(file);
+    if (!contentHash) return { reason: '媒体文件尚未发布。' };
     return {
       backend: { kind: 'media', mediaType, assetPath: runtimePath, href: mediaHref(runtimePath) },
-      versionStamp: `local:${runtimePath}:${details.size}:${details.mtimeMs}`,
+      versionStamp: `content:${contentHash}`,
     };
   } catch {
     return { reason: '媒体文件尚未发布。' };
@@ -216,7 +261,7 @@ function publishedMediaResolution(input: {
   }
   return {
     backend: { kind: 'media', mediaType, assetPath: file.path, href: mediaHref(file.path, manifest.releaseId) },
-    versionStamp: `release:${file.path}:${file.sha256}`,
+    versionStamp: `content:${file.sha256}`,
   };
 }
 
@@ -257,6 +302,237 @@ export async function buildLocalPublishedMediaIndex(
   writeFileSync(temporary, JSON.stringify(next), { mode: 0o600 });
   renameSync(temporary, cacheFile);
   return matched;
+}
+
+type ResourceVersionState = {
+  sourceContent: Map<string, string | null>;
+  infographicContent: Map<string, string | null>;
+  textbookUnits: Map<string, ReadonlyMap<string, string>>;
+};
+
+function isSafeResourceContentPath(value: string): boolean {
+  return Boolean(value)
+    && !value.startsWith('/')
+    && !value.includes('\\')
+    && !/[\u0000-\u001f\u007f]/u.test(value)
+    && !value.split('/').some((segment) => segment === '.' || segment === '..');
+}
+
+function resolveResourceContentFile(pathname: string, runtimeRoot: string): string | null {
+  if (!isSafeResourceContentPath(pathname)) return null;
+  const base = pathname.startsWith('lessons/') ? runtimeRoot : process.cwd();
+  return join(base, ...pathname.split('/'));
+}
+
+function sourceFragmentValue(value: unknown, fragment: string): unknown {
+  const segments = fragment.startsWith('/')
+    ? fragment.slice(1).split('/').filter(Boolean).map((segment) => segment.replaceAll('~1', '/').replaceAll('~0', '~'))
+    : value && typeof value === 'object' && fragment in value
+      ? [fragment]
+      : ['steps', fragment];
+  let current = value;
+  for (const segment of segments) {
+    if (!current || typeof current !== 'object' || !(segment in current)) return undefined;
+    current = (current as Record<string, unknown>)[segment];
+  }
+  return current;
+}
+
+function sourceContentVersion(
+  sourcePath: string | null,
+  runtimeRoot: string,
+  cache: Map<string, string | null>,
+): string | null {
+  if (!sourcePath) return null;
+  const cached = cache.get(sourcePath);
+  if (cache.has(sourcePath)) return cached ?? null;
+  const contentKey = CONTENT_KEY_PATTERN.exec(sourcePath)?.[1];
+  if (contentKey) {
+    const version = `content:${contentKey}`;
+    cache.set(sourcePath, version);
+    return version;
+  }
+  const fragmentIndex = sourcePath.indexOf('#');
+  const pathname = fragmentIndex >= 0 ? sourcePath.slice(0, fragmentIndex) : sourcePath;
+  const fragment = fragmentIndex >= 0 ? sourcePath.slice(fragmentIndex + 1) : null;
+  const file = resolveResourceContentFile(pathname, runtimeRoot);
+  const bytes = file ? stableFileBytes(file) : null;
+  if (!bytes) {
+    cache.set(sourcePath, null);
+    return null;
+  }
+  let version: string | null = null;
+  if (fragment) {
+    try {
+      const selected = sourceFragmentValue(JSON.parse(bytes.toString('utf8')) as unknown, fragment);
+      if (selected !== undefined) version = `content:${digest(selected)}`;
+    } catch {
+      version = null;
+    }
+  } else {
+    version = `content:${sha256Bytes(bytes)}`;
+  }
+  cache.set(sourcePath, version);
+  return version;
+}
+
+function infographicContentVersion(
+  token: string,
+  runtimeRoot: string,
+  cache: Map<string, string | null>,
+): string | null {
+  const key = `${runtimeRoot}\0${token}`;
+  const cached = cache.get(key);
+  if (cache.has(key)) return cached ?? null;
+  if (!/^[\p{L}\p{N}][\p{L}\p{N}._-]{0,199}$/u.test(token) || token.includes('..')) {
+    cache.set(key, null);
+    return null;
+  }
+  for (const root of INFOGRAPH_SOURCE_ROOTS) {
+    const file = join(runtimeRoot, root, `${token}.png`);
+    const hash = stableFileDigest(file);
+    if (hash) {
+      cache.set(key, hash);
+      return hash;
+    }
+  }
+  cache.set(key, null);
+  return null;
+}
+
+function textbookAssetDigests(
+  markdown: string,
+  runtimeRoot: string,
+  bookId: string,
+  chapterId: string,
+): string[] {
+  const refs = [...markdown.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+["'][^)]*)?\)/gu)]
+    .map((match) => match[1])
+    .filter((ref): ref is string => Boolean(ref));
+  return refs.map((ref) => {
+    const assetPath = ref.startsWith('assets/') ? ref.slice('assets/'.length) : ref;
+    if (!isSafeResourceContentPath(assetPath)) return `${ref}:invalid`;
+    const file = join(runtimeRoot, 'resources/textbooks', bookId, 'assets', chapterId, ...assetPath.split('/'));
+    return `${ref}:${stableFileDigest(file) ?? 'missing'}`;
+  });
+}
+
+function loadTextbookUnitVersions(
+  runtimeRoot: string,
+  bookId: string,
+): ReadonlyMap<string, string> {
+  const file = join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE, bookId, 'units.jsonl');
+  const bytes = stableFileBytes(file);
+  const versions = new Map<string, string>();
+  if (!bytes) return versions;
+  for (const line of bytes.toString('utf8').split(/\r?\n/u)) {
+    if (!line.trim()) continue;
+    try {
+      const unit = JSON.parse(line) as {
+        structuralPath?: unknown;
+        markdown?: unknown;
+        chapterId?: unknown;
+      };
+      const structuralPath = Array.isArray(unit.structuralPath)
+        && unit.structuralPath.every((segment): segment is string => typeof segment === 'string' && isSafeResourceContentPath(segment))
+        ? unit.structuralPath
+        : null;
+      if (!structuralPath || typeof unit.markdown !== 'string') continue;
+      const chapterId = typeof unit.chapterId === 'string' ? unit.chapterId : structuralPath[0];
+      if (!chapterId || !isSafeResourceContentPath(chapterId)) continue;
+      versions.set(structuralPath.join('/'), `content:${digest({
+        markdown: unit.markdown,
+        assets: textbookAssetDigests(unit.markdown, runtimeRoot, bookId, chapterId),
+      })}`);
+    } catch {
+      // A malformed unit leaves that resource without a content identity.
+    }
+  }
+  return versions;
+}
+
+function textbookUnitContentVersion(
+  resourceId: string,
+  runtimeRoot: string,
+  cache: Map<string, ReadonlyMap<string, string>>,
+): string | null {
+  const decoded = decodedSection(resourceId);
+  if (!decoded) return null;
+  const segments = decoded.split(':');
+  const alias = TEXTBOOK_ID_ALIASES.find((entry) => entry.readerBookId === segments[0]);
+  const structuralPath = segments.slice(1);
+  if (!alias || structuralPath.length === 0) return null;
+  const fileKey = join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE, alias.readerBookId, 'units.jsonl');
+  let versions = cache.get(fileKey);
+  if (!versions) {
+    versions = loadTextbookUnitVersions(runtimeRoot, alias.readerBookId);
+    cache.set(fileKey, versions);
+  }
+  return versions.get(structuralPath.join('/')) ?? null;
+}
+
+function backendVersion(backend: PublishedResourceBackend): unknown {
+  switch (backend.kind) {
+    case 'card': return ['card'];
+    case 'infographic': return ['infographic', backend.token];
+    case 'route': return ['route', backend.href];
+    case 'media': return ['media', backend.mediaType, backend.assetPath,
+      backend.href.replace(/([?&])releaseId=[^&]+/u, '').replace(/[?&]$/u, '')];
+    case 'container': return ['container', [...backend.childResourceIds].sort()];
+    case 'reference-only': return ['reference-only', backend.reason];
+  }
+}
+
+function registeredBackendConfiguration(backend: PublishedResourceBackend, registryId?: string): unknown {
+  if (backend.kind !== 'route') return null;
+  const arenaTaskId = /^\/arena\/challenges\/(task-[^/?#]+)$/u.exec(backend.href)?.[1];
+  if (arenaTaskId) {
+    const task = getArenaChallengeTask(arenaTaskId);
+    return task ? { task, object: getArenaChallengeObject(task.objectId) ?? null } : null;
+  }
+  const metadata = registryId ? getRegisteredResourceMetadata(registryId) : undefined;
+  return metadata ? { id: metadata.id, type: metadata.type, defaultConfig: metadata.defaultConfig ?? null,
+    launchTarget: metadata.launchTarget ?? null, renderTarget: metadata.renderTarget ?? null } : null;
+}
+
+function resourceConfigurationVersion(resource: TeachingResourceRuntime): unknown {
+  return {
+    resourceType: resource.resourceType,
+    projectionMode: resource.projectionMode,
+    scopeId: resource.scopeId,
+    title: resource.title,
+    legacyCrosswalkRef: resource.legacyCrosswalkRef,
+    bindingCount: resource.bindingCount,
+    bindingStatus: resource.bindingStatus,
+    projectionStatus: resource.projectionStatus,
+  };
+}
+
+function resourceContentVersion(input: {
+  resource: TeachingResourceRuntime;
+  backend: PublishedResourceBackend;
+  derivedContentVersion: string | null;
+  mediaVersionStamp: string | null;
+  runtimeRoot: string;
+  state: ResourceVersionState;
+}): string {
+  const { resource, backend, derivedContentVersion, mediaVersionStamp, runtimeRoot, state } = input;
+  if (mediaVersionStamp) return mediaVersionStamp;
+  const sourceVersion = sourceContentVersion(resource.sourcePath, runtimeRoot, state.sourceContent);
+  if (sourceVersion) return sourceVersion;
+  if (backend.kind === 'infographic') {
+    const hash = infographicContentVersion(backend.token, runtimeRoot, state.infographicContent);
+    if (hash) return `content:${hash}`;
+  }
+  if (resource.resourceType === 'textbook-section') {
+    const version = textbookUnitContentVersion(resource.resourceId, runtimeRoot, state.textbookUnits);
+    if (version) return version;
+  }
+  if (derivedContentVersion) return `derived:${derivedContentVersion}`;
+  // Resources without a local body retain their registered source identity.
+  // Route targets and registered backend configuration are hashed separately;
+  // reference-only entries remain unavailable for recommendation.
+  return `identity:${resource.resourceId}:${resource.sourcePath ?? ''}`;
 }
 
 function briefResourceSummary(
@@ -307,6 +583,10 @@ export function buildPublishedResourceFeatureIndex(input: {
   }
   const launch = buildTeachingResourceLaunchMaps(artifacts.resources);
   const ids = new Set<string>();
+  const runtimeRoot = input.runtimeRoot ?? join(process.cwd(), 'course-content/runtime');
+  const versionState: ResourceVersionState = {
+    sourceContent: new Map(), infographicContent: new Map(), textbookUnits: new Map(),
+  };
   const resources = artifacts.resources.map((resource): PublishedResourceFeature => {
     if (ids.has(resource.resourceId)) throw new Error('Duplicate published resource identity');
     ids.add(resource.resourceId);
@@ -359,11 +639,14 @@ export function buildPublishedResourceFeatureIndex(input: {
       summary = briefResourceSummary(title, coverage, [...new Set(matched.map((binding) => binding.role))].sort(), semanticNames);
     }
     const executable = backend.kind !== 'container' && backend.kind !== 'reference-only';
-    const sourceVersion = mediaVersionStamp
-      ?? (resource.sourcePath?.startsWith('content:')
-        ? resource.sourcePath
-        : derivedContentVersion ?? [manifest.projectionHash, effectiveRuntimeReleaseId]);
-    const version = digest([resource.resourceId, sourceVersion, resource.bindingDigest]);
+    const sourceVersion = resourceContentVersion({
+      resource, backend, derivedContentVersion, mediaVersionStamp, runtimeRoot, state: versionState,
+    });
+    const version = digest([
+      resource.resourceId, sourceVersion, backendVersion(backend),
+      resourceConfigurationVersion(resource), registeredBackendConfiguration(backend, launch.resourceRegistryIds[resource.resourceId]),
+      resource.bindingDigest,
+    ]);
     return {
       identity: {
         resourceId: resource.resourceId, projectionId: manifest.projectionId,

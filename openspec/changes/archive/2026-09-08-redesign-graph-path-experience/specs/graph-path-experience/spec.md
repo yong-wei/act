@@ -94,6 +94,12 @@ Resource features SHALL preserve baseline attributes and separately derive obser
 - **THEN** aggregation SHALL avoid duplicate contributions and cross-version contamination
 - **AND** insufficient support SHALL retain the baseline or an explicitly low-confidence estimate
 
+#### Scenario: Another resource changes in a global publication
+- **WHEN** a Teaching Projection or Runtime release changes while this resource's own content or backend semantics and knowledge bindings remain unchanged
+- **THEN** this resource SHALL retain its resourceVersion so qualified historical interactions remain reusable
+- **AND** the index and reference SHALL still carry the current global publication identity
+- **AND** an actual change to this resource's content, effective backend configuration or bindings SHALL change its resourceVersion
+
 #### Scenario: A learner only opens or selects a resource
 - **WHEN** the available event is a click, opening, or path-option selection
 - **THEN** it MAY update usage or preference features

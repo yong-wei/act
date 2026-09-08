@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -150,6 +150,45 @@ describe('published resource media backends', () => {
       href: '/api/course-runtime/assets/lessons/1-1/media/1-1-intro-video.mp4?releaseId=runtime-fixture-v1' });
     expect(feature.backend).not.toMatchObject({ href: expect.stringContaining('blob-assets') });
     expect(feature.recommendable).toBe(true);
+  });
+
+  it('keeps a media resource version stable when the same bytes are repackaged', () => {
+    const mediaResource = resource('act:video:1-1', 'video', `content:${HASH_C}`);
+    const firstManifest = {
+      schemaVersion: 'act-runtime-release.v1', releaseId: 'runtime-fixture-v1', sourceRevision: 'e'.repeat(40),
+      fileCount: 1, totalBytes: 5, treeSha256: HASH_A, manifestSha256: HASH_B,
+      files: [{ path: 'lessons/1-1/media/1-1-intro-video.mp4', objectKey: 'runtime/releases/runtime-fixture-v1/lessons/1-1/media/1-1-intro-video.mp4', sizeBytes: 5, sha256: HASH_C }],
+    } satisfies AnyActRuntimeReleaseManifest;
+    const secondManifest = {
+      ...firstManifest,
+      releaseId: 'runtime-fixture-v2',
+      files: firstManifest.files.map((file) => ({
+        ...file,
+        objectKey: file.objectKey.replace('runtime-fixture-v1', 'runtime-fixture-v2'),
+      })),
+    } satisfies AnyActRuntimeReleaseManifest;
+
+    const first = build([mediaResource], { runtimeManifest: firstManifest }).resources[0]!;
+    const second = build([mediaResource], { runtimeManifest: secondManifest }).resources[0]!;
+    expect(first.identity.runtimeReleaseId).toBe('runtime-fixture-v1');
+    expect(second.identity.runtimeReleaseId).toBe('runtime-fixture-v2');
+    expect(second.version).toBe(first.version);
+  });
+
+  it('does not use local media mtime as the resource version', () => {
+    const root = mkdtempSync(join(tmpdir(), 'published-resource-media-version-'));
+    try {
+      mkdirSync(join(root, 'lessons/1-1/media'), { recursive: true });
+      const file = join(root, 'lessons/1-1/media/1-1-intro-video.mp4');
+      writeFileSync(file, 'stable media bytes');
+      const mediaResource = resource('act:video:1-1', 'video', 'authoring:lessons/1-1/media/processed/1-1-intro-video.mp4');
+      const first = build([mediaResource], { runtimeRoot: root }).resources[0]!;
+      utimesSync(file, new Date('2020-01-01T00:00:00.000Z'), new Date('2020-01-01T00:00:00.000Z'));
+      const repackaged = build([mediaResource], { runtimeRoot: root }).resources[0]!;
+      expect(repackaged.version).toBe(first.version);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it.each([
