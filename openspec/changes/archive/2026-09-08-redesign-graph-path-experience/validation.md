@@ -61,4 +61,4 @@
 
 整合后全量比原整改唯一新增失败是 `authority-locale-readiness` 的工作区指针与 HEAD 字节对齐断言：上游 prerequisite/current.json 已在合并工作区，但合并尚未提交。该指针与 origin/integration 字节一致；其余失败集合没有新增业务回归，tooling CLI 的 dirty denominator 断言由失败转为通过。提交后该断言单独复测通过，最终全量中也通过。与原整改完成结果相比，最终失败集合没有新增项；全部剩余失败名称记录于 `artifacts/graph-path-redesign/test-summary.json`。
 
-最终工作区没有未提交源码改动，原有用户文件 `debug-drag-tmp.ts` 保留未跟踪状态。仅完成本地分支与提交，没有推送、合并到 integration 或生产部署。最终全量以后只补充本验证记录与精简测试清单，未改动源码。
+88e8ad0 源码验证结束时，工作区没有未提交源码改动，原有用户文件 `debug-drag-tmp.ts` 保留未跟踪状态。当时仅完成本地分支与提交，没有推送、合并到 integration 或生产部署；用户随后授权提交推送合并，交付状态以实时 GitHub 为准。最终全量以后只补充本验证记录与精简测试清单，未改动源码。

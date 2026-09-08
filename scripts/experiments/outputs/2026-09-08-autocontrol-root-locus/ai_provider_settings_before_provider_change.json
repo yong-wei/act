@@ -1,0 +1,113 @@
+{
+  "providers": [
+    {
+      "id": "siliconflow",
+      "name": "SiliconFlow",
+      "health": "unknown",
+      "models": [
+        {
+          "id": "qwen-3-5-35b-a3b",
+          "label": "Qwen3.5 35B A3B",
+          "model": "Qwen/Qwen3.5-35B-A3B",
+          "options": {
+            "enableThinking": false
+          },
+          "description": "当前主力语言模型，默认关闭推理输出以提升课堂问答可用性。"
+        },
+        {
+          "id": "qwen-3-6-35b-a3b",
+          "label": "Qwen3.6 35B A3B",
+          "model": "Qwen/Qwen3.6-35B-A3B",
+          "options": {
+            "enableThinking": false
+          },
+          "description": "SiliconFlow 可选语言模型。"
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "label": "DeepSeek V4 Flash",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "description": "保留为可选模型，当前响应速度可能较慢。"
+        },
+        {
+          "id": "minimax-m2-5",
+          "label": "MiniMax M2.5",
+          "model": "MiniMaxAI/MiniMax-M2.5",
+          "description": "SiliconFlow 可选语言模型。"
+        }
+      ],
+      "baseURL": "https://api.siliconflow.cn/v1",
+      "enabled": true,
+      "authMode": "bearer-api-key",
+      "priority": 100,
+      "secretRef": "env:SILICONFLOW_API_KEY",
+      "capabilities": {
+        "tools": true,
+        "vision": false,
+        "reasoning": false,
+        "streaming": true,
+        "jsonSchema": true,
+        "citationNormalization": true
+      },
+      "providerKind": "openai-compatible",
+      "selectedModel": "Qwen/Qwen3.5-35B-A3B"
+    },
+    {
+      "id": "deepseek-official",
+      "name": "DeepSeek 官方",
+      "health": "unknown",
+      "models": [
+        {
+          "id": "selected-model",
+          "label": "deepseek-v4-flash",
+          "model": "deepseek-v4-flash",
+          "description": "当前选择的模型。"
+        }
+      ],
+      "baseURL": "https://api.deepseek.com",
+      "enabled": true,
+      "authMode": "bearer-api-key",
+      "priority": 90,
+      "secretRef": "env:AI_API_KEY",
+      "capabilities": {
+        "tools": true,
+        "vision": false,
+        "reasoning": false,
+        "streaming": true,
+        "jsonSchema": true,
+        "citationNormalization": true
+      },
+      "providerKind": "openai-compatible",
+      "selectedModel": "deepseek-v4-flash"
+    },
+    {
+      "id": "siliconflow-node",
+      "name": "SiliconFlow Node",
+      "health": "unknown",
+      "models": [
+        {
+          "id": "deepseek-v4-flash-node",
+          "label": "DeepSeek V4 Flash (Node)",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "description": "通过普通 Node fetch 访问 SiliconFlow，避开本地 curl 建链问题。"
+        }
+      ],
+      "baseURL": "https://api.siliconflow.cn/v1",
+      "enabled": true,
+      "authMode": "bearer-api-key",
+      "priority": 200,
+      "secretRef": "env:SILICONFLOW_API_KEY",
+      "capabilities": {
+        "tools": true,
+        "vision": false,
+        "reasoning": false,
+        "streaming": true,
+        "jsonSchema": true,
+        "citationNormalization": true
+      },
+      "providerKind": "openai-compatible",
+      "selectedModel": "deepseek-ai/DeepSeek-V4-Flash"
+    }
+  ],
+  "activeProvider": "siliconflow"
+}

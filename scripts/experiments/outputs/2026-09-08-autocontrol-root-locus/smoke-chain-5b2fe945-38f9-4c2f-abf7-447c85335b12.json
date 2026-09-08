@@ -1,0 +1,207 @@
+{
+  "taskId": "5b2fe945-38f9-4c2f-abf7-447c85335b12",
+  "dumpedAt": "2026-09-08T06:23:49.490Z",
+  "task": {
+    "id": "5b2fe945-38f9-4c2f-abf7-447c85335b12",
+    "ownerId": "cmrsz7192015901osz9sjr7rn",
+    "courseBasisId": "cmt04kluy0000h4vg61gw7yf1",
+    "topic": "根轨迹基础概念",
+    "audience": "自动化、控制类本科学生，已具备自动控制原理线性系统分析基础",
+    "prerequisites": "开环传递函数、劳斯判据、二阶系统动态性能指标",
+    "durationMinutes": 60,
+    "selectedClassId": null,
+    "archivedAt": null,
+    "outlineConfirmationRequired": false,
+    "createdAt": "2026-09-07T22:20:55.965Z",
+    "updatedAt": "2026-09-07T22:20:56.287Z"
+  },
+  "sources": [
+    {
+      "id": "cmtsa6mge002u6kvgxnf73o5i",
+      "sourceVersionId": "cmt04ks1z0002h4vg7ae7qq4e",
+      "state": "SELECTED",
+      "selectedAt": "2026-09-07T22:20:55.965Z",
+      "removedAt": null
+    }
+  ],
+  "knowledgePoints": [
+    {
+      "id": "4dc6ffc8-8d60-45fd-979d-2a14dcb83361",
+      "title": "根轨迹的基本概念与绘制依据",
+      "contentHash": "9378dd571ef7b22552b830d5fc66e2e7f3150afbb85d3bbced1ff557b98c8f72",
+      "sourceState": "NO_RELIABLE_SOURCE",
+      "sourceBindings": [],
+      "sourceBindingSetHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "gapReason": "当前课程依据为课程标准纲要，本条输入由实验教师依据专业教学要求补充，暂无已验证教材绑定",
+      "origin": "TEACHER_CREATED",
+      "state": "CONFIRMED",
+      "confirmedAt": "2026-09-07T22:20:55.952Z",
+      "removedAt": null,
+      "createdAt": "2026-09-07T22:20:55.965Z",
+      "updatedAt": "2026-09-07T22:20:55.965Z"
+    }
+  ],
+  "goals": [
+    {
+      "id": "490e661c-23ea-4645-84a0-ed61633bd9b6",
+      "content": "掌握根轨迹基本概念，能够根据开环零极点判断根轨迹起点、终点及实轴分布",
+      "contentHash": "eec78dcf6c5623a47383388b03f6b9c4a180360be9f8d169b48d768de45e780d",
+      "sourceState": "NO_RELIABLE_SOURCE",
+      "sourceBindings": [],
+      "sourceBindingSetHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "gapReason": "当前课程依据为课程标准纲要，本条输入由实验教师依据专业教学要求补充，暂无已验证教材绑定",
+      "state": "CONFIRMED",
+      "confirmedAt": "2026-09-07T22:20:55.952Z",
+      "removedAt": null,
+      "createdAt": "2026-09-07T22:20:55.965Z",
+      "updatedAt": "2026-09-07T22:20:55.965Z"
+    }
+  ],
+  "drafts": [
+    {
+      "id": "cmtsa6mha002v6kvgynwezi23",
+      "taskId": "5b2fe945-38f9-4c2f-abf7-447c85335b12",
+      "state": "EDITABLE",
+      "contentHash": null,
+      "createdAt": "2026-09-07T22:20:55.965Z",
+      "updatedAt": "2026-09-07T22:21:44.428Z"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "draftId": "cmtsa6mha002v6kvgynwezi23",
+      "state": "RETRYABLE",
+      "failureCode": "provider-output-invalid-after-correction",
+      "inputHash": "5287ba670426bd2cb9c8cf92c3cedf3c9f290bf38a7e4651467e3b1c0e076e24",
+      "startedAt": "2026-09-07T22:20:56.952Z",
+      "completedAt": null,
+      "createdAt": "2026-09-07T22:20:56.307Z"
+    }
+  ],
+  "stages": [
+    {
+      "id": "cmtsa6mpp002w6kvgmk619jl4",
+      "jobId": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "kind": "OUTLINE",
+      "state": "COMPLETED",
+      "orderIndex": 0,
+      "outputHash": "eb68fbd9c42502f4c5862df053212ccc1f43f1378d88bfa786a6935c8fe65f2d",
+      "startedAt": "2026-09-07T22:20:56.952Z",
+      "completedAt": "2026-09-07T22:21:14.645Z"
+    },
+    {
+      "id": "cmtsa6mpp002x6kvg4db5svfn",
+      "jobId": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "kind": "BRIDGE_IN",
+      "state": "RETRYABLE",
+      "orderIndex": 1,
+      "outputHash": null,
+      "startedAt": "2026-09-07T22:21:14.915Z",
+      "completedAt": null
+    },
+    {
+      "id": "cmtsa6mpp002y6kvgmq3xodhi",
+      "jobId": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "kind": "OBJECTIVES",
+      "state": "PENDING",
+      "orderIndex": 2,
+      "outputHash": null,
+      "startedAt": null,
+      "completedAt": null
+    },
+    {
+      "id": "cmtsa6mpp002z6kvgmx8yql5j",
+      "jobId": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "kind": "PRE_ASSESSMENT",
+      "state": "PENDING",
+      "orderIndex": 3,
+      "outputHash": null,
+      "startedAt": null,
+      "completedAt": null
+    },
+    {
+      "id": "cmtsa6mpp00306kvg6qbe3iqw",
+      "jobId": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "kind": "PARTICIPATORY_LEARNING",
+      "state": "PENDING",
+      "orderIndex": 4,
+      "outputHash": null,
+      "startedAt": null,
+      "completedAt": null
+    },
+    {
+      "id": "cmtsa6mpp00316kvgw0vy8gm2",
+      "jobId": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "kind": "POST_ASSESSMENT",
+      "state": "PENDING",
+      "orderIndex": 5,
+      "outputHash": null,
+      "startedAt": null,
+      "completedAt": null
+    },
+    {
+      "id": "cmtsa6mpq00326kvgl8lkn1ni",
+      "jobId": "62b357c6-7e71-406e-aad6-ae7a6eed9617",
+      "kind": "SUMMARY",
+      "state": "PENDING",
+      "orderIndex": 6,
+      "outputHash": null,
+      "startedAt": null,
+      "completedAt": null
+    }
+  ],
+  "attempts": [
+    {
+      "id": "cmtsa6n8p003a6kvgetwzvj7e",
+      "stageId": "cmtsa6mpp002w6kvgmk619jl4",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "outcome": "SUCCEEDED",
+      "correctsAttemptId": null,
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.5-35B-A3B",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-outline.v1",
+      "requestHash": "b984854256da0a247bd87f4201ee39f9d5a1cbe5ba4b11c228a889e83c86116d",
+      "inputTokens": 5863,
+      "outputTokens": 618,
+      "startedAt": "2026-09-07T22:20:57.001Z",
+      "finishedAt": "2026-09-07T22:21:14.648Z"
+    },
+    {
+      "id": "cmtsa7138003b6kvg84esoez7",
+      "stageId": "cmtsa6mpp002x6kvg4db5svfn",
+      "attemptNumber": 1,
+      "kind": "ORIGINAL",
+      "outcome": "RETRYABLE_FAILURE",
+      "correctsAttemptId": null,
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.5-35B-A3B",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-bridge_in.v1",
+      "requestHash": "84dbb84043a27155b53016c808ffb353ce90e423a81ace33497bee12ac8662d5",
+      "inputTokens": 6944,
+      "outputTokens": 643,
+      "startedAt": "2026-09-07T22:21:14.948Z",
+      "finishedAt": "2026-09-07T22:21:31.116Z"
+    },
+    {
+      "id": "cmtsa7dks003c6kvgppch987c",
+      "stageId": "cmtsa6mpp002x6kvg4db5svfn",
+      "attemptNumber": 2,
+      "kind": "CORRECTION",
+      "outcome": "RETRYABLE_FAILURE",
+      "correctsAttemptId": "cmtsa7138003b6kvg84esoez7",
+      "providerKind": "openai-compatible",
+      "model": "Qwen/Qwen3.5-35B-A3B",
+      "promptVersion": "smart-lesson-plan.v1",
+      "schemaVersion": "smart-lesson-boppps-bridge_in.v1",
+      "requestHash": "0828e13b5fdce2f495d758bd2134eb785d187006ed7ad67011802420691e35c0",
+      "inputTokens": null,
+      "outputTokens": null,
+      "startedAt": "2026-09-07T22:21:31.132Z",
+      "finishedAt": "2026-09-07T22:21:44.426Z"
+    }
+  ]
+}
