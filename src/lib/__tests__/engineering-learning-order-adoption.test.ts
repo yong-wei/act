@@ -310,6 +310,31 @@ describe('engineering learning-order adoption (#2059)', () => {
       expect(() => loadPrerequisitePublication(paths, staged.publicationId)).toThrow(
         /receipts drifted/,
       );
+
+      const missingReceiptsRoot = mkdtempSync(path.join(tmpdir(), 'prereq-missing-receipts-'));
+      try {
+        const missingPaths = resolvePrerequisiteStorePaths(missingReceiptsRoot);
+        const missing = stagePrerequisitePublication(missingPaths, {
+          useCurrentAsPrior: false,
+          scopeId: SCOPE,
+          authoringRevision: REVISION,
+          authorityReleaseId: AUTHORITY,
+          projectionCaptureId: 'proj-capture-1',
+          authorityNodes: coreNodes.map((n) => ({
+            canonicalId: n.canonicalId,
+            lifecycleStatus: 'active',
+          })),
+          coreNodes,
+          edges: merged.edges,
+          decisions: merged.decisions,
+          candidates: merged.candidates,
+        });
+        expect(() => loadPrerequisitePublication(missingPaths, missing.publicationId)).toThrow(
+          /without hashed receipts/,
+        );
+      } finally {
+        rmSync(missingReceiptsRoot, { recursive: true, force: true });
+      }
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

@@ -129,6 +129,15 @@ export function loadPrerequisitePublication(
   };
   const receiptsPath = join(dir, 'engineering-learning-order-receipts.json');
   const receiptsHash = artifacts.manifest.sourceHashes.receipts;
+  const adoptedEngineering = artifacts.edges.some((edge) => (
+    edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
+  ));
+  if (adoptedEngineering && !receiptsHash) {
+    throw new PrerequisiteBuildError(
+      'hash-invalid',
+      `publication ${publicationId} adopted engineering order without hashed receipts`,
+    );
+  }
   if (receiptsHash) {
     if (!existsSync(receiptsPath)) {
       throw new PrerequisiteBuildError(
