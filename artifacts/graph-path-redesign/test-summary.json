@@ -1,0 +1,301 @@
+{
+  "numTotalTests": 12093,
+  "numPassedTests": 11973,
+  "numFailedTests": 73,
+  "numPendingTests": 47,
+  "success": false,
+  "commit": "88e8ad0ffc36b51ed0495eed30dae2cbbf625e5b",
+  "testFiles": 1027,
+  "failedFiles": 43,
+  "newFailures": [],
+  "resolvedFailures": [
+    "lib/__tests__/tooling-cli-inventory.test.ts :: tooling CLI inventory source identity fails closed on dirty denominator files: green means a converged, committed capture"
+  ],
+  "failures": [
+    {
+      "file": "src/app/__tests__/konling-conversation-library-route.test.ts",
+      "failedTests": []
+    },
+    {
+      "file": "src/app/__tests__/lesson-plan-session-routes.test.ts",
+      "failedTests": [
+        "lesson plan empty-item guards finalizes only after resolving the exact generated revision and preserves it in Redis"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/active-authority-real-store-contract.test.ts",
+      "failedTests": [
+        "active Authority committed store contract loads the committed engineering graph and projects canonical objects without a standard Projection"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/actkg-v022-composite-envelope.test.ts",
+      "failedTests": [
+        "v0.22 composite envelope registry loads named envelopes from the sealed configuration artifact"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/ai-domain-orchestration-boundaries.test.ts",
+      "failedTests": [
+        "AI domain orchestration boundaries crosses into feature domains only through public-api boundaries"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/ai-task-boundary-ui-source.test.ts",
+      "failedTests": [
+        "ai task boundary UI source contracts sanitizes global and copilot AI messages and hides raw tool JSON"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/arena-preview-control-engine.test.ts",
+      "failedTests": [
+        "arena preview control-engine migration proves preview writers do not create official Arena records"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/authority-domain-learning-content.test.ts",
+      "failedTests": [
+        "Authority learning-content delivery classifies the shipped v2 manifest as available with a script-produced seal (#2045)",
+        "Authority learning-content delivery re-exports the v2 manifest byte-stably (#2045)"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/authority-domain-shard-coverage.test.ts",
+      "failedTests": [
+        "pre-change denominator baseline (#1738 task 1.1) anchors the recorded baseline to the sealed historical shard set"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/canonical-learning-fact-identity.test.ts",
+      "failedTests": [
+        "canonical-learning-fact-identity (#1116 remediation) producer inventory / static gate / worker static gate passes closed discovery inventory"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/commercial-ui-governance.test.ts",
+      "failedTests": [
+        "commercial UI governance keeps knowledge workspace product QA local-tool and mobile overlap checks viewport-specific",
+        "commercial UI governance allows active Authority capture when optional relation-family shards are unpublished",
+        "commercial UI governance keeps migrated simulation resources free of local palette literals outside the theme contract"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/content-knowledge-runtime-release-toolchains.test.ts",
+      "failedTests": [
+        "content knowledge runtime release toolchains qualifies the live captured-tree inventory without product writer imports"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/enable-incremental-domain-teaching-projection.test.ts",
+      "failedTests": [
+        "enable-incremental-domain-teaching-projection live first fragment translation and persistence persisted first fragment artifacts are byte-equivalent to live translation",
+        "enable-incremental-domain-teaching-projection classical generation is sealed to the complete pinned Authority index rebuilds deterministic artifacts from the pinned Authority snapshot",
+        "enable-incremental-domain-teaching-projection classical generation is sealed to the complete pinned Authority index keeps first-generation teaching semantics while resealing its endpoint universe",
+        "enable-incremental-domain-teaching-projection classical generation is sealed to the complete pinned Authority index preserves the published three-domain increment in generation 2",
+        "enable-incremental-domain-teaching-projection classical generation is sealed to the complete pinned Authority index uses the full pinned index and is insensitive to source object order",
+        "enable-incremental-domain-teaching-projection classical generation is sealed to the complete pinned Authority index does not publish an engineering-only adjacency as an ACT teaching edge"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/formal-runtime-atomic-resource-binding.test.ts",
+      "failedTests": [
+        "formal-runtime-atomic-resource-binding does not mutate production selectors"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/governed-math-attach.test.ts",
+      "failedTests": [
+        "governed math formula attach (#1740) closes the complete reachable Formula denominator against the sealed render index"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/konling-conversation-library-ui.test.ts",
+      "failedTests": [
+        "Konling conversation library UI contracts keeps collection, active detail, and library mutations inside the hook"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/konling-session-detail-route.test.ts",
+      "failedTests": []
+    },
+    {
+      "file": "src/lib/__tests__/konling-study-question-structure-decoration-1950.test.ts",
+      "failedTests": [
+        "固定回答回放的口径差值（#1950） 两条冻结回答回放：v1 失败、v2 通过，报告单独呈现口径差值"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/legacy-adaptive-entrypoint-retirement.test.ts",
+      "failedTests": [
+        "legacy adaptive entrypoint retirement keeps production, worker and script sources off retired entrypoints"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/migration-backfill-competition-toolchains.test.ts",
+      "failedTests": [
+        "migration backfill competition toolchains qualifies the live one-off inventory without product writer imports"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/pid-evidence-runtime-attestation.test.ts",
+      "failedTests": [
+        "PID evidence runtime build attestation embeds the hashes of the current bound runtime inputs"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/platform-appshell-contract.test.ts",
+      "failedTests": [
+        "universal AppShell frame contract classifies every app page as home, shell-covered, wrapper-covered, or governed exception"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/platform-brand-kit.test.ts",
+      "failedTests": [
+        "platform brand kit contracts captures a shareable brand-kit evidence manifest"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/publish-cross-domain-teaching-semantics.test.ts",
+      "failedTests": []
+    },
+    {
+      "file": "src/lib/__tests__/publish-foundation-domain-teaching-semantics.test.ts",
+      "failedTests": [
+        "publish-foundation-domain-teaching-semantics persisted increment artifacts match a live rebuild",
+        "publish-foundation-domain-teaching-semantics composes with the first fragment while keeping both provenances and avoiding silent collision"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/publish-modern-domain-teaching-semantics.test.ts",
+      "failedTests": [
+        "publish-modern-domain-teaching-semantics pins exactly the two approved and published catalog members",
+        "publish-modern-domain-teaching-semantics rebuilds and persists each artifact byte-identically"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/resource-field-completion-audit.test.ts",
+      "failedTests": [
+        "resource field completion audit runs main when invoked through the package script",
+        "resource field completion audit rejects inconsistent frozen core semantic sidecars before materialization"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/standalone-copilot-conversation.test.ts",
+      "failedTests": [
+        "standalone Copilot conversation library reuses the owned Konling conversation library instead of a page-local store"
+      ]
+    },
+    {
+      "file": "src/lib/__tests__/tooling-cli-inventory.test.ts",
+      "failedTests": [
+        "tooling CLI inventory completeness classifies every package.json script exactly once with a valid status",
+        "tooling CLI delivery and graph gates preserves the verify:commit, verify:push and typecheck gate semantics",
+        "tooling CLI inventory source identity fails closed when the workspace or committed capture denominator drifts from the captured inventory identity"
+      ]
+    },
+    {
+      "file": "src/features/admin/__tests__/ai-provider-settings.test.ts",
+      "failedTests": [
+        "AI provider settings uses Qwen3.6 as the default SiliconFlow model and keeps the requested alternatives"
+      ]
+    },
+    {
+      "file": "src/features/ai/__tests__/global-ai-sidebar-presentation.client.test.tsx",
+      "failedTests": [
+        "GlobalAISidebar presentation continuity keeps one hook instance and the same draft, messages, scroll container, and focus across mode changes",
+        "GlobalAISidebar presentation continuity persists one governed candidate selection before publishing the same-batch refresh event",
+        "GlobalAISidebar presentation continuity keeps a pending selection unconfirmed after a lost response and retries it after remount",
+        "GlobalAISidebar presentation continuity closes mobile history before restoring, then closes the side presentation on Escape",
+        "GlobalAISidebar presentation continuity releases the conversation from drawer inert state when the viewport expands to desktop",
+        "GlobalAISidebar presentation continuity restores the existing opener after the side presentation closes",
+        "GlobalAISidebar presentation continuity resets externally closed maximized state without remounting conversation hooks",
+        "GlobalAISidebar presentation continuity returns focus to mobile history after the drawer backdrop closes and keeps Tab inside the dialog",
+        "GlobalAISidebar presentation continuity exposes a desktop history rail and overflow-safe active conversation in maximized mode",
+        "GlobalAISidebar presentation continuity renders student-safe copy and matched recovery for raw transport failures"
+      ]
+    },
+    {
+      "file": "src/features/assignment-authoring/__tests__/teacher-review-contracts.test.ts",
+      "failedTests": [
+        "teacher assignment review UI contracts matches returned resubmission types to the current question kind",
+        "teacher assignment review UI contracts normalizes nested queue and review payloads without inventing review evidence",
+        "teacher assignment review UI contracts maps the persisted WORKING review state to an editable review detail",
+        "teacher assignment review UI contracts lists ready attachments with truncation limitations for confirmation",
+        "teacher assignment review UI contracts consumes only the safe original-response projection and keeps govern parameters revision-bound",
+        "teacher assignment review UI contracts renders AI rationale and safe evidence-anchor locations beside the criterion suggestion"
+      ]
+    },
+    {
+      "file": "src/features/assessment/__tests__/micro-intervention-learning-evidence.test.ts",
+      "failedTests": [
+        "micro-intervention learning evidence projects participation as zero-weight context and validation as bounded evidence",
+        "micro-intervention learning evidence rebuilds the same mastery posterior for the same micro-intervention evidence set"
+      ]
+    },
+    {
+      "file": "src/features/knowledge/__tests__/knowledge-graph-edge-presentation.test.ts",
+      "failedTests": [
+        "shared knowledge graph edge presentation restricts both renderers to the same active-domain visible subset"
+      ]
+    },
+    {
+      "file": "src/features/knowledge/__tests__/relation-visual-semantics.test.ts",
+      "failedTests": [
+        "knowledge graph relation visual semantics requires semantic-map browser screenshots to be real image artifacts with accurate extensions"
+      ]
+    },
+    {
+      "file": "src/features/interactive/__tests__/generated-slide-layout-renderer.test.tsx",
+      "failedTests": [
+        "generated slide layout renderer keeps following content at the scaled canvas bottom instead of the unscaled 900px height"
+      ]
+    },
+    {
+      "file": "src/lib/generated-content-authority/__tests__/generated-content-authority.test.ts",
+      "failedTests": [
+        "generated content authority — fixture fitness checks binds qa receipt revisions to the reconciled revision",
+        "generated content authority — real repository evaluation keeps every real row free of sink imports, cross-domain violations, and privacy leaks (self-consistent binding)",
+        "generated content authority — real repository evaluation settles the real matrix through the dependency-qualified assessment row"
+      ]
+    },
+    {
+      "file": "src/lib/knowledge-surface/__tests__/latest-cutover-live.test.ts",
+      "failedTests": [
+        "live latest knowledge cutover resolver qualifies the Git successor envelope against an identity-matched receipt"
+      ]
+    },
+    {
+      "file": "src/lib/resource-governance-retirement/__tests__/resource-governance-retirement.test.ts",
+      "failedTests": [
+        "resource-governance retirement evidence gate (#1592) freezes the R3-merged denominator and retains live resource-governance entrypoints",
+        "resource-governance retirement evidence gate (#1592) covers the frozen denominator with a live repository scan"
+      ]
+    },
+    {
+      "file": "src/lib/data-governance/__tests__/math-document-grading-batch.test.ts",
+      "failedTests": [
+        "question-scoped grading batch orchestration freezes one revision/question/class scope, bounds eligible attempts, and replays the batch"
+      ]
+    },
+    {
+      "file": "src/lib/data-governance/__tests__/math-document-grading-persistence.test.ts",
+      "failedTests": [
+        "production math-document grading persistence contracts persists a valid provider result as an awaiting-review draft without approval or writeback",
+        "production math-document grading persistence contracts evaluates the persisted frozen question snapshot instead of a drifted current question"
+      ]
+    },
+    {
+      "file": "src/lib/data-governance/__tests__/student-evidence-feature-cache.test.ts",
+      "failedTests": [
+        "student evidence feature cache service keeps path-only evidence fresh after rebuild",
+        "student evidence feature cache service summarizes failed terminal validation without leaking hidden Arena internals"
+      ]
+    },
+    {
+      "file": "src/lib/data-governance/__tests__/visual-evidence-description.test.ts",
+      "failedTests": [
+        "visual evidence description does not let an injected runtime bypass provider identity or vision capability checks"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # 图谱与学习路径整改验证
 
-代码基线：`f455748e1d763bea110add70f64fe9d1a506d6f8`。分支：`codex/graph-path-redesign`。首个验证检查点：`2b2e569`；之后整合上游 `232c0223e8`（#2046、#2059）。
+代码基线：`f455748e1d763bea110add70f64fe9d1a506d6f8`。分支：`codex/graph-path-redesign`。首个验证检查点：`2b2e569`；实现最终提交：`88e8ad0ffc36b51ed0495eed30dae2cbbf625e5b`，已整合上游 `232c0223e8`（#2046、#2059）。
 
 ## 实现结果
 
@@ -29,7 +29,7 @@
 - `npm run wasm:build:control-engine` 通过，随后控制内核测试通过。首次全量测试中的旧 WASM 生成物身份错误已排除。
 - `npm run typecheck` 和 `npm run typecheck:konling-scripts` 退出 0，TypeScript 零错误。Web graph 仍报告既有 documentation 边界诊断，涉及 3-6/4-1/4-3 JSON 和 learning-goal-assessment-coverage-matrix；worker graph 通过。
 - 最初两个 OpenSpec change 的 strict 校验通过；#2059 已由上游归档，其历史记录完整保留，当前设计统一落在本 change。改动源文件 ESLint 通过。
-- 原整改全量 Vitest：12,068 项，11,947 通过、74 失败、47 pending。整合后全量：12,093 项，11,972 通过、74 失败、47 pending；两次中途因代码整改停止的运行不计作完成证据。没有宣称全仓测试全绿。
+- 原整改全量 Vitest：12,068 项，11,947 通过、74 失败、47 pending。合并提交前验证：12,093 项，11,972 通过、74 失败、47 pending；已提交最终源码 `88e8ad0` 再执行全量：12,093 项，11,973 通过、73 失败、47 pending，覆盖 1,027 个测试文件，其中 43 个仍有失败；两次中途因代码整改停止的运行不计作完成证据。没有宣称全仓测试全绿。
 - `npm test` 与 `npm run test:unit` 的包装命令被既有 dirty-worktree 门禁提前拒绝；实际测试主体通过直接 Vitest 和相应 smoke 命令执行。
 
 ## 剩余全仓失败的归因
@@ -57,6 +57,8 @@
 
 增量审查 ACCEPT：精确资源 ID 目标在共享 canonical 时被其他资源替代。回归先复现 `A → alternative` 丢失 requested；修复后为 `A → requested`，目标不可推荐时返回空路径。共享知识、请求隔离、装配及 legacy adapter 组合 187 项通过。
 
-增量审查范围：`2b2e5699b87ff381540ad3999d4e557fe849befa` 到最终整合工作区，包含上游 `232c0223e80c13b9e33cd455705237818d90c872` 的接口整合、精确目标及筛选布局；未重新扫描原整改。审查结论：唯一已接受 P1 经一次整改复核关闭，本轮增量审查未发现新的 P0/P1 重大问题。审查者定向复核 5 文件、133 项通过，真实索引复测精确卡片目标成功保留。筛选栏的浏览器验证缺口已由最终 12 状态矩形遮挡检查覆盖；多知识绑定目标的超大前置闭包仍是未单独量化的非阻断测试空白。
+增量审查范围：`2b2e5699b87ff381540ad3999d4e557fe849befa` 到 `88e8ad0ffc36b51ed0495eed30dae2cbbf625e5b` 的最终源码，包含上游 `232c0223e80c13b9e33cd455705237818d90c872` 的接口整合、精确目标及筛选布局；未重新扫描原整改。审查结论：唯一已接受 P1 经一次整改复核关闭，本轮增量审查未发现新的 P0/P1 重大问题。审查者定向复核 5 文件、133 项通过，真实索引复测精确卡片目标成功保留。筛选栏的浏览器验证缺口已由最终 12 状态矩形遮挡检查覆盖；多知识绑定目标的超大前置闭包仍是未单独量化的非阻断测试空白。
 
-整合后全量比原整改唯一新增失败是 `authority-locale-readiness` 的工作区指针与 HEAD 字节对齐断言：上游 prerequisite/current.json 已在合并工作区，但合并尚未提交。该指针与 origin/integration 字节一致；其余失败集合没有新增业务回归，tooling CLI 的 dirty denominator 断言由失败转为通过。提交后复核上述指针断言。
+整合后全量比原整改唯一新增失败是 `authority-locale-readiness` 的工作区指针与 HEAD 字节对齐断言：上游 prerequisite/current.json 已在合并工作区，但合并尚未提交。该指针与 origin/integration 字节一致；其余失败集合没有新增业务回归，tooling CLI 的 dirty denominator 断言由失败转为通过。提交后该断言单独复测通过，最终全量中也通过。与原整改完成结果相比，最终失败集合没有新增项；全部剩余失败名称记录于 `artifacts/graph-path-redesign/test-summary.json`。
+
+最终工作区没有未提交源码改动，原有用户文件 `debug-drag-tmp.ts` 保留未跟踪状态。仅完成本地分支与提交，没有推送、合并到 integration 或生产部署。最终全量以后只补充本验证记录与精简测试清单，未改动源码。
