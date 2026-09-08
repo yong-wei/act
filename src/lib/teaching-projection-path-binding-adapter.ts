@@ -2,24 +2,29 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type { ResourceCandidatePoolSourceStatus } from './teacher-resource-node-data';
+import { TEXTBOOK_ID_ALIASES } from './engineering-textbook-mapping/aliases';
+import { resolveInteractiveLessonIdentity } from './interactive-lesson-identity';
 import type {
   ArenaTaskResourceNodeInput,
   KnowledgeCardResourceNodeInput,
   LightweightResourceNodeInput,
+  RegisteredResourceNodeInput,
   ResourceNodeRegistryInput,
   RuntimeLessonNodeInput,
   SimulationResourceNodeInput,
+  TextbookSectionResourceNodeInput,
 } from './resource-node-registry';
+import { getRegisteredResourceMetadata } from './resource-registry-metadata';
 import { resolveConfiguredTeachingProjectionRoot } from './teaching-projection/live-course-pointer';
 import type { TeachingBindingRuntime, TeachingResourceRuntime } from './teaching-projection/contracts';
 import {
   resolveActiveTeachingProjection,
   resolveTeachingProjectionStorePaths,
 } from './teaching-projection/store';
+import { fromResourceIdToken } from './teaching-projection/textbook-locators/identity';
 import {
   CLASSROOM_SIMULATION_PATH_NODE_IDS,
   mapActResourceIdToNodeId,
-  setCanonicalTargetBridge,
   type TeachingProjectionBindingSkipFamily,
 } from './teaching-projection-path-node-ids';
 
@@ -34,8 +39,11 @@ export type { TeachingProjectionBindingSkipFamily } from './teaching-projection-
 export const TEACHING_PROJECTION_BINDING_FAMILY = 'teaching-projection-bindings';
 export const DENOMINATOR_BRIDGE_LIMITATION = 'denominator-bridge-limited';
 
-const CUTOVER_DENOMINATOR_RELATIVE =
-  'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/denominator.json';
+const CUTOVER_CANDIDATE_DIR =
+  'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5';
+const CUTOVER_DENOMINATOR_RELATIVE = `${CUTOVER_CANDIDATE_DIR}/denominator.json`;
+const CUTOVER_CAPTURE_RECEIPT_RELATIVE = `${CUTOVER_CANDIDATE_DIR}/candidate-receipt.json`;
+const CAPTURE_REVISION_PATTERN = /^[a-f0-9]{40,64}$/u;
 
 export interface TeachingProjectionBindingMapInput {
   resources: readonly TeachingResourceRuntime[];
@@ -53,11 +61,13 @@ interface DenominatorBridgeFile {
   contract?: string;
   baselineHash?: string;
   denominatorHash?: string;
+  captureRevision?: string;
   entries?: Array<{ resourceId?: string }>;
 }
 
-export function setCanonicalTargetBridgeForTests(bridge: Map<string, string> | null): void {
-  setCanonicalTargetBridge(bridge);
+interface CutoverCaptureReceiptFile {
+  authorityCaptureHash?: string;
+  captureRevision?: string;
 }
 
 export function mapTeachingProjectionBindingsToRegistryInput(
@@ -81,6 +91,8 @@ export function mapTeachingProjectionBindingsToRegistryInput(
   const simulations: SimulationResourceNodeInput[] = [];
   const arenaTasks: ArenaTaskResourceNodeInput[] = [];
   const exercises: LightweightResourceNodeInput[] = [];
+  const textbookSections: TextbookSectionResourceNodeInput[] = [];
+  const registeredResources: RegisteredResourceNodeInput[] = [];
 
   for (const resource of input.resources) {
     const mapped = mapActResourceIdToNodeId(resource.resourceId, classroomMap);
@@ -93,14 +105,14 @@ export function mapTeachingProjectionBindingsToRegistryInput(
       mapped.nodeId,
     ]);
     const title = resource.title?.trim() || resource.resourceId;
-    const href = resource.sourcePath;
+    const href = studentFacingHref(resource.sourcePath);
     if (mapped.kind === 'handout') {
       const lessonId = mapped.nodeId.slice('runtime-handout:'.length);
       runtimeLessons.push({
         lessonId,
         title,
         knowledgeNodeIds: coverage,
-        handoutPath: href ?? `/interactive-learning/courses/${lessonId}`,
+        handoutPath: href ?? courseHrefForLessonToken(lessonId),
       });
       continue;
     }
@@ -110,8 +122,8 @@ export function mapTeachingProjectionBindingsToRegistryInput(
         title,
         sourceRef: resource.resourceId,
         knowledgeNodeIds: coverage,
-        launchTarget: href,
-        renderTarget: href,
+        launchTarget: href && href.startsWith('/') ? href : '/knowledge',
+        renderTarget: href && href.startsWith('/') ? href : '/knowledge',
       });
       continue;
     }
@@ -128,28 +140,55 @@ export function mapTeachingProjectionBindingsToRegistryInput(
           id: mediaId,
           title,
           kind: mapped.kind,
-          url: href,
+          url: href && href.startsWith('/') ? href : courseHrefForLessonToken(lessonId),
         }],
       });
       continue;
     }
     if (mapped.kind === 'arena') {
+      const taskId = mapped.nodeId.slice('arena-task:'.length);
       arenaTasks.push({
-        id: mapped.nodeId.slice('arena-task:'.length),
+        id: taskId,
         title,
-        launchTarget: href ?? `/arena/challenges/${mapped.nodeId.slice('arena-task:'.length)}`,
+        launchTarget: href && href.startsWith('/') ? href : `/arena/challenges/${taskId}`,
+        knowledgeNodeIds: coverage,
+      });
+      continue;
+    }
+    if (mapped.kind === 'textbook-section') {
+      const rest = mapped.nodeId.slice('textbook-section:'.length);
+      const sep = rest.indexOf(':');
+      textbookSections.push({
+        bookId: rest.slice(0, sep),
+        sectionId: rest.slice(sep + 1),
+        title,
+        citationHref: textbookSectionCitationHref(resource.resourceId, href),
         knowledgeNodeIds: coverage,
       });
       continue;
     }
     if (mapped.kind === 'simulation') {
+      if (mapped.nodeId.startsWith('registry:')) {
+        const registryId = mapped.nodeId.slice('registry:'.length);
+        const metadata = getRegisteredResourceMetadata(registryId);
+        registeredResources.push({
+          id: registryId,
+          label: title,
+          type: metadata?.type ?? 'SIMULATION_APP',
+          launchTarget: href && href.startsWith('/')
+            ? href
+            : metadata?.launchTarget ?? `/interactive-learning/resources/${registryId}`,
+          knowledgeNodeIds: coverage,
+        });
+        continue;
+      }
       const id = mapped.nodeId.startsWith('simulation:')
         ? mapped.nodeId.slice('simulation:'.length)
         : mapped.nodeId;
       simulations.push({
         id,
         title,
-        launchTarget: href ?? `/simulations/${id}`,
+        launchTarget: href && href.startsWith('/') ? href : `/simulations/${id}`,
         knowledgeNodeIds: coverage,
       });
       continue;
@@ -159,8 +198,8 @@ export function mapTeachingProjectionBindingsToRegistryInput(
       title,
       sourceRef: resource.resourceId,
       knowledgeNodeIds: coverage,
-      launchTarget: href ?? `/exercises/${mapped.nodeId.slice('exercise:'.length)}`,
-      renderTarget: href,
+      launchTarget: href && href.startsWith('/') ? href : '/assessment/adaptive-practice',
+      renderTarget: href && href.startsWith('/') ? href : '/assessment/adaptive-practice',
     });
   }
 
@@ -170,52 +209,82 @@ export function mapTeachingProjectionBindingsToRegistryInput(
     simulations,
     arenaTasks,
     exercises,
+    textbookSections,
+    registeredResources,
   };
   const patchCount = knowledgeCards.length
     + runtimeLessons.length
     + simulations.length
     + arenaTasks.length
-    + exercises.length;
+    + exercises.length
+    + textbookSections.length
+    + registeredResources.length;
   return { extraInput, skipCounts, patchCount };
 }
 
 export async function loadTeachingProjectionBindingFamily(): Promise<{
   extraInput: ResourceNodeRegistryInput;
   status: ResourceCandidatePoolSourceStatus;
+  bridge: ReadonlyMap<string, string> | null;
 }> {
   const empty: ResourceNodeRegistryInput = {};
-  const projection = resolveActiveTeachingProjection(
-    resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
-  );
-  if (projection.status !== 'available' || !projection.staged) {
-    setCanonicalTargetBridge(null);
+  try {
+    const projection = resolveActiveTeachingProjection(
+      resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
+    );
+    if (projection.status !== 'available' || !projection.staged) {
+      return {
+        extraInput: empty,
+        status: {
+          family: TEACHING_PROJECTION_BINDING_FAMILY,
+          status: 'missing',
+          count: 0,
+          reason: `missing-source-family:${TEACHING_PROJECTION_BINDING_FAMILY}`,
+        },
+        bridge: null,
+      };
+    }
+
+    const bridge = loadDenominatorBridge(process.cwd());
+    if (!bridge.ok) {
+      return {
+        extraInput: empty,
+        status: {
+          family: TEACHING_PROJECTION_BINDING_FAMILY,
+          status: 'empty',
+          count: 0,
+          reason: DENOMINATOR_BRIDGE_LIMITATION,
+        },
+        bridge: null,
+      };
+    }
+    const mapped = mapTeachingProjectionBindingsToRegistryInput({
+      resources: projection.staged.artifacts.resources,
+      bindings: projection.staged.artifacts.bindings,
+    });
+    return {
+      extraInput: mapped.extraInput,
+      status: {
+        family: TEACHING_PROJECTION_BINDING_FAMILY,
+        status: mapped.patchCount > 0 ? 'loaded' : 'empty',
+        count: mapped.patchCount,
+        reason: null,
+        skipCounts: mapped.skipCounts,
+      },
+      bridge: bridge.map,
+    };
+  } catch {
     return {
       extraInput: empty,
       status: {
         family: TEACHING_PROJECTION_BINDING_FAMILY,
-        status: 'missing',
+        status: 'error',
         count: 0,
-        reason: `missing-source-family:${TEACHING_PROJECTION_BINDING_FAMILY}`,
+        reason: `loader-error:${TEACHING_PROJECTION_BINDING_FAMILY}`,
       },
+      bridge: null,
     };
   }
-
-  const bridge = loadDenominatorBridge(process.cwd());
-  setCanonicalTargetBridge(bridge.ok ? bridge.map : null);
-  const mapped = mapTeachingProjectionBindingsToRegistryInput({
-    resources: projection.staged.artifacts.resources,
-    bindings: projection.staged.artifacts.bindings,
-  });
-  return {
-    extraInput: mapped.extraInput,
-    status: {
-      family: TEACHING_PROJECTION_BINDING_FAMILY,
-      status: mapped.patchCount > 0 ? 'loaded' : 'empty',
-      count: mapped.patchCount,
-      reason: bridge.ok ? null : DENOMINATOR_BRIDGE_LIMITATION,
-      skipCounts: mapped.skipCounts,
-    },
-  };
 }
 
 export function mergeResourceNodeRegistryInput(
@@ -253,17 +322,24 @@ export function mergeResourceNodeRegistryInput(
   return merged;
 }
 
-function loadDenominatorBridge(repoRoot: string): { ok: boolean; map: Map<string, string> } {
+export function loadDenominatorBridge(repoRoot: string): { ok: boolean; map: Map<string, string> } {
   const filePath = path.join(repoRoot, CUTOVER_DENOMINATOR_RELATIVE);
-  if (!existsSync(filePath)) return { ok: false, map: new Map() };
+  const receiptPath = path.join(repoRoot, CUTOVER_CAPTURE_RECEIPT_RELATIVE);
+  if (!existsSync(filePath) || !existsSync(receiptPath)) return { ok: false, map: new Map() };
   try {
     const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as DenominatorBridgeFile;
+    const receipt = JSON.parse(readFileSync(receiptPath, 'utf8')) as CutoverCaptureReceiptFile;
+    const captureRevision = receipt.authorityCaptureHash
+      ?? receipt.captureRevision
+      ?? parsed.captureRevision;
     if (
       parsed.contract !== 'successor-resource-denominator/v1'
       || typeof parsed.baselineHash !== 'string'
-      || parsed.baselineHash.length === 0
+      || !/^[a-f0-9]{64}$/u.test(parsed.baselineHash)
       || typeof parsed.denominatorHash !== 'string'
-      || parsed.denominatorHash.length === 0
+      || !/^[a-f0-9]{64}$/u.test(parsed.denominatorHash)
+      || typeof captureRevision !== 'string'
+      || !CAPTURE_REVISION_PATTERN.test(captureRevision)
       || !Array.isArray(parsed.entries)
     ) {
       return { ok: false, map: new Map() };
@@ -277,6 +353,56 @@ function loadDenominatorBridge(repoRoot: string): { ok: boolean; map: Map<string
     return { ok: true, map };
   } catch {
     return { ok: false, map: new Map() };
+  }
+}
+
+function studentFacingHref(href: string | null | undefined): string | null {
+  if (!href) return null;
+  if (
+    href.startsWith('/interactive-learning/')
+    || href.startsWith('/knowledge')
+    || href.startsWith('/assessment/')
+    || href.startsWith('/simulations/')
+    || href.startsWith('/arena/')
+    || href.startsWith('/textbooks/')
+    || href.startsWith('/profile/')
+    || href.startsWith('/course-runtime/')
+    || href.startsWith('course-content/runtime/')
+  ) {
+    return href;
+  }
+  return null;
+}
+
+function courseHrefForLessonToken(lessonId: string): string {
+  const resolved = resolveInteractiveLessonIdentity({ kind: 'runtimeLessonDir', value: lessonId });
+  if (resolved.status === 'resolved') {
+    return `/interactive-learning/courses/${resolved.record.routeSegments[0]}`;
+  }
+  const byKey = resolveInteractiveLessonIdentity({ kind: 'lessonKey', value: lessonId });
+  if (byKey.status === 'resolved') {
+    return `/interactive-learning/courses/${byKey.record.routeSegments[0]}`;
+  }
+  return `/interactive-learning/courses/${lessonId}`;
+}
+
+function textbookSectionCitationHref(resourceId: string, href: string | null | undefined): string {
+  if (href && (href.startsWith('/') || href.startsWith('course-content/runtime/'))) return href;
+  const token = resourceId.slice('act:textbook-section:'.length);
+  if (!token || token.includes(':')) return '/knowledge';
+  try {
+    const segments = fromResourceIdToken(token).split(':');
+    if (segments.length < 2 || segments.some((segment) => !segment)) return '/knowledge';
+    const alias = TEXTBOOK_ID_ALIASES.find((row) => row.readerBookId === segments[0]);
+    if (!alias) return '/knowledge';
+    return `/${[
+      'textbooks',
+      alias.readerBookId,
+      encodeURIComponent(alias.edition),
+      ...segments.slice(1).map(encodeURIComponent),
+    ].join('/')}`;
+  } catch {
+    return '/knowledge';
   }
 }
 

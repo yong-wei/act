@@ -7,6 +7,7 @@ import {
   buildResourceNodeRegistry,
 } from '@/lib/resource-node-registry';
 import {
+  loadDenominatorBridge,
   mapTeachingProjectionBindingsToRegistryInput,
 } from '@/lib/teaching-projection-path-binding-adapter';
 import {
@@ -58,13 +59,17 @@ describe('teaching projection path binding adapter', () => {
       nodeId: 'knowledge-card:比例控制_1_1',
       kind: 'card',
     });
-    expect(mapActResourceIdToNodeId('act:video:1-1:1-1-intro-video')).toEqual({
+    expect(mapActResourceIdToNodeId('act:video:1-1')).toEqual({
       nodeId: 'runtime-media:1-1:1-1-intro-video',
       kind: 'video',
     });
-    expect(mapActResourceIdToNodeId('act:audio:1-1:1-1-audio')).toEqual({
+    expect(mapActResourceIdToNodeId('act:audio:1-1')).toEqual({
       nodeId: 'runtime-media:1-1:1-1-audio',
       kind: 'audio',
+    });
+    expect(mapActResourceIdToNodeId('act:simulation:arena-task-second-order-lead-pid')).toEqual({
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      kind: 'arena',
     });
     expect(mapActResourceIdToNodeId('act:simulation:arena-task-task-second-order-lead-pid')).toEqual({
       nodeId: 'arena-task:task-second-order-lead-pid',
@@ -74,9 +79,18 @@ describe('teaching projection path binding adapter', () => {
       nodeId: 'exercise:bode-drill',
       kind: 'exercise',
     });
+    expect(mapActResourceIdToNodeId('act:textbook-section:dorf-modern-control-systems.ch10-sec01')).toEqual({
+      nodeId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
+      kind: 'textbook-section',
+    });
+    expect(mapActResourceIdToNodeId('act:simulation:sim-scene-cruise')).toEqual({
+      nodeId: 'registry:sim-scene-cruise',
+      kind: 'simulation',
+    });
     expect(mapActResourceIdToNodeId('act:textbook:dorf')).toEqual({ skip: 'textbook-container' });
     expect(mapActResourceIdToNodeId('act:textbook-chapter:dorf:ch1')).toEqual({ skip: 'textbook-container' });
     expect(mapActResourceIdToNodeId('act:simulation:lesson01-pid')).toEqual({ skip: 'classroom-simulation' });
+    expect(mapActResourceIdToNodeId('act:video:1-1:1-1-intro-video')).toEqual({ skip: 'unmapped' });
   });
 
   it('counts skipped classroom simulations and textbook containers without emitting nodes', () => {
@@ -97,6 +111,7 @@ describe('teaching projection path binding adapter', () => {
       }),
     ]);
     expect(mapped.extraInput.simulations).toEqual([]);
+    expect(mapped.extraInput.textbookSections).toEqual([]);
     expect(mapped.skipCounts).toEqual({
       'classroom-simulation': 1,
       'textbook-container': 1,
@@ -201,4 +216,147 @@ describe('teaching projection path binding adapter', () => {
     );
     expect(plan.mainPath).toEqual([]);
   });
+
+  it('emits textbook-section patches and maps registered classroom simulations exactly', () => {
+    expect(mapActResourceIdToNodeId('act:simulation:lesson13-physics-builder-simple')).toEqual({
+      nodeId: 'registry:lesson13-physics-builder-simple',
+      kind: 'simulation',
+    });
+    const mapped = mapTeachingProjectionBindingsToRegistryInput({
+      resources: [
+        resource('act:textbook-section:dorf-modern-control-systems.ch10-sec01', 'Dorf §10.1'),
+        resource('act:simulation:sim-scene-cruise', '邮轮仿真'),
+        resource('act:video:1-1', '导入片'),
+      ],
+      bindings: [binding('act:textbook-section:dorf-modern-control-systems.ch10-sec01', 'ctc:bode')],
+    });
+
+    expect(mapped.extraInput.textbookSections).toEqual([
+      expect.objectContaining({
+        bookId: 'dorf-modern-control-systems',
+        sectionId: 'ch10-sec01',
+        knowledgeNodeIds: expect.arrayContaining(['ctc:bode']),
+      }),
+    ]);
+    expect(mapped.extraInput.registeredResources).toEqual([
+      expect.objectContaining({ id: 'sim-scene-cruise' }),
+    ]);
+    expect(mapped.extraInput.runtimeLessons).toEqual([
+      expect.objectContaining({
+        lessonId: '1-1',
+        mediaResources: [
+          expect.objectContaining({
+            id: '1-1-intro-video',
+            kind: 'video',
+          }),
+        ],
+      }),
+    ]);
+    expect(mapped.extraInput.runtimeLessons?.[0]?.mediaResources?.[0]?.url).not.toMatch(/^\/src\//);
+    expect(mapped.extraInput.textbookSections?.[0]?.citationHref).not.toMatch(/^\/src\//);
+  });
+
+  it('loads the cutover denominator only when capture revision and baseline hash are present', () => {
+    const bridge = loadDenominatorBridge(process.cwd());
+    expect(bridge.ok).toBe(true);
+    expect(bridge.map.size).toBeGreaterThan(0);
+    expect(loadDenominatorBridge('/tmp/missing-cutover-bridge')).toEqual({
+      ok: false,
+      map: new Map(),
+    });
+  });
+
+  it('keeps unreviewed exercise nodes excluded even when mix lists exercise', () => {
+    const registry = applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
+      exercises: [{
+        id: 'unreviewed-drill',
+        title: '未评审习题',
+        sourceRef: 'act:exercise:unreviewed-drill',
+        knowledgeNodeIds: ['kn-bode'],
+        launchTarget: '/assessment/adaptive-practice',
+        renderTarget: '/assessment/adaptive-practice',
+      }],
+    }));
+    const node = registry.nodes.find((item) => item.id === 'exercise:unreviewed-drill');
+    expect(node?.planningMetadata.pathDisposition?.kind).toBe('excluded-with-rationale');
+    expect(node?.eligibility.pathEligible).toBe(false);
+
+    const plan = planLearningPath({
+      studentId: 'student-1',
+      goal: {
+        id: 'frequency-response-foundations',
+        title: '频率响应基础',
+        knowledgeTargets: ['kn-bode'],
+        competencyTargets: [],
+      },
+      registry,
+      constraints: {
+        timeBudgetMinutes: 40,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+        completedNodeIds: [],
+      },
+    });
+    expect(plan.mainPath.map((item) => item.nodeId)).not.toContain('exercise:unreviewed-drill');
+  });
+
+  it('lets reviewed exercise and video nodes enter a mix that lists those families', () => {
+    const registry = applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'kn-bode',
+        title: '伯德图知识卡',
+        sourceRef: 'kn-bode:card',
+        knowledgeNodeIds: ['kn-bode'],
+        launchTarget: '/knowledge',
+        renderTarget: '/knowledge',
+      }],
+      exercises: [{
+        id: 'bode-drill',
+        title: '伯德图习题',
+        sourceRef: 'act:exercise:bode-drill',
+        knowledgeNodeIds: ['kn-bode'],
+        launchTarget: '/assessment/adaptive-practice',
+        renderTarget: '/assessment/adaptive-practice',
+      }],
+      runtimeLessons: [{
+        lessonId: '1-1',
+        title: '导入片',
+        knowledgeNodeIds: ['kn-bode'],
+        mediaResources: [{
+          id: '1-1-intro-video',
+          title: '导入片',
+          kind: 'video',
+          url: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+        }],
+      }],
+    }));
+
+    expect(registry.nodes.find((item) => item.id === 'exercise:bode-drill')?.eligibility.pathEligible).toBe(true);
+    expect(registry.nodes.find((item) => item.id === 'runtime-media:1-1:1-1-intro-video')?.eligibility.pathEligible).toBe(true);
+
+    const plan = planLearningPath({
+      studentId: 'student-1',
+      goal: {
+        id: 'frequency-response-foundations',
+        title: '频率响应基础',
+        knowledgeTargets: ['kn-bode'],
+        competencyTargets: [],
+      },
+      registry,
+      constraints: {
+        timeBudgetMinutes: 40,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+        completedNodeIds: [],
+      },
+    });
+    const pathIds = plan.mainPath.map((item) => item.nodeId);
+    expect(pathIds).toEqual(expect.arrayContaining([
+      'exercise:bode-drill',
+      'runtime-media:1-1:1-1-intro-video',
+    ]));
+  });
 });
+

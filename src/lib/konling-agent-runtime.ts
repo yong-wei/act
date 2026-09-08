@@ -226,6 +226,7 @@ import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/freque
 import {
   loadTeachingProjectionBindingFamily,
   mergeResourceNodeRegistryInput,
+  setCanonicalTargetBridge,
 } from '@/lib/teaching-projection-path-binding-adapter';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile } from '@/types/ai-context';
@@ -4943,7 +4944,11 @@ async function buildAdaptivePathToolOutput(
       }
     : null;
   const args = effectiveRevisionArgs ?? generateLearningPathParameters.parse(rawArgs);
-  const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
+  const {
+    registry,
+    diagnostics: candidatePoolDiagnostics,
+    canonicalTargetBridge,
+  } = await resolveAdaptivePathGenerationRegistry(input, goalId);
   // Use the legacy bounded generation cap when the learner omitted one. This
   // cap only controls candidate generation; the minimum executable duration is
   // derived from the repaired plan below and never raises an explicit request.
@@ -5079,6 +5084,10 @@ async function buildAdaptivePathToolOutput(
     goalId,
   });
   const previousPathFacts = previousPathFactsFromPlanOptions(input.context.planContext?.pathOptions);
+  // ponytail: module-level bridge; set immediately before sync planLearningPath so concurrent
+  // generate_learning_path awaits cannot clobber the map mid-plan. Per-request ALS if this
+  // function ever awaits inside planLearningPath.
+  setCanonicalTargetBridge(canonicalTargetBridge);
   const rawPlan = planLearningPath({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
@@ -6223,6 +6232,7 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
 async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
   registry: ResourceNodeRegistry;
   diagnostics: ResourceCandidatePoolDiagnostics;
+  canonicalTargetBridge: ReadonlyMap<string, string> | null;
 }> {
   const [
     teachingResourcesSource,
@@ -6249,10 +6259,6 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
     teachingProjectionBindings.status,
   ];
   const registeredResources = getAllRegisteredResourceMetadata();
-  const runtimeTextbookInput = {
-    textbooks: runtimeTextbooks.map((entry) => entry.textbook),
-    textbookSections: runtimeTextbooks.flatMap(toTextbookUnitNodeInputs),
-  };
   // #2055：池级 Runtime 绑定摘要（按族可绑定 OSS 资源计数，连接活动 release 后的真实可用数）。
   const teachingProjectionIndex = loadTeachingProjectionResourceIndex();
   const runtimeReleaseIndex = await loadRuntimeReleaseFileIndex();
@@ -6271,6 +6277,7 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
     diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies, {
       runtimeResourceBindings: buildRuntimeBindingSummary(registry),
     }),
+    canonicalTargetBridge: teachingProjectionBindings.bridge ?? null,
   });
   const buildGenericRegistry = () => buildResourceNodeRegistryFromTeachingResources(
     teachingResources,

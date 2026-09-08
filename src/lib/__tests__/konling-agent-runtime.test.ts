@@ -25,6 +25,15 @@ const mocks = vi.hoisted(() => ({
   retrieveTextbookSourcePackV2Progressive: vi.fn(),
   runMathCalculate: vi.fn(),
   MathCalculateCapacityError: class MathCalculateCapacityError extends Error {},
+  loadTeachingProjectionBindingFamily: vi.fn(async () => ({
+    extraInput: {},
+    status: {
+      family: 'teaching-projection-bindings',
+      status: 'empty' as const,
+      count: 0,
+      reason: null,
+    },
+  })),
 }));
 
 vi.mock('@/lib/math-calc', async () => {
@@ -109,15 +118,7 @@ vi.mock('@/lib/teaching-projection-path-binding-adapter', async () => {
   );
   return {
     ...actual,
-    loadTeachingProjectionBindingFamily: vi.fn(async () => ({
-      extraInput: {},
-      status: {
-        family: 'teaching-projection-bindings',
-        status: 'empty' as const,
-        count: 0,
-        reason: null,
-      },
-    })),
+    loadTeachingProjectionBindingFamily: mocks.loadTeachingProjectionBindingFamily,
   };
 });
 
@@ -782,6 +783,15 @@ describe('konling agent runtime', () => {
     mocks.loadAllTextbookStructureRuntimeCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
     mocks.loadAllTextbookStructureUnitProjections.mockResolvedValue(textbookStructureUnitFixture());
     mocks.loadRuntimeResourceProjectionInputs.mockResolvedValue([]);
+    mocks.loadTeachingProjectionBindingFamily.mockResolvedValue({
+      extraInput: {},
+      status: {
+        family: 'teaching-projection-bindings',
+        status: 'empty',
+        count: 0,
+        reason: null,
+      },
+    });
     mocks.retrieveTextbookSourcePackV2Progressive.mockResolvedValue({
       foreground: {
         mode: 'lexical',
@@ -9551,6 +9561,122 @@ describe('konling agent runtime', () => {
         }),
       }),
     }));
+  });
+
+  it('reports teaching-projection binding family counts and skip families on generate_learning_path', async () => {
+    mocks.loadTeachingProjectionBindingFamily.mockResolvedValueOnce({
+      extraInput: {
+        knowledgeCards: [{
+          id: 'kn-bode',
+          title: '伯德图知识卡',
+          sourceRef: 'act:card:kn-bode',
+          knowledgeNodeIds: ['kn-bode'],
+          launchTarget: '/knowledge',
+          renderTarget: '/knowledge',
+        }],
+        exercises: [{
+          id: 'bode-drill',
+          title: '伯德图习题',
+          sourceRef: 'act:exercise:bode-drill',
+          knowledgeNodeIds: ['kn-bode'],
+          launchTarget: '/assessment/adaptive-practice',
+          renderTarget: '/assessment/adaptive-practice',
+        }],
+      },
+      status: {
+        family: 'teaching-projection-bindings',
+        status: 'loaded',
+        count: 2,
+        reason: null,
+        skipCounts: {
+          'classroom-simulation': 1,
+          'textbook-container': 1,
+          unmapped: 0,
+        },
+      },
+    });
+    const createdRun = {
+      id: 'tool-run-path-binding-family',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-binding-family',
+      correlationId: 'corr-path-binding-family',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    const result = await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-binding-family',
+      goalId: 'control-correction',
+      timeBudgetMinutes: 90,
+    }) as {
+      candidatePoolLimited: boolean;
+      pathOptions: Array<{ nodes?: Array<{ resourceType?: string; nodeId?: string }> }>;
+      diagnostics: {
+        candidatePool: {
+          candidateCountsByFamily: Record<string, number>;
+          sourceFamilies: Array<{
+            family: string;
+            status: string;
+            count: number;
+            skipCounts?: Record<string, number>;
+          }>;
+        };
+      };
+    };
+
+    expect(result.diagnostics.candidatePool.sourceFamilies).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        family: 'teaching-projection-bindings',
+        status: 'loaded',
+        count: 2,
+        skipCounts: {
+          'classroom-simulation': 1,
+          'textbook-container': 1,
+          unmapped: 0,
+        },
+      }),
+    ]));
+    expect(result.diagnostics.candidatePool.candidateCountsByFamily).toEqual(expect.objectContaining({
+      exercise: expect.any(Number),
+    }));
+    expect(result.candidatePoolLimited).toBe(false);
+    expect(result.pathOptions.length).toBeGreaterThan(0);
   });
 
   it('keeps loader errors separate from missing source-family diagnostics', async () => {

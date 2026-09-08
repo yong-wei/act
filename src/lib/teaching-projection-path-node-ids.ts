@@ -1,10 +1,28 @@
-export const CLASSROOM_SIMULATION_PATH_NODE_IDS: Readonly<Record<string, string>> = {};
+import { getAllRegisteredResourceMetadata, getRegisteredResourceMetadata } from './resource-registry-metadata';
+import { fromResourceIdToken } from './teaching-projection/textbook-locators/identity';
+
+/**
+ * 课堂仿真显式映射：仅收录 registry 中 lessonNN 精确身份。
+ * 无行的 lessonNN 投影仿真跳过并计数，禁止前缀猜测。
+ */
+export const CLASSROOM_SIMULATION_PATH_NODE_IDS: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(
+    getAllRegisteredResourceMetadata()
+      .filter((resource) => /^lesson\d+/i.test(resource.id))
+      .flatMap((resource) => [
+        [`act:simulation:${resource.id}`, `registry:${resource.id}`] as const,
+        [resource.id, `registry:${resource.id}`] as const,
+      ]),
+  ),
+);
 
 export type TeachingProjectionBindingSkipFamily =
   | 'classroom-simulation'
   | 'textbook-container'
   | 'unmapped';
 
+// ponytail: process-global map, safe only while planLearningPath stays synchronous.
+// Callers must set immediately before that sync call. Upgrade to ALS if planning awaits.
 let liveCanonicalTargetBridge: ReadonlyMap<string, string> | null = null;
 
 export function setCanonicalTargetBridge(bridge: ReadonlyMap<string, string> | null): void {
@@ -26,21 +44,45 @@ export function mapActResourceIdToNodeId(
   if (handout) return { nodeId: `runtime-handout:${handout[1]}`, kind: 'handout' };
   const card = /^act:card:([^:\s]+)$/u.exec(resourceId);
   if (card) return { nodeId: `knowledge-card:${card[1]}`, kind: 'card' };
-  const media = /^act:(video|audio):([^:\s]+):([^:\s]+)$/u.exec(resourceId);
-  if (media) return { nodeId: `runtime-media:${media[2]}:${media[3]}`, kind: media[1] };
-  const arena = /^act:simulation:arena-task-(.+)$/u.exec(resourceId);
-  if (arena) return { nodeId: `arena-task:${arena[1]}`, kind: 'arena' };
-  const simulation = /^act:simulation:(.+)$/u.exec(resourceId);
-  if (simulation) {
-    const mapped = classroomSimulationNodeIds[resourceId] ?? classroomSimulationNodeIds[simulation[1]];
-    if (!mapped) return { skip: 'classroom-simulation' };
-    return { nodeId: mapped, kind: 'simulation' };
+  const video = /^act:video:([^:\s]+)$/u.exec(resourceId);
+  if (video) {
+    return { nodeId: `runtime-media:${video[1]}:${video[1]}-intro-video`, kind: 'video' };
   }
-  if (/^act:textbook-section:[^:\s]+$/u.test(resourceId)) {
-    return { skip: 'unmapped' };
+  const audio = /^act:audio:([^:\s]+)$/u.exec(resourceId);
+  if (audio) {
+    return { nodeId: `runtime-media:${audio[1]}:${audio[1]}-audio`, kind: 'audio' };
+  }
+  const textbookSection = /^act:textbook-section:([^:\s]+)$/u.exec(resourceId);
+  if (textbookSection) {
+    let decoded: string;
+    try {
+      decoded = fromResourceIdToken(textbookSection[1]);
+    } catch {
+      return { skip: 'unmapped' };
+    }
+    const parts = decoded.split(':').filter(Boolean);
+    if (parts.length < 2) return { skip: 'unmapped' };
+    return { nodeId: `textbook-section:${decoded}`, kind: 'textbook-section' };
   }
   const exercise = /^act:exercise:([^:\s]+)$/u.exec(resourceId);
   if (exercise) return { nodeId: `exercise:${exercise[1]}`, kind: 'exercise' };
+  const arena = /^act:simulation:arena-task-(.+)$/u.exec(resourceId);
+  if (arena) {
+    const slug = arena[1].replace(/^task-/u, '');
+    return { nodeId: `arena-task:task-${slug}`, kind: 'arena' };
+  }
+  const simulation = /^act:simulation:(.+)$/u.exec(resourceId);
+  if (simulation) {
+    const mapped = classroomSimulationNodeIds[resourceId] ?? classroomSimulationNodeIds[simulation[1]];
+    if (mapped) return { nodeId: mapped, kind: 'simulation' };
+    if (isClassroomLessonSimulationId(resourceId) || isClassroomLessonSimulationId(simulation[1])) {
+      return { skip: 'classroom-simulation' };
+    }
+    if (getRegisteredResourceMetadata(simulation[1])) {
+      return { nodeId: `registry:${simulation[1]}`, kind: 'simulation' };
+    }
+    return { skip: 'unmapped' };
+  }
   return { skip: 'unmapped' };
 }
 
@@ -58,4 +100,8 @@ export function resolveCanonicalGoalTargets(
     if (bridged) resolved.push(bridged);
   }
   return [...new Set(resolved)];
+}
+
+function isClassroomLessonSimulationId(value: string): boolean {
+  return /(?:^|:)lesson\d+/i.test(value);
 }
