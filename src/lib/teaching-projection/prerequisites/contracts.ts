@@ -251,6 +251,7 @@ export interface PrerequisitePublicationManifest {
     decisions: string;
     candidates: string;
     body: string;
+    receipts?: string;
   };
   publicationId: string;
   publicationHash: string;
@@ -268,6 +269,7 @@ export interface PrerequisitePublicationArtifacts {
   /** Projection-compatible authoring slices for reuse by teaching-projection builder. */
   projectionCoreNodes: TeachingCoreNodeAuthoring[];
   projectionPrerequisites: TeachingPrerequisiteAuthoring[];
+  receipts?: EngineeringLearningOrderReceipt[];
 }
 
 export type EngineeringLearningOrderDisposition =
@@ -302,6 +304,7 @@ export interface PrerequisitePublicationBuildInput {
   edges: readonly PrerequisiteEdgeAuthoring[];
   decisions?: readonly PrerequisiteAuthorDecision[];
   candidates?: readonly PrerequisiteCandidateRecord[];
+  receipts?: readonly EngineeringLearningOrderReceipt[];
   /**
    * Prior published artifact. On fail-closed rejection the prior is preserved
    * and returned without mutation.

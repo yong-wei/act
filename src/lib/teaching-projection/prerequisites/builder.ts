@@ -9,6 +9,7 @@ import { projectionDigest, projectionIdFromHashCompat } from './hash-compat';
 import {
   ACT_TEACHING_PREREQUISITE_BUILDER_VERSION,
   ACT_TEACHING_PREREQUISITE_PUBLICATION_CONTRACT,
+  type EngineeringLearningOrderReceipt,
   type PrerequisitePublicationArtifacts,
   type PrerequisitePublicationBuildInput,
   type PrerequisitePublicationGate,
@@ -143,6 +144,16 @@ function evaluateGate(input: {
   };
 }
 
+function normalizeReceipts(
+  receipts: readonly EngineeringLearningOrderReceipt[],
+): EngineeringLearningOrderReceipt[] {
+  return [...receipts].sort((a, b) => (
+    compareCodePoint(a.relationId, b.relationId)
+    || compareCodePoint(a.sourceId, b.sourceId)
+    || compareCodePoint(a.targetId, b.targetId)
+  ));
+}
+
 function buildManifest(input: {
   scopeId: string;
   authoringRevision: string;
@@ -152,16 +163,23 @@ function buildManifest(input: {
   edges: unknown;
   decisions: unknown;
   candidates: unknown;
+  receipts?: unknown;
   gate: PrerequisitePublicationGate;
   coreNodeCount: number;
   publishedEdgeCount: number;
   candidateCount: number;
 }): PrerequisitePublicationManifest {
-  const sourceHashes = {
+  const hashedParts = {
     coreNodes: projectionDigest(input.coreNodes),
     edges: projectionDigest(input.edges),
     decisions: projectionDigest(input.decisions),
     candidates: projectionDigest(input.candidates),
+    ...(input.receipts !== undefined
+      ? { receipts: projectionDigest(input.receipts) }
+      : {}),
+  };
+  const sourceHashes = {
+    ...hashedParts,
     body: '',
   };
   const body = {
@@ -174,12 +192,7 @@ function buildManifest(input: {
     coreNodeCount: input.coreNodeCount,
     publishedEdgeCount: input.publishedEdgeCount,
     candidateCount: input.candidateCount,
-    sourceHashes: {
-      coreNodes: sourceHashes.coreNodes,
-      edges: sourceHashes.edges,
-      decisions: sourceHashes.decisions,
-      candidates: sourceHashes.candidates,
-    },
+    sourceHashes: hashedParts,
     gateStatus: input.gate.status,
     gatePassed: input.gate.passed,
   };
@@ -274,6 +287,10 @@ export function buildPrerequisitePublication(
       (e) => e.status === 'PUBLISHED',
     ).length;
 
+    const receipts = (input.receipts && input.receipts.length > 0)
+      ? normalizeReceipts(input.receipts)
+      : undefined;
+
     const manifest = buildManifest({
       scopeId: input.scopeId,
       authoringRevision: input.authoringRevision,
@@ -283,6 +300,7 @@ export function buildPrerequisitePublication(
       edges: materialized.edges,
       decisions,
       candidates,
+      receipts,
       gate,
       coreNodeCount: coreNodes.length,
       publishedEdgeCount,
@@ -300,6 +318,7 @@ export function buildPrerequisitePublication(
       projectionPrerequisites: toProjectionPrerequisiteAuthoring(
         materialized.edges,
       ),
+      ...(receipts ? { receipts } : {}),
     };
   } catch (error) {
     if (error instanceof PrerequisiteBuildError) {

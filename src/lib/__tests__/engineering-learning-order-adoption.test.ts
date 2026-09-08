@@ -2,7 +2,8 @@
  * Engineering learning-order adoption (#2059).
  */
 
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -15,6 +16,9 @@ import {
   candidatesFromEngineeringRelations,
   createPrerequisiteAuthorDecision,
   isEngineeringLearningOrderPredicate,
+  loadPrerequisitePublication,
+  resolvePrerequisiteStorePaths,
+  stagePrerequisitePublication,
   type CoreNodeAuthoringRow,
 } from '../teaching-projection';
 
@@ -231,6 +235,7 @@ describe('engineering learning-order adoption (#2059)', () => {
       edges: merged.edges,
       decisions: merged.decisions,
       candidates: merged.candidates,
+      receipts: merged.receipts,
     });
 
     expect(artifacts.gate.passed).toBe(true);
@@ -242,20 +247,22 @@ describe('engineering learning-order adoption (#2059)', () => {
     expect(artifacts.candidates[0]?.origin).toBe('ENGINEERING_RELATION');
     expect(adopted[0]?.evidenceRefs).toEqual([
       'engineering-relation:ctkg:m4-u2u5:prerequisite:adopt',
+      `engineering-snapshot:${SNAPSHOT}`,
     ]);
     expect(artifacts.projectionPrerequisites.some((e) => (
       e.sourceCanonicalId === 'node.laplace-transform'
       && e.targetCanonicalId === 'node.transfer-function'
     ))).toBe(true);
 
-    const tamperedCandidates = artifacts.candidates.map((candidate, index) => (
-      index === 0
-        ? {
-          ...candidate,
-          note: `${candidate.note ?? ''} tampered`,
-        }
-        : candidate
-    ));
+    expect(artifacts.manifest.sourceHashes.receipts).toBeTruthy();
+    expect(artifacts.receipts).toHaveLength(1);
+    expect(artifacts.receipts?.[0]?.disposition).toBe('adopted');
+    expect(artifacts.receipts?.[0]?.snapshotHash).toBe(SNAPSHOT);
+
+    const tamperedReceipts = (artifacts.receipts ?? []).map((receipt) => ({
+      ...receipt,
+      snapshotHash: 'c'.repeat(64),
+    }));
     const tampered = buildPrerequisitePublication({
       scopeId: SCOPE,
       authoringRevision: REVISION,
@@ -268,11 +275,43 @@ describe('engineering learning-order adoption (#2059)', () => {
       coreNodes,
       edges: merged.edges,
       decisions: merged.decisions,
-      candidates: tamperedCandidates,
+      candidates: merged.candidates,
+      receipts: tamperedReceipts,
     });
     expect(tampered.manifest.publicationHash).not.toBe(artifacts.manifest.publicationHash);
-    expect(tampered.manifest.sourceHashes.candidates).not.toBe(
-      artifacts.manifest.sourceHashes.candidates,
+    expect(tampered.manifest.sourceHashes.receipts).not.toBe(
+      artifacts.manifest.sourceHashes.receipts,
     );
+
+    const root = mkdtempSync(path.join(tmpdir(), 'prereq-receipts-'));
+    try {
+      const paths = resolvePrerequisiteStorePaths(root);
+      const staged = stagePrerequisitePublication(paths, {
+        useCurrentAsPrior: false,
+        scopeId: SCOPE,
+        authoringRevision: REVISION,
+        authorityReleaseId: AUTHORITY,
+        projectionCaptureId: 'proj-capture-1',
+        authorityNodes: coreNodes.map((n) => ({
+          canonicalId: n.canonicalId,
+          lifecycleStatus: 'active',
+        })),
+        coreNodes,
+        edges: merged.edges,
+        decisions: merged.decisions,
+        candidates: merged.candidates,
+        receipts: merged.receipts,
+      });
+      expect(staged.artifacts.manifest.sourceHashes.receipts).toBeTruthy();
+      writeFileSync(
+        path.join(staged.releaseDir, 'engineering-learning-order-receipts.json'),
+        `${JSON.stringify([])}\n`,
+      );
+      expect(() => loadPrerequisitePublication(paths, staged.publicationId)).toThrow(
+        /receipts drifted/,
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

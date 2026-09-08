@@ -643,4 +643,42 @@ describe('readiness and resource selection (#1275)', () => {
     expect(result.diagnostics.engineeringLearningOrderConstraintCount).toBe(0);
     expect(result.diagnostics.teachingOrderConstraintCount).toBe(1);
   });
+
+  it('ignores adopted engineering order that is disconnected from the goal', () => {
+    const teaching = requiredEdge('node.laplace-transform', 'node.transfer-function');
+    const disconnected = {
+      ...requiredEdge('node.block-diagram', 'node.feedback-control'),
+      candidateOrigin: 'ENGINEERING_RELATION',
+    };
+    const result = planActPrerequisitePath(
+      baseInput({
+        prerequisites: [teaching, disconnected],
+        coreNodes: [
+          core('node.laplace-transform'),
+          core('node.transfer-function'),
+          core('node.block-diagram'),
+          core('node.feedback-control'),
+        ],
+        resources: [
+          resource('lesson:laplace', 'lesson'),
+          resource('lesson:tf', 'lesson'),
+          resource('lesson:block', 'lesson'),
+          resource('lesson:feedback', 'lesson'),
+        ],
+        bindings: [
+          binding('lesson:laplace', 'node.laplace-transform'),
+          binding('lesson:tf', 'node.transfer-function'),
+          binding('lesson:block', 'node.block-diagram'),
+          binding('lesson:feedback', 'node.feedback-control'),
+        ],
+      }),
+    );
+    expect(result.status).toBe('ready');
+    expect(result.nodes.map((n) => n.canonicalId)).toEqual([
+      'node.laplace-transform',
+      'node.transfer-function',
+    ]);
+    expect(result.diagnostics.engineeringLearningOrderConstraintCount).toBe(0);
+    expect(result.diagnostics.teachingOrderConstraintCount).toBe(1);
+  });
 });

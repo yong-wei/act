@@ -44,7 +44,9 @@ function main(): void {
     publicationHash: string;
     authorityReleaseId: string;
   }>(CURRENT);
-  const priorDir = path.join(ROOT, STORE, 'releases', pointer.publicationId);
+  const fromArg = process.argv.find((arg) => arg.startsWith('--from='));
+  const priorPublicationId = fromArg?.slice('--from='.length) || pointer.publicationId;
+  const priorDir = path.join(ROOT, STORE, 'releases', priorPublicationId);
   const priorCore = readJson<CoreNodeAuthoringRow[]>(path.join(priorDir, 'core-nodes.json'));
   const priorEdges = readJson<PrerequisiteEdgePublished[]>(path.join(priorDir, 'edges.json'));
   const manifest = readJson<{
@@ -123,6 +125,7 @@ function main(): void {
     edges: merged.edges,
     decisions: merged.decisions,
     candidates: merged.candidates,
+    receipts: merged.receipts,
   });
 
   if (staged.priorPreserved) {
@@ -142,7 +145,7 @@ function main(): void {
     : readJson<unknown>(CURRENT);
 
   process.stdout.write(`${JSON.stringify({
-    priorPublicationId: pointer.publicationId,
+    priorPublicationId,
     publicationId: staged.publicationId,
     publicationHash: staged.publicationHash,
     reused: staged.reused,

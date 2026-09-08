@@ -182,7 +182,10 @@ export function adoptEngineeringLearningOrder(
       continue;
     }
 
-    const evidenceRefs = [`engineering-relation:${relation.id}`];
+    const evidenceRefs = [
+      `engineering-relation:${relation.id}`,
+      `engineering-snapshot:${input.snapshotHash}`,
+    ];
     const decision = createPrerequisiteAuthorDecision({
       sourceNodeId: relation.sourceId,
       targetNodeId: relation.targetId,

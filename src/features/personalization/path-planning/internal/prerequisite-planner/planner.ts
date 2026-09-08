@@ -802,6 +802,16 @@ export function planActPrerequisitePath(
 
   // 3) Reverse REQUIRED traversal
   const traversal = reverseTraverseRequired(goalCanonicalId, requiredEdges);
+  const pathOrderSources = countRequiredOrderSources(
+    requiredEdges.filter((edge) => (
+      traversal.nodes.has(edge.sourceCanonicalId)
+      && traversal.nodes.has(edge.targetCanonicalId)
+    )),
+  );
+  baseDiagnostics.teachingOrderConstraintCount =
+    pathOrderSources.teachingOrderConstraintCount;
+  baseDiagnostics.engineeringLearningOrderConstraintCount =
+    pathOrderSources.engineeringLearningOrderConstraintCount;
   if (traversal.blockers.some((b) => b.code === 'required-cycle')) {
     return buildEmptyResult(
       input,
