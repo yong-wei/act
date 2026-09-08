@@ -47,7 +47,7 @@ describe('icebreaker pipeline integration', () => {
   it('feeds the wake with model-speed semantics and remounts it on reset', () => {
     const source = read(ICEBREAKER);
     const rigStart = source.indexOf('WakeTrailRig');
-    const rig = source.slice(rigStart, rigStart + 1600);
+    const rig = source.slice(rigStart, source.indexOf('/** 教学标注开关门控'));
     expect(rig).toContain('worldSpeedSampler');
     expect(rig).toContain('() => speed');
     expect(rig).toContain('key={resetToken}');
@@ -67,6 +67,48 @@ describe('icebreaker pipeline integration', () => {
     expect(source).toContain('TeachingAnnotationsGate');
     expect(source).toContain('HeadingIndicator');
     expect(source).toContain('TrailLine');
+  });
+});
+
+describe('icebreaker xue-long-2 versioned model integration', () => {
+  it('resolves the icebreaker default from the versioned activation pointer with legacy fallback', () => {
+    const source = read(ICEBREAKER);
+    expect(source).toContain("matchActivatedXueLong2Package(resolveVersionedDefault('icebreaker'))");
+    expect(source).toContain('<VersionedShipModel');
+    expect(source).toContain('legacyCandidates={orderedFallback}');
+    // 回退链：旧单文件 registry 链兜底（本包暂无历史版本）
+    expect(source).toContain('...MODEL.candidates');
+    // 旧 primary 预载已退役（版本化包为默认下载路径，双份预载浪费带宽）
+    expect(source).not.toContain('useGLTF.preload(MODEL.primary)');
+  });
+
+  it('applies the basis yaw only to package assets and anchors the declared waterline', () => {
+    const source = read(ICEBREAKER);
+    expect(source).toContain('basisYawRad={isXueLong2VersionedAssetUrl(url) ? XUE_LONG_2_BASIS_YAW_RAD : 0}');
+    expect(source).toContain('<group rotation-y={basisYawRad}>');
+    // 垂向锚定与主尺度缩放都按描述符声明，不再按包围盒推导
+    expect(source).toContain('descriptor.verticalAnchor.designWaterlineY');
+    expect(source).toContain('descriptor?.modelLengthMeters');
+  });
+
+  it('mounts the semantic bindings rig and retires the legacy azipod arrow overlay', () => {
+    const source = read(ICEBREAKER);
+    expect(source).toContain('<SemanticBindingsRig');
+    // 旧 Azipod 绿色箭头指示器退役：真实吊舱方位动画承担方位指示职能
+    expect(source).not.toContain('arrowHelper');
+    expect(source).not.toContain('0x00ff00');
+    // 材质保留加载器 PBR 输出（上游接入合同：不统一改透明/双面）
+    expect(source).not.toContain('DoubleSide');
+    expect(source).not.toContain('material.transparent = false');
+  });
+
+  it('keeps the clone path skeleton-aware and exposes the QA observation surface', () => {
+    const source = read(ICEBREAKER);
+    expect(source).toContain('cloneSkinnedScene(scene)');
+    expect(source).toContain('skinnedBindingsIntact(model)');
+    expect(source).toContain('window.__icebreakerModelVisual');
+    expect(source).toContain('propPortQuat');
+    expect(source).toContain('podPortQuat');
   });
 });
 

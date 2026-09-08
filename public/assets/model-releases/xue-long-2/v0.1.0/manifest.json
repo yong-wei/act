@@ -1,0 +1,210 @@
+{
+  "version": "0.1.0",
+  "asset_id": "xue-long-2",
+  "act_profile": "fleet-icebreaker-xuelong2",
+  "status": "LOCAL_CANDIDATE_PENDING_USER_VISUAL_ACCEPTANCE",
+  "production_activation": false,
+  "source_blend": "../../blender/XueLong2-complete.blend",
+  "source_sha256": "bbb71b6c254e6825b98a59dfc6c8fba586d32650bf0dbe866c288b11c3d18ca5",
+  "lods": [
+    {
+      "lod": 0,
+      "file": "XueLong2-LOD0.glb",
+      "source_sha256": "6e8c7f656d2f5e259d286f15c9536c3f490fe6f1bfa291abd2a262fd89004f43",
+      "sha256": "8dd18ab53c3c54f55737eedc3e5931391a4fcedb82fa369585183cf66db39724",
+      "bytes": 26402916,
+      "triangles": 288136,
+      "primitives": 58,
+      "alpha_modes": [
+        "OPAQUE"
+      ],
+      "textures": 3,
+      "animations": [
+        "crane_AFT_slew",
+        "crane_FORE_slew",
+        "crane_RESEARCH_slew",
+        "helicopter_rotor",
+        "pod_P_azimuth",
+        "propeller_P_spin",
+        "pod_S_azimuth",
+        "propeller_S_spin",
+        "radar_0_spin",
+        "radar_1_spin",
+        "radar_2_spin"
+      ],
+      "coordinate": "+X bow +Y up +Z starboard; metres DWL",
+      "matrix_blender_to_gltf": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "lod": 1,
+      "file": "XueLong2-LOD1.glb",
+      "source_sha256": "00640bee0335a6aa7fc3bc2206ddc9165dc131063224f3adb8c68a1127f4f2e4",
+      "sha256": "3edd74f49259eaf1ce62f040046ad9a349c19a4593644d712cce635d5b929278",
+      "bytes": 17378740,
+      "triangles": 243252,
+      "primitives": 58,
+      "alpha_modes": [
+        "OPAQUE"
+      ],
+      "textures": 3,
+      "animations": [
+        "crane_AFT_slew",
+        "crane_FORE_slew",
+        "crane_RESEARCH_slew",
+        "helicopter_rotor",
+        "pod_P_azimuth",
+        "propeller_P_spin",
+        "pod_S_azimuth",
+        "propeller_S_spin",
+        "radar_0_spin",
+        "radar_1_spin",
+        "radar_2_spin"
+      ],
+      "coordinate": "+X bow +Y up +Z starboard; metres DWL",
+      "matrix_blender_to_gltf": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "lod": 2,
+      "file": "XueLong2-LOD2.glb",
+      "source_sha256": "1e024202c22045a880be0643597629f4e18e9ffe6083d9086469b20cf8269ef0",
+      "sha256": "669a8cb1e34626d18ac832d82f6477f48e65df3769813966f2fe7d44c83c38e2",
+      "bytes": 7955268,
+      "triangles": 137751,
+      "primitives": 56,
+      "alpha_modes": [
+        "OPAQUE"
+      ],
+      "textures": 3,
+      "animations": [
+        "crane_AFT_slew",
+        "crane_FORE_slew",
+        "crane_RESEARCH_slew",
+        "helicopter_rotor",
+        "pod_P_azimuth",
+        "propeller_P_spin",
+        "pod_S_azimuth",
+        "propeller_S_spin",
+        "radar_0_spin",
+        "radar_1_spin",
+        "radar_2_spin"
+      ],
+      "coordinate": "+X bow +Y up +Z starboard; metres DWL",
+      "matrix_blender_to_gltf": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    }
+  ],
+  "sources": {
+    "scripts/audit_design.py": "49394d54c7bc789fdf2f43323328e341ecd607a8a6cf6a70a1cd80856cee2b4c",
+    "scripts/build.py": "49b847d2bb712cd8ab057f0610577a0982eb4d8c58749d9c0e36f7779c9aeeb8",
+    "scripts/common.py": "8d8af7d5987a68c85dd45135697ff8b921ae61194355160028b8dad5a1280c92",
+    "scripts/comparison.mjs": "cb03940cc8fe325fd78efd60526b68d9a1ff1f0f93769a5a47da263bc7aa4ff3",
+    "scripts/equipment.py": "24a1ed4f9868f7728387ac01695c906d2acac9bab3dde9c86ffca2fe12254605",
+    "scripts/export.py": "5243cee9b5139af6e2249409822caf6e4e81c6ac8a98d59ae359255842014705",
+    "scripts/helicopter.py": "60b9e9a60488d21201d4292a2e030eaa589db737f864a2ee8265ecd5cb328c0d",
+    "scripts/hull.py": "f4db90925c9f0be75339e9910dad25958581b7031f771229bb700232f15dfd1d",
+    "scripts/intake.py": "e23890ed6e4f1886961f2cb8f6111e5bce624b9cca8bad830dc603583aee3024",
+    "scripts/make_textures.py": "bc6252339fc148ecfb71a699a395865543dbad0005318aab1b1bca45e51ae8b8",
+    "scripts/materials.py": "707efba131699984b9da7352197664132569277a529367b99324adb7c037ac82",
+    "scripts/motion.py": "10878790de5e94c258d545758a92a0574b97d50c4bf0ad9d452f77bdcc79bcce",
+    "scripts/presentation.py": "6d2502ab512992e71eb72fcb6bafb996107ca08dbf082bcb754cac9b75cbe3d0",
+    "scripts/probe_glb.mjs": "3206cb9052b3cf527a211d55c33cf39073a84b50f28d9f1e37c4b16f99ad4e51",
+    "scripts/propulsion.py": "71d5bf0e6d76f96f3c1a2ada06e6609d1cd180c12ce509ff1630aa3c46996f30",
+    "scripts/render.py": "826e0ad4467f661acfcef97ae688ea08d7722146873db8181de0394553e2d82e",
+    "scripts/replay_check.py": "bec503d454ecb795dc1c52574c68ab5f82d21f4283cd28fbcac70aac47f57f82",
+    "scripts/roundtrip.py": "ecbe8392433a87cfa2739da91bd582c208f284bac18f5194a99d377540312164",
+    "scripts/run_pipeline.py": "cc8501dcd7ccbb7aa66a62bba5a36c008d8ff84095c946d3fdb4b7f58227d6f1",
+    "scripts/seal.py": "50b5eeb7aedaae36f77ca976a43bb78fd2f410f3100b4572a56a54f654d57bce",
+    "scripts/superstructure.py": "c09f19f959c8155e85960b79d8f884e5d087cd9c2b6124b26e78b7be6e4c96cf",
+    "scripts/validate.py": "7859f7af932acd56de7877e600bb24d0f4bf5922c7732d3b8ff983379a493c3f",
+    "parameters/components.json": "2e30093f5f3168cf672fbb5d95096a797a2127743ca7df559a6e75abe679deef",
+    "parameters/design.md": "a6c03f169865177a1a8e0fd06f4fb95140bf399d8d45c6150104901c4b012f73",
+    "parameters/semantic-curves.json": "0c58a6243a84b175936227003bab35a81b1e605e75d98fd6426f101ac8eb69cc",
+    "parameters/ship.json": "d1b994311cd287d64e42a37a2f85ee21db1905b76a0837430dfcbe3f6bca5f18",
+    "textures/funnel-emblem.png": "a057a07e14c206488a68b5ad95e8945c29cedb83bedc7f407943c9d35f36cf6a",
+    "textures/hull-P.png": "36344cc9e5d587a5247fdd7d9e10f5401479110d76beefb8a8b44e59648f808e",
+    "textures/hull-S.png": "f111ace0538a7b997b81edbd800a00cbaeeedad356483c9cffad0b29aa6226df",
+    "textures/manifest.json": "facf037db45d6d691aa7f602b17e5305b24a75c9bc2877a38733dde0317b0f34"
+  },
+  "coordinate": "+X bow +Y up +Z starboard; metres; DWL origin",
+  "ACT_adapter": "parent rotation Y=-pi/2; proper rotation; then +Z bow,+X port",
+  "not_claimed": [
+    "final 3A visual acceptance",
+    "as-built underwater survey",
+    "continuous engineering mechanism validation",
+    "ACT deployment or actual-client FPS"
+  ]
+}

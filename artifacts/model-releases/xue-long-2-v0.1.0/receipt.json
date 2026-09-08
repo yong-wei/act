@@ -1,0 +1,56 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "xue-long-2",
+  "modelVersion": "0.1.0",
+  "capturedAt": "2026-09-08T16:55:17.508Z",
+  "packageTreeDigest": "bbba26b86c6f2b149ab3b1b975db1ab7674575a9",
+  "sourceCommitAtCapture": "c68bd3bacf3d5d16feb06903be44e1044425b8a9",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/xue_long_2/exports/v0.1.0",
+  "manifestSha256": "15f2fd2b0fe2e5d0e356040fb62c6f6d6702466d7ff5dfaf8cfbedddbef76b07",
+  "sourceBlendSha256": "bbb71b6c254e6825b98a59dfc6c8fba586d32650bf0dbe866c288b11c3d18ca5",
+  "modelSideStatus": "LOCAL_CANDIDATE_PENDING_USER_VISUAL_ACCEPTANCE",
+  "roles": {
+    "ship-lod0": {
+      "file": "XueLong2-LOD0.glb",
+      "sha256": "8dd18ab53c3c54f55737eedc3e5931391a4fcedb82fa369585183cf66db39724",
+      "bytes": 26402916,
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "XueLong2-LOD1.glb",
+      "sha256": "3edd74f49259eaf1ce62f040046ad9a349c19a4593644d712cce635d5b929278",
+      "bytes": 17378740,
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "XueLong2-LOD2.glb",
+      "sha256": "669a8cb1e34626d18ac832d82f6477f48e65df3769813966f2fe7d44c83c38e2",
+      "bytes": 7955268,
+      "lod": 2
+    }
+  },
+  "copiedFiles": [
+    {
+      "file": "manifest.json",
+      "sha256": "15f2fd2b0fe2e5d0e356040fb62c6f6d6702466d7ff5dfaf8cfbedddbef76b07",
+      "bytes": 6894
+    },
+    {
+      "file": "XueLong2-LOD0.glb",
+      "sha256": "8dd18ab53c3c54f55737eedc3e5931391a4fcedb82fa369585183cf66db39724",
+      "bytes": 26402916
+    },
+    {
+      "file": "XueLong2-LOD1.glb",
+      "sha256": "3edd74f49259eaf1ce62f040046ad9a349c19a4593644d712cce635d5b929278",
+      "bytes": 17378740
+    },
+    {
+      "file": "XueLong2-LOD2.glb",
+      "sha256": "669a8cb1e34626d18ac832d82f6477f48e65df3769813966f2fe7d44c83c38e2",
+      "bytes": 7955268
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

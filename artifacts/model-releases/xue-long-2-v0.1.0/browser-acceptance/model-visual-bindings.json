@@ -1,0 +1,83 @@
+{
+  "steps": [
+    {
+      "name": "initial-load",
+      "url": "/assets/model-releases/xue-long-2/v0.1.0/XueLong2-LOD2.glb",
+      "boxInView": true,
+      "skinnedIntact": true,
+      "advancing": false,
+      "showcaseClips": [],
+      "propPortQuat": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "podPortQuat": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "idle-prop-still",
+      "quats": [
+        [
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "propStillWhenIdle": true
+    },
+    {
+      "name": "running",
+      "advancing": true,
+      "propSpinning": true,
+      "podQuats": [
+        [
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "azimuth-panel",
+      "panel": null
+    },
+    {
+      "name": "paused-showcase",
+      "advancing": false,
+      "showcaseClips": [
+        "helicopter_rotor"
+      ]
+    },
+    {
+      "name": "resumed-showcase-cleared",
+      "advancing": true,
+      "showcaseClips": []
+    }
+  ],
+  "requests": [
+    "/assets/model-releases/xue-long-2/v0.1.0/XueLong2-LOD2.glb"
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ]
+}

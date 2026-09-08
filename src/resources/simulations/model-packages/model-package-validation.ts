@@ -120,6 +120,7 @@ export interface InterfaceViolation { readonly kind: string; readonly detail: st
 
 /**
  * 校验语义接口契约。`glbJson` 键为角色名；仅需要被校验的角色提供。
+ * demo/payload/贴花通道是 055 形态的可选合同面：包未声明该角色时跳过对应校验。
  * 返回违规清单（空 = 通过）；调用方对非空清单 fail closed。
  */
 export function validateModelPackageInterface(
@@ -127,7 +128,14 @@ export function validateModelPackageInterface(
   glbJson: Readonly<Partial<Record<VersionedModelRole, Record<string, unknown>>>>,
 ): InterfaceViolation[] {
   const violations: InterfaceViolation[] = [];
-  const contract = descriptor.interfaceContract;
+  const contract = descriptor.interfaceContract as {
+    shipAnimationCount: number;
+    shipInterfaceAnimations: readonly string[];
+    demoAnimations?: readonly string[];
+    decalImages?: readonly string[];
+    vlsLoadedCount?: number;
+    hq10LoadedCount?: number;
+  };
 
   for (const lodRole of ['ship-lod0', 'ship-lod1', 'ship-lod2'] as const) {
     const raw = glbJson[lodRole];
@@ -163,45 +171,49 @@ export function validateModelPackageInterface(
       if (BLENDER_SUFFIX_PATTERN.test(required)) violations.push({ kind: 'blender-suffix-name', detail: required });
     }
     const imageNames = (json.images ?? []).map((image) => String(image.name ?? ''));
-    for (const decal of contract.decalImages) {
+    for (const decal of contract.decalImages ?? []) {
       if (!imageNames.includes(decal)) violations.push({ kind: 'decal-image-missing', detail: `${lodRole}:${decal}` });
     }
     for (const image of json.images ?? []) {
-      if (contract.decalImages.includes(String(image.name ?? '')) && image.mimeType !== 'image/png') {
+      if ((contract.decalImages ?? []).includes(String(image.name ?? '')) && image.mimeType !== 'image/png') {
         violations.push({ kind: 'decal-not-png', detail: `${lodRole}:${String(image.name)}` });
       }
     }
   }
 
   const demoRaw = glbJson.demo;
-  if (!demoRaw) {
-    violations.push({ kind: 'missing-role', detail: 'demo' });
-  } else {
-    const demoNames = (asGltfJson(demoRaw).animations ?? []).map((clip) => String(clip.name ?? ''));
-    const expected = [...contract.demoAnimations].sort().join('|');
-    if (demoNames.length !== contract.demoAnimations.length || [...demoNames].sort().join('|') !== expected) {
-      violations.push({ kind: 'demo-animation-set', detail: demoNames.sort().join('|') });
+  if (descriptor.roles.demo) {
+    if (!demoRaw) {
+      violations.push({ kind: 'missing-role', detail: 'demo' });
+    } else {
+      const demoNames = (asGltfJson(demoRaw).animations ?? []).map((clip) => String(clip.name ?? ''));
+      const expectedDemo = contract.demoAnimations ?? [];
+      if (demoNames.length !== expectedDemo.length || [...demoNames].sort().join('|') !== [...expectedDemo].sort().join('|')) {
+        violations.push({ kind: 'demo-animation-set', detail: demoNames.sort().join('|') });
+      }
     }
   }
 
   const payloadRaw = glbJson.payload;
-  if (!payloadRaw) {
-    violations.push({ kind: 'missing-role', detail: 'payload' });
-  } else {
-    const json = asGltfJson(payloadRaw);
-    const names = (json.nodes ?? []).map((node) => String(node.name ?? ''));
-    const vls = names.filter((name) => /^VLS_.*_LOADED_MISSILE$/.test(name));
-    const hq10 = names.filter((name) => /^HQ10_R\d+_C\d+_LOADED_MISSILE$/.test(name));
-    if (vls.length !== contract.vlsLoadedCount) {
-      violations.push({ kind: 'vls-loaded-count', detail: String(vls.length) });
-    }
-    if (hq10.length !== contract.hq10LoadedCount) {
-      violations.push({ kind: 'hq10-loaded-count', detail: String(hq10.length) });
-    }
-    const templates = names.filter((name) => /^MUNITION_.*_TEMPLATE$/.test(name));
-    if (templates.length === 0) violations.push({ kind: 'munition-template-missing', detail: '' });
-    for (const name of names) {
-      if (BLENDER_SUFFIX_PATTERN.test(name)) violations.push({ kind: 'blender-suffix-name', detail: name });
+  if (descriptor.roles.payload) {
+    if (!payloadRaw) {
+      violations.push({ kind: 'missing-role', detail: 'payload' });
+    } else {
+      const json = asGltfJson(payloadRaw);
+      const names = (json.nodes ?? []).map((node) => String(node.name ?? ''));
+      const vls = names.filter((name) => /^VLS_.*_LOADED_MISSILE$/.test(name));
+      const hq10 = names.filter((name) => /^HQ10_R\d+_C\d+_LOADED_MISSILE$/.test(name));
+      if (vls.length !== (contract.vlsLoadedCount ?? 0)) {
+        violations.push({ kind: 'vls-loaded-count', detail: String(vls.length) });
+      }
+      if (hq10.length !== (contract.hq10LoadedCount ?? 0)) {
+        violations.push({ kind: 'hq10-loaded-count', detail: String(hq10.length) });
+      }
+      const templates = names.filter((name) => /^MUNITION_.*_TEMPLATE$/.test(name));
+      if (templates.length === 0) violations.push({ kind: 'munition-template-missing', detail: '' });
+      for (const name of names) {
+        if (BLENDER_SUFFIX_PATTERN.test(name)) violations.push({ kind: 'blender-suffix-name', detail: name });
+      }
     }
   }
 

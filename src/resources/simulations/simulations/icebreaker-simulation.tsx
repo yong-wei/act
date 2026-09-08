@@ -6,7 +6,7 @@
  */
 
 import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
   useGLTF,
@@ -18,10 +18,20 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
+import { resolveRegisteredSimulationModel, resolveVersionedDefault } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
+import { SemanticBindingsRig, type BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
+import { cloneSkinnedScene, skinnedBindingsIntact } from '../model-packages/clone-skinned-scene';
+import type { VersionedModelPackageDescriptor } from '../model-packages/model-interface';
+import {
+  matchActivatedXueLong2Package,
+  isXueLong2VersionedAssetUrl,
+  XUE_LONG_2_BASIS_YAW_RAD,
+} from '../model-packages/xue-long-2-v0';
+import { propulsorSceneAnchors } from '../model-packages/model-interface';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
-import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
+import { SCENE_CAMERA_SHOTS, StayPutCameraController, boxProjectsInsideNdc } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, simulationUi } from '../components/simulation-ui';
@@ -159,21 +169,93 @@ interface RobustResponse {
   recommendation: string;
 }
 
-// ============ 着色器材质 ============
+// ============ 3D 模型挂载（版本化包 → 旧单文件链有序回退） ============
 
-/** 破冰船模型 */
+/** 尾迹逐桨发射锚点 ref（模型挂载逐帧写入，尾迹场消费）。 */
+type PropWakeAnchorsRef = React.MutableRefObject<{
+  port: THREE.Vector3 | null;
+  starboard: THREE.Vector3 | null;
+}>;
+
+/** 旧单文件候选链（browser-delivery registry 解析结果），作为版本化包的最终回退。 */
 const MODEL = resolveRegisteredSimulationModel('icebreaker');
 
-function IcebreakerModel(props: {
+declare global {
+  interface Window {
+    __icebreakerModelVisual?: {
+      url: string;
+      boxInView: boolean;
+      skinnedIntact: boolean;
+      /** 仿真推进门控（QA 观测面）：false 时桨转速绑定随有效航速归零。 */
+      advancing?: boolean;
+      /** 左右桨节点局部四元数（QA 观测面：桨转速连续性/静止判定）。 */
+      propPortQuat?: [number, number, number, number] | null;
+      propStarboardQuat?: [number, number, number, number] | null;
+      /** 左右吊舱节点局部四元数（QA 观测面：吊舱方位与 azimuth 遥测一致性）。 */
+      podPortQuat?: [number, number, number, number] | null;
+      podStarboardQuat?: [number, number, number, number] | null;
+      /** 结束展示正在循环播放的 clip 名（QA 观测面：随机组合与恢复停播）。 */
+      showcaseClips?: readonly string[];
+    };
+  }
+}
+
+/** 破冰船3D模型：默认由 registry 激活指针决定；失败沿版本化包 → 旧单文件链有序回退。 */
+function IcebreakerModel({
+  position,
+  heading,
+  simRef,
+  resetToken,
+  propWakeRef,
+}: {
   position: Vector2;
   heading: number;
-  azimuth1: number;
-  azimuth2: number;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
+  resetToken: number;
+  propWakeRef: PropWakeAnchorsRef;
 }) {
+  const { tier } = useSceneQuality();
+  const descriptor = matchActivatedXueLong2Package(resolveVersionedDefault('icebreaker'));
+
+  if (!descriptor) {
+    return (
+      <FallbackGltfModel
+        candidates={MODEL.candidates}
+        render={(url) => (
+          <IcebreakerModelScene
+            url={url}
+            position={position}
+            heading={heading}
+            simRef={simRef}
+            resetToken={resetToken}
+            propWakeRef={propWakeRef}
+          />
+        )}
+      />
+    );
+  }
+
+  // 有序回退：激活版（v0.1.0）→ 旧单文件链（本包暂无历史版本可回退）。
+  const orderedFallback = [...MODEL.candidates];
+
   return (
-    <FallbackGltfModel
-      candidates={MODEL.candidates}
-      render={(url) => <IcebreakerModelScene url={url} {...props} />}
+    <VersionedShipModel
+      descriptor={descriptor}
+      tier={tier}
+      legacyCandidates={orderedFallback}
+      renderScene={(url) => (
+        <IcebreakerModelScene
+          url={url}
+          position={position}
+          heading={heading}
+          simRef={simRef}
+          resetToken={resetToken}
+          propWakeRef={propWakeRef}
+          // 坐标基适配只对模型包内资产生效；候选失败回退到旧 GLB 时不施加（旧模型已是 +Z 艏）
+          basisYawRad={isXueLong2VersionedAssetUrl(url) ? XUE_LONG_2_BASIS_YAW_RAD : 0}
+          descriptor={url.startsWith(descriptor.baseUrl) ? descriptor : null}
+        />
+      )}
     />
   );
 }
@@ -182,93 +264,134 @@ function IcebreakerModelScene({
   url,
   position,
   heading,
-  azimuth1,
-  azimuth2,
+  simRef,
+  basisYawRad = 0,
+  descriptor = null,
+  resetToken = 0,
+  propWakeRef,
 }: {
   url: string;
   position: Vector2;
   heading: number;
-  azimuth1: number;
-  azimuth2: number;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
+  /** 坐标基适配（唯一应用点）：雪龙2号 GLB +X 艏 → 场景 +Z 艏。 */
+  basisYawRad?: number;
+  /** 版本化包描述符：仅版本化路径传入，驱动水线锚定、主尺度缩放与声明式动画绑定。 */
+  descriptor?: VersionedModelPackageDescriptor | null;
+  /** 仿真重置令牌：透传给绑定装配，触发展示动画状态随仿真生命周期复位。 */
+  resetToken?: number;
+  propWakeRef: PropWakeAnchorsRef;
 }) {
-  const { scene } = useGLTF(url, true, true);
+  const { camera } = useThree();
+  const { scene, animations } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
-  const { model, scale, modelHeight } = useMemo(() => {
-    const cloned = scene.clone(true);
+  const { model, scale, waterlineOffset, propNodes, podNodes } = useMemo(() => {
+    const cloned = cloneSkinnedScene(scene);
     const box = new THREE.Box3().setFromObject(cloned);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
     box.getSize(size);
     box.getCenter(center);
 
-    // 居中模型
     cloned.position.sub(center);
 
-    // 启用阴影
     cloned.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
         // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
         child.frustumCulled = false;
-        if (child.material) {
-          child.material.transparent = false;
-          child.material.opacity = 1;
-          child.material.side = THREE.DoubleSide;
-          child.material.visible = true;
-          child.material.needsUpdate = true;
-        }
       }
     });
 
-    // 计算缩放 - 目标长度 122.5m (雪龙2号实际长度)
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetLength = XUELONG_ICEBREAKER_PARAMS.LENGTH;
-    const calculatedScale = targetLength / maxDim;
+    // 缩放：版本化包按声明主尺度换算（上游禁止按完整包围盒归一化——收存吊机等
+    // 附件使 bbox 长于船壳）；无声明模型沿用 bbox 最大边推导（既有行为）。
+    const targetLength = icebreakerXuelongSceneVisual.shipLengthMeters;
+    const calculatedScale = descriptor?.modelLengthMeters
+      ? targetLength / descriptor.modelLengthMeters
+      : targetLength / (Math.max(size.x, size.y, size.z) || 1);
 
-    return { model: cloned, scale: calculatedScale, modelHeight: size.y * calculatedScale };
-  }, [scene]);
+    // 垂向锚定：版本化包按声明设计水线对齐场景水线；无声明模型沿用 bbox 推导。
+    const offset = descriptor?.verticalAnchor
+      ? (center.y - descriptor.verticalAnchor.designWaterlineY) * calculatedScale
+      : (size.y * calculatedScale) * 0.5 - XUELONG_ICEBREAKER_PARAMS.DRAFT;
+
+    // 推进器/吊舱语义节点解析（尾迹发射锚点与 QA 观测面）；节点缺失 fail closed。
+    const resolveNode = (id: string) => {
+      const declaration = descriptor?.propulsors?.find((propulsor) => propulsor.id === id);
+      return declaration ? cloned.getObjectByName(declaration.node) ?? null : null;
+    };
+
+    return {
+      model: cloned,
+      scale: calculatedScale,
+      waterlineOffset: offset,
+      propNodes: { port: resolveNode('prop-port'), starboard: resolveNode('prop-starboard') },
+      podNodes: {
+        port: descriptor ? cloned.getObjectByName('XL2_POD_P') ?? null : null,
+        starboard: descriptor ? cloned.getObjectByName('XL2_POD_S') ?? null : null,
+      },
+    };
+  }, [scene, descriptor]);
 
   useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.position.x = position.x;
-      groupRef.current.position.y = modelHeight * 0.5 - XUELONG_ICEBREAKER_PARAMS.DRAFT;
-      groupRef.current.position.z = position.z;
-      groupRef.current.rotation.y = -heading + Math.PI / 2;
+    if (!groupRef.current) return;
+    const sim = simRef.current;
+
+    groupRef.current.position.set(position.x, waterlineOffset, position.z);
+    groupRef.current.rotation.y = -heading + Math.PI / 2;
+
+    // 逐帧推进器世界位置 → 尾迹发射锚点（吊舱方位旋转时桨位随动；未解析时回退静态锚点）。
+    const writeAnchor = (node: THREE.Object3D | null, key: 'port' | 'starboard') => {
+      if (!node) {
+        propWakeRef.current[key] = null;
+        return;
+      }
+      const target = propWakeRef.current[key] ?? new THREE.Vector3();
+      node.getWorldPosition(target);
+      propWakeRef.current[key] = target;
+    };
+    writeAnchor(propNodes.port, 'port');
+    writeAnchor(propNodes.starboard, 'starboard');
+
+    if (typeof window !== 'undefined') {
+      const box = new THREE.Box3().setFromObject(groupRef.current);
+      const quatOf = (node: THREE.Object3D | null): [number, number, number, number] | null => node
+        ? [node.quaternion.x, node.quaternion.y, node.quaternion.z, node.quaternion.w]
+        : null;
+      window.__icebreakerModelVisual = {
+        url,
+        boxInView: boxProjectsInsideNdc(camera, box),
+        skinnedIntact: skinnedBindingsIntact(model),
+        advancing: sim.advancing,
+        propPortQuat: quatOf(propNodes.port),
+        propStarboardQuat: quatOf(propNodes.starboard),
+        podPortQuat: quatOf(podNodes.port),
+        podStarboardQuat: quatOf(podNodes.starboard),
+        showcaseClips: (model.userData.showcaseActiveClips as string[] | undefined) ?? [],
+      };
     }
   });
 
   return (
     <group ref={groupRef}>
-      <primitive object={model} scale={scale} />
-      {/* Azipod 方向指示器 (简化表示) */}
-      <group position={[-50 * scale / 122.5, 2, 5 * scale / 122.5]}>
-        <arrowHelper
-          args={[
-            new THREE.Vector3(Math.cos(azimuth1), 0, Math.sin(azimuth1)),
-            new THREE.Vector3(0, 0, 0),
-            10,
-            0x00ff00,
-          ]}
-        />
-      </group>
-      <group position={[-50 * scale / 122.5, 2, -5 * scale / 122.5]}>
-        <arrowHelper
-          args={[
-            new THREE.Vector3(Math.cos(azimuth2), 0, Math.sin(azimuth2)),
-            new THREE.Vector3(0, 0, 0),
-            10,
-            0x00ff00,
-          ]}
-        />
+      <group rotation-y={basisYawRad}>
+        <primitive object={model} scale={scale} />
+        {descriptor ? (
+          <SemanticBindingsRig
+            key={resetToken}
+            model={model}
+            animations={animations}
+            descriptor={descriptor}
+            simRef={simRef}
+            modelScale={scale}
+          />
+        ) : null}
       </group>
     </group>
   );
 }
-
-// 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(MODEL.primary);
 
 /** 航向指示器 */
 function HeadingIndicator({
@@ -352,17 +475,25 @@ function WakeTrailRig({
   speed,
   playing,
   resetToken,
+  propWakeRef,
 }: {
   position: Vector2;
   heading: number;
   speed: number;
   playing: boolean;
   resetToken: number;
+  propWakeRef: PropWakeAnchorsRef;
 }) {
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
+
+  // 版本化包声明推进器时逐桨一条航迹；无声明（旧链/回退）保持 profile 单航迹。
+  const descriptor = matchActivatedXueLong2Package(resolveVersionedDefault('icebreaker'));
+  const propulsorAnchors = descriptor
+    ? propulsorSceneAnchors(descriptor, icebreakerXuelongSceneVisual.shipLengthMeters)
+    : [];
 
   useFrame((frameState) => {
     transformRef.current.position = [position.x, 0, position.z];
@@ -371,6 +502,36 @@ function WakeTrailRig({
   });
 
   if (!wakeVisible) return null;
+
+  if (propulsorAnchors.length > 0) {
+    return (
+      <>
+        {propulsorAnchors.map(({ id, anchor }) => (
+          <WakeTrail
+            key={`${resetToken}-${id}`}
+            profile={{
+              ...icebreakerXuelongSceneVisual,
+              wakeAnchors: {
+                stern: anchor,
+                portShoulder: [anchor[0] + 6, 0, anchor[2] + 30],
+                starboardShoulder: [anchor[0] - 6, 0, anchor[2] + 30],
+              },
+            }}
+            shipTransform={transformRef.current}
+            qualityTier={tier}
+            playing={playing}
+            waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+            worldSpeedSampler={() => speed}
+            emitterWorldSampler={() => {
+              const world = id === 'prop-port' ? propWakeRef.current.port : propWakeRef.current.starboard;
+              return world ? [world.x, world.y, world.z] : null;
+            }}
+          />
+        ))}
+      </>
+    );
+  }
+
   return (
     <WakeTrail
       key={resetToken}
@@ -401,8 +562,6 @@ function Scene({
   position,
   heading,
   targetHeading,
-  azimuth1,
-  azimuth2,
   trail,
   speed,
   playing,
@@ -413,12 +572,12 @@ function Scene({
   onCameraModeChange,
   resetToken,
   resetSignal,
+  simRef,
+  propWakeRef,
 }: {
   position: Vector2;
   heading: number;
   targetHeading: number;
-  azimuth1: number;
-  azimuth2: number;
   trail: Vector2[];
   speed: number;
   playing: boolean;
@@ -429,6 +588,8 @@ function Scene({
   onCameraModeChange: (mode: string) => void;
   resetToken: number;
   resetSignal: number;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
+  propWakeRef: PropWakeAnchorsRef;
 }) {
   return (
     <>
@@ -472,14 +633,15 @@ function Scene({
         <IcebreakerModel
           position={position}
           heading={heading}
-          azimuth1={azimuth1}
-          azimuth2={azimuth2}
+          simRef={simRef}
+          resetToken={resetToken}
+          propWakeRef={propWakeRef}
         />
       </Suspense>
 
       <TeachingAnnotationsGate position={position} targetHeading={targetHeading} />
       <TrailLine points={trail} />
-      <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} />
+      <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} propWakeRef={propWakeRef} />
 
       {showGrid ? (
         <Grid
@@ -988,6 +1150,20 @@ export default function IcebreakerSimulation() {
   const controllerStateRef = useRef<AzipodCourseKeeperState>(
     createAzipodCourseKeeperState()
   );
+  const propWakeRef = useRef<{ port: THREE.Vector3 | null; starboard: THREE.Vector3 | null }>({
+    port: null,
+    starboard: null,
+  });
+
+  // 语义动画绑定遥测（版本化模型包消费；每物理步整写一次，不经 React 渲染链路）。
+  // Azipod 船型无舵，吊舱方位角承担舵角职能：podAzimuthDeg 即"实际舵角"遥测。
+  const bindingTelemetryRef = useRef<BindingTelemetrySource>({
+    rudderDeg: 0,
+    speedMps: 0,
+    attainedCount: 0,
+    advancing: false,
+    podAzimuthDeg: [0, 0],
+  });
 
   // 指标
   const [metrics, setMetrics] = useState<SimulationMetrics>({
@@ -1099,6 +1275,18 @@ export default function IcebreakerSimulation() {
       const newTime = currentTime + dt;
       simTimeRef.current = newTime;
 
+      // 语义动画绑定遥测：航速 + 左右吊舱方位角（整写小对象，每步一次）。
+      bindingTelemetryRef.current = {
+        rudderDeg: 0,
+        speedMps: speed,
+        attainedCount: 0,
+        advancing: true,
+        podAzimuthDeg: [
+          toDegrees(newState.azipod1.azimuth),
+          toDegrees(newState.azipod2.azimuth),
+        ],
+      };
+
       setSimTime(newTime);
       setPosition({ x: newState.x, z: newState.y });
       setHeading(newState.psi);
@@ -1149,7 +1337,13 @@ export default function IcebreakerSimulation() {
 
   // 仿真循环
   useEffect(() => {
-    if (!isRunning) return;
+    if (!isRunning) {
+      // 暂停/停止即"仿真结束"边沿：速度类绑定（桨）随有效航速归零，
+      // 结束展示（endingShowcase）在停止边沿随机组合开播。
+      bindingTelemetryRef.current = { ...bindingTelemetryRef.current, advancing: false };
+      return;
+    }
+    bindingTelemetryRef.current = { ...bindingTelemetryRef.current, advancing: true };
 
     clockRef.current.reset();
     lastTimeRef.current = performance.now();
@@ -1181,6 +1375,14 @@ export default function IcebreakerSimulation() {
     setHeading(0);
     setTrail([]);
     setViolations([]);
+    bindingTelemetryRef.current = {
+      rudderDeg: 0,
+      speedMps: 0,
+      attainedCount: 0,
+      advancing: false,
+      podAzimuthDeg: [0, 0],
+    };
+    propWakeRef.current = { port: null, starboard: null };
 
     physicsStateRef.current = createAzipod3DOFState(0, 0, 0);
     iceStateRef.current = createIceBreakingState();
@@ -1218,8 +1420,6 @@ export default function IcebreakerSimulation() {
           position={position}
           heading={heading}
           targetHeading={config.targetHeading}
-          azimuth1={physicsStateRef.current.azipod1.azimuth}
-          azimuth2={physicsStateRef.current.azipod2.azimuth}
           trail={trail}
           speed={metrics.speed}
           playing={isRunning}
@@ -1230,6 +1430,8 @@ export default function IcebreakerSimulation() {
           onCameraModeChange={setCameraMode}
           resetToken={resetCount}
           resetSignal={viewResetCount}
+          simRef={bindingTelemetryRef}
+          propWakeRef={propWakeRef}
         />
       </Canvas>
 

@@ -19,6 +19,11 @@ export const SIMULATION_VERSIONED_DEFAULTS: Partial<Record<SimulationModelId, Ve
     modelVersion: '2.1.3',
     baseUrl: '/assets/model-releases/type055-nanchang-101/v2.1.3',
   },
+  icebreaker: {
+    packageId: 'xue-long-2',
+    modelVersion: '0.1.0',
+    baseUrl: '/assets/model-releases/xue-long-2/v0.1.0',
+  },
 };
 
 export function resolveVersionedDefault(logicalId: SimulationModelId): VersionedDefaultActivation | null {

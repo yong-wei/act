@@ -1,0 +1,18 @@
+{
+  "targetHeadingShown": "90°",
+  "samples": [
+    {
+      "podPortYawDeg": "22.5"
+    },
+    {
+      "podPortYawDeg": "22.5"
+    },
+    {
+      "podPortYawDeg": "22.5"
+    },
+    {
+      "podPortYawDeg": "22.5"
+    }
+  ],
+  "podMoved": false
+}

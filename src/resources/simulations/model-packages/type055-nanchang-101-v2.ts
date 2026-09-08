@@ -6,6 +6,8 @@
  * `artifacts/model-releases/type055-nanchang-101-v<version>/receipt.json`。
  * 本模块只登记已验证事实；ACT 不修补上游模型字节（缺陷返回 3DModels 发新版本）。
  *
+ * 通用包描述符类型见 ./model-interface（本文件 re-export 保持既有 import 路径兼容）。
+ *
  * v2.1.3（当前激活）：裁减 `prop_port_spin`/`prop_starboard_spin` 的常量
  * 尾部保持段（G05 四键布局对 continuous 关节产生 second_limit→home_end
  * 1s 静止尾，上游管线 trim_continuous_spin_hold），clip 以整圈终点收尾
@@ -13,23 +15,26 @@
  * v2.1.2、v2.1.1、v2.1.0 保留为运行时有序回退（接口合同一致，仅动画字节/材质归属不同）。
  */
 
-export type VersionedModelRole =
-  | 'ship-lod0'
-  | 'ship-lod1'
-  | 'ship-lod2'
-  | 'collision'
-  | 'payload'
-  | 'demo'
-  | 'interactive-systems';
+export type {
+  VersionedModelRole,
+  ShipLodRole,
+  VersionedModelArtifact,
+  ShipModelInterfaceContract,
+  ClipLoopBinding,
+  ProceduralBinding,
+  SemanticAnimationBinding,
+  EndingShowcaseSpec,
+  VersionedModelPackageDescriptor,
+} from './model-interface';
 
-export interface VersionedModelArtifact {
-  readonly role: VersionedModelRole;
-  readonly file: string;
-  readonly url: string;
-  readonly sha256: string;
-  readonly bytes: number;
-}
+import type {
+  SemanticAnimationBinding,
+  VersionedModelArtifact,
+  VersionedModelPackageDescriptor,
+  VersionedModelRole,
+} from './model-interface';
 
+/** type055 主舰接口合同（含武器演示 GLB 与装填/贴花专属通道）。 */
 export interface VersionedModelInterfaceContract {
   /** 每档主舰 GLB 内的唯一动画数量（模型侧验证：15）。 */
   readonly shipAnimationCount: number;
@@ -41,63 +46,6 @@ export interface VersionedModelInterfaceContract {
   readonly hq10LoadedCount: number;
   /** 透明贴花纹理名（两处 RGBA PNG 贴花）。 */
   readonly decalImages: readonly string[];
-}
-
-/** clip 循环绑定：mixer 常开；speedCoupled 时 timeScale = rate × speed/designSpeed。 */
-export interface ClipLoopBinding {
-  readonly id: string;
-  readonly drive: 'clip-loop';
-  readonly clip: string;
-  readonly speedCoupled?: boolean;
-  readonly rate?: number;
-}
-
-/** 程序化绑定：直接驱动语义节点局部轴角度，角度 = 映射(遥测源) 并钳制到 ±maxAngleDeg。 */
-export interface ProceduralBinding {
-  readonly id: string;
-  readonly drive: 'procedural';
-  readonly nodes: readonly string[];
-  readonly axis: 'x' | 'y' | 'z';
-  readonly source: 'telemetry.rudderDeg' | 'telemetry.speedMps';
-  readonly maxAngleDeg: number;
-  /** 源值 → 角度方向；缺省 +1。 */
-  readonly sign?: 1 | -1;
-}
-
-export type SemanticAnimationBinding = ClipLoopBinding | ProceduralBinding;
-
-export interface VersionedModelPackageDescriptor {
-  readonly packageId: string;
-  readonly shipId: string;
-  readonly modelVersion: string;
-  readonly releaseManifestSha256: string;
-  readonly sourceBlendSha256: string;
-  readonly baseUrl: string;
-  readonly roles: Readonly<Record<VersionedModelRole, VersionedModelArtifact>>;
-  /** 模型局部坐标基：glTF Y-up、舰艏沿 +X（场景基为 +Z 舰艏，见 basisYawRad）。 */
-  readonly coordinateBasis: { readonly forward: '+X'; readonly up: '+Y' };
-  readonly interfaceContract: VersionedModelInterfaceContract;
-  /** 设计水线锚定：模型局部 Y（米）。缺省时场景沿用 bbox 推导定位。 */
-  readonly verticalAnchor?: { readonly designWaterlineY: number };
-  /** 模型总长（米）：推进器锚点换算的场景缩放分母。 */
-  readonly modelLengthMeters?: number;
-  /** 推进器语义节点（模型局部米）：声明时尾迹逐桨发射；缺省保持 profile 单航迹。 */
-  readonly propulsors?: readonly {
-    readonly id: string;
-    readonly node: string;
-    readonly position: readonly [number, number, number];
-  }[];
-  /** 声明式动画绑定（L0 常开）：按语义名解析，单条失败 fail closed 不影响其余。 */
-  readonly semanticBindings?: readonly SemanticAnimationBinding[];
-  /** 遥测源归一化参数。 */
-  readonly telemetryScale?: {
-    readonly designSpeedMps: number;
-    readonly rudderLimitDeg: number;
-  };
-  /** 彩蛋（达标触发）：L1 主舰内巡检 clip；L2 从 interfaceContract.demoAnimations 随机一条。 */
-  readonly easterEgg?: {
-    readonly patrolClips: readonly { readonly clip: string; readonly loop: 'repeat' | 'pingpong' }[];
-  };
 }
 
 function artifact(baseUrl: string, role: VersionedModelRole, file: string, sha256: string, bytes: number): VersionedModelArtifact {
@@ -199,7 +147,7 @@ const V2_EASTER_EGG = {
 
 const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.1.3';
 
-export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
+export const TYPE055_NANCHANG_101_V2 = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
   modelVersion: '2.1.3',
@@ -223,12 +171,12 @@ export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
   telemetryScale: V2_TELEMETRY_SCALE,
   semanticBindings: V2_SEMANTIC_BINDINGS,
   easterEgg: V2_EASTER_EGG,
-};
+} as const satisfies VersionedModelPackageDescriptor;
 
 const BASE_URL_V2_1_2 = '/assets/model-releases/type055-nanchang-101/v2.1.2';
 
 /** v2.1.2 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.3）。 */
-export const TYPE055_NANCHANG_101_V2_1_2: VersionedModelPackageDescriptor = {
+export const TYPE055_NANCHANG_101_V2_1_2 = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
   modelVersion: '2.1.2',
@@ -252,12 +200,12 @@ export const TYPE055_NANCHANG_101_V2_1_2: VersionedModelPackageDescriptor = {
   telemetryScale: V2_TELEMETRY_SCALE,
   semanticBindings: V2_SEMANTIC_BINDINGS,
   easterEgg: V2_EASTER_EGG,
-};
+} as const satisfies VersionedModelPackageDescriptor;
 
 const BASE_URL_V2_1_1 = '/assets/model-releases/type055-nanchang-101/v2.1.1';
 
 /** v2.1.1 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.3）。 */
-export const TYPE055_NANCHANG_101_V2_1_1: VersionedModelPackageDescriptor = {
+export const TYPE055_NANCHANG_101_V2_1_1 = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
   modelVersion: '2.1.1',
@@ -281,12 +229,12 @@ export const TYPE055_NANCHANG_101_V2_1_1: VersionedModelPackageDescriptor = {
   telemetryScale: V2_TELEMETRY_SCALE,
   semanticBindings: V2_SEMANTIC_BINDINGS,
   easterEgg: V2_EASTER_EGG,
-};
+} as const satisfies VersionedModelPackageDescriptor;
 
 const BASE_URL_V2_1_0 = '/assets/model-releases/type055-nanchang-101/v2.1.0';
 
 /** v2.1.0 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.1）。 */
-export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
+export const TYPE055_NANCHANG_101_V2_1_0 = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
   modelVersion: '2.1.0',
@@ -310,25 +258,17 @@ export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
   telemetryScale: V2_TELEMETRY_SCALE,
   semanticBindings: V2_SEMANTIC_BINDINGS,
   easterEgg: V2_EASTER_EGG,
-};
+} as const satisfies VersionedModelPackageDescriptor;
 
-/** 质量档位 → 主舰 LOD 的唯一映射（高/中/低 → LOD0/1/2）。 */
-export const SHIP_LOD_BY_QUALITY_TIER: Readonly<Record<'high' | 'medium' | 'low', 'ship-lod0' | 'ship-lod1' | 'ship-lod2'>> = {
-  high: 'ship-lod0',
-  medium: 'ship-lod1',
-  low: 'ship-lod2',
-};
+/** 质量档位 → 主舰 LOD 的映射与推进器锚点换算已移至 ./model-interface（多船型共享）。 */
+export {
+  SHIP_LOD_BY_QUALITY_TIER,
+  shipLodRoleForQualityTier,
+  shipLodUrlForQualityTier,
+  propulsorSceneAnchors,
+} from './model-interface';
 
-export function shipLodRoleForQualityTier(tier: 'high' | 'medium' | 'low'): 'ship-lod0' | 'ship-lod1' | 'ship-lod2' {
-  return SHIP_LOD_BY_QUALITY_TIER[tier];
-}
-
-export function shipLodUrlForQualityTier(
-  descriptor: VersionedModelPackageDescriptor,
-  tier: 'high' | 'medium' | 'low',
-): string {
-  return descriptor.roles[shipLodRoleForQualityTier(tier)].url;
-}
+import { propulsorSceneAnchors } from './model-interface';
 
 /**
  * 坐标基适配（唯一适配点）：把模型的 +X 舰艏 / Y-up 基装配进场景的 +Z 舰艏体系。
@@ -350,29 +290,6 @@ export const TYPE055_VERSIONED_PACKAGE_BASE_URLS: readonly string[] = [
 /** URL 是否属于任一已接收 type055 版本化包资产（坐标基适配判定唯一入口）。 */
 export function isType055VersionedAssetUrl(url: string): boolean {
   return TYPE055_VERSIONED_PACKAGE_BASE_URLS.some((baseUrl) => url.startsWith(baseUrl));
-}
-
-/**
- * 推进器模型局部坐标 → 场景船体系尾迹锚点。
- *
- * 与 TYPE055_V2_BASIS_YAW_RAD 同一映射：(x, y, z) → (-z, y, x)，再按
- * 场景船长/模型总长缩放；锚点 y 置 0（泡沫高度由 waterYSampler 决定）。
- * bbox 居中偏移（本模型 ≤5cm）忽略。
- */
-export function propulsorSceneAnchors(
-  descriptor: VersionedModelPackageDescriptor,
-  sceneShipLengthMeters: number,
-): { id: string; anchor: [number, number, number] }[] {
-  if (!descriptor.propulsors || !descriptor.modelLengthMeters) return [];
-  const scale = sceneShipLengthMeters / descriptor.modelLengthMeters;
-  return descriptor.propulsors.map((propulsor) => ({
-    id: propulsor.id,
-    anchor: [
-      -propulsor.position[2] * scale,
-      0,
-      propulsor.position[0] * scale,
-    ],
-  }));
 }
 
 /** 把 registry 激活指针对上已接收描述符；未知包 fail closed，不半切换。 */
