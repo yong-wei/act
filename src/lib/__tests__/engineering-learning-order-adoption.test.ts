@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import {
   adoptEngineeringLearningOrder,
   applyEngineeringLearningOrderToBuildInput,
+  assertAdoptedSnapshotMatchesAuthority,
   assertEngineeringAdoptedReceipts,
   buildPrerequisitePublication,
   canAutoPublishFromCandidate,
@@ -476,5 +477,22 @@ describe('engineering learning-order adoption (#2059)', () => {
       edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
     ))).toBe(false);
     expect(teachingOnly.manifest.sourceHashes.receipts).toBeUndefined();
+  });
+
+  it('rejects rebuild inputs that mix a prior Authority with a different snapshot', () => {
+    const r6Snapshot = 'snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373';
+    const r6Release = 'ctr:release:control-theory-engineering-v0.37';
+    expect(() => assertAdoptedSnapshotMatchesAuthority({
+      publicationAuthorityReleaseId: 'ctr:release:control-theory-engineering-v0.9',
+      authoritySnapshotReleaseId: r6Release,
+      fixtureSnapshotId: r6Snapshot,
+      authoritySnapshotId: r6Snapshot,
+    })).toThrow(/does not match engineering snapshot/);
+    expect(() => assertAdoptedSnapshotMatchesAuthority({
+      publicationAuthorityReleaseId: r6Release,
+      authoritySnapshotReleaseId: r6Release,
+      fixtureSnapshotId: r6Snapshot,
+      authoritySnapshotId: r6Snapshot,
+    })).not.toThrow();
   });
 });

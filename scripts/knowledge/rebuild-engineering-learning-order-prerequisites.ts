@@ -12,6 +12,7 @@ import path from 'node:path';
 import {
   activatePrerequisitePublication,
   applyEngineeringLearningOrderToBuildInput,
+  assertAdoptedSnapshotMatchesAuthority,
   decisionFromPublishedEdge,
   publishCoreNodes,
   resolvePrerequisiteStorePaths,
@@ -29,9 +30,9 @@ const FIXTURE = path.join(
   ROOT,
   'course-content/authoring/knowledge/teaching-projection/prerequisites/fixtures/r6-prerequisite-edges.json',
 );
-const ENGINEERING = path.join(
+const AUTHORITY_RELEASES = path.join(
   ROOT,
-  'course-content/authoring/knowledge/authority/releases/snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373/engineering.json',
+  'course-content/authoring/knowledge/authority/releases',
 );
 
 function readJson<T>(filePath: string): T {
@@ -59,9 +60,21 @@ function main(): void {
     relations: { id: string; sourceId: string; targetId: string; predicate: string }[];
     snapshot: string;
   }>(FIXTURE);
+  const authorityDir = path.join(AUTHORITY_RELEASES, fixture.snapshot);
+  const authorityManifest = readJson<{
+    releaseId: string;
+    snapshotId: string;
+    snapshotHash: string;
+  }>(path.join(authorityDir, 'manifest.json'));
+  assertAdoptedSnapshotMatchesAuthority({
+    publicationAuthorityReleaseId: manifest.authorityReleaseId,
+    authoritySnapshotReleaseId: authorityManifest.releaseId,
+    fixtureSnapshotId: fixture.snapshot,
+    authoritySnapshotId: authorityManifest.snapshotId,
+  });
   const engineering = readJson<{
     objects: { canonicalId: string; lifecycleStatus?: string | null }[];
-  }>(ENGINEERING);
+  }>(path.join(authorityDir, 'engineering.json'));
 
   const teachingEdges: PrerequisiteEdgeAuthoring[] = priorEdges.map((edge) => ({
     edgeId: edge.edgeId,
@@ -96,7 +109,7 @@ function main(): void {
     authorityReleaseId: manifest.authorityReleaseId,
     projectionCaptureId: manifest.projectionCaptureId,
     authoringRevision: manifest.authoringRevision,
-    snapshotHash: fixture.snapshot.replace(/^snap-/, ''),
+    snapshotHash: authorityManifest.snapshotHash,
     coreNodeIds: priorCore.map((n) => n.canonicalId),
     authorityIds: engineering.objects.map((o) => o.canonicalId),
     teachingEdges,

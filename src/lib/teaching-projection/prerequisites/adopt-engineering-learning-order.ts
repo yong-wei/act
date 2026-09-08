@@ -323,6 +323,24 @@ export function assertEngineeringAdoptedReceipts(input: {
   }
 }
 
+export function assertAdoptedSnapshotMatchesAuthority(input: {
+  publicationAuthorityReleaseId: string;
+  authoritySnapshotReleaseId: string;
+  fixtureSnapshotId: string;
+  authoritySnapshotId: string;
+}): void {
+  if (input.fixtureSnapshotId !== input.authoritySnapshotId) {
+    throw new EngineeringLearningOrderReceiptError(
+      `fixture snapshot ${input.fixtureSnapshotId} does not match authority snapshot ${input.authoritySnapshotId}`,
+    );
+  }
+  if (input.publicationAuthorityReleaseId !== input.authoritySnapshotReleaseId) {
+    throw new EngineeringLearningOrderReceiptError(
+      `publication authority ${input.publicationAuthorityReleaseId} does not match engineering snapshot ${input.authoritySnapshotReleaseId}`,
+    );
+  }
+}
+
 export function applyEngineeringLearningOrderToBuildInput(input: {
   scopeId: string;
   authorityReleaseId: string;
