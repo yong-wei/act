@@ -2755,12 +2755,15 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
       result.set(node.id, node);
       continue;
     }
+    const identity = admissionIdentitySource(existing, node);
     result.set(node.id, {
       ...existing,
       title: node.runtimeProjection ? node.title : existing.title,
+      sourceKind: identity.sourceKind,
+      sourceRef: identity.sourceRef,
       sourceRefs: uniqueSourceRefs([...existing.sourceRefs, ...node.sourceRefs]),
-      renderTarget: existing.renderTarget ?? node.renderTarget,
-      launchTarget: existing.launchTarget ?? node.launchTarget,
+      renderTarget: identity.renderTarget ?? existing.renderTarget ?? node.renderTarget,
+      launchTarget: identity.launchTarget ?? existing.launchTarget ?? node.launchTarget,
       planningMetadata: {
         ...existing.planningMetadata,
         estimatedTimeMinutes: node.runtimeProjection
@@ -2801,17 +2804,23 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
         pathDisposition: existing.planningMetadata.pathDisposition ?? node.planningMetadata.pathDisposition,
       },
       sourceOfRecord: {
-        content: existing.sourceOfRecord.content,
+        content: identity.sourceOfRecord.content,
         catalogMetadata: existing.sourceRefs.some((source) => source.kind === 'teaching_resource') ||
           node.sourceRefs.some((source) => source.kind === 'teaching_resource')
           ? 'TeachingResource'
-          : existing.sourceOfRecord.catalogMetadata,
+          : identity.sourceOfRecord.catalogMetadata,
         planningMetadata: 'ResourceNode',
       },
       runtimeProjection: existing.runtimeProjection ?? node.runtimeProjection,
     });
   }
   return result;
+}
+
+function admissionIdentitySource(existing: ResourceNode, incoming: ResourceNode): ResourceNode {
+  if (existing.runtimeProjection && !incoming.runtimeProjection) return existing;
+  if (incoming.runtimeProjection && !existing.runtimeProjection) return incoming;
+  return existing;
 }
 
 function buildResourceNodeEdges(nodesById: Map<string, ResourceNode>): ResourceNodeEdge[] {

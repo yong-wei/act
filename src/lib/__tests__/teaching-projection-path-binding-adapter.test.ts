@@ -1,11 +1,17 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 import { planLearningPath } from '@/features/personalization/path-planning/public-api';
 import type { TeachingBindingRuntime, TeachingResourceRuntime } from '@/lib/teaching-projection/contracts';
 import {
   applyCoreResourcePathReadinessDispositions,
   buildResourceNodeRegistry,
+  type RuntimeResourceProjectionInput,
 } from '@/lib/resource-node-registry';
+import {
+  coreResourcePathReadinessReviewRef,
+} from '@/lib/resource-node-path-readiness-review-batch';
 import {
   loadDenominatorBridge,
   mapTeachingProjectionBindingsToRegistryInput,
@@ -46,6 +52,60 @@ function binding(resourceId: string, canonicalId: string): TeachingBindingRuntim
     sourcePath: null,
     primary: true,
     rationale: null,
+  };
+}
+
+function reviewedKnowledgeCardProjection(): RuntimeResourceProjectionInput {
+  return {
+    id: 'knowledge-card:Bode图_1_1',
+    resourceNodeId: 'knowledge-card:Bode图_1_1',
+    title: 'Bode图',
+    resourceType: 'knowledge_card',
+    sourceKind: 'knowledge_graph',
+    sourceRef: 'Bode图_1_1',
+    sourcePathOrUrl: 'course-content/runtime/knowledge/cards/nodes/Bode图_1_1.md',
+    sourceRecord: 'Bode图_1_1',
+    sourceHash: 'sha256:bode-card',
+    sourceVersionRef: 'runtime-knowledge-card.v1',
+    projectionLevel: 'ResourceNode',
+    routeTarget: '/knowledge?node=Bode图_1_1',
+    graphNodeRefs: {
+      knowledge: ['Bode图_1_1'],
+      capability: ['controlModeling'],
+      quality: [],
+    },
+    estimatedTimeMinutes: 6,
+    evidenceInstrumentation: ['knowledge_card_open'],
+    privacyScope: 'student-visible',
+    teacherPolicy: 'allowed',
+    evidenceContract: {
+      eventSource: true,
+      eventType: true,
+      clientEventIdPolicy: true,
+      attemptKey: true,
+      sourceLogId: true,
+      dedupeKey: true,
+      timestamps: true,
+      learningFactPolicy: false,
+      learningFactMaterializationPolicy: 'path-execution-evidence-only',
+      confidencePolicy: true,
+      privacyScope: true,
+      complete: true,
+      missingFields: [],
+    },
+    reviewAudit: {
+      status: 'human-confirmed',
+      reviewerId: 'teacher-1',
+      reviewerRole: 'teacher',
+      reviewedAt: '2026-07-03T00:00:00.000Z',
+      reviewBatchId: 'core-resource-path-readiness-2026-07-03',
+      reviewedSourceHash: 'sha256:bode-card',
+      reviewedVersionRef: 'runtime-knowledge-card.v1',
+      generationToolOrModel: 'template',
+      promptOrManifestHash: null,
+      confidence: 0.9,
+      staleInvalidationRule: 'stale when source hash or version changes',
+    },
   };
 }
 
@@ -264,6 +324,51 @@ describe('teaching projection path binding adapter', () => {
       ok: false,
       map: new Map(),
     });
+  });
+
+  it('rejects a denominator receipt that does not match the live teaching projection', () => {
+    const receipt = JSON.parse(readFileSync(path.join(
+      process.cwd(),
+      'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/candidate-receipt.json',
+    ), 'utf8')) as { teachingProjectionHash: string; authorityCaptureHash: string };
+    expect(loadDenominatorBridge(process.cwd(), {
+      projectionHash: receipt.teachingProjectionHash,
+      authoritySnapshotHash: receipt.authorityCaptureHash,
+    }).ok).toBe(true);
+    expect(loadDenominatorBridge(process.cwd(), {
+      projectionHash: 'e'.repeat(64),
+      authoritySnapshotHash: receipt.authorityCaptureHash,
+    }).ok).toBe(false);
+    expect(loadDenominatorBridge(process.cwd(), {
+      projectionHash: receipt.teachingProjectionHash,
+      authoritySnapshotHash: 'a'.repeat(64),
+    }).ok).toBe(false);
+  });
+
+  it('keeps reviewed knowledge-card source identity when a projection patch overlaps', () => {
+    const mapped = mapTeachingProjectionBindingsToRegistryInput({
+      resources: [resource('act:card:Bode图_1_1', 'Bode图')],
+      bindings: [binding('act:card:Bode图_1_1', 'ctc:bode')],
+    });
+    const registry = applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
+      runtimeResourceProjections: [reviewedKnowledgeCardProjection()],
+      knowledgeCards: mapped.extraInput.knowledgeCards,
+    }));
+    const node = registry.nodes.find((entry) => entry.id === 'knowledge-card:Bode图_1_1');
+    expect(node).toMatchObject({
+      sourceKind: 'knowledge_graph',
+      sourceRef: 'Bode图_1_1',
+      eligibility: { pathEligible: true },
+      planningMetadata: {
+        pathDisposition: { kind: 'path-plannable' },
+      },
+    });
+    expect(node?.planningMetadata.knowledgeCoverage).toEqual(
+      expect.arrayContaining(['Bode图_1_1', 'knowledge-card:Bode图_1_1', 'ctc:bode']),
+    );
+    expect(coreResourcePathReadinessReviewRef(node!)).toBe(
+      'knowledge-card:Bode图_1_1|knowledge_graph:Bode图_1_1|runtime-knowledge-card.v1',
+    );
   });
 
   it('keeps unreviewed exercise nodes excluded even when mix lists exercise', () => {

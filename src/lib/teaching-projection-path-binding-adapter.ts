@@ -68,6 +68,12 @@ interface DenominatorBridgeFile {
 interface CutoverCaptureReceiptFile {
   authorityCaptureHash?: string;
   captureRevision?: string;
+  teachingProjectionHash?: string;
+}
+
+export interface DenominatorBridgeLiveIdentity {
+  projectionHash: string;
+  authoritySnapshotHash?: string | null;
 }
 
 export function mapTeachingProjectionBindingsToRegistryInput(
@@ -245,7 +251,10 @@ export async function loadTeachingProjectionBindingFamily(): Promise<{
       };
     }
 
-    const bridge = loadDenominatorBridge(process.cwd());
+    const bridge = loadDenominatorBridge(process.cwd(), {
+      projectionHash: projection.staged.projectionHash,
+      authoritySnapshotHash: projection.staged.artifacts.manifest.authoritySnapshotHash,
+    });
     if (!bridge.ok) {
       return {
         extraInput: empty,
@@ -322,7 +331,10 @@ export function mergeResourceNodeRegistryInput(
   return merged;
 }
 
-export function loadDenominatorBridge(repoRoot: string): { ok: boolean; map: Map<string, string> } {
+export function loadDenominatorBridge(
+  repoRoot: string,
+  live?: DenominatorBridgeLiveIdentity,
+): { ok: boolean; map: Map<string, string> } {
   const filePath = path.join(repoRoot, CUTOVER_DENOMINATOR_RELATIVE);
   const receiptPath = path.join(repoRoot, CUTOVER_CAPTURE_RECEIPT_RELATIVE);
   if (!existsSync(filePath) || !existsSync(receiptPath)) return { ok: false, map: new Map() };
@@ -341,6 +353,7 @@ export function loadDenominatorBridge(repoRoot: string): { ok: boolean; map: Map
       || typeof captureRevision !== 'string'
       || !CAPTURE_REVISION_PATTERN.test(captureRevision)
       || !Array.isArray(parsed.entries)
+      || (live && !denominatorReceiptMatchesLiveIdentity(receipt, live))
     ) {
       return { ok: false, map: new Map() };
     }
@@ -354,6 +367,27 @@ export function loadDenominatorBridge(repoRoot: string): { ok: boolean; map: Map
   } catch {
     return { ok: false, map: new Map() };
   }
+}
+
+function denominatorReceiptMatchesLiveIdentity(
+  receipt: CutoverCaptureReceiptFile,
+  live: DenominatorBridgeLiveIdentity,
+): boolean {
+  if (
+    typeof receipt.teachingProjectionHash !== 'string'
+    || !/^[a-f0-9]{64}$/u.test(receipt.teachingProjectionHash)
+    || receipt.teachingProjectionHash !== live.projectionHash
+  ) {
+    return false;
+  }
+  if (
+    typeof receipt.authorityCaptureHash === 'string'
+    && /^[a-f0-9]{64}$/u.test(receipt.authorityCaptureHash)
+    && receipt.authorityCaptureHash !== live.authoritySnapshotHash
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function studentFacingHref(href: string | null | undefined): string | null {
