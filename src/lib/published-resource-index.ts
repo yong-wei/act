@@ -125,7 +125,7 @@ function runtimeMetadataStamp(): string {
   ]);
   const textbookAssets = listMetadataFiles(join(runtimeRoot, 'resources/textbooks'), () => true);
   const textbookFiles = listMetadataFiles(join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE), (file) => /(?:manifest\.json|\.jsonl)$/iu.test(file));
-  const cardFiles = CARD_SOURCE_ROOTS.flatMap((root) => listMetadataFiles(join(process.cwd(), root), (file) => file.endsWith('.md')));
+  const cardFiles = CARD_SOURCE_ROOTS.flatMap((root) => listMetadataFiles(join(/*turbopackIgnore: true*/ process.cwd(), root), (file) => file.endsWith('.md')));
   return digest({
     media: sourceStamp([join(runtimeRoot, 'lessons'), ...mediaFiles]),
     lessonContent: sourceStamp([join(runtimeRoot, 'lessons'), ...lessonContentFiles]),
@@ -135,7 +135,7 @@ function runtimeMetadataStamp(): string {
     backendConfiguration: digest([getAllRegisteredResourceMetadata(), ARENA_CHALLENGE_TASKS, ARENA_CHALLENGE_OBJECTS]),
     cards: sourceStamp([
       join(process.cwd(), 'course-content/runtime/knowledge/authority-learning-content-manifest.json'),
-      ...CARD_SOURCE_ROOTS.flatMap((root) => [join(process.cwd(), root)]),
+      ...CARD_SOURCE_ROOTS.flatMap((root) => [join(/*turbopackIgnore: true*/ process.cwd(), root)]),
       ...cardFiles,
     ]),
   });

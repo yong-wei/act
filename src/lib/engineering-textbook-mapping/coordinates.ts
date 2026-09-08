@@ -80,7 +80,7 @@ export async function loadStructuralUnitIndex(input: {
   bookIds: readonly string[];
 }): Promise<StructuralUnitIndex> {
   const runtimeRoot = input.runtimeRoot
-    ?? path.join(process.cwd(), DEFAULT_TEXTBOOKS_V2_RUNTIME_RELATIVE);
+    ?? path.join(/*turbopackIgnore: true*/ process.cwd(), DEFAULT_TEXTBOOKS_V2_RUNTIME_RELATIVE);
   const byUnitId = new Map<string, StructuralUnitRecord>();
   const byBookAndPath = new Map<string, StructuralUnitRecord>();
   for (const bookId of input.bookIds) {
