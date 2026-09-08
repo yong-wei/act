@@ -164,7 +164,8 @@ describe('published resource media backends', () => {
       releaseId: 'runtime-fixture-v2',
       files: firstManifest.files.map((file) => ({
         ...file,
-        objectKey: file.objectKey.replace('runtime-fixture-v1', 'runtime-fixture-v2'),
+        path: file.path.replace('1-1-intro-video.mp4', '1-1-repacked-video.mp4'),
+        objectKey: file.objectKey.replace('runtime-fixture-v1', 'runtime-fixture-v2').replace('1-1-intro-video.mp4', '1-1-repacked-video.mp4'),
       })),
     } satisfies AnyActRuntimeReleaseManifest;
 
@@ -172,6 +173,7 @@ describe('published resource media backends', () => {
     const second = build([mediaResource], { runtimeManifest: secondManifest }).resources[0]!;
     expect(first.identity.runtimeReleaseId).toBe('runtime-fixture-v1');
     expect(second.identity.runtimeReleaseId).toBe('runtime-fixture-v2');
+    expect(second.backend).not.toEqual(first.backend);
     expect(second.version).toBe(first.version);
   });
 

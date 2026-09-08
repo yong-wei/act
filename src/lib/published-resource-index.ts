@@ -25,7 +25,7 @@ import type { AuthorityEngineeringBody } from './authoritative-knowledge/authori
 import type { PublishedResourceBackend, PublishedResourceFeature, PublishedResourceFeatureIndex, PublishedResourceIdentity } from './published-resource-reference';
 
 const INDEX_VERSION = 'published-resource-features/v1';
-const INDEX_IMPLEMENTATION_REVISION = 9;
+const INDEX_IMPLEMENTATION_REVISION = 10;
 const indexPromises = new Map<string, Promise<PublishedResourceFeatureIndex>>();
 const ESTIMATED_MINUTES: Record<TeachingResourceType, number> = {
   card: 5, infographic: 3, handout: 12, video: 8, audio: 15, podcast: 15,
@@ -476,8 +476,8 @@ function backendVersion(backend: PublishedResourceBackend): unknown {
     case 'card': return ['card'];
     case 'infographic': return ['infographic', backend.token];
     case 'route': return ['route', backend.href];
-    case 'media': return ['media', backend.mediaType, backend.assetPath,
-      backend.href.replace(/([?&])releaseId=[^&]+/u, '').replace(/[?&]$/u, '')];
+    // Media bytes already identify content; a relocated copy is not a new learning resource.
+    case 'media': return ['media', backend.mediaType];
     case 'container': return ['container', [...backend.childResourceIds].sort()];
     case 'reference-only': return ['reference-only', backend.reason];
   }
