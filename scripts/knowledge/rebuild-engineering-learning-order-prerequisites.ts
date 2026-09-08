@@ -131,9 +131,14 @@ function main(): void {
     );
   }
 
-  const pointerOut = activatePrerequisitePublication(paths, staged.publicationId, {
-    activatedAt: '2026-09-08T04:00:00.000Z',
-  });
+  // This change already switched Git current.json. Rebuilds must pass
+  // --activate to move the pointer again; default only stages the release.
+  const activate = process.argv.includes('--activate');
+  const pointerOut = activate
+    ? activatePrerequisitePublication(paths, staged.publicationId, {
+      activatedAt: '2026-09-08T04:00:00.000Z',
+    })
+    : readJson<unknown>(CURRENT);
   const receiptPath = path.join(
     ROOT,
     STORE,
