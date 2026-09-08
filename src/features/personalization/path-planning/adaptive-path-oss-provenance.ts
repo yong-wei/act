@@ -6,7 +6,7 @@
  * 反解；对象键形态为 release 资产路径或 `blob:<sha256>` 内容键。
  */
 
-export type AdaptivePathObjectKeyReadState = 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
+export type AdaptivePathObjectKeyReadState = 'verified' | 'index-verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
 
 export interface AdaptivePathObjectKeyReadRecord {
   objectKey: string;

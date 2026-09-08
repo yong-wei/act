@@ -21,18 +21,6 @@ export type TeachingProjectionBindingSkipFamily =
   | 'textbook-container'
   | 'unmapped';
 
-// ponytail: process-global map, safe only while planLearningPath stays synchronous.
-// Callers must set immediately before that sync call. Upgrade to ALS if planning awaits.
-let liveCanonicalTargetBridge: ReadonlyMap<string, string> | null = null;
-
-export function setCanonicalTargetBridge(bridge: ReadonlyMap<string, string> | null): void {
-  liveCanonicalTargetBridge = bridge;
-}
-
-export function getCanonicalTargetBridge(): ReadonlyMap<string, string> | null {
-  return liveCanonicalTargetBridge;
-}
-
 export function mapActResourceIdToNodeId(
   resourceId: string,
   classroomSimulationNodeIds: Readonly<Record<string, string>> = CLASSROOM_SIMULATION_PATH_NODE_IDS,
@@ -92,7 +80,7 @@ export function resolveCanonicalGoalTargets(
     bridge?: ReadonlyMap<string, string> | null;
   } = {},
 ): string[] {
-  const bridge = options.bridge !== undefined ? options.bridge : liveCanonicalTargetBridge;
+  const bridge = options.bridge;
   if (!bridge) return [];
   const resolved: string[] = [];
   for (const target of targets) {

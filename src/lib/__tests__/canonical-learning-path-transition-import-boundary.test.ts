@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import ts from 'typescript';
 
 const ROOT = process.cwd();
 
@@ -11,16 +12,21 @@ function readSource(relativePath: string): string {
 /**
  * Collect static import/export-from module specifiers from a TypeScript source.
  */
-function collectModuleSpecifiers(source: string): string[] {
+function collectModuleSpecifiers(source: string, fileName = 'boundary.ts'): string[] {
   const specs: string[] = [];
-  const importRe = /(?:import|export)\s+(?:type\s+)?(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/g;
-  let match: RegExpExecArray | null;
-  while ((match = importRe.exec(source)) !== null) {
-    specs.push(match[1]!);
-  }
-  const sideEffectRe = /import\s+['"]([^'"]+)['"]/g;
-  while ((match = sideEffectRe.exec(source)) !== null) {
-    specs.push(match[1]!);
+  const file = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true);
+  for (const node of file.statements) {
+    if (ts.isImportDeclaration(node)) {
+      const clause = node.importClause;
+      if (clause?.isTypeOnly) continue;
+      if (clause && !clause.name && clause.namedBindings && ts.isNamedImports(clause.namedBindings)
+        && clause.namedBindings.elements.every((item) => item.isTypeOnly)) continue;
+      if (ts.isStringLiteral(node.moduleSpecifier)) specs.push(node.moduleSpecifier.text);
+    } else if (ts.isExportDeclaration(node) && !node.isTypeOnly && node.moduleSpecifier) {
+      if (node.exportClause && ts.isNamedExports(node.exportClause)
+        && node.exportClause.elements.every((item) => item.isTypeOnly)) continue;
+      if (ts.isStringLiteral(node.moduleSpecifier)) specs.push(node.moduleSpecifier.text);
+    }
   }
   return specs;
 }
@@ -84,6 +90,15 @@ function specifierHitsForbidden(
  * isStudentVisiblePathTarget import path.
  */
 describe('canonical learning path transition import boundary', () => {
+  it('ignores erased type edges while preserving runtime and side-effect imports', () => {
+    expect(collectModuleSpecifiers(`
+      import type { A } from './server-types';
+      import { type B } from './also-types';
+      export type { C } from './exported-types';
+      import { type D, read } from './runtime';
+      import './side-effect';
+    `)).toEqual(['./runtime', './side-effect']);
+  });
   it('keeps control-correction-path-rounds free of the transition barrel', () => {
     const source = readSource('src/features/personalization/path-planning/control-correction-path-rounds.ts');
     expect(source).not.toMatch(
@@ -120,7 +135,7 @@ describe('canonical learning path transition import boundary', () => {
     expect(source).not.toMatch(/write-fence/);
     expect(source).not.toMatch(/@prisma\/client/);
     expect(source).toMatch(
-      /from ['"]@\/lib\/adaptive-path-destination-contract['"]/,
+      /from ['"]@\/features\/personalization\/path-planning\/public-api\.client['"]/,
     );
   });
 
@@ -159,7 +174,7 @@ describe('canonical learning path transition import boundary', () => {
         continue;
       }
 
-      for (const specifier of collectModuleSpecifiers(source)) {
+      for (const specifier of collectModuleSpecifiers(source, file)) {
         const forbiddenHit = specifierHitsForbidden(specifier, forbidden);
         if (forbiddenHit) {
           hits.push({ file, forbidden: forbiddenHit, via: specifier });

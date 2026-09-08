@@ -14,9 +14,11 @@ const STUDENT_VISIBLE_PATH_TARGET_PREFIXES = [
   '/dashboard/',
   '/interactive-learning/',
   '/knowledge/',
+  '/learning-resources/',
   '/playlists/',
   '/profile/',
   '/simulations/',
+  '/textbooks/',
 ] as const;
 
 export function isStudentVisiblePathTarget(target: string): boolean {

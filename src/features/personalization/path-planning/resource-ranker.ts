@@ -61,6 +61,7 @@ export interface ResourceLearnerRankerInput {
   selectedGraphNodeIds?: string[];
   learnerState: ResourceLearnerMatchingLearnerState | null;
   preferredResourceTypes?: ResourceNode['type'][];
+  difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
   timeBudgetMinutes: number;
   completedNodeIds?: string[];
   availableOutcomeRefs?: string[];
@@ -75,6 +76,9 @@ export interface ResourceLearnerRankerFeatureContribution {
     | 'capability-contribution'
     | 'evidence-potential'
     | 'learner-fit'
+    | 'coverage-specificity'
+    | 'observed-difficulty-fit'
+    | 'collaborative-fit'
     | 'accessibility'
     | 'freshness'
     | 'time-cost'
@@ -133,6 +137,9 @@ interface ResourceLearnerRankerScoringProfile {
 
 const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearnerRankerFeatureContribution['feature'], number>> = {
   path: {
+    'coverage-specificity': 1.1,
+    'observed-difficulty-fit': 1.2,
+    'collaborative-fit': 0.35,
     'graph-coverage': 1.2,
     'selected-graph-focus': 1.6,
     'capability-contribution': 1,
@@ -146,6 +153,9 @@ const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearner
     governance: 1,
   },
   konling: {
+    'coverage-specificity': 0,
+    'observed-difficulty-fit': 0,
+    'collaborative-fit': 0,
     'graph-coverage': 1.1,
     'selected-graph-focus': 1.2,
     'capability-contribution': 0.5,
@@ -159,6 +169,9 @@ const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearner
     governance: 1,
   },
   diagnosis: {
+    'coverage-specificity': 0,
+    'observed-difficulty-fit': 0,
+    'collaborative-fit': 0,
     'graph-coverage': 1,
     'selected-graph-focus': 1.1,
     'capability-contribution': 0.9,
@@ -172,6 +185,9 @@ const SCENE_WEIGHTS: Record<ResourceLearnerMatchingScene, Record<ResourceLearner
     governance: 1,
   },
   'prep-pack': {
+    'coverage-specificity': 0,
+    'observed-difficulty-fit': 0,
+    'collaborative-fit': 0,
     'graph-coverage': 0.9,
     'selected-graph-focus': 1,
     'capability-contribution': 0.7,
@@ -334,7 +350,24 @@ function buildFeatureContributions(
   const readiness = readinessScore(profile, input);
   const governance = Math.max(0, 1 - Math.min(profile.governanceLimitations.length, 4) * 0.2);
   const matchedRefs = matchedGraphRefs(profile, input.targetGraphNodeIds);
+  const specificity = node.publishedResource && graphCoverage > 0
+    ? 1 / Math.sqrt(Math.max(1, node.publishedResource.canonicalIds.length)) : 0;
+  const observed = node.observedFeatures;
+  // Personal difficulty already reflects this learner's experience. Cohort difficulty
+  // is compared with their evidenced preparedness, without generating mastery evidence.
+  const mastery = (node.publishedResource?.canonicalIds ?? []).map((id) => input.learnerState?.knowledgeMastery?.tags?.[id])
+    .filter((entry) => typeof entry?.posteriorMastery === 'number' && (entry.confidence ?? 0) >= 0.6 && (entry.evidenceCount ?? 0) > 0);
+  const requestedDifficulty = input.difficultyRhythm === 'gentle' ? 0.35 : input.difficultyRhythm === 'challenge' ? 0.65 : 0.5;
+  const targetDifficulty = observed?.scope === 'cohort' && mastery.length
+    ? Math.max(0.15, Math.min(0.85, mastery.reduce((sum, entry) => sum + entry!.posteriorMastery!, 0) / mastery.length + requestedDifficulty - 0.4))
+    : requestedDifficulty;
+  const difficultyFit = observed?.observedDifficulty !== null && observed?.observedDifficulty !== undefined
+    ? (Math.abs((node.publishedResource?.baselineDifficulty ?? 0.5) - targetDifficulty)
+      - Math.abs(observed.observedDifficulty - targetDifficulty)) * observed.confidence : 0;
   return [
+    { feature: 'coverage-specificity', value: specificity, reason: 'focused coverage of the requested knowledge' },
+    { feature: 'observed-difficulty-fit', value: difficultyFit, reason: 'version-specific learning outcomes and difficulty feedback' },
+    { feature: 'collaborative-fit', value: node.collaborativeAffinity ?? 0, reason: 'co-use affinity with sufficient independent learners' },
     { feature: 'graph-coverage', value: graphCoverage, reason: `matched ${matchedRefs.knowledge.length + matchedRefs.capability.length + matchedRefs.quality.length} graph refs` },
     { feature: 'selected-graph-focus', value: selectedGraphFocus, reason: 'matches graph node selected by the entry point' },
     { feature: 'capability-contribution', value: capability, reason: 'ability impact against weak competency dimensions' },

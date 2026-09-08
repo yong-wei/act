@@ -1974,10 +1974,6 @@ export function ActiveAuthorityGraph({
               ) : null}
             </div>
             </KnowledgeWorkspaceChromePortal>
-            <div className="pointer-events-none absolute bottom-2 left-3 right-3 z-10 mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
-              <span>{visibleCoverageCopy(locale, scopedGraph.nodes.length, scopedGraph.relations.length)}</span>
-              <span>{totalCoverageCopy(locale, model.totalNodeCount, model.totalRelationCount)}</span>
-            </div>
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
               <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
                 <span>{neighborhoodFailures[selectedNodeKey].message}</span>
@@ -1992,30 +1988,33 @@ export function ActiveAuthorityGraph({
               </div>
             ) : null}
             {authorityView ? (
-              <div className="relative min-h-0 flex-1" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
-                <ActiveAuthorityRuntimeView
-                  kind="domain"
-                  view={authorityView}
-                  dimension={dimension}
-                  selectedNodeId={selectedNodeKey}
-                  onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
-                  onHoverNode={setHoveredNodeId}
-                  onEnterDomain={(visualRole) => {
-                    void enterDomain(visualRole);
-                  }}
-                  hoverPreview={hoverPreview}
-                  canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
-                  overviewCount={workspace.domainOverviewIds.length}
-                  overviewEntries={overviewDirectoryEntries}
-                  layout={runtimeLayout}
-                  sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
-                  entryGateActive={!domainEntrySettled}
-                  onEngineSettled={handleDomainEngineSettled}
-                  crossDomainClusters={crossDomainClusters}
-                  onCrossDomainNodeClick={followBoundary}
-                />
+              <div className="relative flex min-h-0 flex-1 flex-col" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
+                <div className="relative min-h-0 flex-1">
+                  <ActiveAuthorityRuntimeView
+                    kind="domain"
+                    view={authorityView}
+                    dimension={dimension}
+                    selectedNodeId={selectedNodeKey}
+                    onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
+                    onHoverNode={setHoveredNodeId}
+                    onEnterDomain={(visualRole) => {
+                      void enterDomain(visualRole);
+                    }}
+                    hoverPreview={hoverPreview}
+                    canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+                    overviewCount={workspace.domainOverviewIds.length}
+                    overviewEntries={overviewDirectoryEntries}
+                    layout={runtimeLayout}
+                    sessionKey={`active-domain:${workspace.activeDomainId ?? 'none'}`}
+                    entryGateActive={!domainEntrySettled}
+                    onEngineSettled={handleDomainEngineSettled}
+                    crossDomainClusters={crossDomainClusters}
+                    onCrossDomainNodeClick={followBoundary}
+                  />
+                </div>
                 {materializedNodeTypes.length > 0 ? (
                   <ActiveAuthorityFilterPanel
+                    inFlow
                     locale={locale}
                     materializedTypes={materializedNodeTypes}
                     hiddenNodeTypes={hiddenNodeTypes}
@@ -2031,6 +2030,10 @@ export function ActiveAuthorityGraph({
                 ) : null}
               </div>
             ) : null}
+            <div className="pointer-events-none mt-2 flex shrink-0 flex-wrap items-center justify-between gap-2 text-xs text-platform-fg-muted max-[639px]:hidden">
+              <span>{visibleCoverageCopy(locale, scopedGraph.nodes.length, scopedGraph.relations.length)}</span>
+              <span>{totalCoverageCopy(locale, model.totalNodeCount, model.totalRelationCount)}</span>
+            </div>
             {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
             {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
             {query && (domainSearch.status === 'ready' && domainSearch.hits.length === 0

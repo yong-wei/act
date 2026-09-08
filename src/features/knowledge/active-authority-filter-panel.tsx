@@ -28,6 +28,7 @@ interface ActiveAuthorityFilterPanelProps {
   teachingRelationsVisible: boolean;
   onToggleTeachingRelations: () => void;
   avoidExpandedKonling?: boolean;
+  inFlow?: boolean;
 }
 
 // 样本描边与画布 nodeStroke 共用同一 tone 色板，面板样本与画布从不矛盾。
@@ -95,14 +96,17 @@ export function ActiveAuthorityFilterPanel({
   teachingRelationsVisible,
   onToggleTeachingRelations,
   avoidExpandedKonling = false,
+  inFlow = false,
 }: ActiveAuthorityFilterPanelProps) {
   return (
     <section
       aria-label={graphCopy(locale, 'filter.panel')}
       data-active-authority-filter-panel="true"
-      data-active-authority-filter-placement="compact-bottom-left"
+      data-active-authority-filter-placement={inFlow ? 'below-canvas' : 'compact-bottom-left'}
       data-graph-locale={locale}
-      className={avoidExpandedKonling
+      className={inFlow
+        ? 'pointer-events-auto relative z-20 mt-2 flex w-fit max-w-full min-w-0 shrink-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface p-1 sm:p-1.5'
+        : avoidExpandedKonling
         ? 'pointer-events-auto absolute bottom-0 left-20 z-40 flex max-w-[calc(100%-5rem)] min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
         : 'pointer-events-auto absolute bottom-0 left-0 z-40 flex max-w-full min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:p-1.5'}
     >

@@ -1,20 +1,18 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import dynamic from 'next/dynamic';
 
 import { GovernedRichText } from '@/components/shared/governed-rich-text';
 import { GovernedFormulaLabel } from './graph/semantic-label-layer';
 import type { PublicAuthorityRootShard } from '@/lib/authority-domain-shards/contracts';
 import type { KnowledgeNodeData } from './knowledge-graph-system';
 import type { GraphDimension } from './graph-runtime-session';
-import { KnowledgeGraphRuntimeCanvas } from './graph/knowledge-graph-runtime-canvas';
 import {
   useKnowledgeGraphRuntimeCamera,
   type KnowledgeGraphRuntimeLayout,
 } from './graph/use-knowledge-graph-runtime-layout';
 import {
-  ACTIVE_ROOT_RUNTIME_GRAPH_VERSION,
-  ACTIVE_RUNTIME_GRAPH_VERSION,
   activeRootEntryUnavailable,
   activeRootEntryVisualRole,
   isActiveRootNavigationNode,
@@ -29,6 +27,26 @@ import { toSharedRuntimeRelationType } from './authority-graph-view-model';
 import { runtimeNodeTypeFor } from './graph/authority-runtime-adapter';
 import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
 import type { GovernedFormulaProjection } from '@/lib/governed-math/types';
+
+/**
+ * ForceGraph 2D/3D touches browser globals while its module is evaluated.
+ * Keep that third-party graph bundle behind a real client-only boundary; the
+ * surrounding Authority view still SSRs its semantic directory and gate.
+ */
+const ActiveAuthorityRenderer = dynamic(
+  () => import('./graph/active-renderer/active-authority-renderer')
+    .then((module) => module.ActiveAuthorityRenderer),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="absolute inset-0"
+        data-active-authority-renderer-loading="true"
+        aria-hidden="true"
+      />
+    ),
+  },
+);
 
 interface ActiveAuthorityRuntimeViewProps {
   kind: 'root' | 'domain';
@@ -58,7 +76,7 @@ interface ActiveAuthorityRuntimeViewProps {
   entryGateActive?: boolean;
   /** #2052：画布引擎沉降（或 static 布局完成）回调。 */
   onEngineSettled?: () => void;
-  /** #2052 cross-domain-canvas-cluster：跨领域关系聚类（合成节点经 2D 画布渲染）。 */
+  /** #2052 cross-domain-canvas-cluster：跨领域关系聚类（2D/3D 共享真实端点）。 */
   crossDomainClusters?: ReadonlyArray<{
     domainName: string;
     nodes: ReadonlyArray<{ canonicalId: string; name: string; typeLabel: string; summary: string }>;
@@ -93,7 +111,7 @@ export function ActiveAuthorityRuntimeView({
     relayoutVersion,
     fitViewRequest,
     handleNodeDragEnd,
-    requestFitView,
+    unpinNode,
     engineReheatRevision,
   } = layout;
   const {
@@ -104,7 +122,7 @@ export function ActiveAuthorityRuntimeView({
     handleAutoFitConsumed,
     handleCameraPoseChange,
   } = useKnowledgeGraphRuntimeCamera();
-  const fittedSessionRef = useRef<string | null>(null);
+  const previousRelayoutVersionRef = useRef(relayoutVersion);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [compactLabelPriority, setCompactLabelPriority] = useState(false);
   const rootNodes = useMemo(
@@ -150,17 +168,14 @@ export function ActiveAuthorityRuntimeView({
       relationType: toSharedRuntimeRelationType({ predicate: link.predicate, relationFamily: link.relationFamily }),
     })))
     : []), [kind, crossDomainClusters]);
-  // cross-domain-canvas-cluster 仅覆盖新版 2D：3D/旧版不渲染跨领域圆。
-  const crossMergeActive = dimension === '2d';
+  // Active 的 2D/3D 共享同一组真实跨域身份与关系，只由维度改变投影方式。
+  const crossMergeActive = true;
   const nodes = kind === 'root'
     ? rootNodes
     : (crossMergeActive ? [...domainNodes, ...crossNodes] : domainNodes);
   const links = kind === 'root'
     ? []
     : (crossMergeActive ? [...domainLinks, ...crossLinks] : domainLinks);
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? null;
-  const hoveredNode = nodes.find((node) => node.id === hoveredId) ?? null;
-  const graphVersion = kind === 'root' ? ACTIVE_ROOT_RUNTIME_GRAPH_VERSION : ACTIVE_RUNTIME_GRAPH_VERSION;
   const cameraScopeKey = `${sessionKey}:${dimension}`;
   const rootEntries = catalog
     ? packActiveAuthorityRootEntries(catalog, { viewportWidth: 960, viewportHeight: 640 })
@@ -182,11 +197,11 @@ export function ActiveAuthorityRuntimeView({
   }, []);
 
   useEffect(() => {
-    if (!sessionKey || nodes.length === 0) return;
-    if (fittedSessionRef.current === sessionKey) return;
-    fittedSessionRef.current = sessionKey;
-    requestFitView('current');
-  }, [nodes.length, requestFitView, sessionKey]);
+    if (previousRelayoutVersionRef.current === relayoutVersion) return;
+    previousRelayoutVersionRef.current = relayoutVersion;
+    // Active 重新排布始终从新的确定性种子开始，显式拖拽 pin 不带入新布局。
+    unpinNode();
+  }, [relayoutVersion, unpinNode]);
 
   const handleNodeClick = (node: KnowledgeNodeData) => {
     if (kind === 'root') {
@@ -208,20 +223,21 @@ export function ActiveAuthorityRuntimeView({
   return (
     <div
       className="relative flex h-full min-h-0 w-full flex-col overflow-hidden"
-      data-active-authority-runtime="force-graph"
+      data-active-authority-runtime="dedicated-renderer"
       data-active-authority-dimension={dimension}
       data-authority-root-canvas={kind === 'root' ? 'true' : undefined}
       data-authority-shard-root={kind === 'root' ? 'true' : undefined}
       data-authority-root-domain-count={kind === 'root' && catalog ? catalog.domains.length : undefined}
-      data-knowledge-runtime-owner="shared"
+      data-knowledge-runtime-owner="active-authority-renderer"
     >
       <div className="relative min-h-0 flex-1">
-        <KnowledgeGraphRuntimeCanvas
+        <ActiveAuthorityRenderer
+          kind={kind}
           dimension={dimension}
           nodes={nodes}
           links={links}
-          selectedNode={selectedNode}
-          hoveredNode={hoveredNode}
+          selectedNodeId={selectedNodeId}
+          hoveredNodeId={hoveredId}
           onNodeClick={handleNodeClick}
           onNodeHover={(node) => {
             if (kind === 'root' || !node || isActiveRootNavigationNode(node)) {
@@ -237,7 +253,6 @@ export function ActiveAuthorityRuntimeView({
           fitViewRequest={fitViewRequest}
           relayoutVersion={relayoutVersion}
           engineReheatRevision={engineReheatRevision}
-          graphVersion={graphVersion}
           autoFitScopeKey={cameraScopeKey}
           autoFitReady={nodes.length > 0}
           autoFitConsumed={consumedAutoFitScopeKeys.has(cameraScopeKey)}
@@ -247,11 +262,9 @@ export function ActiveAuthorityRuntimeView({
           onCameraManipulation={handleCameraManipulation}
           onCameraPoseChange={handleCameraPoseChange}
           canvasAriaLabel={canvasAriaLabel}
-          stageAttr="authority"
-          liveEngine={process.env.VITEST !== 'true'}
           onEngineSettled={onEngineSettled}
         />
-        {entryGateActive && process.env.VITEST !== 'true' ? (
+        {entryGateActive ? (
           <div
             className="absolute inset-0 z-10 flex items-center justify-center bg-platform-surface"
             data-active-authority-entry-gate="true"

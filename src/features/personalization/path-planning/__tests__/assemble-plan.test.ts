@@ -1611,6 +1611,9 @@ describe('adaptive learning path planner', () => {
       tieBreakReason: expect.stringContaining('scene:path'),
     });
     expect(pathNode?.resourceRanker?.featureContributions.map((contribution) => contribution.feature)).toEqual([
+      'coverage-specificity',
+      'observed-difficulty-fit',
+      'collaborative-fit',
       'graph-coverage',
       'selected-graph-focus',
       'capability-contribution',

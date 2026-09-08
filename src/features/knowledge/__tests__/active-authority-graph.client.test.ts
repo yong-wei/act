@@ -1387,7 +1387,7 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const rootCanvas = container.querySelector('[data-authority-root-canvas="true"]');
     expect(rootCanvas).not.toBeNull();
-    expect(rootCanvas?.getAttribute('data-active-authority-runtime')).toBe('force-graph');
+    expect(rootCanvas?.getAttribute('data-active-authority-runtime')).toBe('dedicated-renderer');
     expect(rootCanvas?.querySelector('[data-knowledge-runtime-canvas]')).not.toBeNull();
     expect(container.querySelectorAll('[data-authority-domain-entry]')).toHaveLength(3);
     expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
@@ -1423,7 +1423,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await enterModelingDomain({ families: false });
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-filter-placement="compact-bottom-left"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-filter-placement="below-canvas"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-filter-panel="true"]')?.classList.contains('absolute')).toBe(false);
     expect(container.querySelector('[data-active-authority-toolbar="true"] [data-active-authority-filter-panel="true"]')).toBeNull();
     expect(container.querySelector('[data-authority-relation-legend="true"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
@@ -1529,7 +1530,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(document.activeElement?.getAttribute('data-active-authority-node')).toBe('node-isolated');
     expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-dimension="3d"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-runtime="force-graph"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-runtime="dedicated-renderer"]')).not.toBeNull();
     // 单选类型下拉已退役：类型筛选在专用面板内多选、独立可逆（#1742）。
     expect(container.querySelector('#active-authority-type-filter')).toBeNull();
     const formulaToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
@@ -1554,7 +1555,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     const directory = container.querySelector<HTMLElement>('[data-active-authority-node-directory="semantic"]');
     expect(directory).not.toBeNull();
     expect(container.querySelector('[data-active-authority-visible-node="true"]')).toBeNull();
-    expect(container.querySelector('[data-active-authority-runtime="force-graph"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-runtime="dedicated-renderer"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
     expect(container.querySelector('[data-authority-teaching-coverage="true"]')?.textContent).toContain('教学关系暂不可用');
 
@@ -2264,7 +2265,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
     await enterModelingDomain({ families: false });
 
-    const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
+    const canvas = container.querySelector('[data-active-authority-runtime="dedicated-renderer"]');
     expect(canvas).not.toBeNull();
     expect(container.querySelector('[data-active-authority-viewport="compact"]')).not.toBeNull();
     // 零边/Teaching 不可用不再展开可见目录；节点保持 sr-only 语义通道

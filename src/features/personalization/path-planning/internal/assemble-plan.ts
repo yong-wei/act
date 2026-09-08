@@ -71,11 +71,9 @@ import {
   type SourcePackItem,
   type SourcePackLimitation,
 } from '@/lib/source-pack';
-import {
-  resolveCanonicalGoalTargets,
-} from '@/lib/teaching-projection-path-node-ids';
 import type { AdaptivePathNodeDecisionExplanation } from '@/features/personalization/path-planning/adaptive-path-node-decisions';
 import type { AdaptivePathNodeRuntimeBinding } from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
+import type { ResourceFeatureReference } from '@/lib/published-resource-reference';
 import type { StudentSafeEvidenceEventReference } from '@/lib/data-governance/evidence-timeline';
 import type { StudentEvidenceWindow } from '@/lib/data-governance/student-evidence-feature-cache';
 import { resolveAdaptivePathDestinationContract } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
@@ -584,6 +582,7 @@ export interface AdaptiveLearningPathSarCandidateRef {
 
 export interface AdaptiveLearningPathPlanNode {
   nodeId: string;
+  resourceFeatureRef?: ResourceFeatureReference;
   planningUnitId?: string;
   resourceId?: string;
   resourceNodeId?: string;
@@ -604,7 +603,8 @@ export interface AdaptiveLearningPathPlanNode {
   cognitiveLoad?: ResourceNode['planningMetadata']['cognitiveLoad'];
   effort?: ResourceNode['planningMetadata']['cost']['effort'];
   prerequisiteNodeIds: string[];
-  prerequisiteBasis?: Array<{ nodeId: string; source: 'PlanningUnit' }>;
+  prerequisiteBasis?: Array<{ nodeId: string; source: 'PlanningUnit' | 'ENGINEERING'; relationId?: string;
+    sourceCanonicalId?: string; targetCanonicalId?: string }>;
   knowledgeCoverage: string[];
   capabilityTargets?: string[];
   launchBinding?: PlanningUnit['launchBinding'];
@@ -632,6 +632,7 @@ export interface AdaptiveLearningPathAlternative {
 }
 
 export interface AdaptiveLearningPathExplanation {
+  engineeringOrder?: import('@/lib/published-resource-reference').EngineeringResourceOrderEvidence;
   selectedReasons: string[];
   rejectedAlternatives: AdaptiveLearningPathAlternative[];
   fallbackReasons: string[];
@@ -2232,7 +2233,10 @@ function assembleAdaptiveLearningPathPlanInternal(
     ? []
     : pathEligible
       .filter((node) => goalAllowsResourceNode(node, registeredGoal))
-      .filter((node) => learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true);
+      .filter((node) => (node.publishedResource && (
+        node.planningMetadata.goalCoverage?.some((target) => input.goal.knowledgeTargets.includes(target))
+        || input.registry.engineeringOrder?.requiredNodeIds.includes(node.id)
+      )) || (learningGoalBoundaryEvaluations?.get(node.id)?.allowed ?? true));
   const eligibleIds = new Set(candidatePathEligible.map((node) => node.id));
   const targetGraphNodeIds = graphContext?.targetGraphNodeIds.length
     ? graphContext.targetGraphNodeIds
@@ -2268,6 +2272,7 @@ function assembleAdaptiveLearningPathPlanInternal(
       ? withoutLearnerStateResourceModalities(input.learnerState)
       : input.learnerState,
     preferredResourceTypes: input.resourcePreferences,
+    difficultyRhythm: preferenceContext.difficultyRhythm,
     timeBudgetMinutes: input.constraints.timeBudgetMinutes,
     completedNodeIds: input.constraints.completedNodeIds ?? [],
     availableOutcomeRefs: input.constraints.availableOutcomeRefs ?? [],
@@ -2295,7 +2300,6 @@ function assembleAdaptiveLearningPathPlanInternal(
         resourceRanker,
         reasonCodes: unique([
           ...scoredNode.reasonCodes,
-          ...canonicalBindingReasonCodes(node, input.goal),
           ...(diversityAvoidNodeIds.has(node.id) ? ['policy-bundle-diversity-avoidance'] : []),
           ...(sarCandidates?.acceptedNodeIds.has(node.id) ? ['sar-associated-candidate'] : []),
           ...(resourceRanker?.featureContributions
@@ -2418,7 +2422,6 @@ function assembleAdaptiveLearningPathPlanInternal(
   if (coursePluginUnavailable) {
     fallbackReasons.push('course-plugin-unavailable');
   }
-  fallbackReasons.push(...unmappedCanonicalTargetLimitations(input.goal));
   const uniqueFallbackReasons = unique(fallbackReasons);
   const status: AdaptiveLearningPathStatus = uniqueFallbackReasons.length > 0 ? 'fallback' : 'ready';
   const hasPartialGraphStarter = repairedMainPathNodes.length > 0 && uniqueFallbackReasons.includes('graph-target-coverage-partial');
@@ -3405,10 +3408,6 @@ function nodeMatchesGoal(
     ...goal.knowledgeTargets,
     ...deficits.filter((deficit) => deficit.kind === 'knowledge').map((deficit) => deficit.targetId),
     ...expandedRegisteredKnowledgeTargets(goal, deficits, registeredGoal),
-    ...resolveCanonicalGoalTargets([
-      ...goal.knowledgeTargets,
-      ...deficits.filter((deficit) => deficit.kind === 'knowledge').map((deficit) => deficit.targetId),
-    ]),
   ]);
   const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag))
     || knowledgeTargets.has(node.id);
@@ -3441,7 +3440,7 @@ function expandedRegisteredKnowledgeTargets(
 
 function knowledgeTargetCoverageRefs(goal: AdaptiveLearningPathGoal, target: string): string[] {
   const aliases = getRegisteredAdaptiveLearningPathGoal(goal.id)?.knowledgeTargetAliases?.[target] ?? [];
-  return unique([target, ...aliases, ...resolveCanonicalGoalTargets([target])]);
+  return unique([target, ...aliases]);
 }
 
 function planningUnitCoversKnowledgeTarget(
@@ -3452,28 +3451,6 @@ function planningUnitCoversKnowledgeTarget(
   const coverageRefs = new Set(knowledgeTargetCoverageRefs(goal, target));
   return planningUnit.knowledgeCoverage.some((tag) => coverageRefs.has(tag))
     || coverageRefs.has(planningUnit.resourceNodeId);
-}
-
-function canonicalBindingReasonCodes(node: ResourceNode, goal: AdaptiveLearningPathGoal): string[] {
-  const planningUnit = planningUnitForNode(node);
-  if (!planningUnit) return [];
-  return goal.knowledgeTargets.flatMap((target) => {
-    const bridged = resolveCanonicalGoalTargets([target]);
-    if (bridged.length === 0) return [];
-    const hits = bridged.some((id) =>
-      node.id === id
-      || planningUnit.resourceNodeId === id
-      || planningUnit.knowledgeCoverage.includes(id)
-      || planningUnit.knowledgeCoverage.includes(target)
-    );
-    return hits ? [`canonical-binding:${target}`] : [];
-  });
-}
-
-function unmappedCanonicalTargetLimitations(goal: AdaptiveLearningPathGoal): string[] {
-  return goal.knowledgeTargets
-    .filter((target) => target.startsWith('act:') && resolveCanonicalGoalTargets([target]).length === 0)
-    .map((target) => `unmapped-canonical-target:${target}`);
 }
 
 function scoreNode(
@@ -3487,7 +3464,7 @@ function scoreNode(
   const planningUnit = requirePlanningUnit(node);
   const coverageGain = planningUnit.knowledgeCoverage.reduce((sum, tag) => {
     const deficit = deficits.find((item) => item.targetId === tag);
-    return sum + (deficit ? 1 - deficit.value : 0.1);
+    return sum + (deficit ? 1 - deficit.value : 0);
   }, 0);
   const competencyTargets = new Set(
     deficits
@@ -3726,7 +3703,7 @@ function policyScoreBoost(
   const estimatedMinutes = planningUnit.estimatedTimeMinutes;
 
   if (policyFamily === 'foundation-remediation') {
-    const conceptBoost = node.type === 'knowledge_card' ||
+    const conceptBoost = node.type === 'knowledge_card' || node.type === 'infographic' ||
       node.type === 'textbook_section' ||
       node.type === 'lesson_step' ||
       node.type === 'quiz' ||
@@ -3894,6 +3871,8 @@ function buildFeasiblePath(
   }
   if (allPlanningRequirementsSatisfied(state, allGoalTargets, constraints)) {
     for (const option of candidateOptions) {
+      if (option.entry.node.publishedResource && [...state.selected.values()].some((entry) =>
+        entry.node.publishedResource && entry.node.type === option.entry.node.type)) continue;
       tryAddOption(option, false);
     }
   }
@@ -4757,7 +4736,7 @@ function goalAllowsResourceNode(
   node: ResourceNode,
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
 ): boolean {
-  return !registeredGoal || registeredGoal.allowedResourceMix.includes(node.type);
+  return node.publishedResource?.recommendable === true || !registeredGoal || registeredGoal.allowedResourceMix.includes(node.type);
 }
 
 interface LearningGoalObjectiveBoundary {
@@ -6091,7 +6070,7 @@ function buildPathEvidenceBasis(
     ...Object.entries(sourceCoverage)
       .filter(([, state]) => state === 'available' || state === 'partial')
       .map(([source]) => source),
-    ...(plan.visualization?.evidence?.evidenceBasis ?? []),
+    ...(plan.visualization?.evidence?.evidenceBasis ? [plan.visualization.evidence.evidenceBasis] : []),
   ]);
 }
 

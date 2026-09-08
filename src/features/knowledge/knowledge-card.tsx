@@ -342,12 +342,6 @@ export function KnowledgeCard({
 
   // 判断是否有 MDX 内容（如果有则不显示 metadata.content）
   const hasMdxContent = mdxPaths.length > 0;
-  // 检查 metadata.content 是否为 MDX 格式（包含 Markdown 标记）
-  const isMdxFormat = metadata.type === 'mdx' || (metadata.content && (
-    metadata.content.includes('#') ||
-    metadata.content.includes('$$') ||
-    metadata.content.includes('**')
-  ));
 
   useEffect(() => {
     const updateTheme = () => {
@@ -389,7 +383,13 @@ export function KnowledgeCard({
             </CardTitle>
             {!runtimeNodeCardPath ? (
               <CardDescription className={`${descriptionClassName} ${isCompact ? 'line-clamp-2' : ''}`}>
-                {description}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkMath]}
+                  rehypePlugins={[[rehypeKatex, createGovernedRehypeKatexOptions()]]}
+                  components={{ p: ({ children }) => <span>{children}</span> }}
+                >
+                  {description}
+                </ReactMarkdown>
               </CardDescription>
             ) : null}
           </div>
@@ -425,9 +425,14 @@ export function KnowledgeCard({
           />
         ) : null}
 
-        {metadata.content && !hasMdxContent && !isMdxFormat && !runtimeNodeCardPath && (
+        {metadata.content && !hasMdxContent && !runtimeNodeCardPath && (
           <div className={`max-w-none ${isLightTheme ? 'prose prose-slate' : 'prose prose-invert'} `}>
-            <p className={isCompact ? 'text-sm' : 'text-base'}>{metadata.content}</p>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[[rehypeKatex, createGovernedRehypeKatexOptions()]]}
+            >
+              {metadata.content}
+            </ReactMarkdown>
           </div>
         )}
 

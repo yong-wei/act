@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   projectConfirmedAdjustmentsOntoPlanNodes,
   projectSelectionBasisOntoPlanNodes,
-} from '../adaptive-path-node-decisions';
+} from '@/features/personalization/path-planning/adaptive-path-node-decisions.ts';
 
 const recommendationProvenance = {
   summary: '依据相位裕度的学习证据安排本路径。',

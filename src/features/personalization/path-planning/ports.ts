@@ -11,6 +11,7 @@ export type PlanLearningPathResult = AdaptiveLearningPathPlan;
 
 export interface GoalContext {
   input: PlanLearningPathInput;
+  canonicalTargetIds?: string[];
 }
 
 export interface CandidateSet {

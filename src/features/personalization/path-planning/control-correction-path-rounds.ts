@@ -21,6 +21,9 @@ import {
 } from '@/lib/canonical-learning-fact-identity';
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
+import { RESOURCE_NODE_TYPES } from '@/lib/resource-node-registry';
+import { hasPublishedPlanNodeIdentity } from '@/lib/published-resource-reference';
+import { buildIndexedCandidateResourceRecords } from './indexed-resource-verification';
 
 export { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 
@@ -192,6 +195,18 @@ export async function persistLearningPathRound(
   input: PersistControlCorrectionPathRoundInput,
 ): Promise<any> {
   validateLearningPathPlanForPersistence(input.plan);
+  const publishedNodes = [
+    ...input.plan.mainPath,
+    ...(input.plan.policyBundle?.paths.flatMap((path) => path.planNodes ?? []) ?? []),
+  ].filter((node) => node.resourceFeatureRef);
+  if (publishedNodes.length) {
+    const { loadPublishedResourceFeatureIndex } = await import('@/lib/published-resource-index');
+    const index = await loadPublishedResourceFeatureIndex();
+    const references = buildIndexedCandidateResourceRecords([{ styleId: 'persistence', planNodes: publishedNodes }], null, index);
+    if (references.length !== publishedNodes.length || references.some((entry) => entry.state !== 'index-verified')) {
+      throw new ControlCorrectionPathRoundValidationError('资源发布版本或资源身份已变化，请重新生成路径');
+    }
+  }
   const record = serializeLearningPathPlan(input.plan);
   const pathStatus = input.pathStatus ?? (input.plan.status === 'ready' ? 'active' : 'fallback');
 
@@ -393,28 +408,8 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
     if (
       !node.nodeId ||
       seen.has(node.nodeId) ||
-      ![
-        'lesson_step',
-        'knowledge_node',
-        'knowledge_card',
-        'textbook_section',
-        'video',
-        'audio',
-        'slides',
-        'handout',
-        'quiz',
-        'adaptive_quiz',
-        'control_workbench',
-        'simulation',
-        'arena_task',
-        'external_resource',
-        'reflection',
-        'checkpoint',
-        'ai_intervention',
-        'konling',
-        'project',
-      ].includes(node.type) ||
-      !registeredGoal.allowedResourceMix.includes(node.type) ||
+      !RESOURCE_NODE_TYPES.includes(node.type) ||
+      (!registeredGoal.allowedResourceMix.includes(node.type) && !hasPublishedPlanNodeIdentity(node)) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||
@@ -492,7 +487,7 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
     if (
       !node.nodeId ||
       seen.has(node.nodeId) ||
-      ![
+      (![
         'knowledge_card',
         'textbook_section',
         'quiz',
@@ -506,7 +501,7 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
         'checkpoint',
         'ai_intervention',
         'konling',
-      ].includes(node.type) ||
+      ].includes(node.type) && !hasPublishedPlanNodeIdentity(node)) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||

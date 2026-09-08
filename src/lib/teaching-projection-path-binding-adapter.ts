@@ -32,7 +32,6 @@ export {
   CLASSROOM_SIMULATION_PATH_NODE_IDS,
   mapActResourceIdToNodeId,
   resolveCanonicalGoalTargets,
-  setCanonicalTargetBridge,
 } from './teaching-projection-path-node-ids';
 export type { TeachingProjectionBindingSkipFamily } from './teaching-projection-path-node-ids';
 

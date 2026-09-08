@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-
 import { planLearningPath } from '@/features/personalization/path-planning/public-api';
+
 import type { TeachingBindingRuntime, TeachingResourceRuntime } from '@/lib/teaching-projection/contracts';
 import {
   applyCoreResourcePathReadinessDispositions,
@@ -19,12 +19,7 @@ import {
 import {
   mapActResourceIdToNodeId,
   resolveCanonicalGoalTargets,
-  setCanonicalTargetBridge,
 } from '@/lib/teaching-projection-path-node-ids';
-
-afterEach(() => {
-  setCanonicalTargetBridge(null);
-});
 
 function resource(resourceId: string, title = resourceId): TeachingResourceRuntime {
   return {
@@ -203,78 +198,11 @@ describe('teaching projection path binding adapter', () => {
     expect(node?.eligibility.pathEligible).toBe(false);
   });
 
-  it('matches bridged canonical targets and cites the canonical id', () => {
-    setCanonicalTargetBridge(new Map([
-      ['act:card:kn-bode', 'knowledge-card:kn-bode'],
-    ]));
-    const registry = applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
-      knowledgeCards: [{
-        id: 'kn-bode',
-        title: '伯德图知识卡',
-        sourceRef: 'kn-bode:card',
-        knowledgeNodeIds: ['kn-bode'],
-        launchTarget: '/knowledge',
-        renderTarget: '/knowledge',
-      }],
-    }));
-    const plan = planLearningPath({
-      studentId: 'student-1',
-      goal: {
-        id: 'goal-canonical-bridge',
-        title: 'canonical 桥匹配',
-        knowledgeTargets: ['act:card:kn-bode'],
-        competencyTargets: [],
-      },
-      registry,
-      constraints: {
-        timeBudgetMinutes: 40,
-        privacyScopes: ['student-visible'],
-        device: 'desktop',
-        timelineWindowDays: 7,
-        completedNodeIds: [],
-      },
-    });
-
-    expect(plan.mainPath.map((node) => node.nodeId)).toContain('knowledge-card:kn-bode');
-    expect(plan.explanations.selectedReasons).toEqual(
-      expect.arrayContaining(['canonical-binding:act:card:kn-bode']),
-    );
-  });
-
-  it('does not match canonical targets absent from the bridge', () => {
-    expect(resolveCanonicalGoalTargets(['act:card:missing'])).toEqual([]);
-    const registry = applyCoreResourcePathReadinessDispositions(buildResourceNodeRegistry({
-      knowledgeCards: [{
-        id: 'kn-bode',
-        title: '伯德图知识卡',
-        sourceRef: 'kn-bode:card',
-        knowledgeNodeIds: ['kn-bode'],
-        launchTarget: '/knowledge',
-        renderTarget: '/knowledge',
-      }],
-    }));
-    const plan = planLearningPath({
-      studentId: 'student-1',
-      goal: {
-        id: 'goal-unmapped-canonical',
-        title: '无桥 canonical',
-        knowledgeTargets: ['act:card:missing'],
-        competencyTargets: [],
-      },
-      registry,
-      constraints: {
-        timeBudgetMinutes: 40,
-        privacyScopes: ['student-visible'],
-        device: 'desktop',
-        timelineWindowDays: 7,
-        completedNodeIds: [],
-      },
-    });
-
-    expect(plan.explanations.fallbackReasons).toEqual(
-      expect.arrayContaining(['unmapped-canonical-target:act:card:missing']),
-    );
-    expect(plan.mainPath).toEqual([]);
+  it('resolves only the explicitly supplied legacy bridge without retained request state', () => {
+    const bridge = new Map([['act:card:kn-bode', 'knowledge-card:kn-bode']]);
+    expect(resolveCanonicalGoalTargets(['act:card:kn-bode'], { bridge })).toEqual(['knowledge-card:kn-bode']);
+    expect(resolveCanonicalGoalTargets(['act:card:missing'], { bridge })).toEqual([]);
+    expect(resolveCanonicalGoalTargets(['act:card:kn-bode'])).toEqual([]);
   });
 
   it('emits textbook-section patches and maps registered classroom simulations exactly', () => {
@@ -468,4 +396,3 @@ describe('teaching projection path binding adapter', () => {
     ]));
   });
 });
-
