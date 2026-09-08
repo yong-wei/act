@@ -169,6 +169,7 @@ export function loadPrerequisitePublication(
     assertEngineeringAdoptedReceipts({
       edges: artifacts.edges,
       receipts: artifacts.receipts,
+      authorityReleaseId: artifacts.manifest.authorityReleaseId,
     });
   } catch (error) {
     if (error instanceof EngineeringLearningOrderReceiptError) {

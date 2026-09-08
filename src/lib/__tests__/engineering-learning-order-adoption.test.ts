@@ -261,10 +261,19 @@ describe('engineering learning-order adoption (#2059)', () => {
     expect(artifacts.receipts?.[0]?.disposition).toBe('adopted');
     expect(artifacts.receipts?.[0]?.snapshotHash).toBe(SNAPSHOT);
 
-    const tamperedReceipts = (artifacts.receipts ?? []).map((receipt) => ({
-      ...receipt,
-      authorityReleaseId: `${AUTHORITY}-tampered`,
-    }));
+    const extraRejectedReceipt = {
+      relationId: 'ctkg:hash-only-rejected',
+      sourceId: 'node.block-diagram',
+      targetId: 'node.transfer-function',
+      snapshotHash: SNAPSHOT,
+      authorityReleaseId: AUTHORITY,
+      disposition: 'rejected-not-core' as const,
+      teachingPair: null,
+    };
+    const tamperedReceipts = [
+      ...(artifacts.receipts ?? []),
+      extraRejectedReceipt,
+    ];
     const tampered = buildPrerequisitePublication({
       scopeId: SCOPE,
       authoringRevision: REVISION,
@@ -311,6 +320,7 @@ describe('engineering learning-order adoption (#2059)', () => {
         ...receipt,
         snapshotHash: 'c'.repeat(64),
       })),
+      authorityReleaseId: AUTHORITY,
     })).toThrow(/snapshot mismatch/);
 
     expect(() => assertEngineeringAdoptedReceipts({
@@ -320,7 +330,27 @@ describe('engineering learning-order adoption (#2059)', () => {
           : edge
       )),
       receipts: artifacts.receipts,
+      authorityReleaseId: AUTHORITY,
     })).toThrow(/endpoint mismatch/);
+
+    expect(() => buildPrerequisitePublication({
+      scopeId: SCOPE,
+      authoringRevision: REVISION,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'proj-capture-1',
+      authorityNodes: coreNodes.map((n) => ({
+        canonicalId: n.canonicalId,
+        lifecycleStatus: 'active',
+      })),
+      coreNodes,
+      edges: merged.edges,
+      decisions: merged.decisions,
+      candidates: merged.candidates,
+      receipts: (merged.receipts ?? []).map((receipt) => ({
+        ...receipt,
+        authorityReleaseId: `${AUTHORITY}-tampered`,
+      })),
+    })).toThrow(/authority mismatch/);
 
     const root = mkdtempSync(path.join(tmpdir(), 'prereq-receipts-'));
     try {

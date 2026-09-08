@@ -299,6 +299,7 @@ export function buildPrerequisitePublication(
       assertEngineeringAdoptedReceipts({
         edges: materialized.edges,
         receipts,
+        authorityReleaseId: input.authorityReleaseId,
       });
     } catch (error) {
       if (error instanceof EngineeringLearningOrderReceiptError) {

@@ -247,6 +247,7 @@ export function assertEngineeringAdoptedReceipts(input: {
     'status' | 'candidateOrigin' | 'sourceNodeId' | 'targetNodeId' | 'evidenceRefs'
   >[];
   receipts: readonly EngineeringLearningOrderReceipt[] | undefined;
+  authorityReleaseId: string;
 }): void {
   const adoptedEdges = input.edges.filter((edge) => (
     edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
@@ -254,6 +255,11 @@ export function assertEngineeringAdoptedReceipts(input: {
 
   const byRelation = new Map<string, EngineeringLearningOrderReceipt>();
   for (const receipt of input.receipts ?? []) {
+    if (receipt.authorityReleaseId !== input.authorityReleaseId) {
+      throw new EngineeringLearningOrderReceiptError(
+        `engineering-order receipt ${receipt.relationId} authority mismatch`,
+      );
+    }
     if (byRelation.has(receipt.relationId)) {
       throw new EngineeringLearningOrderReceiptError(
         `duplicate engineering-learning-order receipt ${receipt.relationId}`,
