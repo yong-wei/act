@@ -73,6 +73,7 @@ export interface ResourceCandidatePoolSourceStatus {
   status: 'loaded' | 'empty' | 'missing' | 'error';
   count: number;
   reason: string | null;
+  skipCounts?: Record<string, number>;
 }
 
 export function buildResourceNodeRegistryFromTeachingResources(
@@ -144,6 +145,10 @@ export function buildResourceNodeRegistryFromTeachingResources(
       ...runtimeTextbooks.flatMap(toTextbookUnitNodeInputs),
       ...(extraInput.textbookSections ?? []),
     ],
+    knowledgeCards: extraInput.knowledgeCards,
+    simulations: extraInput.simulations,
+    arenaTasks: extraInput.arenaTasks,
+    exercises: extraInput.exercises,
   }));
 }
 

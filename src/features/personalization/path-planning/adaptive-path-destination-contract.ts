@@ -201,9 +201,20 @@ function hasIntegratedJourneyDestination(
   if (resourceType === 'interactive_lesson') {
     return pathname.startsWith('/interactive-learning/courses/');
   }
-  if (['lesson_step', 'video', 'audio', 'slides', 'handout', 'quiz', 'textbook_section'].includes(resourceType)) {
+  if (['lesson_step', 'slides', 'handout', 'quiz', 'textbook_section'].includes(resourceType)) {
     return pathname.startsWith('/interactive-learning/resources/')
       || (resourceType === 'quiz' && pathname === '/assessment/adaptive-practice');
+  }
+  if (resourceType === 'video' || resourceType === 'audio') {
+    const courseSegment = pathname.split('/')[3];
+    return (pathname.startsWith('/interactive-learning/courses/') && isManifestCourseRouteSegment(courseSegment))
+      || pathname.startsWith('/interactive-learning/resources/');
+  }
+  if (resourceType === 'exercise') {
+    const courseSegment = pathname.split('/')[3];
+    return pathname === '/assessment/adaptive-practice'
+      || (pathname.startsWith('/interactive-learning/courses/') && isManifestCourseRouteSegment(courseSegment))
+      || pathname.startsWith('/profile/growth');
   }
   if (['adaptive_quiz', 'checkpoint', 'reflection', 'konling', 'ai_intervention', 'intervention'].includes(resourceType)) {
     return pathname === '/assessment/adaptive-practice';

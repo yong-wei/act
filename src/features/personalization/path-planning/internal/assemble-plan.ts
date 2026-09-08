@@ -71,6 +71,9 @@ import {
   type SourcePackItem,
   type SourcePackLimitation,
 } from '@/lib/source-pack';
+import {
+  resolveCanonicalGoalTargets,
+} from '@/lib/teaching-projection-path-node-ids';
 import type { AdaptivePathNodeDecisionExplanation } from '@/features/personalization/path-planning/adaptive-path-node-decisions';
 import type { AdaptivePathNodeRuntimeBinding } from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
 import type { StudentSafeEvidenceEventReference } from '@/lib/data-governance/evidence-timeline';
@@ -694,6 +697,7 @@ export interface AdaptiveLearningPathCandidatePoolDiagnostics {
     status: 'loaded' | 'empty' | 'missing' | 'error';
     count: number;
     reason: string | null;
+    skipCounts?: Record<string, number>;
   }>;
   excluded: {
     total: number;
@@ -1136,6 +1140,9 @@ const AUTOCONTROL_RESOURCE_MIX: ResourceNode['type'][] = [
   'checkpoint',
   'ai_intervention',
   'konling',
+  'video',
+  'audio',
+  'exercise',
 ];
 
 const FOUNDATION_RESOURCE_MIX: ResourceNode['type'][] = [
@@ -1148,6 +1155,9 @@ const FOUNDATION_RESOURCE_MIX: ResourceNode['type'][] = [
   'checkpoint',
   'reflection',
   'konling',
+  'video',
+  'audio',
+  'exercise',
 ];
 
 function packageResourceMix(
@@ -1493,6 +1503,9 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       'checkpoint',
       'ai_intervention',
       'konling',
+      'video',
+      'audio',
+      'exercise',
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
@@ -1544,6 +1557,9 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       'slides',
       'lesson_step',
       'konling',
+      'video',
+      'audio',
+      'exercise',
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
@@ -2279,6 +2295,7 @@ function assembleAdaptiveLearningPathPlanInternal(
         resourceRanker,
         reasonCodes: unique([
           ...scoredNode.reasonCodes,
+          ...canonicalBindingReasonCodes(node, input.goal),
           ...(diversityAvoidNodeIds.has(node.id) ? ['policy-bundle-diversity-avoidance'] : []),
           ...(sarCandidates?.acceptedNodeIds.has(node.id) ? ['sar-associated-candidate'] : []),
           ...(resourceRanker?.featureContributions
@@ -2401,6 +2418,7 @@ function assembleAdaptiveLearningPathPlanInternal(
   if (coursePluginUnavailable) {
     fallbackReasons.push('course-plugin-unavailable');
   }
+  fallbackReasons.push(...unmappedCanonicalTargetLimitations(input.goal));
   const uniqueFallbackReasons = unique(fallbackReasons);
   const status: AdaptiveLearningPathStatus = uniqueFallbackReasons.length > 0 ? 'fallback' : 'ready';
   const hasPartialGraphStarter = repairedMainPathNodes.length > 0 && uniqueFallbackReasons.includes('graph-target-coverage-partial');
@@ -3387,8 +3405,13 @@ function nodeMatchesGoal(
     ...goal.knowledgeTargets,
     ...deficits.filter((deficit) => deficit.kind === 'knowledge').map((deficit) => deficit.targetId),
     ...expandedRegisteredKnowledgeTargets(goal, deficits, registeredGoal),
+    ...resolveCanonicalGoalTargets([
+      ...goal.knowledgeTargets,
+      ...deficits.filter((deficit) => deficit.kind === 'knowledge').map((deficit) => deficit.targetId),
+    ]),
   ]);
-  const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag));
+  const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag))
+    || knowledgeTargets.has(node.id);
   const coversGraphTarget = Boolean(
     graphContext?.targetGraphNodeIds.length &&
     graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0,
@@ -3418,7 +3441,7 @@ function expandedRegisteredKnowledgeTargets(
 
 function knowledgeTargetCoverageRefs(goal: AdaptiveLearningPathGoal, target: string): string[] {
   const aliases = getRegisteredAdaptiveLearningPathGoal(goal.id)?.knowledgeTargetAliases?.[target] ?? [];
-  return unique([target, ...aliases]);
+  return unique([target, ...aliases, ...resolveCanonicalGoalTargets([target])]);
 }
 
 function planningUnitCoversKnowledgeTarget(
@@ -3427,7 +3450,30 @@ function planningUnitCoversKnowledgeTarget(
   target: string,
 ): boolean {
   const coverageRefs = new Set(knowledgeTargetCoverageRefs(goal, target));
-  return planningUnit.knowledgeCoverage.some((tag) => coverageRefs.has(tag));
+  return planningUnit.knowledgeCoverage.some((tag) => coverageRefs.has(tag))
+    || coverageRefs.has(planningUnit.resourceNodeId);
+}
+
+function canonicalBindingReasonCodes(node: ResourceNode, goal: AdaptiveLearningPathGoal): string[] {
+  const planningUnit = planningUnitForNode(node);
+  if (!planningUnit) return [];
+  return goal.knowledgeTargets.flatMap((target) => {
+    const bridged = resolveCanonicalGoalTargets([target]);
+    if (bridged.length === 0) return [];
+    const hits = bridged.some((id) =>
+      node.id === id
+      || planningUnit.resourceNodeId === id
+      || planningUnit.knowledgeCoverage.includes(id)
+      || planningUnit.knowledgeCoverage.includes(target)
+    );
+    return hits ? [`canonical-binding:${target}`] : [];
+  });
+}
+
+function unmappedCanonicalTargetLimitations(goal: AdaptiveLearningPathGoal): string[] {
+  return goal.knowledgeTargets
+    .filter((target) => target.startsWith('act:') && resolveCanonicalGoalTargets([target]).length === 0)
+    .map((target) => `unmapped-canonical-target:${target}`);
 }
 
 function scoreNode(
@@ -4107,7 +4153,10 @@ function uncoveredGoalTargets(
     ));
     return graphContext.targetGraphNodeIds.filter((target) => !coveredGraphTargets.has(target));
   }
-  const coveredKnowledge = new Set(planningUnits.flatMap((unit) => unit.knowledgeCoverage));
+  const coveredKnowledge = new Set([
+    ...planningUnits.flatMap((unit) => unit.knowledgeCoverage),
+    ...planningUnits.map((unit) => unit.resourceNodeId),
+  ]);
   const coveredCompetencies = new Set(planningUnits.flatMap((unit) => Object.keys(unit.abilityImpact)));
   return [
     ...goal.knowledgeTargets.filter((target) =>

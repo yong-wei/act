@@ -20,6 +20,7 @@ export const RESOURCE_NODE_TYPES = [
   'slides',
   'handout',
   'quiz',
+  'exercise',
   'adaptive_quiz',
   'control_workbench',
   'simulation',
@@ -176,7 +177,8 @@ export type ResourceNodeSourceKind =
   | 'reflection_prompt'
   | 'ai_intervention'
   | 'konling'
-  | 'project';
+  | 'project'
+  | 'exercise';
 
 export type ResourceNodeEdgeKind =
   | 'prerequisite'
@@ -592,6 +594,12 @@ export const RESOURCE_SEMANTIC_SOURCE_OWNERSHIP: Record<
     catalogMetadataOwner: 'ResourceNode',
     semanticLayerStores: ['identity', 'sourceRefs', 'projectionStatus', 'governance'],
     forbiddenProjectionFields: ['rawContent', 'rawSubmission'],
+  },
+  exercise: {
+    contentOwner: 'ResourceNode',
+    catalogMetadataOwner: 'ResourceNode',
+    semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'rawSubmission', 'officialAnswer'],
   },
   grading_artifact: {
     contentOwner: 'grading',
@@ -1075,6 +1083,7 @@ export interface ResourceNodeRegistryInput {
   aiInterventions?: LightweightResourceNodeInput[];
   konlingSupports?: LightweightResourceNodeInput[];
   projects?: LightweightResourceNodeInput[];
+  exercises?: LightweightResourceNodeInput[];
 }
 
 export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): ResourceNodeRegistry {
@@ -1096,6 +1105,7 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     ...buildLightweightNodes(input.aiInterventions ?? [], 'ai_intervention', 'ai_intervention'),
     ...buildLightweightNodes(input.konlingSupports ?? [], 'konling', 'konling'),
     ...buildLightweightNodes(input.projects ?? [], 'project', 'project'),
+    ...buildExerciseNodes(input.exercises ?? []),
   ];
   const nodesById = mergeOverlappingSources(nodeCandidates);
   const edges = buildResourceNodeEdges(nodesById);
@@ -2501,6 +2511,28 @@ function buildCheckpointNodes(checkpoints: CheckpointResourceNodeInput[]): Resou
   }));
 }
 
+function buildExerciseNodes(entries: LightweightResourceNodeInput[]): ResourceNode[] {
+  return entries.map((entry) => createNode({
+    id: `exercise:${entry.id}`,
+    title: entry.title,
+    type: 'exercise',
+    sourceKind: 'exercise',
+    sourceRef: entry.sourceRef ?? entry.id,
+    renderTarget: entry.renderTarget ?? null,
+    launchTarget: entry.launchTarget ?? null,
+    knowledgeCoverage: entry.knowledgeNodeIds ?? [],
+    sourceOfRecord: {
+      content: 'ResourceNode',
+      catalogMetadata: 'ResourceNode',
+      planningMetadata: 'ResourceNode',
+    },
+    teacherOnly: Boolean(entry.teacherOnly),
+    prerequisites: entry.prerequisiteNodeIds ?? [],
+    evidenceInstrumentation: ['exercise_complete'],
+    planningOverride: entry.planningOverride,
+  }));
+}
+
 function buildLightweightNodes(
   entries: LightweightResourceNodeInput[],
   type: Extract<ResourceNodeType, 'control_workbench' | 'reflection' | 'ai_intervention' | 'konling' | 'project'>,
@@ -2723,12 +2755,15 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
       result.set(node.id, node);
       continue;
     }
+    const identity = admissionIdentitySource(existing, node);
     result.set(node.id, {
       ...existing,
       title: node.runtimeProjection ? node.title : existing.title,
+      sourceKind: identity.sourceKind,
+      sourceRef: identity.sourceRef,
       sourceRefs: uniqueSourceRefs([...existing.sourceRefs, ...node.sourceRefs]),
-      renderTarget: existing.renderTarget ?? node.renderTarget,
-      launchTarget: existing.launchTarget ?? node.launchTarget,
+      renderTarget: identity.renderTarget ?? existing.renderTarget ?? node.renderTarget,
+      launchTarget: identity.launchTarget ?? existing.launchTarget ?? node.launchTarget,
       planningMetadata: {
         ...existing.planningMetadata,
         estimatedTimeMinutes: node.runtimeProjection
@@ -2769,17 +2804,23 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
         pathDisposition: existing.planningMetadata.pathDisposition ?? node.planningMetadata.pathDisposition,
       },
       sourceOfRecord: {
-        content: existing.sourceOfRecord.content,
+        content: identity.sourceOfRecord.content,
         catalogMetadata: existing.sourceRefs.some((source) => source.kind === 'teaching_resource') ||
           node.sourceRefs.some((source) => source.kind === 'teaching_resource')
           ? 'TeachingResource'
-          : existing.sourceOfRecord.catalogMetadata,
+          : identity.sourceOfRecord.catalogMetadata,
         planningMetadata: 'ResourceNode',
       },
       runtimeProjection: existing.runtimeProjection ?? node.runtimeProjection,
     });
   }
   return result;
+}
+
+function admissionIdentitySource(existing: ResourceNode, incoming: ResourceNode): ResourceNode {
+  if (existing.runtimeProjection && !incoming.runtimeProjection) return existing;
+  if (incoming.runtimeProjection && !existing.runtimeProjection) return incoming;
+  return existing;
 }
 
 function buildResourceNodeEdges(nodesById: Map<string, ResourceNode>): ResourceNodeEdge[] {
@@ -2835,7 +2876,7 @@ function pathSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathS
   if (type === 'knowledge_card' || type === 'knowledge_node') return PATH_NODE_SEMANTICS.knowledge_card;
   if (type === 'textbook_section') return PATH_NODE_SEMANTICS.textbook_section;
   if (type === 'slides') return PATH_NODE_SEMANTICS.slides;
-  if (type === 'quiz' || type === 'adaptive_quiz') return PATH_NODE_SEMANTICS.adaptive_quiz;
+  if (type === 'quiz' || type === 'adaptive_quiz' || type === 'exercise') return PATH_NODE_SEMANTICS.adaptive_quiz;
   if (type === 'control_workbench') return PATH_NODE_SEMANTICS.control_workbench;
   if (type === 'simulation') return PATH_NODE_SEMANTICS.simulation;
   if (type === 'arena_task') return PATH_NODE_SEMANTICS.arena_task;
@@ -2857,7 +2898,7 @@ function segmentKindForNode(node: ResourceNode): ResourceSegmentKind {
   if (node.type === 'slides') return 'slides';
   if (node.type === 'handout') return 'handout';
   if (node.type === 'textbook_section' || node.sourceKind === 'textbook_section') return 'textbook_section';
-  if (node.type === 'quiz' || node.type === 'adaptive_quiz') return 'exercise';
+  if (node.type === 'quiz' || node.type === 'adaptive_quiz' || node.type === 'exercise') return 'exercise';
   if (node.type === 'simulation') return 'simulation';
   if (node.type === 'arena_task') return 'arena';
   if (node.sourceKind === 'runtime_lesson_media') return 'media';
@@ -3870,7 +3911,7 @@ function collectLessonKnowledgeCoverage(lesson: RuntimeLessonNodeInput): string[
 function defaultEstimatedTime(type: ResourceNodeType): number {
   if (type === 'video' || type === 'audio') return 8;
   if (type === 'slides' || type === 'handout' || type === 'knowledge_card' || type === 'textbook_section') return 10;
-  if (type === 'quiz' || type === 'adaptive_quiz' || type === 'reflection' || type === 'checkpoint') return 12;
+  if (type === 'quiz' || type === 'adaptive_quiz' || type === 'exercise' || type === 'reflection' || type === 'checkpoint') return 12;
   if (type === 'simulation' || type === 'arena_task' || type === 'control_workbench') return 25;
   if (type === 'external_resource') return 15;
   if (type === 'konling' || type === 'ai_intervention') return 6;
