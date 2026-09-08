@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-07
-摘要: 生产应用 `v0.7.4-8d661f5`（main `8d661f58e…`，app-only，tar SHA256 `fa7f6a62…`）已发布并验收通过：integration（fe9343dd2，含 #1985/#2004/#2021/#2024/#2032/#2034 等）合入 main；画像 fence 验收脚本抽样缺陷已热修（`48741377f`，已回传 integration）。英文切换修复随镜像上线，#1942 生产验收完成并关闭（中英文双向切换正常）。生产知识面维持 Authority v0.37；Runtime active 仍为 `runtime-150a505a…`，但 lifecycle `desired=runtime-18187f40…` 处于待激活：该 release（源 24535a192，携带 domain-fragments 新指针 proj-05984a0f 的工件）被 #2045 学习清单 closure 门禁挡住（旧 manifest 不含当前密封学习清单资产），且 integration 上教学投影/学习清单仍在快速演进（B′′ #2051、#2053），下一次常规 runtime 发布会携带最新指针完成切换；图谱「教学关系 0 条」的根因就是该指针未发布。生产视图、容器与 active receipt 一致，服务健康。Wolfram Cloud 仍 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：demo 学生（`cmjtgw3ov00008f1njzx4bg7l`）画像 current state 停留 v2/gen1（version-mismatch），未被 v3 迁移覆盖，待对账。
+最后更新: 2026-09-09
+摘要: 生产应用 `v0.7.5-e1c25ff`（main `e1c25fffe…`，app-only，tar SHA256 `fb6dd807…`）已发布并验收通过：integration（42 个提交，含 graph-path 重设计、#2043 教材出处映射、#2054 图谱缺陷修复等）合入 main，版本 0.7.4→0.7.5。部署期热修一处发布构建阻断：`published-resource-index.ts` 与 `engineering-textbook-mapping/coordinates.ts` 三处动态 `join(process.cwd(), …)` 触发 Turbopack「whole project tracing」门禁，按仓库惯例补 `/*turbopackIgnore: true*/`（`e1c25fffe6`，已同步 main 与 integration）。注意：`scripts/build.sh` 的 `BUILD_SCOPE` 默认 `runtime-bound` 会校验本地外置教材索引（本机 manifest `resourceSetId: null` 不过），app 发布必须显式 `BUILD_SCOPE=app-only`；发布命令经管道时必须 `pipefail`+回显 EXIT，tail 会掩盖失败。生产容器 app/worker 均已切到新镜像，readyz app/db/redis 全 true，画像 fence 收敛，authority 维持 LEGACY，runtime 保持远端现有 blob-view 未动。生产知识面维持 Authority v0.37；Runtime active 仍为 `runtime-150a505a…`，lifecycle `desired=runtime-18187f40…` 待激活（#2045 学习清单 closure 门禁未过，「教学关系 0 条」根因仍是新指针未发布）。Wolfram Cloud 仍 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：demo 学生（`cmjtgw3ov00008f1njzx4bg7l`）画像 current state 停留 v2/gen1，待对账；远端 `deploy/images/` 残留旧 tar（v0.7.2 等）会被 `2-load-images.sh` 一并装载，占用磁盘但不影响绑定目标镜像。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
