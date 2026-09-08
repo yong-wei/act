@@ -20,5 +20,9 @@
 
 - [x] 4.1 `rtk npm run typecheck` 零错误。
 - [x] 4.2 定向 vitest：`src/lib/smart-lesson-plan/__tests__/`（worker/schema/provider-runtime/service）。
-- [ ] 4.3 `openspec validate fix-smart-lesson-stage-duration-correction --type change --strict` 通过。
+- [x] 4.3 `openspec validate fix-smart-lesson-stage-duration-correction --type change --strict` 通过。
 - [ ] 4.4 使用真实 Qwen3.5（siliconflow）完成一次修复后 smoke：既有失败阶段经 correction 通过或如实记录失败；不手动 retry/resume，不启动正式实验；结果记录进 Issue/PR。
+  - 2026-09-09 如实记录：两条 smoke 路径均在环境层受阻，未获得真实 Qwen3.5 修复后验证，本项保持未完成。
+  - 自包含 E2E（`npm run test:smart-lesson-real-e2e -- --real-provider`，claim 分支 63f8b333f8）在生成启动即返回 400 `aggregate-class-context-invalid`，未进入 provider 调用。根因是基线缺陷（与本 diff 无关，调用链不相交）：E2E harness 只播种 1 名学生（< `PROJECTION_INDEPENDENT_LEARNER_MINIMUM=5`），`readTeacherClassEvidencePort` 小样本抑制把画像 `aggregate` 置 null 但保留 `stateKind='SNAPSHOT'`，`readGenerationClassContext` 的 `projectCurrentCumulativeClassPortrait` 因缺少 aggregate 必抛 `aggregate-class-context-invalid`。
+  - 实验 runner（SMOKE-r1~r3 同路径，`selectedClassId: null` 不踩上述 400）需要 `SMART_LESSON_TEACHER_LOGIN_ID/PASSWORD`（既有实验教师账号凭据，README 要求在 .env 或环境提供）；当前环境与 `.env` 均无该凭据，无法登录。固定 `COURSE_BASIS_ID` 属既有实验教师，新建教师账号无法复用其实验输入。
+  - 待用户提供教师凭据后，可在 claim 分支栈（独立 `SMART_LESSON_REDIS_PREFIX`）上以 `--mode smoke-only --smoke-index 4` 补做；未 retry/resume，未启动正式实验。
