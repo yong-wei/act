@@ -77,7 +77,9 @@ describe('active authority shared force runtime', () => {
     expect(workspace).toContain('data-knowledge-session="legacy"');
     expect(workspace).toContain("mode === 'legacy' ? 'flex min-h-0 flex-1 flex-col overflow-hidden' : 'hidden'");
     expect(workspace).not.toContain('{mode === \'legacy\' ? (');
-    expect(runtimeView).toContain('KnowledgeGraphRuntimeCanvas');
+    expect(runtimeView).toContain('ActiveAuthorityRenderer');
+    expect(runtimeView).not.toContain('KnowledgeGraphRuntimeCanvas');
+    expect(runtimeView).toContain('data-active-authority-runtime="dedicated-renderer"');
     expect(runtimeView).toContain('onNodeDragEnd={handleNodeDragEnd}');
     expect(runtimeView).not.toContain('onNodeDragEnd={() => undefined}');
     expect(runtimeView).not.toContain("nodeType: 'THEORY'");

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isColdStartLearner, extractColdStartEvidenceCount } from '../adaptive-cold-start-detection';
+import { isColdStartLearner, extractColdStartEvidenceCount } from '@/features/personalization/path-planning/adaptive-cold-start-detection.ts';
 
 describe('isColdStartLearner', () => {
   it('returns true when learner state is ready and evidenceCount is 0', () => {

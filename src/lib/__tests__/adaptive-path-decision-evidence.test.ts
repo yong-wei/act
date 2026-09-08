@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPersonalizedPathDecisionEvidence,
   PERSONALIZED_PATH_DECISION_EVIDENCE_VERSION,
-} from '../adaptive-path-decision-evidence';
+} from '@/features/personalization/path-planning/adaptive-path-decision-evidence.ts';
 import { projectCollectionImpactsOnNewPath } from '../cold-start-evidence-collection';
 
 describe('personalized path decision evidence', () => {

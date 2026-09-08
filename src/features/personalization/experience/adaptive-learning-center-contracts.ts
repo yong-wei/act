@@ -621,6 +621,8 @@ export function isSimpleAdaptivePathCompletionResource(resourceType: string): bo
     'lesson_step',
     'knowledge_node',
     'knowledge_card',
+    'infographic',
+    'exercise',
     'textbook_section',
     'video',
     'audio',

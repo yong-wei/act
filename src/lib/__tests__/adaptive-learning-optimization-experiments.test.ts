@@ -7,7 +7,7 @@ import {
   sanitizeAdaptiveOptimizationExport,
   summarizeAdaptiveOptimizationMetrics,
   summarizePathFeedbackMetrics,
-} from '../adaptive-learning-optimization-experiments';
+} from '@/features/personalization/path-planning/adaptive-learning-optimization-experiments.ts';
 import {
   PORTRAIT_V2_CALCULATION_VERSION,
   PORTRAIT_V2_DIMENSION_IDS,

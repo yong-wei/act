@@ -35,8 +35,7 @@ import {
   type AdaptiveLearnerStateRole,
 } from '@/features/personalization/learner-state/public-api';
 import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
-import { parseAnyRuntimeReleaseManifest, runtimeBlobObjectKey } from '@/lib/runtime-release';
-import { createEcsRamRoleOssClient } from '@/lib/runtime-release-store';
+import { parseAnyRuntimeReleaseManifest } from '@/lib/runtime-release';
 import {
   buildAdaptivePathBatchComparisonView,
   buildAdaptivePathStrategyView,
@@ -49,7 +48,11 @@ import {
   type RuntimeReleaseFileIndex,
   type TeachingProjectionResourceIndex,
 } from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
-import { verifyAdaptivePathObjectKeys } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+import { buildIndexedCandidateResourceRecords } from '@/features/personalization/path-planning/indexed-resource-verification';
+import type { PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
+import { loadPublishedResourceFeatureIndex } from '@/lib/published-resource-index';
+import { attachPublishedResourcesToRegistry } from '@/lib/published-resource-planning';
+import { applyResourceInteractionFeatures } from '@/lib/resource-feature-history';
 import {
   resolveActiveTeachingProjection,
   resolveTeachingProjectionStorePaths,
@@ -4776,16 +4779,21 @@ async function loadRuntimeReleaseFileIndex(): Promise<RuntimeReleaseFileIndex | 
 // #2055：批次定稿时为候选节点解析 Runtime 资源绑定并写回 plan 节点字段。
 // 绑定独立于导航 target（destination contract 不变）；失败逐节点显式记录。
 // 返回捕获的 release 索引供读取验证复用：同一批次绑定与验证必须来自同一 release 快照。
-export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPathPlan): Promise<{
+export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPathPlan, index?: ResourceNodeRegistry['featureIndex']): Promise<{
   plan: AdaptiveLearningPathPlan;
   bindings: AdaptivePathNodeRuntimeBinding[];
   limitationCodes: string[];
   release: RuntimeReleaseFileIndex | null;
 }> {
   const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
+  if (index && ((projection?.projectionId ?? null) !== index.projectionId || (release?.releaseId ?? null) !== index.runtimeReleaseId)) {
+    throw new KonlingRuntimeScopeError(409, '资源版本正在更新，请重新生成路径。');
+  }
   const nodeTypeById = new Map<string, string>();
   const collect = (nodes: readonly AdaptiveLearningPathPlanNode[] | undefined) => {
-    for (const node of nodes ?? []) nodeTypeById.set(node.nodeId, node.type);
+    for (const node of nodes ?? []) {
+      if (!node.resourceFeatureRef) nodeTypeById.set(node.nodeId, node.type);
+    }
   };
   collect(plan.mainPath);
   for (const path of plan.policyBundle?.paths ?? []) collect(path.planNodes);
@@ -4837,82 +4845,12 @@ export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPa
 // 输入来自节点绑定字段（不再从导航 target 反解）；绑定状态随批次元数据持久化。
 // release 索引由绑定阶段一次性捕获并传入：同批次绑定与验证来自同一 release 快照，
 // 定稿中途 release 切换不会把 A 的绑定与 B 的验证混入同一持久化批次。
-async function verifyCandidateObjectKeyReadRecords(
+function verifyCandidateObjectKeyReadRecords(
   plan: AdaptiveLearningPathPlan,
   release: RuntimeReleaseFileIndex | null,
+  index?: PublishedResourceFeatureIndex,
 ) {
-  // 候选资源解析不依赖网络：先构建完整条目集，验证层不可用时对其统一
-  // 产出 unverified 记录（fail-closed，未验证资源不得当可信输入）。
-  const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
-  for (const option of buildSerializablePathOptions(plan)) {
-    // #2033 复审修复：按候选自己的 planNodes 解析（策略候选可含主推荐路径之外的节点）。
-    for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
-      const binding = node.runtimeResourceBinding;
-      if (binding?.state !== 'bound' || !binding.objectKey) continue;
-      // 绑定与验证必须同一 release：不一致（理论不可达，防御性 fail-closed）不产出记录。
-      if (!release || binding.runtimeReleaseId !== release.releaseId) continue;
-      entries.push({
-        objectKey: binding.objectKey,
-        resourceId: binding.resourceId ?? node.resourceId ?? node.resourceNodeId ?? node.nodeId,
-        candidateStyleId: option.styleId,
-        nodeNodeId: node.nodeId,
-      });
-    }
-  }
-  if (entries.length === 0 || !release) return [];
-  const verifiedAt = new Date().toISOString();
-  const failClosedUnverified = () => entries.map((entry) => ({
-    ...entry,
-    state: 'unverified' as const,
-    contentSha256: null,
-    verifiedAt,
-    runtimeReleaseId: null,
-  }));
-  try {
-    const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
-    if (!ramRole) return failClosedUnverified();
-    const client = createEcsRamRoleOssClient({
-      bucket: process.env.ACT_RUNTIME_OSS_BUCKET?.trim() || 'act-course-assets',
-      region: process.env.ACT_RUNTIME_OSS_REGION?.trim() || 'oss-cn-hangzhou',
-      roleName: ramRole,
-    });
-    const verifyObjectBytes = async (
-      storageKey: string,
-      expectedSha256: string,
-    ): Promise<{ state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }> => {
-      try {
-        const { stream } = await client.getStream(storageKey);
-        const hash = createHash('sha256');
-        for await (const chunk of stream) {
-          hash.update(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        }
-        const actual = hash.digest('hex');
-        return actual === expectedSha256
-          ? { state: 'verified', contentSha256: actual }
-          : { state: 'checksum-mismatch', contentSha256: actual };
-      } catch (error) {
-        const status = (error as { status?: number } | null)?.status;
-        if (status === 403) return { state: 'forbidden', contentSha256: null };
-        return { state: 'missing', contentSha256: null };
-      }
-    };
-    return await verifyAdaptivePathObjectKeys({
-      async verify(objectKey) {
-        // 内容寻址键（blob:<sha256>）：对象键即摘要，真实读取并比对。
-        if (objectKey.startsWith('blob:')) {
-          const sha256 = objectKey.slice('blob:'.length);
-          return verifyObjectBytes(runtimeBlobObjectKey(sha256), sha256);
-        }
-        const file = release.filesByPath.get(objectKey);
-        if (!file) return { state: 'missing', contentSha256: null };
-        // manifest 命中后按 manifest 记录的实际存储键执行真实读取，流式比对期望校验值。
-        return verifyObjectBytes(file.objectKey, file.sha256);
-      },
-    }, entries, verifiedAt, release.releaseId);
-  } catch (error) {
-    console.error('[KonlingRuntime] candidate object key read verification failed:', error);
-    return failClosedUnverified();
-  }
+  return buildIndexedCandidateResourceRecords(buildSerializablePathOptions(plan), release, index);
 }
 
 async function buildAdaptivePathToolOutput(
@@ -5116,7 +5054,7 @@ async function buildAdaptivePathToolOutput(
     bindings: runtimeResourceBindings,
     limitationCodes: runtimeBindingLimitationCodes,
     release: runtimeBindingRelease,
-  } = await attachAdaptivePathRuntimeBindings(rawPlan);
+  } = await attachAdaptivePathRuntimeBindings(rawPlan, registry.featureIndex);
   const timeBudget = resolveAdaptivePathTimeBudget(
     args.timeBudgetMinutes,
     plan,
@@ -5192,7 +5130,7 @@ async function buildAdaptivePathToolOutput(
     },
   });
   let candidateBatch: AdaptivePathCandidateBatchView | null = null;
-  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan, runtimeBindingRelease);
+  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan, runtimeBindingRelease, registry.featureIndex);
   const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
   const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'
@@ -5595,6 +5533,11 @@ export function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): Ad
   }
   const resourceMappings: Array<{ type: ResourceNode['type']; terms: string[] }> = [
     { type: 'knowledge_card', terms: ['知识卡', '知识卡片'] },
+    { type: 'infographic', terms: ['信息图', '图解'] },
+    { type: 'handout', terms: ['讲义'] },
+    { type: 'video', terms: ['视频'] },
+    { type: 'audio', terms: ['音频', '播客'] },
+    { type: 'exercise', terms: ['习题', '练习题'] },
     { type: 'textbook_section', terms: ['教材', '课本', '参考章节'] },
     { type: 'lesson_step', terms: ['互动课', '课程步骤'] },
     { type: 'quiz', terms: ['测验', '小测'] },
@@ -6217,7 +6160,47 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
   return goalId;
 }
 
-async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
+type AdaptivePathRegistryResult = { registry: ResourceNodeRegistry; diagnostics: ResourceCandidatePoolDiagnostics };
+const adaptivePathBaseIndexCache = new WeakMap<object, Map<string, Promise<AdaptivePathRegistryResult>>>();
+
+async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<AdaptivePathRegistryResult> {
+  const index = await loadPublishedResourceFeatureIndex();
+  const delegate = (input.db as any).teachingResource;
+  const watermark = typeof delegate?.aggregate === 'function'
+    ? await delegate.aggregate({ _max: { updatedAt: true }, _count: { _all: true } })
+    : null;
+  const key = JSON.stringify([goalId, index.indexId, watermark]);
+  let cache = adaptivePathBaseIndexCache.get(input.db as object);
+  if (!cache) { cache = new Map(); adaptivePathBaseIndexCache.set(input.db as object, cache); }
+  let basePromise = watermark ? cache.get(key) : undefined;
+  if (!basePromise) {
+    basePromise = loadAdaptivePathBaseRegistry(input, goalId);
+    if (watermark) cache.set(key, basePromise);
+    if (cache.size > 6) cache.delete(cache.keys().next().value!);
+  }
+  let base: AdaptivePathRegistryResult;
+  try { base = await basePromise; } catch (error) { cache.delete(key); throw error; }
+  const registry = await applyResourceInteractionFeatures(
+    attachPublishedResourcesToRegistry(base.registry, index), input.db, input.scope.targetUserId,
+  );
+  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
+  if ((await loadPublishedResourceFeatureIndex()).indexId !== index.indexId
+    || (projection && projection.projectionId !== index.projectionId)
+    || (release?.releaseId ?? null) !== index.runtimeReleaseId) {
+    throw new KonlingRuntimeScopeError(409, '资源版本正在更新，请稍后重新生成路径。');
+  }
+  const runtimeResourceBindings = summarizeAdaptivePathRuntimeBindings(
+    resolveAdaptivePathNodeRuntimeBindings({ nodes: registry.nodes.filter(node => !node.publishedResource)
+      .map(node => ({ nodeId: node.id, nodeType: node.type })), projection, release }),
+    new Map(registry.nodes.map(node => [node.id, node.sourceKind])),
+  );
+  return { registry, diagnostics: buildResourceCandidatePoolDiagnostics(registry, [
+    ...base.diagnostics.sourceFamilies,
+    { family: 'published-resource-features', status: 'loaded', count: index.resources.length, reason: null },
+  ], { runtimeResourceBindings }) };
+}
+
+async function loadAdaptivePathBaseRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
   registry: ResourceNodeRegistry;
   diagnostics: ResourceCandidatePoolDiagnostics;
 }> {
@@ -6366,17 +6349,7 @@ async function loadAdaptivePathTeachingResources(db: unknown): Promise<Array<{
 async function buildAdaptivePathSourcePackCandidates(
   registry: ResourceNodeRegistry,
 ): Promise<{ items: SourcePackItem[]; limitations: SourcePackLimitation[] }> {
-  const resourceNodeCandidates = registry.nodes.map(buildResourceNodeSourcePackCandidate);
-  const textbookAdapted = await loadAllTextbookStructureUnitProjections()
-    .then((units) => units.map(adaptTextbookStructureUnit))
-    .catch(() => []);
-  return {
-    items: [
-      ...resourceNodeCandidates,
-      ...textbookAdapted.map((entry) => entry.item),
-    ],
-    limitations: textbookAdapted.flatMap((entry) => entry.limitations),
-  };
+  return { items: registry.nodes.map(buildResourceNodeSourcePackCandidate), limitations: [] };
 }
 
 export function buildResourceNodeSourcePackCandidate(node: ResourceNode): SourcePackItem {

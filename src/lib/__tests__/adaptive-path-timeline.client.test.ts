@@ -123,6 +123,11 @@ describe('adaptive path resource visual map', () => {
   it.each([
     ['interactive_lesson', '互动课程'],
     ['knowledge_card', '知识卡'],
+    ['infographic', '信息图'],
+    ['exercise', '习题'],
+    ['video', '视频'],
+    ['audio', '音频'],
+    ['handout', '讲义'],
     ['textbook_section', '教材'],
     ['slides', '课件'],
     ['adaptive_quiz', '自适应练习'],

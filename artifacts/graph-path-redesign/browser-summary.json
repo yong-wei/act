@@ -1,0 +1,128 @@
+{
+  "sourceBase": "f455748e1d763bea110add70f64fe9d1a506d6f8",
+  "scope": "graph-path-redesign working branch",
+  "states": [
+    {
+      "name": "01-root-2d-light",
+      "dimension": "2d",
+      "nodeCount": 16,
+      "edgeCount": 0,
+      "labelCount": 14,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "02-stability-2d-light",
+      "dimension": "2d",
+      "nodeCount": 35,
+      "edgeCount": 3,
+      "labelCount": 34,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "03-stability-node-selected",
+      "dimension": "2d",
+      "nodeCount": 27,
+      "edgeCount": 3,
+      "labelCount": 24,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "04-stability-2d-local-drag",
+      "dimension": "2d",
+      "nodeCount": 35,
+      "edgeCount": 3,
+      "labelCount": 27,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "05-stability-3d-light",
+      "dimension": "3d",
+      "nodeCount": 35,
+      "edgeCount": 3,
+      "labelCount": 30,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "06-stability-3d-orbit-zoom",
+      "dimension": "3d",
+      "nodeCount": 35,
+      "edgeCount": 3,
+      "labelCount": 17,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "07-stability-2d-after-3d",
+      "dimension": "2d",
+      "nodeCount": 35,
+      "edgeCount": 3,
+      "labelCount": 27,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "08-stability-3d-camera-restored",
+      "dimension": "3d",
+      "nodeCount": 35,
+      "edgeCount": 3,
+      "labelCount": 16,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "09-stability-3d-dark",
+      "dimension": "3d",
+      "nodeCount": 35,
+      "edgeCount": 3,
+      "labelCount": 16,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "10-stability-3d-mobile-dark",
+      "dimension": "3d",
+      "nodeCount": 6,
+      "edgeCount": 3,
+      "labelCount": 6,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "11-stability-2d-mobile-dark",
+      "dimension": "2d",
+      "nodeCount": 6,
+      "edgeCount": 3,
+      "labelCount": 4,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    },
+    {
+      "name": "12-stability-2d-narrow-dark",
+      "dimension": "2d",
+      "nodeCount": 6,
+      "edgeCount": 3,
+      "labelCount": 4,
+      "outsideLabelCount": 0,
+      "clippedLabelCount": 0,
+      "bodyOverflow": false
+    }
+  ],
+  "failures": [],
+  "browserErrors": []
+}

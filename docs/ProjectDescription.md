@@ -93,9 +93,13 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 学生二级路线壳层迁移已经归档：`/interactive-learning`、`/interactive-learning/courses`、`/interactive-learning/chapter-components`、`/interactive-learning/cross-domain-exploration` 和 `/assessment/adaptive-practice` 共享 `AppShell` 学习图谱壳层、中央学生旅程导航和 72px 收起导航证据。`artifacts/commercial-ui/student-secondary-routes-414/` 保存五条路由的 light/dark、展开/收起/移动证据。
 
-知识图谱壳层迁移已经完成实现：`/knowledge` 使用可收起 `AppShell`，公开态、学生登录态和教师登录态都走中心角色导航；章节目录、关系筛选、图例、2D/3D 切换和资源面板保持知识图谱局部工具语义，不再作为平台导航。`artifacts/commercial-ui/knowledge-map-unified-shell-415/` 保存 light/dark、展开/收起/移动命令面板证据。当前 Authority presentation 包 `control-theory-engineering-v0.37-r3` 的富文本/数学 sidecar 由只读适配器投影为 `GovernedRichTextProjection`，图谱 2D/3D DOM 标签、悬浮预览、搜索、详情、知识卡、讲义和教材共用严格 KaTeX（`trust:false`、HTML+MathML、宏配置 `ctmacro:katex-default-v1`）。资格命令读取离线账本 `course-content/authoring/knowledge/governance/governed-math/`，该目录不得进入运行 API 或部署镜像。
+知识图谱壳层迁移已经完成实现：`/knowledge` 使用可收起 `AppShell`，公开态、学生登录态和教师登录态都走中心角色导航；章节目录、关系筛选、图例、2D/3D 切换和资源面板保持知识图谱局部工具语义，不再作为平台导航。`artifacts/commercial-ui/knowledge-map-unified-shell-415/` 保存 light/dark、展开/收起/移动命令面板证据。当前 Authority presentation 包 `control-theory-engineering-v0.37-r6` 的富文本/数学 sidecar 由只读适配器投影为 `GovernedRichTextProjection`，图谱 2D/3D DOM 标签、悬浮预览、搜索、详情、知识卡、讲义和教材共用严格 KaTeX（`trust:false`、HTML+MathML、宏配置 `ctmacro:katex-default-v1`）。资格命令读取离线账本 `course-content/authoring/knowledge/governance/governed-math/`，该目录不得进入运行 API 或部署镜像。
 
-`/knowledge` 新版与旧版共用同一套 Force Graph 运行时（布局、手势、相机、筛选、会话隔离），active 路径只消费 Authority shard 与 Teaching 投影，不回退 Legacy 数据。产品就绪由既有 `act-knowledge-surface/v1` 上的只读 latest-cutover verifier 判定：必须重开并校验最终 `coordinated-active-receipt`、Authority `current.json` 文件哈希、domain catalog/shards、完整 Teaching Projection 与 composed domain fragments、prerequisites、formal resource envelope、consumer activation 与 Runtime active identity。Git 树 `course-content/authoring/knowledge/authority/current.json` 已与生产宿主机现行 v0.37 逐字节对齐（`snap-e2d8b92f…`）；生产 Runtime 身份为 `runtime-150a505a…`。应用已发布 `v0.6.1`（`93a70aed…`，GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.1），经 `scripts/build.sh`（`BUILD_SCOPE=app-only`）与 `deploy:app --skip-build` 部署。读取时 successor overlay 已把 Teaching Projection（`c9a6f33e…`）与 composed domain-fragments（`eb4d2d63…`）装到后继 blob-view；密封 shard set 仍为 `ads-c462da19`，未重物化。生产 `latestCutover` 为 `successor/ready`；合格领域（如根轨迹、频域）展示非空教学关系，不再出现「教学关系暂不可用」。不得重跑 cand-d4e722dc 10.7，不得为修 Teaching 再 `deploy:runtime`。日常应用更新仍走 cutover-aware `deploy:app --skip-build`。
+`/knowledge` 的活动 Authority 图谱使用独立的 2D/3D 渲染层，复用 ForceGraph/Three 的交互能力；确定性几何、屏幕标签碰撞选择、相机适配和视角恢复由活动渲染层管理，旧版图谱保留原运行时。活动路径只消费 Authority shard 与 Teaching 投影。产品就绪继续由既有 `act-knowledge-surface/v1` 的 latest-cutover verifier 校验当前 Authority、Teaching Projection、domain shards、资源与 Runtime 身份；本次应用层整改不修改生产发布指针。
+
+图谱节点使用类型形状和克制的颜色区分对象，资源标记表示可用内容；关系箭头保留真实方向。知识卡兼容已发布的旧 Markdown 格式，并保留公式、段落及安全的内容校验。完整名称可从搜索、目录、标签和详情访问。
+
+既有生产部署记录（v0.6.1，保留原发布边界）：产品就绪由既有 `act-knowledge-surface/v1` 上的只读 latest-cutover verifier 判定：必须重开并校验最终 `coordinated-active-receipt`、Authority `current.json` 文件哈希、domain catalog/shards、完整 Teaching Projection 与 composed domain fragments、prerequisites、formal resource envelope、consumer activation 与 Runtime active identity。Git 树 `course-content/authoring/knowledge/authority/current.json` 已与生产宿主机现行 v0.37 逐字节对齐（`snap-e2d8b92f…`）；生产 Runtime 身份为 `runtime-150a505a…`。应用已发布 `v0.6.1`（`93a70aed…`，GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.1），经 `scripts/build.sh`（`BUILD_SCOPE=app-only`）与 `deploy:app --skip-build` 部署。读取时 successor overlay 已把 Teaching Projection（`c9a6f33e…`）与 composed domain-fragments（`eb4d2d63…`）装到后继 blob-view；密封 shard set 仍为 `ads-c462da19`，未重物化。生产 `latestCutover` 为 `successor/ready`；合格领域（如根轨迹、频域）展示非空教学关系，不再出现「教学关系暂不可用」。不得重跑 cand-d4e722dc 10.7，不得为修 Teaching 再 `deploy:runtime`。日常应用更新仍走 cutover-aware `deploy:app --skip-build`。
 
 数据中心角色可见性已经完成实现：`/data-center` 只面向教师和管理员，学生直接访问默认进入 `/profile/evidence`；普通数据中心 UI 的“演示数据”来源标签默认隐藏，由管理员配置控制，管理员审计和治理视图仍保留来源可见性。`artifacts/commercial-ui/data-center-operations-roles-416/` 保存学生重定向、教师标签关闭/开启和管理员审计来源可见证据。
 
@@ -225,6 +229,10 @@ AI 能力嵌入多个教学场景：
 AI 可以解释、提示、总结和建议，但不能伪造学习事实、不能代替官方评测器给出 Arena 成绩、不能跳过课堂契约直接改变课程步骤。未来 Konling 模式需要按诊断、路径建议、资源辅导、批改反馈、班级摘要和备课共创分别声明上下文、工具、引用类别、隐私边界和 fallback。
 
 控灵全量资源与工程图谱消费（#2047）：教学投影绑定资源经共享三段解析器（教材 `textbook-unit:` 单元 / DB TeachingResource / 治理注册表）解析为服务端验证引用，以可点击芯片进入引用面板并在统一查看器壳打开，教材单元带 vbh 句柄重校验，teacherOnly 对学生 fail closed；新增只读工具 `search_engineering_graph` 以教学焦点 canonicalIds 为白名单提供有界工程邻域 grounding（谓词白名单为 canonical RAG 治理谓词集，先后修谓词留给独立消费线），工程节点经受治理映射台账产出教材出处引用；`PRODUCTION_ANSWER` 检索权威按 cutover 治理从 LEGACY 切到 composed（`KONLING_RAG_PRODUCTION_AUTHORITY` 缺省 canonical-composed，拨回 `legacy` 即回滚），composed 教学资源通道在 `search_textbook` 内独立合并，影子对比样本随消息 metadata 持久化。
+
+路径生成与调整共用版本化发布资源索引，按真实知识绑定纳入知识卡、信息图、教材节、课程步骤、讲义、音视频、习题和仿真等资源。统一引用入口为 `/learning-resources/[resourceId]`；目录与缺少可执行内容的条目保留可引用说明。规划读取摘要和属性，实际打开时解析相应资源；入选索引确认与全文读取验证采用不同状态。
+
+工程图谱中直接声明的 prerequisite 为先修依据，保留 ENGINEERING 来源，不改写为教学层 REQUIRED。规划为未满足的前置知识选择一个可替代资源，检查传递先修、资源可用性和预算。基础补强、仿真实践、偏好匹配三种导向共同使用内容相关性、资源类型偏好、动态难度和有足够样本的资源共选信号。难度反馈、使用记录与可信学习结果分别处理；个人校准与至少五位独立学习者的群体统计不改变掌握度事实、知识绑定或教师约束。
 
 ## 权威知识候选与 ActKG 协议变基
 

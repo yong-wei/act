@@ -4,7 +4,7 @@ import {
   adaptiveGenerationReadinessFromHttp,
   buildAdaptiveGenerationReadiness,
   selectAdaptiveGenerationReadiness,
-} from '../adaptive-generation-readiness';
+} from '@/features/personalization/path-planning/adaptive-generation-readiness.ts';
 
 describe('adaptive generation readiness', () => {
   it('maps missing class and teacher bindings to actionable blockers', () => {

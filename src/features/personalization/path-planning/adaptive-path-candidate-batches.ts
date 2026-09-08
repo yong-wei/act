@@ -56,7 +56,7 @@ export interface AdaptivePathCandidateBatchPersistenceInput {
     resourceId: string;
     candidateStyleId: string;
     nodeNodeId: string;
-    state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
+    state: 'verified' | 'index-verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
     contentSha256: string | null;
     verifiedAt: string;
   }>;
@@ -231,9 +231,13 @@ export function computeAdaptivePathBatchDifferentiation(
 
   const unreadableObjectKeys = new Set(
     (options.objectKeyReadRecords ?? [])
-      .filter((record) => record.state !== 'verified')
+      .filter((record) => record.state !== 'verified' && record.state !== 'index-verified')
       .map((record) => record.objectKey)
   );
+  const unreadableNodeIds = new Set((options.objectKeyReadRecords ?? [])
+    .filter((record) => record.state !== 'verified' && record.state !== 'index-verified').map((record) => record.nodeNodeId));
+  const indexedNodeIds = new Set((options.objectKeyReadRecords ?? [])
+    .filter((record) => record.state === 'index-verified').map((record) => record.nodeNodeId));
   // #2033 复审修复：按候选自己的 planNodes 解析节点（策略候选可含主推荐路径之外的节点）。
   const planNodeById = new Map(plan.mainPath.map((node) => [node.nodeId, node]));
   const nodesByCandidate = serialized.map((candidate) => {
@@ -264,7 +268,7 @@ export function computeAdaptivePathBatchDifferentiation(
   );
   const inputs: AdaptivePathDifferentiationCandidate[] = serialized.map((candidate, index) => {
     const countedNodes = (nodesByCandidate[index] ?? []).filter((node) => {
-      if (sharedExcludedNodeIds.has(node.nodeId)) return false;
+      if (sharedExcludedNodeIds.has(node.nodeId) || unreadableNodeIds.has(node.nodeId)) return false;
       // 读验证失败（missing/forbidden/checksum-mismatch/unverified）的对象键资源不进入统计；
       // 对象键来自节点 runtime 绑定字段（#2055），不再从导航 target 反解。
       const objectKey = node.runtimeResourceBinding?.objectKey ?? null;
@@ -273,7 +277,7 @@ export function computeAdaptivePathBatchDifferentiation(
     // 复审修复：候选核心资源中必须存在可验证的 Runtime 对象键资源；
     // 无 OSS 来源面（未绑定）的候选无法提供读取证明，视为资源不足。
     const hasVerifiableRuntimeResource = countedNodes.some((node) =>
-      node.runtimeResourceBinding?.objectKey != null);
+      node.runtimeResourceBinding?.objectKey != null || (node.resourceFeatureRef && indexedNodeIds.has(node.nodeId)));
     const objectKeys = new Set<string>();
     const typeCounts: Record<string, number> = {};
     const checkpointSignature: string[] = [];

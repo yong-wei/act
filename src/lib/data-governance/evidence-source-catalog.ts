@@ -187,6 +187,7 @@ const LOW_VALUE_INTERACTION_EVENTS = new Set([
   'knowledge_card_open',
   'resource_open',
   'resource_view',
+  'resource_difficulty_feedback',
   'arena_challenge_open',
   'arena_workspace_start',
   'arena_result_view',

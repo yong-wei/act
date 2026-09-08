@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildAdaptivePathCorrectionApplication } from '../adaptive-path-correction-decisions';
+import { buildAdaptivePathCorrectionApplication } from '@/features/personalization/path-planning/adaptive-path-correction-decisions.ts';
 
 const proposal = {
   trigger: {

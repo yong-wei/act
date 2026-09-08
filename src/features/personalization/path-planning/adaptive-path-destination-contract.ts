@@ -1,6 +1,8 @@
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 import { isManifestCourseRouteSegment } from '@/features/interactive/shared/manifest-course-route-segments';
 import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
+import { parsePublishedResourceHref, PUBLISHED_RESOURCE_LABELS, publishedResourcePathType } from '@/lib/published-resource-reference';
+import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
 
 export type AdaptivePathDestinationDisposition =
   | 'destination-control'
@@ -43,6 +45,17 @@ export function resolveAdaptivePathDestinationContract(
   target: string,
   context: AdaptivePathDestinationContext = {},
 ): AdaptivePathDestinationContractResult {
+  const published = parsePublishedResourceHref(target);
+  if (published) {
+    const type = published.resourceId.split(':')[1] as TeachingResourceType;
+    const nodeId = context.nodeId ?? '';
+    if (!(type in PUBLISHED_RESOURCE_LABELS) || publishedResourcePathType(type) !== resourceType
+      || context.sourceKind !== 'teaching_projection' || context.sourceRef !== published.resourceId
+      || !/^published-resource:[a-f0-9]{64}:act:/.test(nodeId) || !nodeId.endsWith(':' + published.resourceId)) {
+      return { disposition: 'blocked', canonicalTarget: null, reason: 'resource-source-mismatch' };
+    }
+    return { disposition: 'destination-control', canonicalTarget: target, reason: null };
+  }
   if (resourceType === 'external_resource') {
     return isSafeExternalTarget(target)
       ? { disposition: 'external-fallback', canonicalTarget: target, reason: null }

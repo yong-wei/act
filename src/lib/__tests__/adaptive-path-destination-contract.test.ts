@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canonicalizeAdaptivePathInternalHref,
   resolveAdaptivePathDestinationContract,
-} from '../adaptive-path-destination-contract';
+} from '@/features/personalization/path-planning/adaptive-path-destination-contract.ts';
 
 describe('adaptive path destination contract', () => {
   it('accepts a teaching resource only when source context matches the resource URL', () => {

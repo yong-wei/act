@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { repairPathConstraints } from '../adaptive-planning/path-constraint-repair';
+import { repairPathConstraints } from '@/features/personalization/path-planning/path-constraint-repair';
 
 describe('path constraint repair', () => {
   it('removes optional heavy nodes to satisfy the time budget', () => {

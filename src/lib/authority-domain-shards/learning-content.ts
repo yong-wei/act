@@ -172,8 +172,9 @@ function cleanLearningText(value: string): string | null {
     .replace(/<!--[^]*?-->/g, '')
     .replace(/`[^`]*`/g, '')
     .replace(/\[(.*?)\]\([^)]*\)/g, '$1')
-    .replace(/[*_#>|]/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[\t ]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
   if (!normalized) return null;
   if (
@@ -191,9 +192,12 @@ function parseLearnerVisibleCardFields(value: string): {
   const body = stripCardFrontmatter(value);
   if (!body) return null;
   const front = section(body, '## 首页', '## 详情');
-  const detail = section(body, '### 完整解释', '### 关联节点');
+  const detail = section(body, '### 完整解释', '### 关联节点')
+    ?? (section(body, '## 详情页', null) ?? section(body, '## 详情', null))
+      ?.split(/\n#{1,3}\s+(?:关联节点|来源|源文档|作者信息|元数据)(?:\s|$)/, 1)[0]
+      .trim();
   if (!front || !detail) return null;
-  const summaryMatch = front.match(/\*\*一句话定义\*\*：\s*([^\n]+)/);
+  const summaryMatch = front.match(/(?:\*\*)?(?:一句话定义|核心定义)(?:\*\*)?[：:]\s*([^\n]+)/);
   const insightMatch = front.match(/\*\*核心直觉\*\*：\s*([^\n]+)/);
   const summary = cleanLearningText(summaryMatch?.[1] ?? '');
   const explanation = cleanLearningText(detail);
@@ -386,6 +390,7 @@ export function readPublishedLearnerCardByToken(
   token: string,
   sourcePath?: string | null,
 ): {
+  title?: string;
   summary: string;
   insight: string | null;
   explanation: string;
@@ -400,7 +405,10 @@ export function readPublishedLearnerCardByToken(
   const raw = readFileSync(/*turbopackIgnore: true*/ cardPath, 'utf8');
   const expectedHash = contentHashFromSourcePath(sourcePath);
   if (expectedHash && sha256(raw) !== expectedHash) return null;
-  return parseLearnerVisibleCardFields(raw);
+  const fields = parseLearnerVisibleCardFields(raw);
+  if (!fields) return null;
+  const heading = raw.match(/^#\s+(.+)$/m)?.[1]?.trim();
+  return { ...fields, ...(heading && !/(?:ctkg:|cts:|act:)/.test(heading) ? { title: heading } : {}) };
 }
 
 const INFOGRAPHIC_RESOURCE_PREFIX = 'act:infographic:';
@@ -513,6 +521,40 @@ function resolvePublishedInfographBytes(
     }
   }
   return readInfographIfHashMatches(infographPath, expectedHash, bindingHash);
+}
+
+/** Index availability without reading image bodies; the asset route still verifies bytes. */
+export function createPublishedInfographReferenceIndex(options: {
+  liveInfographicTokens?: ReadonlyMap<string, string | null>;
+  envelope?: AuthorityShardEnvelope;
+} = {}): ReadonlySet<string> {
+  const repoRoot = process.cwd();
+  const paths = runtimePaths(repoRoot);
+  const loaded = loadLearningContentManifest(paths);
+  const available = new Set<string>();
+  if (loaded.status === 'invalid') return available;
+  const manifest = loaded.status === 'ready' ? loaded.manifest : null;
+  const envelope = options.envelope ?? tryActiveEnvelope(repoRoot);
+  const sealed = Boolean(manifest && envelope
+    && matchesAuthorityIdentity(manifest, envelope.authority)
+    && matchesTeachingSeal(manifest, envelope.teaching));
+  const listed = new Map(manifest?.nodes.map((node) => [node.safeId, node]) ?? []);
+  const live = options.liveInfographicTokens ?? loadLiveInfographicTokens(repoRoot);
+  for (const [token, bindingHash] of live) {
+    if (!isBindingContentToken(token)) continue;
+    const entry = listed.get(token);
+    if (entry) {
+      if (!sealed || entry.infograph.state !== 'available' || !entry.infograph.sha256
+        || (bindingHash && bindingHash !== entry.infograph.sha256)) continue;
+      if (existsSync(join(paths.infographRoot, `${token}.png`))) available.add(token);
+    } else if (firstExistingFile([
+      join(repoRoot, INFOGRAPH_NODES_RELATIVE, `${token}.png`),
+      join(repoRoot, INFOGRAPH_AUTHORITY_NODES_RELATIVE, `${token}.png`),
+    ])) {
+      available.add(token);
+    }
+  }
+  return available;
 }
 
 export function publishedInfographSafeIdForToken(

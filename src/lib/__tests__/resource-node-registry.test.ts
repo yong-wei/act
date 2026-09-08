@@ -232,6 +232,32 @@ function sampleRegistry() {
         knowledgeNodeIds: ['kn-bode'],
       },
     ],
+    runtimeResourceProjections: [
+      runtimeProjectionSidecar({
+        id: 'runtime-infographic:bode',
+        resourceNodeId: null,
+        title: '伯德图信息图',
+        resourceType: 'infographic',
+        sourceKind: 'runtime_lesson_media',
+        sourceRef: 'runtime-infographic:bode',
+        sourceRecord: 'runtime-infographic:bode',
+        routeTarget: '/knowledge',
+        renderTarget: '/knowledge',
+        graphNodeRefs: { knowledge: ['kn-bode'], capability: [], quality: [] },
+      }),
+      runtimeProjectionSidecar({
+        id: 'runtime-exercise:bode',
+        resourceNodeId: null,
+        title: '伯德图练习',
+        resourceType: 'exercise',
+        sourceKind: 'runtime_lesson_step',
+        sourceRef: 'runtime-exercise:bode',
+        sourceRecord: 'runtime-exercise:bode',
+        routeTarget: '/assessment/adaptive-practice',
+        renderTarget: '/assessment/adaptive-practice',
+        graphNodeRefs: { knowledge: ['kn-bode'], capability: [], quality: [] },
+      }),
+    ],
     projects: [
       {
         id: 'bode-project',
@@ -1218,6 +1244,12 @@ describe('resource node registry', () => {
 
   it('exposes central governed path semantics for every accepted path node type', () => {
     const registry = buildResourceNodeRegistry({
+      runtimeResourceProjections: (['infographic', 'exercise'] as const).map((type) => runtimeProjectionSidecar({
+        id: `runtime-${type}:demo`, resourceNodeId: null, title: type, resourceType: type,
+        sourceKind: 'runtime_lesson_step', sourceRef: `runtime-${type}:demo`, sourceRecord: `runtime-${type}:demo`,
+        routeTarget: '/knowledge', renderTarget: '/knowledge',
+        graphNodeRefs: { knowledge: ['kn-demo'], capability: [], quality: [] },
+      })),
       runtimeLessons: [{
         lessonId: 'unit-demo',
         title: '互动课',
@@ -1313,6 +1345,8 @@ describe('resource node registry', () => {
     expect(GOVERNED_PATH_NODE_TYPES).toEqual([
       'interactive_lesson',
       'knowledge_card',
+      'infographic',
+      'exercise',
       'textbook_section',
       'slides',
       'adaptive_quiz',

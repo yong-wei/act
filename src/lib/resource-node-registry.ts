@@ -8,6 +8,10 @@ import {
   resolveArenaPathTargetIntegrity,
   type CanonicalArenaPathTarget,
 } from './arena-path-target-integrity';
+import { buildPublishedResourceHref, isPublishedResourceIdentity, publishedResourceNodeId,
+  type PublishedResourceFeature, type PublishedResourceFeatureIndex } from './published-resource-reference';
+import type { EngineeringResourceOrderEvidence } from './published-resource-reference';
+import type { ResourceObservedFeatures } from './resource-interaction-features';
 
 export const RESOURCE_NODE_TYPES = [
   'lesson_step',
@@ -17,6 +21,8 @@ export const RESOURCE_NODE_TYPES = [
   'textbook_section',
   'video',
   'audio',
+  'infographic',
+  'exercise',
   'slides',
   'handout',
   'quiz',
@@ -37,6 +43,8 @@ export type ResourceNodeType = typeof RESOURCE_NODE_TYPES[number];
 export const GOVERNED_PATH_NODE_TYPES = [
   'interactive_lesson',
   'knowledge_card',
+  'infographic',
+  'exercise',
   'textbook_section',
   'slides',
   'adaptive_quiz',
@@ -72,6 +80,14 @@ export interface ResourceNodePathSemantics {
 }
 
 export const PATH_NODE_SEMANTICS: Record<GovernedPathNodeType, ResourceNodePathSemantics> = {
+  infographic: {
+    type: 'infographic', displayName: '信息图', iconKey: 'knowledge-card',
+    shapeHint: 'card', evidenceBehavior: 'view',
+  },
+  exercise: {
+    type: 'exercise', displayName: '习题', iconKey: 'adaptive-quiz',
+    shapeHint: 'task', evidenceBehavior: 'explicit_access',
+  },
   interactive_lesson: {
     type: 'interactive_lesson',
     displayName: '互动课程',
@@ -159,6 +175,7 @@ export const PATH_NODE_SEMANTICS: Record<GovernedPathNodeType, ResourceNodePathS
 };
 
 export type ResourceNodeSourceKind =
+  | 'teaching_projection'
   | 'media_source_manifest'
   | 'teaching_resource'
   | 'resource_registry'
@@ -190,6 +207,7 @@ export type ResourceNodePrivacyLevel = 'student-visible' | 'teacher-scoped' | 'a
 export type ResourceNodeTeacherPolicy = 'allowed' | 'teacher-assigned' | 'teacher-only' | 'blocked';
 export type ResourceNodeCognitiveLoad = 'low' | 'medium' | 'high';
 export type ResourceNodeSourceOwner =
+  | 'TeachingProjection'
   | 'media_source_manifest'
   | 'TeachingResource'
   | 'runtime_lesson_media'
@@ -209,6 +227,8 @@ export interface ResourceNodeSourceReference {
 
 export interface ResourceNodePlanningMetadata {
   prerequisites: string[];
+  /** Request-local legacy goal aliases; canonical resource bindings remain in knowledgeCoverage. */
+  goalCoverage?: string[];
   estimatedTimeMinutes: number | null;
   cognitiveLoad: ResourceNodeCognitiveLoad;
   knowledgeCoverage: string[];
@@ -243,6 +263,7 @@ export type ResourcePathPlanningDispositionKind =
   | 'excluded-with-rationale';
 
 export type ResourcePathPlanningDispositionReviewStatus =
+  | 'published-contract'
   | 'not-reviewed'
   | 'generated-provisional'
   | 'agent-reviewed'
@@ -485,6 +506,12 @@ export const RESOURCE_SEMANTIC_SOURCE_OWNERSHIP: Record<
   ResourceSemanticSourceKind,
   ResourceSemanticSourceOwnership
 > = {
+  teaching_projection: {
+    contentOwner: 'TeachingProjection',
+    catalogMetadataOwner: 'TeachingProjection',
+    semanticLayerStores: ['identity', 'sourceRefs', 'contentHash', 'summary', 'resourceFeatures', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'rawMedia', 'rawSubmission', 'studentAnswer'],
+  },
   media_source_manifest: {
     contentOwner: 'media_source_manifest',
     catalogMetadataOwner: 'media_source_manifest',
@@ -866,6 +893,9 @@ export interface ResourceNode {
   sourceOfRecord: ResourceNodeSourceOfRecord;
   runtimeProjection?: RuntimeResourceProjectionMetadata | null;
   eligibility: ResourceNodeEligibility;
+  publishedResource?: PublishedResourceFeature & { indexId: string };
+  observedFeatures?: ResourceObservedFeatures;
+  collaborativeAffinity?: number;
 }
 
 export interface ResourceNodeEdge {
@@ -880,6 +910,8 @@ export interface ResourceNodeRegistry {
   nodes: ResourceNode[];
   edges: ResourceNodeEdge[];
   supportedTypes: readonly ResourceNodeType[];
+  featureIndex?: PublishedResourceFeatureIndex;
+  engineeringOrder?: EngineeringResourceOrderEvidence;
   audit: {
     totalNodes: number;
     pathEligibleNodes: number;
@@ -1360,7 +1392,8 @@ export function auditResourcePathPlanningDisposition(
   }
 
   const issues: ResourceNodeAuditIssue[] = [];
-  const reviewEvidenceComplete = isResourcePathPlanningDispositionReviewConfirmed(disposition);
+  const reviewEvidenceComplete = isResourcePathPlanningDispositionReviewConfirmed(disposition)
+    || hasPublishedResourcePlanningProof(node);
   if (!reviewEvidenceComplete) {
     issues.push({
       code: 'missing-disposition-review',
@@ -1405,11 +1438,10 @@ export function auditResourcePathPlanningDisposition(
     const highConfidenceAudit = buildResourceNodeHighConfidencePlanningAuditInternal(node, {
       includeDispositionPromotion: false,
     });
-    if (
+    if (!hasPublishedResourcePlanningProof(node) && (
       !isResourcePathPlanningDispositionHumanReviewed(disposition) ||
-      !highConfidenceAudit.pathEligible ||
-      !node.planningMetadata.readiness
-    ) {
+      !highConfidenceAudit.pathEligible || !node.planningMetadata.readiness
+    )) {
       issues.push({
         code: 'invalid-path-disposition-promotion',
         severity: 'blocking',
@@ -1419,6 +1451,23 @@ export function auditResourcePathPlanningDisposition(
   }
 
   return issues;
+}
+
+/** Publication facts qualify reading/learning resources without inventing human review or mastery. */
+export function hasPublishedResourcePlanningProof(node: ResourceNode): boolean {
+  const feature = node.publishedResource;
+  if (!feature || node.sourceKind !== 'teaching_projection' || !feature.recommendable || !feature.executable
+    || !isPublishedResourceIdentity(feature.identity) || !/^[a-f0-9]{64}$/.test(feature.version)
+    || !/^[a-f0-9]{64}$/.test(feature.indexId) || feature.canonicalIds.length === 0 || feature.bindingIds.length === 0) return false;
+  const disposition = node.planningMetadata.pathDisposition;
+  return disposition?.reviewStatus === 'published-contract'
+    && disposition.sourceVersionRef === feature.version
+    && (feature.identity.resourceVersion === undefined || feature.identity.resourceVersion === feature.version)
+    && node.sourceRef === feature.identity.resourceId
+    && node.id === publishedResourceNodeId(feature.identity.resourceId, feature.version)
+    && node.launchTarget === buildPublishedResourceHref({ ...feature.identity, resourceVersion: feature.version })
+    && node.planningMetadata.knowledgeCoverage.length === feature.canonicalIds.length
+    && node.planningMetadata.knowledgeCoverage.every((id) => feature.canonicalIds.includes(id));
 }
 
 export function isResourcePathPlanningDispositionHumanReviewed(
@@ -2006,7 +2055,7 @@ function buildRegisteredArenaRuntimeProjection(
     },
     evidenceContract,
     reviewAudit: {
-      status: disposition?.reviewStatus ?? 'not-reviewed',
+      status: disposition?.reviewStatus === 'published-contract' ? 'not-reviewed' : disposition?.reviewStatus ?? 'not-reviewed',
       reviewerId: disposition?.reviewerId ?? null,
       reviewerRole: 'resource-governance-reviewer',
       reviewedAt: disposition?.reviewedAt ?? null,
@@ -2832,6 +2881,8 @@ function inferRegisteredNodeType(value: string): ResourceNodeType {
 }
 
 function pathSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathSemantics {
+  if (type === 'infographic') return PATH_NODE_SEMANTICS.infographic;
+  if (type === 'exercise') return PATH_NODE_SEMANTICS.exercise;
   if (type === 'knowledge_card' || type === 'knowledge_node') return PATH_NODE_SEMANTICS.knowledge_card;
   if (type === 'textbook_section') return PATH_NODE_SEMANTICS.textbook_section;
   if (type === 'slides') return PATH_NODE_SEMANTICS.slides;
@@ -2857,7 +2908,7 @@ function segmentKindForNode(node: ResourceNode): ResourceSegmentKind {
   if (node.type === 'slides') return 'slides';
   if (node.type === 'handout') return 'handout';
   if (node.type === 'textbook_section' || node.sourceKind === 'textbook_section') return 'textbook_section';
-  if (node.type === 'quiz' || node.type === 'adaptive_quiz') return 'exercise';
+  if (node.type === 'quiz' || node.type === 'adaptive_quiz' || node.type === 'exercise') return 'exercise';
   if (node.type === 'simulation') return 'simulation';
   if (node.type === 'arena_task') return 'arena';
   if (node.sourceKind === 'runtime_lesson_media') return 'media';
@@ -2884,6 +2935,7 @@ function buildResourceNodeHighConfidencePlanningAuditInternal(
   hasBlockingIssue: boolean;
 } {
   const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
+  const publicationQualified = hasPublishedResourcePlanningProof(node);
   const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
   const issues = node.eligibility.auditIssues.map((issue) => (
     !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
@@ -2896,7 +2948,7 @@ function buildResourceNodeHighConfidencePlanningAuditInternal(
     }
   }
 
-  if (!hasCapabilityMapping && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
+  if (!hasCapabilityMapping && !publicationQualified && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
     issues.push({
       code: 'missing-capability-mapping',
       message: 'ResourceNode has no capability target mapping for high-confidence path planning.',
@@ -2920,7 +2972,7 @@ function buildResourceNodeHighConfidencePlanningAuditInternal(
 
   return {
     pathEligible: node.eligibility.pathEligible &&
-      hasCapabilityMapping &&
+      (hasCapabilityMapping || publicationQualified) &&
       hasEvidenceInstrumentation &&
       !issues.some((issue) => issue.severity === 'blocking'),
     issues,
@@ -2938,7 +2990,8 @@ function auditPathDispositionPlanningEligibility(node: ResourceNode): ResourceNo
       severity: 'blocking',
     }];
   }
-  if (!isResourcePathPlanningDispositionHumanReviewed(disposition) || !node.planningMetadata.readiness) {
+  if (!hasPublishedResourcePlanningProof(node)
+    && (!isResourcePathPlanningDispositionHumanReviewed(disposition) || !node.planningMetadata.readiness)) {
     return [{
       code: 'invalid-path-disposition-promotion',
       message: 'Path-plannable disposition requires human-confirmed review evidence and readiness metadata.',
@@ -3117,7 +3170,7 @@ function buildPlanningUnit(node: ResourceNode, resourceId: string, target: strin
     pathEligible: true,
     pathSemantics: node.pathSemantics,
     prerequisites: node.planningMetadata.prerequisites,
-    knowledgeCoverage: node.planningMetadata.knowledgeCoverage,
+    knowledgeCoverage: uniqueSorted([...node.planningMetadata.knowledgeCoverage, ...(node.planningMetadata.goalCoverage ?? [])]),
     abilityImpact: node.planningMetadata.abilityImpact,
     estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes ?? defaultEstimatedTime(node.type),
     cognitiveLoad: node.planningMetadata.cognitiveLoad,

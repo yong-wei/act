@@ -11911,6 +11911,7 @@ describe('konling agent runtime', () => {
         }),
       },
       learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
         createMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       evidenceOutbox: {
@@ -12589,8 +12590,8 @@ describe('konling agent runtime', () => {
         goalId: 'frequency-response-foundations',
       }),
     });
-    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBe(2);
-    expect((result as { limitations: string[] }).limitations).toContain('policy-option-diversity-unavailable');
+    expect((result as { pathOptions: unknown[] }).pathOptions.length).toBe(3);
+    expect((result as { limitations: string[] }).limitations).not.toContain('policy-option-diversity-unavailable');
     expect(JSON.stringify(result.pathOptions)).toContain('registry:frequency-precheck');
     const frequencyCandidateCounts = (result as {
       diagnostics: { candidatePool: { candidateCountsByFamily: Record<string, number> } };
@@ -12608,15 +12609,14 @@ describe('konling agent runtime', () => {
       }),
     }));
     const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
-    expect(createdPath.pathPayload.policyBundle.paths.length).toBe(2);
-    expect(createdPath.pathPayload.pathOptions.length).toBe(2);
-    expect(createdPath.pathPayload.pathOptions).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        optionId: 'path-option-1',
-        nodeIds: expect.arrayContaining(['registry:frequency-precheck']),
-        planNodes: expect.any(Array),
-      }),
-    ]));
+    expect(createdPath.pathPayload.policyBundle.paths.length).toBe(3);
+    expect(createdPath.pathPayload.pathOptions.length).toBe(3);
+    expect(createdPath.pathPayload.pathOptions.every((option: { planNodes: unknown[] }) => option.planNodes.length > 0)).toBe(true);
+    expect(createdPath.pathPayload.pathOptions.map((option: { styleId: string }) => option.styleId)).toEqual([
+      'foundation-remediation', 'arena-simulation-sprint', 'preference-matched-route',
+    ]);
+    expect(createdPath.pathPayload.pathOptions.flatMap((option: { evidenceBasis: string[] }) => option.evidenceBasis)
+      .every((basis: string) => basis.length > 1)).toBe(true);
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence).toMatchObject({
       profile: 'path-planning',
       pathEligibleItemRefs: expect.arrayContaining([
@@ -12627,7 +12627,7 @@ describe('konling agent runtime', () => {
     expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.citationOnlyItemRefs).toContain(
       'resource-node:knowledge-card:kn-bode',
     );
-    expect(createdPath.pathPayload.visualization.evidence.sourcePackEvidence.limitationCodes).toContain('upstream-limitations-redacted');
+    expect(mocks.loadAllTextbookStructureUnitProjections).not.toHaveBeenCalled();
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
     );
@@ -12843,6 +12843,7 @@ describe('konling agent runtime', () => {
         }),
       },
       learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
         createMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       evidenceOutbox: {

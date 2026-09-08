@@ -41,6 +41,7 @@ const RUNTIME_ASSET_BEARING_NODE_TYPES = new Set([
   'slides',
   'handout',
   'knowledge_card',
+  'infographic',
   'simulation',
   'arena_task',
 ]);
@@ -67,6 +68,8 @@ export interface RuntimeReleaseFileIndex {
 export function deriveTeachingProjectionResourceIdentity(
   nodeId: string,
 ): { resourceId: string; resourceType: string } | null {
+  const published = /^published-resource:[a-f0-9]{64}:(act:([a-z-]+):[^/\\]+)$/u.exec(nodeId);
+  if (published) return { resourceId: published[1], resourceType: published[2] };
   let match = /^runtime-handout:([^:]+)$/u.exec(nodeId);
   if (match) return { resourceId: `act:handout:${match[1]}`, resourceType: 'handout' };
   match = /^runtime-media:([^:]+):([^:]+)$/u.exec(nodeId);

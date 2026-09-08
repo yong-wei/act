@@ -28,6 +28,7 @@ export interface AdaptivePathBatchComparisonView {
   resourceReadiness: Array<{
     styleId: string;
     verifiedResources: number;
+    indexedResources?: number;
     unreadableResources: number;
     /** 按失败类型区分的学生可理解说明（不暴露对象键原文）。 */
     notes: string[];
@@ -130,6 +131,7 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
     : [];
   const resourceReadiness = new Map<string, {
     verified: number;
+    indexed: number;
     unreadableByState: Map<string, number>;
     items: Array<{ nodeId: string; resourceId: string; state: string; runtimeReleaseId: string | null }>;
   }>();
@@ -139,8 +141,9 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
     const state = typeof item.state === 'string' ? item.state : null;
     if (!styleId || !state) continue;
     const counts = resourceReadiness.get(styleId)
-      ?? { verified: 0, unreadableByState: new Map<string, number>(), items: [] };
+      ?? { verified: 0, indexed: 0, unreadableByState: new Map<string, number>(), items: [] };
     if (state === 'verified') counts.verified += 1;
+    else if (state === 'index-verified') counts.indexed += 1;
     else counts.unreadableByState.set(state, (counts.unreadableByState.get(state) ?? 0) + 1);
     // verified 与失败状态都投影逐资源条目：正常候选同样并列呈现 OSS 读取状态与来源。
     counts.items.push({
@@ -164,8 +167,9 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
       return {
         styleId,
         verifiedResources: counts.verified,
+        ...(counts.indexed > 0 ? { indexedResources: counts.indexed } : {}),
         unreadableResources: [...counts.unreadableByState.values()].reduce((sum, count) => sum + count, 0),
-        notes,
+        notes: counts.indexed > 0 ? [...notes, `已确认 ${counts.indexed} 项资源入口，打开时检查内容。`] : notes,
         items: counts.items,
       };
     }),

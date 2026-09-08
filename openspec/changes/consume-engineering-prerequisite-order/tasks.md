@@ -1,20 +1,18 @@
-## 1. 采用通道
+## 1. 工程顺序输入
 
-- [ ] 1.1 `prerequisites/contracts.ts`：`prerequisite` 谓词纳入 post-requisite 采用通道（连接两个现行权威对象即可采用为 REQUIRED，工程出处随附），单测覆盖采用与拒绝两态
-- [ ] 1.2 修复候选生成空转：ENGINEERING 来源候选真实产出（当前 proj-d55c3ac4 candidates=0），候选生成单测以 r6 的 79 条边为夹具
-- [ ] 1.3 采用治理：采用/拒绝逐条收据（绑定 r6 快照与边身份）；与教学设计证据冲突时教学优先并记录例外
+- [x] 1.1 从已发布且与教学绑定同 snapshot 的 Authority 读取明确直接的 prerequisite，保留 relation ID 与方向
+- [x] 1.2 身份、端点、环与缺失输入验证；不转写或声称存在新的 ACT_TEACHING REQUIRED
 
-## 2. 发布物重建
+## 2. 生产路径接线
 
-- [ ] 2.1 重建 prerequisites 发布物（新 proj-*），含采用后的工程先后修边；无环与端点闭合门禁复用既有条款
-- [ ] 2.2 切换 `runtime/knowledge/prerequisites/current.json` 到新发布物，旧物保留可回滚
+- [x] 2.1 在资格过滤与请求排序后建立 canonical 到合格资源的索引
+- [x] 2.2 每个未满足的前驱选择一个代表资源，支持递归先修与一个资源覆盖多个前驱
+- [x] 2.3 将解析结果写入请求级派生 registry，确保 repair、assembly 和解释使用同一输入
+- [x] 2.4 对缺少前置资源、环或预算不可行返回明确限制，不产生违反先修的 ready 路径
 
-## 3. 消费与诊断
+## 3. 解释与验证
 
-- [ ] 3.1 planner 对采用后的工程顺序边生效（排序约束/就绪门控），路径诊断区分「教学编排顺序」与「工程学习顺序」来源
-- [ ] 3.2 端到端：以 control-correction 目标生成路径，断言工程学习顺序约束实际参与排序且解释可见
-
-## 4. 验证
-
-- [ ] 4.1 prerequisites 与 planner 定向测试；`rtk npm run test:unit`、`rtk npm run typecheck` 通过
-- [ ] 4.2 `rtk openspec validate consume-engineering-prerequisite-order --type change --strict` 通过
+- [x] 3.1 路径证据保留工程 relation、snapshot、方向及资源 binding 来源，区分教学推荐
+- [x] 3.2 覆盖多资源替代、多个前驱、共享代表、完成状态、确定性、缺资源、环及预算的回归
+- [x] 3.3 从生产 planLearningPath 入口验证工程顺序生效，运行相关测试、typecheck 和全量验证
+- [x] 3.4 OpenSpec strict 与独立审查

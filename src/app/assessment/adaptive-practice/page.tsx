@@ -2181,6 +2181,7 @@ function formatStrategyBasis(basis: string): string {
 }
 
 function formatResourceReadinessState(state: string): string {
+  if (state === 'index-verified') return '入口已确认';
   if (state === 'verified') return '读取正常';
   if (state === 'missing') return '资源缺失';
   if (state === 'forbidden') return '暂无访问权限';
