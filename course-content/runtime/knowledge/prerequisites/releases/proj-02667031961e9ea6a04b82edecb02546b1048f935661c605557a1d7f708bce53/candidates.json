@@ -1,0 +1,782 @@
+[
+  {
+    "candidateId": "cand-019a83a8070a7c8018a9c0b4",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0b69afc5586262357770c214 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-01f2142a3d9651195fa4f021",
+    "sourceNodeId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "targetNodeId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:44562b7f9cd0bc96eadb3ee1 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-10e00c144b30e38a47651f24",
+    "sourceNodeId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+    "targetNodeId": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0d02ae9f744d0e1715869dc5 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-1110abcf8a00c8dc1bde9495",
+    "sourceNodeId": "ctkg:v3e-object-89ada9ada357e26bcd83dc11",
+    "targetNodeId": "ctkg:v3e-object-ed01c7b027040e58ad92fa35",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:270848778c2ea606e035365d is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-14dffc3376e043586445a647",
+    "sourceNodeId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetNodeId": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:f6aa12bd1a06e83f78b4e99d is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-155bca839bdb70e0eef1566e",
+    "sourceNodeId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "targetNodeId": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:08fcab956c83430c3b6c96e9 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-171f222fa971f36bae35d4fd",
+    "sourceNodeId": "ctkg:v3e-object-1b7b0dc48c95ff419467dd86",
+    "targetNodeId": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:ebdea383c283f6ee9b034508 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-17e986597e922a24eb8cd4bd",
+    "sourceNodeId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetNodeId": "ctkg:v3e-object-271dc725adcf9cbd115e003f",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0c862930672f99c863832b62 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-19e93cf057dbfbe1bb03f965",
+    "sourceNodeId": "ctkg:v3e-object-f1582fd7cc28d16eb111854d",
+    "targetNodeId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:78961c73c9fc7691a0c65b08 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-1e02b632f9a075a4c7b39e72",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:b71e26d3dfd45ccfa8e526d9 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-1f3f359fe33a56bd876023bd",
+    "sourceNodeId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetNodeId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:e0016294dfacc10ed59e6dbf is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-1f82d372694fd130f3778908",
+    "sourceNodeId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetNodeId": "ctkg:v3e-object-d4e994e83801bfcca363b375",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:aa41edfbff6d452160e95d71 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-20520261cfc9bdb52f01b44b",
+    "sourceNodeId": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+    "targetNodeId": "ctkg:v3e-object-7d0f4558ea9feb4c470dd47b",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:721eeb562c730343a2e54594 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-22f7324d7c863851a6ce142e",
+    "sourceNodeId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "targetNodeId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:078c8b27d202d7eb37059e68 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-234012b9549c02f428f01447",
+    "sourceNodeId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "targetNodeId": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:7f0c4160148c2030569e5bc5 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-23847cc871043fdb69a2ed45",
+    "sourceNodeId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+    "targetNodeId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:fe1bd08e67e2e45c4ee32914 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-239238772ca6cfce7ae6b08b",
+    "sourceNodeId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetNodeId": "ctkg:v3e-object-2c7489771bec99ead56be2ef",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:3199e8ebacd2c3d2fe40b30d is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-23a6c4a2a0768cd8777fca45",
+    "sourceNodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetNodeId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0c88d500416231a3d1a7b5ee is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-241946f58eec0fcb9b7cfcf6",
+    "sourceNodeId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+    "targetNodeId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:628cf6baf701c8bd38c8aa4c is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-264ccc777b0208faa3925e1d",
+    "sourceNodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetNodeId": "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:6d116a7d590b482fbc1805df is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-2a08fbe4a21aed72c5637f73",
+    "sourceNodeId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+    "targetNodeId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:19b488c24491ed5aecf9a5a6 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-2bd1adb6ac04176b369399f2",
+    "sourceNodeId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetNodeId": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:96bd2ec860942d67de85dd77 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-3136302f1b59b77b506f2bc3",
+    "sourceNodeId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetNodeId": "ctkg:v3e-object-8cf39aebda1d87c8394a3f9d",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:4e22a9d1411ee887a63c6a6a is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-3147b24b60f91af8d3be0e16",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:7245d9b1ef55a4cd56bdfeb4 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-32b17acda814aa9c4575ae66",
+    "sourceNodeId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "targetNodeId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:b995577e9c5b91997eebbf67 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-437922f2ad26864afa4690ec",
+    "sourceNodeId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetNodeId": "ctkg:v3e-object-87148367d17fdbebd5a95319",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:1aa8466e334f4d158cdf65c1 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-43f523a4a02cbefb178dccf4",
+    "sourceNodeId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetNodeId": "ctkg:v3e-object-b23d7969cb791dfac72b6319",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:4ed13910b9cb75df2c1dbb36 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-4fa569cf3053157f7a0adc0b",
+    "sourceNodeId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "targetNodeId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:968ea144dd83e967d31bd2d8 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-537d78dba53bc31ee65855ea",
+    "sourceNodeId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetNodeId": "ctkg:v3e-object-cbfe80d3da0902843e4ec358",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:87da50026215161eadc8cb49 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-599721d712f7dac431388481",
+    "sourceNodeId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetNodeId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:f22ed0491f1b81be5b8c5edb is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-5b44a65c9dba5983acc64290",
+    "sourceNodeId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetNodeId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:65b9a502d01728d2cfa9a3a9 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-5f897703d4a535f66ecdbbfd",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:38935f1d3f9118d4e0ef90ea is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-6bfaf1e9eef72ea8a68ede1d",
+    "sourceNodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetNodeId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0adafa75a139a49da712f807 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-6d606288c91a6889875f93db",
+    "sourceNodeId": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+    "targetNodeId": "ctkg:v3e-object-ca34eff2440293f793a1aafa",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:6d1e414b89615dd6daff32ed is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-6eee7f4126bc5e20f67dc534",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:aea6294364be3cccf4bda889 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-715864204adaa8d3cfecca90",
+    "sourceNodeId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+    "targetNodeId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0125a1674561b7f2d140ff0a is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-743bf47e2490620dd06a1944",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-865b301177a623225344064f",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:be9a4b53e0f4495056141fcd is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-781db0826f0d7b5a5313a1df",
+    "sourceNodeId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetNodeId": "ctkg:v3e-object-55036b61ed3fe680ef13f904",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:b636b580f6c0869df0b8efe9 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-7a3c8503bc67cdbdd1af1dc2",
+    "sourceNodeId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+    "targetNodeId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:1b6ea3bb8ed116cb01043817 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-7df7b5c29406f20e5346b7bf",
+    "sourceNodeId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+    "targetNodeId": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:4a78e23cd3776a39b5f94def is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-826dbbd50307b287ac20d8e2",
+    "sourceNodeId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetNodeId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:d5da5fa7a9eddfd4adbb84af is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-8e138d4fa296c9aa3da329ea",
+    "sourceNodeId": "ctkg:v3e-object-762239378940cb45b78991b3",
+    "targetNodeId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:da515399fee49e0e2377991c is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-93a64b0528f67ca8ae7fe674",
+    "sourceNodeId": "ctkg:v3e-object-0ffd784a046b2ff6fc583d23",
+    "targetNodeId": "ctkg:v3e-object-7ec200eb09dcb2beb627f1eb",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:299992bb873c2f10065364ea is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-951d9ebde1e9ccbdea538a05",
+    "sourceNodeId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+    "targetNodeId": "ctc:v11g-29bcae62e44c52ed219e6687",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:975cdbbc1cc5cb2fb66e9926 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-9aa319886c4733bc2670ad72",
+    "sourceNodeId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetNodeId": "ctkg:v3e-object-36e31a50f047919209d08c48",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:4a4cce299e5f31cef0540a56 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-9de06f4a6ff8c1599ca24105",
+    "sourceNodeId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "targetNodeId": "ctc:v11g-95859dcad651c20058bf8726",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:bd7a9e16212666365e75690d is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-9e2061b353c37b233a4e023d",
+    "sourceNodeId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+    "targetNodeId": "ctkg:v3e-object-70598dd5728797c1595207c9",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:890c99469ac5a82681a311c0 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-a2d9cf8b672cc5cf8df3cbb9",
+    "sourceNodeId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+    "targetNodeId": "ctkg:v3e-object-3dcfcc93901edd979be43f5c",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:97a22e72faeb149636f86ac8 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-a3ed07bb8101dec1ca0fecd4",
+    "sourceNodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetNodeId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:797c8775f199c318be66a5db is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-a6922715d5e5641445da0cb4",
+    "sourceNodeId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+    "targetNodeId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:2d6b059431350068fab6e65e is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-a6a33482654a186906a25b5f",
+    "sourceNodeId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetNodeId": "ctkg:v3e-object-963133ef890ba8f3bfeefcc5",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:f0ba4e3a835e948b73ae2436 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-a6eed6c74b60f0f45cf440fe",
+    "sourceNodeId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+    "targetNodeId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:fde533df3e4730fa42f74a33 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-a9b3dc6e298343ed6efafced",
+    "sourceNodeId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+    "targetNodeId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:8c0a4006f6bd5de772553429 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-adbc0820127c0623e5adaf0f",
+    "sourceNodeId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetNodeId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0bedcdf97a62df3223b67ffc is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-b74cfd068d7f64d217478d4b",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:7f0beb570b9c10aa875ec634 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-bce7c980ff25e28bb4cc30e5",
+    "sourceNodeId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+    "targetNodeId": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0f8180e307e9dfd320e9cdfe is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-bd9271739ccbc3d2c5962871",
+    "sourceNodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetNodeId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:37d31f4034ce16c11b2e90c7 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-bf0c7101efe9808bcc825469",
+    "sourceNodeId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetNodeId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:7c27a386da6cd4689718b344 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-c66c8e05581f64b3c244eb4f",
+    "sourceNodeId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "targetNodeId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:d064decbaa3696873b3a39ab is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-cbb325c7f3262de5ef0bfef0",
+    "sourceNodeId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetNodeId": "ctkg:v3e-object-015051ab889bc2e6b3fd1b54",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:9e0ad3be21ec8f18235f496f is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-d0f8389ea0180b7a4ea54ce3",
+    "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetNodeId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:ee1d2d9d5a53208cf91395dc is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-d19036af2f7e2d8182c2c93b",
+    "sourceNodeId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetNodeId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:769e8df15e189d9a942d9c8a is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-d543c3f373a8361db9f08e7c",
+    "sourceNodeId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetNodeId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:7943fb22cfd4aa58d62eb08f is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-e06c55241e4f05323adaa87f",
+    "sourceNodeId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetNodeId": "ctkg:v3e-object-551346c07dd0adc110d95089",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:d1ee0f5ab989bd77c0644996 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-e1467ef8dfc1d7e1f674aaf3",
+    "sourceNodeId": "ctkg:v3e-object-dc100c0a7e752839af01bbea",
+    "targetNodeId": "ctkg:v3e-object-89ada9ada357e26bcd83dc11",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:930d7d7c03a17697333e6993 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-e24cae53a29f526a40b11539",
+    "sourceNodeId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetNodeId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:1c23746e0c61931034e8b2fb is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-e6819007560d7c7bbdc5e725",
+    "sourceNodeId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetNodeId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:0d703a8308a0c3c8f29c5146 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-e6cf1aa4be6baff69c1b2b0a",
+    "sourceNodeId": "ctkg:v3e-object-2c60af6bdfb932de8cc33ca5",
+    "targetNodeId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:4287b6fd984ae4c9b79c5c42 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-eec2b5311ffb7f125dbdc9ae",
+    "sourceNodeId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+    "targetNodeId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:e5539adad2a6dd21b5892b39 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-f407b864b8b46e384c0130cd",
+    "sourceNodeId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+    "targetNodeId": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:91725fb7847b83bf6ce377ef is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-f600b7b71c5dfa5f628bfba5",
+    "sourceNodeId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetNodeId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:e547add949afcfb173db8ef8 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-f60f9494bcbca1f108590189",
+    "sourceNodeId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetNodeId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:70a7516808c321dfcb06aa70 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-fb3fdd834ba05725e4f562d6",
+    "sourceNodeId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+    "targetNodeId": "ctkg:v3e-object-9dd164e548b83a92f3777044",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:89f05fb05700df4342f4b448 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-fcf41c724ccab9d6614e11b9",
+    "sourceNodeId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetNodeId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:1164084ae03d7795c40a90de is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-fd06c0e1e95e0a288ad5ffe4",
+    "sourceNodeId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+    "targetNodeId": "ctkg:v3e-object-fbebd7b09546031f82f974ed",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:3eb9b4f086fcd001ce5793ef is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-fd672a0a72a066f2ae3241cc",
+    "sourceNodeId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetNodeId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:5af4b1e896a8f803e561548b is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-ff1996ff40d8e2b253400cf1",
+    "sourceNodeId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+    "targetNodeId": "ctkg:v3e-object-6ecfad78b7fb0ba7b233047c",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:a3e77efbdb1f451708f83440 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  },
+  {
+    "candidateId": "cand-ffd59382f97586164bb6a5b3",
+    "sourceNodeId": "ctkg:v3e-object-b2913d437161b8d1e3eecfdf",
+    "targetNodeId": "ctkg:v3e-object-150dc51f4f7d4306dab82a18",
+    "origin": "ENGINEERING_RELATION",
+    "scopeId": "act-control-theory",
+    "strengthHint": null,
+    "note": "engineering learning-order prerequisite ctkg:m4-u2u5:prerequisite:aafcd3ad97df772179360d30 is eligible for ACT teaching adoption; disposition=rejected-not-core snapshot=b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "publishable": false
+  }
+]
