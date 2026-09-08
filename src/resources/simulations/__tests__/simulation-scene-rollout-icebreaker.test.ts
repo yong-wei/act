@@ -110,6 +110,31 @@ describe('icebreaker xue-long-2 versioned model integration', () => {
     expect(source).toContain('propPortQuat');
     expect(source).toContain('podPortQuat');
   });
+
+  it('feeds the wake tier from the actually mounted model, not the static activation pointer', () => {
+    const source = read(ICEBREAKER);
+    // C2 修复：版本化包加载失败回退旧模型时尾迹退回单艉尾迹
+    expect(source).toContain('versionedDescriptor: VersionedModelPackageDescriptor | null');
+    expect(source).toContain('versionedDescriptor={mountedVersionedDescriptor}');
+    expect(source).toContain('onVersionedMountChange');
+  });
+});
+
+describe('icebreaker xue-long-2 candidate QA page', () => {
+  const QA_PAGE = path.join(process.cwd(), 'src/app/simulations/xue-long-2-candidate/page.tsx');
+
+  it('mounts the candidate package for visual acceptance without navigation exposure', () => {
+    const source = read(QA_PAGE);
+    expect(source).toContain('XUE_LONG_2_V0');
+    expect(source).toContain('<VersionedShipModel');
+    expect(source).toContain('<SemanticBindingsRig');
+    expect(source).toContain('window.__xuelong2Qa');
+    expect(source).toContain('setTelemetry');
+    // 取景与可见性断言面（spec：激活验收须逐档整舰取景）
+    expect(source).toContain('framePerspectiveCameraToBox');
+    expect(source).toContain('boxProjectsInsideNdc');
+    expect(source).toContain("LOD_TIERS[value] ?? 'high'");
+  });
 });
 
 describe('icebreaker heading convention adaptation', () => {

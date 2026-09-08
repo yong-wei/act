@@ -147,15 +147,24 @@ describe('xue-long-2 v0.1.0 animation bindings map sailing telemetry', () => {
 });
 
 describe('xue-long-2 activation and scene adaptation', () => {
-  it('matches the icebreaker versioned default pointer to the received descriptor', () => {
+  it('stays a reversible candidate: no versioned default pointer until acceptance gates close', () => {
+    // spec: versioned-simulation-model-package-integration — 激活门槛 = 三档+回退路径
+    // 浏览器视觉验收 + 压缩重编码（上游 v0.1.0 未压缩，待发修订版）。
     const activation = resolveVersionedDefault('icebreaker');
-    expect(matchActivatedXueLong2Package(activation)).toEqual(XUE_LONG_2_V0);
+    expect(activation).toBeNull();
+    expect(matchActivatedXueLong2Package(activation)).toBeNull();
     expect(matchActivatedXueLong2Package(null)).toBeNull();
     expect(matchActivatedXueLong2Package({
       packageId: 'xue-long-2',
       modelVersion: '9.9.9',
       baseUrl: XUE_LONG_2_V0.baseUrl,
     })).toBeNull();
+    // 指针与描述符身份对齐（登记激活时该断言翻转为相等，防半切换）。
+    expect(matchActivatedXueLong2Package({
+      packageId: XUE_LONG_2_V0.packageId,
+      modelVersion: XUE_LONG_2_V0.modelVersion,
+      baseUrl: XUE_LONG_2_V0.baseUrl,
+    })).toEqual(XUE_LONG_2_V0);
   });
 
   it('uses the same -90° basis yaw as type055 (GLB +X bow → scene +Z bow)', () => {

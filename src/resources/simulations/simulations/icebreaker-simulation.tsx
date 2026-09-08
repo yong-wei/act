@@ -207,12 +207,14 @@ function IcebreakerModel({
   simRef,
   resetToken,
   propWakeRef,
+  onVersionedMountChange,
 }: {
   position: Vector2;
   heading: number;
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   resetToken: number;
   propWakeRef: PropWakeAnchorsRef;
+  onVersionedMountChange: (descriptor: VersionedModelPackageDescriptor | null) => void;
 }) {
   const { tier } = useSceneQuality();
   const descriptor = matchActivatedXueLong2Package(resolveVersionedDefault('icebreaker'));
@@ -229,6 +231,7 @@ function IcebreakerModel({
             simRef={simRef}
             resetToken={resetToken}
             propWakeRef={propWakeRef}
+            onVersionedMountChange={onVersionedMountChange}
           />
         )}
       />
@@ -254,6 +257,7 @@ function IcebreakerModel({
           // 坐标基适配只对模型包内资产生效；候选失败回退到旧 GLB 时不施加（旧模型已是 +Z 艏）
           basisYawRad={isXueLong2VersionedAssetUrl(url) ? XUE_LONG_2_BASIS_YAW_RAD : 0}
           descriptor={url.startsWith(descriptor.baseUrl) ? descriptor : null}
+          onVersionedMountChange={onVersionedMountChange}
         />
       )}
     />
@@ -269,6 +273,7 @@ function IcebreakerModelScene({
   descriptor = null,
   resetToken = 0,
   propWakeRef,
+  onVersionedMountChange,
 }: {
   url: string;
   position: Vector2;
@@ -281,10 +286,19 @@ function IcebreakerModelScene({
   /** 仿真重置令牌：透传给绑定装配，触发展示动画状态随仿真生命周期复位。 */
   resetToken?: number;
   propWakeRef: PropWakeAnchorsRef;
+  /** 实际挂载的版本化 descriptor 上报（尾迹档式随实际模型，而非静态激活指针）。 */
+  onVersionedMountChange: (descriptor: VersionedModelPackageDescriptor | null) => void;
 }) {
   const { camera } = useThree();
   const { scene, animations } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
+
+  // 实际挂载上报：版本化包加载失败沿候选链回退旧 GLB 时，本组件以 descriptor=null
+  // 重挂，尾迹档式随之退回单艉尾迹（legacy 模型回退合同）。
+  useEffect(() => {
+    onVersionedMountChange(descriptor);
+    return () => onVersionedMountChange(null);
+  }, [descriptor, onVersionedMountChange]);
 
   const { model, scale, waterlineOffset, propNodes, podNodes } = useMemo(() => {
     const cloned = cloneSkinnedScene(scene);
@@ -476,6 +490,7 @@ function WakeTrailRig({
   playing,
   resetToken,
   propWakeRef,
+  versionedDescriptor,
 }: {
   position: Vector2;
   heading: number;
@@ -483,16 +498,17 @@ function WakeTrailRig({
   playing: boolean;
   resetToken: number;
   propWakeRef: PropWakeAnchorsRef;
+  /** 实际挂载的版本化包描述符（模型挂载上报）：尾迹档式随实际模型，回退旧模型时退回单艉尾迹。 */
+  versionedDescriptor: VersionedModelPackageDescriptor | null;
 }) {
   const { wakeVisible } = useSceneEnvironment();
   const transformRef = useRef({ position: [0, 0, 0] as [number, number, number], heading: 0 });
   const timeRef = useRef(0);
   const { tier, params } = useSceneQuality();
 
-  // 版本化包声明推进器时逐桨一条航迹；无声明（旧链/回退）保持 profile 单航迹。
-  const descriptor = matchActivatedXueLong2Package(resolveVersionedDefault('icebreaker'));
-  const propulsorAnchors = descriptor
-    ? propulsorSceneAnchors(descriptor, icebreakerXuelongSceneVisual.shipLengthMeters)
+  // 实际挂载的版本化包声明推进器时逐桨一条航迹；无声明（旧链/回退）保持 profile 单航迹。
+  const propulsorAnchors = versionedDescriptor
+    ? propulsorSceneAnchors(versionedDescriptor, icebreakerXuelongSceneVisual.shipLengthMeters)
     : [];
 
   useFrame((frameState) => {
@@ -591,6 +607,13 @@ function Scene({
   simRef: React.MutableRefObject<BindingTelemetrySource>;
   propWakeRef: PropWakeAnchorsRef;
 }) {
+  // 实际挂载的版本化 descriptor（模型挂载上报）：尾迹档式跟随实际模型，
+  // 版本化包加载失败回退旧模型时退回单艉尾迹（legacy 回退合同）。
+  const [mountedVersionedDescriptor, setMountedVersionedDescriptor] = useState<VersionedModelPackageDescriptor | null>(null);
+  const handleVersionedMountChange = useCallback((descriptor: VersionedModelPackageDescriptor | null) => {
+    setMountedVersionedDescriptor(descriptor);
+  }, []);
+
   return (
     <>
       <PerspectiveCamera makeDefault position={[200, 150, 200]} fov={60} near={1} far={50000} />
@@ -636,12 +659,13 @@ function Scene({
           simRef={simRef}
           resetToken={resetToken}
           propWakeRef={propWakeRef}
+          onVersionedMountChange={handleVersionedMountChange}
         />
       </Suspense>
 
       <TeachingAnnotationsGate position={position} targetHeading={targetHeading} />
       <TrailLine points={trail} />
-      <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} propWakeRef={propWakeRef} />
+      <WakeTrailRig position={position} heading={heading} speed={speed} playing={playing} resetToken={resetToken} propWakeRef={propWakeRef} versionedDescriptor={mountedVersionedDescriptor} />
 
       {showGrid ? (
         <Grid

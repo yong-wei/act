@@ -1,0 +1,61 @@
+{
+  "tiers": [
+    {
+      "lod": 0,
+      "shipUrl": "/assets/model-releases/xue-long-2/v0.1.0/XueLong2-LOD0.glb",
+      "boxInView": true,
+      "skinnedIntact": true,
+      "versionedMounted": "true"
+    },
+    {
+      "lod": 1,
+      "shipUrl": "/assets/model-releases/xue-long-2/v0.1.0/XueLong2-LOD1.glb",
+      "boxInView": true,
+      "skinnedIntact": true,
+      "versionedMounted": "true"
+    },
+    {
+      "lod": 2,
+      "shipUrl": "/assets/model-releases/xue-long-2/v0.1.0/XueLong2-LOD2.glb",
+      "boxInView": true,
+      "skinnedIntact": true,
+      "versionedMounted": "true"
+    }
+  ],
+  "fallback": {
+    "shipUrl": "/assets/models-opt/icebreaker.glb",
+    "boxInView": true,
+    "versionedMounted": "false"
+  },
+  "bindings": {
+    "propQ": [
+      -0.9731048766021216,
+      -4.3307811194522464e-17,
+      -3.828545090754636e-9,
+      0.23036253847613697
+    ],
+    "podPortYaw": 29.999999999999993,
+    "podStbdYaw": -19.999999999999996,
+    "propSpinningAtSpeed": true,
+    "podPortYawDeg": 30,
+    "podStbdYawDeg": -20,
+    "showcaseOnStop": {
+      "showcaseClips": [
+        "crane_AFT_slew"
+      ]
+    },
+    "showcaseClearedOnResume": {
+      "showcaseClips": []
+    }
+  },
+  "mainPageLegacy": {
+    "url": "/assets/models-opt/icebreaker.glb",
+    "boxInView": true,
+    "isLegacy": true
+  },
+  "consoleErrors": [
+    "lod0: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "lod1: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "lod2: Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ]
+}

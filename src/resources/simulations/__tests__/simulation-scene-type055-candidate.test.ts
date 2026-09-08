@@ -42,8 +42,9 @@ describe('type055 production activation keeps legacy fallback', () => {
   it('resolves the destroyer default from the versioned activation pointer, not a scene hard-code', () => {
     const activation = resolveVersionedDefault('destroyer');
     expect(matchActivatedType055Package(activation)).toEqual(TYPE055_NANCHANG_101_V2);
-    // icebreaker 已授权激活 xue-long-2 包（独立于 type055 匹配器）：055 匹配器对其 fail closed
-    expect(resolveVersionedDefault('icebreaker')?.packageId).toBe('xue-long-2');
+    // icebreaker 保持候选态（xue-long-2 未授权激活：验收门槛未闭合）；
+    // 055 匹配器对其 fail closed
+    expect(resolveVersionedDefault('icebreaker')).toBeNull();
     expect(matchActivatedType055Package(resolveVersionedDefault('icebreaker'))).toBeNull();
     expect(matchActivatedType055Package(null)).toBeNull();
     expect(matchActivatedType055Package({

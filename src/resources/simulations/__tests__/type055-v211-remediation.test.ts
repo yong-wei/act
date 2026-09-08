@@ -370,7 +370,7 @@ describe('F7: L0 clip-loop bindings mount inside useEffect (StrictMode-safe)', (
       path.join(process.cwd(), 'src/resources/simulations/components/semantic-bindings-rig.tsx'),
       'utf-8',
     );
-    const effectMatch = source.match(/useEffect\(\(\) => \{[\s\S]*?drive !== 'clip-loop'[\s\S]*?\}, \[mixer, animations, descriptor\]\)/);
+    const effectMatch = source.match(/useEffect\(\(\) => \{[\s\S]*?drive !== 'clip-loop'[\s\S]*?\}, \[mixer, animations, descriptor(?:, \w+)*\]\)/);
     expect(effectMatch).not.toBeNull();
     expect(effectMatch![0]).toContain('mixer.stopAllAction()');
     // useMemo 块内不得再有 clipAction/play 副作用

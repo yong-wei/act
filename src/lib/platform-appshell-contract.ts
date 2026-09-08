@@ -647,6 +647,15 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     removalCondition: 'The QA acceptance page is retired or moved under a governed review surface when the type055 package leaves candidate QA.',
   },
   {
+    routePattern: '/simulations/xue-long-2-candidate',
+    category: 'visual-review-surface',
+    type: 'visual-review-only',
+    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    reason: 'Xue-long-2 model-package QA acceptance page is a non-production visual capture surface excluded from navigation (candidate state before authorized activation).',
+    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
+    removalCondition: 'The QA acceptance page is retired or moved under a governed review surface when the xue-long-2 package leaves candidate QA.',
+  },
+  {
     routePattern: '/evidence/issue-979',
     category: 'visual-review-surface',
     type: 'visual-review-only',

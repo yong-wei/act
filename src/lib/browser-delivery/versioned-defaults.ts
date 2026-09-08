@@ -19,11 +19,9 @@ export const SIMULATION_VERSIONED_DEFAULTS: Partial<Record<SimulationModelId, Ve
     modelVersion: '2.1.3',
     baseUrl: '/assets/model-releases/type055-nanchang-101/v2.1.3',
   },
-  icebreaker: {
-    packageId: 'xue-long-2',
-    modelVersion: '0.1.0',
-    baseUrl: '/assets/model-releases/xue-long-2/v0.1.0',
-  },
+  // xue-long-2 v0.1.0 保持可逆候选态（spec: versioned-simulation-model-package-integration）：
+  // 激活门槛 = 三档+回退路径浏览器视觉验收 + 压缩重编码（上游发修订版后接收）。
+  // 候选验收面：/simulations/xue-long-2-candidate；激活 = 在此登记 icebreaker 指针。
 };
 
 export function resolveVersionedDefault(logicalId: SimulationModelId): VersionedDefaultActivation | null {
