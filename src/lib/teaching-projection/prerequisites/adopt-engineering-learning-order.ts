@@ -11,6 +11,7 @@ import {
   isEngineeringLearningOrderPredicate,
 } from './candidates';
 import {
+  type EngineeringLearningOrderDisposition,
   type EngineeringLearningOrderReceipt,
   type PrerequisiteAuthorDecision,
   type PrerequisiteCandidateRecord,
@@ -55,6 +56,14 @@ function pairKey(sourceId: string, targetId: string): string {
   return `${sourceId}\u001f${targetId}`;
 }
 
+function receiptCandidateNote(
+  relation: EngineeringLearningOrderRelation,
+  disposition: EngineeringLearningOrderDisposition,
+  snapshotHash: string,
+): string {
+  return `engineering learning-order ${relation.predicate} ${relation.id} is eligible for ACT teaching adoption; disposition=${disposition} snapshot=${snapshotHash}`;
+}
+
 export function adoptEngineeringLearningOrder(
   input: AdoptEngineeringLearningOrderInput,
 ): AdoptEngineeringLearningOrderResult {
@@ -67,7 +76,7 @@ export function adoptEngineeringLearningOrder(
   const decisions: PrerequisiteAuthorDecision[] = [];
   const receipts: EngineeringLearningOrderReceipt[] = [];
   const remainingForCandidates: Array<
-    EngineeringLearningOrderRelation & { scopeId: string }
+    EngineeringLearningOrderRelation & { scopeId: string; note?: string }
   > = [];
 
   const requiredPairs = input.teachingEdges
@@ -97,7 +106,11 @@ export function adoptEngineeringLearningOrder(
       && input.authorityIds.has(relation.targetId);
     if (!inAuthority) {
       receipts.push({ ...baseReceipt, disposition: 'rejected-not-authority', teachingPair: null });
-      remainingForCandidates.push({ ...relation, scopeId: input.scopeId });
+      remainingForCandidates.push({
+        ...relation,
+        scopeId: input.scopeId,
+        note: receiptCandidateNote(relation, 'rejected-not-authority', input.snapshotHash),
+      });
       continue;
     }
 
@@ -106,7 +119,11 @@ export function adoptEngineeringLearningOrder(
       && input.coreNodeIds.has(relation.targetId);
     if (!inCore) {
       receipts.push({ ...baseReceipt, disposition: 'rejected-not-core', teachingPair: null });
-      remainingForCandidates.push({ ...relation, scopeId: input.scopeId });
+      remainingForCandidates.push({
+        ...relation,
+        scopeId: input.scopeId,
+        note: receiptCandidateNote(relation, 'rejected-not-core', input.snapshotHash),
+      });
       continue;
     }
 
@@ -119,14 +136,18 @@ export function adoptEngineeringLearningOrder(
           disposition: 'already-teaching',
           teachingPair: { sourceNodeId: same.sourceNodeId, targetNodeId: same.targetNodeId },
         });
-      } else {
-        receipts.push({
-          ...baseReceipt,
-          disposition: 'exception-teaching-conflict',
-          teachingPair: { sourceNodeId: same.sourceNodeId, targetNodeId: same.targetNodeId },
-        });
+        continue;
       }
-      remainingForCandidates.push({ ...relation, scopeId: input.scopeId });
+      receipts.push({
+        ...baseReceipt,
+        disposition: 'exception-teaching-conflict',
+        teachingPair: { sourceNodeId: same.sourceNodeId, targetNodeId: same.targetNodeId },
+      });
+      remainingForCandidates.push({
+        ...relation,
+        scopeId: input.scopeId,
+        note: receiptCandidateNote(relation, 'exception-teaching-conflict', input.snapshotHash),
+      });
       continue;
     }
     if (opposite) {
@@ -135,7 +156,11 @@ export function adoptEngineeringLearningOrder(
         disposition: 'exception-teaching-conflict',
         teachingPair: { sourceNodeId: opposite.sourceNodeId, targetNodeId: opposite.targetNodeId },
       });
-      remainingForCandidates.push({ ...relation, scopeId: input.scopeId });
+      remainingForCandidates.push({
+        ...relation,
+        scopeId: input.scopeId,
+        note: receiptCandidateNote(relation, 'exception-teaching-conflict', input.snapshotHash),
+      });
       continue;
     }
 
@@ -149,7 +174,11 @@ export function adoptEngineeringLearningOrder(
     ];
     if (detectRequiredCycles(cycleProbe).length > 0) {
       receipts.push({ ...baseReceipt, disposition: 'rejected-cycle', teachingPair: null });
-      remainingForCandidates.push({ ...relation, scopeId: input.scopeId });
+      remainingForCandidates.push({
+        ...relation,
+        scopeId: input.scopeId,
+        note: receiptCandidateNote(relation, 'rejected-cycle', input.snapshotHash),
+      });
       continue;
     }
 

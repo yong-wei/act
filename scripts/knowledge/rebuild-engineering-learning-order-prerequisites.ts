@@ -6,7 +6,7 @@
  * Keeps the prior release on disk for rollback. Does not deploy production.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import {
@@ -131,6 +131,7 @@ function main(): void {
     );
   }
 
+  // Receipts live in hashed candidates/edges, not a post-stage sidecar.
   // This change already switched Git current.json. Rebuilds must pass
   // --activate to move the pointer again; default only stages the release.
   const activate = process.argv.includes('--activate');
@@ -139,23 +140,6 @@ function main(): void {
       activatedAt: '2026-09-08T04:00:00.000Z',
     })
     : readJson<unknown>(CURRENT);
-  const receiptPath = path.join(
-    ROOT,
-    STORE,
-    'releases',
-    staged.publicationId,
-    'engineering-learning-order-receipts.json',
-  );
-  writeFileSync(
-    receiptPath,
-    `${JSON.stringify({
-      contract: 'act-engineering-learning-order-receipts/v1',
-      snapshotHash: fixture.snapshot.replace(/^snap-/, ''),
-      priorPublicationId: pointer.publicationId,
-      publicationId: staged.publicationId,
-      receipts: merged.receipts,
-    }, null, 2)}\n`,
-  );
 
   process.stdout.write(`${JSON.stringify({
     priorPublicationId: pointer.publicationId,

@@ -118,6 +118,7 @@ export function candidatesFromEngineeringRelations(
     predicate: string;
     scopeId: string;
     id?: string;
+    note?: string | null;
   }[],
 ): PrerequisiteCandidateRecord[] {
   return sortBy(
@@ -127,9 +128,10 @@ export function candidatesFromEngineeringRelations(
         targetNodeId: rel.targetId,
         origin: 'ENGINEERING_RELATION',
         scopeId: rel.scopeId,
-        note: isEngineeringLearningOrderPredicate(rel.predicate)
-          ? `engineering learning-order ${rel.predicate}${rel.id ? ` ${rel.id}` : ''} is eligible for ACT teaching adoption`
-          : `engineering predicate ${rel.predicate} is not an ACT teaching prerequisite`,
+        note: rel.note
+          ?? (isEngineeringLearningOrderPredicate(rel.predicate)
+            ? `engineering learning-order ${rel.predicate}${rel.id ? ` ${rel.id}` : ''} is eligible for ACT teaching adoption`
+            : `engineering predicate ${rel.predicate} is not an ACT teaching prerequisite`),
       }),
     ),
     (c) => c.candidateId,

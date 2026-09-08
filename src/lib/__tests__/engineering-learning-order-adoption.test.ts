@@ -112,6 +112,8 @@ describe('engineering learning-order adoption (#2059)', () => {
     expect(adopted.adoptedEdges[0]?.candidateOrigin).toBe('ENGINEERING_RELATION');
     expect(adopted.adoptedEdges[0]?.strength).toBe('REQUIRED');
     expect(adopted.candidates).toHaveLength(1);
+    expect(adopted.candidates[0]?.note).toContain('disposition=rejected-not-core');
+    expect(adopted.candidates[0]?.note).toContain(`snapshot=${SNAPSHOT}`);
     expect(adopted.receipts.every((r) => r.snapshotHash === SNAPSHOT)).toBe(true);
     expect(adopted.receipts.every((r) => r.authorityReleaseId === AUTHORITY)).toBe(true);
   });
@@ -144,6 +146,8 @@ describe('engineering learning-order adoption (#2059)', () => {
     expect(adopted.adoptedEdges).toHaveLength(0);
     expect(adopted.receipts[0]?.disposition).toBe('exception-teaching-conflict');
     expect(adopted.candidates).toHaveLength(1);
+    expect(adopted.candidates[0]?.note).toContain('disposition=exception-teaching-conflict');
+    expect(adopted.candidates[0]?.note).toContain(`snapshot=${SNAPSHOT}`);
   });
 
   it('publishes adopted edges with receipts and keeps association-family candidates unpublished', () => {
@@ -236,9 +240,39 @@ describe('engineering learning-order adoption (#2059)', () => {
     expect(adopted[0]?.layer).toBe('ACT_TEACHING');
     expect(artifacts.candidates).toHaveLength(1);
     expect(artifacts.candidates[0]?.origin).toBe('ENGINEERING_RELATION');
+    expect(adopted[0]?.evidenceRefs).toEqual([
+      'engineering-relation:ctkg:m4-u2u5:prerequisite:adopt',
+    ]);
     expect(artifacts.projectionPrerequisites.some((e) => (
       e.sourceCanonicalId === 'node.laplace-transform'
       && e.targetCanonicalId === 'node.transfer-function'
     ))).toBe(true);
+
+    const tamperedCandidates = artifacts.candidates.map((candidate, index) => (
+      index === 0
+        ? {
+          ...candidate,
+          note: `${candidate.note ?? ''} tampered`,
+        }
+        : candidate
+    ));
+    const tampered = buildPrerequisitePublication({
+      scopeId: SCOPE,
+      authoringRevision: REVISION,
+      authorityReleaseId: AUTHORITY,
+      projectionCaptureId: 'proj-capture-1',
+      authorityNodes: coreNodes.map((n) => ({
+        canonicalId: n.canonicalId,
+        lifecycleStatus: 'active',
+      })),
+      coreNodes,
+      edges: merged.edges,
+      decisions: merged.decisions,
+      candidates: tamperedCandidates,
+    });
+    expect(tampered.manifest.publicationHash).not.toBe(artifacts.manifest.publicationHash);
+    expect(tampered.manifest.sourceHashes.candidates).not.toBe(
+      artifacts.manifest.sourceHashes.candidates,
+    );
   });
 });
