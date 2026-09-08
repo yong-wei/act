@@ -28,7 +28,7 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
   try { resolved = await resolvePublishedResourceFeature(ref); }
   catch (error) { rethrowIfNextDynamicError(error); }
   if (!resolved) {
-    return <PublishedResourcePage resource={{ title: '资源暂不可用', kindLabel: '资源引用', summary: '',
+    return <PublishedResourcePage key={`unavailable:${resourceId}`} resource={{ title: '资源暂不可用', kindLabel: '资源引用', summary: '',
       kind: 'reference-only', estimatedMinutes: null, knowledgeCount: 0,
       limitation: '该资源版本无法验证。请返回学习路径或知识图谱重新选择。' }} />;
   }
@@ -66,5 +66,5 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
     view.children = index.resources.filter((entry) => ids.has(entry.identity.resourceId))
       .map((entry) => ({ title: entry.title, href: buildPublishedResourceHref({ ...entry.identity, resourceVersion: entry.version }) }));
   }
-  return <PublishedResourcePage resource={view} />;
+  return <PublishedResourcePage key={JSON.stringify([resourceId, resource.version, query.pathId, query.nodeId])} resource={view} />;
 }

@@ -698,6 +698,7 @@ export interface AdaptiveLearningPathCandidatePoolDiagnostics {
     status: 'loaded' | 'empty' | 'missing' | 'error';
     count: number;
     reason: string | null;
+    skipCounts?: Record<string, number>;
   }>;
   excluded: {
     total: number;
@@ -1140,6 +1141,9 @@ const AUTOCONTROL_RESOURCE_MIX: ResourceNode['type'][] = [
   'checkpoint',
   'ai_intervention',
   'konling',
+  'video',
+  'audio',
+  'exercise',
 ];
 
 const FOUNDATION_RESOURCE_MIX: ResourceNode['type'][] = [
@@ -1152,6 +1156,9 @@ const FOUNDATION_RESOURCE_MIX: ResourceNode['type'][] = [
   'checkpoint',
   'reflection',
   'konling',
+  'video',
+  'audio',
+  'exercise',
 ];
 
 function packageResourceMix(
@@ -1497,6 +1504,9 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       'checkpoint',
       'ai_intervention',
       'konling',
+      'video',
+      'audio',
+      'exercise',
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
@@ -1548,6 +1558,9 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       'slides',
       'lesson_step',
       'konling',
+      'video',
+      'audio',
+      'exercise',
     ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
@@ -3396,7 +3409,8 @@ function nodeMatchesGoal(
     ...deficits.filter((deficit) => deficit.kind === 'knowledge').map((deficit) => deficit.targetId),
     ...expandedRegisteredKnowledgeTargets(goal, deficits, registeredGoal),
   ]);
-  const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag));
+  const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag))
+    || knowledgeTargets.has(node.id);
   const coversGraphTarget = Boolean(
     graphContext?.targetGraphNodeIds.length &&
     graphTargetsCoveredByPlanningUnit(planningUnit, graphContext).length > 0,
@@ -3435,7 +3449,8 @@ function planningUnitCoversKnowledgeTarget(
   target: string,
 ): boolean {
   const coverageRefs = new Set(knowledgeTargetCoverageRefs(goal, target));
-  return planningUnit.knowledgeCoverage.some((tag) => coverageRefs.has(tag));
+  return planningUnit.knowledgeCoverage.some((tag) => coverageRefs.has(tag))
+    || coverageRefs.has(planningUnit.resourceNodeId);
 }
 
 function scoreNode(
@@ -4117,7 +4132,10 @@ function uncoveredGoalTargets(
     ));
     return graphContext.targetGraphNodeIds.filter((target) => !coveredGraphTargets.has(target));
   }
-  const coveredKnowledge = new Set(planningUnits.flatMap((unit) => unit.knowledgeCoverage));
+  const coveredKnowledge = new Set([
+    ...planningUnits.flatMap((unit) => unit.knowledgeCoverage),
+    ...planningUnits.map((unit) => unit.resourceNodeId),
+  ]);
   const coveredCompetencies = new Set(planningUnits.flatMap((unit) => Object.keys(unit.abilityImpact)));
   return [
     ...goal.knowledgeTargets.filter((target) =>

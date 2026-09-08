@@ -1,9 +1,8 @@
 /**
  * ACT REQUIRED prerequisite reverse traversal path planner (#1275).
  *
- * Hard edges: ACT_TEACHING REQUIRED only.
- * RECOMMENDED: advisory annotations.
- * Engineering relations: optional context only, never hard edges.
+ * Hard edges: ACT_TEACHING REQUIRED only, including adopted engineering
+ * learning-order edges. Unadopted engineering relations stay context only.
  *
  * When a learning-path consumer-activation pointer is present (#1276), the
  * planner binds to that Authority/Projection combination (or its pin).
@@ -29,6 +28,7 @@ import {
   type ActPathPlanResult,
   type ActPathProjectedResourceCandidate,
   type ActPathRecommendedAnnotation,
+  type PrerequisiteOrderSource,
 } from './contracts';
 
 function compareCodePoint(a: string, b: string): number {
@@ -51,6 +51,7 @@ interface NormalizedEdge {
   status: string | null;
   authorityReleaseId: string | null;
   projectionCaptureId: string | null;
+  candidateOrigin: string | null;
 }
 
 interface NormalizedCoreNode {
@@ -109,6 +110,7 @@ function normalizeEdge(raw: ActPathPlannerInput['prerequisites'][number]): Norma
     status: readString(row.status),
     authorityReleaseId: readString(row.authorityReleaseId),
     projectionCaptureId: readString(row.projectionCaptureId),
+    candidateOrigin: readString(row.candidateOrigin),
   };
 }
 
@@ -138,6 +140,32 @@ function isActTeachingRecommended(edge: NormalizedEdge): boolean {
   if (edge.strength !== 'RECOMMENDED') return false;
   if (edge.layer !== 'ACT_TEACHING') return false;
   return true;
+}
+
+function orderSourceOf(edge: NormalizedEdge): PrerequisiteOrderSource {
+  if (
+    edge.candidateOrigin === 'ENGINEERING_RELATION'
+    || (edge.evidenceRef?.startsWith('engineering-relation:') ?? false)
+  ) {
+    return 'engineering-learning-order';
+  }
+  return 'teaching-design';
+}
+
+function countRequiredOrderSources(edges: readonly NormalizedEdge[]): {
+  teachingOrderConstraintCount: number;
+  engineeringLearningOrderConstraintCount: number;
+} {
+  let teachingOrderConstraintCount = 0;
+  let engineeringLearningOrderConstraintCount = 0;
+  for (const edge of edges) {
+    if (orderSourceOf(edge) === 'engineering-learning-order') {
+      engineeringLearningOrderConstraintCount += 1;
+    } else {
+      teachingOrderConstraintCount += 1;
+    }
+  }
+  return { teachingOrderConstraintCount, engineeringLearningOrderConstraintCount };
 }
 
 /**
@@ -549,16 +577,19 @@ export function planActPrerequisitePath(
     .map(normalizeEdge)
     .filter((edge): edge is NormalizedEdge => edge != null);
 
-  // Diagnostics before projection identity: count raw ACT_TEACHING shapes only.
-  const rawRequiredCount = edges.filter(isActTeachingRequired).length;
+  const rawRequired = edges.filter(isActTeachingRequired);
   const rawRecommendedCount = edges.filter(isActTeachingRecommended).length;
+  const rawOrderSources = countRequiredOrderSources(rawRequired);
 
   const baseDiagnostics = {
     reverseTraversalCount: 0,
     masteredExcludedCount: 0,
-    requiredEdgeCount: rawRequiredCount,
+    requiredEdgeCount: rawRequired.length,
     recommendedEdgeCount: rawRecommendedCount,
     engineeringRelationCount: engineeringContext.length,
+    teachingOrderConstraintCount: rawOrderSources.teachingOrderConstraintCount,
+    engineeringLearningOrderConstraintCount:
+      rawOrderSources.engineeringLearningOrderConstraintCount,
   };
 
   // 1) Projection / Authority / scope identity
@@ -647,6 +678,11 @@ export function planActPrerequisitePath(
   );
   baseDiagnostics.requiredEdgeCount = requiredEdges.length;
   baseDiagnostics.recommendedEdgeCount = recommendedEdges.length;
+  const boundOrderSources = countRequiredOrderSources(requiredEdges);
+  baseDiagnostics.teachingOrderConstraintCount =
+    boundOrderSources.teachingOrderConstraintCount;
+  baseDiagnostics.engineeringLearningOrderConstraintCount =
+    boundOrderSources.engineeringLearningOrderConstraintCount;
 
   if (!goalCanonicalId) {
     return buildEmptyResult(
@@ -766,6 +802,16 @@ export function planActPrerequisitePath(
 
   // 3) Reverse REQUIRED traversal
   const traversal = reverseTraverseRequired(goalCanonicalId, requiredEdges);
+  const pathOrderSources = countRequiredOrderSources(
+    requiredEdges.filter((edge) => (
+      traversal.nodes.has(edge.sourceCanonicalId)
+      && traversal.nodes.has(edge.targetCanonicalId)
+    )),
+  );
+  baseDiagnostics.teachingOrderConstraintCount =
+    pathOrderSources.teachingOrderConstraintCount;
+  baseDiagnostics.engineeringLearningOrderConstraintCount =
+    pathOrderSources.engineeringLearningOrderConstraintCount;
   if (traversal.blockers.some((b) => b.code === 'required-cycle')) {
     return buildEmptyResult(
       input,
@@ -876,10 +922,12 @@ export function planActPrerequisitePath(
       strength: 'RECOMMENDED' as const,
       evidenceRef: edge.evidenceRef,
       rationale: edge.rationale,
+      orderSource: orderSourceOf(edge),
     }))
     .sort((a, b) => compareCodePoint(a.edgeId, b.edgeId));
 
   const requiredByTarget = new Map<string, string[]>();
+  const orderSourceByTarget = new Map<string, Record<string, PrerequisiteOrderSource>>();
   for (const edge of requiredEdges) {
     if (!unmetSet.has(edge.targetCanonicalId)) continue;
     if (!unmetSet.has(edge.sourceCanonicalId) && !mastered.has(edge.sourceCanonicalId)) {
@@ -892,6 +940,9 @@ export function planActPrerequisitePath(
     const list = requiredByTarget.get(edge.targetCanonicalId) ?? [];
     list.push(edge.sourceCanonicalId);
     requiredByTarget.set(edge.targetCanonicalId, list);
+    const sources = orderSourceByTarget.get(edge.targetCanonicalId) ?? {};
+    sources[edge.sourceCanonicalId] = orderSourceOf(edge);
+    orderSourceByTarget.set(edge.targetCanonicalId, sources);
   }
   for (const [key, list] of requiredByTarget) {
     requiredByTarget.set(key, [...new Set(list)].sort(compareCodePoint));
@@ -970,6 +1021,7 @@ export function planActPrerequisitePath(
           ...new Set(evidenceByTarget.get(canonicalId) ?? []),
         ].sort(compareCodePoint),
         selectionReason: selection.selected.selectionReason,
+        orderSourceByPrerequisite: orderSourceByTarget.get(canonicalId) ?? {},
       },
     });
   }

@@ -50,8 +50,8 @@ Authority 与 Teaching Projection 均绑定 `snap-b7c6992d75e8d62585f4fffe7d5075
 
 ## 相关 Issue
 
-- #2046：`path-planning-consumes-teaching-projection`，act-dev2 正在实施。调查快照 HEAD `ab7ac917f5` 为未验证 WIP，11 文件、710 行新增；后续 dirty mapper、destination contract 与测试持续变化。不得修改其工作树或将该快照视为已完成。
-- #2059：`consume-engineering-prerequisite-order`，ready，尚无实施提交。
+- 初始调查快照：#2046 `path-planning-consumes-teaching-projection`，当时 act-dev2 正在实施。调查快照 HEAD `ab7ac917f5` 为未验证 WIP，11 文件、710 行新增；后续 dirty mapper、destination contract 与测试持续变化。不得修改其工作树或将该快照视为已完成。
+- 初始调查快照：#2059 `consume-engineering-prerequisite-order`，当时 ready、尚无实施提交。两项后续合并结果见文末。
 - #2058/#2044/#2055/#2047 已合入本分支基线。
 
 ## 环境与验证基线
@@ -61,3 +61,7 @@ Authority 与 Teaching Projection 均绑定 `snap-b7c6992d75e8d62585f4fffe7d5075
 `rtk npm run typecheck` 的 TypeScript 编译未报告错误，worker graph passed，web graph 报告既存 `production-to-documentation` / `web-includes-documentation`，涉及 3-6/4-1/4-3 作者态 JSON 和 learning-goal-assessment-coverage-matrix，不能称为完整门禁通过。
 
 `rtk openspec validate redesign-graph-path-experience --type change --strict` 通过。图谱浏览器基线位于 `.tmp/graph-path-redesign/`；认证状态文件独立保存且不作为证据提交。
+
+## 上游实施结果整合
+
+调查期间 #2046 与 #2059 已关闭，提交 `d281a2eb9a`、`232c0223e8` 已整合到本分支。保留发布工件、历史归档、runtime 来源身份合并、exercise 与媒体目的地兼容修复；统一发布索引继续承担生成和修订路径的资源装配。旧全局 canonical bridge 改为显式纯查询，连续请求的目标覆盖由生产索引回归验证。直接工程顺序与已采用教学先修分别保留出处，当前资源路径不叠加两套相同顺序。

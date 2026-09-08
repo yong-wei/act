@@ -105,6 +105,6 @@ export function resolvePublishedGoalCanonicalIds(
   const requested = new Set(targets);
   return [...new Set(index.resources.flatMap((resource) => {
     const exactCardTarget = resource.type === 'card' && requested.has(resource.identity.resourceId.slice('act:card:'.length));
-    return resource.canonicalIds.filter((id) => requested.has(id) || exactCardTarget);
+    return resource.canonicalIds.filter((id) => requested.has(id) || requested.has(resource.identity.resourceId) || exactCardTarget);
   }))].sort();
 }

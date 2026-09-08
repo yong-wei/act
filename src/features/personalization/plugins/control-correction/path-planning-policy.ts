@@ -21,6 +21,9 @@ export const CONTROL_CORRECTION_PATH_PLANNING_POLICY: PersonalizationPluginPathP
     'checkpoint',
     'ai_intervention',
     'konling',
+    'video',
+    'audio',
+    'exercise',
   ],
   knowledgeTargetAliases: {
     'control-correction:time-domain-targets': [

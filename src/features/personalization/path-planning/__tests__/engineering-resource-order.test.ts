@@ -59,6 +59,38 @@ function canonicalNode(registry: ResourceNodeRegistry, canonicalId: string): Res
 }
 
 describe('engineering resource prerequisite order', () => {
+  it('keeps an exact resource target when other resources share all its knowledge points', () => {
+    const alternative = feature('alternative', ['B'], '2'.repeat(64));
+    alternative.estimatedMinutes = 1;
+    const requested = feature('requested', ['B'], '3'.repeat(64));
+    const generate = (recommendable: boolean) => planLearningPath({
+      studentId: 'exact-resource', goal: { id: 'exact-resource', title: '目标资源', knowledgeTargets: ['act:card:requested'] },
+      learnerState: null,
+      registry: attachedRegistry(indexFor([feature('a', ['A'], '1'.repeat(64)), alternative, { ...requested, recommendable }],
+        [{ id: 'a-b', sourceId: 'A', targetId: 'B', origin: 'ENGINEERING' }])),
+      constraints: { timeBudgetMinutes: 35, privacyScopes: ['student-visible'], device: 'desktop' },
+    });
+    const plan = generate(true);
+    expect(plan.mainPath.map(node => node.resourceFeatureRef?.resourceId)).toEqual(['act:card:a', 'act:card:requested']);
+    expect(generate(false).mainPath).toEqual([]);
+  });
+
+  it('resolves exact published resource targets per request without leaking aliases between plans', () => {
+    const registry = attachedRegistry();
+    const generate = (target: string) => planLearningPath({
+      studentId: 'alias-proof', goal: { id: 'alias-proof', title: target, knowledgeTargets: [target] },
+      learnerState: null, registry,
+      constraints: { timeBudgetMinutes: 35, privacyScopes: ['student-visible'], device: 'desktop' },
+    });
+    const resourceTarget = generate('act:card:c');
+    expect(resourceTarget.mainPath.map(node => node.resourceFeatureRef?.resourceId)).toEqual([
+      'act:card:a', 'act:card:b', 'act:card:c',
+    ]);
+    expect(generate('act:card:missing').mainPath).toEqual([]);
+    expect(generate('act:card:a').mainPath.map(node => node.resourceFeatureRef?.resourceId)).toEqual(['act:card:a']);
+    expect(registry.nodes.every(node => node.planningMetadata.goalCoverage === undefined)).toBe(true);
+  });
+
   it('continues through earlier prerequisites when one resource covers both B and C', () => {
     const registry = attachedRegistry(indexFor([feature('a', ['A'], '1'.repeat(64)), feature('bc', ['B', 'C'], '2'.repeat(64))]));
     const ordered = resolveEngineeringResourceOrder({ registry, rankedCandidates: registry.nodes, targetCanonicalIds: ['C'] });

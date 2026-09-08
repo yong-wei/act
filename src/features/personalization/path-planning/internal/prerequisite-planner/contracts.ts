@@ -18,7 +18,10 @@ import type {
 import type {
   PrerequisiteEdgePublished,
   CoreNodePublished,
+  PrerequisiteOrderSource,
 } from '@/lib/teaching-projection/prerequisites/contracts';
+
+export type { PrerequisiteOrderSource };
 
 export const ACT_PREREQUISITE_PATH_PLANNER_VERSION =
   'act-prerequisite-path-planner/v1' as const;
@@ -136,6 +139,7 @@ export interface ActPathPlannerInput {
         evidenceRefs?: readonly string[] | null;
         rationale?: string | null;
         scopeId?: string | null;
+        candidateOrigin?: string | null;
       }
   )[];
   /** Core teaching nodes with pathEligible / projection status. */
@@ -195,6 +199,7 @@ export interface ActPathRecommendedAnnotation {
   strength: 'RECOMMENDED';
   evidenceRef: string | null;
   rationale: string | null;
+  orderSource: PrerequisiteOrderSource;
 }
 
 export interface ActPathSelectedResource {
@@ -236,6 +241,7 @@ export interface ActPathPlanNode {
     canonicalId: string;
     prerequisiteEvidence: string[];
     selectionReason: string;
+    orderSourceByPrerequisite: Record<string, PrerequisiteOrderSource>;
   };
 }
 
@@ -263,5 +269,7 @@ export interface ActPathPlanResult {
     requiredEdgeCount: number;
     recommendedEdgeCount: number;
     engineeringRelationCount: number;
+    teachingOrderConstraintCount: number;
+    engineeringLearningOrderConstraintCount: number;
   };
 }

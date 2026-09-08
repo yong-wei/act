@@ -267,6 +267,16 @@ function sampleRegistry() {
         prerequisiteNodeIds: ['arena-task:task-second-order-lead-pid'],
       },
     ],
+    exercises: [
+      {
+        id: 'bode-drill',
+        title: '伯德图习题',
+        sourceRef: 'act:exercise:bode-drill',
+        knowledgeNodeIds: ['kn-bode'],
+        launchTarget: '/profile/growth?prompt=bode-drill',
+        renderTarget: '/profile/growth?prompt=bode-drill',
+      },
+    ],
   });
 }
 

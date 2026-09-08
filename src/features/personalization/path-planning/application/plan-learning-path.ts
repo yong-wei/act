@@ -25,14 +25,18 @@ export function loadGoalContext(input: PlanLearningPathInput): GoalContext {
   const index = input.registry.featureIndex;
   if (!index) return { input };
   const registered = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const resourceIds = new Set(index.resources.map(resource => resource.identity.resourceId));
   const groups = input.goal.knowledgeTargets.map((target) => ({ target,
+    exactResourceId: resourceIds.has(target) ? target : null,
     ids: resolvePublishedGoalCanonicalIds(index, [target, ...(registered?.knowledgeTargetAliases?.[target] ?? [])]),
   }));
   const canonicalTargetIds = [...new Set(groups.flatMap((group) => group.ids))];
   return { canonicalTargetIds, input: { ...input, registry: { ...input.registry,
     nodes: input.registry.nodes.map((node) => node.publishedResource ? {
       ...node, planningMetadata: { ...node.planningMetadata,
-        goalCoverage: groups.filter((group) => group.ids.some((id) => node.publishedResource!.canonicalIds.includes(id)))
+        goalCoverage: groups.filter((group) => group.exactResourceId
+          ? node.publishedResource!.identity.resourceId === group.exactResourceId
+          : group.ids.some((id) => node.publishedResource!.canonicalIds.includes(id)))
           .map((group) => group.target),
       },
     } : node),

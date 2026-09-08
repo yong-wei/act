@@ -1,0 +1,1262 @@
+[
+  {
+    "prerequisiteId": "00fc68e3429e791b8543eaac0fbb4546bf9e27d28b55e13f922387ca9c9002eb",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8faec57bdc84832ad60e5a1f",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "04e8aceaeb892377d2b2bd3dd83eda57da68916e5119f25b66fa0afff2a5ca87",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "0754f0561b53de41ff8c40dcc8ab5868776d623ef304cb2d55492037e930b37d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-f08a86bd6385c786c529ef21",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#从时域指标到参数与极点趋势：本课的轻量桥接",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "086b596af5e1450db6683c7192b1d4f1764865cdb5e8f5eb69ad5fc2062d1b0b",
+    "sourceCanonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+    "targetCanonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹的定义与两大判据",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "09b25600f9fde6cc1a792e44479bf5223925a4063c699a11659d01cd9d23e5a7",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:035444f94f4424d5970ede61",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "0a9bc0708d12cc3c7754f80069af4b296dfc867141a53fe8e5fb06f0f2b51eb0",
+    "sourceCanonicalId": "ctkg:v3e-canonical-78695c721c91aa330f0e5865",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "0af34e4834b39f2fb1d8872f8abf4bb9be8f2558a38d3bd28f92dc589b3d810b",
+    "sourceCanonicalId": "ctkg:v3e-canonical-e0f8b5b944d35f3734b18b73",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "0c3124f049d929a74069924129da7b8b32a329f2707c8c00a81a8b31b5c8dc2e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-55fca34fcd2e39da4be3dc23",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "1078ac5f478d44c84e854de8f89b62311b75060976e6420c9aaac97fbda5241d",
+    "sourceCanonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+    "targetCanonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#法则7：复极点出射角",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "110b35955db792edd5e59061c69388c47dc9931ab9386e74fe099fccf18f167f",
+    "sourceCanonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "11d49ef23bc302c8b700a98efbe052ef9587014bb1fac71e977e08d68788a86b",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:ccb5acec3157456299b69ddf",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "13c5f1c203b27b4e2c6204f54bfe0ad92b3cb336afb6b277e4e3bdb3422f43c2",
+    "sourceCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L16",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "1555074259fa836d9511ec47ef1d2915b906328a6a1a2fc3c25b6e2ca6c9e64e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "162603414264bc9ef23a7a23238d07d9613ed11c08178ce1a2c01fd11f433a86",
+    "sourceCanonicalId": "ctkg:v3e-object-a3766ceadc2ea4fc53517bc2",
+    "targetCanonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-3/design/4-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "16a7bcf91053dcdd3ee0ab673df1bc5af0be39abe6fbdb6d9461fe0a285403ab",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:0afb07f025ba35cf5979d332",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "1aab92c7ec4ef8e8e31dce5bf0d3b8a463ab9426b0d8323423900711bfc57b2c",
+    "sourceCanonicalId": "ctkg:v3e-canonical-d5ecd8a503bab6ad1e14ea25",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "1c18a0a60cdec4f3a4984c5ebc533e765713ae01f91aef47561bf065fd47baa6",
+    "sourceCanonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "1d3f6feb7b8f04b8cb34885373f9fae9b8037ef668efb79a2b7c363d7a8e825d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-d36c1349ce7b90a16e2d6d12",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "200f451410b4006eedc967dd5ac1918da7843ff0ab1f43bbcc4e93eb2b5029c4",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:31f8a3f2feef56daedb6f9a6",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "20e8505ba849cc8546c66dd6e9b7245454416df1c3ee137df1f0f78ffaa762b0",
+    "sourceCanonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "20f624364f289d7d81d8745a2b5b894440209e9a54177973099b8a30e7276ff8",
+    "sourceCanonicalId": "ctkg:v3e-object-4560252fd8979f3d44aed7bf",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2119d147fe5d670716cc283f2c05f3e9c6bc5fa47da9d74d8c8298663f4fc6a2",
+    "sourceCanonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+    "targetCanonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#法则5：分离点与汇合点",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "21265fa3e47f36dd2a358f695535f65695aa04e51da6654b929164fcee054873",
+    "sourceCanonicalId": "ctkg:v3e-object-dc0fa52ddfaabaca13395678",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2255ac65c6fa2e03a82b8fcfd384f91e8f11a4c3b7e4b1b99879f3419f27eeb6",
+    "sourceCanonicalId": "ctkg:m3-v2h:canonical-object:4f950081fe58a82e7fdd42aa",
+    "targetCanonicalId": "ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/3-1/design/3-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "25e3aa7f7ef39b83edb1473a0c5502b42228ad4cc31b546dd751c837d91dbbbb",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "27d898f7ed4f9cbb521ea4053f23ce530649d250d993fc4cfc25b47f6aa028a4",
+    "sourceCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "targetCanonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹的定义与两大判据",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "27f0f9fcb4a2c8cf6db59e838ae5e58ad43e629e428055321c4f1c7033297217",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:b810a9c95ee221ddcdc4fa74",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "290a6513d89dc23e26159840fae4d2f6a41d359a868362276d72240b61b4c7a2",
+    "sourceCanonicalId": "ctc:modeling-3abaeb7a2cbf8d77276bf23c",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2b3d080ddaf00661933f76fd7878d7dfb0186b84e541ec702c8e3af6315b5309",
+    "sourceCanonicalId": "ctkg:v3e-canonical-86852f5270a37631267f6b50",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2b71086bb2856614447482de851a9ddaea419afa4faef16130a470208111b027",
+    "sourceCanonicalId": "ctkg:v3e-object-a7074b9889f65949ecaf5fe6",
+    "targetCanonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-3/design/4-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2c29c2cad276bfe0dcc6cdd1f01a53c9361273370761b79802d56e6944a8e574",
+    "sourceCanonicalId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+    "targetCanonicalId": "ctkg:m3-v2h:source-object:552dae0908d9e549e2e5603d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/3-1/design/3-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2cd405d224b5848a44893a210332fb0ba187c6f24f08346ea37e183ff74f1727",
+    "sourceCanonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+    "targetCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹完整法则",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2d6c06bf370a8a0ca58cc9953da8ea7bf502c06660825169faae0a827586b106",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:4f003638ec565661ed87c75c",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2dfa7d74ccf3f8dfb8452a3a0d904c3fc7d35c0435f773014dafe3a4f5724e03",
+    "sourceCanonicalId": "ctkg:v3e-canonical-854230c9b89910d971d8ccd6",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2e5c4fd878df40b579727e2eb9cb31a914a7cc8a7edb668e37b631fa644d8894",
+    "sourceCanonicalId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2e9b71cd29dd465fad85fe4a731206964224654683d184ccfca0853f4d6c8441",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6f6471247adcf055ff64569a",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "2edc995b4a37aa28a4a88348abf68524f7c151e86875475f2b0a08a6615c18b7",
+    "sourceCanonicalId": "ctc:modeling-c499b71d908bd8fe4124c533",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "38e22afd0fd61f31a904b3c3eb04903a533b9d64ac65dfe27374f3188356f327",
+    "sourceCanonicalId": "ctkg:v3e-canonical-551c764f95f34a26e428f397",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "3af19a16316ad45654409a5f85a2cab819c69d65ea80510dde29fd1aa009c10a",
+    "sourceCanonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "3ecac9be7e1c54db9c522da30b276caa0772017ac9a76d92a2d606b31b76a0a3",
+    "sourceCanonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "3ed4b2b38a907b4a190a04efe15eaacc528715f7c48a2ff0bac0da1431646b46",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:61290f3ec779c443f0bb411b",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "3f71aed6d01be563f4c86874cc988856276331b5f3d17cdf41952e4253979993",
+    "sourceCanonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "targetCanonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹的定义与两大判据",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "3fe9e317da6e05e9a733f2a91261a583e64c44327de379c96453d079485c4f0e",
+    "sourceCanonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+    "targetCanonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹的定义与两大判据",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "402a6d97facaef4a70e3dde61315475d6379bc3bb1d34582c08b5a5fd93695b7",
+    "sourceCanonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+    "targetCanonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹的定义与两大判据",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "41ab0095c13a23a22798cdc3fc8f16415f236d3c9bce666b911b54733d4aa1f0",
+    "sourceCanonicalId": "ctkg:m3-v1i:canonical-object:b119bbd291671093ed77e284",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "422acb843b9f1fa485caa3c431462d9af3b04cc250f4742184e7efb9d47d3e6a",
+    "sourceCanonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+    "targetCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹完整法则",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "43a1fee8339472d923249c9aa1bae03465ac6eb21894b2a5c4874b7909b582fa",
+    "sourceCanonicalId": "ctkg:v3e-canonical-9be29f3ad2006d157a5360b5",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "44383cb161188511bf854148815a62fa8d2cbfa048d25d641ccb740e6e8b2d9a",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:13a498eacc1208a6a6511c62",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "451bf95942e5c835ac5c9df76ebe4f2277025be489e3759e1fc854c3ce5824f7",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "47257118ebf4e49fdb0eb366f744d081d5b6bf8ac3a93dffd086ddf5af0fab15",
+    "sourceCanonicalId": "ctc:modeling-e4d5dedd058631068d41b452",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "47e9bafee4a39daf7efba0b23ed58a7b1555a66c1b81fdb11891a071ff4fbb2a",
+    "sourceCanonicalId": "ctkg:v3e-canonical-56682e1afa9b66eaf1f2d1c6",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "49253a0eafc1a4155cc9c046ab1c7f30b3f13729f6cc7f258bd092997ffa4174",
+    "sourceCanonicalId": "ctkg:v3e-canonical-cb8b7f85d00d8e2dd1a5e38b",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "4a2566aad270a9e35185c3b4deed9667b31c8fb75fb55a56985c6b4a3dca6e79",
+    "sourceCanonicalId": "ctkg:v3e-canonical-3b13b6a4e2f356794270639c",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "4d54ee17309aae9a49364989f7b09379f6e77cec608f9f76fc6619fdc9e538a0",
+    "sourceCanonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "4d7eba5571d233d9d424e6ddcf882d0cbff29118267867076ee24412194ee326",
+    "sourceCanonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "4e88fea7fbe799e18e0f3cba86b816de3abd733fd9740a21cae5ab925574a2f3",
+    "sourceCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "538420a5547bf882367d24327b76db6cfa23ac82fefb38c48e9bc0360af4f32e",
+    "sourceCanonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "54483b04870c8f3a47867f913d4a4c6918e3f0ed038c9c53f55f9edec7ac2ed7",
+    "sourceCanonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "554fb17f354f20a0329bac6a6a1dd054f13e712f7cbab3a2e85366ba7b69c14f",
+    "sourceCanonicalId": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#从时域指标到参数与极点趋势：本课的轻量桥接",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "5c9455c125b06519b876635b9e1421aa0655eb1b535099ee8b9c38a0cbcfed07",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:451d032cc728cc7b2d78777d",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "5f793b7adef477501f7af1828f1b0bb34932d50feb74aed9ec4807617f4b4699",
+    "sourceCanonicalId": "ctc:modeling-70629af71e754aac8b740638",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "5fc676ced25d180b4f34f27062297ee28d8447e61ac847abd1d4ea7e2baf0dd4",
+    "sourceCanonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "64dd31f17acecbe8268868160052cddefe79fa5e5c3fddb0d0620fbbf8fd024c",
+    "sourceCanonicalId": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "67d77ca2f2eafffd3128cba37a2bcba2b93d36ab2adb47374793cae7e7e557cb",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:0fe6155260a10d0af099f4b5",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "69ed448b02b40ca97787c6985006ed9ad01839830725d29046b7a21e63f6d685",
+    "sourceCanonicalId": "ctc:modeling-70b08efcf6bb085e05de94cd",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "6d57a2d36554dc460c3c89c13c4dfd11fa1a1996bfffbf62fd128b6b82e0ac36",
+    "sourceCanonicalId": "ctkg:v3e-canonical-368d65c22b394c81a41d3889",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "70dd533edd9cc19c3c6fde44a9b12532c5fab8f7a5c4346faeefa95389ef587c",
+    "sourceCanonicalId": "ctkg:v3e-object-5963fddc1b8b31af98ba44bd",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "748804e5669a24e3e149a897ac1b2ef49d9a5f4b8eb53f7b0b0a6c4602f72998",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:ae84642eb0750cfa27a1c828",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "77b63c4b1798da9db54b596c769307ba24c64bcb7f61377855a89dc08a90da7a",
+    "sourceCanonicalId": "ctkg:v3e-canonical-851a158dcbe62a71c788bda3",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "7ab4008a84c8637fbdfc2a772213c66f79643dae03ed4f475517fd721feca220",
+    "sourceCanonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L31",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "7aea408e1e0e428eff36b1c4cb17d9387e995aaadabcf4abe10a0c92b9c910a9",
+    "sourceCanonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "7b0092e43ec6f08013d80aaf03197b47a51aea5917b05acd985be35ecc058070",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "7b627e288c533a25980d1386dfa5c38c2a89840e46e1860ca1d631460bac0918",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:2797d3aa913c9ee0950a3794",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "7d2fea776d8aeea3082f78055f0be9fbcea88eedf2cfe345f2495ef7d3d97169",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "7e39805d51999304d7d24bf879effd750826a03a11d2742c1b59fa275a6bc297",
+    "sourceCanonicalId": "ctkg:v3e-canonical-5d7dffbbd218f48f41c0cc6a",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "7ff403de0a9264894364e6242ac53e1067e5d4492f2881078c91609270f93a5d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-98fc8b71b67b8cf3f3266d2b",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "80fbad65f9028f904ee21fc4f98afbebea503f04245662a9b7347fff0fb6bb4d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-e0a76371093ca8d4b5c46a22",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "81a8c57d732d5eebb5364611b3feb6878fe7665ba4c8a1ce5c737eac980da409",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:65b1a16a65775a8037305769",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "82645d9a09ba2abec6b5f317057a2426e932c0e99789f943350a2d13fc126dc2",
+    "sourceCanonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "848a11f72ed21feed6b3b53a9e6f4f8134d8d19bec90bda5f0b31440101752a0",
+    "sourceCanonicalId": "ctkg:v3e-object-4acaa9cd561fa2c6178265f9",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "851098986b1c9f1b648f1c9f999e181744e7d969c04dd18a558022e452c02763",
+    "sourceCanonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+    "targetCanonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹完整法则",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "86241bafc1ad097f32857db7933c3f71860ea84950491d9394d51da0d2af34c6",
+    "sourceCanonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+    "targetCanonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#法则2：分支数、连续性与实轴对称",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "8cbc777bcc22bb314a038521c0e71cdbdac56eb6b4d96369a38e201990c6ca00",
+    "sourceCanonicalId": "ctkg:v3e-canonical-dba237257bd95d0ab0c5de53",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "8e332823b99b2a0dcd038bf21e2bf1a084915e0feaa161a5408f81d2346d7fe1",
+    "sourceCanonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+    "targetCanonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹的定义与两大判据",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "8efdf7bd28a8c2b83371cc922f978835bfd951ee53fcd264d73f9d1ab25d4e0d",
+    "sourceCanonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+    "targetCanonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "907555817642a9c6838370f3dfa943321d59a800d3ccc23b8afd43a944e48107",
+    "sourceCanonicalId": "ctk:0c105ab10af8292335522f90",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "965d41c7eaef1d29d23dcca0879fb81b68848bf957dacc5d4414037a84a6258d",
+    "sourceCanonicalId": "ctc:modeling-5727d74e4587f60fe7b011ae",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "967d0d8edcb3493386432fb8d038656f830df57a2c2b2858234e77e56cf78027",
+    "sourceCanonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+    "targetCanonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#法则8：复零点入射角",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "9dee5ce4a5636004007d489338a974c22c88177ea893de83e944509d36edef13",
+    "sourceCanonicalId": "ctkg:m3-v2m:canonical-object:ed9e310c8366ebba4c13be8f",
+    "targetCanonicalId": "ctkg:m3-v2f:source-object:3bafca95ac7466898d2033f8",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/syllabus-refactor/blueprint.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "a081850eb36d8c1172b2fa40e3c52b1c932f3947dc4991e39d60dd15b2dd2963",
+    "sourceCanonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "targetCanonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-3#普通根轨迹的定义与两大判据",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "a53de624e2aa857b9bc6e74e96c0f8874417885ccbf17799e7ba5958cbf098af",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "a55287e16ddd85aea85a953a0e0fe77c797bb4e27a109f77dd602e972e69f14e",
+    "sourceCanonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+    "targetCanonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-3/design/4-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "a772c238e1ab3eecdb6d09819719a4a9d64def200c789d80f6f38050737247b2",
+    "sourceCanonicalId": "ctkg:v3e-canonical-45043b8933ab8fcb71969904",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "a9f5d85551ffcff0b6c51ca0e2c53ed9d672d73ba4f3601d6f2bad14e5343681",
+    "sourceCanonicalId": "ctkg:v3e-object-797bab2e3f6333e28dccf1c6",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "aec0e5217a3b55c3a28b9079830574d30f8b739db5587ca72f2ee2debb2dc7a3",
+    "sourceCanonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b00711b2873844e743570267de9e9f4ce09d8b07e00e406fbe3f5a8ed951d52b",
+    "sourceCanonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-2/design/2-2-handout.md#L334",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b016efc2a31ed34799c9c3051f1e7ad828dd14944f82eeba0612f103df1ca281",
+    "sourceCanonicalId": "ctkg:v3e-canonical-259e4d04c7f9211c6b29d16e",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b0dd6a5f60bf2177951151c89483ae660cd7788c213c7993ac2cba2be96d476b",
+    "sourceCanonicalId": "ctc:modeling-afa39b57a646673e84b55f09",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b1ffbfb341e10e89f48b341a8a80c7b2f42ecc32a42effe1e4ad552cff83c305",
+    "sourceCanonicalId": "ctkg:v3e-object-975104325de56502a2faf011",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b549b6244dac6f0436e5543ce4b89c40dc290a9154b03b4f2b99da6580385c13",
+    "sourceCanonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b64c6ccfd4d7656a4ea670f26041fca8b03f3ad105b31e148166808571de9c19",
+    "sourceCanonicalId": "ctk:bf0f5469bda82070fe86211a",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b6d233211e4b73240e13f799f0965f2f6f4549187733c791d2a763683cee9c45",
+    "sourceCanonicalId": "ctkg:v3e-canonical-aa1dece70208ff2fe929e715",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b9749be852aecb7123fd0fb6df64f1bf429a74c83baf0857db88a6a8d8ee4dde",
+    "sourceCanonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "b97e390e30e17572ddf8757ee6fa9113134bafdc967cf300f3adc6680486eff7",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "bb732c2f00212b8faf58ae1e3f81dd743c139766bce5f020b47eaf0f0825d464",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8a3d45ec41cfb63af9253e89",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "bcf6c57adec1d32c0f2459f7e6a2db0a3e80f5815663cef6dad936b04e275224",
+    "sourceCanonicalId": "ctkg:m3-v2f:canonical-object:d9aed6663ee8a2f6ebc83e10",
+    "targetCanonicalId": "ctkg:m3-v2m:canonical-object:ed9e310c8366ebba4c13be8f",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/syllabus-refactor/blueprint.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "bd420301ea29ea8273e9d942705f198b17c403990cab9d5f4daa357b495e3c2c",
+    "sourceCanonicalId": "ctkg:v3e-canonical-3e670eae83dcdd8c322cd8f3",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "bdfe234e3f92454135a79964ccfedeced82bd1d7e9b9269ead34d7d711e47308",
+    "sourceCanonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+    "targetCanonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-2#两个边界点对应两种不同的临界根结构",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "c0176c7a72b80f847220a52b8dddb514304a5035926daf2f47fb6ab364850189",
+    "sourceCanonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "c23099ccb85afe0ee09873f7fb1dfc3670196928b279d743730f7d7e733097e9",
+    "sourceCanonicalId": "ctc:modeling-c343400ab0cc996416d5a18a",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "c3be715086a869dec0264095a67deb70009180d353a1b312c2ebb54b80949271",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "c3d65dd9a0b50ba333b42e9a0107daaec45d8adca51499291cbeb0cf1df783a5",
+    "sourceCanonicalId": "ctkg:v3e-canonical-9271b97eacc626af5c1b2e88",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "c3f08e12b61754f28be8f6f49e13aaee3bb42f11194583af68fc56e49d7575d9",
+    "sourceCanonicalId": "ctkg:v3e-canonical-5fe5f2b25ce2e3dcb200be7f",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "ca15a7f97c9c86f2704eb012157436459df4f38110222c76fa867fceb01bc2c7",
+    "sourceCanonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L32",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "ca176fd7e1d1b871373c7842f57b267761c758e99e996a07ff324678faecfa94",
+    "sourceCanonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+    "targetCanonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/3-1/design/3-1-handout.md#L118",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "cd71916f9f8ce68730bb9b54c48f743db2fbd200ce34eb2561238e0529862257",
+    "sourceCanonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "ce6273332f7fa221a1344f226a319b0bf355b57f796aa720b6d99737fdd8ddc5",
+    "sourceCanonicalId": "ctkg:v3e-canonical-59d77ba1b394f063dcdb3ccf",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "ce84579a269854529a742edbe3ed8431e20367ae586d2d5d7c3012d9da3d8d83",
+    "sourceCanonicalId": "ctkg:v3e-object-6432b546cffc7431c0043607",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "d1ea79bad13c9feccf9e24559134470f1ac8394a27175c067a0eeea675a266b8",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "d58acbc5e5303c60a6bd04a8780a67685b06f711d63999ab5dfa9bb1b499a258",
+    "sourceCanonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+    "targetCanonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-3/design/4-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "d64013dd0db888002a653b3c3a9327abc8925c47c32f824fe42333a2fff46852",
+    "sourceCanonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-4/design/2-4-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "d73a3f8f6a36810cc6cd83dfd6020508f8dd26cc66ac98d81021b6cc9e8b1f79",
+    "sourceCanonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "d913c0b521aa05ae59306ae02cdc20f514c8a9dd7dbac6c97af74cad8aaa646d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-bfcd15f043984b100be886fe",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "d98f5b1e9146e3280a5887c6f05e72077035374fd7c2ec79a002bd4f69fdf886",
+    "sourceCanonicalId": "ctkg:v3e-canonical-74b29ecc40c6189d1377bff8",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "dadc4261e94bd43795b7c8f7dd78583a7ab188a24f1bae27e1185fb47a8f0982",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:b36a0cecee2ff56394ebfc5d",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "de233802283fcea0791932ff4ef4ce5e404ccc0ed3543257b8b7defb7ee5a6ae",
+    "sourceCanonicalId": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "e05c1054a4149f03fb279e20477087b9f66ef5d27a8406bcb989204e95709262",
+    "sourceCanonicalId": "ctkg:v3e-canonical-76aa807571663d71e7bb5979",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:3-1#问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "e8908943d42cf3c6b8ea1eb8997421600f83a694cfbb5b92a88be5015532d8f0",
+    "sourceCanonicalId": "ctkg:v3e-object-c4299241b84b2202369102e2",
+    "targetCanonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/5-1/design/5-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "e93f280da1c2825b7c3b8d648b48da1d29c5567f2cf02d079feb19032015157a",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:304f9ab2e355cfe88da137b3",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "e9b76bb91ae96de98f033f8dcfee16f6df09b8b9cf1d346888f228d2c6dcbdcd",
+    "sourceCanonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/4-2/design/4-2-handout.md#L29",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "eae17f59f4974c9e0fef908ec223858ea98829781a11443c0077e51c64f19539",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:03e84e6868be470e89d7b189",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "eb2d47a96a52fd79b966f6b5e2e2e9098d063076ed743c10bb9798cba2483453",
+    "sourceCanonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "ed1c585a77a6ffac136e4e54c723dbe136582960eec2d0dc8294c1b966ab61ab",
+    "sourceCanonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "efa3c219327550b9ca0a61b428bd49ef9fa37eb2296817c5e00e76826efae690",
+    "sourceCanonicalId": "ctc:modeling-f6875bd8fd4ad1250d8980d8",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "f5a5fa93b65d711e4c87016e07108052557aec179e47ed72ebd85739295fa045",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:78740004842c245ca3b0aefd",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:2-2#时域分析的研究对象、任务与典型输入",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "fa6a4fbcb0e170fa710fb025f359dcf27c1844853aed62606b68b2f7ad5e55af",
+    "sourceCanonicalId": "ctc:modeling-1897336a3fe60360d9fea3aa",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "fac9307e9d10245ea3262772127d94397ede4a908270faab62602343c96206b3",
+    "sourceCanonicalId": "ctk:eec4fcc124511436f12c5a2b",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "fad8f0b06d5c3225f66ee6afe878de9a9aa6976e0d7b7925bfb065888dd80a4c",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:53d87e756f397e73b6739eea",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-3/design/2-3-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "fb7f702501b0fc32bc92dd14fe6c593321558650dca6f81ea249a24d2e6fa372",
+    "sourceCanonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "src:course-content/authoring/lessons/2-1/design/2-1-handout.md",
+    "rationale": null,
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-05a4a301b15a301603f051266f133542",
+    "sourceCanonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "targetCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:36df9d0845cb229a22f51f61",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:36df9d0845cb229a22f51f61",
+    "scopeId": "act-control-theory"
+  }
+]

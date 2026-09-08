@@ -1,6 +1,7 @@
 {
   "sourceBase": "f455748e1d763bea110add70f64fe9d1a506d6f8",
-  "scope": "graph-path-redesign working branch",
+  "integrationBase": "232c0223e8",
+  "scope": "graph-path-redesign final controls layout",
   "states": [
     {
       "name": "01-root-2d-light",
@@ -10,6 +11,7 @@
       "labelCount": 14,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -17,19 +19,21 @@
       "dimension": "2d",
       "nodeCount": 35,
       "edgeCount": 3,
-      "labelCount": 34,
+      "labelCount": 31,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
       "name": "03-stability-node-selected",
       "dimension": "2d",
-      "nodeCount": 27,
-      "edgeCount": 3,
-      "labelCount": 24,
+      "nodeCount": 24,
+      "edgeCount": 0,
+      "labelCount": 23,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -37,9 +41,10 @@
       "dimension": "2d",
       "nodeCount": 35,
       "edgeCount": 3,
-      "labelCount": 27,
+      "labelCount": 25,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -47,9 +52,10 @@
       "dimension": "3d",
       "nodeCount": 35,
       "edgeCount": 3,
-      "labelCount": 30,
+      "labelCount": 26,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -57,9 +63,10 @@
       "dimension": "3d",
       "nodeCount": 35,
       "edgeCount": 3,
-      "labelCount": 17,
+      "labelCount": 14,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -67,9 +74,10 @@
       "dimension": "2d",
       "nodeCount": 35,
       "edgeCount": 3,
-      "labelCount": 27,
+      "labelCount": 25,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -77,9 +85,10 @@
       "dimension": "3d",
       "nodeCount": 35,
       "edgeCount": 3,
-      "labelCount": 16,
+      "labelCount": 14,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -87,9 +96,10 @@
       "dimension": "3d",
       "nodeCount": 35,
       "edgeCount": 3,
-      "labelCount": 16,
+      "labelCount": 14,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -100,6 +110,7 @@
       "labelCount": 6,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -110,6 +121,7 @@
       "labelCount": 4,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     },
     {
@@ -117,12 +129,31 @@
       "dimension": "2d",
       "nodeCount": 6,
       "edgeCount": 3,
-      "labelCount": 4,
+      "labelCount": 2,
       "outsideLabelCount": 0,
       "clippedLabelCount": 0,
+      "obscuredLabelCount": 0,
       "bodyOverflow": false
     }
   ],
   "failures": [],
-  "browserErrors": []
+  "browserErrors": [],
+  "resourceNavigation": {
+    "mode": "real resource pages with mocked journey API",
+    "results": [
+      {
+        "resource": "card",
+        "journeyControls": 1,
+        "completionRequests": 1
+      },
+      {
+        "resource": "infographic",
+        "journeyControls": 1,
+        "completionRequests": 2
+      }
+    ],
+    "completionRequestCount": 2,
+    "errors": []
+  },
+  "failedKnowledgeRequests": []
 }

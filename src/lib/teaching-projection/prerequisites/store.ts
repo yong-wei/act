@@ -20,6 +20,11 @@ import { dirname, join } from 'node:path';
 
 import { projectionCanonicalJson, projectionSha256 } from '../hash';
 import {
+  assertEngineeringAdoptedReceipts,
+  EngineeringLearningOrderReceiptError,
+} from './adopt-engineering-learning-order';
+import { projectionDigest } from './hash-compat';
+import {
   type PrerequisitePublicationArtifacts,
   type PrerequisitePublicationBuildInput,
 } from './contracts';
@@ -114,7 +119,7 @@ export function loadPrerequisitePublication(
       `missing publication ${publicationId}`,
     );
   }
-  return {
+  const artifacts: PrerequisitePublicationArtifacts = {
     coreNodes: readJsonFile(join(dir, 'core-nodes.json')),
     edges: readJsonFile(join(dir, 'edges.json')),
     candidates: readJsonFile(join(dir, 'candidates.json')),
@@ -126,6 +131,53 @@ export function loadPrerequisitePublication(
       join(dir, 'projection-prerequisites.json'),
     ),
   };
+  const receiptsPath = join(dir, 'engineering-learning-order-receipts.json');
+  const receiptsHash = artifacts.manifest.sourceHashes.receipts;
+  const adoptedEngineering = artifacts.edges.some((edge) => (
+    edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
+  ));
+  if (adoptedEngineering && !receiptsHash) {
+    throw new PrerequisiteBuildError(
+      'hash-invalid',
+      `publication ${publicationId} adopted engineering order without hashed receipts`,
+    );
+  }
+  if (receiptsHash) {
+    if (!existsSync(receiptsPath)) {
+      throw new PrerequisiteBuildError(
+        'hash-invalid',
+        `publication ${publicationId} is missing hashed engineering-learning-order receipts`,
+      );
+    }
+    const receipts = readJsonFile<NonNullable<PrerequisitePublicationArtifacts['receipts']>>(
+      receiptsPath,
+    );
+    if (projectionDigest(receipts) !== receiptsHash) {
+      throw new PrerequisiteBuildError(
+        'hash-invalid',
+        `publication ${publicationId} engineering-learning-order receipts drifted`,
+      );
+    }
+    artifacts.receipts = receipts;
+  } else if (existsSync(receiptsPath)) {
+    throw new PrerequisiteBuildError(
+      'hash-invalid',
+      `publication ${publicationId} has unbound engineering-learning-order receipts`,
+    );
+  }
+  try {
+    assertEngineeringAdoptedReceipts({
+      edges: artifacts.edges,
+      receipts: artifacts.receipts,
+      authorityReleaseId: artifacts.manifest.authorityReleaseId,
+    });
+  } catch (error) {
+    if (error instanceof EngineeringLearningOrderReceiptError) {
+      throw new PrerequisiteBuildError('hash-invalid', error.message);
+    }
+    throw error;
+  }
+  return artifacts;
 }
 
 function stageArtifacts(
@@ -176,6 +228,12 @@ function stageArtifacts(
       join(stagingDir, 'projection-prerequisites.json'),
       artifacts.projectionPrerequisites,
     );
+    if (artifacts.receipts && artifacts.receipts.length > 0) {
+      writeJsonAtomic(
+        join(stagingDir, 'engineering-learning-order-receipts.json'),
+        artifacts.receipts,
+      );
+    }
     prerequisiteStoreFs.renameSync(stagingDir, dir);
   } catch (error) {
     try {
