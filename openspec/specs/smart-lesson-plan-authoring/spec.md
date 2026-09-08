@@ -469,13 +469,13 @@ BOPPPS 阶段生成的时长类校验失败 SHALL 获得针对性的自动 corre
 
 #### Scenario: Correction 收到具体时长修正约束
 
-- **WHEN** `stage-step-duration-mismatch` 触发自动 correction
+- **WHEN** `stage-step-duration-mismatch` 是该次校验的唯一错误并触发自动 correction
 - **THEN** correction context SHALL 携带阶段名称、实际步骤时长总和与目标阶段时长（以已确认 outline 的阶段时长为权威）
 - **AND** correction 要求 SHALL 保持步骤数量、顺序、标题、教学活动、评价内容与 `sourceBindings` 不变，每个步骤时长为正整数且总和严格等于目标阶段时长，优先保持原时长比例，不扩展教学语义。
 
-#### Scenario: 时长信息无法可靠解析时诚实退化
+#### Scenario: 时长信息无法可靠解析或并存其他校验错误时诚实退化
 
-- **WHEN** 错误 message 不携带可解析的实际值/目标值，或权威 outline 阶段时长不可得
+- **WHEN** 错误 message 不携带可解析的实际值/目标值，权威 outline 阶段时长不可得，或该次校验还并存其他 schema 错误
 - **THEN** correction SHALL 退化使用通用 schema 修正提示
 - **AND** SHALL NOT 猜测或伪造时长数值。
 

@@ -608,7 +608,12 @@ function buildCorrectionContext(
   receipt: SmartLessonValidationReceipt,
 ) {
   if (stage === 'OUTLINE') return null;
-  const stepMismatch = receipt.issues.find((issue) => issue.code === 'stage-step-duration-mismatch');
+  // 仅当步骤时长错误是该次校验的唯一错误时才锁定字段做定向修正；
+  // 并存其他 schema 错误时锁定指令会阻止修复，退化通用修正。
+  const [soleIssue] = receipt.issues;
+  const stepMismatch = receipt.issues.length === 1 && soleIssue?.code === 'stage-step-duration-mismatch'
+    ? soleIssue
+    : null;
   if (stepMismatch) {
     const match = STAGE_STEP_DURATION_MISMATCH_MESSAGE.exec(stepMismatch.message);
     let expectedMinutes: number;
