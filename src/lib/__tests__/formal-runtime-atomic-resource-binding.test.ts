@@ -697,6 +697,8 @@ describe('formal-runtime-atomic-resource-binding', () => {
       'course-content/runtime/knowledge/authority-domain-shards/current.json',
     ), 'utf8'));
     expect(current.releaseId).toBe('ctr:release:control-theory-engineering-v0.37');
-    expect(current.teachingProjectionId).toBeNull();
+    // r5 起 current 选择器绑定 teaching projection（#2061 换绑 r6 的 proj-3ec9c4a4）；
+    // 契约要求 id 与 hash 始终一致绑定，不得单侧篡改。
+    expect(current.teachingProjectionId).toBe(`proj-${current.teachingProjectionHash}`);
   });
 });

@@ -12,7 +12,7 @@ import {
 } from '@/lib/ai/provider-settings';
 
 describe('AI provider settings', () => {
-  it('uses Qwen3.6 as the default SiliconFlow model and keeps the requested alternatives', () => {
+  it('uses Qwen3.5 as the default SiliconFlow model and keeps the requested alternatives', () => {
     const settings = getDefaultAIProviderSettings({
       AI_PROVIDER: 'siliconflow',
       AI_BASE_URL: 'https://api.siliconflow.cn/v1',
@@ -21,7 +21,7 @@ describe('AI provider settings', () => {
     const siliconflow = settings.providers[0];
 
     expect(settings.activeProvider).toBe('siliconflow');
-    expect(siliconflow?.selectedModel).toBe('Qwen/Qwen3.6-35B-A3B');
+    expect(siliconflow?.selectedModel).toBe('Qwen/Qwen3.5-35B-A3B');
     expect(siliconflow).toMatchObject({
       providerKind: 'openai-compatible',
       authMode: 'bearer-api-key',

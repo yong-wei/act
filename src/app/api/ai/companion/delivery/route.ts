@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 import { authOptions } from '@/lib/auth';
 import { runCompanionProactiveTurn } from '@/features/ai/companion/proactive-turn';
 import { isExpired, type CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
-import { readAdaptiveAttemptContext, type AdaptiveAttemptContextDb } from '@/features/assessment/adaptive-attempt-context';
+import { readAdaptiveAttemptContext, type AdaptiveAttemptContextDb } from '@/features/assessment/public-api';
 import { resolveGovernedRegistryCard } from '@/features/ai/companion/governed-registry-card';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';

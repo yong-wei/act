@@ -436,7 +436,8 @@ describe('Authority learning-content delivery', () => {
       snapshotHash: shardEnvelope.snapshotHash,
     });
     expect(classification.status).toBe('available');
-    expect(manifest.nodes.length).toBeGreaterThanOrEqual(1236);
+    // r6 快照（snap-b7c6992d）退役 4 个 v0.22 继承成员后为 1234（#2058 退役裁决）。
+    expect(manifest.nodes.length).toBeGreaterThanOrEqual(1234);
     const overlay = JSON.parse(
       readFileSync(join(REPO_ROOT, 'course-content/runtime/knowledge/teaching-projection/domain-fragments/current.json'), 'utf8'),
     ) as { projectionId: string; projectionHash: string };

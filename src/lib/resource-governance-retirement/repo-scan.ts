@@ -51,6 +51,8 @@ function walkFiles(absDir: string, repoRoot: string, acc: string[]): void {
         || name === '.next'
         || name === 'dist'
         || name === 'coverage'
+        // 本地会话缓存不入 git 树；live 扫描必须与 revision 扫描同口径。
+        || name === '.buddy-cache'
       ) {
         continue;
       }

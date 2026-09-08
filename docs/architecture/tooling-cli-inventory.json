@@ -1,8 +1,8 @@
 {
   "$comment": "Revision-bound active tooling CLI inventory. Source identity is the Git revision containing this file. Classifies every package.json script plus the CI and git-hook gates. Directory presence or command name alone never qualifies an entry as active; unknown entries block deletion until an owner confirms.",
   "canonicalGates": {
-    "verify:commit": "npm run typecheck && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
-    "verify:push": "npm run typecheck && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
+    "verify:commit": "npm run typecheck && npm run typecheck:konling-scripts && npm run verify:teacher-ai-grading-sensitive-files && npm run verify:new-resource-semantics -- --staged && npm run verify:portrait-v2-primary -- --staged && npm run test:portrait-v2-primary-usage-command",
+    "verify:push": "npm run typecheck && npm run typecheck:konling-scripts && npm run verify:portrait-v2-primary && npm run test:portrait-v2-primary-usage-command",
     "typecheck": "tsx ./scripts/typescript-graphs/run.ts --graph production",
     "ciEntryPoints": [
       "lint",
@@ -441,6 +441,31 @@
         "traffic-cost:observe": {
           "status": "active",
           "target": "scripts/runtime-traffic-cost.ts"
+        },
+        "konling:blind-audit:fixture": {
+          "status": "active",
+          "target": "scripts/konling-blind-audit/run-fixture.ts",
+          "note": "Konling blind-audit / fair-experiment harness (Issues #1820/#1947 line); local evidence tooling, not a production gate"
+        },
+        "konling:blind-audit:live": {
+          "status": "active",
+          "target": "scripts/konling-blind-audit/run-live.ts",
+          "note": "Konling blind-audit / fair-experiment harness (Issues #1820/#1947 line); local evidence tooling, not a production gate"
+        },
+        "konling:fair-experiment:fixture": {
+          "status": "active",
+          "target": "scripts/konling-fair-experiment/run-fixture.ts",
+          "note": "Konling blind-audit / fair-experiment harness (Issues #1820/#1947 line); local evidence tooling, not a production gate"
+        },
+        "konling:fair-experiment:live": {
+          "status": "active",
+          "target": "scripts/konling-fair-experiment/run-live.ts",
+          "note": "Konling blind-audit / fair-experiment harness (Issues #1820/#1947 line); local evidence tooling, not a production gate"
+        },
+        "konling:fair-experiment:replay": {
+          "status": "active",
+          "target": "scripts/konling-fair-experiment/replay-scoring.ts",
+          "note": "Konling blind-audit / fair-experiment harness (Issues #1820/#1947 line); local evidence tooling, not a production gate"
         }
       }
     },
@@ -512,6 +537,11 @@
         "verify:architecture-closure": {
           "status": "active",
           "target": "scripts/architecture-closure.ts"
+        },
+        "census:post-convergence": {
+          "status": "active",
+          "target": "scripts/architecture-census.ts",
+          "note": "Post-convergence successor capture checkpoint variant (PR #1892 / #1876 A2); same census target with --post-convergence"
         }
       }
     },
@@ -1147,6 +1177,11 @@
         "typecheck:worker": {
           "status": "active",
           "target": "scripts/typescript-graphs/run.ts"
+        },
+        "typecheck:konling-scripts": {
+          "status": "active",
+          "target": "tsconfig.konling-scripts.json",
+          "note": "Standalone tsc gate for konling experiment scripts (PR #1967); independent of the five graph commands"
         }
       }
     }
@@ -1209,7 +1244,7 @@
   ],
   "rollback": "Restore a retired alias by re-adding its package.json script line (identical target and cli invocation are recorded in the retired entries). No selector, deployment, receipt or database state is touched by this consolidation.",
   "sourceIdentity": {
-    "captureDenominatorSha256": "99b86c0b9bc4e2d3ca907c181717831a857ab8bcf11f71342c277e947dd3a25a",
+    "captureDenominatorSha256": "4d41efa9f960ddb01ffa292c408a994ac74aa367668a0a889c3e49369534a66b",
     "note": "captureDenominatorSha256 binds this inventory to its full capture denominator: the package.json scripts object (sorted), the git blob sha1 of every declared target file, the documented direct-invoke command list, and the direct-invoke operator identities parsed from scripts/README.md and AGENTS.md. Any later change to command bodies, target script contents, documented invocations, or inventory classification without an identity refresh fails closed in tooling-cli-inventory.test.ts via workspace and git-HEAD double comparison. Refresh with: npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts"
   },
   "documentedDirectEntries": [

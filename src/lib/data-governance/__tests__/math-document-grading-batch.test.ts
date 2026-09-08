@@ -133,9 +133,11 @@ describe('question-scoped grading batch orchestration', () => {
         submission: {
           assignmentRevisionId: 'revision-1',
           frozenAudienceClassId: 'class-1',
-          state: 'SUBMITTED',
+          // dda125c0 起批改合格尝试扩大到进行中提交。
+          state: { in: ['SUBMITTED', 'IN_PROGRESS'] },
         },
       },
+      gradingRuns: { none: { state: { in: ['QUEUED', 'RUNNING', 'AWAITING_REVIEW', 'APPROVED'] } } },
     });
     replay = { ...first.batch, items: first.items, jobs: [first.batch.job] };
     const second = await createQuestionScopedGradingBatch({

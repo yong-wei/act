@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   agentToolRunFindMany: vi.fn(),
 }));
 
+vi.mock('server-only', () => ({}));
 vi.mock('next-auth', () => ({ getServerSession: mocks.getServerSession }));
 vi.mock('@/lib/auth', () => ({ authOptions: {} }));
 vi.mock('@/lib/prisma', () => ({

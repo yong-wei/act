@@ -199,11 +199,14 @@ describe('shared knowledge graph edge presentation', () => {
     expect(visible.map((edge) => edge.relationIds[0])).toEqual(['inside']);
 
     const system = readFileSync(join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'), 'utf8');
-    expect(system.match(/nodes=\{displayNodes\}/g)).toHaveLength(2);
-    expect(system.match(/links=\{renderDisplayLinks\}/g)).toHaveLength(2);
+    // #2052 起 2D/3D 合并为单一 KnowledgeGraphRuntimeCanvas（dimension prop 切换），
+    // 同一可见子集由单组件同一 props 保证，不再有双 renderer JSX。
+    expect(system.match(/nodes=\{displayNodes\}/g)).toHaveLength(1);
+    expect(system.match(/links=\{renderDisplayLinks\}/g)).toHaveLength(1);
     expect(system).toContain('selectKnowledgeGraphFocusedPresentationLinks');
-    expect(system.match(/presentationLinks=\{canonicalPresentationLinks\}/g)).toHaveLength(2);
-    expect(system.match(/selectedCorridorEmphasis=\{selectedCorridorEmphasis\}/g)).toHaveLength(2);
+    expect(system.match(/presentationLinks=\{canonicalPresentationLinks\}/g)).toHaveLength(1);
+    expect(system.match(/selectedCorridorEmphasis=\{selectedCorridorEmphasis\}/g)).toHaveLength(1);
+    expect(system).toContain("dimension={viewMode === '3D' ? '3d' : '2d'}");
     expect(system).toContain('deriveSelectedKnowledgeGraphCorridor');
     expect(system).toContain('adjacentDomainNavigations={(selectedCorridor?.adjacentDomainNavigations ?? [])');
     expect(system).toContain('isKnowledgeGraphTeacherReviewRole(viewerRole)');

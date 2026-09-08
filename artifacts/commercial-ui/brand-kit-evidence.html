@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Instrument Atlas Brand Kit Evidence</title>
+  <style>
+    :root {
+      --platform-brand-canvas: 220 54% 6%;
+      --platform-brand-surface-1: 220 42% 10%;
+      --platform-brand-surface-2: 219 34% 14%;
+      --platform-brand-elevated: 218 30% 18%;
+      --platform-brand-hairline: 210 18% 32%;
+      --platform-brand-trace-accent: 190 86% 58%;
+      --platform-brand-muted-accent: 208 24% 58%;
+      --platform-brand-danger: 0 74% 58%;
+      --platform-brand-success: 154 66% 46%;
+      --platform-brand-focus-ring: 190 90% 64%;
+      --platform-brand-evidence: 42 88% 58%;
+      --platform-brand-report-output: 262 62% 68%;
+      color-scheme: dark;
+    }
+
+    [data-template="light"] {
+      --platform-brand-canvas: 196 45% 96%;
+      --platform-brand-surface-1: 195 38% 99%;
+      --platform-brand-surface-2: 196 42% 94%;
+      --platform-brand-elevated: 190 34% 91%;
+      --platform-brand-hairline: 195 22% 72%;
+      --platform-brand-trace-accent: 194 76% 38%;
+      --platform-brand-muted-accent: 204 20% 46%;
+      --platform-brand-danger: 0 70% 46%;
+      --platform-brand-success: 156 60% 32%;
+      --platform-brand-focus-ring: 194 78% 42%;
+      --platform-brand-evidence: 38 86% 42%;
+      --platform-brand-report-output: 262 48% 42%;
+      color-scheme: light;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: hsl(var(--platform-brand-canvas));
+      color: hsl(var(--platform-brand-muted-accent));
+    }
+    .board {
+      min-height: 100vh;
+      padding: 24px;
+      background:
+        linear-gradient(90deg, hsl(var(--platform-brand-hairline) / 0.16) 1px, transparent 1px),
+        linear-gradient(0deg, hsl(var(--platform-brand-hairline) / 0.14) 1px, transparent 1px),
+        hsl(var(--platform-brand-canvas));
+      background-size: 32px 32px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+      border: 1px solid hsl(var(--platform-brand-hairline));
+      background: hsl(var(--platform-brand-surface-1) / 0.92);
+      padding: 16px;
+    }
+    .lockup { width: 260px; max-width: 58vw; }
+    .brand-image {
+      display: block;
+      object-fit: contain;
+      border: 1px solid hsl(var(--platform-brand-hairline) / 0.54);
+      background: hsl(var(--platform-brand-elevated) / 0.42);
+    }
+    .template {
+      color: hsl(var(--platform-brand-trace-accent));
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .surface {
+      min-height: 210px;
+      border: 1px solid hsl(var(--platform-brand-hairline));
+      background: hsl(var(--platform-brand-surface-1) / 0.92);
+      padding: 16px;
+      box-shadow: 0 18px 44px hsl(var(--platform-brand-canvas) / 0.22);
+    }
+    .surface:focus-within {
+      outline: 3px solid hsl(var(--platform-brand-focus-ring));
+      outline-offset: 3px;
+    }
+    .surface:nth-child(2n) { background: hsl(var(--platform-brand-surface-2) / 0.94); }
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid hsl(var(--platform-brand-hairline) / 0.74);
+      padding-bottom: 10px;
+    }
+    .badge { width: 72px; height: 40px; }
+    h2 {
+      margin: 12px 0 8px;
+      color: hsl(var(--platform-brand-trace-accent));
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0;
+      color: hsl(var(--platform-brand-muted-accent));
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .readout {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric {
+      border: 1px solid hsl(var(--platform-brand-hairline) / 0.74);
+      background: hsl(var(--platform-brand-elevated) / 0.82);
+      padding: 10px;
+    }
+    .metric strong {
+      display: block;
+      color: hsl(var(--platform-brand-evidence));
+      font-size: 18px;
+    }
+    .metric span {
+      color: hsl(var(--platform-brand-muted-accent));
+      font-size: 11px;
+    }
+    .metric[data-state="danger"] strong { color: hsl(var(--platform-brand-danger)); }
+    .trace {
+      height: 4px;
+      margin-top: 14px;
+      background: linear-gradient(90deg, hsl(var(--platform-brand-trace-accent)), hsl(var(--platform-brand-success)), hsl(var(--platform-brand-report-output)));
+    }
+    @media (max-width: 760px) {
+      .board { padding: 14px; }
+      .header { align-items: flex-start; flex-direction: column; }
+      .grid { grid-template-columns: 1fr; }
+      .surface { min-height: 190px; }
+    }
+  </style>
+</head>
+<body data-template="dark">
+  <main class="board" data-brand-evidence-board>
+    <header class="header">
+      <img class="lockup brand-image" data-brand-asset="horizontal-lockup" src="../../public/assets/platform-brand/horizontal-lockup.svg" alt="Instrument Atlas lockup">
+      <div class="template" data-template-label>dark instrument template</div>
+    </header>
+    <section class="grid" aria-label="Brand application surfaces">
+      <article class="surface" data-surface="navigation">
+        <div class="topline"><span class="template">navigation</span><img class="badge brand-image" data-brand-asset="route-badge" src="../../public/assets/platform-brand/route-badge.svg" alt="Route badge"></div>
+        <h2>Role route trace</h2>
+        <p>Product orientation, cockpit, contextual trace, and local tools use one governed route identity.</p>
+        <div class="readout"><div class="metric"><strong>04</strong><span>layers</span></div><div class="metric"><strong>06</strong><span>archetypes</span></div><div class="metric"><strong>2T</strong><span>themes</span></div></div><div class="trace"></div>
+      </article>
+      <article class="surface" data-surface="learner-record">
+        <div class="topline"><span class="template">learner record</span><img class="badge brand-image" data-brand-asset="data-snapshot" src="../../public/assets/platform-brand/data-snapshot.svg" alt="Data snapshot"></div>
+        <h2>Evidence provenance</h2>
+        <p>Learner state, confidence, and report readiness appear as evidence snapshots rather than generic metrics.</p>
+        <div class="readout"><div class="metric"><strong>87%</strong><span>coverage</span></div><div class="metric"><strong>12</strong><span>sources</span></div><div class="metric"><strong>OK</strong><span>state</span></div></div><div class="trace"></div>
+      </article>
+      <article class="surface" data-surface="mission-workspace">
+        <div class="topline"><span class="template">mission workspace</span><img class="badge brand-image" data-brand-asset="workbench-chrome" src="../../public/assets/platform-brand/workbench-chrome.svg" alt="Workbench chrome"></div>
+        <h2>Instrument desk</h2>
+        <p>Local tool chrome, command strips, and task traces use instrument roles instead of page-local controls.</p>
+        <div class="readout"><div class="metric"><strong>1/60</strong><span>clock</span></div><div class="metric"><strong>06</strong><span>steps</span></div><div class="metric"><strong>RUN</strong><span>mode</span></div></div><div class="trace"></div>
+      </article>
+      <article class="surface" data-surface="knowledge-data-map">
+        <div class="topline"><span class="template">knowledge data map</span><img class="badge brand-image" data-brand-asset="data-snapshot" src="../../public/assets/platform-brand/data-snapshot.svg" alt="Knowledge data snapshot"></div>
+        <h2>Relationship trace</h2>
+        <p>Graph state and data filters retain route identity, evidence status, and inspection tools.</p>
+        <div class="readout"><div class="metric"><strong>128</strong><span>nodes</span></div><div class="metric"><strong>21</strong><span>links</span></div><div class="metric"><strong>F1</strong><span>filter</span></div></div><div class="trace"></div>
+      </article>
+      <article class="surface" data-surface="operations-console">
+        <div class="topline"><span class="template">operations console</span><img class="badge brand-image" data-brand-asset="governance-snapshot" src="../../public/assets/platform-brand/governance-snapshot.svg" alt="Governance snapshot"></div>
+        <h2>Operator workflow</h2>
+        <p>Teacher and administrator actions present status lanes, next action, and governance scope.</p>
+        <div class="readout"><div class="metric"><strong>36</strong><span>classes</span></div><div class="metric" data-state="danger"><strong>08</strong><span>alerts</span></div><div class="metric"><strong>Q2</strong><span>scope</span></div></div><div class="trace"></div>
+      </article>
+      <article class="surface" data-surface="report-ledger">
+        <div class="topline"><span class="template">report ledger</span><img class="badge brand-image" data-brand-asset="report-watermark" src="../../public/assets/platform-brand/report-watermark.svg" alt="Report watermark"></div>
+        <h2>Export watermark</h2>
+        <p>Reports and governance snapshots use ledger identity, output state, and watermark roles.</p>
+        <div class="readout"><div class="metric"><strong>PDF</strong><span>output</span></div><div class="metric"><strong>24</strong><span>items</span></div><div class="metric"><strong>SIG</strong><span>stamp</span></div></div><div class="trace"></div>
+      </article>
+    </section>
+  </main>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const template = params.get('template') === 'light' ? 'light' : 'dark';
+    document.body.dataset.template = template;
+    document.querySelector('[data-template-label]').textContent = template === 'light' ? 'light paper template' : 'dark instrument template';
+  </script>
+</body>
+</html>

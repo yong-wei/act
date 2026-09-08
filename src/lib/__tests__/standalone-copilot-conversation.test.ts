@@ -31,7 +31,7 @@ describe('standalone Copilot conversation library', () => {
     expect(copilot).toContain('visibleKonlingMessages');
     expect(copilot).not.toContain('localStorage');
     expect(copilot).not.toContain('indexedDB');
-    expect(libraryHook).toContain("fetch('/api/ai/sessions'");
+    expect(libraryHook).toContain("konlingConversationFetch('/api/ai/sessions'");
   });
 
   it('binds chat requests to a verified conversation id after create-or-select', () => {

@@ -199,7 +199,8 @@ describe('governed math formula attach (#1740)', () => {
     }
     // Exact-release denominator: every reachable Formula owns a current
     // formula-render record (#1740 fail-closed qualification).
-    expect(formulaIds.size).toBe(1995);
+    // r6 分片集（ads-d9dfe50b，#2058）较 r4 少 2 条可达 Formula：1995 → 1993。
+    expect(formulaIds.size).toBe(1993);
     for (const id of formulaIds) {
       expect(corpus.formulas.has(id)).toBe(true);
     }

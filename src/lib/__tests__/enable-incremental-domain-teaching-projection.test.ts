@@ -1018,7 +1018,8 @@ describe('enable-incremental-domain-teaching-projection', () => {
       };
       const built = buildDomainTeachingGenerationV2();
 
-      expect(built.authority.nodes).toHaveLength(7476);
+      // r6 快照（snap-b7c6992d）退役 4 个 v0.22 继承成员：7476 → 7472（#2058）。
+      expect(built.authority.nodes).toHaveLength(7472);
       expect(authorityNodesFromPinnedSnapshot(reversed as never)).toEqual(
         built.authority.nodes,
       );

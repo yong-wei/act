@@ -55,7 +55,7 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
 } = {
   schemaVersion: GENERATED_CONTENT_AUTHORITY_SCHEMA_VERSION,
   sourceRevision: '5b44e6c128c2f36811a496ac3be272f073d8ba15',
-  evidenceDigest: '31206f4bbe6e242809cdd328972f7795c3a603a71d13a9dbeafe1ec0e749043a',
+  evidenceDigest: 'b68b7a819d891e19c3277991413cc2c27fd5ed4a8d87d54e3dae5ca27c3fff4d',
   rows: [
     {
       domain: 'assessment',
@@ -182,6 +182,10 @@ export const GENERATED_CONTENT_AUTHORITY_MATRIX: {
         'src/lib/data-governance/math-document-grading-persistence.ts（批改评分持久化）',
         'src/lib/data-governance/teacher-assignment-review-outbox.ts（批改 outbox：approval/feedback/提交状态写点）',
         'src/app/api/teacher/document-grading/approve/route.ts（批改审批路由，人类审批驱动）',
+        'src/lib/assignments/assignment-grading-closure.ts（批改闭环：assignmentSubmission 终态写点）',
+        'src/lib/assignments/assignment-grading-orchestration.ts（gradingRun 幂等创建，dedupeKey 驱动）',
+        'src/lib/data-governance/teacher-ai-grading-lab-core.ts（AI 批改实验：gradingRun 证据绑定 updateMany）',
+        'src/lib/data-governance/teacher-ai-grading-lab-run-store.ts（AI 批改实验 run store：gradingRun 创建与状态推进）',
       ],
       forbiddenSinkModules: [
         'src/lib/assignments/assignment-review.ts',

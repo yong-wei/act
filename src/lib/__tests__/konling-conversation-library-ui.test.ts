@@ -43,8 +43,8 @@ describe('Konling conversation library UI contracts', () => {
   });
 
   it('keeps collection, active detail, and library mutations inside the hook', () => {
-    expect(libraryHookSource).toContain('fetch(buildKonlingConversationListUrl(search))');
-    expect(libraryHookSource).toContain('fetch(`/api/ai/sessions/${activeConversationId}`)');
+    expect(libraryHookSource).toContain('konlingConversationFetch(buildKonlingConversationListUrl(search))');
+    expect(libraryHookSource).toContain('konlingConversationFetch(`/api/ai/sessions/${activeConversationId}`)');
     expect(libraryHookSource).toContain("method: 'POST'");
     expect(libraryHookSource).toContain("method: 'PATCH'");
     expect(libraryHookSource).toContain("method: 'DELETE'");
