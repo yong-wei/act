@@ -424,7 +424,7 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
     schema,
     schemaVersion: stage === 'OUTLINE' ? 'smart-lesson-outline.v1' : `smart-lesson-boppps-${stage.toLowerCase()}.v1`,
     maxOutputTokens: stage === 'OUTLINE' ? 2_048 : 4_096,
-    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。sourceBindings 只能从 JSON Schema 枚举的可用来源绑定中完整选择；没有适用项时使用 []。输出必须符合 JSON Schema。',
+    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。sourceBindings 只能从 JSON Schema 枚举的可用来源绑定中完整选择；没有适用项时使用 []。每个 BOPPPS 阶段的 minutes 必须严格等于该阶段所有 steps 的 minutes 之和。输出必须符合 JSON Schema。',
     prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。可用来源绑定（逐字复制，不得改写）：${JSON.stringify(allowedSourceBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
     allowedSourceBindings,
     allowedBindingKeys: new Set(allowedSourceBindings.map(bindingKey)),
@@ -432,6 +432,14 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
 }
 
 type SourceBinding = z.infer<typeof sourceBindingSchema>;
+
+const STAGE_STEP_DURATION_MISMATCH_MESSAGE = /^stage-step-duration-mismatch:(\d+):(\d+)$/;
+
+function normalizeStageStepDurationIssues(issues: SmartLessonValidationReceipt['issues']) {
+  return issues.map((issue) => (STAGE_STEP_DURATION_MISMATCH_MESSAGE.test(issue.message)
+    ? { ...issue, code: 'stage-step-duration-mismatch', path: ['steps'] as Array<string | number> }
+    : issue));
+}
 
 function validateStageCandidate(input: {
   context: NonNullable<JobContext>;
@@ -448,7 +456,15 @@ function validateStageCandidate(input: {
     input.schemaVersion,
     normalizeCandidateSourceBindings(input.stage, input.output, input.allowedSourceBindings),
   );
-  if (!schemaValidated.success) return schemaValidated;
+  if (!schemaValidated.success) {
+    return {
+      ...schemaValidated,
+      receipt: {
+        ...schemaValidated.receipt,
+        issues: normalizeStageStepDurationIssues(schemaValidated.receipt.issues),
+      },
+    };
+  }
   try {
     const output = canonicalizeGeneratedStageOutput(
       input.stage,
@@ -591,10 +607,30 @@ function buildCorrectionContext(
   output: unknown,
   receipt: SmartLessonValidationReceipt,
 ) {
-  if (
-    stage === 'OUTLINE'
-    || !receipt.issues.some((issue) => issue.code === 'stage-duration-mismatch')
-  ) return null;
+  if (stage === 'OUTLINE') return null;
+  // 仅当步骤时长错误是该次校验的唯一错误时才锁定字段做定向修正；
+  // 并存其他 schema 错误时锁定指令会阻止修复，退化通用修正。
+  const [soleIssue] = receipt.issues;
+  const stepMismatch = receipt.issues.length === 1 && soleIssue?.code === 'stage-step-duration-mismatch'
+    ? soleIssue
+    : null;
+  if (stepMismatch) {
+    const match = STAGE_STEP_DURATION_MISMATCH_MESSAGE.exec(stepMismatch.message);
+    let expectedMinutes: number;
+    try {
+      expectedMinutes = expectedStageMinutes(context, stage);
+    } catch {
+      return null;
+    }
+    if (!match || !Number.isInteger(expectedMinutes) || expectedMinutes <= 0) return null;
+    return {
+      stage,
+      expectedMinutes,
+      actualMinutes: Number(match[1]),
+      instruction: `保持步骤数量、顺序、标题、教学活动、评价内容与 sourceBindings 不变；stage.minutes 与每个步骤 minutes 都必须是正整数，所有步骤 minutes 之和必须严格等于 ${expectedMinutes} 分钟，stage.minutes 同步修正为 ${expectedMinutes}；优先保持原有步骤时长比例，不得扩展教学语义。`,
+    };
+  }
+  if (!receipt.issues.some((issue) => issue.code === 'stage-duration-mismatch')) return null;
   const parsed = bopppsStageSchema.parse(output);
   const expectedMinutes = expectedStageMinutes(context, stage);
   return {
