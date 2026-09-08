@@ -330,14 +330,18 @@ describe('teaching projection path binding adapter', () => {
     const receipt = JSON.parse(readFileSync(path.join(
       process.cwd(),
       'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/candidate-receipt.json',
-    ), 'utf8')) as { teachingProjectionHash: string; authorityCaptureHash: string };
+    ), 'utf8')) as { teachingProjectionHash: string };
+    const scopeBinding = JSON.parse(readFileSync(path.join(
+      process.cwd(),
+      'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5/projection-scope-binding.json',
+    ), 'utf8')) as { projectionHash: string; authority: { snapshotHash: string } };
     expect(loadDenominatorBridge(process.cwd(), {
       projectionHash: receipt.teachingProjectionHash,
-      authoritySnapshotHash: receipt.authorityCaptureHash,
+      authoritySnapshotHash: scopeBinding.authority.snapshotHash,
     }).ok).toBe(true);
     expect(loadDenominatorBridge(process.cwd(), {
       projectionHash: 'e'.repeat(64),
-      authoritySnapshotHash: receipt.authorityCaptureHash,
+      authoritySnapshotHash: scopeBinding.authority.snapshotHash,
     }).ok).toBe(false);
     expect(loadDenominatorBridge(process.cwd(), {
       projectionHash: receipt.teachingProjectionHash,

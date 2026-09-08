@@ -43,6 +43,7 @@ const CUTOVER_CANDIDATE_DIR =
   'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5';
 const CUTOVER_DENOMINATOR_RELATIVE = `${CUTOVER_CANDIDATE_DIR}/denominator.json`;
 const CUTOVER_CAPTURE_RECEIPT_RELATIVE = `${CUTOVER_CANDIDATE_DIR}/candidate-receipt.json`;
+const CUTOVER_SCOPE_BINDING_RELATIVE = `${CUTOVER_CANDIDATE_DIR}/projection-scope-binding.json`;
 const CAPTURE_REVISION_PATTERN = /^[a-f0-9]{40,64}$/u;
 
 export interface TeachingProjectionBindingMapInput {
@@ -69,6 +70,13 @@ interface CutoverCaptureReceiptFile {
   authorityCaptureHash?: string;
   captureRevision?: string;
   teachingProjectionHash?: string;
+}
+
+interface ProjectionScopeBindingFile {
+  projectionHash?: string;
+  authority?: {
+    snapshotHash?: string;
+  };
 }
 
 export interface DenominatorBridgeLiveIdentity {
@@ -337,10 +345,14 @@ export function loadDenominatorBridge(
 ): { ok: boolean; map: Map<string, string> } {
   const filePath = path.join(repoRoot, CUTOVER_DENOMINATOR_RELATIVE);
   const receiptPath = path.join(repoRoot, CUTOVER_CAPTURE_RECEIPT_RELATIVE);
-  if (!existsSync(filePath) || !existsSync(receiptPath)) return { ok: false, map: new Map() };
+  const bindingPath = path.join(repoRoot, CUTOVER_SCOPE_BINDING_RELATIVE);
+  if (!existsSync(filePath) || !existsSync(receiptPath) || !existsSync(bindingPath)) {
+    return { ok: false, map: new Map() };
+  }
   try {
     const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as DenominatorBridgeFile;
     const receipt = JSON.parse(readFileSync(receiptPath, 'utf8')) as CutoverCaptureReceiptFile;
+    const scopeBinding = JSON.parse(readFileSync(bindingPath, 'utf8')) as ProjectionScopeBindingFile;
     const captureRevision = receipt.authorityCaptureHash
       ?? receipt.captureRevision
       ?? parsed.captureRevision;
@@ -353,7 +365,7 @@ export function loadDenominatorBridge(
       || typeof captureRevision !== 'string'
       || !CAPTURE_REVISION_PATTERN.test(captureRevision)
       || !Array.isArray(parsed.entries)
-      || (live && !denominatorReceiptMatchesLiveIdentity(receipt, live))
+      || (live && !denominatorReceiptMatchesLiveIdentity(receipt, scopeBinding, live))
     ) {
       return { ok: false, map: new Map() };
     }
@@ -371,19 +383,23 @@ export function loadDenominatorBridge(
 
 function denominatorReceiptMatchesLiveIdentity(
   receipt: CutoverCaptureReceiptFile,
+  scopeBinding: ProjectionScopeBindingFile,
   live: DenominatorBridgeLiveIdentity,
 ): boolean {
+  const boundProjectionHash = scopeBinding.projectionHash;
+  const boundSnapshotHash = scopeBinding.authority?.snapshotHash;
   if (
     typeof receipt.teachingProjectionHash !== 'string'
     || !/^[a-f0-9]{64}$/u.test(receipt.teachingProjectionHash)
     || receipt.teachingProjectionHash !== live.projectionHash
+    || boundProjectionHash !== live.projectionHash
   ) {
     return false;
   }
   if (
-    typeof receipt.authorityCaptureHash === 'string'
-    && /^[a-f0-9]{64}$/u.test(receipt.authorityCaptureHash)
-    && receipt.authorityCaptureHash !== live.authoritySnapshotHash
+    typeof boundSnapshotHash !== 'string'
+    || !/^[a-f0-9]{64}$/u.test(boundSnapshotHash)
+    || boundSnapshotHash !== live.authoritySnapshotHash
   ) {
     return false;
   }
