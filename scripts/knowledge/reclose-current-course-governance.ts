@@ -131,7 +131,8 @@ function main() {
   const fragments = loadReferencedDomainFragments(composed, join(root, projectionRoot, 'fragments'));
   const historicalRoot = 'course-content/authoring/knowledge/formal-resource-remediation/teaching-projection/fragments';
   const historicalPaths = git('ls-tree', '--name-only', appRevision + ':' + historicalRoot).trim().split('\n').filter((name) => name.endsWith('.json'));
-  const historicalEdges = historicalPaths.flatMap((name) => frozen<{ edges: HistoricalEdge[] }>(historicalRoot + '/' + name).edges);
+  const historicalEdges = historicalPaths.flatMap((name) => frozen<{ edges: (HistoricalEdge & { kind: string })[] }>(historicalRoot + '/' + name).edges
+    .filter((edge) => edge.kind === 'PUBLISHED_EDGE'));
   const capture = frozen<{ captureHash: string }>('course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r6/authority-capture.json');
   const result = recloseCourseGovernance({ sourceScopeHash: source.scopeHash, scopeHash: scope.scopeHash, authorityCaptureHash: capture.captureHash,
     members: scope.members.map((row) => row.canonicalId), retiredMembers: ruling.retiredMembers, sourceDispositions: source.dispositions,
