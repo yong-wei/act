@@ -21,6 +21,7 @@ interface ReclosureInput {
   semanticCache: AuthoritySemanticCache;
   historicalEdges: readonly HistoricalEdge[];
   courseEdges: readonly CourseEdge[];
+  suppressedSelfLoops: readonly { canonicalId: string; edgeId: string; evidenceRefs: readonly string[] }[];
 }
 
 export function recloseCourseGovernance(input: ReclosureInput) {
@@ -39,10 +40,10 @@ export function recloseCourseGovernance(input: ReclosureInput) {
     if (prior && (prior.source !== edge.source || prior.target !== edge.target || prior.family !== edge.family)) fail('conflicting historical edge identity');
     historical.set(edge.edgeId, edge);
   }
-  const incidence = new Map<string, CourseEdge>();
+  const outgoing = new Map<string, CourseEdge>();
   for (const edge of [...input.courseEdges].sort((a, b) => a.edgeId.localeCompare(b.edgeId))) {
     if (!members.has(edge.sourceNodeId) || !members.has(edge.targetNodeId) || !edge.evidenceRefs.length) fail('unqualified course edge');
-    for (const id of [edge.sourceNodeId, edge.targetNodeId]) if (!incidence.has(id)) incidence.set(id, edge);
+    if (!outgoing.has(edge.sourceNodeId)) outgoing.set(edge.sourceNodeId, edge);
   }
   const seen = new Set<string>();
   let reusedCount = 0;
@@ -60,12 +61,24 @@ export function recloseCourseGovernance(input: ReclosureInput) {
       const edge = row.edgeId ? historical.get(row.edgeId) : undefined;
       if (!edge || edge.source !== row.canonicalId || edge.family !== row.family || !members.has(edge.target)) fail('historical admitted edge is absent or retired');
     }
-    const edge = row.family === 'prerequisite' ? incidence.get(row.canonicalId) : undefined;
-    if (row.family === 'prerequisite' && row.kind === 'PUBLISHED_EDGE' && !edge) fail('previously taught prerequisite member was lost');
+    const edge = row.family === 'prerequisite' ? outgoing.get(row.canonicalId) : undefined;
+    const suppression = row.family === 'prerequisite' && row.kind === 'PUBLISHED_EDGE' && !edge
+      ? input.suppressedSelfLoops.find((entry) => entry.canonicalId === row.canonicalId && entry.edgeId === row.edgeId)
+      : undefined;
+    if (suppression) {
+      const historicalEdge = historical.get(suppression.edgeId);
+      if (!historicalEdge || historicalEdge.family !== 'prerequisite' || historicalEdge.source !== row.canonicalId
+        || historicalEdge.target !== row.canonicalId || !suppression.evidenceRefs.length) fail('self-loop suppression lacks matching historical evidence');
+    }
+    if (row.family === 'prerequisite' && row.kind === 'PUBLISHED_EDGE' && !edge && !suppression) fail('previously taught prerequisite member was lost');
     const next: ActTeachingFamilyDisposition = edge ? {
       scopeHash: input.scopeHash, canonicalId: row.canonicalId, family: 'prerequisite', kind: 'PUBLISHED_EDGE',
       edgeId: edge.edgeId, evidenceRefs: [...edge.evidenceRefs],
-      rationale: edge.curatorRationale ?? '已审定课程先修关系的端点。',
+      rationale: edge.curatorRationale ?? '已审定课程先修关系的源节点。',
+    } : suppression ? {
+      scopeHash: input.scopeHash, canonicalId: row.canonicalId, family: 'prerequisite', kind: 'NO_RELATION',
+      edgeId: null, evidenceRefs: [...suppression.evidenceRefs],
+      rationale: '沿用已记录的自环排除裁决；当前课程没有以该节点为源的已审定先修关系。',
     } : { ...row, scopeHash: input.scopeHash };
     const { scopeHash: _beforeScope, ...beforeSemantic } = row;
     const { scopeHash: _afterScope, ...afterSemantic } = next;
@@ -105,6 +118,9 @@ function main() {
   const oldRoot = 'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c6-presentation-evidence';
   const source = frozen<{ scopeHash: string; dispositionHash: string; dispositions: ActTeachingFamilyDisposition[] }>(oldRoot + '/teaching-dispositions.json');
   if (source.dispositionHash !== projectionDigest(source.dispositions)) throw new Error('frozen source ledger hash mismatch');
+  const adjustmentPath = oldRoot + '/projection-adjustments.json';
+  const adjustments = frozen<{ scopeHash: string; suppressedSelfLoopPrerequisites: ReclosureInput['suppressedSelfLoops'] }>(adjustmentPath);
+  if (adjustments.scopeHash !== source.scopeHash) throw new Error('frozen self-loop rulings scope mismatch');
   const sourceScope = frozen<{ authority: { snapshotId: string } }>(oldRoot + '/domain-catalog/scope.json');
   const scope = read<{ scopeHash: string; authority: { snapshotId: string; snapshotHash: string }; members: { canonicalId: string }[] }>(candidate + '/domain-catalog/scope.json');
   const loadSnapshot = (id: string, previous: boolean) => {
@@ -136,11 +152,13 @@ function main() {
   const capture = frozen<{ captureHash: string }>('course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r6/authority-capture.json');
   const result = recloseCourseGovernance({ sourceScopeHash: source.scopeHash, scopeHash: scope.scopeHash, authorityCaptureHash: capture.captureHash,
     members: scope.members.map((row) => row.canonicalId), retiredMembers: ruling.retiredMembers, sourceDispositions: source.dispositions,
-    semanticCache, historicalEdges, courseEdges: fragments.flatMap((fragment) => fragment.relations.filter((edge) => edge.relationType === 'PREREQUISITE')) });
+    semanticCache, historicalEdges, suppressedSelfLoops: adjustments.suppressedSelfLoopPrerequisites.map((entry) => ({
+      ...entry, evidenceRefs: [...entry.evidenceRefs, adjustmentPath],
+    })), courseEdges: fragments.flatMap((fragment) => fragment.relations.filter((edge) => edge.relationType === 'PREREQUISITE')) });
   const dispositionHash = projectionDigest(result.dispositions);
   const receiptBody = { contract: 'r4-c6-teaching-governance-reclosure/v1', status: 'COMPLETE', appRevision, compilerRevision,
     sourceScopeHash: source.scopeHash, successorScopeHash: scope.scopeHash, successorSnapshotHash: scope.authority.snapshotHash,
-    sourceDispositionHash: source.dispositionHash, dispositionHash, semanticCacheHash: semanticCache.cacheHash,
+    sourceDispositionHash: source.dispositionHash, sourceAdjustmentsHash: projectionDigest(adjustments), dispositionHash, semanticCacheHash: semanticCache.cacheHash,
     courseProjectionHash: composed.projectionHash, changedFields: ['scopeHash', 'retiredMembers', 'prerequisiteDispositions'],
     retiredMembers: [...ruling.retiredMembers].sort(), retiredDispositionCount: result.retiredDispositionCount,
     reusedCount: result.reusedCount, recomputedCount: result.recomputedCount, teachingClosureReceiptHash: result.closure.receiptHash };
