@@ -74,7 +74,7 @@ The release build SHALL select one stable named local buildx builder. Docker dep
 - **AND** the `runner-os` layer remains cache-eligible
 
 ### Requirement: Build-cache optimization preserves release authority
-Build caches SHALL only accelerate computation. The final Linux image build, OCI revision label, exported tar SHA-256, provenance sidecar, clean-worktree gate, runtime-bound input validation, and existing deployment acceptance SHALL remain authoritative and fail closed.
+Build caches SHALL only accelerate computation. The final Linux image build, OCI revision label, exported tar SHA-256, provenance sidecar, clean-worktree gate, and existing deployment acceptance SHALL remain authoritative and fail closed.
 
 #### Scenario: Cache entry exists but release evidence fails
 - **WHEN** any authoritative revision, tar digest, provenance, input validation, or container acceptance check fails
