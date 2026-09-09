@@ -27,8 +27,11 @@ test('uses the real browser, API, worker, Source Pack and fixture provider throu
   await page.getByPlaceholder('先修要求（可选）').fill('传递函数与特征方程');
   await page.locator('select[name="durationMinutes"]').selectOption('30');
   await page.getByLabel('生成提纲后暂停确认').check();
+  await expect(page.getByPlaceholder('单课主题')).toHaveValue(topic);
   await page.getByRole('button', { name: '确认并创建单课任务' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '单课任务已确认' })).toBeVisible();
+  await expect.poll(() => apiResponses.find((item) =>
+    item.method === 'POST' && item.path === '/api/teacher/smart-lesson-tasks'
+  )?.status).toBe(201);
   await page.reload();
 
   const card = page.locator('article').filter({ has: page.getByRole('heading', { name: topic }) });
