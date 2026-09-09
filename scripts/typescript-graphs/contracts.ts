@@ -588,6 +588,8 @@ function classifyNonProductionPath(path: string): 'test' | 'tooling' | 'generate
 
 function isAllowedProductionPath(graph: GraphId, path: string): boolean {
   if (path === graphDefinition(graph).fixturePath) return true;
+  // Published JSON is application input; authoring content remains excluded.
+  if (graph === 'web' && path.startsWith('course-content/runtime/') && path.endsWith('.json')) return true;
   if (graph === 'worker' && (path.startsWith('scripts/workers/') || /^scripts\/assignments\/(?:scan-submission-objects|gc-submission-objects)\.ts$/.test(path))) return true;
   return false;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import dynamic from 'next/dynamic';
 
 import { GovernedRichText } from '@/components/shared/governed-rich-text';
@@ -23,10 +23,12 @@ import {
 import type { AuthorityGraphViewModel } from './authority-graph-view-model';
 import { packActiveAuthorityRootEntries } from './active-authority-root-entries';
 import { crossDomainNodeId, readCrossDomainCanonicalId } from './graph/cross-domain-cluster';
+import { activeFocusNodeIds } from './graph/active-renderer/active-authority-visual';
 import { toSharedRuntimeRelationType } from './authority-graph-view-model';
 import { runtimeNodeTypeFor } from './graph/authority-runtime-adapter';
 import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
 import type { GovernedFormulaProjection } from '@/lib/governed-math/types';
+import type { ActiveAuthorityLayoutSessions } from './graph/active-renderer/active-authority-geometry';
 
 /**
  * ForceGraph 2D/3D touches browser globals while its module is evaluated.
@@ -55,6 +57,7 @@ interface ActiveAuthorityRuntimeViewProps {
   dimension: GraphDimension;
   selectedNodeId: string | null;
   onSelectNode: (canonicalId: string) => void;
+  onClearSelection?: () => void;
   onHoverNode: (canonicalId: string | null) => void;
   onEnterDomain: (visualRole: string) => void;
   hoverPreview?: {
@@ -71,6 +74,8 @@ interface ActiveAuthorityRuntimeViewProps {
   /** 未裁剪且经 model 过滤的概览目录条目（compact 可浏览目录数据源）。 */
   overviewEntries?: Array<{ id: string; label: string; mathematics?: GovernedFormulaProjection }>;
   layout: KnowledgeGraphRuntimeLayout;
+  layoutSessions?: ActiveAuthorityLayoutSessions;
+  camera?: ReturnType<typeof useKnowledgeGraphRuntimeCamera>;
   sessionKey: string;
   /** #2052 首帧门控：领域进入沉降完成前以加载占位替代可见帧。 */
   entryGateActive?: boolean;
@@ -80,7 +85,7 @@ interface ActiveAuthorityRuntimeViewProps {
   crossDomainClusters?: ReadonlyArray<{
     domainName: string;
     nodes: ReadonlyArray<{ canonicalId: string; name: string; typeLabel: string; summary: string }>;
-    links: ReadonlyArray<{ sourceId: string; targetId: string; predicate: string; relationFamily: string | null }>;
+    links: ReadonlyArray<{ sourceId: string; targetId: string; predicate: string; relationFamily: string | null; sources?: readonly { direction?: string | null }[] }>;
   }>;
   /** #2052：点击跨领域概念节点时携带其 canonicalId 进入目标领域。 */
   onCrossDomainNodeClick?: (canonicalId: string) => void;
@@ -93,6 +98,7 @@ export function ActiveAuthorityRuntimeView({
   dimension,
   selectedNodeId,
   onSelectNode,
+  onClearSelection,
   onHoverNode,
   onEnterDomain,
   hoverPreview,
@@ -100,6 +106,8 @@ export function ActiveAuthorityRuntimeView({
   overviewCount,
   overviewEntries,
   layout,
+  layoutSessions,
+  camera,
   sessionKey,
   entryGateActive = false,
   onEngineSettled,
@@ -111,9 +119,9 @@ export function ActiveAuthorityRuntimeView({
     relayoutVersion,
     fitViewRequest,
     handleNodeDragEnd,
-    unpinNode,
     engineReheatRevision,
   } = layout;
+  const localCamera = useKnowledgeGraphRuntimeCamera();
   const {
     cameraPoseByScopeRef,
     manipulatedAutoFitScopeKeys,
@@ -121,8 +129,7 @@ export function ActiveAuthorityRuntimeView({
     handleCameraManipulation,
     handleAutoFitConsumed,
     handleCameraPoseChange,
-  } = useKnowledgeGraphRuntimeCamera();
-  const previousRelayoutVersionRef = useRef(relayoutVersion);
+  } = camera ?? localCamera;
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [compactLabelPriority, setCompactLabelPriority] = useState(false);
   const rootNodes = useMemo(
@@ -165,17 +172,20 @@ export function ActiveAuthorityRuntimeView({
       sourceId: link.sourceId,
       targetId: link.targetId,
       relation: link.predicate,
+      relationFamily: link.relationFamily,
+      authoritySources: link.sources,
+      directed: link.sources?.[0] ? ['directed', 'source_to_target', 'source-to-target'].includes(link.sources[0].direction ?? '') : undefined,
       relationType: toSharedRuntimeRelationType({ predicate: link.predicate, relationFamily: link.relationFamily }),
     })))
     : []), [kind, crossDomainClusters]);
   // Active 的 2D/3D 共享同一组真实跨域身份与关系，只由维度改变投影方式。
-  const crossMergeActive = true;
-  const nodes = kind === 'root'
+  const nodes = useMemo(() => kind === 'root'
     ? rootNodes
-    : (crossMergeActive ? [...domainNodes, ...crossNodes] : domainNodes);
-  const links = kind === 'root'
+    : [...domainNodes, ...crossNodes], [kind, rootNodes, domainNodes, crossNodes]);
+  const links = useMemo(() => kind === 'root'
     ? []
-    : (crossMergeActive ? [...domainLinks, ...crossLinks] : domainLinks);
+    : [...domainLinks, ...crossLinks], [kind, domainLinks, crossLinks]);
+  const focusedNodes = useMemo(() => activeFocusNodeIds(links, selectedNodeId), [links, selectedNodeId]);
   const cameraScopeKey = `${sessionKey}:${dimension}`;
   const rootEntries = catalog
     ? packActiveAuthorityRootEntries(catalog, { viewportWidth: 960, viewportHeight: 640 })
@@ -195,13 +205,6 @@ export function ActiveAuthorityRuntimeView({
     window.addEventListener('resize', updateCompact);
     return () => window.removeEventListener('resize', updateCompact);
   }, []);
-
-  useEffect(() => {
-    if (previousRelayoutVersionRef.current === relayoutVersion) return;
-    previousRelayoutVersionRef.current = relayoutVersion;
-    // Active 重新排布始终从新的确定性种子开始，显式拖拽 pin 不带入新布局。
-    unpinNode();
-  }, [relayoutVersion, unpinNode]);
 
   const handleNodeClick = (node: KnowledgeNodeData) => {
     if (kind === 'root') {
@@ -239,8 +242,9 @@ export function ActiveAuthorityRuntimeView({
           selectedNodeId={selectedNodeId}
           hoveredNodeId={hoveredId}
           onNodeClick={handleNodeClick}
+          onBackgroundClick={onClearSelection}
           onNodeHover={(node) => {
-            if (kind === 'root' || !node || isActiveRootNavigationNode(node)) {
+            if (kind === 'root' || !node || isActiveRootNavigationNode(node) || (selectedNodeId && !focusedNodes.has(node.id))) {
               setHoveredId(null);
               onHoverNode(null);
               return;
@@ -250,6 +254,7 @@ export function ActiveAuthorityRuntimeView({
           }}
           onNodeDragEnd={handleNodeDragEnd}
           layoutState={layoutState}
+          layoutSessions={layoutSessions}
           fitViewRequest={fitViewRequest}
           relayoutVersion={relayoutVersion}
           engineReheatRevision={engineReheatRevision}
@@ -373,7 +378,7 @@ export function ActiveAuthorityRuntimeView({
           className="pointer-events-none absolute left-3 top-3 max-w-xs rounded-md border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg"
         >
           <p className="font-medium">
-            {hoverPreview.richTitle
+            {hoverPreview.richTitle && hoverPreview.richTitle.state !== 'missing'
               ? <GovernedRichText projection={hoverPreview.richTitle} density="preview" />
               : hoverPreview.name}
           </p>
@@ -387,7 +392,7 @@ export function ActiveAuthorityRuntimeView({
           ) : null}
           <p className="text-platform-fg-secondary">{hoverPreview.typeLabel}</p>
           <p className="mt-1 text-platform-fg-muted">
-            {hoverPreview.richDescription
+            {hoverPreview.richDescription && hoverPreview.richDescription.state !== 'missing'
               ? <GovernedRichText projection={hoverPreview.richDescription} density="preview" />
               : hoverPreview.summary}
           </p>

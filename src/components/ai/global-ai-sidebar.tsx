@@ -912,7 +912,7 @@ export function GlobalAISidebar() {
       return {
         status,
         label: '已选知识节点',
-        description: '当前选中的知识节点已进入控灵上下文。',
+        description: pageContext.topic ? `当前选中：${pageContext.topic}` : '当前选中的知识节点已进入控灵上下文。',
       };
     }
     if (status === 'degraded') {

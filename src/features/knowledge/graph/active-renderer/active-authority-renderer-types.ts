@@ -7,6 +7,7 @@ import type { ActiveAuthorityLabelLayerHandle } from './active-authority-label-l
 import type {
   ActiveAuthorityLabelDescriptor,
   ActiveAuthorityLayoutNode,
+  ActiveAuthorityLayoutSessions,
 } from './active-authority-geometry';
 
 export interface ActiveAuthorityCameraPose {
@@ -24,9 +25,11 @@ export interface ActiveAuthorityRendererProps {
   selectedNodeId: string | null;
   hoveredNodeId: string | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
+  onBackgroundClick?: () => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
   layoutState: KnowledgeGraphLayoutState;
+  layoutSessions?: ActiveAuthorityLayoutSessions;
   fitViewRequest: KnowledgeGraphFitRequest;
   relayoutVersion: number;
   engineReheatRevision: number;
@@ -50,6 +53,7 @@ export interface ActiveAuthorityGraphProps {
   selectedNodeId: string | null;
   hoveredNodeId: string | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
+  onBackgroundClick?: () => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
   fitViewRequest: KnowledgeGraphFitRequest;

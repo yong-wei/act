@@ -11,7 +11,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
+import { compositeEnvelopeDirectory, loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 import { readCurrentShardPointer, resolveAuthorityDomainShardPaths } from '@/lib/authority-domain-shards/store';
 
@@ -61,7 +61,7 @@ export function readLocaleQualificationPackage(
   repoRoot: string,
   compositeName: string,
 ): LocaleQualificationPackage | null {
-  const filePath = path.join(repoRoot, localeQualificationPackagePath(compositeName));
+  const filePath = path.join(compositeEnvelopeDirectory(repoRoot), 'locale-manifests', `${compositeName}.json`);
   if (!existsSync(filePath)) return null;
   const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as LocaleQualificationPackage;
   if (parsed.contract !== LOCALE_QUALIFICATION_PACKAGE_CONTRACT) return null;

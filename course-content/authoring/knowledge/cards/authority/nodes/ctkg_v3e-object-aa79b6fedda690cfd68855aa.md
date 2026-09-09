@@ -1,31 +1,31 @@
 ---
 node_id: ctkg_v3e-object-aa79b6fedda690cfd68855aa
 authority_entity_id: "ctkg:v3e-object-aa79b6fedda690cfd68855aa"
-name: relay
+name: "继电器非线性"
+name_en: "Relay Nonlinearity"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - relay
-card_version: 1
+knowledge_type: C
+bloom_level: 理解
+lesson_units:
+  - "5-1"
+  - "5-2"
+card_version: 2
+content_origin: act-course-enrichment
+authority_release_id: ctr:release:control-theory-engineering-v0.37
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - course-content/authoring/lessons/5-1/design/5-1-handout.md
+  - course-content/authoring/lessons/5-2/design/5-2-handout.md
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 9ecf4c5f34410a0e5a8f3c02d2da266d8f95e784ddc1ac90a4e167cdb4585f39 -->
-
 ## 首页
 
-# relay
+# 继电器非线性 | Relay Nonlinearity
 
-**一句话定义**：relay：relay
+**一句话定义**：理想继电器依据输入符号切换输出状态，形成不连续的非线性关系。
 
-**关联**：后续 → memoryless nonlinearity
+**核心直觉**：继电器输出的幅值由开关状态决定，微小输入也可能触发完整切换。
 
 ---
 
@@ -33,18 +33,20 @@ asset_refs: []
 
 ### 完整解释
 
-relay
+理想对称继电器常用下式描述：
+
+$$
+u=M\operatorname{sgn}(v).
+$$
+
+当 $v>0$ 时输出为 $M$，当 $v<0$ 时输出为 $-M$；切换点的取值需按具体模型约定。它不具有零点附近的小幅比例关系。例如 $M=2$ 时，$v=0.3$ 对应 $u=2$，$v=-0.1$ 对应 $u=-2$。
+
+### 带滞环的切换
+
+带滞环继电器使用两个阈值：输入上行达到 $+\Delta$ 时切换到正输出，下行达到 $-\Delta$ 时切换到负输出。在两个阈值之间，输出保留原状态。因此，同一输入值可能对应不同输出，具体取决于先前的运动方向和状态。
+
+继电器可近似描述开关式执行机构和控制逻辑。滞环有助于减少噪声导致的频繁切换，同时引入记忆效应。分析闭环中的持续振荡时，需要结合对象动态；描述函数提供近似判断，时间响应和具体非线性模型用于进一步核验。
 
 ### 关联节点
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | memoryless nonlinearity | 是一种 |
-
-### 边界与使用说明
-
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
-
-### 关键词
-
-gold、relay
+开关控制 · 滞环 · 非线性系统 · 描述函数

@@ -1146,6 +1146,10 @@
         "test:user-menu-theme": {
           "status": "active",
           "target": "scripts/tests/test-user-menu-theme.mjs"
+        },
+        "test:smart-lesson-e2e-class-portrait-seed": {
+          "status": "active",
+          "target": "scripts/tests/test-smart-lesson-e2e-class-portrait-seed.ts"
         }
       }
     },
@@ -1244,7 +1248,7 @@
   ],
   "rollback": "Restore a retired alias by re-adding its package.json script line (identical target and cli invocation are recorded in the retired entries). No selector, deployment, receipt or database state is touched by this consolidation.",
   "sourceIdentity": {
-    "captureDenominatorSha256": "4d41efa9f960ddb01ffa292c408a994ac74aa367668a0a889c3e49369534a66b",
+    "captureDenominatorSha256": "ea77a725f73295ddf03fcc851aed80fa6764dac7f42df3ad6ab6386ff2c65277",
     "note": "captureDenominatorSha256 binds this inventory to its full capture denominator: the package.json scripts object (sorted), the git blob sha1 of every declared target file, the documented direct-invoke command list, and the direct-invoke operator identities parsed from scripts/README.md and AGENTS.md. Any later change to command bodies, target script contents, documented invocations, or inventory classification without an identity refresh fails closed in tooling-cli-inventory.test.ts via workspace and git-HEAD double comparison. Refresh with: npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts"
   },
   "documentedDirectEntries": [

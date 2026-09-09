@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   readActiveDetailShard: vi.fn(),
   readActiveDetailInfograph: vi.fn(),
   activeShardResponse: vi.fn(),
+  activePublishedDetailResponse: vi.fn(),
 }));
 
 vi.mock('@/app/api/knowledge/_active-authority', () => mocks);
@@ -31,6 +32,10 @@ beforeEach(() => {
   mocks.readActiveDetailShard.mockReturnValue({ shardClass: 'node-detail' });
   mocks.readActiveDetailInfograph.mockReturnValue(Buffer.from([1, 2, 3]));
   mocks.activeShardResponse.mockImplementation((read, role) => {
+    read();
+    return NextResponse.json({ role });
+  });
+  mocks.activePublishedDetailResponse.mockImplementation(async (read, role) => {
     read();
     return NextResponse.json({ role });
   });
@@ -115,7 +120,7 @@ describe('active Authority graph routes', () => {
     );
     expect(response.status).toBe(200);
     expect(mocks.readActiveDetailShard).toHaveBeenCalledWith('node-1');
-    expect(mocks.activeShardResponse).toHaveBeenCalledWith(expect.any(Function), 'STUDENT', expect.any(Request));
+    expect(mocks.activePublishedDetailResponse).toHaveBeenCalledWith(expect.any(Function), 'STUDENT', expect.any(Request));
   });
 
   it('serves only the selected authorized infograph without exposing a source locator', async () => {

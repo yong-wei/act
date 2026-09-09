@@ -1,0 +1,155 @@
+{
+  "contract": "act-legacy-textbook-reference-resolution/v1",
+  "authoritySnapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+  "sourceCrosswalkSha256": "1b56cfb79e81f85dcaff3cecd02f536511ed97bd777e01f5ceacc3fce3b01b9c",
+  "entries": [
+    {
+      "resourceId": "act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-01",
+      "bookId": "dorf-modern-control-systems",
+      "edition": "14th Global Edition",
+      "structuralPath": [
+        "chapter-chapter-07"
+      ],
+      "structuralUnitId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-07",
+      "title": "chapter-07",
+      "scope": "unit-and-descendants",
+      "rationale": "原占位引用同时涉及出射角与稳定时间，定位到包含根轨迹绘制和参数设计的第7章，保留章节级范围。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/dorf-modern-control-systems/units.jsonl",
+        "sha256": "7c2a6913fe530d31325db54d18738eb813c56806c5db591b332523fd4e9a133e",
+        "unitSha256": "b937e24bb3234e24c3effc1571d2d7fb3ecb475f73fa470e6b8ee41ddef88b95"
+      }
+    },
+    {
+      "resourceId": "act:textbook-section:cts.section-082ff03f08f5ef0cbcdddbde",
+      "bookId": "dorf-modern-control-systems",
+      "edition": "14th Global Edition",
+      "structuralPath": [
+        "chapter-chapter-07"
+      ],
+      "structuralUnitId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-07",
+      "title": "chapter-07",
+      "scope": "unit-and-descendants",
+      "rationale": "原占位引用同时涉及出射角与稳定时间，定位到包含根轨迹绘制和参数设计的第7章，保留章节级范围。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/dorf-modern-control-systems/units.jsonl",
+        "sha256": "7c2a6913fe530d31325db54d18738eb813c56806c5db591b332523fd4e9a133e",
+        "unitSha256": "b937e24bb3234e24c3effc1571d2d7fb3ecb475f73fa470e6b8ee41ddef88b95"
+      }
+    },
+    {
+      "resourceId": "act:textbook-chapter:franklin-feedback-control-7th:ch-root-locus-01",
+      "bookId": "feedback-control-of-dynamic-systems",
+      "edition": "7th edition",
+      "structuralPath": [
+        "chapter-chapter-05",
+        "section-5.1"
+      ],
+      "structuralUnitId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-05/section-5.1",
+      "title": "Root Locus of a Basic Feedback System",
+      "scope": "unit",
+      "rationale": "闭环极点和根轨迹概念对应基本反馈系统的根轨迹单元。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/feedback-control-of-dynamic-systems/units.jsonl",
+        "sha256": "3a49f025207ecc8d81adcb25fc84b3a0a4b75c9643c8583b0141603edf146eba",
+        "unitSha256": "91a8e14b40a1116df9d7685d9867203ce1a332c64008051dd240ad05eb76481f"
+      }
+    },
+    {
+      "resourceId": "act:textbook-section:cts.section-8922c1151790adeca58b9b6f",
+      "bookId": "feedback-control-of-dynamic-systems",
+      "edition": "7th edition",
+      "structuralPath": [
+        "chapter-chapter-05",
+        "section-5.1"
+      ],
+      "structuralUnitId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-05/section-5.1",
+      "title": "Root Locus of a Basic Feedback System",
+      "scope": "unit",
+      "rationale": "闭环极点和根轨迹概念对应基本反馈系统的根轨迹单元。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/feedback-control-of-dynamic-systems/units.jsonl",
+        "sha256": "3a49f025207ecc8d81adcb25fc84b3a0a4b75c9643c8583b0141603edf146eba",
+        "unitSha256": "91a8e14b40a1116df9d7685d9867203ce1a332c64008051dd240ad05eb76481f"
+      }
+    },
+    {
+      "resourceId": "act:textbook-chapter:hu-shousong-auto-control-8th:ch-root-locus-01",
+      "bookId": "hu-shousong-auto-control-8th",
+      "edition": "第八版",
+      "structuralPath": [
+        "chapter-chapter-04",
+        "chapter-4",
+        "section-4.1"
+      ],
+      "structuralUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1",
+      "title": "根轨迹法的基本概念",
+      "scope": "unit-and-descendants",
+      "rationale": "根轨迹增益和反馈通路的关系对应根轨迹基本概念及方程。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/hu-shousong-auto-control-8th/units.jsonl",
+        "sha256": "f455ce7c9a0003ee40400e630418ae0669f6940da21c38b7005df7bb603b3646",
+        "unitSha256": "3b32289577a01ee057d35069bb272b3b5d43ffecdea803807afc8cbdc8058af0"
+      }
+    },
+    {
+      "resourceId": "act:textbook-section:cts.section-23e6c826033a1643c31a4d18",
+      "bookId": "hu-shousong-auto-control-8th",
+      "edition": "第八版",
+      "structuralPath": [
+        "chapter-chapter-04",
+        "chapter-4",
+        "section-4.1"
+      ],
+      "structuralUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.1",
+      "title": "根轨迹法的基本概念",
+      "scope": "unit-and-descendants",
+      "rationale": "根轨迹增益和反馈通路的关系对应根轨迹基本概念及方程。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/hu-shousong-auto-control-8th/units.jsonl",
+        "sha256": "f455ce7c9a0003ee40400e630418ae0669f6940da21c38b7005df7bb603b3646",
+        "unitSha256": "3b32289577a01ee057d35069bb272b3b5d43ffecdea803807afc8cbdc8058af0"
+      }
+    },
+    {
+      "resourceId": "act:textbook-chapter:hu-shousong-auto-control-8th:ch-root-locus-02",
+      "bookId": "hu-shousong-auto-control-8th",
+      "edition": "第八版",
+      "structuralPath": [
+        "chapter-chapter-04",
+        "chapter-4",
+        "section-4.3",
+        "item-1"
+      ],
+      "structuralUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/item-1",
+      "title": "参数根轨迹",
+      "scope": "unit",
+      "rationale": "该单元正文明确使用等效单位反馈系统解释参数根轨迹。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/hu-shousong-auto-control-8th/units.jsonl",
+        "sha256": "f455ce7c9a0003ee40400e630418ae0669f6940da21c38b7005df7bb603b3646",
+        "unitSha256": "3e619e3b3a8fa69dc622dfd1ae6559ede637163eb7302e9546b8bdc7889f3d40"
+      }
+    },
+    {
+      "resourceId": "act:textbook-section:cts.section-2c207617c85c277595e1ae1a",
+      "bookId": "hu-shousong-auto-control-8th",
+      "edition": "第八版",
+      "structuralPath": [
+        "chapter-chapter-04",
+        "chapter-4",
+        "section-4.3",
+        "item-1"
+      ],
+      "structuralUnitId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/item-1",
+      "title": "参数根轨迹",
+      "scope": "unit",
+      "rationale": "该单元正文明确使用等效单位反馈系统解释参数根轨迹。",
+      "source": {
+        "path": "course-content/runtime/resources/textbooks-v2/hu-shousong-auto-control-8th/units.jsonl",
+        "sha256": "f455ce7c9a0003ee40400e630418ae0669f6940da21c38b7005df7bb603b3646",
+        "unitSha256": "3e619e3b3a8fa69dc622dfd1ae6559ede637163eb7302e9546b8bdc7889f3d40"
+      }
+    }
+  ]
+}

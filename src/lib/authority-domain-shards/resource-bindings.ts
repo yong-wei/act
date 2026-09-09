@@ -150,9 +150,12 @@ export function projectAuthorityNodeResourceBindings(input: {
   return { state: 'available', items };
 }
 
-function matchActiveTeachingProjection(shard: AuthorityNodeDetailShard): {
+export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailShard, 'envelope'>): {
   status: 'unavailable' | 'mismatch' | 'available';
   authoringRevision: string | null;
+  projectionId?: string;
+  projectionHash?: string;
+  scopeId?: string;
   bindings?: readonly TeachingBindingRuntime[];
   resources?: readonly TeachingResourceRuntime[];
 } {
@@ -221,6 +224,9 @@ function matchActiveTeachingProjection(shard: AuthorityNodeDetailShard): {
   const boundIds = new Set(staged.artifacts.bindings.map((binding) => binding.resourceId));
   return {
     status: 'available',
+    projectionId: staged.projectionId,
+    projectionHash: staged.projectionHash,
+    scopeId: staged.artifacts.manifest.scopeId,
     authoringRevision: staged.artifacts.manifest.authoringRevision,
     bindings: staged.artifacts.bindings,
     resources: staged.artifacts.resources.filter((resource) => boundIds.has(resource.resourceId)),

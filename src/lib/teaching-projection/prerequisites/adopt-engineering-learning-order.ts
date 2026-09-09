@@ -70,7 +70,8 @@ export function adoptEngineeringLearningOrder(
 ): AdoptEngineeringLearningOrderResult {
   const teachingByPair = new Map<string, (typeof input.teachingEdges)[number]>();
   for (const edge of input.teachingEdges) {
-    teachingByPair.set(pairKey(edge.sourceNodeId, edge.targetNodeId), edge);
+    const key = pairKey(edge.sourceNodeId, edge.targetNodeId);
+    if (!teachingByPair.has(key) || edge.strength === 'REQUIRED') teachingByPair.set(key, edge);
   }
 
   const adoptedEdges: PrerequisiteEdgeAuthoring[] = [];

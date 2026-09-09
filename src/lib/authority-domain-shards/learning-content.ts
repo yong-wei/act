@@ -574,3 +574,13 @@ export function readPublishedAuthorityInfographBySafeId(
 ): Buffer | null {
   return resolvePublishedInfographBytes(safeId, options);
 }
+
+/** Publication presence only; content bytes remain verified by the existing open endpoints. */
+export function publishedLearningContentTypes(envelope: AuthorityShardEnvelope, repoRoot = process.cwd()): ReadonlyMap<string, readonly ('card' | 'infographic')[]> {
+  const manifest = readManifest(runtimePaths(repoRoot));
+  if (!manifest || !matchesAuthorityIdentity(manifest, envelope.authority) || !matchesTeachingSeal(manifest, envelope.teaching)) return new Map();
+  return new Map(manifest.nodes.map((node) => [node.canonicalId, [
+    ...(node.card.state === 'available' ? ['card' as const] : []),
+    ...(node.infograph.state === 'available' ? ['infographic' as const] : []),
+  ]]));
+}

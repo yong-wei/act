@@ -1924,13 +1924,13 @@ describe('platform UI contracts', () => {
     expect(simulationShellSource).not.toContain('KonlingEntryPointButton');
     expect(simulationShellSource).not.toContain('fixed bottom-');
     expect(simulationLocalToolsSource).toContain('data-simulation-dock-offset-anchor="hint-strip"');
-    expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-safe-area="bottom-right"');
+    expect(pageFloatingControlsSource).toContain("data-platform-floating-dock-safe-area={dockPosition.position ? 'custom' : 'bottom-right'}");
     expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-expanded-panel');
     expect(pageFloatingControlsSource).toContain('max-h-[min(70vh,28rem)]');
     expect(appShellSource).toContain('data-platform-floating-dock-collision-policy');
     expect(appShellSource).toContain('data-platform-floating-dock-mobile-behavior');
     expect(globalsSource).toContain(
-      'body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls]',
+      'body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls][data-platform-floating-dock-safe-area="bottom-right"]',
     );
     expect(globalsSource).toContain('right: auto !important');
     expect(globalsSource).toContain('width: max-content');

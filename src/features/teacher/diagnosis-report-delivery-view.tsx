@@ -141,25 +141,13 @@ export function DiagnosisReportDeliveryView({
                         <div className="mt-4 border-t border-border pt-4 print:hidden">
                           <p className="text-xs text-subtle">当前处置：{latest ? dispositionLabel(latest.action) : '尚未记录'}。处置不会清除风险。</p>
                           <div className="mt-3 flex flex-wrap gap-2">
-                            <DispositionButton label="待处理" busy={submitting === `${finding.targetKey}:pending`} onClick={() => record('finding', finding.targetKey, 'pending')} />
-                            <DispositionButton label="已完成处置" busy={submitting === `${finding.targetKey}:completed`} onClick={() => record('finding', finding.targetKey, 'completed')} />
+                            <DispositionButton label="待处理" tone="pending" busy={submitting === `${finding.targetKey}:pending`} onClick={() => record('finding', finding.targetKey, 'pending')} />
+                            <DispositionButton label="已完成处置" tone="success" busy={submitting === `${finding.targetKey}:completed`} onClick={() => record('finding', finding.targetKey, 'completed')} />
                             {findingActions.map((action) => (
-                              <span key={`${action.kind}:${action.href}`} className="inline-flex flex-wrap gap-1">
-                                <Link href={action.href} className="btn-ghost-themed inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs">
-                                  {action.label}<ExternalLink className="h-3 w-3" />
-                                </Link>
-                                {action.kind === 'remediation' ? (
-                                  <DispositionButton
-                                    label="标记已安排干预"
-                                    busy={submitting === `${finding.targetKey}:intervention-arranged`}
-                                    onClick={() => record('finding', finding.targetKey, 'intervention-arranged', action.href)}
-                                  />
-                                ) : null}
-                              </span>
+                              <Link key={`${action.kind}:${action.href}`} href={action.href} className="btn-disposition btn-disposition-neutral">
+                                {action.label}<ExternalLink className="h-3 w-3" />
+                              </Link>
                             ))}
-                            {!findingActions.some((action) => action.kind === 'remediation') ? (
-                              <span className="px-1 py-2 text-xs text-subtle">暂无已注册补练资源</span>
-                            ) : null}
                           </div>
                         </div>
                       ) : null}
@@ -190,11 +178,11 @@ export function DiagnosisReportDeliveryView({
                 <div className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-sky-600" /><h2 className="font-semibold">报告处置</h2></div>
                 <p className="mt-2 text-sm text-subtle">记录教师处理进度，不修改报告、成绩、画像、趋势或风险。</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <DispositionButton label="已查看" busy={submitting === 'report:viewed'} onClick={() => record('report', 'report', 'viewed')} />
-                  <DispositionButton label="待处理" busy={submitting === 'report:pending'} onClick={() => record('report', 'report', 'pending')} />
-                  <DispositionButton label="已完成处置" busy={submitting === 'report:completed'} onClick={() => record('report', 'report', 'completed')} />
+                  <DispositionButton label="已查看" tone="neutral" busy={submitting === 'report:viewed'} onClick={() => record('report', 'report', 'viewed')} />
+                  <DispositionButton label="待处理" tone="pending" busy={submitting === 'report:pending'} onClick={() => record('report', 'report', 'pending')} />
+                  <DispositionButton label="已完成处置" tone="success" busy={submitting === 'report:completed'} onClick={() => record('report', 'report', 'completed')} />
                   {actions.filter((action) => action.targetKey === 'report').map((action) => (
-                    <Link key={action.href} href={action.href} className="btn-ghost-themed rounded-lg px-3 py-2 text-xs">{action.label}</Link>
+                    <Link key={action.href} href={action.href} className="btn-disposition btn-disposition-neutral">{action.label}</Link>
                   ))}
                 </div>
                 {message ? <p className="mt-3 text-sm" role="status">{message}</p> : null}
@@ -215,8 +203,13 @@ function Meta({ label, value }: { label: string; value: string }) {
   return <div><dt className="text-xs text-subtle">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>;
 }
 
-function DispositionButton({ label, busy, onClick }: { label: string; busy: boolean; onClick: () => void }) {
-  return <button type="button" disabled={busy} onClick={onClick} className="btn-ghost-themed rounded-lg px-3 py-2 text-xs disabled:opacity-50">{busy ? '记录中…' : label}</button>;
+function DispositionButton({ label, tone, busy, onClick }: {
+  label: string;
+  tone: 'neutral' | 'pending' | 'success';
+  busy: boolean;
+  onClick: () => void;
+}) {
+  return <button type="button" disabled={busy} onClick={onClick} className={`btn-disposition btn-disposition-${tone}`}>{busy ? '记录中…' : label}</button>;
 }
 
 function formatDate(value: string) {

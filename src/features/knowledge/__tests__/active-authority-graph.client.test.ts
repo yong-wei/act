@@ -395,6 +395,7 @@ describe('active Authority knowledge workspace client boundary', () => {
   }> | null;
 
   beforeEach(() => {
+    vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -480,26 +481,35 @@ describe('active Authority knowledge workspace client boundary', () => {
     vi.stubGlobal('fetch', fetchMock);
   });
 
+  async function openTypeMenu() {
+    const trigger = container.querySelector<HTMLButtonElement>('[data-active-authority-type-menu-trigger]');
+    if (trigger?.getAttribute('aria-expanded') !== 'true') await act(async () => trigger!.click());
+    return document.querySelector<HTMLElement>('[data-active-authority-type-menu]')!;
+  }
+
   async function enterModelingDomain(options: { families?: boolean } = {}) {
     const button = container.querySelector<HTMLButtonElement>('[data-authority-domain-entry="modeling"]');
     expect(button).not.toBeNull();
     await act(async () => button!.click());
     await act(async () => Promise.resolve());
-    if (options.families === false) return;
-    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
-    const restoreMobileTools = mobileToolsToggle?.getAttribute('aria-expanded') === 'false';
-    if (restoreMobileTools) {
-      await act(async () => mobileToolsToggle!.click());
+    if (options.families !== false) {
+      const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
+      const restoreMobileTools = mobileToolsToggle?.getAttribute('aria-expanded') === 'false';
+      if (restoreMobileTools) await act(async () => mobileToolsToggle!.click());
+      for (const family of ['association', 'application-and-analysis'] as const) {
+        const familyButton = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="' + family + '"]');
+        expect(familyButton).not.toBeNull();
+        await act(async () => familyButton!.click());
+      }
+      if (restoreMobileTools) await act(async () => mobileToolsToggle!.click());
     }
-    for (const family of ['association', 'application-and-analysis'] as const) {
-      const familyButton = container.querySelector<HTMLButtonElement>(`[data-authority-relation-family="${family}"]`);
-      expect(familyButton).not.toBeNull();
-      await act(async () => familyButton!.click());
+    // These legacy regression scenarios explicitly opt into all materialized
+    // types; the new default-only-concepts behavior has its own regression.
+    const menu = await openTypeMenu();
+    for (const toggle of menu.querySelectorAll<HTMLButtonElement>('[data-active-authority-type-filter][aria-checked="false"]')) {
+      await act(async () => toggle.click());
     }
-    if (restoreMobileTools) {
-      await act(async () => mobileToolsToggle!.click());
-    }
-    await act(async () => Promise.resolve());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-active-authority-type-menu-trigger]')!.click());
   }
 
   afterEach(async () => {
@@ -687,6 +697,9 @@ describe('active Authority knowledge workspace client boundary', () => {
       await Promise.resolve();
     });
     expect(domainRequestCount).toBe(3);
+    const types = await openTypeMenu();
+    await act(async () => types.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="SystemModel"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-active-authority-type-menu-trigger]')!.click());
     expect(container.querySelector('[data-active-authority-relation="teaching-new"]')).not.toBeNull();
 
     oldDomainResponse.resolve({
@@ -1158,7 +1171,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).toBeNull();
     expect(container.querySelector('[data-knowledge-workspace-chrome-slot="true"] [data-active-authority-toolbar="true"]')).not.toBeNull();
     expect(container.querySelector('[data-knowledge-layout-control="fit-view"]')).not.toBeNull();
-    expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-relation-family="prerequisite-order"]')).not.toBeNull();
 
     await act(async () => {
       [...container.querySelectorAll('button')].find((button) => button.textContent === '旧版')!.click();
@@ -1421,7 +1434,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
 
     await enterModelingDomain({ families: false });
-    expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-relation-family="prerequisite-order"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-placement="below-canvas"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')?.classList.contains('absolute')).toBe(false);
@@ -1434,9 +1447,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-node="node-isolated"]')).not.toBeNull();
 
     // 多选类型筛选：隐藏 Formula 只影响该类型，可逆恢复（#1742）。
-    const formulaToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
+    await openTypeMenu();
+    const formulaToggle = document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
     expect(formulaToggle).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-type-filter="DomainConcept"]')).not.toBeNull();
+    expect(document.querySelector('[data-active-authority-type-filter="DomainConcept"]')).not.toBeNull();
     await act(async () => formulaToggle!.click());
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
@@ -1533,7 +1547,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-runtime="dedicated-renderer"]')).not.toBeNull();
     // 单选类型下拉已退役：类型筛选在专用面板内多选、独立可逆（#1742）。
     expect(container.querySelector('#active-authority-type-filter')).toBeNull();
-    const formulaToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
+    await openTypeMenu();
+    const formulaToggle = document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
     expect(formulaToggle?.getAttribute('aria-checked')).toBe('true');
     await act(async () => formulaToggle!.click());
     expect(formulaToggle?.getAttribute('aria-checked')).toBe('false');
@@ -1587,7 +1602,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
     expect(container.querySelector('[data-active-node-detail="node-concept"]')).not.toBeNull();
 
-    const formulaToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
+    await openTypeMenu();
+    const formulaToggle = document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
     await act(async () => formulaToggle!.click());
     // 隐藏 Formula 只隐藏该类型；选择、详情与已披露邻域保持稳定。
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
@@ -1618,6 +1634,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
       const path = url.split('?')[0] ?? '';
+      if (path.endsWith('/families/prerequisite-order')) {
+        return mockResponse({ ...familyShard('prerequisite-order', []), envelope: url.includes('locale=en') ? englishEnvelope : shardEnvelope });
+      }
       if (url.includes('locale=en')) {
         // 事务性刷新要求全部英文分片共享同一 locale envelope（#1741）。
         if (path.endsWith('/api/knowledge/shards/active')) {
@@ -1638,8 +1657,10 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const panel = container.querySelector<HTMLElement>('[data-active-authority-filter-panel="true"]');
     expect(panel?.textContent).toContain('对象类型');
-    expect(panel?.textContent).toContain('领域概念');
-    const formulaToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
+    await openTypeMenu();
+    expect(document.querySelector('[data-active-authority-type-menu]')?.textContent).toContain('领域概念');
+    await openTypeMenu();
+    const formulaToggle = document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
     await act(async () => formulaToggle!.click());
     expect(formulaToggle?.getAttribute('aria-checked')).toBe('false');
 
@@ -1652,11 +1673,11 @@ describe('active Authority knowledge workspace client boundary', () => {
     // 面板所有可见与可访问标签随 locale 整体切换，不混语言。
     const switchedPanel = container.querySelector<HTMLElement>('[data-active-authority-filter-panel="true"]');
     expect(switchedPanel?.textContent).toContain('Object types');
-    expect(switchedPanel?.textContent).toContain('Domain concept');
-    expect(switchedPanel?.textContent).not.toContain('领域概念');
+    expect(document.querySelector('[data-active-authority-type-menu]')?.textContent).toContain('Domain concept');
+    expect(document.querySelector('[data-active-authority-type-menu]')?.textContent).not.toContain('领域概念');
     // 类型隐藏状态按稳定身份保留。
     expect(
-      container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]')
+      document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]')
         ?.getAttribute('aria-checked'),
     ).toBe('false');
   });
@@ -1680,7 +1701,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     await enterModelingDomain({ families: false });
 
-    const teachingToggle = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="teaching-order"]');
+    const teachingToggle = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="prerequisite-order"]');
     expect(teachingToggle?.getAttribute('aria-checked')).toBe('true');
     expect(container.querySelector('[data-active-authority-relation="teaching-panel"]')).not.toBeNull();
 
@@ -1739,7 +1760,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     // 面板在 compact 折叠抽屉内，先展开再切换类型。
     const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
     await act(async () => mobileToolsToggle!.click());
-    const conceptToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="DomainConcept"]');
+    await openTypeMenu();
+    const conceptToggle = document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="DomainConcept"]');
     await act(async () => conceptToggle!.click());
     const filteredDirectory = container.querySelector('[data-active-authority-node-directory="visible"]');
     expect(filteredDirectory?.querySelector('[data-active-authority-node="large-concept-1"]')).toBeNull();
@@ -1990,11 +2012,14 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
 
-    // Leaving the neighborhood restores the same overview deterministically.
+    // Escape closes only the inspector; navigation uses the explicit return.
     await act(async () => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       await new Promise((resolve) => window.setTimeout(resolve, 5));
     });
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-active-authority-return-overview]')!.click());
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
@@ -2009,7 +2034,8 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     // 搜索定位是独立发现动作：选择结果披露真实一跳邻域并清空类型隐藏，
     // 避免邻域对象刚物化就被面板隐藏（#1742 解耦 search 与 type 筛选）。
-    const formulaToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
+    await openTypeMenu();
+    const formulaToggle = document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
     await act(async () => formulaToggle!.click());
     expect(formulaToggle?.getAttribute('aria-checked')).toBe('false');
     const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
@@ -2032,7 +2058,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-node="node-model"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-relation="relation-association"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-relation="relation-applies"]')).not.toBeNull();
-    expect(container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]')?.getAttribute('aria-checked')).toBe('true');
+    expect(document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]')?.getAttribute('aria-checked')).toBe('true');
   });
 
   it('clips edges to the target shape and only directed relations render an arrow', async () => {

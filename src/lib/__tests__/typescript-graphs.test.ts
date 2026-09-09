@@ -49,6 +49,17 @@ function receipt(command: 'typecheck:tools' | 'typecheck:test', overrides: Parti
 }
 
 describe('TypeScript graph contracts', () => {
+  it('allows published runtime JSON while rejecting authoring content in the web graph', () => {
+    const source = 'src/app/page.tsx';
+    const runtime = 'course-content/runtime/lessons/3-6/media/generated-data/3-6-design-data.json';
+    const authoring = 'course-content/authoring/lessons/3-6/media/raw/generated-data/3-6-design-data.json';
+    expect(validateProductionBoundaries('web', [{ path: source, content: '' }, { path: runtime, content: '{}' }], [
+      { source, target: runtime, edgeClass: 'static-import' },
+    ])).toEqual([]);
+    expect(validateProductionBoundaries('web', [{ path: source, content: '' }], [
+      { source, target: authoring, edgeClass: 'static-import' },
+    ]).length).toBeGreaterThan(0);
+  });
   it('rejects production dependencies that cross into tooling or tests', () => {
     const failures = validateProductionBoundaries(
       'web',

@@ -321,6 +321,7 @@ export function projectTeachingRelation(
   return {
     id: relation.edgeId,
     predicate: relation.relationType,
+    strength: relation.strength,
     sourceId: relation.sourceNodeId,
     targetId: relation.targetNodeId,
     direction: relationFamily === 'teaching-association' ? 'symmetric' : 'source_to_target',

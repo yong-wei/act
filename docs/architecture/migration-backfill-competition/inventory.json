@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "c253a4bdee893ae877dca8ab8f1d2468548e6615",
-  "sourceTree": "356eb70b25f899fecc543bc264c4737c09f8c2d7",
+  "sourceRevision": "4b9b410f317bfa3c868d30078008259f0a067a2b",
+  "sourceTree": "fa07941f2425754a75127b0e274d66376c9a1994",
   "counts": {
     "migration-repair": 3,
     "historical-backfill": 79,
@@ -646,7 +646,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "dry-run-default",
-      "contentHash": "b8b5e4ced0c790a845ad38865334a8dfba586d94ba3897a8c23615ba1365d5cb"
+      "contentHash": "7b17975e112701cc1c01f0e438205a3f159cc36db7fae1e36f75e760bb764044"
     },
     {
       "path": "scripts/db/verify-cumulative-portrait-fence-readiness.ts",

@@ -1,3 +1,4 @@
+import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
 /**
  * Browser-safe contracts for the active Engineering Authority workspace.
  *
@@ -48,6 +49,7 @@ export interface ActiveAuthorityProvenance {
 
 export interface ActiveCanvasNode {
   id: string;
+  resourceTypes?: readonly TeachingResourceType[];
   canonicalType: string;
   label: string;
   aliases?: readonly string[];
@@ -79,6 +81,7 @@ export interface ActiveCanvasRelation {
   targetId: string;
   direction: string | null;
   direct: boolean | null;
+  strength?: 'REQUIRED' | 'RECOMMENDED' | null;
   qualityTier: string;
   governance: {
     reviewStatus: string | null;
@@ -190,6 +193,7 @@ export interface ActiveResourceViewerContent {
 }
 
 export interface ActiveResourceBinding {
+  resourceId?: string;
   title: string;
   bindingRole: ActiveResourceBindingRole;
   resourceKind: string;

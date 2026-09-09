@@ -11,6 +11,7 @@ const globalAIMocks = vi.hoisted(() => ({
 
 vi.mock('@/components/providers/global-ai-provider', () => ({
   useGlobalAI: () => globalAIMocks,
+  useOptionalGlobalAI: () => globalAIMocks,
 }));
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),

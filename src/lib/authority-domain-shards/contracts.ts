@@ -1,3 +1,4 @@
+import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
 /**
  * Versioned Authority domain shard contracts (#1375).
  *
@@ -151,6 +152,7 @@ export interface AuthorityShardPublicEnvelope {
 
 export interface AuthorityShardObject {
   id: string;
+  resourceTypes?: readonly TeachingResourceType[];
   canonicalType: string;
   label: string;
   /** Localized search/detail aliases; never used as identity. */
@@ -187,6 +189,7 @@ export interface AuthorityShardRelation {
   targetId: string;
   direction: string | null;
   direct: boolean | null;
+  strength?: 'REQUIRED' | 'RECOMMENDED' | null;
   qualityTier: string;
   governance: {
     reviewStatus: string | null;
@@ -242,6 +245,8 @@ export interface AuthorityDomainDefaultShard {
   visualRole: Exclude<DomainVisualRole, 'aggregate'>;
   objects: readonly AuthorityShardObject[];
   teachingRelations: readonly AuthorityShardRelation[];
+  teachingBoundaryObjects?: readonly AuthorityShardObject[];
+  teachingBoundaries?: readonly AuthorityShardBoundaryRef[];
   teachingCoverage: AuthorityShardTeachingCoverage;
 }
 

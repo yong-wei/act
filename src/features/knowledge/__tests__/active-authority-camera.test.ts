@@ -34,11 +34,12 @@ describe('active graph camera geometry', () => {
     expect(horizontalExtent).toBeLessThan(1);
   });
 
-  it('restores a view only when its saved viewport still matches', () => {
+  it('restores the same camera after viewport changes without implicit fitting', () => {
     const pose = { position: { x: 20, y: 30, z: 2 }, target: { x: 20, y: 30, z: 0 },
       up: { x: 0, y: 1, z: 0 }, viewport: { width: 1160, height: 485 } };
     expect(canRestoreActiveCameraPose(pose, 1160, 485)).toBe(true);
-    expect(canRestoreActiveCameraPose(pose, 342, 432)).toBe(false);
+    expect(canRestoreActiveCameraPose(pose, 342, 432)).toBe(true);
+    expect(canRestoreActiveCameraPose(pose, 0, 432)).toBe(false);
     expect(canRestoreActiveCameraPose({ ...pose, viewport: undefined }, 342, 432)).toBe(true);
   });
 });

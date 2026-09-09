@@ -161,6 +161,7 @@ rtk proxy osascript -e 'quit app "Docker"'
 
 ## 最近发布经验摘要
 
+- TypeScript 编译期引用 runtime JSON 时，必须同步检查 `.dockerignore` 的精确文件白名单；本地 typecheck 无法证明 Docker 上下文包含该文件。上下文诊断所用临时 Dockerfile 应放在独立临时目录，避免 BuildKit 扫描整个 `/tmp` 并被其他应用的受限文件属性阻断。
 - 先把“镜像构建成功”“远端装载成功”“应用运行”“权威数据验证”“authority cutover”作为五个独立门禁，不能用前一项替代后一项
 - `podman load` 后核对实际镜像 ID、完整 OCI revision 和 app/worker 使用的 tag；registry 前缀差异可能让服务继续运行旧镜像
 - 生产失败优先保持或恢复上一可用 authority 与服务，再修复发布链；不要在服务已恢复后反复全量执行部署脚本制造 Podman/runc 状态问题

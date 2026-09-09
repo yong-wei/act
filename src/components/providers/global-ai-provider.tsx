@@ -105,6 +105,10 @@ interface GlobalAIContextValue {
 
 const GlobalAIContext = createContext<GlobalAIContextValue | null>(null);
 
+export function useOptionalGlobalAI() {
+  return useContext(GlobalAIContext);
+}
+
 export function useGlobalAI() {
   const context = useContext(GlobalAIContext);
   if (!context) {

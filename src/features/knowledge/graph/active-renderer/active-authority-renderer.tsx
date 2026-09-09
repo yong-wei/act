@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   activeAuthorityStructureSignature,
-  deriveActiveAuthorityLayout,
+  reconcileActiveAuthorityLayout,
   getActiveAuthorityWorldBounds,
+  type ActiveAuthorityLayoutSessions,
 } from './active-authority-geometry';
+import { activeFocusNodeIds } from './active-authority-visual';
 import { buildActiveAuthorityLabelDescriptors } from './active-authority-label-geometry';
 import { ActiveAuthorityLabelLayer, type ActiveAuthorityLabelLayerHandle } from './active-authority-label-layer';
 import { ActiveAuthorityGraph2D } from './active-authority-graph-2d';
@@ -21,9 +23,11 @@ export function ActiveAuthorityRenderer({
   selectedNodeId,
   hoveredNodeId,
   onNodeClick,
+  onBackgroundClick,
   onNodeHover,
   onNodeDragEnd,
   layoutState,
+  layoutSessions,
   fitViewRequest,
   relayoutVersion,
   engineReheatRevision,
@@ -40,6 +44,8 @@ export function ActiveAuthorityRenderer({
 }: ActiveAuthorityRendererProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const labelLayerRef = useRef<ActiveAuthorityLabelLayerHandle | null>(null);
+  const localSessionsRef = useRef<ActiveAuthorityLayoutSessions>(new Map());
+  const sessions = layoutSessions ?? localSessionsRef.current;
   const [size, setSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const structureSignature = activeAuthorityStructureSignature(
     nodes,
@@ -47,18 +53,25 @@ export function ActiveAuthorityRenderer({
     dimension,
     relayoutVersion,
   );
-  const layoutNodes = useMemo(
-    () => deriveActiveAuthorityLayout({ nodes, links, dimension, layoutState, layoutSalt: structureSignature }),
-    [dimension, layoutState, links, nodes, structureSignature],
-  );
+  const layoutNodes = useMemo(() => {
+    let session = sessions.get(autoFitScopeKey);
+    if (!session) {
+      session = { nodes: new Map(), relayoutVersion };
+      sessions.set(autoFitScopeKey, session);
+    }
+    return reconcileActiveAuthorityLayout(session, {
+      nodes, links, dimension, layoutState, layoutSalt: structureSignature, relayoutVersion,
+    });
+  }, [autoFitScopeKey, dimension, layoutState, links, nodes, relayoutVersion, sessions, structureSignature]);
   const labels = useMemo(
     () => buildActiveAuthorityLabelDescriptors({
       nodes: layoutNodes,
+      focusNodeIds: activeFocusNodeIds(links, selectedNodeId),
       kind,
       selectedNodeId,
       hoveredNodeId,
     }),
-    [hoveredNodeId, kind, layoutNodes, selectedNodeId],
+    [hoveredNodeId, kind, layoutNodes, links, selectedNodeId],
   );
   const worldBounds = useMemo(() => getActiveAuthorityWorldBounds(layoutNodes), [layoutNodes]);
 
@@ -106,6 +119,7 @@ export function ActiveAuthorityRenderer({
       {ready ? (
         dimension === '2d' ? (
           <ActiveAuthorityGraph2D
+            key={autoFitScopeKey}
             kind={kind}
             dimension={dimension}
             nodes={layoutNodes}
@@ -113,6 +127,7 @@ export function ActiveAuthorityRenderer({
             selectedNodeId={selectedNodeId}
             hoveredNodeId={hoveredNodeId}
             onNodeClick={onNodeClick}
+            onBackgroundClick={onBackgroundClick}
             onNodeHover={onNodeHover}
             onNodeDragEnd={onNodeDragEnd}
             fitViewRequest={fitViewRequest}
@@ -134,6 +149,7 @@ export function ActiveAuthorityRenderer({
           />
         ) : (
           <ActiveAuthorityGraph3D
+            key={autoFitScopeKey}
             kind={kind}
             dimension={dimension}
             nodes={layoutNodes}
@@ -141,6 +157,7 @@ export function ActiveAuthorityRenderer({
             selectedNodeId={selectedNodeId}
             hoveredNodeId={hoveredNodeId}
             onNodeClick={onNodeClick}
+            onBackgroundClick={onBackgroundClick}
             onNodeHover={onNodeHover}
             onNodeDragEnd={onNodeDragEnd}
             fitViewRequest={fitViewRequest}

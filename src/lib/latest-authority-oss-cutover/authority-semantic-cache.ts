@@ -30,7 +30,7 @@ export interface AuthoritySemanticRelation {
   readonly relationType: string;
   readonly reviewStatus: string | null;
   readonly publicationStatus: string | null;
-  readonly direct: boolean;
+  readonly direct: boolean | null;
   readonly payload: unknown;
 }
 

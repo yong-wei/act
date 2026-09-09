@@ -54,7 +54,6 @@ describe('DiagnosisReportDeliveryView', () => {
         actions={[
           { kind: 'preparation', label: '进入备课工作台', href: '/teacher/smart-prep', targetKey: 'report' },
           { kind: 'preparation', label: '进入备课工作台', href: '/teacher/preparation', targetKey: 'finding:1' },
-          { kind: 'remediation', label: '已注册补练资源', href: '/teacher/resources/resource-nodes?q=margin', targetKey: 'finding:1' },
         ]}
         dispositionEvents={[]}
         dispositionHref="/api/dispositions"
@@ -66,7 +65,11 @@ describe('DiagnosisReportDeliveryView', () => {
     expect(html).toContain('查看允许的证据摘要');
     expect(html).toContain('打印');
     expect(html).not.toContain('导出 PDF');
-    expect(html).toContain('标记已安排干预');
+    expect(html).not.toContain('标记已安排干预');
+    expect(html).not.toContain('暂无已注册补练资源');
+    expect(html).toContain('btn-disposition-pending');
+    expect(html).toContain('btn-disposition-success');
+    expect(html).toContain('btn-disposition-neutral');
     expect(html).toContain('学习建议');
     expect(html).toContain('完成一次针对性练习');
     expect(html).toContain('处置不会清除风险');

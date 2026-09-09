@@ -1,4 +1,4 @@
-import rawDesignData from '../../../../course-content/authoring/lessons/3-6/media/raw/generated-data/3-6-design-data.json';
+import rawDesignData from '../../../../course-content/runtime/lessons/3-6/media/generated-data/3-6-design-data.json';
 
 import type { ComplexPoint, ControlAnalysisResult, CurvePoint, FeasibleRegionConfig } from './types';
 

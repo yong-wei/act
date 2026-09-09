@@ -13,8 +13,8 @@ import {
   type KnowledgeGraphLayoutState,
 } from './layout-state';
 
-export type KnowledgeGraphDimensionLayoutStore = Record<GraphDimension, KnowledgeGraphLayoutState>;
-export type KnowledgeGraphDimensionRelayoutStore = Record<GraphDimension, number>;
+export type KnowledgeGraphDimensionLayoutStore = Record<string, KnowledgeGraphLayoutState>;
+export type KnowledgeGraphDimensionRelayoutStore = Record<string, number>;
 
 export function createEmptyDimensionLayoutStore(): KnowledgeGraphDimensionLayoutStore {
   return {
@@ -29,14 +29,14 @@ export function createEmptyDimensionRelayoutStore(): KnowledgeGraphDimensionRela
 
 export function selectDimensionLayout(
   store: KnowledgeGraphDimensionLayoutStore,
-  dimension: GraphDimension,
+  dimension: string,
 ): KnowledgeGraphLayoutState {
   return store[dimension] ?? getEmptyKnowledgeGraphLayoutState();
 }
 
 export function writeDimensionLayout(
   store: KnowledgeGraphDimensionLayoutStore,
-  dimension: GraphDimension,
+  dimension: string,
   next: KnowledgeGraphLayoutState,
 ): KnowledgeGraphDimensionLayoutStore {
   if (store[dimension] === next) return store;
@@ -46,8 +46,12 @@ export function writeDimensionLayout(
 export function useKnowledgeGraphRuntimeLayout(options?: {
   initialFitTarget?: KnowledgeGraphFitRequest['target'];
   dimension?: GraphDimension;
+  scopeKey?: string;
+  fixedLayout?: boolean;
 }) {
   const dimension = options?.dimension ?? '2d';
+  const layoutKey = options?.scopeKey ? `${options.scopeKey}:${dimension}` : dimension;
+  const fixedLayout = options?.fixedLayout ?? false;
   const [layoutByDimension, setLayoutByDimension] = useState(createEmptyDimensionLayoutStore);
   const [relayoutVersionByDimension, setRelayoutVersionByDimension] = useState(
     createEmptyDimensionRelayoutStore,
@@ -56,16 +60,16 @@ export function useKnowledgeGraphRuntimeLayout(options?: {
     id: 0,
     target: options?.initialFitTarget ?? 'current',
   });
-  const layoutState = selectDimensionLayout(layoutByDimension, dimension);
-  const relayoutVersion = relayoutVersionByDimension[dimension] ?? 0;
+  const layoutState = useMemo(() => selectDimensionLayout(layoutByDimension, layoutKey), [layoutByDimension, layoutKey]);
+  const relayoutVersion = relayoutVersionByDimension[layoutKey] ?? 0;
 
   const setLayoutState = useCallback((update: SetStateAction<KnowledgeGraphLayoutState>) => {
     setLayoutByDimension((current) => {
-      const previous = selectDimensionLayout(current, dimension);
+      const previous = selectDimensionLayout(current, layoutKey);
       const next = typeof update === 'function' ? update(previous) : update;
-      return writeDimensionLayout(current, dimension, next);
+      return writeDimensionLayout(current, layoutKey, next);
     });
-  }, [dimension]);
+  }, [layoutKey]);
 
   const handleNodeDragEnd = useCallback((node: KnowledgeNodeData) => {
     const runtimePosition = getKnowledgeGraphRuntimeNodePosition(
@@ -74,10 +78,10 @@ export function useKnowledgeGraphRuntimeLayout(options?: {
     if (!runtimePosition) return;
     setLayoutByDimension((current) => writeDimensionLayout(
       current,
-      dimension,
-      storeKnowledgeGraphNodePosition(selectDimensionLayout(current, dimension), runtimePosition),
+      layoutKey,
+      storeKnowledgeGraphNodePosition(selectDimensionLayout(current, layoutKey), runtimePosition),
     ));
-  }, [dimension]);
+  }, [layoutKey]);
 
   const requestFitView = useCallback((target: KnowledgeGraphFitRequest['target'] = 'current') => {
     setFitViewRequest((current) => ({ id: current.id + 1, target }));
@@ -88,18 +92,18 @@ export function useKnowledgeGraphRuntimeLayout(options?: {
     // explicit user pin (#1739 task 2.3); only the automatic settled
     // coordinates are regenerated.
     setLayoutByDimension((current) => {
-      const previous = selectDimensionLayout(current, dimension);
-      return writeDimensionLayout(current, dimension, {
+      const previous = selectDimensionLayout(current, layoutKey);
+      return writeDimensionLayout(current, layoutKey, {
         ...previous,
         version: previous.version + 1,
       });
     });
     setRelayoutVersionByDimension((current) => ({
       ...current,
-      [dimension]: (current[dimension] ?? 0) + 1,
+      [layoutKey]: (current[layoutKey] ?? 0) + 1,
     }));
     setFitViewRequest((current) => ({ id: current.id + 1, target: 'current' }));
-  }, [dimension]);
+  }, [layoutKey]);
 
   const [engineReheatRevision, setEngineReheatRevision] = useState(0);
   const layoutStoreRef = useRef(layoutByDimension);
@@ -112,15 +116,15 @@ export function useKnowledgeGraphRuntimeLayout(options?: {
    * again instead of freezing at their last pinned spot.
    */
   const unpinNode = useCallback((nodeId?: string) => {
-    const previous = selectDimensionLayout(layoutStoreRef.current, dimension);
+    const previous = selectDimensionLayout(layoutStoreRef.current, layoutKey);
     const next = nodeId
       ? removeKnowledgeGraphNodePin(previous, nodeId)
       : clearKnowledgeGraphLayoutPins(previous);
     if (next === previous) return;
-    layoutStoreRef.current = writeDimensionLayout(layoutStoreRef.current, dimension, next);
+    layoutStoreRef.current = writeDimensionLayout(layoutStoreRef.current, layoutKey, next);
     setLayoutByDimension(() => layoutStoreRef.current);
-    setEngineReheatRevision((revision) => revision + 1);
-  }, [dimension]);
+    if (!fixedLayout) setEngineReheatRevision((revision) => revision + 1);
+  }, [fixedLayout, layoutKey]);
 
   const pinnedNodeIds = useMemo(
     () => new Set(Object.keys(layoutState.positionsByNodeId)),

@@ -72,3 +72,7 @@ description: Use when performing code review in this repository and you want a g
 - 未先 `tool_search` 就断言 flow/test 查询工具不存在
 - 对所有文件平均用力，导致高风险点读得不够深
 - 没有测试证据就给出强结论
+
+## 大型执行流结果
+
+`get_affected_flows_tool` 可能返回包含完整节点路径的大量数据。通过工具编排调用时，先保留原始返回值，仅输出 `summary`、执行流名称、入口、文件数和风险排序；需要证据时再对单一执行流读取。不要直接输出整个 `content` 和 `structuredContent`，二者可能重复携带同一完整图。

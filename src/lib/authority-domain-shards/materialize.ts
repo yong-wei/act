@@ -440,18 +440,19 @@ export function buildAuthorityDomainShards(
       );
     }
     const overviewIds = new Set(overviewObjects.map((object) => object.id));
-    // Teaching edges are real published relations; in the overview only
-    // edges whose endpoints are both eligible concept-overview members.
-    // Teaching edges are real published relations; in the overview only
-    // edges whose endpoints are both eligible concept-overview members.
+    // Preserve real cross-domain prerequisites with bounded endpoint descriptors.
     const teachingRelations = teaching.relations(domainId)
-      .filter((relation) => overviewIds.has(relation.sourceId) && overviewIds.has(relation.targetId))
-      .slice()
-      .sort(compareId);
+      .filter((relation) => (
+        (overviewIds.has(relation.sourceId) || overviewIds.has(relation.targetId))
+        && objectsById.has(relation.sourceId) && objectsById.has(relation.targetId)
+      ))
+      .slice().sort(compareId);
+    const boundaryIds = [...new Set(teachingRelations.flatMap((relation) => [relation.sourceId, relation.targetId]))]
+      .filter((id) => !overviewIds.has(id)).sort();
+    const teachingBoundaryObjects = boundaryIds.map((id) => projectAuthorityObject(objectsById.get(id)!, input.catalog, labels));
+    const teachingBoundaries = boundaryIds.map((id) => boundaryFor(objectsById.get(id)!, input.catalog, labels));
     // U6: coverage receipts are computed from the final payload, never copied
-    // from the projection's declared counts — the overview delivers only
-    // relations whose endpoints are both overview members, so the receipt must
-    // count exactly those rows.
+    // from the projection's declared counts, including delivered boundary edges.
     const declaredCoverage = teaching.coverage(domainId);
     const teachingCoverage: AuthorityShardTeachingCoverage = {
       ...declaredCoverage,
@@ -464,6 +465,8 @@ export function buildAuthorityDomainShards(
       visualRole: domain.visualRole,
       objects: overviewObjects,
       teachingRelations,
+      teachingBoundaryObjects,
+      teachingBoundaries,
       teachingCoverage,
     };
     const serializedDefault = JSON.stringify(domainDefault);
