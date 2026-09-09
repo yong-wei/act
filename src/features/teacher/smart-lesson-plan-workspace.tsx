@@ -209,7 +209,7 @@ export function SmartLessonPlanWorkspace({
         },
         score: recommendationScore(query, `${book.title} ${range.title} ${range.naturalNumber ?? ''}`),
       })),
-    ]).sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
+    ]).sort((left, right) => right.score - left.score || (left.label < right.label ? -1 : left.label > right.label ? 1 : left.key < right.key ? -1 : left.key > right.key ? 1 : 0));
   }, [newTaskTopic, textbookCatalog]);
   const recommendedTextbookRange = textbookRangeOptions.find((option) => option.key === selectedTextbookRange)
     ?? textbookRangeOptions[0];
