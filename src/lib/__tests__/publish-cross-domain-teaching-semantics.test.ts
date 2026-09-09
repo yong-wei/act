@@ -119,9 +119,9 @@ describe('publish-cross-domain-teaching-semantics', () => {
 
   it('binds every resealed shard to the same complete snapshot selection', () => {
     const selection = built.authoritySource;
-    expect(built.authority.nodes).toHaveLength(7476);
+    expect(built.authority.nodes).toHaveLength(7472);
     expect(selection.nodeIndexDigest).toBe(
-      '76bc76cac975c8ace294fb4d51d726a927ec0dd2b537181cd6fee1dc389dacf5',
+      '65d089254f5a0331a3a7fb75eb8783fd3b0702ac7e9ca8648559ea66973fde5a',
     );
     const fragments = [
       built.foundationFragment,

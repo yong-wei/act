@@ -1,32 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  resolveAdaptivePathRuntimeObjectKey,
   verifyAdaptivePathObjectKeys,
   type AdaptivePathObjectKeyVerifier,
 } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
 
-describe('adaptive path runtime object key resolver (#2033)', () => {
-  it('parses runtime asset URLs into runtime object keys', () => {
-    const resolved = resolveAdaptivePathRuntimeObjectKey('/api/course-runtime/assets/lessons/1-3/media/intro.mp4');
-    expect(resolved).toEqual({
-      state: 'runtime-object-key',
-      objectKey: 'lessons/1-3/media/intro.mp4',
-    });
-  });
-
-  it('parses blob asset URLs into content-addressed keys', () => {
-    const sha = 'a'.repeat(64);
-    const resolved = resolveAdaptivePathRuntimeObjectKey(`/api/course-runtime/blob-assets/${sha}`);
-    expect(resolved).toEqual({ state: 'blob-content-key', objectKey: `blob:${sha}` });
-  });
-
-  it('marks non-runtime targets as not runtime-backed', () => {
-    expect(resolveAdaptivePathRuntimeObjectKey('/knowledge?node=x').state).toBe('non-runtime');
-    expect(resolveAdaptivePathRuntimeObjectKey('/interactive-learning/resources/card').objectKey).toBeNull();
-    expect(resolveAdaptivePathRuntimeObjectKey('/api/course-runtime/other/path').state).toBe('non-runtime');
-  });
-});
+// #2055：对象键来源已迁移到节点 runtime 绑定字段
+// （见 adaptive-path-runtime-binding.test.ts），target 字符串反解已退役。
 
 describe('adaptive path object key read verification (#2033 fault injection)', () => {
   const verifiedAt = '2026-09-06T00:00:00.000Z';

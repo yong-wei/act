@@ -4,7 +4,7 @@ import {
   resolveAdaptivePathLandingState,
   resolveAdaptivePathContextRecoveryState,
   resolveAdaptivePathExecutionNodeStatus,
-} from '../adaptive-path-execution-state';
+} from '@/features/personalization/path-planning/adaptive-path-execution-state';
 
 describe('resolveAdaptivePathExecutionNodeStatus', () => {
   it('keeps a completed current complex node current while its result is pending sync', () => {

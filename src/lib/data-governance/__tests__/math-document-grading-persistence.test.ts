@@ -1200,17 +1200,18 @@ describe('production math-document grading persistence contracts', () => {
         evaluate: async () => ({
           evaluatorId: 'provider-1',
           evaluatorVersion: 'model.v1',
-          assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, rationale: 'The submitted evidence states the stability result.', confidence: 0.9, anchors: [{ blockId: 'document-block-1', precision: 'span', excerpt: '第一段证据', spanStart: 0, spanEnd: 6 }], limitationState: 'none', annotations: [] }],
+          assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', maxScore: 5, score: 5, rationale: '提交的证据完整陈述了稳定性结论。', confidence: 0.9, anchors: [{ blockId: 'document-block-1', precision: 'span', excerpt: '第一段证据', spanStart: 0, spanEnd: 6 }], limitationState: 'none', annotations: [] }],
           limitations: [],
-          overallComment: 'The draft is grounded in the submitted evidence.',
+          overallComment: '草评基于提交的证据给出，稳定性结论有据可查。',
+          overallFeedback: { strengths: ['证据引用完整'], problems: ['未引用具体裕度数值'], suggestions: ['补充裕度说明'] },
         }),
       },
       now,
     });
     expect(result.draft.state).toBe('awaiting-review');
-    expect(annotations).toEqual(expect.arrayContaining([
-      expect.objectContaining({ blockId: 'conversion-1:document-block-1' }),
-    ]));
+    // 满分评估按契约不产生扣分注解（annotation-without-deduction）；
+    // 证据锚点保留在 assessment anchors 投影中，不再作为 AI_DRAFT 注解行落库。
+    expect(annotations).toEqual([]);
     expect(updates).toEqual(expect.arrayContaining([expect.objectContaining({ state: 'AWAITING_REVIEW' }), expect.objectContaining({ state: 'SUCCEEDED' })]));
     expect(updates.some((update) => update.state === 'APPROVED' || 'teacherReviewedAt' in update)).toBe(false);
   });
@@ -1779,9 +1780,10 @@ describe('production math-document grading persistence contracts', () => {
           return {
             evaluatorId: 'provider-1',
             evaluatorVersion: 'model.v1',
-            assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', score: 5, rationale: 'The frozen evidence supports the criterion.', confidence: 0.9, anchors: [{ blockId: 'block-1', precision: 'span', excerpt: '冻结证据', spanStart: 0, spanEnd: 4 }], limitationState: 'none', annotations: [] }],
+            assessments: [{ criterionId: 'criterion-1', levelId: 'excellent', maxScore: 5, score: 5, rationale: '冻结证据完整支撑该评分项的结论。', confidence: 0.9, anchors: [{ blockId: 'block-1', precision: 'span', excerpt: '冻结证据', spanStart: 0, spanEnd: 4 }], limitationState: 'none', annotations: [] }],
             limitations: [],
-            overallComment: 'The frozen question and evidence were used.',
+            overallComment: '草评使用冻结题目与证据完成，结论可追溯。',
+            overallFeedback: { strengths: ['使用冻结证据'], problems: ['未覆盖全部要点'], suggestions: ['补充要点说明'] },
           };
         },
       },

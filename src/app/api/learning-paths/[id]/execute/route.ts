@@ -46,6 +46,8 @@ const RESOURCE_TYPES = new Set([
   'lesson_step',
   'knowledge_node',
   'knowledge_card',
+  'infographic',
+  'exercise',
   'textbook_section',
   'video',
   'audio',
@@ -149,7 +151,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             completedAt: existingExecution.completedAt ?? null,
             failedAt: existingExecution.failedAt ?? null,
             evidenceRefs: Array.isArray(existingExecution.evidenceRefs) ? existingExecution.evidenceRefs : [],
-            liftMetadata: normalizeExecutionLiftMetadata(existingExecution.liftMetadata),
+            liftMetadata: normalizeExecutionLiftMetadata(existingExecution.liftMetadata, pathNode?.resourceFeatureRef),
             simulationRef: toNullableRecord(existingExecution.simulationRef),
             arenaRef: toNullableRecord(existingExecution.arenaRef),
             idempotencyKey: body.idempotencyKey ?? null,
@@ -230,7 +232,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       completedAt: body.completedAt ?? null,
       failedAt: body.failedAt ?? null,
       evidenceRefs: body.evidenceRefs ?? [],
-      liftMetadata: normalizeExecutionLiftMetadata(body.liftMetadata),
+      liftMetadata: normalizeExecutionLiftMetadata(body.liftMetadata,
+        requester.role === 'student' && requester.userId === path.userId ? pathNode?.resourceFeatureRef : undefined),
       simulationRef: body.simulationRef ?? null,
       arenaRef: body.arenaRef ?? null,
       idempotencyKey: body.idempotencyKey ?? null,
@@ -362,10 +365,11 @@ function readPathActivityKind(value: unknown): string | null {
     : null;
 }
 
-function normalizeExecutionLiftMetadata(value: unknown): Record<string, unknown> {
+function normalizeExecutionLiftMetadata(value: unknown, trustedResourceFeatureRef?: unknown): Record<string, unknown> {
   const activityKind = readPathActivityKind(value);
   const metadata = toRecord(value);
   return {
+    ...(trustedResourceFeatureRef ? { resourceFeatureRef: trustedResourceFeatureRef } : {}),
     ...(activityKind ? { pathActivityKind: activityKind } : {}),
     ...sanitizeLiftOutcomeRef('adaptiveAssessmentRef', metadata.adaptiveAssessmentRef),
     ...sanitizeLiftOutcomeRef('controlWorkbenchRef', metadata.controlWorkbenchRef),

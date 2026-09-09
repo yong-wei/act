@@ -19,7 +19,7 @@ import type {
 
 /** Denominator freeze for this change; callers were recaptured from this tree. */
 export const FROZEN_CAPTURE_REVISION =
-  'd1b1458bb87892de2237f6e13a03f61a14c2d2ed' as const;
+    'c253a4bdee893ae877dca8ab8f1d2468548e6615' as const;
 
 const PASSING_PARITY: ReplacementParity = {
   identity: true,

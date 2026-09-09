@@ -1,12 +1,12 @@
 {
-  "sourceRevision": "53bd200653f6543776c44039c9b3025258f94ba8",
-  "sourceTree": "541d61559d150bf57764c2e58aa1113131f7c138",
+  "sourceRevision": "c253a4bdee893ae877dca8ab8f1d2468548e6615",
+  "sourceTree": "356eb70b25f899fecc543bc264c4737c09f8c2d7",
   "counts": {
     "migration-repair": 3,
-    "historical-backfill": 78,
+    "historical-backfill": 79,
     "competition-material": 8
   },
-  "commandCount": 89,
+  "commandCount": 90,
   "commands": [
     {
       "path": "scripts/migrations/001-seed-event-dictionary.ts",
@@ -62,7 +62,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "7eb75b92dadd2ad705362a65835e71e86f5e564f0a7970bba2a030922d756adb"
+      "contentHash": "5d7361e1f01f09e0f5146cca642fd38dfc2840926d519c904e4abde23f39b237"
     },
     {
       "path": "scripts/db/backfill-cumulative-attainment.ts",
@@ -86,7 +86,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "52deec82562faa5fdca3c8dfcd4e68b879b8d46f8ebb6591428f7c1b19179187"
+      "contentHash": "a9ba13428ec5d0a77b5e6c2285a94dfa8c0801565b1fc673ee6e364ac4ec93e3"
     },
     {
       "path": "scripts/db/backfill-learning-facts-from-interaction-logs.ts",
@@ -94,7 +94,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "91057bf394f7c122bbbbb2f7e39c5b2a863976c03c9c4f3031baba417084a716"
+      "contentHash": "d8a7ef3b0baf19c8cdc95004399e2a6fdf12066df92f32113994f3b7511c1a1b"
     },
     {
       "path": "scripts/db/backfill-unit-4-1-growth-governance.ts",
@@ -134,7 +134,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "dry-run-default",
-      "contentHash": "9de1794a08a43acde1a72c5cd83202f06e54f3ba13dd2a68af0971f7948b7062"
+      "contentHash": "16d0fbcf249d7174445f661fc1d9808ab2b6243c5da208d3f499087897e084e9"
     },
     {
       "path": "scripts/db/dry-run-course-basis-lifecycle.ts",
@@ -174,7 +174,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "443eb65364d54be7023509e9e7cd78087a60bd5e340f1c7b4b8b6e56121a5ba2"
+      "contentHash": "3e7103472c50d57b246b68d9c9da59e8c51b9ebc721d4345e008713eb8a5c288"
     },
     {
       "path": "scripts/db/generate-adaptive-assessment-lifecycle-coverage.ts",
@@ -182,7 +182,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "6a52e948302b1d8380276d218ca773e5308025db8a44e148239758c7eff2a24d"
+      "contentHash": "7f497dd32ddf08be545d932c6e4cf45a81817e4f7f28d6825b540ee11cdfd564"
     },
     {
       "path": "scripts/db/generate-assessment-item-semantic-review.ts",
@@ -190,7 +190,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "3f1e2f4b493b93eb0ed8aa94a922540f6e0f7c283d156a5dc02ad53f02f3e89d"
+      "contentHash": "f622f4ecd3b7b4a3957463f17fa2280553f000599e202c6d076d51b20a447815"
     },
     {
       "path": "scripts/db/generate-core-textbook-section-path-role-review.ts",
@@ -214,7 +214,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "1e368b331d6e4b803e06da55cc4aa435b1eccf9653de0899b1374a9c4c7632a3"
+      "contentHash": "32db35769dfb91894fc9ab2a7934e7abb82b665bbd2d0c45a0987526c1ba306e"
     },
     {
       "path": "scripts/db/generate-learning-goal-assessment-coverage.ts",
@@ -222,7 +222,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "59bc79f7805eac6a738efb4f8fc5442ddcf82c21660aeb18cb07052666fac34f"
+      "contentHash": "94c81fb45ecbe77c8160a0b8ed341ef510d9fe7246224d2849cf9d6aa0169dfb"
     },
     {
       "path": "scripts/db/generate-longform-textbook-reference-resource-semantics.ts",
@@ -254,7 +254,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "22a7f26556d93f3203b0d63f88a3c3d624ef1e0d935eef6731c37f31db0e4c85"
+      "contentHash": "3ff956ebbee3e019702277685b9051afd5778ffe326388bf5e017b922fec783a"
     },
     {
       "path": "scripts/db/generate-runtime-lesson-media-resource-semantics.ts",
@@ -334,7 +334,7 @@
       "owner": "learning-record",
       "oneOffClass": "historical-backfill",
       "safetyMode": "apply-gated",
-      "contentHash": "bad082a68b589af37105cba5aff077ca6ed0c91b14f5b77b18ed5e6358ae7a0d"
+      "contentHash": "ea46075464fc5a6f97bf9935baa6a7f62d2020faa7f43d8b9827d973e006e589"
     },
     {
       "path": "scripts/db/materialize-runtime-lesson-media-semantic-review-source.ts",
@@ -647,6 +647,14 @@
       "oneOffClass": "historical-backfill",
       "safetyMode": "dry-run-default",
       "contentHash": "b8b5e4ced0c790a845ad38865334a8dfba586d94ba3897a8c23615ba1365d5cb"
+    },
+    {
+      "path": "scripts/db/verify-cumulative-portrait-fence-readiness.ts",
+      "commandId": "oneoff:historical-backfill:scripts/db/verify-cumulative-portrait-fence-readiness.ts",
+      "owner": "learning-record",
+      "oneOffClass": "historical-backfill",
+      "safetyMode": "dry-run-default",
+      "contentHash": "645780035dc0ed1ca5771d95761438cf0e3a34289e4c04bcb1ae6bb375a77803"
     },
     {
       "path": "scripts/db/verify-test-account-login.mjs",

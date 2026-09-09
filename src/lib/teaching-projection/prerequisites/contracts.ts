@@ -2,7 +2,9 @@
  * ACT teaching prerequisite publication contracts (#1270).
  *
  * Core-node denominator + ACT_TEACHING PREREQUISITE edges.
- * Engineering relations, textbook order, and lesson order stay candidates only.
+ * Textbook order, lesson order, and non-learning-order engineering families
+ * stay candidates only. Upstream `prerequisite` / post-requisite-family
+ * predicates may be adopted as REQUIRED with engineering provenance.
  */
 
 import type {
@@ -249,6 +251,7 @@ export interface PrerequisitePublicationManifest {
     decisions: string;
     candidates: string;
     body: string;
+    receipts?: string;
   };
   publicationId: string;
   publicationHash: string;
@@ -266,6 +269,29 @@ export interface PrerequisitePublicationArtifacts {
   /** Projection-compatible authoring slices for reuse by teaching-projection builder. */
   projectionCoreNodes: TeachingCoreNodeAuthoring[];
   projectionPrerequisites: TeachingPrerequisiteAuthoring[];
+  receipts?: EngineeringLearningOrderReceipt[];
+}
+
+export type EngineeringLearningOrderDisposition =
+  | 'adopted'
+  | 'already-teaching'
+  | 'exception-teaching-conflict'
+  | 'rejected-not-core'
+  | 'rejected-not-authority'
+  | 'rejected-cycle';
+
+export type PrerequisiteOrderSource =
+  | 'teaching-design'
+  | 'engineering-learning-order';
+
+export interface EngineeringLearningOrderReceipt {
+  relationId: string;
+  sourceId: string;
+  targetId: string;
+  snapshotHash: string;
+  authorityReleaseId: string;
+  disposition: EngineeringLearningOrderDisposition;
+  teachingPair?: { sourceNodeId: string; targetNodeId: string } | null;
 }
 
 export interface PrerequisitePublicationBuildInput {
@@ -278,6 +304,7 @@ export interface PrerequisitePublicationBuildInput {
   edges: readonly PrerequisiteEdgeAuthoring[];
   decisions?: readonly PrerequisiteAuthorDecision[];
   candidates?: readonly PrerequisiteCandidateRecord[];
+  receipts?: readonly EngineeringLearningOrderReceipt[];
   /**
    * Prior published artifact. On fail-closed rejection the prior is preserved
    * and returned without mutation.

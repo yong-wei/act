@@ -61,5 +61,8 @@ export * from './adaptive-path-option-display';
 export * from './adaptive-path-round-restore';
 export * from './control-correction-path-rounds';
 export * from './adaptive-path-unlock-chain';
+export * from './adaptive-path-batch-comparison-view';
+export * from './adaptive-path-runtime-binding';
+export * from './indexed-resource-verification';
 export * from './path-constraint-repair';
 export * from './resource-ranker';

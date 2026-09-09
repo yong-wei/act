@@ -1,6 +1,7 @@
 export type KonlingCitationSourceType =
   | 'content'
   | 'textbook'
+  | 'teaching-resource'
   | 'learner-state'
   | 'path-execution'
   | 'simulation'
@@ -28,6 +29,14 @@ export type KonlingCitationIdentity =
       sourceType: 'content';
       contentId: string;
       sourceRevision?: string | null;
+    }
+  | {
+      /** 教学投影绑定资源（registry:/DB/教材单元）的服务端解析引用身份。 */
+      kind: 'teaching-resource';
+      resourceId: string;
+      resourceType?: string | null;
+      projectionId?: string | null;
+      canonicalId?: string | null;
     };
 
 export type KonlingAssignedCitation = {
@@ -52,6 +61,36 @@ export type KonlingAssignableCitation = Omit<
   verifiable?: boolean;
 };
 
+/**
+ * 直接支撑的答案相关性证据分级白名单（生产 hybrid-retriever 的 basis）：
+ * 显式引用（selected-node-ref / capability-target-ref / resource-ref /
+ * learner-context-ref）与查询词直接命中（query-exact / query-lexical）。
+ * 纯语义相似（semantic-score）只是检索级相关；缺失或未知 basis 一律不算
+ * 直接支撑（#1992 review P1）。审计（citation-audit）、白名单执行
+ * （#2017）与逐单元证据分配（#2039）共用同一判据。
+ */
+export const DIRECT_SUPPORT_RELEVANCE_BASES: ReadonlySet<string> = new Set([
+  'selected-node-ref',
+  'capability-target-ref',
+  'resource-ref',
+  'learner-context-ref',
+  'query-exact',
+  'query-lexical',
+]);
+
+/** 直接支撑判据：已核验 + 有锚点 + href 可访问 + 相关性分级在白名单内。 */
+export function isDirectVerifiedSupportCitation(citation: {
+  citationTargetId: string | null;
+  verified: boolean;
+  href: string | null;
+  answerRelevanceBasis?: string | null;
+}): boolean {
+  return citation.verified === true
+    && Boolean(citation.citationTargetId)
+    && Boolean(citation.href)
+    && DIRECT_SUPPORT_RELEVANCE_BASES.has(citation.answerRelevanceBasis ?? '');
+}
+
 function keyPart(value: string | null | undefined) {
   return encodeURIComponent(String(value ?? '').normalize('NFKC').trim());
 }
@@ -72,6 +111,13 @@ export function buildKonlingCitationCanonicalKey(identity: KonlingCitationIdenti
       'content',
       keyPart(identity.contentId),
       keyPart(identity.sourceRevision || 'current'),
+    ].join(':');
+  }
+  if (identity.kind === 'teaching-resource') {
+    return [
+      'teaching-resource',
+      keyPart(identity.resourceId),
+      keyPart(identity.projectionId || 'current'),
     ].join(':');
   }
   return [

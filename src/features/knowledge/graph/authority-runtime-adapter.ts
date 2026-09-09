@@ -12,7 +12,7 @@ export const ACTIVE_RUNTIME_GRAPH_VERSION = 'active-authority';
 export const ACTIVE_ROOT_RUNTIME_GRAPH_VERSION = 'active-root-catalog';
 export const ACTIVE_ROOT_PRESENTATION_KIND = 'active-root-navigation';
 
-function runtimeNodeTypeFor(shape: string): NodeType {
+export function runtimeNodeTypeFor(shape: string): NodeType {
   if (shape === 'hexagon') return 'ETHICS';
   if (shape === 'square' || shape === 'rounded') return 'SCENARIO';
   return 'THEORY';
@@ -24,6 +24,10 @@ export function toActiveRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNo
     name: node.label,
     nodeType: runtimeNodeTypeFor(node.presentation.type.shape),
     description: node.description ?? '',
+    typeLabel: node.typeLabel,
+    richDescription: node.presentation.richDescription,
+    accessibleName: node.presentation.accessibleName,
+    sourceCoverageCount: node.presentation.sourceNode.sourceCoverageCount,
     positionX: 0,
     positionY: 0,
     positionZ: 0,
@@ -31,6 +35,7 @@ export function toActiveRuntimeNodes(view: AuthorityGraphViewModel): KnowledgeNo
     metadata: {
       sourceMode: 'active',
       registeredType: node.canonicalType,
+      activeTone: node.presentation.type.tone,
       presentationShape: toRuntimePresentationShape(node.presentation.type.shape),
       decoration: node.decoration,
     },

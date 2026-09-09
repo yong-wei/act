@@ -1217,9 +1217,16 @@ describe('authority domain shard delivery', () => {
       v2Evidence: v2Evidence([
         { entityId: MODELING, label: '系统建模', labelType: 'canonical_preferred' },
         { entityId: MODELING, label: '', labelType: 'alternative' },
+        { entityId: MODELING, label: 'node:internal', labelType: 'alternative' },
       ]),
     });
-    expect(resolveAuthorityLabel(unsafeAlias, MODELING).status).toBe('unavailable');
+    // Governed aliases drop only themselves when unqualified (#2058: unsafe
+    // aliases must not blank the zh-CN base presentation).
+    expect(resolveAuthorityLabel(unsafeAlias, MODELING)).toMatchObject({
+      status: 'available',
+      label: '系统建模',
+      aliases: [],
+    });
 
     expect(() => createAuthorityLabelResolverContext({
       snapshot: { snapshotId: SNAPSHOT_ID, snapshotHash: SNAPSHOT_HASH, releaseId: RELEASE_ID },
@@ -1717,6 +1724,118 @@ describe('authority domain shard delivery', () => {
     expect(backToA.objectsByCanonicalId[TIME]).toBeUndefined();
     expect(backToA.loadedShardKeys).toContain(`node-neighborhood:${MODELING}`);
     expect(backToA.loadedShardKeys).not.toContain(`node-neighborhood:${NEIGHBOR}`);
+  });
+
+  it('co-delivers relation-family endpoints with their relations (U1 bounded closure)', () => {
+    const catalog = catalogRuntime();
+    // A non-overview member type and an unmembered statement both act as
+    // relation endpoints; neither ships in a domain-default overview.
+    const STATEMENT = 'cts:statement-endpoint';
+    const statementObject = {
+      ...objectRow(STATEMENT, '知识陈述端点'),
+      canonicalType: 'KnowledgeStatement',
+    };
+    const unmembered = {
+      ...objectRow('cts:unmembered-endpoint', '无成员端点'),
+      canonicalType: 'KnowledgeStatement',
+    };
+    const engineering = engineeringBody();
+    engineering.objects = [...engineering.objects, statementObject, unmembered];
+    engineering.relations = [
+      ...engineering.relations,
+      relationRow('rel-member-statement', 'association', MODELING, STATEMENT),
+      relationRow('rel-member-unmembered', 'association', SHARED, 'cts:unmembered-endpoint'),
+    ];
+    const materialized = buildAuthorityDomainShards({
+      envelope: envelope({
+        catalog: {
+          catalogId: catalog.catalogId,
+          catalogHash: catalog.catalogHash,
+          catalogVersion: catalog.catalogVersion,
+        },
+      }),
+      catalog,
+      engineering,
+      activatedAt: '2026-09-07T00:00:00.000Z',
+    });
+
+    const family = materialized.families['system-modeling:association']!;
+    const objectIds = new Set(family.objects.map((object) => object.id));
+    for (const relation of family.relations) {
+      for (const endpoint of [relation.sourceId, relation.targetId]) {
+        expect(
+          objectIds.has(endpoint)
+          || materialized.domainDefaults['system-modeling'].objects.some((object) => object.id === endpoint),
+          `endpoint ${endpoint} must ship with the family or the parent overview`,
+        ).toBe(true);
+      }
+    }
+    // The statement member (in the catalog but not the concept overview) and
+    // the unmembered statement both ship in the family shard itself.
+    expect(objectIds.has(STATEMENT)).toBe(true);
+    expect(objectIds.has('cts:unmembered-endpoint')).toBe(true);
+  });
+
+  it('fails closed when a relation endpoint is absent from the snapshot', () => {
+    const catalog = catalogRuntime();
+    const engineering = engineeringBody();
+    engineering.relations = [
+      ...engineering.relations,
+      relationRow('rel-dangling', 'association', MODELING, 'cts:never-materialized'),
+    ];
+    expect(() => buildAuthorityDomainShards({
+      envelope: envelope({
+        catalog: {
+          catalogId: catalog.catalogId,
+          catalogHash: catalog.catalogHash,
+          catalogVersion: catalog.catalogVersion,
+        },
+      }),
+      catalog,
+      engineering,
+      activatedAt: '2026-09-07T00:00:00.000Z',
+    })).toThrowError(expect.objectContaining({ code: 'relation-endpoint-missing' }));
+  });
+
+  it('projects prerequisite relations as a first-class directed engineering family', () => {
+    const catalog = catalogRuntime();
+    const engineering = engineeringBody();
+    engineering.relations = [
+      ...engineering.relations,
+      relationRow('rel-prereq', 'prerequisite', MODELING, TIME),
+    ];
+    const materialized = buildAuthorityDomainShards({
+      envelope: envelope({
+        catalog: {
+          catalogId: catalog.catalogId,
+          catalogHash: catalog.catalogHash,
+          catalogVersion: catalog.catalogVersion,
+        },
+      }),
+      catalog,
+      engineering,
+      activatedAt: '2026-09-07T00:00:00.000Z',
+    });
+
+    const family = materialized.families['system-modeling:prerequisite-order']!;
+    expect(family.family).toBe('prerequisite-order');
+    const relation = family.relations.find((row) => row.id === 'rel-prereq');
+    expect(relation).toBeDefined();
+    expect(relation!.relationFamily).toBe('prerequisite-order');
+    expect(relation!.semanticSupport.supported).toBe(true);
+    // Direction semantics stay exactly as published.
+    expect(relation!.direction).toBe('source_to_target');
+    // Both endpoints ship with the prerequisite family shard.
+    const objectIds = new Set(family.objects.map((object) => object.id));
+    expect(objectIds.has(TIME)).toBe(true);
+  });
+
+  it('recomputes teaching coverage receipts from the final overview payload (U6)', () => {
+    const { materialized } = writeShards();
+    const domainDefault = materialized.domainDefaults['system-modeling'];
+    expect(domainDefault.teachingCoverage.relationCount).toBe(domainDefault.teachingRelations.length);
+    const receiptRow = materialized.coverage.domains.find((row) => row.domainId === 'system-modeling');
+    expect(receiptRow!.teachingRelationCount).toBe(domainDefault.teachingRelations.length);
   });
 });
 

@@ -6,6 +6,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+vi.mock('next-auth/react', () => ({
+  useSession: () => ({ data: null, status: 'unauthenticated' }),
+}));
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/knowledge',
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+}));
+
 import { KnowledgeGraphWorkspace } from '../knowledge-graph-workspace';
 import {
   selectActiveAuthorityMembership,
@@ -375,6 +384,15 @@ describe('active Authority knowledge workspace client boundary', () => {
   let root: Root;
   let fetchMock: ReturnType<typeof vi.fn>;
   let detailLearningContentMode: 'available' | 'unavailable';
+  let detailResourceBindingsEnabled: boolean;
+  let detailResourceBindingItems: Array<{
+    title: string;
+    bindingRole: '讲解' | '练习' | '评价' | '引用';
+    resourceKind: string;
+    availability: 'available' | 'unavailable';
+    launch: { kind: 'direct-route' | 'registry-resource' | 'viewer-shell' | 'unavailable'; href: string | null };
+    viewer?: { summary?: string; insight?: string | null; explanation?: string | null; imageSrc?: string };
+  }> | null;
 
   beforeEach(() => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
@@ -382,6 +400,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     document.body.appendChild(container);
     root = createRoot(container);
     detailLearningContentMode = 'available';
+    detailResourceBindingsEnabled = false;
+    detailResourceBindingItems = null;
     fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
       const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
@@ -418,6 +438,21 @@ describe('active Authority knowledge workspace client boundary', () => {
             ...nodeDetail(nodeId).node,
             teachingFields: {},
             media: { cardAvailable: false, infographAvailable: false },
+            ...(detailResourceBindingsEnabled ? {
+              resourceBindings: {
+                state: 'available',
+                items: detailResourceBindingItems ?? [{
+                  title: '稳定性课程',
+                  bindingRole: '讲解',
+                  resourceKind: '课程',
+                  availability: 'available',
+                  launch: {
+                    kind: 'registry-resource',
+                    href: '/interactive-learning/courses/unit-3-2-routh-stability-boundary',
+                  },
+                }],
+              },
+            } : {}),
             learningContent: detailLearningContentMode === 'unavailable'
               ? {
                 card: { state: 'missing', message: '当前节点暂无已发布学习卡片。' },
@@ -1165,6 +1200,106 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-main]')?.hasAttribute('inert')).toBe(true);
   });
 
+  it('opens an inspector resource in the shared viewer and restores focus', async () => {
+    detailResourceBindingsEnabled = true;
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const launch = container.querySelector<HTMLButtonElement>('[data-active-resource-launch="registry-resource"]');
+    expect(launch).not.toBeNull();
+    launch!.focus();
+    await act(async () => launch!.click());
+    expect(document.querySelector('[data-universal-resource-viewer="true"]')).not.toBeNull();
+    const close = document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]');
+    await act(async () => close!.click());
+    expect(document.querySelector('[data-universal-resource-viewer="true"]')).toBeNull();
+    expect(document.activeElement).toBe(launch);
+  });
+
+  it('opens each inspector card and infograph with that binding identity', async () => {
+    detailResourceBindingsEnabled = true;
+    detailResourceBindingItems = [
+      {
+        title: '卡片甲',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '甲的摘要', insight: '甲的直觉', explanation: '甲的解释' },
+      },
+      {
+        title: '卡片乙',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '乙的摘要', insight: '乙的直觉', explanation: '乙的解释' },
+      },
+      {
+        title: '图甲',
+        bindingRole: '讲解',
+        resourceKind: '信息图',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { imageSrc: '/api/knowledge/published-infograph/safe-a' },
+      },
+      {
+        title: '图乙',
+        bindingRole: '讲解',
+        resourceKind: '信息图',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { imageSrc: '/api/knowledge/published-infograph/safe-b' },
+      },
+    ];
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+
+    const firstCard = container.querySelector<HTMLButtonElement>('[data-active-resource-title="卡片甲"]');
+    const secondCard = container.querySelector<HTMLButtonElement>('[data-active-resource-title="卡片乙"]');
+    const firstInfograph = container.querySelector<HTMLButtonElement>('[data-active-resource-title="图甲"]');
+    expect(firstCard).not.toBeNull();
+    expect(secondCard).not.toBeNull();
+    expect(firstInfograph).not.toBeNull();
+
+    await act(async () => firstCard!.click());
+    const firstViewer = document.querySelector('[data-universal-resource-viewer="true"]');
+    expect(firstViewer?.textContent).toContain('卡片甲');
+    expect(firstViewer?.textContent).toContain('甲的摘要');
+    expect(firstViewer?.textContent).not.toContain('卡片乙');
+    expect(firstViewer?.textContent).not.toContain('乙的摘要');
+    expect(firstViewer?.textContent).not.toContain('稳定性描述用于判断系统响应是否收敛。');
+    await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]')!.click());
+
+    await act(async () => secondCard!.click());
+    const secondViewer = document.querySelector('[data-universal-resource-viewer="true"]');
+    expect(secondViewer?.textContent).toContain('卡片乙');
+    expect(secondViewer?.textContent).toContain('乙的摘要');
+    expect(secondViewer?.textContent).not.toContain('卡片甲');
+    expect(secondViewer?.textContent).not.toContain('甲的摘要');
+    expect(secondViewer?.textContent).not.toContain('稳定性描述用于判断系统响应是否收敛。');
+    await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="关闭资源查看器"]')!.click());
+
+    await act(async () => firstInfograph!.click());
+    const infographViewer = document.querySelector('[data-universal-resource-viewer="true"]');
+    expect(infographViewer?.textContent).toContain('图甲');
+    const infograph = infographViewer?.querySelector('img');
+    expect(infograph).not.toBeNull();
+    expect(infograph?.getAttribute('src')).toContain('/api/knowledge/published-infograph/safe-a');
+    expect(infographViewer?.textContent).not.toContain('当前信息图暂无可显示图像。');
+  });
+
   it('renders selection-bound learning content and keeps semantic detail usable after an image failure', async () => {
     await act(async () => {
       root.render(createElement(KnowledgeGraphWorkspace, {
@@ -1252,7 +1387,7 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const rootCanvas = container.querySelector('[data-authority-root-canvas="true"]');
     expect(rootCanvas).not.toBeNull();
-    expect(rootCanvas?.getAttribute('data-active-authority-runtime')).toBe('force-graph');
+    expect(rootCanvas?.getAttribute('data-active-authority-runtime')).toBe('dedicated-renderer');
     expect(rootCanvas?.querySelector('[data-knowledge-runtime-canvas]')).not.toBeNull();
     expect(container.querySelectorAll('[data-authority-domain-entry]')).toHaveLength(3);
     expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
@@ -1288,7 +1423,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await enterModelingDomain({ families: false });
     expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-filter-placement="compact-bottom-left"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-filter-placement="below-canvas"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-filter-panel="true"]')?.classList.contains('absolute')).toBe(false);
     expect(container.querySelector('[data-active-authority-toolbar="true"] [data-active-authority-filter-panel="true"]')).toBeNull();
     expect(container.querySelector('[data-authority-relation-legend="true"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
@@ -1394,7 +1530,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(document.activeElement?.getAttribute('data-active-authority-node')).toBe('node-isolated');
     expect(container.querySelector('[data-active-authority-dimension="2d"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-dimension="3d"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-runtime="force-graph"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-runtime="dedicated-renderer"]')).not.toBeNull();
     // 单选类型下拉已退役：类型筛选在专用面板内多选、独立可逆（#1742）。
     expect(container.querySelector('#active-authority-type-filter')).toBeNull();
     const formulaToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="Formula"]');
@@ -1419,7 +1555,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     const directory = container.querySelector<HTMLElement>('[data-active-authority-node-directory="semantic"]');
     expect(directory).not.toBeNull();
     expect(container.querySelector('[data-active-authority-visible-node="true"]')).toBeNull();
-    expect(container.querySelector('[data-active-authority-runtime="force-graph"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-runtime="dedicated-renderer"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
     expect(container.querySelector('[data-authority-teaching-coverage="true"]')?.textContent).toContain('教学关系暂不可用');
 
@@ -1722,26 +1858,17 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
 
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
-    const boundaryEntry = container.querySelector<HTMLButtonElement>('[data-authority-boundary-node="node-formula"]');
-    expect(boundaryEntry).not.toBeNull();
-    await act(async () => boundaryEntry!.click());
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
+    // #2052 task 4.4：跨领域横幅退役，入口改由 2D 画布内虚线领域圆承担
+    // （真实指针点击进入目标领域由 qa=knowledge-product 浏览器验收覆盖）。
+    expect(container.querySelector('[data-active-authority-boundaries]')).toBeNull();
+    expect(container.querySelector('[data-authority-boundary-node="node-formula"]')).toBeNull();
+    // 横幅退役后 jsdom 无画布点击通道；进入目标领域的请求顺序断言由
+    // qa=knowledge-product 浏览器验收承担。此处只断言未发生越域加载。
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
-    const modelingIndex = requested.indexOf('/api/knowledge/shards/active/domains/modeling');
-    const frequencyIndex = requested.indexOf('/api/knowledge/shards/active/domains/frequency');
-    const neighborhoodIndex = requested.indexOf('/api/knowledge/shards/active/neighborhoods/node-formula');
-    const detailIndex = requested.indexOf('/api/knowledge/shards/active/nodes/node-formula');
-    expect(modelingIndex).toBeGreaterThanOrEqual(0);
-    expect(frequencyIndex).toBeGreaterThan(modelingIndex);
-    expect(neighborhoodIndex).toBeGreaterThan(frequencyIndex);
-    expect(detailIndex).toBeGreaterThan(frequencyIndex);
-    expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
-    expect(container.querySelector<SVGGElement>('[data-active-authority-node="node-formula"]')?.getAttribute('aria-pressed')).toBe('true');
+    expect(requested).not.toContain('/api/knowledge/shards/active/domains/frequency');
+    expect(requested.some((url) => url.includes('/neighborhoods/node-formula'))).toBe(false);
+    expect(requested.some((url) => url.includes('/shards/active/nodes/node-formula'))).toBe(false);
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
   });
 
   it('does not select or load a boundary neighborhood when its owning domain fails', async () => {
@@ -1788,17 +1915,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
 
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
-    const boundaryEntry = container.querySelector<HTMLButtonElement>('[data-authority-boundary-node="node-formula"]');
-    expect(boundaryEntry).not.toBeNull();
-    await act(async () => boundaryEntry!.click());
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
+    // #2052 task 4.4：横幅退役；画布入口的失败守卫由 followBoundary →
+    // resolveNodeSelection 的既有域失败分支承担，浏览器验收覆盖真实点击。
+    expect(container.querySelector('[data-active-authority-boundaries]')).toBeNull();
+    expect(container.querySelector('[data-authority-boundary-node="node-formula"]')).toBeNull();
     const requested = fetchMock.mock.calls.map(([url]) => String(url));
-    expect(requested).toContain('/api/knowledge/shards/active/domains/frequency');
+    expect(requested).not.toContain('/api/knowledge/shards/active/domains/frequency');
     expect(requested.some((url) => url.includes('/neighborhoods/node-formula'))).toBe(false);
     expect(requested.some((url) => url.includes('/shards/active/nodes/node-formula'))).toBe(false);
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
@@ -2143,7 +2265,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
     await enterModelingDomain({ families: false });
 
-    const canvas = container.querySelector('[data-active-authority-runtime="force-graph"]');
+    const canvas = container.querySelector('[data-active-authority-runtime="dedicated-renderer"]');
     expect(canvas).not.toBeNull();
     expect(container.querySelector('[data-active-authority-viewport="compact"]')).not.toBeNull();
     // 零边/Teaching 不可用不再展开可见目录；节点保持 sr-only 语义通道
@@ -2310,8 +2432,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
     const activeGraphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
-    expect(activeGraphSource).toContain('data-active-authority-boundary-toggle="true"');
-    expect(activeGraphSource).toContain('boundaryDirectoryExpanded');
+    // #2052 task 4.4：横幅退役后的画布入口接线合同。
+    expect(activeGraphSource).toContain('onCrossDomainNodeClick={followBoundary}');
+    expect(activeGraphSource).not.toContain('data-active-authority-boundary-toggle');
+    expect(activeGraphSource).not.toContain('boundaryDirectoryExpanded');
     expect(activeGraphSource).toContain('data-active-authority-mobile-tools-toggle="true"');
     expect(activeGraphSource).toContain('mobileGraphControlsExpanded');
     expect(governanceSource).toContain('initial-controls-not-collapsed');

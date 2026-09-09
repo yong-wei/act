@@ -13,9 +13,12 @@ import {
   FileText,
   FlaskConical,
   Gauge,
+  ImageIcon,
+  Headphones,
   LockKeyhole,
   MessageSquareText,
   Presentation,
+  Video,
   Swords,
   type LucideIcon,
 } from 'lucide-react';
@@ -78,6 +81,11 @@ const INTERVENTION_VISUAL: AdaptivePathResourceVisual = {
 const RESOURCE_VISUALS: Record<string, AdaptivePathResourceVisual> = {
   interactive_lesson: COURSE_VISUAL,
   knowledge_card: KNOWLEDGE_VISUAL,
+  infographic: { ...KNOWLEDGE_VISUAL, label: '信息图', Icon: ImageIcon },
+  exercise: { ...ASSESSMENT_VISUAL, label: '习题' },
+  video: { ...COURSE_VISUAL, label: '视频', Icon: Video },
+  audio: { ...COURSE_VISUAL, label: '音频', Icon: Headphones },
+  handout: { ...KNOWLEDGE_VISUAL, label: '讲义', Icon: FileText },
   textbook_section: {
     label: '教材',
     Icon: BookOpen,

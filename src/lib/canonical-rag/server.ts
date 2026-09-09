@@ -8,7 +8,9 @@
 import 'server-only';
 
 export {
+  readRagProductionAuthorityDial,
   selectRagAuthority,
+  type RagProductionAuthorityDial,
   type SelectRagAuthorityOptions,
 } from './authority';
 export {
@@ -28,9 +30,7 @@ export {
 } from './production-shadow-harness';
 export {
   extractProductionForegroundIdentities,
-  maybeRunKonlingCanonicalRagShadowDiagnostic,
-  runKonlingCanonicalRagShadowDiagnostic,
-  type KonlingCanonicalRagShadowContext,
-  type KonlingCanonicalRagShadowDiagnostic,
+  runKonlingComposedRagShadowDiagnostic,
+  type KonlingComposedRagShadowDiagnostic,
   type ProductionForegroundIdentity,
 } from './konling-integration';

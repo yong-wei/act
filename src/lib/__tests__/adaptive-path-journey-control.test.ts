@@ -21,6 +21,7 @@ import {
   resolveAdaptivePathJourneyTargetDisposition,
 } from '@/features/personalization/experience/adaptive-path-journey-contracts';
 import { GOVERNED_PATH_NODE_TYPES } from '@/lib/resource-node-registry';
+import { buildPublishedResourceHref, publishedResourceNodeId } from '@/lib/published-resource-reference';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -46,6 +47,15 @@ function launchContext(resourceType = 'knowledge_card') {
     routeIntent: 'path-execution',
     resourceType,
   });
+}
+
+function publishedTarget(type: 'infographic' | 'exercise') {
+  const resourceId = `act:${type}:example`;
+  const version = 'c'.repeat(64);
+  return { target: buildPublishedResourceHref({ resourceId, projectionId: 'proj-' + 'a'.repeat(64),
+    projectionHash: 'a'.repeat(64), snapshotId: 'snap-' + 'b'.repeat(64), snapshotHash: 'b'.repeat(64), resourceVersion: version }),
+  disposition: 'destination-control' as const,
+  context: { nodeId: publishedResourceNodeId(resourceId, version), sourceKind: 'teaching_projection', sourceRef: resourceId } };
 }
 
 function journey(
@@ -465,6 +475,13 @@ describe('adaptive path journey control', () => {
     ]);
   });
 
+  it('inherits the published resource journey once from the shared shell', () => {
+    const source = readSource('src/features/knowledge/published-resource-page.tsx');
+    expect(source).toContain('<InteractiveLearningShell');
+    expect(source).not.toContain('<AdaptivePathJourneyControlFromRoute');
+    expect(source).toContain('publishAdaptivePathJourneyResponse(result)');
+  });
+
   it('suppresses resource-page return actions when the shared path journey owns navigation', () => {
     const resourcePageSource = readSource('src/app/interactive-learning/resources/[id]/page.tsx');
 
@@ -577,9 +594,12 @@ describe('adaptive path journey control', () => {
     const targets: Record<(typeof GOVERNED_PATH_NODE_TYPES)[number], {
       target: string;
       disposition: ReturnType<typeof resolveAdaptivePathJourneyTargetDisposition>;
+      context?: Parameters<typeof resolveAdaptivePathJourneyTargetDisposition>[2];
     }> = {
       interactive_lesson: { target: '/interactive-learning/courses/control-foundations', disposition: 'destination-control' },
       knowledge_card: { target: '/course-runtime/knowledge/cards/control-foundations.md', disposition: 'path-center-explicit' },
+      infographic: publishedTarget('infographic'),
+      exercise: publishedTarget('exercise'),
       textbook_section: { target: '/course-runtime/resources/textbooks/control/sections/ch01.md', disposition: 'path-center-explicit' },
       slides: { target: '/course-runtime/lessons/control/slides.pdf', disposition: 'path-center-explicit' },
       adaptive_quiz: { target: '/assessment/adaptive-practice', disposition: 'destination-control' },
@@ -594,11 +614,11 @@ describe('adaptive path journey control', () => {
 
     expect(Object.keys(targets)).toEqual([...GOVERNED_PATH_NODE_TYPES]);
     for (const type of GOVERNED_PATH_NODE_TYPES) {
-      expect(resolveAdaptivePathJourneyTargetDisposition(type, targets[type].target), type).toBe(targets[type].disposition);
+      expect(resolveAdaptivePathJourneyTargetDisposition(type, targets[type].target, targets[type].context), type).toBe(targets[type].disposition);
     }
   });
 
-  it.each(['textbook_section', 'slides'])(
+  it.each(['textbook_section', 'slides', 'infographic', 'exercise'])(
     'builds a governed completion request for %s resources',
     (resourceType) => {
       expect(buildAdaptivePathCompletionRequest({

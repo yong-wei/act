@@ -10,7 +10,7 @@ import {
   resolveConfiguredAuthorityRoot,
 } from '@/lib/authoritative-knowledge/engineering-authority-consumers';
 import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
-import { buildCanvasProjection } from '@/lib/authoritative-knowledge/projections';
+import { buildActiveAuthorityCanvasProjection, buildCanvasProjection } from '@/lib/authoritative-knowledge/projections';
 
 describe('active Authority committed store contract', () => {
   const storeEnvKeys = [
@@ -82,8 +82,14 @@ describe('active Authority committed store contract', () => {
     expect(detail.projection.provenance.projection.projectionId).toBeNull();
     expect(Object.hasOwn(detail.projection.source, 'controlledPath')).toBe(false);
 
-    expect(() => buildCanvasProjection(snapshot, ACTIVE_GRAPH_SUPPORT)).toThrow(
-      'standard runtime Projection is empty or missing',
-    );
+    // Engineering Authority 活动快照走 aggregate 协议分支，与标准候选 runtime
+    // Projection 契约分离：两条构建路径都正常投影，不因候选专用 projection
+    // 缺席而 fail closed。
+    const aggregateCanvas = buildCanvasProjection(snapshot, ACTIVE_GRAPH_SUPPORT);
+    expect(aggregateCanvas.nodes.length).toBeGreaterThan(0);
+    expect(aggregateCanvas.relations.length).toBeGreaterThan(0);
+    const activeCanvas = buildActiveAuthorityCanvasProjection(snapshot, ACTIVE_GRAPH_SUPPORT);
+    expect(activeCanvas.nodes.length).toBe(aggregateCanvas.nodes.length);
+    expect(activeCanvas.relations.length).toBe(aggregateCanvas.relations.length);
   });
 });

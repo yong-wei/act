@@ -1,0 +1,61 @@
+{
+  "contract": "r4-coordinated-runtime-selector-set/v2",
+  "activatedAt": "2026-09-07T19:00:00.000Z",
+  "selectors": {
+    "projection": {
+      "contract": "act-teaching-projection-current/v1",
+      "projectionId": "proj-e24d5f8886be49b1b100e154b9b5f199c121b2cecd03c81d5a9215b319ca40e8",
+      "projectionHash": "e24d5f8886be49b1b100e154b9b5f199c121b2cecd03c81d5a9215b319ca40e8",
+      "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+      "activatedAt": "2026-09-07T19:00:00.000Z"
+    },
+    "projectionScopeBinding": {
+      "projectionHash": "e24d5f8886be49b1b100e154b9b5f199c121b2cecd03c81d5a9215b319ca40e8",
+      "scopeHash": "26d17ecb7883d3eb17ab9d9e2e85f482534df5f6ac59aa0ae32791aada4617d1",
+      "bindingHash": "7d80065ee6df2f9f58200e34f726908023bfff06130cbdedee4879dbc6eb6c7e"
+    },
+    "prerequisite": {
+      "contract": "act-teaching-prerequisite-current/v1",
+      "publicationId": "proj-7f3859860d6a452464c6e43f389fa07a3f7ecba983240b4ea180d6f1ae3b9d32",
+      "publicationHash": "7f3859860d6a452464c6e43f389fa07a3f7ecba983240b4ea180d6f1ae3b9d32",
+      "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+      "activatedAt": "2026-09-07T19:00:00.000Z"
+    },
+    "catalog": {
+      "contract": "act-authority-domain-display-catalog-current/v1",
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "activatedAt": "2026-09-07T16:30:00.000Z"
+    },
+    "shards": {
+      "contract": "act-authority-domain-shard-current/v1",
+      "shardSetId": "ads-903e77040743b6fc95aa9e1d0f18257834055f15734724d64d9e6ab0966b3355",
+      "shardSetHash": "903e77040743b6fc95aa9e1d0f18257834055f15734724d64d9e6ab0966b3355",
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "teachingProjectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingProjectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "activatedAt": "2026-09-07T18:40:00.000Z"
+    },
+    "consumerActivation": {
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "activationReceiptId": "coordinated-r6-admission-v037"
+    }
+  },
+  "selectorHash": "c246f03260c5ec911e7ccab8aece8949a2fb32cf3cfabedfd786f5374926d908",
+  "appliedToSourceTree": true,
+  "sourceSelectorHashes": {
+    "projection": "d15e6fde3d1cb26be4675e3dba89cc6ce069c77817728b851226f4df1d2982d2",
+    "prerequisite": "8c85d4f9f10365e9fd16af3337a73d18101607e2314fe3a5184b241b14ad7af6",
+    "catalog": "5c07e9e81842bfb6f2d1b76e09dee62f0d3b223deb08a3280f70accd41eb75d4",
+    "shards": "b440e092f27fa9f84f58f1887d93662c330945566ac8dfa9c5c2bd70741f8852",
+    "consumerActivation": "55558602fc1a9f02b317bb486ebef4ad6185bdc9e812b2b9a807c2200dc2c2d2"
+  }
+}

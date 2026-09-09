@@ -1,6 +1,6 @@
 {
   "name": "ai-obe-platform",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "private": true,
   "packageManager": "npm@11.12.1",
   "engines": {
@@ -217,6 +217,7 @@
     "db:set-ai-provider-qwen-default": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/set-ai-provider-qwen-default.ts",
     "test:teacher-default-class-postgres": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/test-teacher-default-class-postgres.ts",
     "test:smart-lesson-real-e2e": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/run-smart-lesson-real-e2e.ts",
+    "test:smart-lesson-e2e-class-portrait-seed": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=react-server\" tsx ./scripts/tests/test-smart-lesson-e2e-class-portrait-seed.ts",
     "test:teacher-launch-producer-inventory": "vitest run src/features/teacher/__tests__/teacher-launch-producer-inventory.test.ts",
     "test:cumulative-attainment-postgres-redis": "tsx ./scripts/tests/test-cumulative-attainment-postgres-redis.mts",
     "test:simulation-task-portrait-postgres-redis": "tsx ./scripts/tests/test-simulation-task-portrait-postgres-redis.mts",

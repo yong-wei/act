@@ -1,19 +1,12 @@
 /**
- * 候选资源 → Runtime OSS 对象键解析与读取验证记录（Issue #2033）。
+ * 候选资源 Runtime OSS 读取验证记录（Issue #2033；#2055 改为绑定驱动）。
  *
- * Runtime 教学资产以 `/api/course-runtime/assets/<assetPath>` 提供（OSS blob-view
- * 内 assetPath 即对象键）；`/api/course-runtime/blob-assets/<sha256>` 为内容寻址键。
- * 非 runtime 资产（站内路由等）如实标记 non-runtime，不计入 OSS 指标。
+ * 对象键来源是节点 runtime 绑定字段（`adaptive-path-runtime-binding.ts`，由教学
+ * 投影身份 × 活动 Runtime release manifest 解析），不再从节点导航 target 字符串
+ * 反解；对象键形态为 release 资产路径或 `blob:<sha256>` 内容键。
  */
 
-export interface AdaptivePathResourceOssProvenance {
-  resourceId: string;
-  target: string;
-  state: 'runtime-object-key' | 'blob-content-key' | 'non-runtime';
-  objectKey: string | null;
-}
-
-export type AdaptivePathObjectKeyReadState = 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
+export type AdaptivePathObjectKeyReadState = 'verified' | 'index-verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
 
 export interface AdaptivePathObjectKeyReadRecord {
   objectKey: string;
@@ -26,24 +19,6 @@ export interface AdaptivePathObjectKeyReadRecord {
   verifiedAt: string;
   /** 本次读取验证所针对的活动 Runtime release；验证不可用时为 null。 */
   runtimeReleaseId: string | null;
-}
-
-export function resolveAdaptivePathRuntimeObjectKey(target: string | null | undefined): {
-  state: 'runtime-object-key' | 'blob-content-key' | 'non-runtime';
-  objectKey: string | null;
-} {
-  if (!target) return { state: 'non-runtime', objectKey: null };
-  const assetsPrefix = '/api/course-runtime/assets/';
-  if (target.startsWith(assetsPrefix)) {
-    const objectKey = target.slice(assetsPrefix.length).split('?')[0];
-    return objectKey.length > 0 ? { state: 'runtime-object-key', objectKey } : { state: 'non-runtime', objectKey: null };
-  }
-  const blobPrefix = '/api/course-runtime/blob-assets/';
-  if (target.startsWith(blobPrefix)) {
-    const sha256 = target.slice(blobPrefix.length).split('?')[0];
-    return sha256.length > 0 ? { state: 'blob-content-key', objectKey: `blob:${sha256}` } : { state: 'non-runtime', objectKey: null };
-  }
-  return { state: 'non-runtime', objectKey: null };
 }
 
 /** 读取验证端口：由 runtime release store 在批次定稿时实现。 */

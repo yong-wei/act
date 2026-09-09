@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { projectionDigest } from '@/lib/teaching-projection/hash';
 
 import { resolveLiveLatestKnowledgeCutover } from '../latest-cutover-live';
+import { GENERATION_3_PUBLISHED_RELATIVE_BY_FRAGMENT_KEY } from '@/lib/latest-authority-oss-cutover/successor-domain-fragments';
 
 const SUCCESSOR_RUNTIME = {
   releaseId: 'runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde',
@@ -151,18 +152,133 @@ describe('live latest knowledge cutover resolver', () => {
       const authoritySha = sha256File(
         path.join(repoRoot, 'course-content/authoring/knowledge/authority/current.json'),
       );
+      // r6 切换（#2061）后 runtime selector 绑 snap-b7c6992d，历史 r4-c5 协调候选
+      // 不再与 runtime 身份匹配。这里以当前 runtime 的真实成员身份合成一份
+      // 身份匹配的后继候选收据族，验证 resolver 的 successor 判定语义。
+      const knowledgeRoot = path.join(repoRoot, 'course-content/runtime/knowledge');
+      const readJson = (filePath: string): Record<string, unknown> => (
+        JSON.parse(readFileSync(filePath, 'utf8'))
+      );
+      const projectionHash = readJson(path.join(knowledgeRoot, 'projection/current.json')).projectionHash as string;
+      const publicationHash = readJson(path.join(knowledgeRoot, 'prerequisites/current.json')).publicationHash as string;
+      const activationId = readJson(path.join(knowledgeRoot, 'consumer-activation/current.json')).activationId as string;
+      const shardSetId = readJson(path.join(knowledgeRoot, 'authority-domain-shards/current.json')).shardSetId as string;
+      const activationHash = readJson(
+        path.join(knowledgeRoot, `consumer-activation/releases/${activationId}/activation.json`),
+      ).activationHash as string;
+      const shardSetHash = readJson(
+        path.join(knowledgeRoot, `authority-domain-shards/sets/${shardSetId}/manifest.json`),
+      ).shardSetHash as string;
+      const catalogHash = readJson(
+        path.join(knowledgeRoot, 'authority-domain-catalog/catalog.json'),
+      ).catalogHash as string;
+
+      // 组合清单与 fragment 直接采用已发布的 generation-3 工件（语义 digest 自洽）。
+      const fragmentsRoot = path.join(
+        repoRoot,
+        'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-3',
+      );
+      const composed = readJson(path.join(fragmentsRoot, 'composed-manifest.json'));
+      const composedFragments = composed.fragments as Array<{ fragmentId: string; fragmentKey: string }>;
+      const candidateRoot = path.join(work, 'candidate');
+      mkdirSync(path.join(candidateRoot, 'domain-fragments'), { recursive: true });
+      writeJson(path.join(candidateRoot, 'composed-domain-fragment-manifest.json'), composed);
+      for (const fragment of composedFragments) {
+        const publishedRelative = GENERATION_3_PUBLISHED_RELATIVE_BY_FRAGMENT_KEY[fragment.fragmentKey];
+        copyFileSync(
+          path.join(repoRoot, publishedRelative),
+          path.join(candidateRoot, 'domain-fragments', `${fragment.fragmentId}.json`),
+        );
+      }
+
+      const familyCounts = [{ family: 'prerequisite-order', closedCount: 3, memberCount: 3 }];
+      const closureBody = {
+        contract: 'coordinated-teaching-closure-receipt/v1',
+        scopeHash: 'd'.repeat(64),
+        authorityCaptureHash: 'e'.repeat(64),
+        status: 'COMPLETE',
+        zeroUnresolved: true,
+        familyCounts,
+      };
+      const closureReceiptHash = projectionDigest({
+        contract: 'coordinated-teaching-closure-receipt/v1',
+        scopeHash: closureBody.scopeHash,
+        authorityCaptureHash: closureBody.authorityCaptureHash,
+        zeroUnresolved: true,
+        allClosed: familyCounts.every((family) => family.closedCount === family.memberCount),
+        countsHash: projectionDigest(familyCounts),
+      });
+      writeJson(path.join(candidateRoot, 'teaching-closure-receipt.json'), {
+        ...closureBody,
+        receiptHash: closureReceiptHash,
+      });
+
+      const formalBody = {
+        contract: 'coordinated-formal-resource-envelope-incremental-reuse/v1',
+        reuseScope: 'successor-test',
+      };
+      const formalEnvelopeHash = projectionDigest(formalBody);
+      writeJson(path.join(candidateRoot, 'formal-resource-envelope.json'), {
+        ...formalBody,
+        envelopeHash: formalEnvelopeHash,
+      });
+
+      const extension = {
+        contract: 'coordinated-runtime-manifest-extension/v1',
+        teachingProjectionHash: projectionHash,
+        teachingClosureReceiptHash: closureReceiptHash,
+        composedDomainFragmentManifestHash: composed.projectionHash as string,
+        domainFragmentSetHash: (composed.sourceHashes as Record<string, string>).fragments,
+        formalResourceEnvelopeHash: formalEnvelopeHash,
+        prerequisitePublicationHash: publicationHash,
+        consumerActivationHash: activationHash,
+        domainShardSetHash: shardSetHash,
+      };
+      writeJson(path.join(candidateRoot, 'successor-runtime-manifest-extension.json'), extension);
+
+      const candidateBody = {
+        contract: 'coordinated-candidate-receipt/v1',
+        builderVersion: 'latest-authority-oss-cutover-builder/v1',
+        candidateId: 'cand-successor-test',
+        sealedAt: '2026-09-07T19:00:00.000Z',
+        selectable: true,
+        allocationHash: '6'.repeat(64),
+        authorityCaptureHash: '7'.repeat(64),
+        localeQualificationHash: '8'.repeat(64),
+        continuityReceiptHash: '9'.repeat(64),
+        derivationReceiptHash: 'a'.repeat(64),
+        successorRuntimeManifestHash: 'b'.repeat(64),
+        successorRuntimeMaterializationHash: 'c'.repeat(64),
+        predecessor: null,
+        predecessorRuntimeLifecycleGeneration: null,
+        successorSelectorExpectations: null,
+        transactionImplementationIdentity: 'd'.repeat(64),
+        rollbackPlanHash: 'e'.repeat(64),
+        verificationPolicyHash: 'f'.repeat(64),
+        teachingProjectionHash: projectionHash,
+        teachingClosureReceiptHash: closureReceiptHash,
+        composedDomainFragmentManifestHash: composed.projectionHash as string,
+        domainFragmentSetHash: (composed.sourceHashes as Record<string, string>).fragments,
+        formalResourceEnvelopeHash: formalEnvelopeHash,
+        domainShardCatalogHash: catalogHash,
+        domainShardSetHash: shardSetHash,
+        prerequisitePublicationHash: publicationHash,
+        consumerActivationHash: activationHash,
+      };
+      const candidateReceiptHash = digestCandidate(candidateBody);
+      writeJson(path.join(candidateRoot, 'candidate-receipt.json'), {
+        ...candidateBody,
+        receiptHash: candidateReceiptHash,
+      });
+
       const receiptPath = path.join(work, 'coordinated-active-receipt.json');
       const runtimePath = path.join(work, 'act-runtime-active-receipt.json');
-      const candidateReceipt = JSON.parse(readFileSync(
-        path.join(repoRoot, GIT_CANDIDATE, 'candidate-receipt.json'),
-        'utf8',
-      )) as { receiptHash: string };
       writeJson(receiptPath, sealReceipt({
         contract: 'coordinated-active-receipt/v1',
         receiptId: 'test-successor',
         transactionId: 'tx-test-successor',
         journalHash: '1'.repeat(64),
-        candidateReceiptHash: candidateReceipt.receiptHash,
+        candidateReceiptHash: candidateReceiptHash,
         committedSelectors: [{ selectorId: 'authority:current', identity: authoritySha }],
         mutationReceiptHashes: [],
         runtimeActiveReceiptHash: '3'.repeat(64),
@@ -174,14 +290,11 @@ describe('live latest knowledge cutover resolver', () => {
         repoRoot,
         receiptPath,
         runtimeReceiptPath: runtimePath,
+        candidateRoot,
       });
       expect(result.combination).toBe('successor');
       expect(result.ready).toBe(true);
       expect(result.reasons).toEqual([]);
-      // #1738: the resealed fifteen-domain shard set stays qualified while
-      // the sealed predecessor set remains in the runtime closure; the
-      // drift marker stays observable until the authorized release reseals.
-      expect(result.drift).toContain('domain-shard-set-resealed');
       expect(result.identities.authorityCurrentSha256).toBe(authoritySha);
       expect(JSON.stringify(result)).not.toMatch(/\/Users|X-Amz|credential/iu);
     } finally {

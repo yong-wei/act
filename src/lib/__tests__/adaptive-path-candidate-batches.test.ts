@@ -601,10 +601,25 @@ describe('adaptive path candidate batches', () => {
 
 
 describe('adaptive path batch differentiation metrics', () => {
+  // #2055：对象键来源迁移为节点 runtime 绑定字段（target 反解已退役）。
+  function boundBinding(nodeId: string, objectKey: string) {
+    return {
+      nodeId,
+      resourceId: `act:resource:${nodeId}`,
+      resourceType: 'card',
+      state: 'bound' as const,
+      objectKey,
+      contentSha256: 'a'.repeat(64),
+      runtimeReleaseId: 'release-fixture',
+      projectionId: 'proj-fixture',
+      reason: null,
+    };
+  }
+
   it('computes pairwise differentiation and persists it into batch metadata', async () => {
     const base = plan();
-    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
-    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html', checkpoint: { role: 'inline' } as never };
+    const nodeA = { ...node('node-1'), runtimeResourceBinding: boundBinding('node-1', 'lessons/1-3/media/intro.mp4') };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, runtimeResourceBinding: boundBinding('node-2', 'simulations/cruise/index.html'), checkpoint: { role: 'inline' } as never };
     const extended: AdaptiveLearningPathPlan = {
       ...base,
       mainPath: [nodeA, nodeB],
@@ -661,8 +676,8 @@ describe('adaptive path batch differentiation metrics', () => {
 
   it('excludes read-verification-failed object keys from coverage statistics (#2033 3.1)', () => {
     const base = plan();
-    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
-    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html' };
+    const nodeA = { ...node('node-1'), runtimeResourceBinding: boundBinding('node-1', 'lessons/1-3/media/intro.mp4') };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, runtimeResourceBinding: boundBinding('node-2', 'simulations/cruise/index.html') };
     const extended: AdaptiveLearningPathPlan = {
       ...base,
       mainPath: [nodeA, nodeB],
@@ -709,8 +724,8 @@ describe('adaptive path batch differentiation metrics', () => {
 
   it('persists unreadable object keys into batch metadata alongside differentiation', async () => {
     const base = plan();
-    const nodeA = { ...node('node-1'), target: '/api/course-runtime/assets/lessons/1-3/media/intro.mp4' };
-    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, target: '/api/course-runtime/assets/simulations/cruise/index.html' };
+    const nodeA = { ...node('node-1'), runtimeResourceBinding: boundBinding('node-1', 'lessons/1-3/media/intro.mp4') };
+    const nodeB = { ...node('node-2'), type: 'simulation' as const, pathNodeType: 'simulation' as const, runtimeResourceBinding: boundBinding('node-2', 'simulations/cruise/index.html') };
     const extended: AdaptiveLearningPathPlan = {
       ...base,
       mainPath: [nodeA, nodeB],
@@ -746,5 +761,68 @@ describe('adaptive path batch differentiation metrics', () => {
       highDifferentiation: false,
     });
     expect(metadata.diversityLimitations).toContain('insufficient-verified-resources');
+  });
+
+  it('persists per-node runtime bindings and explicit zero-binding limitations (#2055)', async () => {
+    const base = plan();
+    const boundNode = { ...node('node-1'), runtimeResourceBinding: boundBinding('node-1', 'lessons/1-3/media/intro.mp4') };
+    const unboundNode = {
+      ...node('node-2'),
+      runtimeResourceBinding: {
+        nodeId: 'node-2',
+        resourceId: null,
+        resourceType: null,
+        state: 'no-runtime-identity' as const,
+        objectKey: null,
+        contentSha256: null,
+        runtimeReleaseId: 'release-fixture',
+        projectionId: 'proj-fixture',
+        reason: 'unmapped-node-id',
+      },
+    };
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [boundNode, unboundNode],
+      policyBundle: {
+        ...base.policyBundle!,
+        paths: [
+          { ...base.policyBundle!.paths[0], nodeIds: ['node-1'], planNodes: [boundNode] },
+          { ...base.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [unboundNode] },
+        ],
+      },
+    };
+
+    const { db } = dbFixture();
+    const view = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'gen-bindings-1',
+      plan: extended,
+      runtimeResourceBindings: [boundNode.runtimeResourceBinding, unboundNode.runtimeResourceBinding],
+    });
+    const metadata = view.metadata as Record<string, unknown>;
+    expect(metadata.runtimeResourceBindings).toEqual([
+      expect.objectContaining({ nodeId: 'node-1', state: 'bound', objectKey: 'lessons/1-3/media/intro.mp4' }),
+      expect.objectContaining({ nodeId: 'node-2', state: 'no-runtime-identity', reason: 'unmapped-node-id' }),
+    ]);
+    expect(metadata.runtimeBindingLimited).toBe(false);
+
+    // 零绑定批次：显式受限并携带原因码，不静默空记录。
+    const { db: limitedDb } = dbFixture();
+    const limitedView = await persistAdaptivePathCandidateBatch(limitedDb, {
+      generationRequestId: 'gen-bindings-2',
+      plan: {
+        ...extended,
+        mainPath: [unboundNode],
+        policyBundle: {
+          ...extended.policyBundle!,
+          paths: [{ ...extended.policyBundle!.paths[1], nodeIds: ['node-2'], planNodes: [unboundNode] }],
+        },
+      },
+      runtimeResourceBindings: [unboundNode.runtimeResourceBinding],
+      runtimeBindingLimitationCodes: ['no-bindable-runtime-resources'],
+    });
+    const limitedMetadata = limitedView.metadata as Record<string, unknown>;
+    expect(limitedMetadata.runtimeBindingLimited).toBe(true);
+    expect(limitedMetadata.runtimeBindingLimitationCodes).toEqual(['no-bindable-runtime-resources']);
+    expect(limitedMetadata.diversityLimitations).toContain('no-bindable-runtime-resources');
   });
 });

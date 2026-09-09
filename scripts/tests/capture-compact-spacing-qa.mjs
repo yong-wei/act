@@ -3,11 +3,14 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
+import { accountByKey } from '../db/verified-test-accounts.mjs';
+
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/compact-spacing-685');
 const baseUrl = process.env.COMPACT_SPACING_QA_BASE_URL ?? 'http://localhost:3001';
-const teacherAccount = process.env.COMPACT_SPACING_QA_TEACHER_ACCOUNT ?? 'test_teacher';
-const teacherPassword = process.env.COMPACT_SPACING_QA_TEACHER_PASSWORD ?? 'TestTeacher@Just2026!';
+const teacher = accountByKey('teacher');
+const teacherAccount = process.env.COMPACT_SPACING_QA_TEACHER_ACCOUNT ?? teacher.loginId;
+const teacherPassword = process.env.COMPACT_SPACING_QA_TEACHER_PASSWORD ?? teacher.password;
 const appShellNavigationPreferenceKey = 'act:app-shell:navigation-preference';
 
 const widths = [1024, 1100, 1279, 1440, 1920, 2560, 768, 320];

@@ -1,0 +1,65 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-6356c94005d1008ca0807450",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1. 列出系统性能指标，并将其转换为期望的主导极点位置。2. 绘制常增益控制器 G_c(s)=K 下的根轨迹，并判断能否实现期望的根位置。3. 若需要校正装置，将超前校正装置的零点放置在期望根位置的正下方（或前两个实数极点的左侧）。4. 确定极点位置，使期望根位置处的总相角为180度，从而位于校正后的根轨迹上。5. 在期望根位置处计算系统总增益，进而求取误差常数。6. 若误差常数不满足要求，则重复上述步骤。",
+    "aliases": [],
+    "description": "1. List the system specifications and translate them into a desired root location for the dominant roots. 2. Sketch the root locus with a constant gain controller, G_c(s)=K, and determine whether the desired root locations can be realized. 3. If a compensator is necessary, place the zero of the phase-lead compensator directly below the desired root location (or to the left of the first two real poles). 4. Determine the pole location so that the total angle at the desired root location is 180 degrees and therefore is on the compensated root locus. 5. Evaluate the total system gain at the desired root location and then calculate the error constant. 6. Repeat the steps if the error constant is not satisfactory.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-10/section-10.5/example-10.3",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · Lead compensator using the root locus"
+      },
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-10/section-10.5",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · PHASE-LEAD DESIGN USING THE ROOT LOCUS"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

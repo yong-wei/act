@@ -746,7 +746,7 @@ export default function ContainerSimulation() {
     })
   );
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  // 循环稳定化（#1945）：每帧变化的量走 ref，仿真时钟真源在 timeRef，
+  // 循环稳定化（issue 1945）：每帧变化的量走 ref，仿真时钟真源在 timeRef，
   // 循环回调与启动 effect 引用稳定，运行期间不因状态更新 teardown 重建。
   const controlRef = useRef({
     isPaused: false,

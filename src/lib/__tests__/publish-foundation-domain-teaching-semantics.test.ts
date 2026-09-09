@@ -40,10 +40,10 @@ const FIRST_FRAGMENT_DIR = path.resolve(
 );
 
 const FIRST_FRAGMENT_SHA256 = {
-  authoring: 'c1fec14e9791e3c7453eb75bf71966d99468fb63d60912510b9d30a1de0df909',
-  fragment: '173c0974f0d7cdc01df7a4aa41403f74d0402d86ff33af2cee782a3b733e8dfb',
+  authoring: 'dce056fdeeb93658013fcdaad47ec0afa16bffc27b150210d99e85d0f80e5b75',
+  fragment: 'de5b44399770173957d7528f6044f76e3690def50ce11b54ec7dfd201a37dc0a',
   composedManifest:
-    '2d003bb4106cd6b6547722cf5f58a88b6a07f2c224a191f222b2c9554c086188',
+    '7873c467e47ff23698d5eeb21c690f0c440c92a50d5d0d139b7e39bd5662cb24',
 } as const;
 
 const RETAINED_FIRST_ENDPOINT_IDS = [

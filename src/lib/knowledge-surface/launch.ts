@@ -35,6 +35,29 @@ const HIDDEN_PAYLOAD = /(?:review|evaluation|hidden|rawBody|objectKey)/i;
 const SIGNED_URL = /(?:X-Amz-Signature|X-Amz-Credential|signature=|token=)/i;
 const INTERNAL_PATH = /(?:^file:|[\\/](?:course-content|\.next|src)[\\/]|\.tsx?(?:$|\?)|s3:\/\/|component[:/])/i;
 
+/**
+ * Governed unified-reader route form (#2043): /textbooks/<bookId>/<edition>/
+ * <unitPath…> derived from the sealed alias table and governed structural
+ * coordinates. Edition segments legitimately percent-encode spaces (e.g.
+ * 14th%20Global%20Edition); the generic encoded-space guard stays in force
+ * for every other launch target shape.
+ */
+const GOVERNED_TEXTBOOK_ROUTE = /^\/textbooks\/[a-z0-9][a-z0-9-]{0,95}\/[^/?#]+\/[^?#]+\/?$/;
+
+export function isGovernedTextbookReaderHref(href: string): boolean {
+  return GOVERNED_TEXTBOOK_ROUTE.test(href);
+}
+
+/**
+ * Single launch-guard resolution: governed textbook routes pass with the href
+ * itself (every isUnsafeHref check still applies); everything else goes
+ * through the generic safe-launch guard unchanged.
+ */
+function launchGuardHref(href: string): string | null {
+  if (GOVERNED_TEXTBOOK_ROUTE.test(href)) return href;
+  return resolveSafeLaunchTarget(href).href;
+}
+
 function disclosesIdentity(href: string, input: SourceOwnedLaunchInput): boolean {
   if (input.canonicalId && href.includes(input.canonicalId)) return true;
   if (input.resourceNodeId && href.includes(input.resourceNodeId)) return true;
@@ -46,8 +69,8 @@ function isUnsafeHref(href: string, input: SourceOwnedLaunchInput): boolean {
   if (href.includes('\\') || /(?:^|\/)\.+\//.test(href)) return true;
   if (INTERNAL_PATH.test(href) || SIGNED_URL.test(href) || HIDDEN_PAYLOAD.test(href)) return true;
   if (disclosesIdentity(href, input)) return true;
-  const resolved = resolveSafeLaunchTarget(href);
-  return resolved.href == null;
+  const resolved = launchGuardHref(href);
+  return resolved == null;
 }
 
 export function projectSourceOwnedLaunchDescriptor(
@@ -87,8 +110,8 @@ export function projectSourceOwnedLaunchDescriptor(
     };
   }
   if (candidateHref && !hasSourceOwnedLauncher && (input.kind === 'direct-route' || !input.kind)) {
-    const resolved = resolveSafeLaunchTarget(candidateHref);
-    if (!resolved.href) {
+    const resolved = launchGuardHref(candidateHref);
+    if (!resolved) {
       return { status: 'omitted', reason: 'unsafe-or-constructed-target' };
     }
   }
@@ -98,7 +121,7 @@ export function projectSourceOwnedLaunchDescriptor(
   }
 
   const href = candidateHref && !isUnsafeHref(candidateHref, input)
-    ? resolveSafeLaunchTarget(candidateHref).href
+    ? launchGuardHref(candidateHref)
     : null;
   const descriptor: SourceOwnedLaunchDescriptor = {
     title,

@@ -146,6 +146,12 @@ export interface KonlingFairExperimentAnswerRecord {
   answer: string;
   /** #1951：生成阶段核验过的引用快照；旧 run 冻结记录无此字段（审计 fail closed）。 */
   citations?: readonly KonlingFairExperimentCitationSnapshot[];
+  /** #2039：生成后一轮有界补证的轮次与结果（供审计归因；基线臂不带）。 */
+  citationRepair?: {
+    round: number;
+    outcome: 'not-needed' | 'repaired' | 'unresolved';
+    repairedUnitCount: number;
+  };
   elapsedMs: number;
   /** full-feature 臂实际生效的运行时合同意图（与题库标注意图的差异单独报告）。 */
   contractIntent?: string;
@@ -192,6 +198,13 @@ export interface KonlingFairExperimentGenerateTask {
   systemPrompt: string;
   userPrompt: string;
   sampling: KonlingFairExperimentSampling;
+  /**
+   * #2039：full-feature 臂经生产分配模块装配的真实 citation 快照；
+   * provider 负责把它随回答冻结（live 不再写 undefined）。基线臂不带。
+   */
+  citations?: readonly KonlingFairExperimentCitationSnapshot[];
+  /** #2039：分配表（主源/备用编号），供 fixture 确定性绑定与补证。 */
+  evidencePlan?: import('@/lib/konling-evidence-allocation').KonlingEvidenceAllocationPlan;
 }
 
 export type KonlingFairExperimentGenerateProvider = (

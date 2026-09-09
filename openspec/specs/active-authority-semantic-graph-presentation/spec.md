@@ -314,7 +314,7 @@ A visible Formula node SHALL present its governed mathematical expression as the
 - **AND** search, hover, accessibility and inspector SHALL resolve the same stable object identity
 
 ### Requirement: Domain concept labels are readable before selection
-The bounded domain overview SHALL present governed names of ordinary DomainConcept nodes without requiring selection or hover. Visible canvas labels SHALL remain on after camera fit, up to an explicit maximum count that prefers labels nearest the viewport center after selected and hovered nodes. Collision MAY defer labels beyond that budget while preserving accessible names. Ordinary labels SHALL NOT be hidden solely because projected font size falls below a zoom threshold.
+The bounded domain overview SHALL present governed names of ordinary DomainConcept nodes without requiring selection or hover. Visible canvas labels SHALL remain on after camera fit, up to an explicit maximum count that prefers labels nearest the viewport center after selected and hovered nodes. Collision MAY defer labels beyond that budget while preserving accessible names. Ordinary labels SHALL NOT be hidden solely because projected font size falls below a zoom threshold. 当权威名称超出画布标签预算（多行换行仍不可读的定义句）时，画布标签 SHALL 在子句或词边界截断并以省略号收尾；截断只影响画布绘制，hover 预览、详情抽屉、可浏览目录与无障碍名称 SHALL 保留完整名称。
 
 #### Scenario: Domain overview becomes usable
 - **WHEN** the force layout reaches its accepted settlement milestone
@@ -335,6 +335,11 @@ The bounded domain overview SHALL present governed names of ordinary DomainConce
 - **WHEN** one label cannot fit after force separation, camera fitting and the maximum visible count
 - **THEN** the policy MAY defer that label while preserving its accessible name
 - **AND** the evidence SHALL record the deferred count against the accepted budget
+
+#### Scenario: Overlong authoritative name is truncated on canvas
+- **WHEN** a governed node name exceeds the canvas label budget
+- **THEN** the canvas label SHALL be truncated at a clause or word boundary with a terminal ellipsis within the configured line count
+- **AND** the hover preview, node drawer, browsable directory and accessible name SHALL present the complete untruncated name
 
 ### Requirement: Every active graph surface follows the selected qualified locale
 Root navigation, domain concepts, secondary nodes, relation terms, formula context, search, filter controls, hover, inspector, optional-content availability and accessibility SHALL use the same selected qualified locale. Stable object, relation, resource and launch identities SHALL not change with locale.
@@ -364,4 +369,38 @@ Final acceptance SHALL verify each visible root domain has a bounded DomainConce
 - **WHEN** the active root advertises its domain catalog
 - **THEN** every entry SHALL pass default-shard, hierarchy, search and detail closure checks
 - **AND** no subset constant SHALL be accepted as the full denominator
+
+### Requirement: Domain entry presents a settled first frame
+进入领域视图时，画布 SHALL 在数据就绪且布局达到接受沉降里程碑后再呈现首个可见帧；加载期间 SHALL 显示有界加载占位。中间扩张阶段 MUST NOT 以可见的部分节点集合、中间相机缩放或未完成布局呈现给用户。
+
+#### Scenario: Entering a domain shows the final layout once
+- **WHEN** the user enters a domain from the root overview
+- **THEN** the canvas SHALL present a loading state until the bounded domain payload is ready and the layout has reached its settlement milestone
+- **AND** the first visible frame SHALL already show the final settled arrangement without subsequent visible re-layout or camera re-fit
+
+#### Scenario: Settlement evidence stays observable
+- **WHEN** the settled first frame is presented
+- **THEN** the settled-layout milestone SHALL remain the single source that unlocks label placement and camera fit
+- **AND** reduced-motion or static-layout environments SHALL treat layout computation completion as the settlement milestone
+
+### Requirement: Engineering prerequisite relations are a first-class presentable family
+上游工程图谱发布的 `prerequisite` 谓词（DomainConcept–DomainConcept、有向、无环）SHALL 作为一等工程关系族（先后修）进入分片族映射、谓词支持集与画布过滤器，SHALL NOT 仅存在于 node-neighborhood 分片。该族的呈现 SHALL 保留方向语义。
+
+#### Scenario: User filters the prerequisite family
+- **WHEN** 用户在领域内启用「先后修」关系过滤
+- **THEN** 画布 SHALL 呈现该域全部已交付 prerequisite 边及其端点
+- **AND** 边的方向 SHALL 与上游发布语义一致
+
+### Requirement: Authority nodes expose governed aliases
+权威对象的治理别名（上游 alias / alternative 标签）SHALL 进入快照与分片标签数据，可用于检索与辅助显示；别名 SHALL 服从与首选名相同的 locale 资格与呈现安全判据，SHALL NOT 以未经资格认定的语言回填。
+
+#### Scenario: Search matches a governed alias
+- **WHEN** 用户以某对象的治理别名检索
+- **THEN** 该对象 SHALL 命中
+- **AND** 显示名仍为当前 locale 的首选标签
+
+#### Scenario: Alias lacks qualified locale form
+- **WHEN** 某别名在当前 locale 无资格认定形式
+- **THEN** 该别名 SHALL NOT 在该 locale 呈现
+- **AND** zh-CN 基底行为不变
 

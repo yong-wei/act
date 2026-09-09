@@ -39,6 +39,7 @@ coordinated_runtime_authorization=""
 coordinated_runtime_binding=""
 formal_resource_envelope_hash=""
 stage_only=0
+explicit_app_revision=""
 publishing_identity_started=0
 publishing_generation=""
 resuming_published_release=0
@@ -59,6 +60,7 @@ while [[ $# -gt 0 ]]; do
     --coordinated-runtime-binding) coordinated_runtime_binding="$2"; shift 2 ;;
     --formal-resource-envelope-hash) formal_resource_envelope_hash="$2"; shift 2 ;;
     --stage-only) stage_only=1; shift ;;
+    --app-revision) explicit_app_revision="$2"; shift 2 ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -152,6 +154,42 @@ copy_atomic() {
   remote "chmod 0755 '${remote_path}.tmp' && mv '${remote_path}.tmp' '${remote_path}'"
 }
 
+read_deployed_app_revision() {
+  local app_container="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
+  local revision
+  revision="$(remote "podman exec ${app_container} /bin/sh -eu -c 'cat /app/.app-revision'")"
+  revision="$(printf '%s' "$revision" | tr -d '[:space:]')"
+  [[ "$revision" =~ ^[a-f0-9]{40}$ ]] || {
+    echo "ERROR: deployed application revision is invalid" >&2
+    exit 1
+  }
+  printf '%s' "$revision"
+}
+
+assert_teaching_projection_against_deployed_app() {
+  local candidate_source_revision="$1"
+  [[ "$candidate_source_revision" =~ ^[a-f0-9]{40}$ ]] || {
+    echo "ERROR: candidate source revision is invalid" >&2
+    exit 1
+  }
+  local deployed_app_revision
+  if [[ -n "${explicit_app_revision}" ]]; then
+    deployed_app_revision="$(printf '%s' "$explicit_app_revision" | tr -d '[:space:]')"
+  elif [[ -n "${ACT_RUNTIME_TARGET_APP_REVISION:-}" ]]; then
+    deployed_app_revision="$(printf '%s' "$ACT_RUNTIME_TARGET_APP_REVISION" | tr -d '[:space:]')"
+  else
+    deployed_app_revision="$(read_deployed_app_revision)"
+  fi
+  [[ "$deployed_app_revision" =~ ^[a-f0-9]{40}$ ]] || {
+    echo "ERROR: target application revision is invalid" >&2
+    exit 1
+  }
+  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts" \
+    --repo-root "$ROOT_DIR" \
+    --source-revision "$candidate_source_revision" \
+    --app-revision "$deployed_app_revision"
+}
+
 if [[ "$resuming_published_release" == "1" ]]; then
   artifact_dir="$resume_artifact_dir"
   manifest="$artifact_dir/manifest.json"
@@ -164,6 +202,14 @@ if [[ "$resuming_published_release" == "1" ]]; then
       exit 1
     }
   done
+  # Learning-content closure gate applies to resumed releases too (#2045): an
+  # uploaded-but-unactivated release must not bypass the asset-closure check.
+  python3 "$ROOT_DIR/scripts/knowledge/export-authority-learning-content-v2.py" >/dev/null
+  node "$ROOT_DIR/scripts/knowledge/check-release-learning-content-closure.mjs" \
+    --release-manifest "$manifest" \
+    --learning-manifest "$ROOT_DIR/course-content/runtime/knowledge/authority-learning-content-manifest.json"
+  source_revision="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sourceRevision"])' "$manifest")"
+  assert_teaching_projection_against_deployed_app "$source_revision"
   build_elapsed_milliseconds=0
   publish_elapsed_milliseconds=0
 else
@@ -185,6 +231,23 @@ else
   source_provenance_proof="$artifact_dir/source-provenance-proof.json"
   verification_receipt="$artifact_dir/publisher-verification.json"
   daily_report="$artifact_dir/daily-publication-report.json"
+  # Learning-content release gate (#2045): the sealed v2 export must match the
+  # committed manifest at the source revision and pass the authority-surface
+  # linkage check before any release is built. Failure aborts the publish; the
+  # previously activated release is untouched.
+  LC_MANIFEST_REL="course-content/runtime/knowledge/authority-learning-content-manifest.json"
+  python3 "$ROOT_DIR/scripts/knowledge/export-authority-learning-content-v2.py" >/dev/null
+  LC_TMP="$(mktemp "${TMPDIR:-/tmp}/learning-content-manifest.XXXXXX.json")"
+  git -C "$ROOT_DIR" show "$source_revision:$LC_MANIFEST_REL" > "$LC_TMP" \
+    || { echo "ERROR: $LC_MANIFEST_REL is missing from $source_revision" >&2; rm -f "$LC_TMP"; exit 1; }
+  if ! cmp -s "$LC_TMP" "$ROOT_DIR/$LC_MANIFEST_REL"; then
+    echo "ERROR: committed $LC_MANIFEST_REL at $source_revision drifted from the fresh sealed export; commit the re-exported manifest before deploying" >&2
+    rm -f "$LC_TMP"
+    exit 1
+  fi
+  rm -f "$LC_TMP"
+  node "$ROOT_DIR/scripts/knowledge/check-authority-surface-linkage.mjs" >/dev/null
+  assert_teaching_projection_against_deployed_app "$source_revision"
   build_started_seconds=$SECONDS
   build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt" --source-provenance-proof-output "$source_provenance_proof")
   build_args+=(--daily-report-output "$daily_report")
@@ -204,6 +267,11 @@ else
     build_args+=(--formal-resource-envelope-hash "$formal_resource_envelope_hash")
   fi
   npx tsx "$CLI" "${build_args[@]}" >/dev/null
+  # The release closure must carry every asset the sealed manifest promises,
+  # whatever --external-bundle the operator supplied (#2045 task 2.3).
+  node "$ROOT_DIR/scripts/knowledge/check-release-learning-content-closure.mjs" \
+    --release-manifest "$manifest" \
+    --learning-manifest "$ROOT_DIR/course-content/runtime/knowledge/authority-learning-content-manifest.json"
   build_elapsed_milliseconds=$(( (SECONDS - build_started_seconds) * 1000 ))
 fi
 release_id="$(python3 - "$manifest" <<'PY'
@@ -358,7 +426,7 @@ if [[ "$pre_publish_action" == begin:* ]]; then
   publishing_generation="$(printf '%s' "$begin_publish_result" | python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])')"
   [[ "$publishing_generation" =~ ^[1-9][0-9]*$ ]] || { echo "ERROR: invalid lifecycle generation after begin-publish; publishing root ownership is uncertain" >&2; exit 1; }
   publishing_identity_started=1
-elif [[ "$pre_publish_action" != protected:* && "$pre_publish_action" != repair:* ]]; then
+elif [[ "$pre_publish_action" != protected:* && "$pre_publish_action" != repair:* && "$pre_publish_action" != staged:* ]]; then
   if [[ "$pre_publish_action" != resume:* ]]; then
     echo "ERROR: invalid lifecycle publication state" >&2
     exit 1

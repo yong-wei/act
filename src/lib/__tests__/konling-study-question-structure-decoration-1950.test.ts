@@ -214,6 +214,9 @@ describe('固定回答回放的口径差值（#1950）', () => {
       answer: task.item.intent === 'code-debugging'
         ? DECORATED_DEBUGGING_ANSWER
         : canonicalAnswer(task.item.intent),
+      // #1951：citation 快照与回答同文件冻结；回答无 [n] 标记，
+      // 空快照即合法（full-feature 缺字段会令 replay fail closed）。
+      citations: [],
       elapsedMs: 1,
     },
   });

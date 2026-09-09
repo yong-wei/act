@@ -1,0 +1,1387 @@
+{
+  "shardClass": "domain-search-index",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "root-locus",
+  "entries": [
+    {
+      "id": "ctc:v11g-01781c7700bbf33340d39614",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹与虚轴交点处的K值，即系统临界稳定时的开环增益。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-046d539f3b7005bb49884851",
+      "canonicalType": "DomainConcept",
+      "label": "梅森信号流图增益公式中第 n 个自回路传递函数的值",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+      "canonicalType": "DomainConcept",
+      "label": "反馈路径根轨迹增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-110792a593c8f23f058bf750",
+      "canonicalType": "DomainConcept",
+      "label": "一型系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+      "canonicalType": "DomainConcept",
+      "label": "欠阻尼系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-13a9994c50acce777819aa2a",
+      "canonicalType": "DomainConcept",
+      "label": "闭环系统特征方程式的根，即闭环传递函数的极点。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-160c78d3827065aca5585f55",
+      "canonicalType": "DomainConcept",
+      "label": "埃文斯根轨迹构造法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "canonicalType": "DomainConcept",
+      "label": "稳定时间",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-1ebbddfa13931f700f437271",
+      "canonicalType": "DomainConcept",
+      "label": "出射角",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-21fba199a9fdef15887d600f",
+      "canonicalType": "DomainConcept",
+      "label": "滞后补偿",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-24c15d67a9c0976814a4d3c2",
+      "canonicalType": "DomainConcept",
+      "label": "废气传感器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-2628d227495a3860151a16c1",
+      "canonicalType": "DomainConcept",
+      "label": "虚轴穿越",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-29bcae62e44c52ed219e6687",
+      "canonicalType": "DomainConcept",
+      "label": "系统性能对特定参数变化的灵敏度度量，由 S_K^T(s) = (∂T(s)/T(s)) / (∂K/K) 给出，其中 T(s) 为系统传递函数，K 为所关心的参数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-2c9038984a34b530385c3e4a",
+      "canonicalType": "DomainConcept",
+      "label": "首一多项式",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-2d0a8b878047bb6a5effc783",
+      "canonicalType": "DomainConcept",
+      "label": "等效单位反馈系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-35bacac12472ebce3fd8ca03",
+      "canonicalType": "DomainConcept",
+      "label": "集总参数电路",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-3919da0292885d130aff2c77",
+      "canonicalType": "DomainConcept",
+      "label": "表征反应曲线的斜率参数，计算为 R = M/τ，其中 M 为稳态幅值，τ 为时间常数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-3a468572771e0b54e23a6ef5",
+      "canonicalType": "DomainConcept",
+      "label": "图形增益计算方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "canonicalType": "DomainConcept",
+      "label": "特征方程",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-40aced4eb1298f7db801690b",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹分支",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-44d931dcd9405d845e782f87",
+      "canonicalType": "DomainConcept",
+      "label": "由分布 R 和 C 元件组成的网络，其衰减斜率为 10n dB/十倍频程，其中 n 为 RC 滤波器的阶数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-462227b4794133f894bdd0a8",
+      "canonicalType": "DomainConcept",
+      "label": "分离点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-485febfa90a27cfcedd997ff",
+      "canonicalType": "DomainConcept",
+      "label": "闭环齐格勒-尼科尔斯整定法中使用的持续振荡周期，记作P_U。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-4aec82cd79a002c70fb185b3",
+      "canonicalType": "DomainConcept",
+      "label": "回路传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-4bb347d0f2aa8859a18073de",
+      "canonicalType": "DomainConcept",
+      "label": "绘制根轨迹的七个步骤",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-4c152561a989c34245c538b6",
+      "canonicalType": "DomainConcept",
+      "label": "渐近线",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-5322cdb3c781cb7b9828732a",
+      "canonicalType": "DomainConcept",
+      "label": "传递函数在右半平面（RHP）具有零点的系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-546566f01ae374379ec78c1e",
+      "canonicalType": "DomainConcept",
+      "label": "两步参数设计法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-5845390ded447e37f06ea222",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-5a7e22337cb506e673b9affe",
+      "canonicalType": "DomainConcept",
+      "label": "正反馈系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-67c03c5207c095a08e761361",
+      "canonicalType": "DomainConcept",
+      "label": "过阻尼系统",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-69118dc66489d66b1732901b",
+      "canonicalType": "DomainConcept",
+      "label": "闭环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-6b04c8283d317cd809eae369",
+      "canonicalType": "DomainConcept",
+      "label": "一种用于使具有弱阻尼柔性模态的系统（特别是执行器与传感器非同位配置时）实现稳定的补偿方案。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-6bfefff084f66202b9af9dd4",
+      "canonicalType": "DomainConcept",
+      "label": "齐格勒-尼科尔斯PID整定方法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-6c5064d654265c2b32389beb",
+      "canonicalType": "DomainConcept",
+      "label": "通过降低高频回路增益以减小向弱阻尼柔性模态溢出从而消除振荡的方法。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-713ffa8d5c112a3c2dc1569e",
+      "canonicalType": "DomainConcept",
+      "label": "负反馈系统中根轨迹增益 K* 变化时的根轨迹称为常规根轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-73552d8da29fbd2073b5f21a",
+      "canonicalType": "DomainConcept",
+      "label": "前向通路传递函数中时间常数形式表示的增益，记为K_G。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-79840533ef35fdf38b995397",
+      "canonicalType": "DomainConcept",
+      "label": "特征方程 1+KG(s)=0 中的可变参数，其中 0 ≤ K < ∞。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+      "canonicalType": "DomainConcept",
+      "label": "阶跃输入响应中输出超出终值的百分比。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-843da2b954f4e9b0d550f09a",
+      "canonicalType": "DomainConcept",
+      "label": "通过绘制关于某一参数的根轨迹并确定不同增益下的根值来选取控制器参数的方法。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-8dbc090e09d5c07e280c6319",
+      "canonicalType": "DomainConcept",
+      "label": "静态速度误差常数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-91ad9d6426185f59dea4a418",
+      "canonicalType": "DomainConcept",
+      "label": "输出响应跟踪斜坡输入后残留的有限误差。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-93b322aec104af4eb69aa152",
+      "canonicalType": "DomainConcept",
+      "label": "PID整定",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-95859dcad651c20058bf8726",
+      "canonicalType": "DomainConcept",
+      "label": "开环传递函数的零点，在根轨迹法中为已知量。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-97c34f1eca6199404a4ccf79",
+      "canonicalType": "DomainConcept",
+      "label": "开环阶跃输入下的实测输出，假定具有带纯滞后一阶环节的典型响应形状，由纯滞后时间 ΔT 和反应速率 R 表征。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-991f1cc82c973b44856c40f1",
+      "canonicalType": "DomainConcept",
+      "label": "到达角",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+      "canonicalType": "DomainConcept",
+      "label": "阻尼比",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+      "canonicalType": "DomainConcept",
+      "label": "振荡频率",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-a066f5e5a1852fcde776a250",
+      "canonicalType": "DomainConcept",
+      "label": "当闭环两个实数极点重合时，系统为临界阻尼系统，单位阶跃响应仍为非周期过程，但响应速度较快。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+      "canonicalType": "DomainConcept",
+      "label": "以非开环增益为可变参数绘制的根轨迹称为参数根轨迹，以区别于以开环增益 K 为可变参数的常规根轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-a8b5ea28f2d127b68833e809",
+      "canonicalType": "DomainConcept",
+      "label": "应答器标签",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-ab8978b79838ecaf3e856d0f",
+      "canonicalType": "DomainConcept",
+      "label": "四分之一幅值衰减",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-b6a581c8f216ccd9cdccb66a",
+      "canonicalType": "DomainConcept",
+      "label": "反应曲线参数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-b79da91dde120d5d6d3721cd",
+      "canonicalType": "DomainConcept",
+      "label": "b(s)=0的根，记作z_i。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+      "canonicalType": "DomainConcept",
+      "label": "系统处于临界稳定状态的条件，其特征是具有纯虚根。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-bd59ac156c37a1e319ab71c8",
+      "canonicalType": "DomainConcept",
+      "label": "a(s)=0 的根，记为 p_i。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "canonicalType": "DomainConcept",
+      "label": "广义根轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-c3abeee0067f823ed190d79e",
+      "canonicalType": "DomainConcept",
+      "label": "开环增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-c7228e5d5d171b0633b246e3",
+      "canonicalType": "DomainConcept",
+      "label": "反馈通路传递函数H(s)=1的反馈控制系统。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-c8c8aef0d010e68842be7236",
+      "canonicalType": "DomainConcept",
+      "label": "积分控制器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-ca75f7e80d0a7ffd93fcbae5",
+      "canonicalType": "DomainConcept",
+      "label": "一种用于计算多重根点处出射角与入射角的技巧：先在 K 的初始范围内绘制根轨迹，随后引入新参数继续绘制。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-caa20b325717f0a3c570f16b",
+      "canonicalType": "DomainConcept",
+      "label": "时间延迟",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-cd72ae39f59955a649bff662",
+      "canonicalType": "DomainConcept",
+      "label": "一种通过废气再循环来满足氮氧化物（NOx）排放标准的技术。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-d20816e0005b7c325c7f4477",
+      "canonicalType": "DomainConcept",
+      "label": "等效开环传递函数",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-d25e6196c789c546f7a61064",
+      "canonicalType": "DomainConcept",
+      "label": "在复杂控制系统设计中，由于某种性能指标要求而必须包含的正反馈内回路。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-d33302c76f8fb40aa020b7aa",
+      "canonicalType": "DomainConcept",
+      "label": "渐近线与实轴之间的夹角 φ_A。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-d71c2fc537d5d1aa270768ec",
+      "canonicalType": "DomainConcept",
+      "label": "三元催化器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-d81f72b09d08ab1f36c29305",
+      "canonicalType": "DomainConcept",
+      "label": "零极点偶极子",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-d8b2b97adf60410d7cbf4b0f",
+      "canonicalType": "DomainConcept",
+      "label": "参数偏离其标称值时根的灵敏度。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-daefb900250d1b7d86e36bdd",
+      "canonicalType": "DomainConcept",
+      "label": "最终增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-e00aa88647adaaf1c5d57462",
+      "canonicalType": "DomainConcept",
+      "label": "渐近线质心",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-e63bdb130c5a92d4eb8d936d",
+      "canonicalType": "DomainConcept",
+      "label": "滤波器补偿器",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-e73425ff41e0f022a641c4cd",
+      "canonicalType": "DomainConcept",
+      "label": "前向通路传递函数中分子多项式最高项系数归一化后的增益，记为K_G*。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-e85c0145d63244c46853c9cf",
+      "canonicalType": "DomainConcept",
+      "label": "一种近似PD控制的校正方案，用于通过缩短上升时间并减小暂态超调量来加快响应速度。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹法",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-eae7ec2310ca8844d0af49bb",
+      "canonicalType": "DomainConcept",
+      "label": "开环齐格勒-尼科尔斯整定法中表征反应曲线的时滞参数。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+      "canonicalType": "DomainConcept",
+      "label": "开环极点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v11g-f3a9655898917afa28e9c600",
+      "canonicalType": "DomainConcept",
+      "label": "在极少进行解析分析的情况下，通过试凑确定 PID 控制器增益的过程。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v12g-15b7fb1d68889848e3c50c46",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹增益",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v12g-8f6f1a49cc2cbdfe216e5204",
+      "canonicalType": "DomainConcept",
+      "label": "主导根",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v12g-b536959708e2d0fe3c8c791a",
+      "canonicalType": "DomainConcept",
+      "label": "固有频率",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v12g-b6ec19cda5342874277159e7",
+      "canonicalType": "DomainConcept",
+      "label": "实轴根轨迹",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+      "canonicalType": "DomainConcept",
+      "label": "根轨迹上两个或多个根汇合进入实轴的点",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctc:v12g-e3580535c0a12b79e0509f97",
+      "canonicalType": "DomainConcept",
+      "label": "针对增益参数 K 取负值所绘制的根轨迹，也称为 0° 根轨迹。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-25bef73ca6c64f3148fe711c",
+      "canonicalType": "Formula",
+      "label": "G(s)=M\\left[\\frac{p}{s+p}\\right] e^{-\\Delta T s}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-3cca6763977003965dc8eb7d",
+      "canonicalType": "Formula",
+      "label": "b_{M-1}=\\sum_{i=1}^{M} z_{i} \\quad \\text { and } \\quad a_{n-1}=\\sum_{j=1}^{n} p_{j}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-52b608fbcb40fa90981fb845",
+      "canonicalType": "Formula",
+      "label": "S_{K}^{T}=-\\sum_{i=1}^{n} S_{K}^{r_{i}} \\cdot \\frac{1}{s+r_{i}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-5acd63248314e82b98bb4baa",
+      "canonicalType": "Formula",
+      "label": "S_{K}^{T}=\\frac{\\partial \\ln \\mathrm{K}_{1}}{\\partial \\ln \\mathrm{~K}}-\\sum_{i=1}^{n} \\frac{\\partial r_{i}}{\\partial \\ln \\mathrm{~K}} \\cdot \\frac{1}{s+r_{i}}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-674d0e9c80b987a1aa5eaef1",
+      "canonicalType": "Formula",
+      "label": "T(s)=\\frac{Y(s)}{R(s)}=\\frac{p(s)}{q(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "canonicalType": "Formula",
+      "label": "\\Phi(s)=\\frac{G(s)}{1+G(s) H(s)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-6b7bc9dcc5becb0100393c44",
+      "canonicalType": "Formula",
+      "label": "K^{*}=\\frac{\\prod_{i=1}^{n}\\left|s-p_{i}\\right|}{\\prod_{j=1}^{m}\\left|s-z_{j}\\right|}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-8115508e073d25a13b9578ca",
+      "canonicalType": "Formula",
+      "label": "1+\\frac{K}{\\left(s-\\sigma_{A}\\right)^{n-M}}=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-9812fcdb6565adbecc0367f1",
+      "canonicalType": "Formula",
+      "label": "G(s)=K_{G}^{*} \\frac{\\prod_{i=1}^{f}\\left(s-z_{i}\\right)}{\\prod_{i=1}^{q}\\left(s-p_{i}\\right)}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-aecffbe88aa384070ea681b8",
+      "canonicalType": "Formula",
+      "label": "b(s) = \\prod_{i=1}^{m}\\left(s-z_{i}\\right), \\quad a(s) = \\prod_{i=1}^{n}\\left(s-p_{i}\\right)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-f561e570652bc9be7eaa051b",
+      "canonicalType": "Formula",
+      "label": "\\phi_{A}=\\frac{2 k+1}{n-M} 180^{\\circ}, k=0,1,2, \\ldots,(n-M-1)",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-f8084b28976c8ace6316b1d4",
+      "canonicalType": "Formula",
+      "label": "\\begin{aligned}\nG_{c}(s) & =G_{P I}(s) G_{P D}(s) \\\\\n& =\\left(\\hat{K}_{P}+\\frac{\\hat{K}_{I}}{s}\\right)\\left(\\bar{K}_{P}+\\bar{K}_{D} s\\right) \\\\\n& =\\left(\\bar{K}_{P} \\hat{K}_{P}+\\hat{K}_{I} \\bar{K}_{D}\\right)+\\hat{K}_{P} \\bar{K}_{D} s+\\frac{\\hat{K}_{I} \\bar{K}_{D}}{s} \\\\\n& =K_{P}+K_{D} s+\\frac{K_{I}}{s}\n\\end{aligned}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v11g-f94cb6b3045c52c3bc60c8b0",
+      "canonicalType": "Formula",
+      "label": "G_{P D}(s)=\\bar{K}_{P}+\\bar{K}_{D} s",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v12g-421039c1eb7bf803ef9de317",
+      "canonicalType": "Formula",
+      "label": "\\sum_{j=1}^{m} \\angle\\left(s-z_{j}\\right)-\\sum_{i=1}^{n} \\angle\\left(s-p_{i}\\right)=(2 k+1) \\pi",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v12g-455f0e568ad226bb8b617760",
+      "canonicalType": "Formula",
+      "label": "D_{c}(s)=K \\frac{s+z}{s+p}",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctf:v12g-dd0153d825ac2148a0e821a1",
+      "canonicalType": "Formula",
+      "label": "\\prod_{i=1}^{n}\\left(s-p_{i}\\right)+K^{*} \\prod_{j=1}^{m}\\left(s-z_{j}\\right)=0",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctk:v11g-9840f883d2655d2a1322fb60",
+      "canonicalType": "KnowledgeStatement",
+      "label": "知识命题：The locus of the roots of the characteristic equation 1+K P(s)=0 begins at the poles of P(s) and ends at the zeros of P(s) as K increases from zero to infinity.",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+      "canonicalType": "ModelRepresentation",
+      "label": "根轨迹图",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    },
+    {
+      "id": "ctm:v11g-6b66a370b1cd788194b0f8ab",
+      "canonicalType": "SystemModel",
+      "label": "具有该反应曲线的系统可近似为带纯滞后的一阶系统，其传递函数为 G(s)=M[p/(s+p)]e^{-ΔT s}。",
+      "aliases": [],
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ]
+    }
+  ]
+}

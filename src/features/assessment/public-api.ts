@@ -20,11 +20,16 @@ import type { AbilityReport, DiagnosticResult } from './adaptive-engine';
 import type { AdaptiveAttemptContext } from './adaptive-attempt-context';
 
 export type { CompanionPracticeMetadata } from './adaptive-engine';
+export type { AdaptiveAttemptContext };
 export {
   resolveAdaptiveDiagnosisContext,
   type AdaptiveDiagnosisContext,
   type AdaptiveDiagnosisContextDb,
 } from './adaptive-diagnosis-context';
+export {
+  readAdaptiveAttemptContext,
+  type AdaptiveAttemptContextDb,
+} from './adaptive-attempt-context';
 export type {
   SelectNextPathQuestionInput,
   SelectNextPathQuestionResult,

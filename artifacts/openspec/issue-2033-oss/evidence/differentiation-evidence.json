@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-06T12:58:01.211Z",
+  "generatedAt": "2026-09-07T15:25:50.684Z",
   "fixture": "alternative-core-fixture (three-family survival, deterministic)",
   "threeFamilyDifferentiation": {
     "families": [
@@ -164,7 +164,8 @@
             }
           ]
         }
-      ]
+      ],
+      "runtimeBindings": []
     }
   }
 }

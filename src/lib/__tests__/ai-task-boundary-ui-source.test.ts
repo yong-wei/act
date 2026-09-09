@@ -28,7 +28,7 @@ describe('ai task boundary UI source contracts', () => {
     expect(messageContent).toContain('sanitizeVerifiedCitationMarkdown(sanitizeAiVisibleContent(content))');
     expect(sharedRenderer).toContain('data-konling-chat-renderer="shared"');
     expect(sharedRenderer).toContain("sanitizeContent={!isUser}");
-    expect(sharedRenderer).toContain('<KonlingCitationPanel metadata={extractKonlingCitationMetadata(message.metadata)} />');
+    expect(sharedRenderer).toContain('<KonlingCitationPanel metadata={message.metadata} />');
     expect(sharedRenderer).toContain('summarizeAiToolResult(tool.toolName)');
     expect(sharedRenderer).toContain('flex-[0_1_75%]');
     expect(sharedRenderer).toContain('已调用 {tools.length} 项辅助能力');

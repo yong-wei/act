@@ -12,15 +12,9 @@ import path from 'node:path';
 import { DEFAULT_AUTHORITY_ROOT_RELATIVE } from '@/lib/authoritative-knowledge/authority-snapshot';
 import { resolveAuthorityStorePaths } from '@/lib/authoritative-knowledge/authority-store';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-bundle';
-import { buildLessonHandoutPrintPath } from '@/lib/handout-pdf';
-import {
-  resolveInteractiveLessonIdentity,
-  type InteractiveLessonIdentityRecord,
-} from '@/lib/interactive-lesson-identity';
 import {
   DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE,
   type TeachingCoreNodeRuntime,
-  type TeachingResourceRuntime,
 } from '@/lib/teaching-projection/contracts';
 import { resolveTeachingProjectionStorePaths } from '@/lib/teaching-projection/store';
 import {
@@ -45,8 +39,10 @@ import {
   type CourseLayeredGraphConsumerInput,
 } from './consumers';
 import { buildCoursePackageLayeredScope } from './scope';
+import { buildTeachingResourceLaunchMaps } from './teaching-resource-launch-maps';
 
 export { buildCoursePackageLayeredScope } from './scope';
+export { buildTeachingResourceLaunchMaps } from './teaching-resource-launch-maps';
 
 export interface CoursePageLayeredGraphContext {
   payload: LayeredGraphPayload;
@@ -130,100 +126,6 @@ export function resolveDefaultTeachingProjectionStorePaths(
   );
 }
 
-function resolveLessonIdentityFromToken(
-  token: string,
-): InteractiveLessonIdentityRecord | null {
-  const attempts = [
-    { kind: 'runtimeLessonDir' as const, value: token },
-    { kind: 'canonicalId' as const, value: token },
-    { kind: 'lessonKey' as const, value: token },
-    { kind: 'routeSegment' as const, value: token },
-  ];
-  for (const attempt of attempts) {
-    const resolved = resolveInteractiveLessonIdentity(attempt);
-    if (resolved.status === 'resolved') {
-      return resolved.record;
-    }
-  }
-  return null;
-}
-
-function extractLessonKeyFromResource(
-  resource: TeachingResourceRuntime,
-): string | null {
-  const parts = resource.resourceId.split(':');
-  // act:<type>:<lessonKey> or act:step:<lessonKey>:<stepId>
-  if (parts.length < 3 || parts[0] !== 'act') return null;
-  if (resource.resourceType === 'step' || resource.resourceType === 'lesson' || resource.resourceType === 'handout') {
-    return parts[2] ?? null;
-  }
-  return null;
-}
-
-function extractStepIdFromResource(
-  resource: TeachingResourceRuntime,
-): string | null {
-  if (resource.resourceType !== 'step') return null;
-  const parts = resource.resourceId.split(':');
-  return parts[3] ?? null;
-}
-
-/**
- * Map Teaching Projection resources to existing course/registry launch routes.
- * Never invents routes from Canonical node IDs.
- */
-export function buildTeachingResourceLaunchMaps(
-  resources: readonly TeachingResourceRuntime[],
-): {
-  resourceLaunchTargets: Record<string, string | null>;
-  resourceRegistryIds: Record<string, string>;
-} {
-  const resourceLaunchTargets: Record<string, string | null> = {};
-  const resourceRegistryIds: Record<string, string> = {};
-
-  for (const resource of resources) {
-    const lessonToken = extractLessonKeyFromResource(resource);
-    const identity = lessonToken
-      ? resolveLessonIdentityFromToken(lessonToken)
-      : null;
-    const routeSegment = identity?.routeSegments[0] ?? null;
-    const runtimeLessonDir = identity?.runtimeLessonDir ?? lessonToken;
-
-    switch (resource.resourceType) {
-      case 'lesson': {
-        if (routeSegment) {
-          resourceLaunchTargets[resource.resourceId] =
-            `/interactive-learning/courses/${routeSegment}`;
-          resourceRegistryIds[resource.resourceId] = routeSegment;
-        }
-        break;
-      }
-      case 'handout': {
-        if (runtimeLessonDir) {
-          resourceLaunchTargets[resource.resourceId] =
-            buildLessonHandoutPrintPath(runtimeLessonDir);
-          resourceRegistryIds[resource.resourceId] = `handout:${runtimeLessonDir}`;
-        }
-        break;
-      }
-      case 'step': {
-        const stepId = extractStepIdFromResource(resource);
-        if (routeSegment && stepId) {
-          resourceLaunchTargets[resource.resourceId] =
-            `/interactive-learning/courses/${routeSegment}/student/demo?step=${stepId}`;
-          resourceRegistryIds[resource.resourceId] = `${routeSegment}:${stepId}`;
-        }
-        break;
-      }
-      default:
-        // textbook/card and other types stay without a course launch unless a
-        // caller later supplies a registry-owned route.
-        break;
-    }
-  }
-
-  return { resourceLaunchTargets, resourceRegistryIds };
-}
 
 function buildLessonRuntimeLegacyProjection(input: {
   lessonRuntime: RuntimeLessonEntryBundle;

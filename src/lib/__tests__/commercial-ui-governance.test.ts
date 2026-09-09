@@ -4692,7 +4692,10 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('parsed.stateMatrix');
     expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
     expect(captureScriptSource).not.toContain('engineering relation filter unavailable');
-    expect(captureScriptSource).not.toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
+    // 846db676fa 起 QA 捕获要求启用已发布的 relation family 并等待其 shard API；
+    // 未发布兼容由 hasRenderedRelation() 早退保留。
+    expect(captureScriptSource).toContain('if (await hasRenderedRelation()) return;');
+    expect(captureScriptSource).toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
     expect(scriptSource).toContain('visual-review:stale-screenshot-review');
     expect(scriptSource).toContain('visual-review:stale-source-review');
     expect(scriptSource).toContain("'tabletBreakpoint'");
@@ -4743,7 +4746,10 @@ describe('commercial UI governance', () => {
     );
 
     expect(captureScriptSource).not.toContain('engineering relation filter unavailable');
-    expect(captureScriptSource).not.toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
+    // 846db676fa 起 QA 捕获要求启用已发布的 relation family 并等待其 shard API；
+    // 未发布兼容由 hasRenderedRelation() 早退保留。
+    expect(captureScriptSource).toContain('if (await hasRenderedRelation()) return;');
+    expect(captureScriptSource).toContain("await probe.waitForPath('/api/knowledge/shards/active/domains/:domain/families/:family')");
     expect(captureScriptSource).toContain("await page.waitForSelector('[data-active-graph-stage=\"authority\"]'");
   });
 

@@ -12,6 +12,7 @@ import { Pool } from 'pg';
 import type { Worker } from 'bullmq';
 
 import { createPrismaClient } from '../../src/lib/prisma-client';
+import { seedSmartLessonE2EClassContext } from './smart-lesson-e2e-acceptance-seed';
 import { assertCleanSourceRevision } from './smart-lesson-source-revision';
 
 const resumedSchemaName = argumentValue('--resume-schema');
@@ -257,40 +258,12 @@ function deployMigrations() {
 async function seedAcceptanceData() {
   const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
-    await prisma.user.create({
-      data: {
-        id: teacherId,
-        email: 'smart-lesson-real-e2e@example.test',
-        name: '智能教案真实验收教师',
-        role: 'TEACHER',
-      },
+    await seedSmartLessonE2EClassContext(prisma, {
+      teacherId,
+      classId,
+      schemaName,
+      seedKey: String(process.pid),
     });
-    await prisma.class.create({
-      data: {
-        id: classId,
-        teacherId,
-        name: '自动控制原理验收班',
-        code: `E${String(process.pid).slice(-5).padStart(5, '0')}`,
-      },
-    });
-    await prisma.user.update({
-      where: { id: teacherId },
-      data: { defaultTeachingClassId: classId },
-    });
-    await prisma.user.create({
-      data: {
-        id: `smart-lesson-real-student-${process.pid}`,
-        role: 'STUDENT',
-        profile: {
-          create: {
-            studentNumber: `S${process.pid}`,
-            classId,
-            major: '自动化',
-          },
-        },
-      },
-    });
-    await seedCurrentCumulativeClassPortrait(prisma);
     if (realProviderMode && !structuredActionMode) return;
     await prisma.courseBasis.create({
       data: {
@@ -348,70 +321,6 @@ async function seedAcceptanceData() {
   } finally {
     await prisma.$disconnect();
   }
-}
-
-async function seedCurrentCumulativeClassPortrait(
-  prisma: ReturnType<typeof createPrismaClient>,
-) {
-  const {
-    CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
-    materializeCumulativeClassPortrait,
-  } = await import('../../src/lib/data-governance/cumulative-class-materialization');
-  const { PORTRAIT_V2_CALCULATION_VERSION } = await import('../../src/lib/data-governance/portrait-v2-model');
-  const migrationRunId = `smart-lesson-real-migration-${process.pid}`;
-  const now = new Date();
-  const publication = await prisma.$transaction(async (tx) => {
-    await tx.$executeRawUnsafe(`SET LOCAL search_path TO "${schemaName}", public`);
-    const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({
-      where: { id: 'global' },
-    });
-    const next = {
-      cutoverFence: BigInt(currentFence?.fence ?? 0) + 1n,
-      learnerGeneration: BigInt(currentFence?.learnerGeneration ?? 0) + 1n,
-      generation: BigInt(currentFence?.classGeneration ?? 0) + 1n,
-      queueGeneration: BigInt(currentFence?.queueGeneration ?? 0) + 1n,
-    };
-    const nextPublication = {
-      calculationVersion: PORTRAIT_V2_CALCULATION_VERSION,
-      materializationVersion: CUMULATIVE_CLASS_PORTRAIT_MATERIALIZATION_VERSION,
-      migrationRunId,
-      ...next,
-    };
-    await tx.cumulativePortraitMigrationRun.create({
-      data: {
-        id: migrationRunId,
-        mode: 'APPLY',
-        status: 'COMPLETED',
-        calculationVersion: nextPublication.calculationVersion,
-        classMaterializationVersion: nextPublication.materializationVersion,
-        learnerGeneration: nextPublication.learnerGeneration,
-        classGeneration: nextPublication.generation,
-        queueGeneration: nextPublication.queueGeneration,
-        cutoverFence: nextPublication.cutoverFence,
-        inputDigest: 'smart-lesson-real-e2e',
-        verificationDigest: 'smart-lesson-real-e2e',
-        startedAt: now,
-        completedAt: now,
-      },
-    });
-    const fenceData = {
-      fence: nextPublication.cutoverFence,
-      calculationVersion: nextPublication.calculationVersion,
-      learnerGeneration: nextPublication.learnerGeneration,
-      classMaterializationVersion: nextPublication.materializationVersion,
-      classGeneration: nextPublication.generation,
-      queueGeneration: nextPublication.queueGeneration,
-      activeMigrationRunId: migrationRunId,
-      advancedAt: now,
-    };
-    await tx.cumulativePortraitCutoverFence.upsert({
-      where: { id: 'global' },
-      create: { id: 'global', ...fenceData },
-      update: fenceData,
-    });
-    return nextPublication;
-  });
-  await materializeCumulativeClassPortrait(prisma, classId, { now, publication });
 }
 
 async function availablePort() {

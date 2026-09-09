@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canonicalizeAdaptivePathInternalHref,
   resolveAdaptivePathDestinationContract,
-} from '../adaptive-path-destination-contract';
+} from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 
 describe('adaptive path destination contract', () => {
   it('accepts a teaching resource only when source context matches the resource URL', () => {
@@ -81,6 +81,25 @@ describe('adaptive path destination contract', () => {
       disposition: 'destination-control',
       reason: null,
     });
+  });
+
+  it('permits reviewed video, audio, and exercise destinations on student courses', () => {
+    expect(resolveAdaptivePathDestinationContract(
+      'video',
+      '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    )).toMatchObject({ disposition: 'destination-control', reason: null });
+    expect(resolveAdaptivePathDestinationContract(
+      'audio',
+      '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    )).toMatchObject({ disposition: 'destination-control', reason: null });
+    expect(resolveAdaptivePathDestinationContract(
+      'exercise',
+      '/assessment/adaptive-practice',
+    )).toMatchObject({ disposition: 'destination-control', reason: null });
+    expect(resolveAdaptivePathDestinationContract(
+      'exercise',
+      '/profile/growth?prompt=bode-drill',
+    )).toMatchObject({ disposition: 'destination-control', reason: null });
   });
 
   it.each([

@@ -1,0 +1,15 @@
+{
+  "contract": "r4-coordinated-teaching-projection-scope-binding/v1",
+  "courseId": "act-control-theory",
+  "scopeHash": "26d17ecb7883d3eb17ab9d9e2e85f482534df5f6ac59aa0ae32791aada4617d1",
+  "projectionId": "proj-e24d5f8886be49b1b100e154b9b5f199c121b2cecd03c81d5a9215b319ca40e8",
+  "projectionHash": "e24d5f8886be49b1b100e154b9b5f199c121b2cecd03c81d5a9215b319ca40e8",
+  "projectionManifestSha256": "3c81c5fca346c4bd2a317a542300e01264acdb4be5d2a69a54f126966e2e9b6a",
+  "authority": {
+    "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6"
+  },
+  "bindingHash": "7d80065ee6df2f9f58200e34f726908023bfff06130cbdedee4879dbc6eb6c7e"
+}

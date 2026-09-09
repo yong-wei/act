@@ -93,7 +93,11 @@ export function runLegacyProductionWithCanonicalShadow(
 ): LegacyProductionWithCanonicalShadowResult {
   const now = input.now ?? (() => performance.now());
   const started = now();
-  const productionAuthority = selectRagAuthority('PRODUCTION_ANSWER');
+  // 离线 harness 模拟的是 LEGACY 生产前台（#1112 fixture 语义）；#2047 生产
+  // 拨盘切到 composed 后，这里显式固定 legacy，拨盘变化不再影响 fixture 流。
+  const productionAuthority = selectRagAuthority('PRODUCTION_ANSWER', {
+    productionAuthority: 'legacy',
+  });
   if (!productionAnswerUsesLegacy(productionAuthority)) {
     throw new Error('Harness invariant: production authority must be LEGACY');
   }
@@ -197,6 +201,7 @@ export function runLegacyProductionWithCanonicalShadow(
     requestedConsumer: 'PRODUCTION_ANSWER',
     selected: productionAuthority,
     shadowSucceeded: shadowCitations.length > 0,
+    productionAuthority: 'legacy',
   });
 
   const shadowCitationIds = shadowCitations.map((row) => row.citationTargetId);

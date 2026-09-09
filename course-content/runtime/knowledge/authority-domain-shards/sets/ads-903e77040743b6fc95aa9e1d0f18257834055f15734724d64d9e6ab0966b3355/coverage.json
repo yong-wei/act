@@ -1,0 +1,202 @@
+{
+  "shardClass": "coverage-receipt",
+  "contract": "act-authority-shard-coverage/v1",
+  "builderVersion": "act-authority-domain-shard-builder/v2",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "catalogDomainCount": 15,
+  "defaultShardCount": 15,
+  "searchIndexCount": 15,
+  "domains": [
+    {
+      "domainId": "root-locus",
+      "catalogMemberCount": 104,
+      "overviewObjectCount": 85,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 104,
+      "teachingRelationCount": 37
+    },
+    {
+      "domainId": "system-modeling",
+      "catalogMemberCount": 662,
+      "overviewObjectCount": 271,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 662,
+      "teachingRelationCount": 37
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "catalogMemberCount": 584,
+      "overviewObjectCount": 153,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 584,
+      "teachingRelationCount": 72
+    },
+    {
+      "domainId": "stability-analysis",
+      "catalogMemberCount": 264,
+      "overviewObjectCount": 35,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 264,
+      "teachingRelationCount": 3
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "catalogMemberCount": 954,
+      "overviewObjectCount": 124,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 954,
+      "teachingRelationCount": 46
+    },
+    {
+      "domainId": "classical-control-design",
+      "catalogMemberCount": 776,
+      "overviewObjectCount": 103,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 776,
+      "teachingRelationCount": 22
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "catalogMemberCount": 619,
+      "overviewObjectCount": 126,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 619,
+      "teachingRelationCount": 0
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "catalogMemberCount": 1300,
+      "overviewObjectCount": 151,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 1300,
+      "teachingRelationCount": 21
+    },
+    {
+      "domainId": "nonlinear-system-analysis",
+      "catalogMemberCount": 349,
+      "overviewObjectCount": 78,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 349,
+      "teachingRelationCount": 32
+    },
+    {
+      "domainId": "lyapunov-stability",
+      "catalogMemberCount": 141,
+      "overviewObjectCount": 45,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 141,
+      "teachingRelationCount": 0
+    },
+    {
+      "domainId": "discrete-time-control-design",
+      "catalogMemberCount": 450,
+      "overviewObjectCount": 118,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 450,
+      "teachingRelationCount": 0
+    },
+    {
+      "domainId": "robustness-sensitivity-analysis",
+      "catalogMemberCount": 259,
+      "overviewObjectCount": 81,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 259,
+      "teachingRelationCount": 24
+    },
+    {
+      "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+      "catalogMemberCount": 200,
+      "overviewObjectCount": 68,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 200,
+      "teachingRelationCount": 0
+    },
+    {
+      "domainId": "robust-control-analysis-and-design",
+      "catalogMemberCount": 707,
+      "overviewObjectCount": 103,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 707,
+      "teachingRelationCount": 0
+    },
+    {
+      "domainId": "nonlinear-control-design",
+      "catalogMemberCount": 104,
+      "overviewObjectCount": 12,
+      "overviewTypes": [
+        "DomainConcept"
+      ],
+      "searchEntryCount": 104,
+      "teachingRelationCount": 0
+    }
+  ],
+  "closure": {
+    "catalogMemberCount": 7472,
+    "neighborhoodCount": 7472,
+    "detailCount": 7472,
+    "complete": true
+  },
+  "sourceCitations": {
+    "ledgerProvided": false,
+    "ledgerContract": null,
+    "nodesWithSources": 0,
+    "nodesCappedToLimit": 0,
+    "snapshotSourceMappingsPreserved": 0
+  }
+}

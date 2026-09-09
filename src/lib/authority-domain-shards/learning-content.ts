@@ -11,10 +11,19 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
+import {
+  loadStagedTeachingProjection,
+  readCurrentTeachingProjectionPointer,
+  resolveTeachingProjectionStorePaths,
+} from '@/lib/teaching-projection/store';
+
 import type {
   AuthorityNodeDetailShard,
   AuthorityNodeLearningContent,
+  AuthorityShardEnvelope,
 } from './contracts';
+import { resolveActiveShardIdentity } from './identity';
 
 const LEARNING_CONTENT_MANIFEST_CONTRACT =
   'act-authority-learning-content-manifest/v2' as const;
@@ -86,8 +95,13 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | null {
-  if (!existsSync(/*turbopackIgnore: true*/ paths.manifestPath)) return null;
+type LoadedLearningContentManifest =
+  | { status: 'missing' }
+  | { status: 'invalid' }
+  | { status: 'ready'; manifest: AuthorityLearningContentManifest };
+
+function loadLearningContentManifest(paths: RuntimePaths): LoadedLearningContentManifest {
+  if (!existsSync(/*turbopackIgnore: true*/ paths.manifestPath)) return { status: 'missing' };
   try {
     const parsed = JSON.parse(readFileSync(/*turbopackIgnore: true*/ paths.manifestPath, 'utf8')) as Partial<AuthorityLearningContentManifest>;
     if (
@@ -97,7 +111,7 @@ function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | n
       || !isNonEmptyString(parsed.authoritySnapshotId)
       || !isSha256(parsed.authoritySnapshotHash)
       || !Array.isArray(parsed.nodes)
-    ) return null;
+    ) return { status: 'invalid' };
     const nodes = parsed.nodes.filter((node): node is AuthorityLearningContentManifest['nodes'][number] => (
       Boolean(node)
       && typeof node.canonicalId === 'string'
@@ -111,20 +125,28 @@ function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | n
       nodes.length !== parsed.nodes.length
       || new Set(nodes.map((node) => node.canonicalId)).size !== nodes.length
       || new Set(nodes.map((node) => node.safeId)).size !== nodes.length
-    ) return null;
+    ) return { status: 'invalid' };
     return {
-      contract: LEARNING_CONTENT_MANIFEST_CONTRACT,
-      authorityReleaseId: parsed.authorityReleaseId,
-      authorityReleaseSetId: parsed.authorityReleaseSetId,
-      authoritySnapshotId: parsed.authoritySnapshotId,
-      authoritySnapshotHash: parsed.authoritySnapshotHash,
-      teachingProjectionId: isNonEmptyString(parsed.teachingProjectionId) ? parsed.teachingProjectionId : undefined,
-      teachingProjectionHash: isSha256(parsed.teachingProjectionHash) ? parsed.teachingProjectionHash : undefined,
-      nodes,
+      status: 'ready',
+      manifest: {
+        contract: LEARNING_CONTENT_MANIFEST_CONTRACT,
+        authorityReleaseId: parsed.authorityReleaseId,
+        authorityReleaseSetId: parsed.authorityReleaseSetId,
+        authoritySnapshotId: parsed.authoritySnapshotId,
+        authoritySnapshotHash: parsed.authoritySnapshotHash,
+        teachingProjectionId: isNonEmptyString(parsed.teachingProjectionId) ? parsed.teachingProjectionId : undefined,
+        teachingProjectionHash: isSha256(parsed.teachingProjectionHash) ? parsed.teachingProjectionHash : undefined,
+        nodes,
+      },
     };
   } catch {
-    return null;
+    return { status: 'invalid' };
   }
+}
+
+function readManifest(paths: RuntimePaths): AuthorityLearningContentManifest | null {
+  const loaded = loadLearningContentManifest(paths);
+  return loaded.status === 'ready' ? loaded.manifest : null;
 }
 
 function stripCardFrontmatter(value: string): string | null {
@@ -150,8 +172,9 @@ function cleanLearningText(value: string): string | null {
     .replace(/<!--[^]*?-->/g, '')
     .replace(/`[^`]*`/g, '')
     .replace(/\[(.*?)\]\([^)]*\)/g, '$1')
-    .replace(/[*_#>|]/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[\t ]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
   if (!normalized) return null;
   if (
@@ -160,24 +183,66 @@ function cleanLearningText(value: string): string | null {
   return normalized;
 }
 
-function cardContent(value: string, canonicalId: string): Extract<AuthorityNodeLearningContent['card'], { state: 'available' }> | null {
-  if (frontmatterCanonicalId(value) !== canonicalId || /^status:\s*draft-blocked\s*$/m.test(value)) return null;
+function parseLearnerVisibleCardFields(value: string): {
+  summary: string;
+  insight: string | null;
+  explanation: string;
+} | null {
+  if (/^status:\s*draft-blocked\s*$/m.test(value)) return null;
   const body = stripCardFrontmatter(value);
   if (!body) return null;
   const front = section(body, '## 首页', '## 详情');
-  const detail = section(body, '### 完整解释', '### 关联节点');
+  const detail = section(body, '### 完整解释', '### 关联节点')
+    ?? (section(body, '## 详情页', null) ?? section(body, '## 详情', null))
+      ?.split(/\n#{1,3}\s+(?:关联节点|来源|源文档|作者信息|元数据)(?:\s|$)/, 1)[0]
+      .trim();
   if (!front || !detail) return null;
-  const summaryMatch = front.match(/\*\*一句话定义\*\*：\s*([^\n]+)/);
+  const summaryMatch = front.match(/(?:\*\*)?(?:一句话定义|核心定义)(?:\*\*)?[：:]\s*([^\n]+)/);
   const insightMatch = front.match(/\*\*核心直觉\*\*：\s*([^\n]+)/);
   const summary = cleanLearningText(summaryMatch?.[1] ?? '');
   const explanation = cleanLearningText(detail);
   if (!summary || !explanation) return null;
   return {
-    state: 'available',
     summary,
     insight: cleanLearningText(insightMatch?.[1] ?? ''),
     explanation,
   };
+}
+
+function cardContent(value: string, canonicalId: string): Extract<AuthorityNodeLearningContent['card'], { state: 'available' }> | null {
+  if (frontmatterCanonicalId(value) !== canonicalId) return null;
+  const parsed = parseLearnerVisibleCardFields(value);
+  return parsed ? { state: 'available', ...parsed } : null;
+}
+
+const BINDING_CONTENT_TOKEN = /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,199}$/u;
+const CARD_NODES_RELATIVE = 'course-content/runtime/knowledge/cards/nodes' as const;
+const CARD_AUTHORITY_NODES_RELATIVE = 'course-content/runtime/knowledge/cards/authority/nodes' as const;
+const INFOGRAPH_NODES_RELATIVE = 'course-content/runtime/knowledge/infographs/nodes' as const;
+const INFOGRAPH_AUTHORITY_NODES_RELATIVE =
+  'course-content/runtime/knowledge/infographs/authority/nodes' as const;
+
+export function isBindingContentToken(value: unknown): value is string {
+  return typeof value === 'string'
+    && value.length > 0
+    && value.length <= 200
+    && !value.includes('/')
+    && !value.includes('\\')
+    && !value.includes('\0')
+    && !value.includes('..')
+    && BINDING_CONTENT_TOKEN.test(value);
+}
+
+function contentHashFromSourcePath(sourcePath: string | null | undefined): string | null {
+  const match = sourcePath?.trim().match(/^content:([a-f0-9]{64})$/i);
+  return match ? match[1].toLowerCase() : null;
+}
+
+function firstExistingFile(candidates: readonly string[]): string | null {
+  for (const candidate of candidates) {
+    if (existsSync(/*turbopackIgnore: true*/ candidate)) return candidate;
+  }
+  return null;
 }
 
 function envelopeTeachingAvailable(shard: AuthorityNodeDetailShard): boolean {
@@ -190,17 +255,43 @@ function envelopeTeachingAvailable(shard: AuthorityNodeDetailShard): boolean {
   );
 }
 
-function matchesShardAuthority(
+function matchesAuthorityIdentity(
   manifest: AuthorityLearningContentManifest,
-  shard: AuthorityNodeDetailShard,
+  authority: AuthorityShardEnvelope['authority'],
 ): boolean {
-  const authority = shard.envelope.authority;
   return (
     manifest.authorityReleaseId === authority.releaseId
     && manifest.authorityReleaseSetId === authority.releaseSetId
     && manifest.authoritySnapshotId === authority.snapshotId
     && manifest.authoritySnapshotHash === authority.snapshotHash
   );
+}
+
+function matchesTeachingSeal(
+  manifest: AuthorityLearningContentManifest,
+  teaching: AuthorityShardEnvelope['teaching'],
+): boolean {
+  if (!manifest.teachingProjectionId || !manifest.teachingProjectionHash) return false;
+  return (
+    teaching.status === 'available'
+    && manifest.teachingProjectionId === teaching.projectionId
+    && manifest.teachingProjectionHash === teaching.projectionHash
+  );
+}
+
+function matchesShardAuthority(
+  manifest: AuthorityLearningContentManifest,
+  shard: AuthorityNodeDetailShard,
+): boolean {
+  return matchesAuthorityIdentity(manifest, shard.envelope.authority);
+}
+
+function tryActiveEnvelope(repoRoot: string): AuthorityShardEnvelope | null {
+  try {
+    return resolveActiveShardIdentity({ repoRoot }).envelope;
+  } catch {
+    return null;
+  }
 }
 
 function resolveNodeLearningContent(
@@ -293,4 +384,193 @@ export function readActiveAuthorityInfograph(
   } catch {
     return null;
   }
+}
+
+export function readPublishedLearnerCardByToken(
+  token: string,
+  sourcePath?: string | null,
+): {
+  title?: string;
+  summary: string;
+  insight: string | null;
+  explanation: string;
+} | null {
+  if (!isBindingContentToken(token)) return null;
+  const repoRoot = process.cwd();
+  const cardPath = firstExistingFile([
+    join(/*turbopackIgnore: true*/ repoRoot, CARD_NODES_RELATIVE, `${token}.md`),
+    join(/*turbopackIgnore: true*/ repoRoot, CARD_AUTHORITY_NODES_RELATIVE, `${token}.md`),
+  ]);
+  if (!cardPath) return null;
+  const raw = readFileSync(/*turbopackIgnore: true*/ cardPath, 'utf8');
+  const expectedHash = contentHashFromSourcePath(sourcePath);
+  if (expectedHash && sha256(raw) !== expectedHash) return null;
+  const fields = parseLearnerVisibleCardFields(raw);
+  if (!fields) return null;
+  const heading = raw.match(/^#\s+(.+)$/m)?.[1]?.trim();
+  return { ...fields, ...(heading && !/(?:ctkg:|cts:|act:)/.test(heading) ? { title: heading } : {}) };
+}
+
+const INFOGRAPHIC_RESOURCE_PREFIX = 'act:infographic:';
+
+let liveInfographicTokenMemo: {
+  key: string;
+  tokens: ReadonlyMap<string, string | null>;
+} | null = null;
+
+function readInfographIfHashMatches(
+  path: string,
+  expectedSha256: string,
+  bindingHash?: string | null,
+): Buffer | null {
+  try {
+    if (!existsSync(/*turbopackIgnore: true*/ path)) return null;
+    const bytes = readFileSync(/*turbopackIgnore: true*/ path);
+    const digest = sha256(bytes);
+    if (digest !== expectedSha256) return null;
+    if (bindingHash && digest !== bindingHash) return null;
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function loadLiveInfographicTokens(repoRoot: string): ReadonlyMap<string, string | null> {
+  const projectionRoot = resolveConfiguredTeachingProjectionRoot(repoRoot);
+  const paths = resolveTeachingProjectionStorePaths(projectionRoot);
+  const pointer = readCurrentTeachingProjectionPointer(paths);
+  const key = `${repoRoot}::${projectionRoot}::${pointer?.projectionId ?? ''}::${pointer?.projectionHash ?? ''}`;
+  if (liveInfographicTokenMemo?.key === key) return liveInfographicTokenMemo.tokens;
+  const tokens = new Map<string, string | null>();
+  if (!pointer) {
+    liveInfographicTokenMemo = { key, tokens };
+    return tokens;
+  }
+  try {
+    const staged = loadStagedTeachingProjection(paths, pointer.projectionId);
+    if (
+      staged.projectionHash !== pointer.projectionHash
+      || !staged.artifacts.gate.passed
+    ) {
+      liveInfographicTokenMemo = { key, tokens };
+      return tokens;
+    }
+    for (const resource of staged.artifacts.resources) {
+      if (resource.resourceType !== 'infographic') continue;
+      if (!resource.resourceId.startsWith(INFOGRAPHIC_RESOURCE_PREFIX)) continue;
+      const token = resource.resourceId.slice(INFOGRAPHIC_RESOURCE_PREFIX.length);
+      if (!isBindingContentToken(token)) continue;
+      tokens.set(token, contentHashFromSourcePath(resource.sourcePath));
+    }
+  } catch {
+    liveInfographicTokenMemo = { key, tokens };
+    return tokens;
+  }
+  liveInfographicTokenMemo = { key, tokens };
+  return tokens;
+}
+
+function resolvePublishedInfographBytes(
+  token: string,
+  options: {
+    sourcePath?: string | null;
+    liveInfographicTokens?: ReadonlyMap<string, string | null>;
+    envelope?: AuthorityShardEnvelope;
+    identityRepoRoot?: string;
+  } = {},
+): Buffer | null {
+  if (!isBindingContentToken(token)) return null;
+  const repoRoot = process.cwd();
+  const bindingHash = contentHashFromSourcePath(options.sourcePath);
+  const paths = runtimePaths(repoRoot);
+  const loaded = loadLearningContentManifest(paths);
+  if (loaded.status === 'invalid') return null;
+  const manifest = loaded.status === 'ready' ? loaded.manifest : null;
+  const envelope = options.envelope
+    ?? tryActiveEnvelope(options.identityRepoRoot ?? repoRoot);
+  const listed = manifest?.nodes.find((node) => node.safeId === token);
+  if (manifest && listed) {
+    const v2Ready = Boolean(
+      envelope
+      && matchesAuthorityIdentity(manifest, envelope.authority)
+      && matchesTeachingSeal(manifest, envelope.teaching),
+    );
+    if (!v2Ready) return null;
+    if (listed.infograph.state !== 'available' || !listed.infograph.sha256) return null;
+    return readInfographIfHashMatches(
+      join(/*turbopackIgnore: true*/ paths.infographRoot, `${listed.safeId}.png`),
+      listed.infograph.sha256,
+      bindingHash,
+    );
+  }
+
+  const live = options.liveInfographicTokens ?? loadLiveInfographicTokens(repoRoot);
+  if (!live.has(token)) return null;
+  const liveHash = live.get(token) ?? null;
+  const infographPath = firstExistingFile([
+    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_NODES_RELATIVE, `${token}.png`),
+    join(/*turbopackIgnore: true*/ repoRoot, INFOGRAPH_AUTHORITY_NODES_RELATIVE, `${token}.png`),
+  ]);
+  if (!infographPath) return null;
+  const expectedHash = liveHash ?? bindingHash;
+  if (!expectedHash) {
+    try {
+      return readFileSync(/*turbopackIgnore: true*/ infographPath);
+    } catch {
+      return null;
+    }
+  }
+  return readInfographIfHashMatches(infographPath, expectedHash, bindingHash);
+}
+
+/** Index availability without reading image bodies; the asset route still verifies bytes. */
+export function createPublishedInfographReferenceIndex(options: {
+  liveInfographicTokens?: ReadonlyMap<string, string | null>;
+  envelope?: AuthorityShardEnvelope;
+} = {}): ReadonlySet<string> {
+  const repoRoot = process.cwd();
+  const paths = runtimePaths(repoRoot);
+  const loaded = loadLearningContentManifest(paths);
+  const available = new Set<string>();
+  if (loaded.status === 'invalid') return available;
+  const manifest = loaded.status === 'ready' ? loaded.manifest : null;
+  const envelope = options.envelope ?? tryActiveEnvelope(repoRoot);
+  const sealed = Boolean(manifest && envelope
+    && matchesAuthorityIdentity(manifest, envelope.authority)
+    && matchesTeachingSeal(manifest, envelope.teaching));
+  const listed = new Map(manifest?.nodes.map((node) => [node.safeId, node]) ?? []);
+  const live = options.liveInfographicTokens ?? loadLiveInfographicTokens(repoRoot);
+  for (const [token, bindingHash] of live) {
+    if (!isBindingContentToken(token)) continue;
+    const entry = listed.get(token);
+    if (entry) {
+      if (!sealed || entry.infograph.state !== 'available' || !entry.infograph.sha256
+        || (bindingHash && bindingHash !== entry.infograph.sha256)) continue;
+      if (existsSync(join(paths.infographRoot, `${token}.png`))) available.add(token);
+    } else if (firstExistingFile([
+      join(repoRoot, INFOGRAPH_NODES_RELATIVE, `${token}.png`),
+      join(repoRoot, INFOGRAPH_AUTHORITY_NODES_RELATIVE, `${token}.png`),
+    ])) {
+      available.add(token);
+    }
+  }
+  return available;
+}
+
+export function publishedInfographSafeIdForToken(
+  token: string,
+  sourcePath?: string | null,
+): string | null {
+  return resolvePublishedInfographBytes(token, { sourcePath }) ? token : null;
+}
+
+export function readPublishedAuthorityInfographBySafeId(
+  safeId: string,
+  options?: {
+    liveInfographicTokens?: ReadonlyMap<string, string | null>;
+    envelope?: AuthorityShardEnvelope;
+    identityRepoRoot?: string;
+  },
+): Buffer | null {
+  return resolvePublishedInfographBytes(safeId, options);
 }

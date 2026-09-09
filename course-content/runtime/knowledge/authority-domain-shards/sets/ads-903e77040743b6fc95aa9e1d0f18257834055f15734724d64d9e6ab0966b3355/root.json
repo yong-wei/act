@@ -1,0 +1,181 @@
+{
+  "shardClass": "root",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "root": {
+    "kind": "presentation-root-catalog",
+    "domains": [
+      {
+        "kind": "presentation-domain",
+        "order": 1,
+        "displayName": "根轨迹",
+        "summary": "在参数变化下追踪闭环极点轨迹，支持稳定性与动态设计。",
+        "presentationRole": "domain",
+        "visualRole": "root-locus",
+        "memberCount": 104
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 2,
+        "displayName": "系统建模",
+        "summary": "从物理对象到系统模型，建立可分析的输入输出与内部结构描述。",
+        "presentationRole": "domain",
+        "visualRole": "modeling",
+        "memberCount": 662
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 3,
+        "displayName": "时域分析",
+        "summary": "以时间响应刻画动态性能，理解过渡过程与稳态行为。",
+        "presentationRole": "domain",
+        "visualRole": "time",
+        "memberCount": 584
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 4,
+        "displayName": "稳定性分析",
+        "summary": "判断系统是否稳定，并给出可复核的稳定性判据与边界。",
+        "presentationRole": "domain",
+        "visualRole": "stability",
+        "memberCount": 264
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 5,
+        "displayName": "频域分析",
+        "summary": "用频率响应描述系统特性，连接幅相裕度与动态性能。",
+        "presentationRole": "domain",
+        "visualRole": "frequency",
+        "memberCount": 954
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 6,
+        "displayName": "经典控制设计",
+        "summary": "以串联校正与 PID 等方法完成性能指标驱动的控制器设计。",
+        "presentationRole": "domain",
+        "visualRole": "design",
+        "memberCount": 776
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 7,
+        "displayName": "离散时间控制分析",
+        "summary": "面向采样与数字实现，分析离散系统模型与动态特性。",
+        "presentationRole": "domain",
+        "visualRole": "discrete",
+        "memberCount": 619
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 8,
+        "displayName": "状态空间控制分析与设计",
+        "summary": "以状态空间模型进行能控能观分析与现代控制综合。",
+        "presentationRole": "domain",
+        "visualRole": "state-space",
+        "memberCount": 1300
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 9,
+        "displayName": "非线性系统分析",
+        "summary": "分析非线性动态的平衡、周期运动与局部或全局行为。",
+        "presentationRole": "domain",
+        "visualRole": "nonlinear-analysis",
+        "memberCount": 349
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 10,
+        "displayName": "李雅普诺夫稳定性",
+        "summary": "用能量型函数判断平衡点稳定性，并给出可复核的判据。",
+        "presentationRole": "domain",
+        "visualRole": "lyapunov",
+        "memberCount": 141
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 11,
+        "displayName": "离散时间控制设计",
+        "summary": "面向采样实现完成离散控制器综合与性能设计。",
+        "presentationRole": "domain",
+        "visualRole": "discrete-design",
+        "memberCount": 450
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 12,
+        "displayName": "鲁棒性与灵敏度分析",
+        "summary": "刻画参数与扰动对系统性能的影响，支持鲁棒性判断。",
+        "presentationRole": "domain",
+        "visualRole": "robustness",
+        "memberCount": 259
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 13,
+        "displayName": "最优控制与线性二次型设计",
+        "summary": "以性能指标最优为目标，完成线性二次型等最优控制设计。",
+        "presentationRole": "domain",
+        "visualRole": "optimal",
+        "memberCount": 200
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 14,
+        "displayName": "鲁棒控制分析与设计",
+        "summary": "在模型不确定下分析并综合能够保持性能的控制器。",
+        "presentationRole": "domain",
+        "visualRole": "robust-design",
+        "memberCount": 707
+      },
+      {
+        "kind": "presentation-domain",
+        "order": 15,
+        "displayName": "非线性控制设计",
+        "summary": "针对非线性对象综合控制器，改善局部或大范围动态。",
+        "presentationRole": "domain",
+        "visualRole": "nonlinear-design",
+        "memberCount": 104
+      }
+    ],
+    "aggregate": {
+      "kind": "presentation-aggregate",
+      "order": 0,
+      "displayName": "控制理论综合",
+      "summary": "全局汇总入口，帮助先建立知识版图再进入具体领域。",
+      "presentationRole": "aggregate",
+      "visualRole": "aggregate",
+      "domainCount": 15
+    }
+  }
+}

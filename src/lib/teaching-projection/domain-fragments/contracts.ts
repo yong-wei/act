@@ -165,13 +165,13 @@ export interface DomainFragmentAuthoritySelection {
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_BINDING = {
   releaseId: 'ctr:release:control-theory-engineering-v0.37',
   releaseSetId:
-    'actkg-authoritative-candidate-control-theory-engineering-v0.37-r4',
-  snapshotId: 'snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae',
-  snapshotHash: 'e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae',
+    'actkg-authoritative-candidate-control-theory-engineering-v0.37-r6',
+  snapshotId: 'snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373',
+  snapshotHash: 'b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373',
 } as const satisfies DomainFragmentAuthorityBindingComplete;
 
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_AUTHORING_REVISION =
-  '87d2e5df2a097051e35e02ead0b2cfec74bf7c77' as const;
+  '13af98237cf88cc650ee2440386e6ebcc54f2b64' as const;
 
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_CAPTURE_REVISION =
   LIVE_AUTHORITY_DOMAIN_TEACHING_AUTHORING_REVISION;
@@ -181,7 +181,7 @@ export const LIVE_AUTHORITY_DOMAIN_TEACHING_SOURCE_DATASET_HASH =
   '2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e' as const;
 
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_SNAPSHOT_RELATIVE =
-  'course-content/authoring/knowledge/authority/releases/snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae' as const;
+  'course-content/authoring/knowledge/authority/releases/snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373' as const;
 
 export const LIVE_AUTHORITY_DOMAIN_TEACHING_MANIFEST_RELATIVE =
   `${LIVE_AUTHORITY_DOMAIN_TEACHING_SNAPSHOT_RELATIVE}/manifest.json` as const;

@@ -1,0 +1,5 @@
+# #2042 task 5.2: textbook canonical endpoints with no overlay-A equivalent; sections bind via their other endpoints or stay explicitly exempt.
+{"canonicalId": "ctc:v11g-2c9038984a34b530385c3e4a", "exemptionReason": "franklin ch-root-locus-01 首一多项式：overlay A 无等价节点，章节经其余端点绑定"}
+{"canonicalId": "ctc:v11g-3a468572771e0b54e23a6ef5", "exemptionReason": "franklin ch-root-locus-02 图形增益计算方法：overlay A 无等价节点，整节显式豁免"}
+{"canonicalId": "ctc:v11g-3919da0292885d130aff2c77", "exemptionReason": "dorf ch-root-locus-02 斜率参数 R=M/τ：overlay A 无等价节点，整节显式豁免"}
+{"canonicalId": "ctc:v11g-24c15d67a9c0976814a4d3c2", "exemptionReason": "dorf ch-root-locus-01 废气传感器：与课程核心无关，章节经其余端点绑定"}

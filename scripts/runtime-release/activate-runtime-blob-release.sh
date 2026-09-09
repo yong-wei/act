@@ -797,9 +797,17 @@ trap restore_runtime_consumers ERR
 python3 "$MATERIALIZER" select --release-id "$release_id" --view-root "$VIEW_ROOT" >/dev/null
 candidate_current_selected=1
 candidate_deploy_attempted=1
+# 候选部署的 active receipt 位于独立临时目录；coordinated receipt 必须与其
+# 同目录（deploy.sh 强制），否则 act-obe.env 持久化的缺省值会与候选目录
+# 错位并阻断候选激活。old_active 重绑场景候选目录为空，沿用缺省。
+coordinated_receipt_override=()
+if [[ -n "$candidate_receipt_dir" ]]; then
+  coordinated_receipt_override=(ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$candidate_receipt_dir/coordinated-active-receipt.json")
+fi
 RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   ACT_RUNTIME_OSS_RAM_ROLE="$ram_role" \
   ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$candidate_receipt_path" \
+  ${coordinated_receipt_override[@]+"${coordinated_receipt_override[@]}"} \
   RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" \
   APP_IMAGE="$rollback_app_image" \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-

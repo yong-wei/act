@@ -522,6 +522,196 @@ describe('smart lesson BullMQ worker', () => {
     }));
   });
 
+  it('normalizes stage-step-duration-mismatch into a targeted correction context', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'OBJECTIVES',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-objectives', kind: 'OBJECTIVES', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const stageOutput = (stageMinutes: number, stepMinutes: number) => ({
+      minutes: stageMinutes, teacherActivity: '讲授目标', studentActivity: '理解目标', assessment: '口头确认',
+      steps: [{
+        title: '目标说明', minutes: stepMinutes, teacherActivity: '宣读目标', studentActivity: '记录目标', assessment: '提问',
+        sourceBindings: [{
+          citationId: sourcePackItem.citationTargetId,
+          sourceVersionId: sourcePackItem.metadata.versionId,
+          anchor: sourcePackItem.metadata.stableAnchor,
+          contentHash: sourcePackItem.metadata.contentHash,
+        }],
+      }],
+    });
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: stageOutput(5, 3), normalizedResponseId: 'step-duration-invalid' })
+      .mockResolvedValueOnce({ output: stageOutput(5, 5), normalizedResponseId: 'step-duration-corrected' });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledTimes(1);
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      originalAttemptId: 'attempt-1',
+      validationReceipt: {
+        valid: false,
+        schemaVersion: 'smart-lesson-boppps-objectives.v1',
+        issues: [{
+          code: 'stage-step-duration-mismatch',
+          path: ['steps'],
+          message: 'stage-step-duration-mismatch:3:5',
+        }],
+      },
+      request: expect.objectContaining({
+        correctionContext: {
+          stage: 'OBJECTIVES',
+          expectedMinutes: 5,
+          actualMinutes: 3,
+          instruction: expect.stringContaining('严格等于 5 分钟'),
+        },
+      }),
+    }));
+    expect(generate).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      prompt: expect.stringContaining('"expectedMinutes":5'),
+      promptVersion: 'smart-lesson-plan.v2',
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      output: expect.objectContaining({ minutes: 5 }),
+    }));
+  });
+
+  it('falls back to the generic correction prompt when other schema errors coexist with the duration mismatch', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'OBJECTIVES',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-objectives', kind: 'OBJECTIVES', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const stageOutput = (stageMinutes: number, stepMinutes: number, teacherActivity: string) => ({
+      minutes: stageMinutes, teacherActivity, studentActivity: '理解目标', assessment: '口头确认',
+      steps: [{
+        title: '目标说明', minutes: stepMinutes, teacherActivity: '宣读目标', studentActivity: '记录目标', assessment: '提问',
+        sourceBindings: [{
+          citationId: sourcePackItem.citationTargetId,
+          sourceVersionId: sourcePackItem.metadata.versionId,
+          anchor: sourcePackItem.metadata.stableAnchor,
+          contentHash: sourcePackItem.metadata.contentHash,
+        }],
+      }],
+    });
+    const generate = vi.fn()
+      .mockResolvedValueOnce({
+        output: stageOutput(5, 3, ''),
+        normalizedResponseId: 'multi-error-invalid',
+      })
+      .mockResolvedValueOnce({
+        output: stageOutput(5, 5, '讲授目标'),
+        normalizedResponseId: 'multi-error-corrected',
+      });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledTimes(1);
+    const correctionInput = serviceMocks.beginCorrection.mock.calls[0][1];
+    const issueCodes = correctionInput.validationReceipt.issues.map((issue: { code: string }) => issue.code);
+    expect(issueCodes).toContain('stage-step-duration-mismatch');
+    expect(issueCodes.length).toBeGreaterThan(1);
+    expect('correctionContext' in correctionInput.request).toBe(false);
+    expect(generate.mock.calls[1][0].prompt).not.toContain('correctionContext');
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      output: expect.objectContaining({ teacherActivity: '讲授目标' }),
+    }));
+  });
+
+  it('falls back to the generic correction prompt when outline minutes cannot be resolved', async () => {    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'OBJECTIVES',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'PENDING', output: null },
+        { id: 'stage-objectives', kind: 'OBJECTIVES', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 30,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const stageOutput = (stageMinutes: number, stepMinutes: number) => ({
+      minutes: stageMinutes, teacherActivity: '讲授目标', studentActivity: '理解目标', assessment: '口头确认',
+      steps: [{
+        title: '目标说明', minutes: stepMinutes, teacherActivity: '宣读目标', studentActivity: '记录目标', assessment: '提问',
+        sourceBindings: [{
+          citationId: sourcePackItem.citationTargetId,
+          sourceVersionId: sourcePackItem.metadata.versionId,
+          anchor: sourcePackItem.metadata.stableAnchor,
+          contentHash: sourcePackItem.metadata.contentHash,
+        }],
+      }],
+    });
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: stageOutput(5, 3), normalizedResponseId: 'step-duration-invalid' })
+      .mockResolvedValueOnce({ output: stageOutput(5, 5), normalizedResponseId: 'generic-corrected' });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.fail.mockResolvedValue({ state: 'RETRYABLE' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'RETRYABLE' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledTimes(1);
+    const correctionInput = serviceMocks.beginCorrection.mock.calls[0][1];
+    expect(correctionInput.validationReceipt.issues[0].code).toBe('stage-step-duration-mismatch');
+    expect('correctionContext' in correctionInput.request).toBe(false);
+    expect(generate.mock.calls[1][0].prompt).not.toContain('correctionContext');
+    expect(serviceMocks.fail).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      failureCode: 'provider-output-invalid-after-correction',
+    }));
+  });
+
   it('routes a schema-valid outline missing post-assessment through the linked correction attempt', async () => {
     const context = outlineJobContext();
     const correctedOutline = {
@@ -560,6 +750,46 @@ describe('smart lesson BullMQ worker', () => {
     expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       attemptId: 'attempt-correction-1',
       output: correctedOutline,
+    }));
+  });
+
+  it('routes an outline class-context ref mismatch through correction with the expected ref', async () => {
+    const contextRef = `cumulative-class-portrait:${'d'.repeat(64)}`;
+    const context = outlineJobContext();
+    context.draft.task.aggregateClassContextRef = contextRef;
+    const mismatched = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const corrected = {
+      ...mismatched,
+      classAdaptation: { aggregateContextRef: contextRef, emphasis: [] },
+    };
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: mismatched, normalizedResponseId: 'qwen-outline' })
+      .mockResolvedValueOnce({ output: corrected, normalizedResponseId: 'qwen-outline-corrected' });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      request: expect.objectContaining({
+        correctionContext: expect.objectContaining({ expectedAggregateContextRef: contextRef }),
+      }),
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      output: corrected,
     }));
   });
 

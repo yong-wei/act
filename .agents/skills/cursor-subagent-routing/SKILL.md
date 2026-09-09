@@ -37,12 +37,12 @@ description: Route Cursor Task subagents to non-Composer models by task type. Us
 | 广域材料汇总 / 多点并行探查 | `explore` 或 `generalPurpose` | `cursor-grok-4.6-high-fast` |
 | 小范围实现 / 局部修补 | `generalPurpose` | `composer-2.5-fast` |
 | 多文件功能实现 / 状态较复杂 | `generalPurpose` | `gpt-5.6-sol-medium` |
-| 复杂排障 / 根因分析 | `generalPurpose` | `claude-fable-5-thinking-high` |
-| 架构/方案对比（只读） | `code-architect` | `claude-fable-5-thinking-high` |
+| 复杂排障 / 根因分析 | `generalPurpose` | `gpt-5.6-sol-medium` |
+| 架构/方案对比（只读） | `code-architect` | `gpt-5.6-sol-medium` |
 | 深度已有功能摸底 | `code-explorer` | `gpt-5.6-sol-medium` |
-| 普通 diff 审查 | `code-reviewer` | `claude-fable-5-thinking-high` 或 `gpt-5.6-sol-medium` |
-| Bugbot 式审查 | `bugbot` | `claude-fable-5-thinking-high` 或 `gpt-5.6-sol-medium` |
-| 安全审查 | `security-reviewer` | `claude-opus-5-thinking-high` |
+| 普通 diff 审查 | `code-reviewer` | `gpt-5.6-sol-medium` |
+| Bugbot 式审查 | `bugbot` | `gpt-5.6-sol-medium` |
+| 安全审查 | `security-reviewer` | `gpt-5.6-sol-medium` |
 | CI 失败调查 | `ci-investigator` | `gpt-5.6-sol-medium` |
 | Cursor 产品用法 | `cursor-guide` | `composer-2.5-fast` |
 | 隔离实验 / best-of-n | `best-of-n-runner` | 默认 `composer-2.5-fast`；质量对比用 `gpt-5.6-sol-medium` |
@@ -50,9 +50,9 @@ description: Route Cursor Task subagents to non-Composer models by task type. Us
 
 ### 审查模型选择
 
-- 默认优先 `claude-fable-5-thinking-high`。
-- 成本/延迟更敏感、或用户指定时，普通审查与 Bugbot 可用 `gpt-5.6-sol-medium`。
-- 安全审查固定 `claude-opus-5-thinking-high`，不用 sol-medium 替代。
+- 默认使用 `gpt-5.6-sol-medium`。不要主动调用 Claude 系列（`claude-fable-*`、`claude-opus-*`）。
+- 用户显式点名 Claude 且 slug 仍在允许列表内时，才使用该模型。
+- 实现默认 `cursor-grok-4.6-high-fast` 或 `composer-2.5-fast`；多文件复杂实现用 `gpt-5.6-sol-medium`。
 
 ## 派发检查清单
 

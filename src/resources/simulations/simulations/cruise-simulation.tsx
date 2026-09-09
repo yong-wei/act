@@ -1638,7 +1638,7 @@ export default function CruiseSimulation() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const telemetryRunIdRef = useRef(createCruiseTraceRunId());
   const telemetryStartedAtRef = useRef(new Date().toISOString());
-  // 循环稳定化（#1945）：每帧变化的量走 ref，时钟真源在 timeRef，
+  // 循环稳定化（issue 1945）：每帧变化的量走 ref，时钟真源在 timeRef，
   // 循环回调与启动 effect 引用稳定，运行期间不 teardown 重建。
   const controlRef = useRef({
     isPaused: false,

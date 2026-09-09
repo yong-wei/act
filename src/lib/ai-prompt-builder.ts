@@ -12,6 +12,10 @@ import {
   type KonlingTeachingProjectionContext,
 } from './konling-teaching-projection-context';
 import {
+  buildKonlingEngineeringNeighborhoodGroundingLines,
+  type KonlingEngineeringNeighborhood,
+} from './konling-engineering-graph';
+import {
   buildStudyQuestionOutputContractLines,
   STUDY_QUESTION_INTENTS,
   STUDY_QUESTION_SECTIONS,
@@ -102,6 +106,7 @@ interface KonlingPromptRuntimeContext {
       severity?: string;
     }>;
     teachingProjectionContext?: KonlingTeachingProjectionContext | null;
+    engineeringNeighborhood?: KonlingEngineeringNeighborhood | null;
   } | null;
   citationContext?: {
     required?: boolean;
@@ -125,6 +130,14 @@ interface KonlingPromptRuntimeContext {
     }>;
     missingCitationClasses?: string[];
     lowConfidenceReasons?: string[];
+    /**
+     * #2039：evidence-required 章节的逐单元分配编号（章节标题 → 主源
+     * 编号 + 备用编号）。存在时渲染为逐单元映射行，替代全局清单式指引。
+     */
+    unitCitations?: Array<{
+      sectionTitle: string;
+      displayNumbers: readonly number[];
+    }>;
   };
   permittedTools?: string[];
   missingContext?: string[];
@@ -409,6 +422,17 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
         lines.push('  - 可选知识卡缺失时，使用 Canonical 摘要或其他已投影资源，不得声称节点不存在。');
       }
     }
+    // #2047 工程域邻域 grounding：与教学投影分域自证，条数有界。
+    const engineeringNeighborhood =
+      runtime.graphContext?.engineeringNeighborhood ?? null;
+    const engineeringLines = buildKonlingEngineeringNeighborhoodGroundingLines(engineeringNeighborhood);
+    if (engineeringLines.length > 0) {
+      lines.push('- Engineering graph grounding (server-owned, read-only):');
+      for (const line of engineeringLines) {
+        lines.push(`  - ${line}`);
+      }
+      lines.push('  - 工程关系仅来自 ActKG Authority 工程层（谓词白名单内），不得与教学先修关系混写，不得推断未交付的工程关系。');
+    }
   }
   if (runtime.citationContext?.required) {
     lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');
@@ -495,7 +519,17 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
         const derivedTitles = STUDY_QUESTION_SECTIONS[studyIntent]
           .filter((section) => section.citationPolicy === 'model-derived')
           .map((section) => section.title);
-        if (evidenceTitles.length) {
+        // #2039：有逐单元分配时渲染显式映射（章节标题 → 分配编号），
+        // 替代「各章可用编号」的全局清单式指引；映射必须逐单元给出，
+        // 同一编号可在多个确实相关的章节重复使用（一源多单元合法）。
+        const unitCitations = runtime.citationContext?.unitCitations ?? [];
+        if (unitCitations.length) {
+          lines.push('  - 逐单元引用映射（章节 → 分配编号，首个为主源，斜杠后为备用）:');
+          for (const unit of unitCitations) {
+            lines.push(`    - 「${unit.sectionTitle}」→ 使用编号 ${unit.displayNumbers.map((number) => `[${number}]`).join('/')}`);
+          }
+          lines.push('  - 同一编号可在多个确实相关的章节重复使用；映射行给出的编号必须用于对应章节的关键结论行末，不得挪到其他章节。');
+        } else if (evidenceTitles.length) {
           lines.push(`  - 逐单元引用映射：「${evidenceTitles.join('、')}」各章的每个关键结论行末必须紧跟可用编号 [n]，不得只在段末集中引用。`);
         }
         if (derivedTitles.length) {

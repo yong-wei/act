@@ -74,7 +74,10 @@ export function materializeSealedActkgCommit(
     ]);
     execFileSync('tar', ['-xf', archivePath, '-C', outputRoot]);
     rmSync(archivePath, { force: true });
-    return outputRoot;
+    // macOS materializes os.tmpdir() (/var) as /private/var; return the
+    // realpath so containment checks against realpathed children (bundle
+    // dirs) never see a lexical escape.
+    return realpathSync(outputRoot);
   } catch (error) {
     rmSync(outputRoot, { recursive: true, force: true });
     failUnsealedInput(`sealed ActKG commit ${commit} could not be materialized: ${error instanceof Error ? error.message : String(error)}`);

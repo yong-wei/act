@@ -638,6 +638,15 @@ export const UNIVERSAL_APP_SHELL_ROUTE_EXCEPTIONS: readonly UniversalAppShellExc
     removalCondition: 'Review surfaces move to a report-ledger workspace or are retired after QA capture.',
   },
   {
+    routePattern: '/simulations/type055-model-candidate',
+    category: 'visual-review-surface',
+    type: 'visual-review-only',
+    owner: UNIVERSAL_APP_SHELL_CHANGE_ID,
+    reason: 'Type055 v2 model-package QA acceptance page is a non-production visual capture surface excluded from navigation (#1997).',
+    violatedShellRules: ['global-navigation-frame', 'breadcrumb'],
+    removalCondition: 'The QA acceptance page is retired or moved under a governed review surface when the type055 package leaves candidate QA.',
+  },
+  {
     routePattern: '/evidence/issue-979',
     category: 'visual-review-surface',
     type: 'visual-review-only',

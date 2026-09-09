@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-770f94ecbe48974a129f7e3e",
+    "canonicalType": "KnowledgeStatement",
+    "label": "一种保守的设计步骤是将前置滤波器的转折频率选得足够高于系统带宽，使前置滤波器引入的相角滞后不会显著改变系统稳定性。例如，选择 a=10 ω_BW 是一个合理的选择。此外，为了有效衰减 ω_s/2 处的高频噪声，我们可选择大约 10 倍于前置滤波器转折频率的采样率。其结果是采样率将比系统带宽快大约 100 倍。",
+    "aliases": [],
+    "description": "A conservative design procedure is to select the prefilter break point to be sufficiently higher than the system bandwidth that the phase lag from the prefilter does not significantly alter the system stability. For example, selecting a=10 ω_BW would be a reasonable choice. Furthermore, for a good reduction in the high-frequency noise at ω_s/2, we might choose a sample rate that is about 10 times higher than the prefilter break point. The result is that the sample rate would be on the order 100 times faster than the system bandwidth.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "franklin-feedback-control-7th",
+        "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-08/section-8.5/section-8.5.3",
+        "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Effect of Anti-Alias Prefilter"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

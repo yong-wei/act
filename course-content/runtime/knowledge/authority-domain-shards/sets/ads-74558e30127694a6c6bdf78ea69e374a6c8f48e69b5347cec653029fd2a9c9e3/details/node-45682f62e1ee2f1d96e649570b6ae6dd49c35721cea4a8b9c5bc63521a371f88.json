@@ -1,0 +1,67 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctk:0b908e5af0e79947bd4f6d72",
+    "canonicalType": "KnowledgeStatement",
+    "label": "属性断言：若暂不考虑负载转矩，则电动机输出转矩Mm用来驱动负载并克服黏性摩擦，故得转矩平衡方程Mm=Jm d²θm/dt² + fm dθm/dt。",
+    "aliases": [],
+    "description": "若暂不考虑负载转矩，则电动机输出转矩Mm用来驱动负载并克服黏性摩擦，故得转矩平衡方程Mm=Jm d²θm/dt² + fm dθm/dt。",
+    "teachingFields": {
+      "statement_type": "property_assertion"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.1/example-2.2",
+        "label": "自动控制原理（胡寿松，第8版） · 试列写图2－2所示电枢控制直流电动机的微分方程，要求取电枢电压 $u_{a}(t)$为输入量，电动机转速 $\\omega_{m}(t)$ 为输出量。图中 $R_{a} 、 L_{a}$分别是电枢电路的电阻和电感；$M_{c}$ 是折合到电动机轴"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.1/example-2.2/solution",
+        "label": "自动控制原理（胡寿松，第8版） · 电枢控制直流电动机的工作实质是将输人的电能转换为机械能，也就是由输人的电枢电压 $u_{a}(t)$在电枢回路中产生电枢电流 $i_{a}(t)$ ，再由电流 $i_{a}(t)$ 与激磁磁通相互作用产生电磁转矩 $M_{m}(t)$ ，从而拖"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

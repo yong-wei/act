@@ -45,6 +45,7 @@ export const ENGINEERING_RELATION_FAMILIES = [
   'derivation-and-representation',
   'application-and-analysis',
   'association',
+  'prerequisite-order',
 ] as const;
 
 export type EngineeringRelationFamily =
@@ -315,6 +316,18 @@ export interface AuthorityShardCoverageReceipt {
     detailCount: number;
     /** Every catalog member owns a neighborhood and detail shard. */
     complete: boolean;
+  };
+  /**
+   * Node-detail source provenance (#2043). Absence of a governed mapping
+   * ledger input stays visible here instead of being silently implied by
+   * empty shard sources.
+   */
+  sourceCitations: {
+    ledgerProvided: boolean;
+    ledgerContract: string | null;
+    nodesWithSources: number;
+    nodesCappedToLimit: number;
+    snapshotSourceMappingsPreserved: number;
   };
 }
 

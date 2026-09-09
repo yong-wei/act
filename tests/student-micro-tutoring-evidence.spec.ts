@@ -5,6 +5,8 @@ import { join } from 'node:path';
 
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow/playwright');
 const manifestPath = join(process.cwd(), 'artifacts/commercial-ui/issue-1330-student-micro-tutoring-flow/evidence-manifest.json');
@@ -249,8 +251,7 @@ async function establishAuthenticatedSession(context: BrowserContext) {
   const loginResponse = await context.request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: baseURL,
       json: 'true',
     },

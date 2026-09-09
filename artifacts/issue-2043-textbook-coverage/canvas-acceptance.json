@@ -1,0 +1,38 @@
+{
+  "shardSetId": "ads-74558e30127694a6c6bdf78ea69e374a6c8f48e69b5347cec653029fd2a9c9e3",
+  "releaseId": "ctr:release:control-theory-engineering-v0.37",
+  "projectionId": "proj-8faf124976edc3c457c91af95486688e2503e6d5c9307307d44ba842dff4a5df",
+  "coverage": {
+    "ledgerProvided": true,
+    "ledgerContract": "engineering-textbook-mapping-sources-input/v1",
+    "nodesWithSources": 3183,
+    "nodesCappedToLimit": 0,
+    "snapshotSourceMappingsPreserved": 0
+  },
+  "inspectedNode": {
+    "id": "ctc:909e732d40f972bf760fa8ff",
+    "label": "在航天器姿态控制中，扰动是指在动力学模型中被忽略并作为影响系统的扰动信号处理的力矩，例如气动力矩以及来自其他天体、磁场等的力矩。控制器的目标是将其影响降至最低。",
+    "sources": [
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-03/section-3.8/example-3.6",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · Modeling the orientation of a space station"
+      },
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-03/unnumbered-005",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · Control Goal"
+      }
+    ]
+  },
+  "v2SectionBinding": {
+    "bindingId": "bind-2dc2e51ef1f9c647e95848d97cf9d02a",
+    "resourceId": "act:textbook-section:dorf-modern-control-systems.chapter-chapter-03.section-3..8.example-3..6",
+    "canonicalId": "ctc:909e732d40f972bf760fa8ff",
+    "role": "EXPLAINS",
+    "scopeId": "act-control-theory",
+    "sourcePath": null,
+    "primary": false,
+    "rationale": null
+  }
+}

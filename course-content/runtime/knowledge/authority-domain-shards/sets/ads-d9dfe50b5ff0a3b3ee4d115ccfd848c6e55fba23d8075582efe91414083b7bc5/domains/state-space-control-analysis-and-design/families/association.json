@@ -1,0 +1,3877 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "state-space-control-analysis-and-design",
+  "family": "association",
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-03d6599e1da6eea96f210635",
+      "canonicalType": "KnowledgeStatement",
+      "label": "选择 M = B N，使得估计误差动态特性与 r(t) 相互独立。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0801b6f085e94e7376467b8c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "如果测量中存在显著噪声，最好采用全阶估计器，因为除了估计未测量的状态变量外，估计器还能对测量信号进行滤波。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0b85055934c3dc94eabee6bb",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统 Σ₁ 的可控性判别矩阵 [B AB ... Aⁿ⁻¹B] 与对偶系统 Σ₂ 的可观测性矩阵完全相同；系统 Σ₁ 的可观测性矩阵 [Cᵀ AᵀCᵀ ... （Aᵀ）ⁿ⁻¹Cᵀ] 与对偶系统 Σ₂ 的可控性判别矩阵完全相同。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0ba0d538b8ac842e1b3433b8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "格拉姆矩阵判据必要性证明步骤",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0d11cb1619750334b0eab324",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若传感器没有噪声，全阶估计器就包含冗余；降阶估计器通过直接利用测得的状态变量来降低复杂度。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-10b810616b0d78099766d86c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 ω₀=1 时，在初始条件 x₀=[1.0,0.0]ᵀ 和 x̂₀=[0,0]ᵀ 下，状态估计值在经历初始暂态后收敛至实际状态变量，且估计误差的衰减速度大约比状态本身快五倍。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由式 (7.32a) 描述的观测器规范型特定热系统，在 s=z0 处具有一个零点，用于说明极点配置中状态反馈增益的计算。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1c442cbf6e7d4166bf6f6e84",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在第一种情形下，选择 M 与 N 使估计误差 e(t) 独立于参考输入 r(t)。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1d1f5988e8d52217e633c73d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "密切相关的可观测性性质以及观测器规范型将在第7.7.1节中讨论。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2238eca0c5bed8cff7cde2a4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "降阶状态观测器的存在条件与全阶观测器相同——即 (A_bb, A_ab) 的可观测性，且可以证明这与 (A, C) 的可观测性相同。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-22efd6f1ce1b2ac091b57117",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在第一种情况下，校正装置位于反馈回路中。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-27984202994b39d5284331fd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "选择 M 为影响暂态响应提供了极大的自由度；我们可以在从 r 到 u（进而从 r 到 y）的传递函数中添加一个任意的 n 阶多项式，从而在已配置的全部极点之外额外配置 n 个零点。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-286914e2fbaf3278e61ead85",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于频率为 ω0 且状态空间描述由式 (7.71) 给出的单摆系统，将闭环极点配置在 -2ω0 处的控制律为 K = [3ω0^2, 4ω0]。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2b969a6f4a3a813c2b00d604",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系统必须完全可控且完全可观，才能具备任意配置所有闭环系统极点的灵活性。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2cfbae782497a6634dadc283",
+      "canonicalType": "Formula",
+      "label": "\\mathcal{O}=\\left[\\begin{array}{l} \\mathbf{C} \\\\ \\mathbf{C A} \\\\ \\vdots \\\\ \\mathbf{C A}^{n-1} \\end{array}\\right]",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2d0fcc0400dd2679ca4e1637",
+      "canonicalType": "KnowledgeStatement",
+      "label": "应用对偶原理，能把可观测的单输入-单输出系统化为可观测标准型的问题转化为将其对偶系统化为可控标准型的问题。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-355f9aa3ed326f39229138d8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当零点 z0 趋近于 -3 或 -4（即系统失去可控性的取值）时，增益随之增大。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3c7744810d47a8b316535ff8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "校正器传递函数 D_cr(s)（初次设计）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3dc04e824c9a4b2977a5fdbe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "该系统为 I 型系统，能渐近跟踪阶跃参考输入并渐近抑制阶跃扰动。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3f8f357d99059a201ef73878",
+      "canonicalType": "KnowledgeStatement",
+      "label": "可控性与可达性等价性（线性定常连续系统）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-415d9f516590dcdcd720c61f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "零点位于 s = -2。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-46051c19280c908d585cb79e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "控制问题（为 A-BK 选择 K）与估计器问题（为 A-LC 选择 L）是对偶的：A-LC 的极点等于 A^T - C^T L^T 的极点。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4d5aac42ba686b1f4726a2f5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "采样周期导致不可控不可观测",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4ebf4cf927ed57c37234942b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "传递函数 G(s) 的极点是广义频率 s 的一个取值，满足若 s = p_i，则在无强迫输入 u 时，系统对初始条件的响应形式为 K_i e^{p_i t}。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4f0c318acebc16cd743a5d03",
+      "canonicalType": "KnowledgeStatement",
+      "label": "状态反馈可能使系统失去可观测性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4f1154b778c6afaa7d22aafc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若 z_o = -3 或 -4，则发生零极点对消，传递函数由二阶系统降为一阶系统。当 z_o = -3 时，-3 处的模态与输入解耦，失去对该模态的控制。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-543b4fcede8ef7e0df3e457a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "大幅度移动极点需要较大的增益。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-54714b2c8b6f69a236fa3ab5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若系统完全能观，则保证可以在复平面上任意配置观测器极点。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5791b224baee5c165c2b6112",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由特征方程 det(sI - A) = 0 可求得系统的极点。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5841b6c021248995c6b0f4db",
+      "canonicalType": "KnowledgeStatement",
+      "label": "随着由 ω_n 给出的期望闭环带宽增大，K1 和 K2 均随之增大。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5904564a89054ab9fedc4b27",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若系统完全能控，则其也是可镇定的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5b731e732e53bf4a017c2b32",
+      "canonicalType": "KnowledgeStatement",
+      "label": "状态可控性与输出可控性的区别",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5c92f4b9e6162b9c5b6b3ebf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "线性定常离散时间系统的可控性和可达性等价的充分必要条件是系统矩阵G为非奇异。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "canonicalType": "DomainConcept",
+      "label": "特征方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-652a8b18a5dcc2e0d8265c9a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "状态反馈在改变系统极点的同时，对系统的零点没有影响，仅使极点改变为闭环系统极点",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-65ee2641403d645629afb0d7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于具有重极点的传递函数，并不总能求得模态形式，因此假设系统仅具有互异极点。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-67ec09fad8a3c4f83d986471",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对特征值0, sqrt（5）, -sqrt（5）检验，rank均为4=n，故系统完全可控。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6d397371d1de1ea50c5e3325",
+      "canonicalType": "KnowledgeStatement",
+      "label": "连续系统不可控不可观测离散化后仍不可控不可观测",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6d6f90d1ca62efb4a9d217ea",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于线性定常连续系统，可控性与可达性是等价的。但对于离散系统和时变系统，严格地说两者是不等价的。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-73c6be8f1c5c666fa4b93920",
+      "canonicalType": "KnowledgeStatement",
+      "label": "可观测性等价于零输入下初始状态估计",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7586e037354e86c0ebfef82d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "该校正器稳定但属于非最小相位，且根轨迹为零度根轨迹。根轨迹位于右半平面的部分不会引起困难，因为选择增益时必须使所有闭环极点保持在左半平面。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7cbde4c8c256812660426720",
+      "canonicalType": "KnowledgeStatement",
+      "label": "模态型等价于一种部分分式展开表示，其中系统极点位于状态矩阵的对角线上。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7f3441298685c92ff4b14b59",
+      "canonicalType": "KnowledgeStatement",
+      "label": "状态变换保持能控性，但由传递函数导出的不同实现可能在状态变换下不等价。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8005d2c080e454d3940df7ab",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{det}(\\lambda \\mathbf{I}-(\\mathbf{A}-\\mathbf{L C}))=0",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-84a40a60e445d2c57bd56efd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "估计误差动态与输入无关；输入项在误差方程中相互抵消。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8a84d5da44d9691358c7cdcd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例9-14输出能控性结果",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8da618034afdc245cc2d988f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "能观性是指仅通过监测传感器测得的输出即可推断系统所有模态信息的能力。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-910878ccfbad8883cd6162fd",
+      "canonicalType": "KnowledgeStatement",
+      "label": "阶跃参考输入 r 引起的阶跃响应 y1 与阶跃扰动输入 w 引起的输出扰动响应 y2 示于图 7.55(a) 中，对应的控制作用 u1 和 u2 示于图 7.55(b) 中。该系统为 1 型系统，能够渐近跟踪阶跃参考输入并渐近抑制阶跃扰动。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-966f714886c98de7d0b93be2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于 ω₀=1 的单摆，估计器增益 L = [20, 99]^T 将两个估计器误差极点配置在 -10ω₀ 处。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9e4a8af5c4b65cdf4899c6a7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "振荡器示例所得增益矩阵",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9ead39656447d2f75351734a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "存在利用 QR 算法计算相当大规模系统特征值与特征向量的稳健、可靠的计算机算法。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a08a8450ba9d53142e71a943",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当某些模态或子系统在物理上与输出断开，因而不复出现在测量值中时，就会导致不可观测性。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a7b8dab285c77248361ac038",
+      "canonicalType": "Formula",
+      "label": "\\mathbf{A} \\mathbf{x}_{0}=p_{i} \\mathbf{x}_{0} .",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ab99f15392dc728e35704ed5",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例9-9系统可控性结论",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b0044a15929ab21e0575152e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在第二种情形下，补偿器位于前向通道中。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b1356460d5f12bcc63cd15a4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "摆系统的状态空间描述",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b1be15e9eb24772b101f7ffb",
+      "canonicalType": "KnowledgeStatement",
+      "label": "不可控系统与其可控子系统具有相同的传递函数矩阵。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b26d90fc8475e100b972d1fe",
+      "canonicalType": "KnowledgeStatement",
+      "label": "能控性是状态空间表达式的性质，而不是传递函数的性质。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b4a2f18f1716937654a70941",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-11：利用状态反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可控。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b76df8cce9a117b2e78dd462",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当参考输入为标量信号时，参数 M 为长度为 n 的列向量（其中 n 为状态向量的长度），N 为标量。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b7ec19e22207c72ad39429f7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于 ω₀=1，利用阿克曼公式通过 Matlab 计算得到的状态估计器增益矩阵 L = [20, 99]ᵀ。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b881e30ad5f868178b7a9642",
+      "canonicalType": "KnowledgeStatement",
+      "label": "与全阶估计器相比，降阶估计器从传感器到控制具有高得多的带宽；若传感器噪声显著，其应用吸引力会降低。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c470b4a11735fea8ee41a58d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "关于动态系统这些特性的更详细讨论见附录 WC（可在 www.fpe7e.com 获取）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c7b6aa79249a3e1367c7e628",
+      "canonicalType": "KnowledgeStatement",
+      "label": "经非奇异线性变换的状态变换不改变系统的可控性。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c8f43e0968b6f5316536b5e9",
+      "canonicalType": "Formula",
+      "label": "\\overline{\\boldsymbol{S}}_{2}=\\boldsymbol{V}_{1}=\\left[\\begin{array}{llll}\n\\boldsymbol{c}^{\\mathrm{T}} & \\boldsymbol{A}^{\\mathrm{T}} \\boldsymbol{c}^{\\mathrm{T}} & \\cdots & \\left(\\boldsymbol{A}^{\\mathrm{T}}\\right)^{n-1} \\boldsymbol{c}^{\\mathrm{T}}\n\\end{array}\\right]",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cc3cf99c72b0d9c2259a5378",
+      "canonicalType": "KnowledgeStatement",
+      "label": "用于计算热系统示例状态反馈增益的 Matlab 语句。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cc6c211668d7490d2823a31e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "给定矩阵对 (A, B)，当且仅当系统完全可控——即当且仅当可控性矩阵 P_c 满秩（对于单输入单输出系统，满秩意味着 P_c 可逆）时，我们总能确定 K 将所有系统闭环极点配置在左半平面。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ce8f8a0a2d94aa537f86f26f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若全状态反馈控制律能使系统稳定（在假设可获得全部状态的前提下），且观测器是稳定的（跟踪误差渐近稳定），则闭环系统的稳定性得到保证。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d2c79db93f5587f97cef54fc",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例9-9系统可观测性结论",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d3cdff5cbc5b1d5802013762",
+      "canonicalType": "KnowledgeStatement",
+      "label": "连续系统离散化后可控可观测性丧失示例",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-dabd1b53bcd657ff45611f98",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当对所有 t>t0 均有 r(t)=0 时，控制设计问题称为调节器问题。也就是说，我们希望计算增益 K，使得所有初始状态按指定方式（由设计指标确定）衰减至零。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e857d38eb5632b3f764bad98",
+      "canonicalType": "KnowledgeStatement",
+      "label": "定理9-12：用输出至状态微分的反馈任意配置闭环极点的充分必要条件是被控系统（9-227）可观测。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e863c41d030d22b7d1744739",
+      "canonicalType": "KnowledgeStatement",
+      "label": "确定 L，使 det(lambda I - (A - L C)) = 0 的根位于左半平面，并配置极点以达到满意的观测器性能。若系统完全可观测，则保证可以任意配置观测器极点。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e8b6e8fb45ee24898b3c64b1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对例 7.14 中 ω0=1 的无阻尼振荡器应用阿克曼公式，得到 K = [3, 4]，与之前的结果一致。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ec1315199864221f602c24f9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在第二种情况下，选取 M 和 N 使得跟踪误差 y(t)-r(t) 用作补偿器的输入。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-efe99df82e936fc7c540cd72",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 建立被控过程的状态变量模型。2. 建立参考输入模型。3. 定义跟踪误差。4. 根据需要求跟踪误差对时间的各阶导数。5. 定义中间变量（例如 z(t)=x(t) 的导数，w(t)=u(t) 的导数）。6. 构建包含跟踪误差及其各阶导数的增广系统。7. 检验增广系统的可控性。8. 设计反馈控制律以镇定增广系统。9. 对控制律积分得到控制输入 u(t)。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f00538360f310fbe5d6aadb3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "全维状态观测器定义",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f0ae78d8cc8e4c2a45239a55",
+      "canonicalType": "KnowledgeStatement",
+      "label": "同一传递函数的不同状态空间实现可能具有不同的可控性性质。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f2ae02612f64da744ba0658e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "摆系统例题的期望特征方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fc2fe9e4813f5c2c71a241cb",
+      "canonicalType": "KnowledgeStatement",
+      "label": "利用特征向量矩阵进行相似变换可获得模态标准型。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fcbfae5eba77fa0bc8c5a4f2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "即使对于可控系统，某些极点位置也是不希望选取的，因为它们会导致执行机构进入饱和。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fe524bf5c6f3f7d96f9cfe06",
+      "canonicalType": "KnowledgeStatement",
+      "label": "与状态估计器极点配置类比的零点配置",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fefaad46e8479159a10c1bcb",
+      "canonicalType": "Formula",
+      "label": "\\binom{\\dot{\\boldsymbol{x}}(t)}{\\dot{\\mathbf{e}}(t)}=\\left[\\begin{array}{cc} \\mathbf{A}-\\mathbf{B K} & \\mathbf{B K} \\\\ \\mathbf{0} & \\mathbf{A}-\\mathbf{L C} \\end{array}\\right]\\binom{\\mathbf{x}(t)}{\\mathbf{e}(t)}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ff6ca77430b804369f679597",
+      "canonicalType": "KnowledgeStatement",
+      "label": "状态不完全可控（rank S<2），但输出可控（rank S0=1=q）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fffc8da83a5258ec01126edc",
+      "canonicalType": "SystemModel",
+      "label": "全维状态观测器设计中的被控对象动态方程",
+      "aliases": [
+        "全维状态观测器设计中的被控对象动态方程"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1l:relation-003e060d58c90fece2153ee5",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "targetId": "ctkg:v3e-object-673ca3fc1e1f241021746105",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-0251a9b10e7d948a50764d11",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-9ead39656447d2f75351734a",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-03a756f7376ec603c91c4d2c",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-54714b2c8b6f69a236fa3ab5",
+      "targetId": "ctkg:v3e-object-e863c41d030d22b7d1744739",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-07178bb4f216262a71b155b6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+      "targetId": "ctkg:v3e-object-ec1315199864221f602c24f9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-0909fe38db0f5498a91e4a7e",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "targetId": "ctkg:v3e-object-543b4fcede8ef7e0df3e457a",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-0aaa275c9758af9cf1e97fb4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1c442cbf6e7d4166bf6f6e84",
+      "targetId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-0d2ed6c0932263607fcef5ed",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-7f0c681f4f5c2b69597b6f4c",
+      "targetId": "ctkg:v3e-object-d2c79db93f5587f97cef54fc",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-0fb09f6e82c320a7b86ba608",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-5aa119c1211318de57450e5b",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-106d692ced5066fd2fed67b8",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b1be15e9eb24772b101f7ffb",
+      "targetId": "ctkg:v3e-object-fac828826746b38462ac91ba",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-12467b8fe0b28285833346a0",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-966f714886c98de7d0b93be2",
+      "targetId": "ctkg:v3e-object-b7ec19e22207c72ad39429f7",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-12891f804db99a956e4c3ba7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5b731e732e53bf4a017c2b32",
+      "targetId": "ctkg:v3e-object-f1582fd7cc28d16eb111854d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-14ae6886474b68427a21cde4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "targetId": "ctkg:v3e-object-efe99df82e936fc7c540cd72",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-16be1a363b18725878e9c2e6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-73c6be8f1c5c666fa4b93920",
+      "targetId": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-17192de8ffdad5992bfad289",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2cfbae782497a6634dadc283",
+      "targetId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-176112a89025f879a863d4ed",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-27984202994b39d5284331fd",
+      "targetId": "ctkg:v3e-object-fe524bf5c6f3f7d96f9cfe06",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-19926b80d64ee6aa421915ab",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "targetId": "ctkg:v3e-object-4f1154b778c6afaa7d22aafc",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-1a948dfa420b52af93bdb7e4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-84a40a60e445d2c57bd56efd",
+      "targetId": "ctkg:v3e-object-fefaad46e8479159a10c1bcb",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-1bf228d69b1b169f3c7ac8f7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-59f5159cc11cb67f131e14a1",
+      "targetId": "ctkg:v3e-object-5e75417369e6729db63a90a6",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-1f57401575322f7de0caca8d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-58432d31be025457910862bc",
+      "targetId": "ctkg:v3e-object-5c92f4b9e6162b9c5b6b3ebf",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-22b8b91b37ca2fca2b219f67",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-8a84d5da44d9691358c7cdcd",
+      "targetId": "ctkg:v3e-object-ff6ca77430b804369f679597",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-26f6914e84112e4f71facae0",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2cfbae782497a6634dadc283",
+      "targetId": "ctkg:v3e-object-801c2bf7fd001c355296f342",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-2cce170b87a8d2f0ad1c6e45",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-03d6599e1da6eea96f210635",
+      "targetId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-30a08967637cb3fa8e1f6c31",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-8ecd4d6352467b3444880809",
+      "targetId": "ctkg:v3e-object-b881e30ad5f868178b7a9642",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-332f3a7d633cda6951a04648",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "targetId": "ctkg:v3e-object-c7b6aa79249a3e1367c7e628",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-357e27afcffeb8bc014d0508",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-59f5159cc11cb67f131e14a1",
+      "targetId": "ctkg:v3e-object-5aa119c1211318de57450e5b",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-362b0b28e628974ffcf95d97",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5904564a89054ab9fedc4b27",
+      "targetId": "ctkg:v3e-object-eb888786c5eb738a65d705f7",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-386a005fd512cb2af6727fc3",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0ba0d538b8ac842e1b3433b8",
+      "targetId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-38f34fff2140b417ff794948",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1405f7f72c012a10e7cf60bc",
+      "targetId": "ctkg:v3e-object-4d4f55b60c7a23596a921468",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-3a359ebb29af80d37accc4ba",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-3dc04e824c9a4b2977a5fdbe",
+      "targetId": "ctkg:v3e-object-910878ccfbad8883cd6162fd",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-3a6ec27030e8a4ba1495fa04",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-65968c0bbb3a54d4c9247dd0",
+      "targetId": "ctkg:v3e-object-efe99df82e936fc7c540cd72",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-4373d4d694651dd6b31ee990",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-8005d2c080e454d3940df7ab",
+      "targetId": "ctkg:v3e-object-8eef39678d2ca15d781ee16d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-440c682f514b98e4ce249aa2",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "targetId": "ctkg:v3e-object-b76df8cce9a117b2e78dd462",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-4413fc698b1d1be04e00c73e",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-286914e2fbaf3278e61ead85",
+      "targetId": "ctkg:v3e-object-f2ae02612f64da744ba0658e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-48bd2c2c761622b080733e65",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b4a2f18f1716937654a70941",
+      "targetId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-4b52cb8c22ce8912ed0edace",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "targetId": "ctkg:v3e-object-5841b6c021248995c6b0f4db",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-50bc2adb1e27b51fa5b29083",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5b731e732e53bf4a017c2b32",
+      "targetId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-536cf1419e33a44a67e2a19f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5e75417369e6729db63a90a6",
+      "targetId": "ctkg:v3e-object-65ee2641403d645629afb0d7",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-5444f0a17b42923b09e3a38a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "targetId": "ctkg:v3e-object-ce8f8a0a2d94aa537f86f26f",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-55d35ab6cb8967017ed666d4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-4ebf4cf927ed57c37234942b",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-589ff5b510a33a063724cc8f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "targetId": "ctkg:v3e-object-b26d90fc8475e100b972d1fe",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-591883740fe207c6cc5fe595",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-6d397371d1de1ea50c5e3325",
+      "targetId": "ctkg:v3e-object-d3cdff5cbc5b1d5802013762",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-5ad3f3b37b74b3723486faf2",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-ef5734bee71ec75e999c13bf",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-5e5809ac8d6249408c0b187c",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "targetId": "ctkg:v3e-object-355f9aa3ed326f39229138d8",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-60403cdb1de61a06a3e1398a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-4f0c318acebc16cd743a5d03",
+      "targetId": "ctkg:v3e-object-652a8b18a5dcc2e0d8265c9a",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-64d522161055f17f2ee5a9c4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1405f7f72c012a10e7cf60bc",
+      "targetId": "ctkg:v3e-object-7586e037354e86c0ebfef82d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-6715ef33fe8b1e2a24e48907",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-a7b8dab285c77248361ac038",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-6c31f492fb63dfc47c78ad1a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0801b6f085e94e7376467b8c",
+      "targetId": "ctkg:v3e-object-0d11cb1619750334b0eab324",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-6e87a78f658f54b726a05458",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "targetId": "ctkg:v3e-object-ee34b938a6fb68864ccf4aa7",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-7451da31a64e30b6ce5987e6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-415d9f516590dcdcd720c61f",
+      "targetId": "ctkg:v3e-object-4442a6f7404caafa6d0ab8e7",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-7580a50a9c3e5f2ad6387c91",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2b969a6f4a3a813c2b00d604",
+      "targetId": "ctkg:v3e-object-d36def50dedc036b5c5db035",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-789d3acf65a692f3b294b008",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "targetId": "ctkg:v3e-object-8da618034afdc245cc2d988f",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-7aceb596bd3e49970899dc4e",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "targetId": "ctkg:v3e-object-7f3441298685c92ff4b14b59",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-7f49f0717117b5eac75620fa",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-695b9c7d4ee82924a8d65b12",
+      "targetId": "ctkg:v3e-object-7aeaea4f1aef78c48c3e8340",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-848d5dadcf4d23e0e4830b75",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-46051c19280c908d585cb79e",
+      "targetId": "ctkg:v3e-object-7ec200eb09dcb2beb627f1eb",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-8597b8aaccea49be76470d1f",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-ab99f15392dc728e35704ed5",
+      "targetId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-8b3042e7c098ca7d1751ca83",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-3f8f357d99059a201ef73878",
+      "targetId": "ctkg:v3e-object-6d6f90d1ca62efb4a9d217ea",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-8e127467144028fe52bd3bf5",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-65968c0bbb3a54d4c9247dd0",
+      "targetId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-96cf974fb5c379f09d602078",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-e857d38eb5632b3f764bad98",
+      "targetId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-9950bbed8e98279aeb960b6a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1c442cbf6e7d4166bf6f6e84",
+      "targetId": "ctkg:v3e-object-22efd6f1ce1b2ac091b57117",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-99db33b39aff311a386dea87",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-bb3ac0bfaa166046c6c19f8f",
+      "targetId": "ctkg:v3e-object-dabd1b53bcd657ff45611f98",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-a0a6fe64297624358285f144",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-68b0b2f3295bb357fcb48d7d",
+      "targetId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-a31ed268c7b42d780f3c93f4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "targetId": "ctkg:v3e-object-a08a8450ba9d53142e71a943",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-a363c5c713342ac42232d6d7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-5791b224baee5c165c2b6112",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-a37beea7a5bbdc252e9d7c10",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0b85055934c3dc94eabee6bb",
+      "targetId": "ctkg:v3e-object-2d0fcc0400dd2679ca4e1637",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-a8d90981d05a2b0ec9f9e7c6",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-2238eca0c5bed8cff7cde2a4",
+      "targetId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-b2767313b2f47bc22998857d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-ce8f8a0a2d94aa537f86f26f",
+      "targetId": "ctkg:v3e-object-e28c6b3ef5b1335c8a086f34",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-b380950a432ebb1899d611cc",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-10b810616b0d78099766d86c",
+      "targetId": "ctkg:v3e-object-966f714886c98de7d0b93be2",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-b6d56393cab6c42c7c813a2d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-68df257f762f259aef82b607",
+      "targetId": "ctkg:v3e-object-b881e30ad5f868178b7a9642",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-b75d7a32c45568acdf68e1e5",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-65968c0bbb3a54d4c9247dd0",
+      "targetId": "ctkg:v3e-object-b193b69b94a9f4a6cc656cff",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-b9d84b4d46263693b6e8a501",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "targetId": "ctkg:v3e-object-b193b69b94a9f4a6cc656cff",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-c07362389ecd44738419d6d0",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0b85055934c3dc94eabee6bb",
+      "targetId": "ctkg:v3e-object-f1582fd7cc28d16eb111854d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-c380ea84bafedec84f7d27a4",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5aa119c1211318de57450e5b",
+      "targetId": "ctkg:v3e-object-9ead39656447d2f75351734a",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-c44e2445420962a25d8f0c0c",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "targetId": "ctkg:v3e-object-cc3cf99c72b0d9c2259a5378",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-c84d6823b95051f36df4b748",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-08f6a7abc7b7ea5ad8d1063c",
+      "targetId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-cb5c6db630905a63a063fd95",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5e75417369e6729db63a90a6",
+      "targetId": "ctkg:v3e-object-7cbde4c8c256812660426720",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-cdb614bde94fd68adcbe8945",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-3dcfcc93901edd979be43f5c",
+      "targetId": "ctkg:v3e-object-67ec09fad8a3c4f83d986471",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-ce48812c449e737bcc9b15fc",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-c8f43e0968b6f5316536b5e9",
+      "targetId": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-d1fd18364494c025becf8cf1",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-4d5aac42ba686b1f4726a2f5",
+      "targetId": "ctkg:v3e-object-d3cdff5cbc5b1d5802013762",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-d2e66f88eb8999e78cc7affb",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1405f7f72c012a10e7cf60bc",
+      "targetId": "ctkg:v3e-object-3c7744810d47a8b316535ff8",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-d627486bbfd44ff00895ac05",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-0b85055934c3dc94eabee6bb",
+      "targetId": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-d6888897064e0fdf96c9eeb7",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "targetId": "ctkg:v3e-object-c470b4a11735fea8ee41a58d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-d7e2285160861805a2f83dfd",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-4b7254aa73329cdcc5057159",
+      "targetId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-d8cac542695224a754d37aa2",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b193b69b94a9f4a6cc656cff",
+      "targetId": "ctkg:v3e-object-efe99df82e936fc7c540cd72",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-dba37090189df1369ba578ea",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "targetId": "ctkg:v3e-object-1d1f5988e8d52217e633c73d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-dbafd472c11e516226b941d5",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+      "targetId": "ctkg:v3e-object-f0ae78d8cc8e4c2a45239a55",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-df9c4cf814ec8a2bced667d3",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-1482de63f16fd166e1195107",
+      "targetId": "ctkg:v3e-object-fcbfae5eba77fa0bc8c5a4f2",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-e2cb3402bcab5a80179470e9",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-4d4f55b60c7a23596a921468",
+      "targetId": "ctkg:v3e-object-7586e037354e86c0ebfef82d",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-e8020b46a4f8d06e111bd297",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-9e4a8af5c4b65cdf4899c6a7",
+      "targetId": "ctkg:v3e-object-e8b6e8fb45ee24898b3c64b1",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-e974f577c02589d9e221a1c3",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-f00538360f310fbe5d6aadb3",
+      "targetId": "ctkg:v3e-object-fffc8da83a5258ec01126edc",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-f4a991c77f8c7e94286e843a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-3784992e294bb2f120cdc0df",
+      "targetId": "ctkg:v3e-object-cc6c211668d7490d2823a31e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-f5230b1b0dea2e798def7437",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-5e75417369e6729db63a90a6",
+      "targetId": "ctkg:v3e-object-fc2fe9e4813f5c2c71a241cb",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-fcd500d8a4341c6b9af91b17",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-286914e2fbaf3278e61ead85",
+      "targetId": "ctkg:v3e-object-b1356460d5f12bcc63cd15a4",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-fe208f90fe5e8ea96d47c198",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-b0044a15929ab21e0575152e",
+      "targetId": "ctkg:v3e-object-ec1315199864221f602c24f9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-ffb8da8a17feb1738af60f4d",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-4d5aac42ba686b1f4726a2f5",
+      "targetId": "ctkg:v3e-object-6d397371d1de1ea50c5e3325",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db",
+      "label": "特征方程",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "stability-analysis"
+      ]
+    }
+  ]
+}

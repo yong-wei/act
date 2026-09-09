@@ -619,6 +619,36 @@ assert.match(
 );
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');
+assert.match(
+  runtimeDeploy,
+  /assert_teaching_projection_against_deployed_app/,
+  'runtime deploy must bind Teaching Projection authoringRevision to the candidate and deployed app',
+);
+assert.equal(
+  (runtimeDeploy.match(/assert_teaching_projection_against_deployed_app "\$/g) ?? []).length,
+  2,
+  'resume and fresh publish must both compare the candidate source revision with the deployed app revision',
+);
+assert.match(
+  runtimeDeploy,
+  /--source-revision "\$candidate_source_revision"/,
+  'the Teaching Projection assertion must receive the candidate source revision, not the operator worktree',
+);
+assert.match(
+  runtimeDeploy,
+  /--app-revision "\$deployed_app_revision"/,
+  'the Teaching Projection assertion must receive the deployed application revision',
+);
+assert.match(
+  runtimeDeploy,
+  /podman exec \$\{app_container\} \/bin\/sh -eu -c 'cat \/app\/\.app-revision'/,
+  'runtime deploy must read the deployed application revision from the target container',
+);
+assert.equal(
+  (runtimeDeploy.match(/assert-teaching-projection-app-revision\.ts/g) ?? []).length,
+  1,
+  'the Teaching Projection assertion is invoked through the candidate-vs-deployed helper',
+);
 assert.match(compatibilityProof, /runtime-app-compatibility\.v1/, 'compatibility proof helper must expose the v1 receipt schema');
 assert.match(compatibilityProof, /origin\/integration|sourceRevision/, 'compatibility proof must bind the Runtime source revision');
 assert.match(compatibilityProof, /\/app\/\.app-revision/, 'compatibility proof must read the embedded application revision');
@@ -635,8 +665,57 @@ assert.match(lifecycle, /only the exact active Runtime identity may be requalifi
 assert.match(runtimeDeploy, /runtime-app-compatibility-proof\.py/, 'runtime deploy must copy the compatibility proof helper to ECS');
 assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh --app-only');
 assert.equal(packageJson.scripts['deploy:all'], 'bash ./scripts/deploy-all-with-runtime-blobs.sh');
-assert.match(deployAll, /deploy-runtime-blob-release\.sh" "\$@"/, 'combined deployment must forward release arguments only to the runtime operation');
-assert.match(deployAll, /remote-deploy\.sh" --app-only/, 'combined deployment must run application deployment without a runtime pipeline');
+assert.match(
+  deployAll,
+  /deploy-runtime-blob-release\.sh" "\$@" --stage-only/,
+  'combined fresh publish must stage a non-selectable Runtime before replacing the application',
+);
+assert.match(
+  deployAll,
+  /ACT_RUNTIME_TARGET_APP_REVISION/,
+  'combined deployment must pin the Teaching Projection assertion to the upcoming application revision',
+);
+assert.match(
+  deployAll,
+  /git -C "\$ROOT_DIR" rev-parse HEAD/,
+  'combined deployment must take the coordinated application revision from the same git HEAD that build.sh stamps',
+);
+assert.match(
+  deployAll,
+  /--stage-only/,
+  'combined fresh publish must keep the new Runtime non-selectable until the app is replaced',
+);
+assert.ok(
+  deployAll.indexOf('"$@" --stage-only') < deployAll.indexOf('remote-deploy.sh" --app-only'),
+  'combined fresh publish must stage Runtime before replacing the application',
+);
+assert.ok(
+  deployAll.indexOf('unset ACT_RUNTIME_TARGET_APP_REVISION') < deployAll.lastIndexOf('--resume-published-artifact-dir'),
+  'combined fresh publish must select the staged Runtime against the live app revision after deploy',
+);
+assert.ok(
+  deployAll.indexOf('remote-deploy.sh" --app-only') < deployAll.lastIndexOf('--resume-published-artifact-dir'),
+  'combined deployment must select Runtime only after the application is replaced',
+);
+assert.ok(
+  deployAll.lastIndexOf('assert_after_activation') > deployAll.lastIndexOf('--resume-published-artifact-dir'),
+  'combined deployment must re-assert Teaching Projection after Runtime selection',
+);
+assert.match(
+  deployAll,
+  /Resume-only: preflight/,
+  'combined resume must validate the published candidate against target HEAD before replacing the application',
+);
+assert.match(
+  runtimeDeploy,
+  /ACT_RUNTIME_TARGET_APP_REVISION/,
+  'runtime deploy must honor a coordinated target application revision from deploy:all',
+);
+assert.match(
+  runtimeDeploy,
+  /explicit_app_revision/,
+  'runtime deploy may receive an explicit --app-revision instead of the live container',
+);
 assert.match(appDeploy, /DEPLOY_SCOPE="app"/, 'application deployment must select its app-only scope explicitly');
 assert.match(appDeploy, /--app-only：保留当前 runtime 选择/, 'application deployment must retain the existing runtime selection');
 assert.match(appDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'application deployment must default to the production blob view');

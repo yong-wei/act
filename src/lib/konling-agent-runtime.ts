@@ -35,17 +35,30 @@ import {
   type AdaptiveLearnerStateRole,
 } from '@/features/personalization/learner-state/public-api';
 import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
-import { parseAnyRuntimeReleaseManifest, runtimeBlobObjectKey } from '@/lib/runtime-release';
-import { createEcsRamRoleOssClient } from '@/lib/runtime-release-store';
+import { parseAnyRuntimeReleaseManifest } from '@/lib/runtime-release';
 import {
   buildAdaptivePathBatchComparisonView,
   buildAdaptivePathStrategyView,
-} from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
+} from '@/features/personalization/path-planning/public-api';
 import {
-  resolveAdaptivePathRuntimeObjectKey,
-  verifyAdaptivePathObjectKeys,
-} from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
-import { buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
+  deriveAdaptivePathRuntimeBindingLimitationCodes,
+  resolveAdaptivePathNodeRuntimeBindings,
+  summarizeAdaptivePathRuntimeBindings,
+  type AdaptivePathNodeRuntimeBinding,
+  type RuntimeReleaseFileIndex,
+  type TeachingProjectionResourceIndex,
+} from '@/features/personalization/path-planning/public-api';
+
+import type { PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
+import { loadPublishedResourceFeatureIndex } from '@/lib/published-resource-index';
+import { attachPublishedResourcesToRegistry } from '@/lib/published-resource-planning';
+import { applyResourceInteractionFeatures } from '@/lib/resource-feature-history';
+import {
+  resolveActiveTeachingProjection,
+  resolveTeachingProjectionStorePaths,
+} from '@/lib/teaching-projection/store';
+import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
+import { buildIndexedCandidateResourceRecords, buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
 import {
   projectGovernedCopilotProfile,
   toServerOwnedUserProfile,
@@ -87,11 +100,17 @@ import {
 } from '@/lib/course-bundle';
 import {
   detectStudyQuestionSectionHeading,
+  evidenceRequiredStudyQuestionSections,
   isStudyQuestionIntent as isKnownStudyQuestionIntent,
   STUDY_QUESTION_SECTIONS,
   studyQuestionSectionTitles,
   type StudyQuestionIntent,
 } from '@/lib/konling-study-question-structure';
+import {
+  buildEvidenceRequiredUnitSourcePlan,
+  evidenceUnitCitationMappings,
+  type KonlingEvidenceAllocationCandidate,
+} from '@/lib/konling-evidence-allocation';
 import { isTechnicalIndexContext, markdownCodeRanges } from '@/lib/konling-citation-repair';
 
 // #1951：答案单元扫描语义下沉到轻模块（无服务端重链），实验脚本可直接复用；
@@ -143,10 +162,34 @@ import {
   type TextbookV2ToolResult,
 } from '@/lib/source-pack/textbook-v2-adapter';
 import {
-  maybeRunKonlingCanonicalRagShadowDiagnostic,
-  type KonlingCanonicalRagShadowContext,
-  type KonlingCanonicalRagShadowDiagnostic,
+  runKonlingComposedRagShadowDiagnostic,
+  type KonlingComposedRagShadowDiagnostic,
 } from '@/lib/canonical-rag/konling-integration';
+import {
+  composeEngineeringAndTeachingRag,
+  engineeringCorpusFromLayeredPayload,
+  runEngineeringRagQuery,
+  teachingCorpusFromLayeredPayload,
+  type ComposedRagResult,
+} from '@/lib/canonical-rag/domain-composition';
+import {
+  productionAnswerUsesLegacy,
+  selectRagAuthority,
+} from '@/lib/canonical-rag/authority';
+import {
+  KONLING_ENGINEERING_RAG_PREDICATE_ALLOWLIST,
+  buildKonlingEngineeringNeighborhood,
+  type KonlingEngineeringNeighborhood,
+} from '@/lib/konling-engineering-graph';
+import {
+  resolveKonlingEngineeringTextbookCitations,
+} from '@/lib/konling-engineering-textbook-citations';
+import {
+  konlingTeachingResourceViewerRole,
+  resolveKonlingTeachingResourceCitations,
+} from '@/lib/konling-teaching-resource-citations';
+import { resolveTeachingResourceTarget } from '@/lib/teaching-resource-target-resolver';
+import type { KonlingAssignableCitation } from '@/lib/konling-citation-protocol';
 import type { LayeredGraphPayload } from '@/lib/layered-graph/contracts';
 import {
   extractKonlingTeachingProjectionClientHints,
@@ -234,6 +277,7 @@ export type KonlingToolName =
   | 'get_plan_context'
   | 'search_learning_memory'
   | 'search_knowledge_graph'
+  | 'search_engineering_graph'
   | 'search_candidate_canonical'
   | 'get_candidate_canonical_detail'
   | 'get_candidate_canonical_neighbors'
@@ -503,6 +547,17 @@ export interface KonlingRuntimeContext {
    * grounding (#1274). Absent when no layered payload was supplied.
    */
   teachingProjectionContext?: KonlingTeachingProjectionContext | null;
+  /**
+   * Server-resolved layered payload retained for read-only engineering graph
+   * consumption (#2047); never projected to the model as-is.
+   */
+  layeredGraphPayload?: LayeredGraphPayload | null;
+  /**
+   * 教学投影绑定资源的服务端解析引用（#2047）：可进 citation allocator 的
+   * 条目与不可解析记录。由 buildKonlingRuntimeContext 异步解析。
+   */
+  teachingResourceCitations?: ReadonlyArray<KonlingAssignableCitation>;
+  teachingResourceCitationUnresolved?: ReadonlyArray<{ resourceId: string; reason: string }>;
   citationContext?: KonlingCitationContext;
   permittedTools: KonlingToolName[];
   missingContext: string[];
@@ -728,6 +783,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'get_plan_context',
       'search_learning_memory',
       'search_knowledge_graph',
+      'search_engineering_graph',
       'recommend_next_action',
       'get_simulation_status',
       'set_simulation_params',
@@ -753,7 +809,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['student-learning-overview'],
     requiredContext: ['diagnosis-view', 'learner-state-summary', 'evidence-citations'],
     optionalContext: ['adaptive-attempt', 'path-execution-context'],
-    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'search_engineering_graph', 'recommend_next_action'],
     citationClasses: ['learner-state', 'path-execution', 'content'],
     payload: 'aggregate-and-redacted-only',
     outputStatus: 'advisory-only',
@@ -772,6 +828,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'get_learner_state',
       'get_plan_context',
       'search_knowledge_graph',
+      'search_engineering_graph',
       'recommend_next_action',
       'generate_learning_path',
       'revise_learning_path_options',
@@ -792,7 +849,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['resource-node-launch'],
     requiredContext: ['resource-node', 'path-execution-context', 'evidence-citations'],
     optionalContext: ['learner-state-summary'],
-    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action', 'analyze_attempt'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'search_engineering_graph', 'recommend_next_action', 'analyze_attempt'],
     citationClasses: ['content', 'path-execution', 'learner-state'],
     payload: 'student-visible-summary',
     outputStatus: 'advisory-only',
@@ -805,7 +862,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['teacher-grading-workbench'],
     requiredContext: ['rubric', 'converted-document', 'draft-grading-state', 'teacher-review-state', 'evidence-citations'],
     optionalContext: ['learner-state-summary'],
-    permittedTools: ['get_page_context', 'search_textbook', 'search_knowledge_graph'],
+    permittedTools: ['get_page_context', 'search_textbook', 'search_knowledge_graph', 'search_engineering_graph'],
     citationClasses: ['content', 'learner-state'],
     payload: 'teacher-scoped-summary',
     outputStatus: 'draft-only',
@@ -819,7 +876,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['student-feedback'],
     requiredContext: ['student-feedback', 'evidence-citations'],
     optionalContext: ['rubric', 'learner-state-summary'],
-    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'search_knowledge_graph', 'recommend_next_action'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'search_knowledge_graph', 'search_engineering_graph', 'recommend_next_action'],
     citationClasses: ['content', 'learner-state'],
     payload: 'student-visible-summary',
     outputStatus: 'advisory-only',
@@ -832,7 +889,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['teacher-class-report'],
     requiredContext: ['class-report', 'diagnosis-view', 'evidence-citations'],
     optionalContext: ['path-execution-context'],
-    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'search_engineering_graph'],
     citationClasses: ['learner-state', 'path-execution', 'intervention'],
     payload: 'teacher-scoped-summary',
     outputStatus: 'advisory-only',
@@ -865,7 +922,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['teacher-prep-pack'],
     requiredContext: ['prep-pack', 'diagnosis-view', 'evidence-citations', 'teacher-review-state'],
     optionalContext: ['class-report', 'resource-node'],
-    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'propose_smart_lesson_task_change'],
+    permittedTools: ['get_page_context', 'search_textbook', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'search_engineering_graph', 'propose_smart_lesson_task_change'],
     citationClasses: ['learner-state', 'path-execution', 'content', 'intervention'],
     payload: 'teacher-scoped-summary',
     outputStatus: 'draft-only',
@@ -932,6 +989,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
       ? input.runtimeContext.permittedTools.includes('calculate')
       : mode.permittedTools.includes('calculate'),
   });
+  // #2039：evidence-required 专业问答在生成前做逐单元来源分配，映射随
+  // citationContext 进入 prompt（章节标题 → 分配编号）。编号重映射到
+  // 既有 contentCitations 的 displayNumber，不引入第二套编号。
+  if (studyQuestion) {
+    attachStudyQuestionUnitCitations(input.runtimeContext.citationContext, studyQuestion.intent, input.currentUserQuery);
+  }
   const groundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: input.runtimeContext,
     scope: input.scope,
@@ -1267,6 +1330,49 @@ function hasIndependentNormativeRisk(query: string | null | undefined): boolean 
     || hasNormativeComboSignal(normalized)
     || hasTextbookNormativeSignal(normalized)
     || NORMATIVE_OBLIGATION.test(normalized);
+}
+
+function attachStudyQuestionUnitCitations(
+  citationContext: KonlingCitationContext | null | undefined,
+  intent: KonlingStudyQuestionContract['intent'],
+  queryText?: string | null,
+): void {
+  if (!citationContext?.required) return;
+  if (evidenceRequiredStudyQuestionSections(intent).length === 0) return;
+  const numberById = new Map(
+    citationContext.contentCitations
+      .filter((citation) => Number.isInteger(citation.displayNumber))
+      .map((citation) => [citation.id, citation.displayNumber as number]),
+  );
+  if (numberById.size === 0) return;
+  const candidates: KonlingEvidenceAllocationCandidate[] = citationContext.contentCitations.map((citation) => ({
+    id: citation.id,
+    displayTitle: citation.displayTitle,
+    citationTargetId: citation.citationTargetId ?? null,
+    verified: citation.verified === true,
+    href: citation.href,
+    answerRelevanceBasis: citation.answerRelevanceBasis ?? null,
+    identity: citation.identity ?? { kind: 'content', sourceType: 'content', contentId: citation.id },
+    matchText: citation.displayTitle,
+  }));
+  const plan = buildEvidenceRequiredUnitSourcePlan({ intent, candidates, queryText });
+  // 分配编号 → 候选 id → 既有 citation displayNumber（单一编号真源）。
+  const productionNumberByAllocationNumber = new Map(
+    plan.assignedCitations.map((citation) => [
+      citation.displayNumber,
+      numberById.get(citation.id),
+    ]),
+  );
+  const mappings = evidenceUnitCitationMappings(plan)
+    .map((mapping) => ({
+      sectionTitle: mapping.sectionTitle,
+      displayNumbers: mapping.displayNumbers
+        .map((number) => productionNumberByAllocationNumber.get(number))
+        .filter((number): number is number => typeof number === 'number'),
+    }))
+    .filter((mapping) => mapping.displayNumbers.length > 0);
+  if (mappings.length === 0) return;
+  citationContext.unitCitations = mappings;
 }
 
 function buildKonlingStudyQuestionContract(input: {
@@ -1861,6 +1967,14 @@ export interface KonlingCitationContext {
   sourcePacks?: KonlingSourcePackCitationSummary[];
   missingCitationClasses: string[];
   lowConfidenceReasons: string[];
+  /**
+   * #2039：evidence-required 章节的逐单元分配编号（章节标题 → 主源编号
+   * + 备用编号）。存在时 prompt 渲染为逐单元映射行（ai-prompt-builder）。
+   */
+  unitCitations?: Array<{
+    sectionTitle: string;
+    displayNumbers: readonly number[];
+  }>;
   responseProtocol: {
     requiredOwners: Array<KonlingCitation['owner']>;
     minimum: {
@@ -2093,13 +2207,6 @@ interface KonlingToolRuntimeInput {
   permittedTools?: string[] | null;
   evidenceCutoff?: Date;
   scopedSimulationState?: Partial<SimulationStateStore> | null;
-  /**
-   * Optional #1112 Canonical RAG shadow context. When omitted (default), Konling
-   * production retrieval remains Legacy-only and does not require Crosswalks.
-   * When supplied, Legacy production is unchanged and a separate shadow
-   * comparison is recorded as diagnostics only.
-   */
-  canonicalRagShadow?: KonlingCanonicalRagShadowContext | null;
 }
 
 const candidateKnowledgeProjectionService = new AuthoritativeKnowledgeProjectionService();
@@ -2291,6 +2398,7 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'get_plan_context',
   'search_learning_memory',
   'search_knowledge_graph',
+  'search_engineering_graph',
   'recommend_next_action',
   'get_simulation_status',
   'set_simulation_params',
@@ -2657,6 +2765,7 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   get_plan_context: toolRegistryEntry('get_plan_context', 'read'),
   search_learning_memory: toolRegistryEntry('search_learning_memory', 'read'),
   search_knowledge_graph: toolRegistryEntry('search_knowledge_graph', 'read'),
+  search_engineering_graph: toolRegistryEntry('search_engineering_graph', 'read'),
   search_candidate_canonical: toolRegistryEntry('search_candidate_canonical', 'read'),
   get_candidate_canonical_detail: toolRegistryEntry('get_candidate_canonical_detail', 'read'),
   get_candidate_canonical_neighbors: toolRegistryEntry('get_candidate_canonical_neighbors', 'read'),
@@ -3461,6 +3570,21 @@ export async function buildKonlingRuntimeContext(
   });
   baseRuntimeContext.graphContext = graphContext;
   baseRuntimeContext.teachingProjectionContext = teachingProjectionContext;
+  baseRuntimeContext.layeredGraphPayload = teachingProjectionBinding.payload ?? null;
+  // 绑定资源的服务端引用解析（#2047）：成功条目进 citation allocator，
+  // 失败/不可见资源仅保留非链接记录，grounding 文本不受影响。
+  if (teachingProjectionContext.linkedResources.length > 0) {
+    const teachingResourceCitationResolution = await resolveKonlingTeachingResourceCitations({
+      viewerRole: konlingTeachingResourceViewerRole(scope.role),
+      linkedResources: teachingProjectionContext.linkedResources,
+      projectionId: teachingProjectionContext.projectionId,
+    });
+    baseRuntimeContext.teachingResourceCitations = teachingResourceCitationResolution.citations;
+    baseRuntimeContext.teachingResourceCitationUnresolved = teachingResourceCitationResolution.unresolved;
+  } else {
+    baseRuntimeContext.teachingResourceCitations = [];
+    baseRuntimeContext.teachingResourceCitationUnresolved = [];
+  }
   const knowledgeCapabilityContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: baseRuntimeContext,
     scope,
@@ -3581,6 +3705,19 @@ export interface KonlingDualDomainProvenanceMetadataPayload {
   engineeringAuthorityReleaseId: string | null;
   teaching: ReturnType<typeof projectKonlingTeachingProjectionAnswerProvenance>;
   groundingLines: string[];
+  /** #2047 工程邻域截断与可观测记录（kaq-graph-context spec）。 */
+  engineeringNeighborhood?: {
+    status: 'ready' | 'unavailable';
+    authorityReleaseId: string | null;
+    entryCount: number;
+    truncatedCount: number;
+    reasons: string[];
+  } | null;
+  /** #2047 绑定资源引用解析记录：成功与失败/不可见集合。 */
+  teachingResourceCitations?: {
+    resolvedResourceIds: string[];
+    unresolved: Array<{ resourceId: string; reason: string }>;
+  } | null;
 }
 
 /**
@@ -3595,12 +3732,227 @@ export function buildKonlingDualDomainProvenanceMetadataPayload(
     ?? null;
   if (!teaching) return null;
   const provenance = buildKonlingDualDomainAnswerProvenance(context);
+  const neighborhood =
+    context?.graphContext?.engineeringNeighborhood
+    ?? null;
   return {
     source: 'teaching-projection-dual-domain',
     relationWriteback: false,
     engineeringAuthorityReleaseId: provenance.engineeringAuthorityReleaseId,
     teaching: provenance.teaching,
     groundingLines: buildKonlingTeachingProjectionGroundingLines(teaching),
+    engineeringNeighborhood: neighborhood
+      ? {
+          status: neighborhood.status,
+          authorityReleaseId: neighborhood.authorityReleaseId,
+          entryCount: neighborhood.entries.length,
+          truncatedCount: neighborhood.truncatedCount,
+          reasons: neighborhood.reasons,
+        }
+      : null,
+    teachingResourceCitations: {
+      resolvedResourceIds: (context?.teachingResourceCitations ?? [])
+        .flatMap((citation) => {
+          if (citation.identity.kind === 'teaching-resource') return [citation.identity.resourceId];
+          // 教材单元绑定资源（textbook 身份、teach-res: id 前缀）也计入解析成功集。
+          if (citation.identity.kind === 'textbook' && citation.id.startsWith('teach-res:')) {
+            return [citation.id.slice('teach-res:'.length)];
+          }
+          return [];
+        }),
+      unresolved: [...(context?.teachingResourceCitationUnresolved ?? [])],
+    },
+  };
+}
+
+/**
+ * 终稿阶段把 composed 通道新增的教学资源引用并入 provenance resourceIds
+ * （#2047）：持久化 provenance 与引用面板呈现的资源集合保持一致。
+ */
+export function extendKonlingDualDomainProvenanceTeachingResourceIds(
+  payload: KonlingDualDomainProvenanceMetadataPayload | null,
+  assignedCitations: readonly KonlingAssignedCitation[],
+): KonlingDualDomainProvenanceMetadataPayload | null {
+  if (!payload) return payload;
+  const citedResourceIds = assignedCitations.flatMap((citation) => (
+    citation.identity.kind === 'teaching-resource' ? [citation.identity.resourceId] : []
+  ));
+  const merged = [...new Set([
+    ...(payload.teaching?.resourceIds ?? []),
+    ...citedResourceIds,
+  ])].sort((left, right) => left.localeCompare(right));
+  if (
+    payload.teaching
+    && merged.length === (payload.teaching.resourceIds?.length ?? -1)
+    && merged.every((id, index) => id === payload.teaching?.resourceIds?.[index])
+  ) {
+    return payload;
+  }
+  return {
+    ...payload,
+    teaching: payload.teaching
+      ? { ...payload.teaching, resourceIds: merged }
+      : payload.teaching,
+    teachingResourceCitations: payload.teachingResourceCitations
+      ? {
+          ...payload.teachingResourceCitations,
+          resolvedResourceIds: [...new Set([
+            ...payload.teachingResourceCitations.resolvedResourceIds,
+            ...citedResourceIds,
+          ])].sort((left, right) => left.localeCompare(right)),
+        }
+      : payload.teachingResourceCitations,
+  };
+}
+
+/** search_textbook 结果内随行返回的教学资源引用（模型可引用 [n]）。 */
+export interface KonlingTeachingResourceReference {
+  resourceId: string;
+  title: string | null;
+  displayNumber: number;
+  href: string | null;
+}
+
+interface KonlingComposedRagSidecar {
+  diagnostic: KonlingComposedRagShadowDiagnostic | null;
+  teachingResourceHits: KonlingTeachingResourceReference[] | null;
+}
+
+/** 每次 search_textbook 合并进结果的教学资源引用上限（提示词体积预算）。 */
+const KONLING_COMPOSED_TEACHING_RESOURCE_LIMIT = 8;
+
+/**
+ * #2047 composed canonical RAG sidecar：与 Legacy 教材前台并行执行
+ * engineering + teaching-resource 双域检索。composed 拨盘下教学资源命中
+ * 解析 href 并分配引用编号；legacy 拨盘（回滚态）只产出影子对比指标。
+ * 工程域结果不在此合并（由 search_engineering_graph 工具独立消费）。
+ */
+async function runKonlingComposedRagSidecar(
+  input: KonlingToolRuntimeInput,
+  query: string,
+  productionForeground: TextbookV2ToolResult,
+  citationAllocator: ReturnType<typeof createKonlingCitationAllocator>,
+): Promise<KonlingComposedRagSidecar> {
+  const payload = input.context.layeredGraphPayload ?? null;
+  if (!payload) return { diagnostic: null, teachingResourceHits: null };
+
+  const teachingContext =
+    input.context.teachingProjectionContext
+    ?? input.context.graphContext?.teachingProjectionContext
+    ?? null;
+  const focus = teachingContext?.canonicalIds ?? [];
+  const selector = selectRagAuthority('PRODUCTION_ANSWER');
+  const composedActive = !productionAnswerUsesLegacy(selector);
+  const mode = composedActive ? 'production' as const : 'shadow' as const;
+
+  const composed: ComposedRagResult = composeEngineeringAndTeachingRag({
+    domain: 'composed',
+    query,
+    engineering: {
+        domain: 'engineering',
+        query,
+        authorityReleaseId: payload.engineering.identity.authorityReleaseId,
+        allowedPredicates: KONLING_ENGINEERING_RAG_PREDICATE_ALLOWLIST,
+        canonicalIds: focus,
+        mode,
+      },
+      teaching: {
+        domain: 'teaching-resource',
+        query,
+        projectionId: teachingContext?.projectionId ?? null,
+        projectionHash: teachingContext?.projectionHash ?? null,
+        authorityReleaseId: teachingContext?.authorityReleaseId ?? null,
+        scopeId: teachingContext?.scope?.scopeId ?? null,
+        canonicalIds: focus.length > 0 ? focus : null,
+        mode,
+      },
+    engineeringCorpus: engineeringCorpusFromLayeredPayload(payload),
+    teachingCorpus: teachingCorpusFromLayeredPayload(payload),
+  });
+
+  const viewerRole = konlingTeachingResourceViewerRole(input.scope.role);
+  const hitResourceIds = [...new Set(composed.teaching.hits.map((hit) => hit.resourceId))]
+    .slice(0, KONLING_COMPOSED_TEACHING_RESOURCE_LIMIT);
+  const teachingResourceHits: KonlingTeachingResourceReference[] = [];
+  const resolvedIds: string[] = [];
+  if (composedActive) {
+    for (const resourceId of hitResourceIds) {
+      const hit = composed.teaching.hits.find((candidate) => candidate.resourceId === resourceId);
+      const resolved = await resolveTeachingResourceTarget({
+        resourceId,
+        versionHash: null,
+        viewerRole,
+        teacherOnlyPolicy: 'role-gated',
+      });
+      if (resolved.status !== 'available') continue;
+      resolvedIds.push(resourceId);
+      const assigned = citationAllocator.assign(resolved.textbookIdentity
+        ? {
+            id: `teach-res:${resourceId}`,
+            sourceType: 'textbook',
+            displayTitle: hit?.title ?? resourceId,
+            href: resolved.href,
+            verifiable: true,
+            confidence: 'high',
+            evidenceBasis: 'teaching-projection:textbook-unit',
+            identity: {
+              kind: 'textbook',
+              bookId: resolved.textbookIdentity.bookId,
+              edition: resolved.textbookIdentity.edition,
+              sourceRevision: resolved.textbookIdentity.sourceRevision,
+              unitId: resolved.textbookIdentity.unitId,
+              fragmentId: null,
+            },
+          }
+        : {
+            id: `teach-res:${resourceId}`,
+            sourceType: 'teaching-resource',
+            displayTitle: hit?.title ?? resourceId,
+            href: resolved.href,
+            verifiable: true,
+            confidence: 'high',
+            evidenceBasis: `teaching-projection:${resolved.kind}`,
+            identity: {
+              kind: 'teaching-resource',
+              resourceId,
+              resourceType: hit?.resourceType ?? null,
+              projectionId: teachingContext?.projectionId ?? null,
+              canonicalId: hit?.canonicalId ?? null,
+            },
+          });
+      teachingResourceHits.push({
+        resourceId,
+        title: hit?.title ?? null,
+        displayNumber: assigned.displayNumber,
+        href: assigned.href,
+      });
+    }
+  } else {
+    // legacy 回滚态：影子指标仍需可验证率，按同一解析口径采样但不分配编号。
+    for (const resourceId of hitResourceIds) {
+      const resolved = await resolveTeachingResourceTarget({
+        resourceId,
+        versionHash: null,
+        viewerRole,
+        teacherOnlyPolicy: 'role-gated',
+      });
+      if (resolved.status === 'available') resolvedIds.push(resourceId);
+    }
+  }
+
+  const diagnostic = runKonlingComposedRagShadowDiagnostic({
+    productionForeground,
+    composed,
+    linkedResourceIds: teachingContext?.linkedResources.map((resource) => resource.resourceId) ?? [],
+    productionAuthority: selector,
+    resolvedTeachingCitationIds: resolvedIds,
+  });
+
+  return {
+    diagnostic,
+    teachingResourceHits: composedActive && teachingResourceHits.length > 0
+      ? teachingResourceHits
+      : null,
   };
 }
 
@@ -3639,6 +3991,11 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       }).displayNumber,
     })),
   });
+  // 教学投影绑定资源引用（#2047）：服务端已解析条目统一经 allocator 分配
+  // 编号（canonicalKey 去重，与教材/工程教材引用同一编号空间）。
+  const assignedTeachingResourceCitations = (input.context.teachingResourceCitations ?? [])
+    .map((citation) => citationAllocator.assign(citation));
+  const composedRagShadowSamples: KonlingComposedRagShadowDiagnostic[] = [];
   const assignCandidateCitation = (canonicalId: string, displayTitle: string) => (
     citationAllocator.assign({
       id: `candidate:${CANDIDATE_RELEASE_SELECTOR.releaseSetId}:${CANDIDATE_RELEASE_SELECTOR.releaseId}:${canonicalId}`,
@@ -3658,6 +4015,8 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
   );
   return {
     getAssignedCitations: citationAllocator.assigned,
+    getTeachingResourceCitations: () => assignedTeachingResourceCitations,
+    getComposedRagShadowSamples: () => [...composedRagShadowSamples],
     getTextbookOptimizations: () => [...textbookOptimizations.values()]
       .sort((left, right) => left.toolCallId.localeCompare(right.toolCallId)),
     permittedTools: normalizeKonlingToolNames(input.permittedTools ?? input.context.permittedTools),
@@ -3708,22 +4067,28 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
           });
         }
 
-        // Optional #1112 shadow sidecar: compares actual production foreground
-        // identities with Canonical seed+Source Pack adjudication only. Never
-        // re-runs production retrieval and never mutates the user-facing result.
-        const canonicalRagShadowDiagnostic = maybeRunKonlingCanonicalRagShadowDiagnostic({
-          query: args.query,
-          productionForeground: result,
-          shadowContext: input.canonicalRagShadow ?? null,
-          role: sourcePackRoleForKonling(input.scope.role),
-        });
+        // #2047 composed canonical RAG sidecar：teaching-resource 通道与工程域
+        // 检索经分层 payload 语料真实执行。composed 拨盘下教学资源命中合并为
+        // 引用条目；legacy 拨盘（回滚态）只记录影子对比指标，不改前台结果。
+        const composedSidecar = await runKonlingComposedRagSidecar(
+          input,
+          args.query,
+          result,
+          citationAllocator,
+        );
+        if (composedSidecar.diagnostic) {
+          composedRagShadowSamples.push(composedSidecar.diagnostic);
+        }
 
         return {
           ...result,
           optimizationPending: progressive.optimizationPending,
           // Diagnostic-only; model projection / user answer ignore this field.
-          ...(canonicalRagShadowDiagnostic
-            ? { canonicalRagShadowDiagnostic }
+          ...(composedSidecar.diagnostic
+            ? { composedRagShadowDiagnostic: composedSidecar.diagnostic }
+            : {}),
+          ...(composedSidecar.teachingResourceHits
+            ? { teachingResourceReferences: composedSidecar.teachingResourceHits }
             : {}),
         };
       }),
@@ -3748,6 +4113,107 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       })),
     searchKnowledgeGraph: async (args: { query?: string; limit?: number } = {}) =>
       runKonlingRuntimeTool(input, 'search_knowledge_graph', args, async () => searchKnowledgeGraph(input.db, args.query ?? '', args.limit ?? 5)),
+    searchEngineeringGraph: async (args: { query?: string; limit?: number } = {}) =>
+      runKonlingRuntimeTool(input, 'search_engineering_graph', args, async () => {
+        const payload = input.context.layeredGraphPayload ?? null;
+        const teachingContext =
+          input.context.teachingProjectionContext
+          ?? input.context.graphContext?.teachingProjectionContext
+          ?? null;
+        // 焦点白名单只来自服务端解析的教学投影上下文；工具不接受任意图遍历。
+        const focus = teachingContext?.canonicalIds ?? [];
+        if (!payload || payload.engineering.identity.status !== 'ready' || focus.length === 0) {
+          return {
+            status: 'unavailable',
+            reason: !payload || payload.engineering.identity.status !== 'ready'
+              ? 'engineering-layer-unavailable'
+              : 'engineering-focus-canonical-ids-empty',
+            entries: [],
+            textbookCitations: [],
+          };
+        }
+        const limit = Math.min(10, Math.max(1, args.limit ?? 5));
+        const result = runEngineeringRagQuery({
+          query: {
+            domain: 'engineering',
+            query: args.query ?? '',
+            authorityReleaseId: payload.engineering.identity.authorityReleaseId,
+            allowedPredicates: KONLING_ENGINEERING_RAG_PREDICATE_ALLOWLIST,
+            canonicalIds: focus,
+            mode: 'production',
+          },
+          corpus: engineeringCorpusFromLayeredPayload(payload),
+        });
+        const hits = result.hits.slice(0, limit);
+        // RAG hit 的语料种子不携带端点：从 payload 关系补齐邻居与方向，
+        // 模型必须能区分「谁指向谁」（#2047 review P1）。
+        const relationsById = new Map(
+          payload.engineering.relations.map((relation) => [relation.relationId, relation]),
+        );
+        const labelsByCanonicalId = new Map(
+          payload.engineering.nodes.map((node) => [node.canonicalId, node.semanticName]),
+        );
+        type EngineeringGraphToolEntry = {
+          canonicalId: string;
+          label: string | null;
+          predicate: string | null;
+          relationId: string | null;
+          direction: 'outgoing' | 'incoming' | null;
+          neighborCanonicalId: string | null;
+          neighborLabel: string | null;
+          citationTargetId: string | null;
+          relationKind: ReturnType<typeof runEngineeringRagQuery>['hits'][number]['citation']['relationKind'];
+        };
+        const entries: EngineeringGraphToolEntry[] = hits.flatMap((hit): EngineeringGraphToolEntry[] => {
+          const relation = hit.relationId ? relationsById.get(hit.relationId) : undefined;
+          if (!relation) {
+            return [{
+              canonicalId: hit.canonicalId,
+              label: hit.label,
+              predicate: null,
+              relationId: null,
+              direction: null,
+              neighborCanonicalId: null,
+              neighborLabel: null,
+              citationTargetId: hit.citation.citationTargetId,
+              relationKind: hit.citation.relationKind,
+            }];
+          }
+          // 种子按焦点过滤，hit.canonicalId 即焦点端点；另一端为邻居。
+          const outgoing = relation.sourceId === hit.canonicalId;
+          const neighborCanonicalId = outgoing ? relation.targetId : relation.sourceId;
+          return [{
+            canonicalId: hit.canonicalId,
+            label: hit.label,
+            predicate: relation.relationType,
+            relationId: relation.relationId,
+            direction: outgoing ? 'outgoing' as const : 'incoming' as const,
+            neighborCanonicalId,
+            neighborLabel: labelsByCanonicalId.get(neighborCanonicalId) ?? null,
+            citationTargetId: hit.citation.citationTargetId,
+            relationKind: hit.citation.relationKind,
+          }] satisfies EngineeringGraphToolEntry[];
+        });
+        // 工程节点的受治理教材出处（Change 2 映射）；未映射节点保持无出处。
+        const textbook = await resolveKonlingEngineeringTextbookCitations({
+          canonicalIds: hits.map((hit) => hit.canonicalId),
+        });
+        const citations = textbook.citations.map((citation) => citationAllocator.assign(citation));
+        return {
+          status: result.metadata.availability === 'ready' || result.metadata.availability === 'pinned'
+            ? 'ready'
+            : 'unavailable',
+          authorityReleaseId: result.metadata.authorityReleaseId,
+          entries,
+          textbookCitations: citations.map((citation) => ({
+            displayNumber: citation.displayNumber,
+            title: citation.displayTitle,
+            href: citation.href,
+          })),
+          unmappedCanonicalIds: textbook.unmappedCanonicalIds,
+          reasons: result.metadata.reasons,
+        };
+      }),
     searchCandidateCanonical: async (args: z.infer<typeof candidateCanonicalSearchParameters>) =>
       runKonlingRuntimeTool(input, 'search_candidate_canonical', args, async () => {
         if (!input.scope.candidateGraph) {
@@ -4269,82 +4735,122 @@ function applySmartLessonCollectionPatches(
     .concat(additions);
 }
 
-// #2033：批次定稿时解析候选资源到 Runtime manifest 对象键并产出读取验证记录。
-async function verifyCandidateObjectKeyReadRecords(plan: AdaptiveLearningPathPlan) {
-  // 候选资源解析不依赖网络：先构建完整条目集，验证层不可用时对其统一
-  // 产出 unverified 记录（fail-closed，未验证资源不得当可信输入）。
-  const entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }> = [];
-  for (const option of buildSerializablePathOptions(plan)) {
-    // #2033 复审修复：按候选自己的 planNodes 解析（策略候选可含主推荐路径之外的节点）。
-    for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
-      const { state, objectKey } = resolveAdaptivePathRuntimeObjectKey(node.target);
-      if (state === 'non-runtime' || !objectKey) continue;
-      entries.push({
-        objectKey,
-        resourceId: node.resourceId ?? node.resourceNodeId ?? node.nodeId,
-        candidateStyleId: option.styleId,
-        nodeNodeId: node.nodeId,
-      });
-    }
+// #2055：活动教学投影资源索引（身份 + sourcePath）；投影不可用时返回 null，
+// 绑定解析按 no-runtime-identity/projection-unavailable 显式记录。
+function loadTeachingProjectionResourceIndex(): TeachingProjectionResourceIndex | null {
+  try {
+    const projection = resolveActiveTeachingProjection(
+      resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
+    );
+    if (projection.status !== 'available' || !projection.staged) return null;
+    const resourcesByResourceId = new Map(
+      projection.staged.artifacts.resources.map((resource) => [
+        resource.resourceId,
+        { resourceType: resource.resourceType, sourcePath: resource.sourcePath },
+      ]),
+    );
+    return { projectionId: projection.staged.projectionId, resourcesByResourceId };
+  } catch (error) {
+    console.error('[KonlingRuntime] teaching projection resource index load failed:', error);
+    return null;
   }
-  if (entries.length === 0) return [];
-  const verifiedAt = new Date().toISOString();
-  const failClosedUnverified = () => entries.map((entry) => ({
-    ...entry,
-    state: 'unverified' as const,
-    contentSha256: null,
-    verifiedAt,
-    runtimeReleaseId: null,
-  }));
+}
+
+// #2055：活动 Runtime release 文件索引（manifest 是可绑定的唯一真源）。
+async function loadRuntimeReleaseFileIndex(): Promise<RuntimeReleaseFileIndex | null> {
   try {
     const manifestRaw = await readActiveRuntimeReleaseManifest();
-    if (!manifestRaw) return failClosedUnverified();
+    if (!manifestRaw) return null;
     const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
-    const filesByPath = new Map(manifest.files.map((file) => [file.path, file]));
-    const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
-    if (!ramRole) return failClosedUnverified();
-    const client = createEcsRamRoleOssClient({
-      bucket: process.env.ACT_RUNTIME_OSS_BUCKET?.trim() || 'act-course-assets',
-      region: process.env.ACT_RUNTIME_OSS_REGION?.trim() || 'oss-cn-hangzhou',
-      roleName: ramRole,
-    });
-    const verifyObjectBytes = async (
-      storageKey: string,
-      expectedSha256: string,
-    ): Promise<{ state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }> => {
-      try {
-        const { stream } = await client.getStream(storageKey);
-        const hash = createHash('sha256');
-        for await (const chunk of stream) {
-          hash.update(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        }
-        const actual = hash.digest('hex');
-        return actual === expectedSha256
-          ? { state: 'verified', contentSha256: actual }
-          : { state: 'checksum-mismatch', contentSha256: actual };
-      } catch (error) {
-        const status = (error as { status?: number } | null)?.status;
-        if (status === 403) return { state: 'forbidden', contentSha256: null };
-        return { state: 'missing', contentSha256: null };
-      }
-    };
-    return await verifyAdaptivePathObjectKeys({
-      async verify(objectKey) {
-        // 内容寻址键（blob:<sha256>）：对象键即摘要，真实读取并比对。
-        if (objectKey.startsWith('blob:')) {
-          const sha256 = objectKey.slice('blob:'.length);
-          return verifyObjectBytes(runtimeBlobObjectKey(sha256), sha256);
-        }
-        const file = filesByPath.get(objectKey);
-        if (!file) return { state: 'missing', contentSha256: null };
-        // manifest 命中后按 manifest 记录的实际存储键执行真实读取，流式比对期望校验值。
-        return verifyObjectBytes(file.objectKey, file.sha256);
-      },
-    }, entries, verifiedAt, manifest.releaseId ?? null);
+    const filesByPath = new Map<string, { sha256: string; objectKey: string }>();
+    const filesBySha256 = new Map<string, { path: string }>();
+    for (const file of manifest.files) {
+      filesByPath.set(file.path, { sha256: file.sha256, objectKey: file.objectKey });
+      // 同一 sha 可被多文件声明复用；绑定只关心 release 是否持有该内容。
+      if (!filesBySha256.has(file.sha256)) filesBySha256.set(file.sha256, { path: file.path });
+    }
+    return { releaseId: manifest.releaseId, filesByPath, filesBySha256 };
   } catch (error) {
-    console.error('[KonlingRuntime] candidate object key read verification failed:', error);
-    return failClosedUnverified();
+    console.error('[KonlingRuntime] active runtime release index load failed:', error);
+    return null;
   }
+}
+
+// #2055：批次定稿时为候选节点解析 Runtime 资源绑定并写回 plan 节点字段。
+// 绑定独立于导航 target（destination contract 不变）；失败逐节点显式记录。
+// 返回捕获的 release 索引供读取验证复用：同一批次绑定与验证必须来自同一 release 快照。
+export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPathPlan, index?: ResourceNodeRegistry['featureIndex']): Promise<{
+  plan: AdaptiveLearningPathPlan;
+  bindings: AdaptivePathNodeRuntimeBinding[];
+  limitationCodes: string[];
+  release: RuntimeReleaseFileIndex | null;
+}> {
+  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
+  if (index && ((projection?.projectionId ?? null) !== index.projectionId || (release?.releaseId ?? null) !== index.runtimeReleaseId)) {
+    throw new KonlingRuntimeScopeError(409, '资源版本正在更新，请重新生成路径。');
+  }
+  const nodeTypeById = new Map<string, string>();
+  const collect = (nodes: readonly AdaptiveLearningPathPlanNode[] | undefined) => {
+    for (const node of nodes ?? []) {
+      if (!node.resourceFeatureRef) nodeTypeById.set(node.nodeId, node.type);
+    }
+  };
+  collect(plan.mainPath);
+  for (const path of plan.policyBundle?.paths ?? []) collect(path.planNodes);
+  const bindings = resolveAdaptivePathNodeRuntimeBindings({
+    nodes: [...nodeTypeById].map(([nodeId, nodeType]) => ({ nodeId, nodeType })),
+    projection,
+    release,
+  });
+  const bindingByNodeId = new Map(bindings.map((binding) => [binding.nodeId, binding]));
+  const enrichNode = (node: AdaptiveLearningPathPlanNode): AdaptiveLearningPathPlanNode => {
+    const binding = bindingByNodeId.get(node.nodeId);
+    return binding ? { ...node, runtimeResourceBinding: binding } : node;
+  };
+  const enrichedPlan: AdaptiveLearningPathPlan = {
+    ...plan,
+    mainPath: plan.mainPath.map(enrichNode),
+    policyBundle: plan.policyBundle
+      ? {
+          ...plan.policyBundle,
+          paths: plan.policyBundle.paths.map((path) => ({
+            ...path,
+            planNodes: Array.isArray(path.planNodes) ? path.planNodes.map(enrichNode) : path.planNodes,
+          })),
+        }
+      : plan.policyBundle,
+  };
+  // 候选归属装饰：学生安全投影按 styleId 分组逐节点绑定状态。
+  const styleIdsByNodeId = new Map<string, string[]>();
+  for (const option of buildSerializablePathOptions(enrichedPlan)) {
+    for (const node of Array.isArray(option.planNodes) ? option.planNodes : []) {
+      const styleIds = styleIdsByNodeId.get(node.nodeId) ?? [];
+      styleIds.push(option.styleId);
+      styleIdsByNodeId.set(node.nodeId, styleIds);
+    }
+  }
+  const bindingsWithStyles = bindings.map((binding) => ({
+    ...binding,
+    candidateStyleIds: styleIdsByNodeId.get(binding.nodeId) ?? [],
+  }));
+  return {
+    plan: enrichedPlan,
+    bindings: bindingsWithStyles,
+    limitationCodes: deriveAdaptivePathRuntimeBindingLimitationCodes(bindings),
+    release,
+  };
+}
+
+// #2033/#2055：批次定稿时对候选节点的 runtime 绑定执行读取验证并产出记录。
+// 输入来自节点绑定字段（不再从导航 target 反解）；绑定状态随批次元数据持久化。
+// release 索引由绑定阶段一次性捕获并传入：同批次绑定与验证来自同一 release 快照，
+// 定稿中途 release 切换不会把 A 的绑定与 B 的验证混入同一持久化批次。
+function verifyCandidateObjectKeyReadRecords(
+  plan: AdaptiveLearningPathPlan,
+  release: RuntimeReleaseFileIndex | null,
+  index?: PublishedResourceFeatureIndex,
+) {
+  return buildIndexedCandidateResourceRecords(buildSerializablePathOptions(plan), release, index);
 }
 
 async function buildAdaptivePathToolOutput(
@@ -4508,7 +5014,7 @@ async function buildAdaptivePathToolOutput(
     goalId,
   });
   const previousPathFacts = previousPathFactsFromPlanOptions(input.context.planContext?.pathOptions);
-  const plan = planLearningPath({
+  const rawPlan = planLearningPath({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
     learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
@@ -4542,6 +5048,13 @@ async function buildAdaptivePathToolOutput(
     previousPathFacts,
     now: new Date(),
   });
+  // #2055：批次定稿时为候选节点解析 Runtime 资源绑定（独立于导航 target）。
+  const {
+    plan,
+    bindings: runtimeResourceBindings,
+    limitationCodes: runtimeBindingLimitationCodes,
+    release: runtimeBindingRelease,
+  } = await attachAdaptivePathRuntimeBindings(rawPlan, registry.featureIndex);
   const timeBudget = resolveAdaptivePathTimeBudget(
     args.timeBudgetMinutes,
     plan,
@@ -4608,6 +5121,8 @@ async function buildAdaptivePathToolOutput(
       candidatePoolLimited,
       candidatePoolLimitationCodes,
       candidatePoolStatus,
+      runtimeBindingLimited: runtimeBindingLimitationCodes.length > 0,
+      runtimeBindingLimitationCodes,
       configurationFulfillment: plan.explanations.configurationFulfillment,
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       minimumTimeBudgetMinutes: timeBudget.minimumMinutes,
@@ -4615,13 +5130,15 @@ async function buildAdaptivePathToolOutput(
     },
   });
   let candidateBatch: AdaptivePathCandidateBatchView | null = null;
-  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan);
+  const objectKeyReadRecords = await verifyCandidateObjectKeyReadRecords(persistedPlan, runtimeBindingRelease, registry.featureIndex);
   const candidateBatchStore = (input.db as any).adaptivePathCandidateBatch;
   const canPersistCandidateBatch = candidateBatchStore
     && typeof candidateBatchStore.findUnique === 'function'
     && typeof candidateBatchStore.create === 'function';
   const candidateBatchInput = {
     objectKeyReadRecords,
+    runtimeResourceBindings,
+    runtimeBindingLimitationCodes,
     generationRequestId: args.idempotencyKey,
     plan: persistedPlan,
     classId: input.scope.classId ?? null,
@@ -4766,6 +5283,7 @@ async function buildAdaptivePathToolOutput(
     limitations: uniqueStringList([
       ...fallbackReasons,
       ...candidatePoolLimitationCodes,
+      ...runtimeBindingLimitationCodes,
       ...(noMaterialDifference ? ['no-material-difference'] : []),
     ]),
     candidatePoolLimited,
@@ -5015,6 +5533,11 @@ export function mapAdaptivePathNaturalLanguageIntent(intent?: string | null): Ad
   }
   const resourceMappings: Array<{ type: ResourceNode['type']; terms: string[] }> = [
     { type: 'knowledge_card', terms: ['知识卡', '知识卡片'] },
+    { type: 'infographic', terms: ['信息图', '图解'] },
+    { type: 'handout', terms: ['讲义'] },
+    { type: 'video', terms: ['视频'] },
+    { type: 'audio', terms: ['音频', '播客'] },
+    { type: 'exercise', terms: ['习题', '练习题'] },
     { type: 'textbook_section', terms: ['教材', '课本', '参考章节'] },
     { type: 'lesson_step', terms: ['互动课', '课程步骤'] },
     { type: 'quiz', terms: ['测验', '小测'] },
@@ -5637,7 +6160,47 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
   return goalId;
 }
 
-async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
+type AdaptivePathRegistryResult = { registry: ResourceNodeRegistry; diagnostics: ResourceCandidatePoolDiagnostics };
+const adaptivePathBaseIndexCache = new WeakMap<object, Map<string, Promise<AdaptivePathRegistryResult>>>();
+
+async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<AdaptivePathRegistryResult> {
+  const index = await loadPublishedResourceFeatureIndex();
+  const delegate = (input.db as any).teachingResource;
+  const watermark = typeof delegate?.aggregate === 'function'
+    ? await delegate.aggregate({ _max: { updatedAt: true }, _count: { _all: true } })
+    : null;
+  const key = JSON.stringify([goalId, index.indexId, watermark]);
+  let cache = adaptivePathBaseIndexCache.get(input.db as object);
+  if (!cache) { cache = new Map(); adaptivePathBaseIndexCache.set(input.db as object, cache); }
+  let basePromise = watermark ? cache.get(key) : undefined;
+  if (!basePromise) {
+    basePromise = loadAdaptivePathBaseRegistry(input, goalId);
+    if (watermark) cache.set(key, basePromise);
+    if (cache.size > 6) cache.delete(cache.keys().next().value!);
+  }
+  let base: AdaptivePathRegistryResult;
+  try { base = await basePromise; } catch (error) { cache.delete(key); throw error; }
+  const registry = await applyResourceInteractionFeatures(
+    attachPublishedResourcesToRegistry(base.registry, index), input.db, input.scope.targetUserId,
+  );
+  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
+  if ((await loadPublishedResourceFeatureIndex()).indexId !== index.indexId
+    || (projection && projection.projectionId !== index.projectionId)
+    || (release?.releaseId ?? null) !== index.runtimeReleaseId) {
+    throw new KonlingRuntimeScopeError(409, '资源版本正在更新，请稍后重新生成路径。');
+  }
+  const runtimeResourceBindings = summarizeAdaptivePathRuntimeBindings(
+    resolveAdaptivePathNodeRuntimeBindings({ nodes: registry.nodes.filter(node => !node.publishedResource)
+      .map(node => ({ nodeId: node.id, nodeType: node.type })), projection, release }),
+    new Map(registry.nodes.map(node => [node.id, node.sourceKind])),
+  );
+  return { registry, diagnostics: buildResourceCandidatePoolDiagnostics(registry, [
+    ...base.diagnostics.sourceFamilies,
+    { family: 'published-resource-features', status: 'loaded', count: index.resources.length, reason: null },
+  ], { runtimeResourceBindings }) };
+}
+
+async function loadAdaptivePathBaseRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
   registry: ResourceNodeRegistry;
   diagnostics: ResourceCandidatePoolDiagnostics;
 }> {
@@ -5662,9 +6225,23 @@ async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeIn
     textbooks: runtimeTextbooks.map((entry) => entry.textbook),
     textbookSections: runtimeTextbooks.flatMap(toTextbookUnitNodeInputs),
   };
+  // #2055：池级 Runtime 绑定摘要（按族可绑定 OSS 资源计数，连接活动 release 后的真实可用数）。
+  const teachingProjectionIndex = loadTeachingProjectionResourceIndex();
+  const runtimeReleaseIndex = await loadRuntimeReleaseFileIndex();
+  const buildRuntimeBindingSummary = (registry: ResourceNodeRegistry) =>
+    summarizeAdaptivePathRuntimeBindings(
+      resolveAdaptivePathNodeRuntimeBindings({
+        nodes: registry.nodes.map((node) => ({ nodeId: node.id, nodeType: node.type })),
+        projection: teachingProjectionIndex,
+        release: runtimeReleaseIndex,
+      }),
+      new Map(registry.nodes.map((node) => [node.id, node.sourceKind])),
+    );
   const withDiagnostics = (registry: ResourceNodeRegistry) => ({
     registry,
-    diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies),
+    diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies, {
+      runtimeResourceBindings: buildRuntimeBindingSummary(registry),
+    }),
   });
   const buildGenericRegistry = () => buildResourceNodeRegistryFromTeachingResources(
     teachingResources,
@@ -5772,17 +6349,7 @@ async function loadAdaptivePathTeachingResources(db: unknown): Promise<Array<{
 async function buildAdaptivePathSourcePackCandidates(
   registry: ResourceNodeRegistry,
 ): Promise<{ items: SourcePackItem[]; limitations: SourcePackLimitation[] }> {
-  const resourceNodeCandidates = registry.nodes.map(buildResourceNodeSourcePackCandidate);
-  const textbookAdapted = await loadAllTextbookStructureUnitProjections()
-    .then((units) => units.map(adaptTextbookStructureUnit))
-    .catch(() => []);
-  return {
-    items: [
-      ...resourceNodeCandidates,
-      ...textbookAdapted.map((entry) => entry.item),
-    ],
-    limitations: textbookAdapted.flatMap((entry) => entry.limitations),
-  };
+  return { items: registry.nodes.map(buildResourceNodeSourcePackCandidate), limitations: [] };
 }
 
 export function buildResourceNodeSourcePackCandidate(node: ResourceNode): SourcePackItem {
@@ -7922,6 +8489,12 @@ export interface KonlingTextbookModelToolResult {
     text: string;
     limitation: string | null;
   }>;
+  /** #2047：composed 教学资源通道命中的可引用资源（服务器分配编号）。 */
+  teachingResourceReferences?: Array<{
+    displayNumber: number;
+    resourceId: string;
+    title: string;
+  }>;
 }
 
 const KONLING_TEXTBOOK_MODEL_INTERNAL_FIELD =
@@ -7953,6 +8526,20 @@ export function projectKonlingTextbookModelToolResult(
   const record = readRecord(result);
   const mode = getString(record, 'mode');
   const rawCandidates = Array.isArray(record.candidates) ? record.candidates : [];
+  const rawReferences = Array.isArray(record.teachingResourceReferences)
+    ? record.teachingResourceReferences
+    : [];
+  const teachingResourceReferences = rawReferences.flatMap((value) => {
+    const reference = readRecord(value);
+    const displayNumber = getNumber(reference, 'displayNumber');
+    const resourceId = getString(reference, 'resourceId');
+    if (!Number.isInteger(displayNumber) || displayNumber < 1 || !resourceId) return [];
+    return [{
+      displayNumber,
+      resourceId: sanitizeKonlingTextbookModelText(resourceId),
+      title: sanitizeKonlingTextbookModelText(getString(reference, 'title') || resourceId),
+    }];
+  });
   return {
     mode: mode === 'lexical-vector' ? 'lexical-vector' : 'lexical',
     optimizationPending: record.optimizationPending === true,
@@ -7969,6 +8556,7 @@ export function projectKonlingTextbookModelToolResult(
         limitation: getString(candidate, 'limitation') || null,
       }];
     }),
+    ...(teachingResourceReferences.length > 0 ? { teachingResourceReferences } : {}),
   };
 }
 
@@ -8031,6 +8619,14 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
         limit: z.number().int().min(1).max(10).optional(),
       }),
       execute: (args) => runtime.searchKnowledgeGraph(args),
+    }),
+    search_engineering_graph: tool({
+      description: '只读检索工程权威图谱（ActKG）：以当前教学焦点的 Canonical ID 为白名单，返回有界工程邻域（节点、谓词、方向与 ReleaseSet 出处）及受治理教材出处引用编号；不得用于修改图谱。',
+      inputSchema: z.object({
+        query: z.string().optional(),
+        limit: z.number().int().min(1).max(10).optional(),
+      }),
+      execute: (args) => runtime.searchEngineeringGraph(args),
     }),
     search_candidate_canonical: tool({
       description: '在服务端固定 ReleaseSet 中按 Canonical ID、类型和权威字段检索候选对象；禁止推断 Legacy 对应项。',
@@ -9166,6 +9762,9 @@ function assignedCitationTargetId(citation: KonlingAssignedCitation): string {
   }
   if (citation.identity.kind === 'content') {
     return citation.identity.contentId;
+  }
+  if (citation.identity.kind === 'teaching-resource') {
+    return citation.identity.resourceId;
   }
   return citation.identity.evidenceId;
 }

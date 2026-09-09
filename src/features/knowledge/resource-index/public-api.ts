@@ -24,6 +24,7 @@ export { resolveLiveResourceIndexRevision } from './revision';
 export {
   captureLiveResourceRegistryIndex,
   getLiveResourceRegistryIndex,
+  readLiveResourceRegistryIndexMemoKey,
   resetLiveResourceRegistryIndexCache,
 } from './sources';
 export {

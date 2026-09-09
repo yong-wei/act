@@ -50,6 +50,7 @@ export const TEACHING_RESOURCE_TYPES = [
   'textbook-chapter',
   'textbook-section',
   'card',
+  'infographic',
   'video',
   'audio',
   'podcast',

@@ -181,7 +181,7 @@ Formal binding eligibility SHALL be invalidated according to the resource's stab
 - **AND** the prior binding SHALL not enter the formal set
 
 ### Requirement: Active teaching resources cannot remain orphans
-The active Teaching Projection resource inventory MUST bind every in-scope runtime resource to at least one current Canonical Object under an explicit teaching role, unless the resource is recorded on the exception ledger with a closed reason. Bindings to retired, missing, or non-current objects do not satisfy this gate. Inspector projection MUST skip empty titles instead of showing identity-mismatch for the whole node, and the package MUST still fail closed until titles and bindings are complete for every non-ledger resource. The product denominator is the runtime file set, not the git-tracked fixture set.
+The active Teaching Projection resource inventory MUST bind every in-scope runtime resource to at least one current Canonical Object under an explicit teaching role, unless the resource is recorded on the exception ledger with a closed reason. Bindings to retired, missing, or non-current objects do not satisfy this gate. Inspector projection MUST skip empty titles instead of showing identity-mismatch for the whole node, and the package MUST still fail closed until titles and bindings are complete for every non-ledger resource. The product denominator is the runtime file set, not the git-tracked fixture set. The no-orphan denominator MUST include cards, infographs, lessons, steps, handouts, exercises, media, extraction-source textbooks, and all task-formed simulations. The exception ledger MUST close to zero entries or to explicit reviewed exemptions only; an unexamined backlog MUST NOT satisfy this gate.
 
 #### Scenario: Inventory contains an unbound resource
 - **WHEN** a resource row in the active projection has no current canonical binding and is not on the exception ledger
@@ -198,10 +198,38 @@ The active Teaching Projection resource inventory MUST bind every in-scope runti
 - **THEN** it SHALL be written to the exception ledger with an explicit reason
 - **AND** it SHALL NOT be published as BOUND
 
+#### Scenario: Newly covered type is unbound
+- **WHEN** an infograph, lesson, or step resource in the runtime file set has no current canonical binding and no explicit exemption
+- **THEN** projection publication SHALL fail closed
+- **AND** the completeness gate SHALL report that type's uncovered count
+
+#### Scenario: Ledger holds entries without explicit exemption
+- **WHEN** the exception ledger contains entries that lack an explicit reviewed exemption
+- **THEN** the coverage gate SHALL fail closed
+- **AND** the ledger backlog SHALL NOT be treated as closed
+
 ### Requirement: Task-formed simulations enter the binding inventory
 Published Arena tasks, Odyssey task levels, and control-workbench catalog tasks MUST appear as simulation resources in the active Teaching Projection. Classroom simulations that encode a lesson unit MUST bind to that unit's overlay cores.
 
 #### Scenario: Lesson-unit classroom simulation is bound
 - **WHEN** a simulation resource id encodes a lesson unit that overlay `nodeUnits` maps to one or more cores
 - **THEN** the restage SHALL bind that simulation to those cores with role PRACTICES or EXPLAINS
+
+### Requirement: Formally bound resources are launchable citation targets for Konling
+A resource that is formally bound in the active Teaching Projection SHALL be eligible to become a clickable Konling citation target. Its citation href MUST be derived from the same versioned and capture-coherent identity that governs the binding: textbook resources resolve through the version-bound textbook reader handle, database resources through the governed resource route, and registry resources through the governed launch or render target. A resource whose binding identity has drifted from the active release MUST degrade to a limited citation state rather than resolve to a stale target.
+
+#### Scenario: Bound resource becomes a citation target
+- **WHEN** a resource with a current formal binding in the active Teaching Projection is linked in a Konling answer context
+- **THEN** the citation resolver SHALL derive its href from the resource identity kind under the active binding envelope
+- **AND** the citation SHALL carry the resource's stable identity and binding version lineage
+
+#### Scenario: Binding version drifts after the answer context was built
+- **WHEN** a citation target's version-bound handle or registry revision no longer matches the active release at click time
+- **THEN** the citation SHALL degrade to a limited or unavailable state
+- **AND** it SHALL NOT navigate to a target captured under a superseded binding envelope
+
+#### Scenario: Exception-ledger resource is not launchable
+- **WHEN** a resource exists in the projection inventory only through an exception-ledger entry without a formal binding
+- **THEN** it SHALL NOT be offered as a clickable Konling citation
+- **AND** it MAY appear only as non-link grounding text when otherwise in scope
 

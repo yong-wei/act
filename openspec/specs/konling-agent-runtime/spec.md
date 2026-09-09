@@ -1449,3 +1449,95 @@ Konling SHALL retain one application coordinator while delegating domain decisio
 - **WHEN** a proposed simplification would copy domain policy into a new generic Konling layer
 - **THEN** the proposal is rejected and the existing domain public API remains authoritative
 
+### Requirement: Evidence-required answer units receive per-unit source allocation
+
+Konling SHALL allocate at least one directly supporting source to every `evidence-required` section of the answer intent contract before generation, and SHALL pass the per-unit allocation with citation identity, display number, citation target, locator info and source revision into the generation context.
+
+#### Scenario: Allocation covers all required sections
+
+- **WHEN** an answer intent has `evidence-required` sections and retrieval returns eligible candidates
+- **THEN** each required section SHALL be assigned at least one source that passes the direct-support relevance whitelist
+- **AND** the prompt SHALL render the allocation as a per-unit mapping of section title to assigned citation numbers.
+
+#### Scenario: One source backs multiple related units
+
+- **WHEN** a single source is genuinely relevant to multiple required sections
+- **THEN** the same citation number MAY appear in several per-unit mappings
+- **AND** each unit's relevance SHALL be judged independently, with per-citation-target dedup preserved, instead of mechanically copying one citation across units.
+
+#### Scenario: Retrieval budget scales with required units
+
+- **WHEN** an answer requires per-unit evidence allocation
+- **THEN** the allocation layer SHALL request retrieval candidates scaled to the required-section count
+- **AND** the global `konling-answer` retrieval profile defaults SHALL remain unchanged for answers without evidence-required sections.
+
+#### Scenario: Baseline arms keep no citation capability
+
+- **WHEN** the plain or enhanced baseline path generates an answer
+- **THEN** no citation allocation, mapping, or citation context SHALL be injected
+- **AND** existing citation-free behavior SHALL be preserved.
+
+### Requirement: Citation coverage gaps get one bounded repair pass
+
+Konling SHALL measure post-generation coverage with the existing answer-unit scan and direct-support caliber, and SHALL run at most one bounded repair pass for unbound required units before fail-closed downgrade.
+
+#### Scenario: Repair remaps alternate sources
+
+- **WHEN** generated answers leave required units without a bound direct-support citation while alternate allocated sources remain
+- **THEN** Konling SHALL rewrite the unbound unit lines once with the alternate citation numbers
+- **AND** the repair round and outcome SHALL be recorded in the citation snapshot.
+
+#### Scenario: Repair failure stays fail closed
+
+- **WHEN** the bounded repair pass still cannot bind a valid source to a required unit
+- **THEN** Konling SHALL keep the existing citation-gap downgrade and SHALL NOT fabricate or renumber citations to raise coverage.
+
+#### Scenario: Fabricated numbers remain zero
+
+- **WHEN** allocation, generation, and repair complete
+- **THEN** unassigned or fabricated citation numbers in the final answer SHALL be zero under the existing whitelist enforcement.
+
+### Requirement: Konling exposes a read-only engineering graph tool
+Konling SHALL expose a read-only engineering graph retrieval tool that queries the ActKG engineering corpus composed from the layered payload, bounded by the focus Canonical IDs and a predicate allowlist. The tool MUST NOT mutate graph state and MUST NOT expand beyond the authorized scope. The legacy `search_knowledge_graph` tool against the retired Prisma knowledge-node table SHALL NOT be presented as the engineering graph.
+
+#### Scenario: Engineering neighborhood is retrieved within scope
+- **WHEN** the model calls the engineering graph tool for a question about a focused Canonical ID
+- **THEN** the tool SHALL return a bounded neighborhood summary from the engineering RAG query over the layered-payload corpus
+- **AND** every returned relation SHALL carry its predicate, direction, and ReleaseSet provenance
+
+#### Scenario: Tool input escapes the focus allowlist
+- **WHEN** the tool is called with Canonical IDs outside the authorized focus set
+- **THEN** the server SHALL reject or clip those IDs before retrieval
+- **AND** the tool SHALL NOT return engineering nodes outside the authorized scope
+
+#### Scenario: Tool attempts a state change
+- **WHEN** a request through the engineering graph tool attempts to create, update, or delete graph content
+- **THEN** the server SHALL reject the action
+- **AND** the tool SHALL remain read-only in the registry permission tier
+
+### Requirement: Production answer retrieval authority switches through governed cutover
+The retrieval authority for production answers SHALL remain LEGACY until a shadow-comparison gate against the composed canonical RAG passes and the switch is explicitly authorized. The shadow diagnostic path MUST be a real data path collecting comparison metrics before the switch, or be removed as dead code with the decision recorded. The switch SHALL be reversible by configuration without data migration.
+
+#### Scenario: Shadow comparison runs before cutover
+- **WHEN** the composed canonical RAG path is wired as a shadow diagnostic alongside the legacy path
+- **THEN** the runtime SHALL record comparison metrics for sampled production answers
+- **AND** production answers SHALL continue to be served from the LEGACY authority
+
+#### Scenario: Cutover is authorized after the gate passes
+- **WHEN** shadow metrics meet the recorded threshold and the switch is authorized
+- **THEN** the production answer authority SHALL resolve to the composed path
+- **AND** reverting the configuration SHALL restore LEGACY without any data migration
+
+#### Scenario: Dead shadow code is not silently kept
+- **WHEN** the shadow diagnostic input is never supplied by any caller
+- **THEN** the change SHALL either wire the input so the diagnostic executes, or remove the dead path
+- **AND** the decision and its evidence SHALL be recorded
+
+### Requirement: Dual-domain provenance survives to the client
+The engineering and teaching domain provenance persisted with assistant messages SHALL be consumable by the client citation presentation, and teaching resource identifiers persisted in the dual-domain provenance metadata SHALL match the resources offered as citations.
+
+#### Scenario: Message carries dual-domain provenance
+- **WHEN** an assistant message persists dual-domain provenance including teaching resource ids
+- **THEN** the client citation panel SHALL be able to reconcile cited resources with those persisted ids
+- **AND** a citation whose resource id is absent from the persisted provenance SHALL be treated as unverified
+

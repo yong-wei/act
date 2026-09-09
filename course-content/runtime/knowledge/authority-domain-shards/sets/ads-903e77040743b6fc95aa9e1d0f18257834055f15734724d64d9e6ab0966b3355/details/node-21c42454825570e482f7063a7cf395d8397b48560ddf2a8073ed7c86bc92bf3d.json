@@ -1,0 +1,54 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "activationId": "activation-8e3583b9a606556590ec0c2c",
+      "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogHash": "7ab6a25f8d44cf8685ea4490ea1ffd37d3e9ed2331d0b1b1ae0c1215e2185182",
+      "catalogVersion": "v0.37-r6-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "projectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+      "teachingCacheFamily": "teaching-domain-proj:proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f:3ec9c4a4d57d5c6a"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-efe99df82e936fc7c540cd72",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1. 建立被控过程的状态变量模型。2. 建立参考输入模型。3. 定义跟踪误差。4. 根据需要求跟踪误差对时间的各阶导数。5. 定义中间变量（例如 z(t)=x(t) 的导数，w(t)=u(t) 的导数）。6. 构建包含跟踪误差及其各阶导数的增广系统。7. 检验增广系统的可控性。8. 设计反馈控制律以镇定增广系统。9. 对控制律积分得到控制输入 u(t)。",
+    "aliases": [],
+    "description": "1. Define the state variable model of the process. 2. Define the reference input model. 3. Define the tracking error. 4. Take time derivatives of the tracking error as needed. 5. Define intermediate variables (e.g., z(t)=derivative of x(t), w(t)=derivative of u(t)). 6. Form an augmented system including the tracking error and its derivatives. 7. Check controllability of the augmented system. 8. Design a feedback control law to stabilize the augmented system. 9. Integrate the control law to obtain the control input u(t).",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

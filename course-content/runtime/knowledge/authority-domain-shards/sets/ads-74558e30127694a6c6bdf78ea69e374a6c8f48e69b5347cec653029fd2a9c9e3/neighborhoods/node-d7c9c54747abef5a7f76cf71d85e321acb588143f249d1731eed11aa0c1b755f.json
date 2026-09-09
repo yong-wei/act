@@ -1,0 +1,107 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "snapshotHash": "e2d8b92f6095a7b79036cc0808952fd42e2077ff3b5cf0a36291fd0bc7f26aae",
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r4",
+      "activationId": "activation-0b72f577a3d58647e6b67246",
+      "activationHash": "1f3e70d409b140e54badca4a0bf4c0aff685f33e35937fbcf49373aa1c927caa",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogHash": "ae08809b60a065baf6586142c2aa6af3dbdaa453c634427b1afc6689a7217a1c",
+      "catalogVersion": "v0.37-r4-c6-presentation-evidence"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "projectionHash": "05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de",
+      "teachingCacheFamily": "teaching-domain-proj:proj-05984a0f2b2f69c36a186e4fafec49215464f44cbd39d5084267d645b11700de:05984a0f2b2f69c3"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-da5a0b3e951d2574c86f56d2",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-9578335176a326442ebdedfa",
+      "canonicalType": "Formula",
+      "label": "\\begin{align*}\n& C(s \\boldsymbol{I}-\\boldsymbol{A})^{-1} \\boldsymbol{B}=\\left(\\boldsymbol{C} \\boldsymbol{P}^{-1}\\right)\\left(s \\boldsymbol{I}-\\boldsymbol{P} \\boldsymbol{A} \\boldsymbol{P}^{-1}\\right)^{-1}(\\boldsymbol{P} \\boldsymbol{B}) \\\\\n= & {\\left[\\begin{array}{ll}\n\\overline{\\boldsymbol{C}}_{1} & \\overline{\\boldsymbol{C}}_{2}\n\\end{array}\\right]\\left[\\begin{array}{cc}\ns \\boldsymbol{I}-\\left[\\begin{array}{cc}\n\\overline{\\boldsymbol{A}}_{11} & \\overline{\\boldsymbol{A}}_{12} \\\\\n\\mathbf{0} & \\overline{\\boldsymbol{A}}_{22}\n\\end{array}\\right]\n\\end{array}\\right]^{-1}\\left[\\begin{array}{c}\n\\overline{\\boldsymbol{B}}_{1} \\\\\n\\mathbf{0}\n\\end{array}\\right] } \\\\\n= & {\\left[\\begin{array}{ll}\n\\overline{\\boldsymbol{C}}_{1} & \\overline{\\boldsymbol{C}}_{2}\n\\end{array}\\right]\\left[\\begin{array}{cc}\ns \\boldsymbol{I}-\\overline{\\boldsymbol{A}}_{11} & -\\overline{\\boldsymbol{A}}_{12} \\\\\n\\mathbf{0} & s \\boldsymbol{I}-\\overline{\\boldsymbol{A}}_{22}\n\\end{array}\\right]^{-1}\\left[\\begin{array}{c}\n\\overline{\\boldsymbol{B}}_{1} \\\\\n\\mathbf{0}\n\\end{array}\\right] }  \\tag{9-199}\\\\\n= & {\\left[\\begin{array}{ll}\n\\overline{\\boldsymbol{C}}_{1} & \\overline{\\boldsymbol{C}}_{2}\n\\end{array}\\right]\\left[\\begin{array}{cc}\n\\left(s \\boldsymbol{I}-\\overline{\\boldsymbol{A}}_{11}\\right)^{-1} & \\left(s \\boldsymbol{I}-\\overline{\\boldsymbol{A}}_{11}\\right)^{-1} \\overline{\\boldsymbol{A}}_{12}\\left(s \\boldsymbol{I}-\\overline{\\boldsymbol{A}}_{22}\\right)^{-1} \\\\\n\\mathbf{0} & \\left(s \\boldsymbol{I}-\\overline{\\boldsymbol{A}}_{22}\\right)^{-1}\n\\end{array}\\right]\\left[\\begin{array}{c}\n\\overline{\\boldsymbol{B}}_{1} \\\\\n\\mathbf{0}\n\\end{array}\\right] } \\\\\n= & \\overline{\\boldsymbol{C}}_{1}\\left(s \\boldsymbol{I}-\\overline{\\boldsymbol{A}}_{11}\\right)^{-1} \\overline{\\boldsymbol{B}}_{1}\n\\end{align*}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-da5a0b3e951d2574c86f56d2",
+      "canonicalType": "Formula",
+      "label": "\\begin{align*}\n& \\operatorname{rank}\\left[\\begin{array}{llll}\n\\boldsymbol{B} & \\boldsymbol{A} \\boldsymbol{B} & \\cdots & \\boldsymbol{A}^{n-1} \\boldsymbol{B}\n\\end{array}\\right] \\\\\n= & \\operatorname{rank}\\left[\\begin{array}{cccc}\n\\boldsymbol{P} \\boldsymbol{B} & \\left(\\boldsymbol{P} \\boldsymbol{A} \\boldsymbol{P}^{-1}\\right)(\\boldsymbol{P} \\boldsymbol{B}) & \\cdots & \\left(\\boldsymbol{P} \\boldsymbol{A} \\boldsymbol{P}^{-1}\\right)^{n-1}(\\boldsymbol{P} \\boldsymbol{B})\n\\end{array}\\right] \\\\\n= & \\operatorname{rank}\\left[\\begin{array}{cccc}\n\\overline{\\boldsymbol{B}}_{1} & \\overline{\\boldsymbol{A}}_{11} \\overline{\\boldsymbol{B}}_{1} & \\cdots & \\overline{\\boldsymbol{A}}_{11}^{n-1} \\overline{\\boldsymbol{B}}_{1} \\\\\n\\mathbf{0} & \\mathbf{0} & \\cdots & \\mathbf{0}\n\\end{array}\\right]  \\tag{9-198}\\\\\n= & \\operatorname{rank}\\left[\\begin{array}{llll}\n\\overline{\\boldsymbol{B}}_{1} & \\overline{\\boldsymbol{A}}_{11} \\overline{\\boldsymbol{B}}_{1} & \\cdots & \\overline{\\boldsymbol{A}}_{11}^{n-1} \\overline{\\boldsymbol{B}}_{1}\n\\end{array}\\right] \\\\\n= & r\n\\end{align*}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1l:relation-b7fdbd3c266511efe642f041",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-da5a0b3e951d2574c86f56d2",
+      "targetId": "ctkg:v3e-object-9578335176a326442ebdedfa",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}
