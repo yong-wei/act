@@ -1,5 +1,5 @@
 import type { KnowledgeRole } from '@/lib/authoritative-knowledge';
-import { capturesMatch, closeResourceBlockWithRegistryIndex, registryIndexIdentityOf, sanitizePublicResourceBindingLaunches, tryLiveRegistryIndex } from '@/lib/knowledge-surface/registry-closure';
+import { sanitizePublicResourceBindingLaunches } from '@/lib/knowledge-surface/registry-closure';
 import type { TeachingBindingRuntime, TeachingResourceType } from '@/lib/teaching-projection/contracts';
 import type { AuthorityLearnerShard, AuthorityShardEnvelope } from './contracts';
 import { publishedLearningContentTypes } from './learning-content';
@@ -11,9 +11,7 @@ export function activeAuthorityResourceTypes(envelope: AuthorityShardEnvelope, n
     .filter(([id, types]) => requested.has(id) && types.length > 0).map(([id, types]) => [id, new Set(types)]));
   const projection = matchActiveTeachingProjection({ envelope });
   if (projection.status !== 'available' || !projection.bindings || !projection.resources) return available;
-  const index = tryLiveRegistryIndex();
-  const identity = index ? registryIndexIdentityOf(index) : null;
-  if (!index || !capturesMatch(projection.authoringRevision, identity?.captureRevision ?? null)) return available;
+  // Filters describe published bindings. Launch authorization remains in the node-detail registry closure.
   const bindingsByNode = new Map<string, TeachingBindingRuntime[]>();
   for (const binding of projection.bindings) {
     if (!requested.has(binding.canonicalId)) continue;
@@ -28,8 +26,7 @@ export function activeAuthorityResourceTypes(envelope: AuthorityShardEnvelope, n
       if (!resource) continue;
       const projected = projectAuthorityNodeResourceBindings({ nodeId,
         bindings: bindings.filter((binding) => binding.resourceId === resourceId), resources: [resource], viewerRole: role });
-      const closed = closeResourceBlockWithRegistryIndex({ bindings: projected, index, expectedCaptureRevision: projection.authoringRevision });
-      const sanitized = sanitizePublicResourceBindingLaunches(closed.bindings, nodeId);
+      const sanitized = sanitizePublicResourceBindingLaunches(projected, nodeId);
       if (sanitized.state === 'available' && sanitized.items.some((item) => item.availability === 'available')) {
         const types = available.get(nodeId) ?? new Set<TeachingResourceType>();
         types.add(resource.resourceType);

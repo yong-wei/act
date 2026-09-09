@@ -42,7 +42,7 @@ Initial 2D and 3D domain layouts SHALL place connected nodes centrally and distr
 - **THEN** connected nodes SHALL be central and isolated nodes SHALL be distributed around the central group in both dimensions
 
 ### Requirement: Selection focus and filter presentation are consistent
-Selection SHALL highlight the selected node, its directly connected nodes and incident relations, dim nodes and relations outside that focus group, and hide labels outside that group until a canvas-background click clears focus. Default node types SHALL include only DomainConcept. A multi-select type menu SHALL open upward. An upward multi-select Node resources menu SHALL reuse the existing system resource types and current qualified published resources. Selected resource types SHALL match by OR and combine with object types by AND; an empty resource-type selection SHALL mean no resource restriction. Legend colors, line patterns and direction markers SHALL match both renderers.
+Selection SHALL highlight the selected node, its directly connected nodes and incident relations, dim nodes and relations outside that focus group, and hide labels outside that group until a canvas-background click clears focus. Default node types SHALL include only DomainConcept. A multi-select type menu SHALL open upward. An upward multi-select Node resources menu SHALL reuse the existing system resource types and published resource bindings matched to the selected Authority. Resource-type metadata SHALL NOT grant launch authorization; node-detail launch checks SHALL retain registry ownership and capture validation. Selected resource types SHALL match by OR and combine with object types by AND; an empty resource-type selection SHALL mean no resource restriction. Legend colors, line patterns and direction markers SHALL match both renderers.
 
 #### Scenario: Focus and clear a selected node
 - **WHEN** a node is selected and then the background is clicked
@@ -50,4 +50,9 @@ Selection SHALL highlight the selected node, its directly connected nodes and in
 
 #### Scenario: Filter multiple resource types and object types
 - **WHEN** the user selects types in the upward menu and selects resource types
-- **THEN** only nodes meeting both selections SHALL be shown, using the currently qualified resource evidence
+- **THEN** only nodes meeting both selections SHALL be shown, using the Authority-matched published binding evidence
+
+#### Scenario: Published resource type remains discoverable during app capture drift
+
+- **WHEN** a published resource binding matches the selected Authority but the application registry capture is dirty or differs
+- **THEN** its learner-visible resource type SHALL remain eligible for filtering while its launch SHALL remain blocked by the existing node-detail capture validation
