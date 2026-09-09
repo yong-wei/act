@@ -201,7 +201,6 @@ function runFixture(fixtureInfo, extraEnv = {}) {
   ]) delete environment[name];
   Object.assign(environment, {
     PATH: `${bin}:${environment.PATH}`,
-    BUILD_SCOPE: 'app-only',
     OUTPUT_TAR: 'out/image.tar',
     IMAGE_TAG: 'localhost/test:cache',
     HOME: path.join(fixture, 'home'),

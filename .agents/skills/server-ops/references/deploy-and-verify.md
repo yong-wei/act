@@ -16,6 +16,7 @@
 - 若本次修改涉及 `deploy/podman/` 下的部署脚本，先确认这些文件已经被显式纳入 Git 版本控制；本仓库根级 `.gitignore` 默认忽略 `deploy/`，不要只在本地修改未跟踪脚本后直接执行远端部署
 - Docker Desktop 发布资源固定为 24 GiB 内存、8 GiB Swap；构建统一使用 `NODE_MAX_OLD_SPACE_SIZE=12288` 和 `NODE_OPTIONS=--max-old-space-size=12288`。`scripts/build.sh` 的 20 GiB VM 门禁失败时必须停止，不得继续构建或改用 6/8 GiB heap 试探
 - 当前构建仍在运行时等待其自然结束，不得为了调整 Docker Desktop 或清理 BuildKit 中断构建
+- 构建或发布命令经管道收窄输出（`| tail`、`| tee` 等）时，必须先 `set -o pipefail` 并在命令结束后回显真实退出码（`echo "EXIT=$?"`）；`tail`/`tee` 几乎总是成功，不加 pipefail 的管道会把构建或部署的真实失败报告为成功，禁止以管道末命令的退出码判断发布成败
 - 完成远端验收并确认没有其他获授权构建后，退出 Docker Desktop 释放 VM 内存；仅停止 buildx builder 不等价于关闭 Docker Desktop
 
 推荐顺序：
