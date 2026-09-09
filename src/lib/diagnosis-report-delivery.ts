@@ -3,7 +3,6 @@ import 'server-only';
 import { z } from 'zod';
 
 import { prisma } from '@/lib/prisma';
-import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import {
   DIAGNOSIS_DELIVERY_PROJECTION_VERSION,
   DiagnosisDeliveryProjectionError,
@@ -27,7 +26,7 @@ export const diagnosisDispositionInputSchema = z.object({
 export type DiagnosisDispositionInput = z.output<typeof diagnosisDispositionInputSchema>;
 
 export type DiagnosisDeliveryAction = {
-  kind: 'student' | 'preparation' | 'remediation';
+  kind: 'student' | 'preparation';
   label: string;
   href: string;
   targetKey: string;
@@ -55,7 +54,7 @@ export async function readTeacherDiagnosisDelivery(input: {
     return { projection, actions: [], dispositionEvents: [] };
   }
   const [actions, dispositionEvents] = await Promise.all([
-    resolveTeacherDeliveryActions(input.teacherId, report),
+    resolveTeacherDeliveryActions(report),
     prisma.diagnosisReportDispositionEvent.findMany({
       where: { reportId: report.id },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -119,7 +118,7 @@ export async function recordDiagnosisDisposition(input: {
   }
   if (parsed.action === 'intervention-arranged') {
     if (!parsed.actionRef) throw new DiagnosisDeliveryError(400, 'diagnosis-disposition-action-ref-required');
-    const actions = await resolveTeacherDeliveryActions(input.teacherId, report);
+    const actions = resolveTeacherDeliveryActions(report);
     if (!actions.some((action) => action.href === parsed.actionRef && action.targetKey === parsed.targetKey)) {
       throw new DiagnosisDeliveryError(403, 'diagnosis-disposition-action-ref-forbidden');
     }
@@ -238,28 +237,11 @@ async function exportProjection(projection: DiagnosisDeliveryProjection, actorId
   };
 }
 
-async function resolveTeacherDeliveryActions(
-  teacherId: string,
+function resolveTeacherDeliveryActions(
   report: Awaited<ReturnType<typeof loadTeacherReport>>,
-): Promise<DiagnosisDeliveryAction[]> {
+): DiagnosisDeliveryAction[] {
   const parsedBody = parseStoredDiagnosisReportBody(report.reportBody);
   if (!parsedBody.success) throw new DiagnosisDeliveryError(409, 'invalid-report');
-  const body = parsedBody.data;
-  const nodeIds = [...new Set(body.findings.flatMap((finding) => finding.knowledgeNodeId ? [finding.knowledgeNodeId] : []))];
-  const registeredIds = new Set(getAllRegisteredResourceMetadata().map((resource) => resource.id));
-  const resources = nodeIds.length === 0 ? [] : await prisma.teachingResource.findMany({
-    where: {
-      authorId: teacherId,
-      registryId: { not: null },
-      knowledgeNodes: { some: { id: { in: nodeIds } } },
-    },
-    select: {
-      title: true,
-      registryId: true,
-      knowledgeNodes: { select: { id: true } },
-    },
-    orderBy: [{ displayOrder: 'asc' }, { title: 'asc' }],
-  });
   const actions: DiagnosisDeliveryAction[] = [];
   actions.push({
     kind: 'preparation',
@@ -275,28 +257,14 @@ async function resolveTeacherDeliveryActions(
       targetKey: 'report',
     });
   }
-  body.findings.forEach((finding, index) => {
-    const targetKey = `finding:${index + 1}`;
+  parsedBody.data.findings.forEach((finding, index) => {
     if (!finding.knowledgeNodeId) return;
     actions.push({
       kind: 'preparation',
       label: '进入备课工作台',
       href: '/teacher/smart-prep',
-      targetKey,
+      targetKey: `finding:${index + 1}`,
     });
-    const resource = resources.find((candidate) => (
-      candidate.registryId
-      && registeredIds.has(candidate.registryId)
-      && candidate.knowledgeNodes.some((node) => node.id === finding.knowledgeNodeId)
-    ));
-    if (resource) {
-      actions.push({
-        kind: 'remediation',
-        label: `已注册补练资源：${resource.title}`,
-        href: `/teacher/resources/resource-nodes?q=${encodeURIComponent(resource.title)}`,
-        targetKey,
-      });
-    }
   });
   return actions;
 }

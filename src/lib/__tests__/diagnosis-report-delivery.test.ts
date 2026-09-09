@@ -27,10 +27,6 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('@/lib/resource-registry-metadata', () => ({
-  getAllRegisteredResourceMetadata: () => [{ id: 'registered-remediation' }],
-}));
-
 vi.mock('@/lib/diagnosis-report-pdf', () => ({
   renderDiagnosisReportPdf: mocks.renderPdf,
 }));
@@ -76,11 +72,6 @@ describe('diagnosis report delivery service', () => {
     mocks.diagnosisReportFindFirst.mockResolvedValue(report);
     mocks.studentProfileFindFirst.mockResolvedValue({ id: 'profile-1' });
     mocks.dispositionFindMany.mockResolvedValue([]);
-    mocks.teachingResourceFindMany.mockResolvedValue([{
-      title: '稳定裕度补练',
-      registryId: 'registered-remediation',
-      knowledgeNodes: [{ id: 'node-margin' }],
-    }]);
     mocks.dispositionUpsert.mockResolvedValue({
       id: 'event-1',
       targetKind: 'finding',
@@ -118,7 +109,7 @@ describe('diagnosis report delivery service', () => {
     }));
   });
 
-  it('returns the report-level preparation entry alongside registered remediation and student routes', async () => {
+  it('resolves preparation and student routes without querying registered remediation resources', async () => {
     const delivery = await readTeacherDiagnosisDelivery({
       teacherId: 'teacher-1', classId: 'class-1', reportId: 'report-1', role: 'teacher',
     });
@@ -127,7 +118,8 @@ describe('diagnosis report delivery service', () => {
       expect.objectContaining({ kind: 'student', targetKey: 'report' }),
       expect.objectContaining({ kind: 'preparation', targetKey: 'finding:1', href: '/teacher/smart-prep' }),
     ]));
-    expect(delivery.actions.find((action) => action.kind === 'remediation')?.href).toContain('/teacher/resources/resource-nodes?q=');
+    expect(delivery.actions.some((action) => (action as { kind?: string }).kind === 'remediation')).toBe(false);
+    expect(mocks.teachingResourceFindMany).not.toHaveBeenCalled();
   });
 
   it('keeps the report-level preparation entry for a class report without mapped knowledge nodes', async () => {
