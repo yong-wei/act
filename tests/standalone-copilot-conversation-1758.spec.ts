@@ -5,6 +5,8 @@ import { join } from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 test.describe.configure({ mode: 'serial' });
 
 const evidenceDir = join(process.cwd(), 'artifacts/commercial-ui/issue-1758-standalone-copilot-conversation');
@@ -64,8 +66,7 @@ async function establishAuthenticatedSession(context: BrowserContext) {
   const loginResponse = await context.request.post('/api/auth/callback/credentials?json=true', {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: '/ai/copilot',
       json: 'true',
     },

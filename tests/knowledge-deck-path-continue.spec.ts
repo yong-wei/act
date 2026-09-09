@@ -1,5 +1,7 @@
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 
 const nextHref = '/interactive-learning/resources/lesson01-component-role-match?source=adaptive-path-center&goal=control-feedback&pathId=evidence-path&nodeId=registry%3Alesson01-component-role-match&intent=path-execution';
@@ -45,8 +47,7 @@ async function establishAuthenticatedSession(context: BrowserContext) {
   const loginResponse = await context.request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: baseURL,
       json: 'true',
     },

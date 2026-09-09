@@ -408,7 +408,7 @@ function writeSummary(metrics, runs, draftRows, stageRows, attemptRows, ratingPa
     `- 数据库：act_obe（本地 PostgreSQL）`,
     `- 课程依据：AUTO-CONTROL-ROOT-LOCUS / 根轨迹法课程依据`,
     `- 文档版本：cmt04ks1z0002h4vg7ae7qq4e（CONFIRMED / EXTRACTED）`,
-    `- 实验账号：${TEACHER_LOGIN_ID ?? '未配置（SMART_LESSON_TEACHER_LOGIN_ID）'}（TEACHER）`,
+    `- 实验账号：${TEACHER_LOGIN_ID}（TEACHER）`,
     `- 实验 ID：${EXPERIMENT_ID}`,
     `- 是否使用 fixture：否（SMART_LESSON_E2E_FIXTURE_TOKEN 未设置）`,
     '',

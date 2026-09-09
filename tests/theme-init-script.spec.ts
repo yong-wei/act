@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { verifiedCredentials } from './verified-test-credentials';
+
 const themeScenarios = [
   { name: 'stored light', storedTheme: 'light', systemTheme: 'dark', expectedTheme: 'light' },
   { name: 'stored dark', storedTheme: 'dark', systemTheme: 'light', expectedTheme: 'dark' },
@@ -14,10 +16,7 @@ const viewports = [
 ] as const;
 
 const themeConsoleError = /script tag while rendering React component|hydration (failed|mismatch)|hydrated but/i;
-const studentAccount = {
-  loginId: 'demo',
-  password: 'DemoStudent@Just2026!',
-} as const;
+const studentAccount = verifiedCredentials('student');
 
 type RootThemeState = {
   classes: string[];
