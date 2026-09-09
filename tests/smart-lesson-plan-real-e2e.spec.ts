@@ -32,7 +32,8 @@ test('uses the real browser, API, worker, Source Pack and fixture provider throu
   await page.reload();
 
   const card = page.locator('article').filter({ has: page.getByRole('heading', { name: topic }) });
-  await expect(card).toContainText('教师创建，来源待补');
+  await expect(card).toContainText('自动控制原理验收班');
+  await expect(card.getByText('已关联依据', { exact: true })).toHaveCount(2);
   await card.getByRole('button', { name: '开始生成' }).click();
   await expect(page.getByRole('status').filter({ hasText: '生成任务已进入队列' })).toBeVisible();
   await refreshUntil(card, '提纲：等待教师确认');
