@@ -27,6 +27,7 @@ const snapshotDir = `course-content/authoring/knowledge/authority/releases/${sna
 const manifest = json<AuthoritySnapshotManifest>(`${snapshotDir}/manifest.json`);
 const engineering = json<AuthorityEngineeringBody>(`${snapshotDir}/engineering.json`);
 verifyMaterializedSnapshot({ manifest, engineering });
+if (!manifest.sourceDatasetHash || !manifest.captureRevision) throw new Error('course-order: Authority capture provenance is incomplete');
 if (manifest.releaseId !== input.manifest.authority.releaseId) throw new Error('course-order: Authority release changed');
 if (manifest.snapshotHash !== input.manifest.authority.snapshotHash) {
   const predecessorDir = 'course-content/authoring/knowledge/authority/releases/' + input.manifest.authority.snapshotId;
@@ -63,7 +64,7 @@ const add = (relation: DomainFragmentRelationAuthoring) => {
   const domainKeys = [...new Set([...domainsFor(relation.sourceNodeId), ...domainsFor(relation.targetNodeId)])];
   relations.set(key, previous ? {
     ...previous,
-    evidenceRefs: [...new Set([...previous.evidenceRefs, ...relation.evidenceRefs])],
+    evidenceRefs: [...new Set([...(previous.evidenceRefs ?? []), ...(relation.evidenceRefs ?? [])])],
     domainKeys,
   } : { ...relation, domainKeys });
 };
@@ -160,7 +161,7 @@ if (process.argv.includes('--write')) {
     useCurrentAsPrior: false,
     scopeId: 'act-control-theory', authoringRevision: revision, authorityReleaseId: manifest.releaseId,
     authorityNodes: engineering.objects.map((object) => ({ canonicalId: object.canonicalId, lifecycleStatus: object.lifecycleStatus ?? 'active' })),
-    coreNodes: authoring.coreNodes.map((node) => ({ ...node, scopeId: 'act-control-theory' })),
+    coreNodes: authoring.coreNodes.map((node) => ({ ...node, sourceEvidence: [...node.sourceEvidence], scopeId: 'act-control-theory' })),
     edges: publishedEdges.map((row) => row.edge), decisions: publishedEdges.map((row) => row.decision),
     receipts: adoption.receipts,
   });

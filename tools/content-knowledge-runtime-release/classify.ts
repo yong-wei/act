@@ -16,6 +16,7 @@ function startsWithPath(path: string, prefix: string): boolean {
 }
 
 const OPERATOR_ADAPTERS = new Set([
+  'scripts/knowledge/select-local-graph-course-candidate.ts',
   'scripts/knowledge-cutover/activate-actkg-v018-production-cutover.ts',
   'scripts/knowledge-cutover/activate-actkg-v022-production-cutover.ts',
   'scripts/knowledge-cutover/apply-r4-c4-runtime-selectors.ts',
@@ -113,7 +114,8 @@ function roleFor(path: string): ReleaseRole {
   if (READERS.has(path)) return 'reader';
   if (/\/(?:qualify-|prepare-|admit-)/.test(path)) return 'candidate-adapter';
   if (
-    /(?:^|\/)(?:review_|validate[_-]|verify-|inspect-|benchmark_|check-)/.test(path)
+    path === 'scripts/knowledge/assert-knowledge-publication-consistency.ts'
+    || /(?:^|\/)(?:review_|validate[_-]|verify-|inspect-|benchmark_|check-)/.test(path)
     || path.includes('/tests/')
     || /(?:^|\/)generate-unavailable-label-audit/.test(path)
   ) {

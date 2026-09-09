@@ -41,6 +41,8 @@ describe('content knowledge runtime release toolchains', () => {
       role: 'publication-writer',
     });
     expect(classifyReleasePath('scripts/runtime-release/developer-oss/cli.py').role).toBe('operator-adapter');
+    expect(classifyReleasePath('scripts/knowledge/select-local-graph-course-candidate.ts').role).toBe('operator-adapter');
+    expect(classifyReleasePath('scripts/knowledge/assert-knowledge-publication-consistency.ts').safetyMode).toBe('read-only');
     expect(classifyReleasePath('scripts/runtime-release/activate-runtime-release.sh').role).toBe('operator-adapter');
   });
 
@@ -91,7 +93,7 @@ describe('content knowledge runtime release toolchains', () => {
   it('qualifies the live captured-tree inventory without product writer imports', () => {
     const result = checkContentKnowledgeRuntimeRelease(process.cwd());
     expect(result.counts).toEqual(FROZEN_COUNTS);
-    expect(result.commands).toHaveLength(41 + 19 + 80 + 44 + 5);
+    expect(result.commands).toHaveLength(41 + 23 + 80 + 44 + 5);
     expect(result.commands.some((item) => item.role === 'operator-adapter')).toBe(true);
     expect(result.commands.some((item) => item.path === CHARACTERIZATION_PATHS.content)).toBe(true);
     expect(result.characterization.knowledge.projectionHandoff).toEqual(PROJECTION_HANDOFF);

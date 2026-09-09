@@ -445,13 +445,12 @@ async function main(): Promise<void> {
   });
   const lessonStepInventory: LessonStepInventoryInput[] = inventory.packages
     .flatMap((pkg) => pkg.resources)
-    .filter((row) => row.resourceType === 'lesson' || row.resourceType === 'step')
-    .map((row) => ({
+    .flatMap((row): LessonStepInventoryInput[] => row.resourceType === 'lesson' || row.resourceType === 'step' ? [{
       resourceId: row.resourceId,
       resourceType: row.resourceType,
       title: row.title,
       sourcePath: row.sourcePath,
-    }));
+    }] : []);
 
   const plan = planRuntimeFullBinding({
     scopeId: manifest.scopeId,
