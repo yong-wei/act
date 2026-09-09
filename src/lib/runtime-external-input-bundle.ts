@@ -913,7 +913,7 @@ export function assertLearningContentAssetsMatchManifest(repoRoot: string, files
       if (expectedSha !== null && bundled.get(relativePath) !== expectedSha) failures.push(`hash:${relativePath}`);
       return;
     }
-    if (gitPaths.has(`course-content/runtime/${relativePath}`)) return;
+    if (gitPaths.has(relativePath)) return;
     failures.push(`missing:${relativePath}`);
   };
   const listed = new Set<string>();
@@ -923,7 +923,7 @@ export function assertLearningContentAssetsMatchManifest(repoRoot: string, files
     provided(cardPath, node.card?.state === 'available' ? node.card.sha256 ?? null : null);
     const infographPath = `${LEARNING_CONTENT_INFOGRAPH_PREFIX}${node.safeId}.png`;
     if (node.infograph?.state === 'missing') {
-      if (bundled.has(infographPath) || gitPaths.has(`course-content/runtime/${infographPath}`)) failures.push(`unexpected:${infographPath}`);
+      if (bundled.has(infographPath) || gitPaths.has(infographPath)) failures.push(`unexpected:${infographPath}`);
     } else {
       listed.add(infographPath);
       provided(infographPath, node.infograph?.state === 'available' ? node.infograph.sha256 ?? null : null);
