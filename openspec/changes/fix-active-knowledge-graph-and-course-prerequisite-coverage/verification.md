@@ -51,3 +51,11 @@ DEFER：完整测试中的既存工具路径读取边界、assessment 证据摘�
 - 资源索引、内容版本、媒体与受控链接测试 34 项通过；API 角色、可选失败和选择漂移测试 24 项通过；卡片导出相关 Python 测试 13 项通过。具体抽样见 resource-accessibility-verification.json。
 
 生产仍未更新；本地已修复与生产交付状态分别记录。
+
+## 最终应用代码检查点
+
+`0f4e10c7e39c58862a9329e0cdfd948cd4d799bc` 的单 worker 全量 Vitest 完成：12145 项通过、6 项失败、47 项跳过，原始结果已汇总至 full-unit-verification.json。教材旧断言已更新为已审定章节可打开、未知章节仍不可打开，所在文件 6 项通过。其余涉及独立工具路径读取、assessment 旧证据摘要、智能教案旧字符串断言和资源审计命令入口；对应业务实现与集成基线一致，不计为本轮新增产品缺陷。资源审计命令回归单独复测 59 项通过、1 项失败，未宣称该项通过。
+
+Web/Worker typecheck、推送门禁、194 项发布命令清单、部署脚本与 Docker 迁移就绪检查均通过。相关域 89 文件 1087 项与 Python 13 项通过。增量 GitHub 审查范围为 89bf86f6c05af4d737c81a1b117fe9f53b222bbf..0f4e10c7e39c58862a9329e0cdfd948cd4d799bc，尚待回复。
+
+生产只读预检：Docker Desktop 24576 MiB 内存、8192 MiB Swap；远端可用空间约 34 GiB。生产 Runtime desired 为 9 月 6 日提交 24535a1922addb04c033f520aeb62eed8c049649 的已物化候选，active 仍为 runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde。该历史候选的资源须纳入连续性核验，未覆盖生产选择记录。

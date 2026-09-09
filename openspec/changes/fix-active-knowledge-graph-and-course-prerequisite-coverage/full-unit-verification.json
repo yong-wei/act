@@ -1,0 +1,37 @@
+{
+  "revision": "0f4e10c7e39c58862a9329e0cdfd948cd4d799bc",
+  "command": "npx vitest run --maxWorkers=1 --reporter=json",
+  "passed": 12145,
+  "failed": 6,
+  "pending": 47,
+  "failures": [
+    {
+      "file": "src/lib/__tests__/independent-toolchain-execution-boundary.test.ts",
+      "test": "independent toolchain execution boundary qualifies the live captured Git denominator with independent tools mapping"
+    },
+    {
+      "file": "src/lib/__tests__/resource-field-completion-audit.test.ts",
+      "test": "resource field completion audit runs main when invoked through the package script"
+    },
+    {
+      "file": "src/lib/generated-content-authority/__tests__/generated-content-authority.test.ts",
+      "test": "generated content authority — real repository evaluation keeps every real row free of sink imports, cross-domain violations, and privacy leaks (self-consistent binding)"
+    },
+    {
+      "file": "src/lib/generated-content-authority/__tests__/generated-content-authority.test.ts",
+      "test": "generated content authority — real repository evaluation settles the real matrix through the dependency-qualified assessment row"
+    },
+    {
+      "file": "src/lib/layered-graph/__tests__/teaching-resource-launch-maps.test.ts",
+      "test": "teaching resource launch maps leaves unknown, book-level, and chapter-locator targets unavailable without guessing coordinates"
+    },
+    {
+      "file": "src/lib/smart-lesson-plan/__tests__/source-revision-contract.test.ts",
+      "test": "smart lesson real-provider source revision contract reuses the migration-seeded global cumulative portrait fence"
+    }
+  ],
+  "remediation": {
+    "teaching-resource-launch-maps": "updated reviewed chapter expectation; 6 tests passed"
+  },
+  "productionValidated": false
+}
