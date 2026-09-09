@@ -10,6 +10,11 @@ const teacherId = requiredEnv('SMART_LESSON_E2E_TEACHER_ID');
 const classId = requiredEnv('SMART_LESSON_E2E_CLASS_ID');
 const topic = requiredEnv('SMART_LESSON_E2E_TOPIC');
 const sourceRevision = requiredEnv('SMART_LESSON_E2E_SOURCE_REVISION');
+const prisma = createPrismaClient({ log: ['warn', 'error'] });
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
+});
 const evidencePath = path.join(
   process.cwd(),
   'openspec/changes/integrate-smart-preparation-rag-grounding/evidence/real-provider-continuous-teacher-flow.json',
@@ -270,17 +275,12 @@ function editorStatus(page: Page, message: string) {
 }
 
 async function acceptanceSnapshot() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    const task = await loadPersistedTask(prisma);
-    const version = await prisma.courseBasisDocumentVersion.findFirstOrThrow({
-      where: { document: { courseBasis: { ownerId: teacherId } } },
-      select: { reviewState: true },
-    });
-    return { task, job: task.drafts[0].jobs[0], version };
-  } finally {
-    await prisma.$disconnect();
-  }
+  const task = await loadPersistedTask();
+  const version = await prisma.courseBasisDocumentVersion.findFirstOrThrow({
+    where: { document: { courseBasis: { ownerId: teacherId } } },
+    select: { reviewState: true },
+  });
+  return { task, job: task.drafts[0].jobs[0], version };
 }
 
 async function generationSnapshot() {
@@ -290,26 +290,20 @@ async function generationSnapshot() {
 }
 
 async function maybeGenerationSnapshot() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
-    const task = await loadPersistedTask(prisma);
+    const task = await loadPersistedTask();
     const job = task.drafts[0].jobs[0];
     return job ? { task, job } : null;
-  } finally {
-    await prisma.$disconnect();
+  } catch {
+    return null;
   }
 }
 
 async function persistedTaskSnapshot() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    return await loadPersistedTask(prisma);
-  } finally {
-    await prisma.$disconnect();
-  }
+  return loadPersistedTask();
 }
 
-async function loadPersistedTask(prisma: ReturnType<typeof createPrismaClient>) {
+async function loadPersistedTask() {
   return prisma.smartLessonTask.findFirstOrThrow({
     where: { ownerId: teacherId, topic },
     include: {
@@ -344,16 +338,11 @@ async function requestAdvisoryReviewAndWait(page: Page, card: ReturnType<typeof 
 }
 
 async function persistedAdvisoryReviews() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    return await prisma.smartLessonAdvisoryReview.findMany({
-      where: { draft: { task: { ownerId: teacherId, topic } } },
-      orderBy: { createdAt: 'asc' },
-      select: { id: true, state: true, failureCode: true },
-    });
-  } finally {
-    await prisma.$disconnect();
-  }
+  return prisma.smartLessonAdvisoryReview.findMany({
+    where: { draft: { task: { ownerId: teacherId, topic } } },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, state: true, failureCode: true },
+  });
 }
 
 async function waitForGenerationOutcome(
@@ -522,12 +511,7 @@ function compactValidationReceipt(value: unknown) {
 }
 
 async function deletedTaskCount() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    return prisma.smartLessonTask.count({ where: { ownerId: teacherId, topic } });
-  } finally {
-    await prisma.$disconnect();
-  }
+  return prisma.smartLessonTask.count({ where: { ownerId: teacherId, topic } });
 }
 
 async function writeEvidence(value: Record<string, unknown>) {
