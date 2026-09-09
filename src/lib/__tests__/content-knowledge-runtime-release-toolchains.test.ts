@@ -93,7 +93,7 @@ describe('content knowledge runtime release toolchains', () => {
   it('qualifies the live captured-tree inventory without product writer imports', () => {
     const result = checkContentKnowledgeRuntimeRelease(process.cwd());
     expect(result.counts).toEqual(FROZEN_COUNTS);
-    expect(result.commands).toHaveLength(42 + 23 + 80 + 44 + 5);
+    expect(result.commands).toHaveLength(42 + 24 + 80 + 44 + 5);
     expect(result.commands.some((item) => item.role === 'operator-adapter')).toBe(true);
     expect(result.commands.some((item) => item.path === CHARACTERIZATION_PATHS.content)).toBe(true);
     expect(result.characterization.knowledge.projectionHandoff).toEqual(PROJECTION_HANDOFF);
