@@ -13,14 +13,13 @@ import {
   Html,
   PerspectiveCamera,
   Line,
-  useGLTF,
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
-import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
+import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -74,6 +73,11 @@ import {
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromMilliseconds,
 } from '../lib/simulation-timing';
+import {
+  absoluteHeadingErrorDeg,
+  advanceAttainment,
+  createAttainmentState,
+} from '../lib/heading-attainment';
 
 // ============ 类型定义 ============
 
@@ -157,103 +161,36 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 
 // ============ 集装箱船模型组件 ============
 
-const MODEL = resolveRegisteredSimulationModel('container');
+function containerDraftMeters(loadRatio: number): number {
+  const clamped = Math.min(1, Math.max(0, loadRatio));
+  return CONTAINER_MSC_PARAMS.DRAFT_EMPTY
+    + (CONTAINER_MSC_PARAMS.DRAFT_FULL - CONTAINER_MSC_PARAMS.DRAFT_EMPTY) * clamped;
+}
 
 function ContainerShipModel(props: {
   position: Vector2;
   heading: number;
   rollAngle: number;
   loadRatio: number;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
+  resetToken: number;
 }) {
+  const currentDraft = containerDraftMeters(props.loadRatio);
   return (
-    <FallbackGltfModel
-      candidates={MODEL.candidates}
-      render={(url) => <ContainerShipModelScene url={url} {...props} />}
+    <VersionedFleetShip
+      logicalId="container"
+      simRef={props.simRef}
+      position={props.position}
+      headingRad={props.heading}
+      extraEuler={{ z: props.rollAngle }}
+      sceneLengthMeters={CONTAINER_MSC_PARAMS.LENGTH}
+      resetToken={props.resetToken}
+      legacyYawOffsetRad={0}
+      fallbackDraftMeters={currentDraft}
+      verticalOffsetMeters={CONTAINER_MSC_PARAMS.DRAFT_FULL - currentDraft}
     />
   );
 }
-
-function ContainerShipModelScene({
-  url,
-  position,
-  heading,
-  rollAngle,
-  loadRatio,
-}: {
-  url: string;
-  position: Vector2;
-  heading: number;
-  rollAngle: number;
-  loadRatio: number;
-}) {
-  const { scene } = useGLTF(url, true, true);
-  const groupRef = useRef<THREE.Group>(null);
-  const modelYawOffset = 0;
-
-  const { model, scale, modelHeight } = useMemo(() => {
-    const cloned = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(cloned);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-
-    // 居中模型
-    cloned.position.sub(center);
-
-    // 启用阴影和修复材质
-    cloned.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
-        child.frustumCulled = false;
-        if (child.material) {
-          child.material.transparent = false;
-          child.material.opacity = 1;
-          child.material.side = THREE.DoubleSide;
-        }
-      }
-    });
-
-    // 计算缩放 - 目标长度约 400m (MSC Tessa 实际长度)
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetLength = CONTAINER_MSC_PARAMS.LENGTH;
-    const calculatedScale = targetLength / maxDim;
-
-    return { model: cloned, scale: calculatedScale, modelHeight: size.y * calculatedScale };
-  }, [scene]);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      const clampedLoadRatio = THREE.MathUtils.clamp(loadRatio, 0, 1);
-      const currentDraft =
-        CONTAINER_MSC_PARAMS.DRAFT_EMPTY +
-        (CONTAINER_MSC_PARAMS.DRAFT_FULL - CONTAINER_MSC_PARAMS.DRAFT_EMPTY) * clampedLoadRatio;
-      groupRef.current.position.x = position.x;
-      groupRef.current.position.y = modelHeight * 0.5 - currentDraft;
-      groupRef.current.position.z = position.z;
-      // 集装箱船模型前向轴与仿真坐标系接近，仅保留航向本身
-      groupRef.current.rotation.y = -heading + modelYawOffset;
-      // 横摇
-      groupRef.current.rotation.z = rollAngle;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      <primitive object={model} scale={scale} />
-      {/* 船艏标记 */}
-      <mesh position={[0, modelHeight * 0.6, 0]}>
-        <sphereGeometry args={[8, 16, 16]} />
-        <meshBasicMaterial color={simulationScenePalette.containerPrimary} />
-      </mesh>
-    </group>
-  );
-}
-
-// 预加载集装箱船模型（仅压缩件，避免双份下载）
-useGLTF.preload(MODEL.primary);
 
 // ============ 航迹线组件 ============
 
@@ -691,6 +628,7 @@ function Scene({
   controlsRef,
   resetToken,
   resetSignal,
+  simRef,
 }: {
   state: ContainerSimulationState;
   trajectory: Vector2[];
@@ -701,6 +639,7 @@ function Scene({
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
   resetToken: number;
   resetSignal: number;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
 }) {
   return (
     <>
@@ -762,6 +701,8 @@ function Scene({
           heading={toRadians(state.heading)}
           rollAngle={state.rollAngle}
           loadRatio={state.loadRatio}
+          simRef={simRef}
+          resetToken={resetToken}
         />
       </Suspense>
 
@@ -816,6 +757,13 @@ export default function ContainerSimulation() {
   const speedScaleRef = useRef(1);
   const timeRef = useRef(0);
   const lastHudUpdateRef = useRef(0);
+  const bindingRef = useRef<BindingTelemetrySource>({
+    rudderDeg: 0,
+    speedMps: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
+    attainedCount: 0,
+    advancing: false,
+  });
+  const attainmentRef = useRef(createAttainmentState(0));
 
   // 相机状态
   const [cameraMode, setCameraMode] = useState<string>('chase');
@@ -898,6 +846,17 @@ export default function ContainerSimulation() {
       nextTime = stepTime;
       nextState = engine.getState(stepTime);
       summary = engine.getContainerShipSummary();
+      const headingError = absoluteHeadingErrorDeg(nextState.heading, control.targetHeading);
+      let attainedCount = bindingRef.current.attainedCount;
+      if (advanceAttainment(attainmentRef.current, control.targetHeading, headingError, 5, dt)) {
+        attainedCount += 1;
+      }
+      bindingRef.current = {
+        rudderDeg: nextState.rudder,
+        speedMps: nextState.speed,
+        attainedCount,
+        advancing: !control.isPaused,
+      };
     });
 
     if (nextState) {
@@ -978,6 +937,13 @@ export default function ContainerSimulation() {
     }
     timeRef.current = 0;
     lastHudUpdateRef.current = 0;
+    attainmentRef.current = createAttainmentState(0);
+    bindingRef.current = {
+      rudderDeg: 0,
+      speedMps: CONTAINER_MSC_PARAMS.CRUISE_SPEED,
+      attainedCount: 0,
+      advancing: false,
+    };
     setTrajectory([]);
     setSimState({
       isRunning: false,
@@ -1068,6 +1034,7 @@ export default function ContainerSimulation() {
           controlsRef={controlsRef}
           resetToken={resetCount}
           resetSignal={viewResetCount}
+          simRef={bindingRef}
         />
       </Canvas>
 

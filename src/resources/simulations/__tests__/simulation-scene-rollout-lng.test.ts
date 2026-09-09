@@ -55,9 +55,8 @@ describe('lng pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(LNG);
-    expect(source).toContain("resolveRegisteredSimulationModel('lng-carrier')");
-    expect(source).toContain('FallbackGltfModel');
-    expect(source).toContain('frustumCulled = false');
+    expect(source).toContain('VersionedFleetShip');
+    expect(source).toContain("logicalId=\"lng-carrier\"");
   });
 
   it('gates the heading indicator behind the teaching-annotations toggle', () => {

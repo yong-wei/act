@@ -310,11 +310,16 @@ function main() {
   );
 
   assert.equal(
-    script.includes('BUILD_SCOPE="$([[ "${DEPLOY_SCOPE}" == "app" ]] && printf \'%s\' app-only || printf \'%s\' runtime-bound)"') &&
-      script.includes('--app-only 必须使用 deploymentScope=app-only 的镜像 provenance') &&
+    script.includes('BUILD_SCOPE'),
+    false,
+    '应用与资源发布已分离：远端部署脚本不得再选择 BUILD_SCOPE，build.sh 只构建不绑定 runtime 的 app-only 镜像',
+  );
+
+  assert.equal(
+    script.includes('--app-only 必须使用 deploymentScope=app-only 的镜像 provenance') &&
       script.includes('包含 runtime 选择的部署必须使用 runtime-bound 镜像 provenance'),
     true,
-    'app-only 部署必须使用不声明 runtime 的 provenance，runtime 选择部署仍必须绑定完整 provenance',
+    'app-only 部署必须使用不声明 runtime 的 provenance；runtime 选择路径在 provenance 门禁保持 fail-closed',
   );
 
   assert.match(

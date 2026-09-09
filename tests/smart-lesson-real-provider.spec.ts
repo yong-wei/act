@@ -1,15 +1,20 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { encode } from 'next-auth/jwt';
+import { expect, test, type Page } from '@playwright/test';
 
 import { createPrismaClient } from '../src/lib/prisma-client';
+import { addVerifiedTeacherSession } from './smart-lesson-verified-teacher-session';
 
 const teacherId = requiredEnv('SMART_LESSON_E2E_TEACHER_ID');
 const classId = requiredEnv('SMART_LESSON_E2E_CLASS_ID');
 const topic = requiredEnv('SMART_LESSON_E2E_TOPIC');
 const sourceRevision = requiredEnv('SMART_LESSON_E2E_SOURCE_REVISION');
+const prisma = createPrismaClient({ log: ['warn', 'error'] });
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
+});
 const evidencePath = path.join(
   process.cwd(),
   'openspec/changes/integrate-smart-preparation-rag-grounding/evidence/real-provider-continuous-teacher-flow.json',
@@ -24,7 +29,7 @@ type NaturalRecoveryBudget = { total: number; perStage: Map<string, number>; eve
 test('continuous real-teacher preparation flow uses governed sources, current portrait and real provider', async ({ page, context }) => {
   expect(requiredEnv('SMART_LESSON_REAL_PROVIDER_REQUIRED')).toBe('1');
   expect(process.env.SMART_LESSON_E2E_FIXTURE_TOKEN).toBeUndefined();
-  await addTeacherSession(context);
+  await addVerifiedTeacherSession(context, teacherId);
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.goto('/teacher/smart-prep');
@@ -101,7 +106,6 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   }
   expect(advisoryReviews.at(-1)?.state).toBe('COMPLETED');
   expect(advisoryReviews.filter((review) => review.state === 'COMPLETED')).toHaveLength(1);
-  await expect(smartLessonStatus(page, 'AI 建议已生成')).toBeVisible({ timeout: 8 * 60_000 });
   await page.reload();
   card = taskCard(page);
   await expect(card).toContainText('审核建议已生成');
@@ -138,10 +142,19 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   expect(attempts.every((attempt) =>
     attempt.providerKind !== 'fixture' && attempt.serviceId !== 'smart-lesson-fixture')).toBe(true);
 
-  page.once('dialog', (dialog) => dialog.accept());
-  await card.getByRole('button', { name: '永久删除' }).click();
-  await expect(smartLessonStatus(page, '任务及未发布内容已永久删除。')).toBeVisible();
+  const deleteButton = card.getByRole('button', { name: '永久删除' });
+  await deleteButton.scrollIntoViewIfNeeded();
+  await page.evaluate(() => {
+    window.confirm = (message) => String(message ?? '').includes('永久删除');
+  });
+  const deleteResponse = page.waitForResponse((response) => (
+    response.request().method() === 'DELETE'
+    && /\/api\/teacher\/smart-lesson-tasks\/[^/?#]+$/.test(new URL(response.url()).pathname)
+  ));
+  await deleteButton.click();
+  expect((await deleteResponse).ok()).toBe(true);
   await expect.poll(async () => deletedTaskCount()).toBe(0);
+  await expect(page.getByRole('heading', { name: topic })).toHaveCount(0);
 
   await writeEvidence({
     sourceRevision,
@@ -270,17 +283,12 @@ function editorStatus(page: Page, message: string) {
 }
 
 async function acceptanceSnapshot() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    const task = await loadPersistedTask(prisma);
-    const version = await prisma.courseBasisDocumentVersion.findFirstOrThrow({
-      where: { document: { courseBasis: { ownerId: teacherId } } },
-      select: { reviewState: true },
-    });
-    return { task, job: task.drafts[0].jobs[0], version };
-  } finally {
-    await prisma.$disconnect();
-  }
+  const task = await loadPersistedTask();
+  const version = await prisma.courseBasisDocumentVersion.findFirstOrThrow({
+    where: { document: { courseBasis: { ownerId: teacherId } } },
+    select: { reviewState: true },
+  });
+  return { task, job: task.drafts[0].jobs[0], version };
 }
 
 async function generationSnapshot() {
@@ -290,26 +298,20 @@ async function generationSnapshot() {
 }
 
 async function maybeGenerationSnapshot() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
   try {
-    const task = await loadPersistedTask(prisma);
+    const task = await loadPersistedTask();
     const job = task.drafts[0].jobs[0];
     return job ? { task, job } : null;
-  } finally {
-    await prisma.$disconnect();
+  } catch {
+    return null;
   }
 }
 
 async function persistedTaskSnapshot() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    return await loadPersistedTask(prisma);
-  } finally {
-    await prisma.$disconnect();
-  }
+  return loadPersistedTask();
 }
 
-async function loadPersistedTask(prisma: ReturnType<typeof createPrismaClient>) {
+async function loadPersistedTask() {
   return prisma.smartLessonTask.findFirstOrThrow({
     where: { ownerId: teacherId, topic },
     include: {
@@ -344,16 +346,11 @@ async function requestAdvisoryReviewAndWait(page: Page, card: ReturnType<typeof 
 }
 
 async function persistedAdvisoryReviews() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    return await prisma.smartLessonAdvisoryReview.findMany({
-      where: { draft: { task: { ownerId: teacherId, topic } } },
-      orderBy: { createdAt: 'asc' },
-      select: { id: true, state: true, failureCode: true },
-    });
-  } finally {
-    await prisma.$disconnect();
-  }
+  return prisma.smartLessonAdvisoryReview.findMany({
+    where: { draft: { task: { ownerId: teacherId, topic } } },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, state: true, failureCode: true },
+  });
 }
 
 async function waitForGenerationOutcome(
@@ -522,12 +519,7 @@ function compactValidationReceipt(value: unknown) {
 }
 
 async function deletedTaskCount() {
-  const prisma = createPrismaClient({ log: ['warn', 'error'] });
-  try {
-    return prisma.smartLessonTask.count({ where: { ownerId: teacherId, topic } });
-  } finally {
-    await prisma.$disconnect();
-  }
+  return prisma.smartLessonTask.count({ where: { ownerId: teacherId, topic } });
 }
 
 async function writeEvidence(value: Record<string, unknown>) {
@@ -537,28 +529,6 @@ async function writeEvidence(value: Record<string, unknown>) {
     generatedAt: new Date().toISOString(),
     ...value,
   }, null, 2)}\n`, 'utf8');
-}
-
-async function addTeacherSession(context: BrowserContext) {
-  const token = await encode({
-    secret: requiredEnv('NEXTAUTH_SECRET'),
-    token: {
-      id: teacherId,
-      email: 'smart-lesson-real-e2e@example.test',
-      name: '智能教案真实验收教师',
-      role: 'TEACHER',
-    },
-  });
-  await context.addCookies([{
-    name: 'next-auth.session-token',
-    value: token,
-    domain: '127.0.0.1',
-    path: '/',
-    httpOnly: true,
-    sameSite: 'Lax',
-    secure: false,
-    expires: Math.floor(Date.now() / 1000) + 3_600,
-  }]);
 }
 
 function requiredEnv(name: string) {

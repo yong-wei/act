@@ -22,6 +22,7 @@ import { getShipModelPosterPath } from '@/resources/simulations/ship-model-asset
 
 type ShipModelPreviewProps = {
   modelPath: string
+  fallbackPath?: string
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
 }
@@ -48,6 +49,38 @@ const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/dredger.glb': new THREE.Vector3(1, 0, 0),
   '/assets/luxury-liner.glb': new THREE.Vector3(0, 0, -1),
   '/assets/drilling-rig.glb': new THREE.Vector3(0, 0, -1),
+}
+
+function isActForwardLegacyPath(modelPath: string): boolean {
+  return (
+    modelPath.includes('/v1.0.0/lng-changheng')
+    || modelPath.includes('/v1.0.0/msc-tessa')
+    || modelPath.includes('/v1.0.0/hysy-981')
+    || modelPath.includes('/v1.0.2/hysy-981')
+    || (modelPath.startsWith('/assets/model-releases/dredger-tianjing/') && modelPath.includes('/v1.0.1/'))
+  )
+}
+
+function isHeroNativePlusX(modelPath: string): boolean {
+  return (
+    modelPath.includes('type055-nanchang-101')
+    || modelPath.includes('xue-long-2')
+    || modelPath.includes('adora-magic-city')
+    || modelPath.includes('lng-changheng')
+    || modelPath.includes('msc-tessa')
+    || modelPath.includes('hysy-981')
+    || modelPath.includes('dredger-tianjing')
+  )
+}
+
+function resolvePreviewForward(modelPath: string): THREE.Vector3 {
+  if (isActForwardLegacyPath(modelPath)) {
+    return new THREE.Vector3(0, 0, 1)
+  }
+  if (isHeroNativePlusX(modelPath)) {
+    return new THREE.Vector3(1, 0, 0)
+  }
+  return (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
 }
 
 const MODEL_YAW_ROTATION: Record<string, number> = {
@@ -112,7 +145,7 @@ export function preloadShipModel(modelPath: string, priority: PreloadPriority = 
 
   const run = () => {
     queuePreload(() => {
-      useGLTF.preload(modelPath)
+      useGLTF.preload(modelPath, true, true)
     })
   }
 
@@ -137,8 +170,8 @@ class ModelLoadBoundary extends Component<{
   }
 }
 
-function CenteredModel({ modelPath, onReady }: { modelPath: string; onReady: () => void }) {
-  const { scene } = useGLTF(modelPath)
+function CenteredGltfModel({ modelPath, onReady }: { modelPath: string; onReady: () => void }) {
+  const { scene } = useGLTF(modelPath, true, true)
 
   const { model, scale, rotation } = useMemo(() => {
     const cloned = scene.clone(true)
@@ -160,7 +193,7 @@ function CenteredModel({ modelPath, onReady }: { modelPath: string; onReady: () 
     const maxDim = Math.max(size.x, size.y, size.z) || 1
     const targetSize = 1.6
     const scale = targetSize / maxDim
-    const forward = (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
+    const forward = resolvePreviewForward(modelPath)
     const rotation = new THREE.Quaternion().setFromUnitVectors(forward, STANDARD_FORWARD)
     const extraYaw = MODEL_YAW_ROTATION[modelPath] ?? 0
     if (extraYaw !== 0) {
@@ -183,6 +216,7 @@ function CenteredModel({ modelPath, onReady }: { modelPath: string; onReady: () 
 
 export function ShipModelPreview({
   modelPath,
+  fallbackPath,
   onInteractionStart,
   onInteractionEnd,
 }: ShipModelPreviewProps) {
@@ -190,6 +224,7 @@ export function ShipModelPreview({
     <ShipModelPreviewSession
       key={modelPath}
       modelPath={modelPath}
+      fallbackPath={fallbackPath}
       onInteractionStart={onInteractionStart}
       onInteractionEnd={onInteractionEnd}
     />
@@ -198,6 +233,7 @@ export function ShipModelPreview({
 
 function ShipModelPreviewSession({
   modelPath,
+  fallbackPath,
   onInteractionStart,
   onInteractionEnd,
 }: ShipModelPreviewProps) {
@@ -209,6 +245,8 @@ function ShipModelPreviewSession({
   const [retryCount, setRetryCount] = useState(0)
   const [retryKey, setRetryKey] = useState(0)
   const [loadFailed, setLoadFailed] = useState(false)
+  const [useFallback, setUseFallback] = useState(false)
+  const activePath = useFallback && fallbackPath ? fallbackPath : modelPath
 
   const posterPath = getShipModelPosterPath(modelPath)
   const isStaticOnly = shouldForceStaticByConnection(getConnectionHint())
@@ -224,7 +262,7 @@ function ShipModelPreviewSession({
     }
 
     const timer = window.setTimeout(() => {
-      preloadShipModel(modelPath, 'high')
+      preloadShipModel(activePath, 'high')
       setShowCanvas(true)
     }, 120)
 
@@ -235,15 +273,21 @@ function ShipModelPreviewSession({
         retryTimerRef.current = null
       }
     }
-  }, [isStaticOnly, modelPath])
+  }, [isStaticOnly, activePath])
 
   const handleModelError = () => {
     setIsModelReady(false)
+    if (fallbackPath && !useFallback) {
+      setUseFallback(true)
+      setRetryKey((prev) => prev + 1)
+      setShowCanvas(true)
+      return
+    }
     if (retryCount < 2) {
       const nextRetryCount = retryCount + 1
       setRetryCount(nextRetryCount)
       retryTimerRef.current = window.setTimeout(() => {
-        preloadShipModel(modelPath, 'high')
+        preloadShipModel(activePath, 'high')
         setRetryKey((prev) => prev + 1)
         setShowCanvas(true)
       }, 600 * nextRetryCount)
@@ -278,7 +322,7 @@ function ShipModelPreviewSession({
 
       {showCanvas && !isStaticOnly && !loadFailed ? (
         <Canvas
-          key={`${modelPath}-${retryKey}`}
+          key={`${activePath}-${retryKey}`}
           className={`h-full w-full transition-opacity duration-500 ${isModelReady ? 'opacity-100' : 'opacity-60'}`}
           camera={{ position: CAMERA_POSITION, fov: 35 }}
           onPointerDown={handleInteractionStart}
@@ -292,7 +336,7 @@ function ShipModelPreviewSession({
           <AutoOrbit controlsRef={controlsRef} isInteractingRef={isInteractingRef} />
           <ModelLoadBoundary onError={handleModelError}>
             <Suspense fallback={null}>
-              <CenteredModel modelPath={modelPath} onReady={() => setIsModelReady(true)} />
+              <CenteredGltfModel modelPath={activePath} onReady={() => setIsModelReady(true)} />
             </Suspense>
           </ModelLoadBoundary>
           <OrbitControls

@@ -1,11 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { expect, test, type BrowserContext } from '@playwright/test';
-import { encode } from 'next-auth/jwt';
+import { expect, test } from '@playwright/test';
 
 import { resolveSmartLessonEvidenceFile } from '../scripts/tests/smart-lesson-evidence-path';
 import { createPrismaClient } from '../src/lib/prisma-client';
+import { addVerifiedTeacherSession } from './smart-lesson-verified-teacher-session';
 
 const teacherId = requiredEnv('SMART_LESSON_E2E_TEACHER_ID');
 const topic = requiredEnv('SMART_LESSON_E2E_TOPIC');
@@ -27,7 +27,7 @@ test('teacher explicitly retries the preserved real-provider job without changin
     'PRE_ASSESSMENT',
   ]);
 
-  await addTeacherSession(context);
+  await addVerifiedTeacherSession(context, teacherId);
   await page.goto('/teacher/smart-prep');
   const card = page.locator('article').filter({ has: page.getByRole('heading', { name: topic }) });
   await expect(card).toContainText('生成服务响应超时，请重试当前阶段。');
@@ -194,28 +194,6 @@ function assertCompletedStagesPreserved(
     expect(actual?.attempts.map((attempt) => attempt.id))
       .toEqual(expected.attempts.map((attempt) => attempt.id));
   }
-}
-
-async function addTeacherSession(context: BrowserContext) {
-  const token = await encode({
-    secret: requiredEnv('NEXTAUTH_SECRET'),
-    token: {
-      id: teacherId,
-      email: 'smart-lesson-real-e2e@example.test',
-      name: '智能教案真实验收教师',
-      role: 'TEACHER',
-    },
-  });
-  await context.addCookies([{
-    name: 'next-auth.session-token',
-    value: token,
-    domain: '127.0.0.1',
-    path: '/',
-    httpOnly: true,
-    sameSite: 'Lax',
-    secure: false,
-    expires: Math.floor(Date.now() / 1000) + 3_600,
-  }]);
 }
 
 function requiredEnv(name: string) {

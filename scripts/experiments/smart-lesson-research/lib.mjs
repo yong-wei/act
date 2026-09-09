@@ -3,11 +3,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import pg from 'pg';
 
+import { credentialsFor } from '../../db/verified-test-accounts.mjs';
+
+const teacherCredentials = credentialsFor('teacher', {
+  loginId: process.env.SMART_LESSON_TEACHER_LOGIN_ID,
+  password: process.env.SMART_LESSON_TEACHER_PASSWORD,
+});
+
 export const BASE_URL = (process.env.NEXTAUTH_URL || 'http://127.0.0.1:3001').replace(/\/$/, '');
-export const COURSE_BASIS_ID = 'cmt04kluy0000h4vg61gw7yf1';
-export const SOURCE_VERSION_ID = 'cmt04ks1z0002h4vg7ae7qq4e';
-export const TEACHER_LOGIN_ID = process.env.SMART_LESSON_TEACHER_LOGIN_ID;
-export const TEACHER_PASSWORD = process.env.SMART_LESSON_TEACHER_PASSWORD;
+export const COURSE_BASIS_ID = process.env.SMART_LESSON_COURSE_BASIS_ID || 'cmt04kluy0000h4vg61gw7yf1';
+export const SOURCE_VERSION_ID = process.env.SMART_LESSON_SOURCE_VERSION_ID || 'cmt04ks1z0002h4vg7ae7qq4e';
+export const TEACHER_LOGIN_ID = teacherCredentials.loginId;
+export const TEACHER_PASSWORD = teacherCredentials.password;
 
 export const OUTPUT_DIR = path.resolve(
   process.cwd(),
@@ -103,9 +110,6 @@ export function saveProgress(progress) {
 }
 
 export async function login() {
-  if (!TEACHER_LOGIN_ID || !TEACHER_PASSWORD) {
-    throw new Error('缺少 SMART_LESSON_TEACHER_LOGIN_ID / SMART_LESSON_TEACHER_PASSWORD 环境变量');
-  }
   const jar = new Map();
   const remember = (response) => {
     const lines = response.headers.getSetCookie?.() ?? [];

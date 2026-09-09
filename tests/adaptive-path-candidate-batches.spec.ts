@@ -5,6 +5,8 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1451-candidate-adjustment');
 const manifestPath = path.join(evidenceDir, 'evidence-manifest.json');
 const sourceFiles = [
@@ -440,8 +442,7 @@ async function login(context: BrowserContext) {
   const response = await context.request.post('/api/auth/callback/credentials?json=true', {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: '/',
       json: 'true',
     },

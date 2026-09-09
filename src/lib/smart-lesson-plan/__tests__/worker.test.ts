@@ -753,6 +753,46 @@ describe('smart lesson BullMQ worker', () => {
     }));
   });
 
+  it('routes an outline class-context ref mismatch through correction with the expected ref', async () => {
+    const contextRef = `cumulative-class-portrait:${'d'.repeat(64)}`;
+    const context = outlineJobContext();
+    context.draft.task.aggregateClassContextRef = contextRef;
+    const mismatched = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const corrected = {
+      ...mismatched,
+      classAdaptation: { aggregateContextRef: contextRef, emphasis: [] },
+    };
+    const generate = vi.fn()
+      .mockResolvedValueOnce({ output: mismatched, normalizedResponseId: 'qwen-outline' })
+      .mockResolvedValueOnce({ output: corrected, normalizedResponseId: 'qwen-outline-corrected' });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      request: expect.objectContaining({
+        correctionContext: expect.objectContaining({ expectedAggregateContextRef: contextRef }),
+      }),
+    }));
+    expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      attemptId: 'attempt-correction-1',
+      output: corrected,
+    }));
+  });
+
   it('marks a corrected schema-valid outline still missing post-assessment as retryable', async () => {
     const context = outlineJobContext();
     const generate = vi.fn(async () => ({

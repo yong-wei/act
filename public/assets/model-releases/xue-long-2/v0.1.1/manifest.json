@@ -1,0 +1,30 @@
+{
+  "schema": "act-fleet-model-release/1",
+  "packageId": "xue-long-2",
+  "modelVersion": "0.1.1",
+  "sourceRelease": "3DModels:assets/xue_long_2/exports/v0.1.1",
+  "sourceBlendSha256": "779376d5f1b62995868899e60e53e3536de55ea8482b5f6b26048502a6bf4d0f",
+  "artifacts": {
+    "ship-lod0": {
+      "file": "xue-long-2-ship-lod0.glb",
+      "sha256": "6b4a1aa6d2ae2dde7506edf95fbd0e08dc8505d3fd086a30ec45e6bef140bf70",
+      "bytes": 28705320,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "xue-long-2-ship-lod1.glb",
+      "sha256": "37b78aec28c04ecd917b73462b577f488f5aa8abbce9d57399293547e09214b2",
+      "bytes": 19410008,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "xue-long-2-ship-lod2.glb",
+      "sha256": "9094b6fe267d661ec07e41b05ecb4fa1f26778aa6ff2d00f0d3444020f64803e",
+      "bytes": 6129540,
+      "kind": "ship",
+      "lod": 2
+    }
+  }
+}

@@ -5,6 +5,8 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3002';
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-1141-adaptive-path-landing');
 const manifestPath = path.join(evidenceDir, 'manifest.json');
@@ -57,8 +59,7 @@ async function login(context: BrowserContext) {
   const response = await context.request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: baseURL,
       json: 'true',
     },

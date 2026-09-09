@@ -818,10 +818,9 @@ try {
 }
 
 assert.equal(
-  buildScript.indexOf('scripts/release/validate-textbook-runtime-v2.mjs') <
-    buildScript.indexOf('PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate'),
-  true,
-  'release build 必须在宿主输入预检前执行 resourceSet 教材 v2 preflight',
+  buildScript.includes('scripts/release/validate-textbook-runtime-v2.mjs'),
+  false,
+  '应用与资源发布已分离：release build 不再执行 resourceSet 教材 v2 preflight；资源校验由 runtime 发布线负责',
 );
 
 assert.equal(
@@ -829,11 +828,12 @@ assert.equal(
     buildScript.includes('APP_REVISION="$(git rev-parse HEAD)"') &&
     !buildScript.includes('--expected-source-revision "${APP_REVISION}"') &&
     buildScript.includes('--label "org.opencontainers.image.revision=${APP_REVISION}"') &&
-    buildScript.includes('textbook-runtime-v2-provenance.mjs" write-sidecar') &&
+    buildScript.includes('textbook-runtime-v2-provenance.mjs" write-app-only-sidecar') &&
+    !buildScript.includes('textbook-runtime-v2-provenance.mjs" write-sidecar') &&
     textbookV2ProvenanceHelper.includes('fs.renameSync(temporary, output)') &&
     textbookV2ProvenanceHelper.includes("digest.update('\\0')"),
   true,
-  'release build 必须绑定干净 HEAD、教材 runtime digest、镜像 revision label 与原子 provenance sidecar',
+  'release build 必须绑定干净 HEAD、镜像 revision label 与原子 app-only provenance sidecar，不再声明 runtime-bound provenance',
 );
 
 assert.equal(
@@ -991,10 +991,10 @@ assert.equal(
 assert.equal(
   textbookRetrievalRequiredFiles.every((fileName) =>
     textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
-    buildScript.includes('--index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
+    !buildScript.includes('--index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
     remoteDeployScript.includes('--index-dir \'${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\''),
   true,
-  'build 与远端 ossfs-release 验收必须把固定 index 纳入同一 revision/digest 合同',
+  '远端 ossfs-release 验收必须把固定 index 纳入同一 revision/digest 合同；应用 build 不再绑定本地 index',
 );
 
 console.log('runtime externalized deploy test passed');

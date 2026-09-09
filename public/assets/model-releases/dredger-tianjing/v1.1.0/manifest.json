@@ -1,0 +1,53 @@
+{
+  "schema": "act-fleet-model-release/1",
+  "packageId": "dredger-tianjing",
+  "modelVersion": "1.1.0",
+  "sourceRelease": "3DModels:models/act-dredger-tianjing/exports/v1.1.0",
+  "sourceCommit": "b7f08a6607387ed4b2075dd6ef9b85c0a7086a5d",
+  "upstreamReleaseSha256": "6349f951ec380d68939817e78b02644a3095b4371414c9f905478dc03ffe8e35",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "coordinateBasis": {
+    "forward": "+X",
+    "up": "+Y"
+  },
+  "artifacts": {
+    "ship-lod0": {
+      "file": "dredger-tianjing-ship-lod0.glb",
+      "sha256": "9d497172cf2b53bf6db61e9a027561156ea1d23e5ebe650f6ad2443d1faa729e",
+      "bytes": 16223208,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "dredger-tianjing-ship-lod1.glb",
+      "sha256": "a58fb171527a8af14feb0816c26589dede14566c816db6110066fde804f92eb2",
+      "bytes": 13333256,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "dredger-tianjing-ship-lod2.glb",
+      "sha256": "29dc3424ae55e4ed2d50404335f6e8647a9142e22f1a16ac339b1c6d9bdb1f16",
+      "bytes": 4330980,
+      "kind": "ship",
+      "lod": 2
+    }
+  }
+}

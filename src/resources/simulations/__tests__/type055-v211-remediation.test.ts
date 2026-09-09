@@ -211,9 +211,10 @@ describe('F4: v2.1.0 stays in the runtime ordered fallback chain', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/resources/simulations/simulations/destroyer-simulation.tsx'), 'utf-8');
     const fallbackBlock = source.match(/orderedFallback = \[[\s\S]*?\];/);
     expect(fallbackBlock).not.toBeNull();
-    expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_2, tier)');
-    expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier)');
-    expect(fallbackBlock![0]).toContain('shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier)');
+    expect(fallbackBlock![0]).toContain('shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_3, tier)');
+    expect(fallbackBlock![0]).toContain('shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_2, tier)');
+    expect(fallbackBlock![0]).toContain('shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier)');
+    expect(fallbackBlock![0]).toContain('shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier)');
     expect(fallbackBlock![0]).toContain('MODEL.candidates');
     expect(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_2, 'high')).toContain('/v2.1.2/');
     expect(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, 'high')).toContain('/v2.1.1/');
@@ -221,6 +222,7 @@ describe('F4: v2.1.0 stays in the runtime ordered fallback chain', () => {
   });
 
   it('applies the coordinate basis to every received package asset url', () => {
+    expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.2.0/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.3/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.2/type055-nanchang-101-ship-lod0.glb')).toBe(true);
     expect(isType055VersionedAssetUrl('/assets/model-releases/type055-nanchang-101/v2.1.1/type055-nanchang-101-ship-lod0.glb')).toBe(true);

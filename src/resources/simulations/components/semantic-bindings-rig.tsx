@@ -3,9 +3,9 @@
 /**
  * 声明式语义动画绑定装配（spec: simulation-scene-visual-pipeline / versioned-simulation-model-package-integration）。
  *
- * - L0 常开：clip-loop（螺旋桨/国旗/雷达）与程序化（舵角/天线倾角）绑定，只读遥测；
- * - L1：达标后启动主舰内武器巡检循环（零额外加载）；
- * - L2：每次达标随机播放一条 weapon-demo clip（demo GLB 此时才按需加载）。
+ * - L0 常开：clip-loop、程序化舵角、吊舱/推进器实时方位与转速；
+ * - L1：达标后启动主舰内巡检循环（零额外加载）；
+ * - L2：有独立 demo 角色时按需加载一条演示 clip；否则在主舰 mixer 上随机播放 1..n 条 attainmentClips。
  * 单条绑定解析失败 fail closed（告警并跳过），不影响模型与其余绑定。
  */
 
@@ -14,8 +14,13 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 
+import { pickRandomSubset } from '../lib/heading-attainment';
 import { cloneSkinnedScene } from '../model-packages/clone-skinned-scene';
-import type { VersionedModelPackageDescriptor } from '../model-packages/type055-nanchang-101-v2';
+import type {
+  LiveRotationBinding,
+  LiveSpinBinding,
+  VersionedModelPackageDescriptor,
+} from '../model-packages/types';
 
 /** 绑定消费的最小遥测视图（结构类型，由仿真状态满足）。 */
 export interface BindingTelemetrySource {
@@ -23,10 +28,21 @@ export interface BindingTelemetrySource {
   readonly speedMps: number;
   readonly attainedCount: number;
   /**
-   * 仿真时钟是否在推进：false 时速度类绑定（桨转速/天线倾角）的有效航速取 0
-   * （桨停转、天线回正、姿态保持），舵角等位置类绑定保持最后值。缺省视为推进中。
+   * 仿真时钟是否在推进：false 时速度类绑定（桨转速/天线倾角）的有效航速取 0。
+   * 舵角、吊舱方位等位置类绑定保持最后值。缺省视为推进中。
    */
   readonly advancing?: boolean;
+  readonly azipod?: {
+    readonly P?: { readonly azimuthRad: number; readonly rpm: number };
+    readonly S?: { readonly azimuthRad: number; readonly rpm: number };
+  };
+  readonly thrusters?: ReadonlyArray<{
+    readonly id: number;
+    readonly azimuthRad: number;
+    readonly rpm: number;
+  }>;
+  /** 绞吸挖泥船绞刀转速；缺省不驱动绞刀节点。 */
+  readonly cutterRpm?: number;
 }
 
 /** 有效航速：仿真不推进（暂停/未就绪/播完）时归零，速度类视觉绑定随之静止。 */
@@ -35,6 +51,46 @@ export function effectiveBindingSpeedMps(sim: BindingTelemetrySource): number {
 }
 
 const DEFAULT_TELEMETRY_SCALE = { designSpeedMps: 15, rudderLimitDeg: 35 };
+
+function resolveNodes(model: THREE.Object3D, names: readonly string[]): THREE.Object3D[] {
+  const nodes: THREE.Object3D[] = [];
+  const seen = new Set<string>();
+  for (const name of names) {
+    const node = model.getObjectByName(name);
+    if (!node || seen.has(node.uuid)) continue;
+    seen.add(node.uuid);
+    nodes.push(node);
+  }
+  return nodes;
+}
+
+function readAzimuthRad(sim: BindingTelemetrySource, binding: LiveRotationBinding): number | null {
+  if (binding.azipodSlot) {
+    const value = sim.azipod?.[binding.azipodSlot]?.azimuthRad;
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+  if (binding.thrusterId !== undefined) {
+    const value = sim.thrusters?.find((item) => item.id === binding.thrusterId)?.azimuthRad;
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+  return null;
+}
+
+function readRpm(sim: BindingTelemetrySource, binding: LiveSpinBinding): number | null {
+  if (binding.cutter) {
+    const value = sim.cutterRpm;
+    return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  }
+  if (binding.azipodSlot) {
+    const value = sim.azipod?.[binding.azipodSlot]?.rpm;
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+  if (binding.thrusterId !== undefined) {
+    const value = sim.thrusters?.find((item) => item.id === binding.thrusterId)?.rpm;
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+  return null;
+}
 
 export function SemanticBindingsRig({
   model,
@@ -55,9 +111,6 @@ export function SemanticBindingsRig({
   const lastAttainedRef = useRef(0);
   const [demoRequest, setDemoRequest] = useState<{ clip: string; key: number } | null>(null);
 
-  // L0 clip-loop 绑定：进 useEffect 装配并在 cleanup 停播。
-  // 不得在 useMemo 里 play()：StrictMode 会执行 setup→cleanup→setup，
-  // 挂在 useMemo 的副作用不会随第二轮 setup 重放，action 全部停在未激活态。
   useEffect(() => {
     speedCoupledRef.current = [];
     for (const binding of descriptor.semanticBindings ?? []) {
@@ -74,23 +127,45 @@ export function SemanticBindingsRig({
     return () => { mixer.stopAllAction(); };
   }, [mixer, animations, descriptor]);
 
-  // L0 程序化绑定：按语义名解析节点；任一节点缺失则该绑定整体 fail closed。
   const procedural = useMemo(() => (descriptor.semanticBindings ?? [])
     .filter((binding) => binding.drive === 'procedural')
     .map((binding) => {
-      const nodes = binding.nodes.map((name) => model.getObjectByName(name));
-      if (nodes.some((node) => !node)) {
+      const nodes = resolveNodes(model, binding.nodes);
+      if (nodes.length === 0) {
         console.warn(`[semantic-bindings] node missing, binding skipped: ${binding.id}`);
         return null;
       }
-      return { binding, nodes: nodes as THREE.Object3D[] };
+      return { binding, nodes };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null), [model, descriptor]);
+
+  const liveRotation = useMemo(() => (descriptor.semanticBindings ?? [])
+    .filter((binding) => binding.drive === 'live-rotation')
+    .map((binding) => {
+      const nodes = resolveNodes(model, binding.nodes);
+      if (nodes.length === 0) {
+        console.warn(`[semantic-bindings] node missing, binding skipped: ${binding.id}`);
+        return null;
+      }
+      return { binding, nodes };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null), [model, descriptor]);
+
+  const liveSpin = useMemo(() => (descriptor.semanticBindings ?? [])
+    .filter((binding) => binding.drive === 'live-spin')
+    .map((binding) => {
+      const nodes = resolveNodes(model, binding.nodes);
+      if (nodes.length === 0) {
+        console.warn(`[semantic-bindings] node missing, binding skipped: ${binding.id}`);
+        return null;
+      }
+      return { binding, nodes };
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null), [model, descriptor]);
 
   useFrame((_, delta) => {
     const sim = simRef.current;
     const scale = descriptor.telemetryScale ?? DEFAULT_TELEMETRY_SCALE;
-    // 有效航速：仿真不推进（暂停/未就绪/播完）时归零，桨停转、天线回正。
     const effectiveSpeedMps = effectiveBindingSpeedMps(sim);
 
     for (const { action, rate } of speedCoupledRef.current) {
@@ -104,8 +179,24 @@ export function SemanticBindingsRig({
       const angleRad = THREE.MathUtils.degToRad(angleDeg * (binding.sign ?? 1));
       for (const node of nodes) node.rotation[binding.axis] = angleRad;
     }
+    for (const { binding, nodes } of liveRotation) {
+      const azimuthRad = readAzimuthRad(sim, binding);
+      if (azimuthRad === null) continue;
+      const value = azimuthRad * (binding.sign ?? 1);
+      for (const node of nodes) node.rotation[binding.axis] = value;
+    }
+    const spinDeltaScale = sim.advancing === false ? 0 : 1;
+    for (const { binding, nodes } of liveSpin) {
+      let rpm = readRpm(sim, binding);
+      if (rpm === null && binding.rpmFromSpeed) {
+        rpm = (binding.designRpm ?? 90)
+          * THREE.MathUtils.clamp(effectiveSpeedMps / scale.designSpeedMps, 0, 1.2);
+      }
+      if (rpm === null) continue;
+      const deltaRad = rpm * (Math.PI * 2 / 60) * delta * (binding.sign ?? 1) * spinDeltaScale;
+      for (const node of nodes) node.rotation[binding.axis] += deltaRad;
+    }
 
-    // L1：首次达标后启动武器巡检循环（主舰 clip，零额外加载）。
     if (!patrolStartedRef.current && sim.attainedCount > 0 && descriptor.easterEgg) {
       patrolStartedRef.current = true;
       for (const patrol of descriptor.easterEgg.patrolClips) {
@@ -120,27 +211,41 @@ export function SemanticBindingsRig({
       }
     }
 
-    // L2：每次达标随机选一条演示 clip，demo GLB 按需加载。
     if (sim.attainedCount > lastAttainedRef.current) {
       lastAttainedRef.current = sim.attainedCount;
       const demos = descriptor.interfaceContract.demoAnimations;
-      if (demos.length > 0) {
+      if (descriptor.roles?.demo && demos.length > 0) {
         setDemoRequest({
           clip: demos[Math.floor(Math.random() * demos.length)],
           key: sim.attainedCount,
         });
+      } else {
+        const selected = pickRandomSubset(descriptor.easterEgg?.attainmentClips ?? []);
+        for (const clipName of selected) {
+          const clip = animations.find((candidate) => candidate.name === clipName);
+          if (!clip) {
+            console.warn(`[semantic-bindings] attainment clip missing, skipped: ${clipName}`);
+            continue;
+          }
+          const action = mixer.clipAction(clip);
+          action.reset();
+          action.setLoop(THREE.LoopOnce, 1);
+          action.clampWhenFinished = true;
+          action.play();
+        }
       }
     }
 
     mixer.update(delta);
   });
 
-  if (!demoRequest) return null;
+  const demoUrl = descriptor.roles?.demo?.url;
+  if (!demoRequest || !demoUrl) return null;
   return (
     <Suspense fallback={null}>
       <WeaponDemoAction
         key={demoRequest.key}
-        url={descriptor.roles.demo.url}
+        url={demoUrl}
         clipName={demoRequest.clip}
         modelOffset={model.position}
         modelScale={modelScale}

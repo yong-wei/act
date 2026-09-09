@@ -17,12 +17,21 @@ import * as THREE from 'three';
 
 import {
   TYPE055_NANCHANG_101_V2,
-  TYPE055_V2_BASIS_YAW_RAD,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
+import { isDescriptorArtifactUrl } from '@/resources/simulations/model-packages/types';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
+import { HeroModelBasis } from '@/resources/simulations/components/hero-model-basis';
 import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
 import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import { boxProjectsInsideNdc, framePerspectiveCameraToBox } from '@/resources/simulations/scene/camera';
+
+function requiredRoleUrl(artifact: { url: string } | undefined, role: string): string {
+  if (!artifact) throw new Error(`missing-role:${role}`);
+  return artifact.url;
+}
+
+const TYPE055_DEMO_URL = requiredRoleUrl(TYPE055_NANCHANG_101_V2.roles.demo, 'demo');
+const TYPE055_PAYLOAD_URL = requiredRoleUrl(TYPE055_NANCHANG_101_V2.roles.payload, 'payload');
 
 type QaApi = {
   ready: boolean;
@@ -152,8 +161,14 @@ function QaShip({ url }: { url: string }) {
   return (
     <>
       <QaFramingCamera targetRef={groupRef} />
-      <group ref={groupRef} rotation-y={url.startsWith(TYPE055_NANCHANG_101_V2.baseUrl) ? TYPE055_V2_BASIS_YAW_RAD : 0}>
-        <primitive object={mounted} />
+      <group ref={groupRef}>
+        <HeroModelBasis
+          matrix={isDescriptorArtifactUrl(TYPE055_NANCHANG_101_V2, url)
+            ? TYPE055_NANCHANG_101_V2.modelToSceneMatrix
+            : undefined}
+        >
+          <primitive object={mounted} />
+        </HeroModelBasis>
       </group>
     </>
   );
@@ -161,7 +176,7 @@ function QaShip({ url }: { url: string }) {
 
 /** 武器演示：仅显式激活后才挂载（延迟加载证据由网络请求记录）。 */
 function QaDemo() {
-  const { scene, animations } = useGLTF(TYPE055_NANCHANG_101_V2.roles.demo.url, true, true);
+  const { scene, animations } = useGLTF(TYPE055_DEMO_URL, true, true);
   const mounted = useMemo(() => cloneSkinnedScene(scene), [scene]);
   const mixer = useMemo(() => new THREE.AnimationMixer(mounted), [mounted]);
   useFrame((_, delta) => mixer.update(delta));
@@ -185,7 +200,7 @@ function QaDemo() {
 
 /** 武器载荷：按需加载 + 弹药模板运行时克隆生成与寿命销毁（与主舰生命周期分离）。 */
 function QaPayload() {
-  const { scene } = useGLTF(TYPE055_NANCHANG_101_V2.roles.payload.url, true, true);
+  const { scene } = useGLTF(TYPE055_PAYLOAD_URL, true, true);
   // ref 为生成实例的即时真源；renderTick 只触发重渲染，保证 QA API 同步可断言
   const spawnedRef = useRef<THREE.Object3D[]>([]);
   const [renderTick, setRenderTick] = useState(0);

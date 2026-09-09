@@ -1,5 +1,7 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 test.use({ baseURL: 'http://127.0.0.1:3101' });
 
 const COLLECTIONS = ['tasks', 'milestones', 'achievements', 'experiments', 'journals'] as const;
@@ -74,8 +76,7 @@ async function establishAuthenticatedSession(context: BrowserContext) {
   const loginResponse = await context.request.post('/api/auth/callback/credentials?json=true', {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: '/ai',
       json: 'true',
     },

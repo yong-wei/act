@@ -209,7 +209,7 @@ const simulations: SimulationInfo[] = [
     description: '挖泥船在疏浚、航行、定位等多工况间切换，学习模式切换控制。',
     href: '/simulations/dredger',
     icon: Waves,
-    previewImage: '/assets/dredger.png',
+    previewImage: '/assets/dredger-tianjing.png',
     difficulty: 'advanced',
     tags: ['多工况', '模式切换', '自适应控制'],
     controlFocus: ['工况识别', '参数切换', '平滑过渡'],

@@ -1,0 +1,53 @@
+{
+  "schema": "act-fleet-model-release/1",
+  "packageId": "lng-changheng",
+  "modelVersion": "1.1.0",
+  "sourceRelease": "3DModels:assets/lng_changheng/exports/v1.1.0",
+  "sourceCommit": "b7f08a6607387ed4b2075dd6ef9b85c0a7086a5d",
+  "upstreamReleaseSha256": "607e23ed4bd55051ea5a496bbabd69a28b58153ed6c99f6595536c01f359f869",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "coordinateBasis": {
+    "forward": "+X",
+    "up": "+Y"
+  },
+  "artifacts": {
+    "ship-lod0": {
+      "file": "lng-changheng-ship-lod0.glb",
+      "sha256": "ea3cff4b5d893abb8e1a37774d4d1c2b679a45271713519c9aa32966098d7996",
+      "bytes": 18334232,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "lng-changheng-ship-lod1.glb",
+      "sha256": "db8c55f960c094bb1e83939af25cf138e59cd428947ee903d66014f3e8c186ba",
+      "bytes": 14090944,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "lng-changheng-ship-lod2.glb",
+      "sha256": "1d469e223d97cf34b22c4804a1e57babcfa1f93682147b1bb67d9891be25bb78",
+      "bytes": 12260464,
+      "kind": "ship",
+      "lod": 2
+    }
+  }
+}

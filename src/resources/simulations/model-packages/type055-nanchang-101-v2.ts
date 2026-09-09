@@ -6,103 +6,20 @@
  * `artifacts/model-releases/type055-nanchang-101-v<version>/receipt.json`。
  * 本模块只登记已验证事实；ACT 不修补上游模型字节（缺陷返回 3DModels 发新版本）。
  *
- * v2.1.3（当前激活）：裁减 `prop_port_spin`/`prop_starboard_spin` 的常量
- * 尾部保持段（G05 四键布局对 continuous 关节产生 second_limit→home_end
- * 1s 静止尾，上游管线 trim_continuous_spin_hold），clip 以整圈终点收尾
- * （720°≡0°），循环播放连续无停顿；几何、材质与接口合同同 v2.1.2。
- * v2.1.2、v2.1.1、v2.1.0 保留为运行时有序回退（接口合同一致，仅动画字节/材质归属不同）。
+ * v2.2.0（当前激活）：整合包 `act-ship-release/1`，用声明矩阵一次挂载
+ * （含 Y=−7.05），不再叠加旧 6.6 水线或 bbox 居中。
+ * v2.1.3：裁减螺旋桨 clip 常量尾；v2.1.2 / v2.1.1 / v2.1.0 仍作有序回退。
  */
 
-export type VersionedModelRole =
-  | 'ship-lod0'
-  | 'ship-lod1'
-  | 'ship-lod2'
-  | 'collision'
-  | 'payload'
-  | 'demo'
-  | 'interactive-systems';
+export * from './types';
 
-export interface VersionedModelArtifact {
-  readonly role: VersionedModelRole;
-  readonly file: string;
-  readonly url: string;
-  readonly sha256: string;
-  readonly bytes: number;
-}
-
-export interface VersionedModelInterfaceContract {
-  /** 每档主舰 GLB 内的唯一动画数量（模型侧验证：15）。 */
-  readonly shipAnimationCount: number;
-  /** 代表性语义动画（场景/演示真正消费的接口，按名称绑定）。 */
-  readonly shipInterfaceAnimations: readonly string[];
-  /** 武器演示 GLB 的组合片段名（模型侧验证：8 个）。 */
-  readonly demoAnimations: readonly string[];
-  readonly vlsLoadedCount: number;
-  readonly hq10LoadedCount: number;
-  /** 透明贴花纹理名（两处 RGBA PNG 贴花）。 */
-  readonly decalImages: readonly string[];
-}
-
-/** clip 循环绑定：mixer 常开；speedCoupled 时 timeScale = rate × speed/designSpeed。 */
-export interface ClipLoopBinding {
-  readonly id: string;
-  readonly drive: 'clip-loop';
-  readonly clip: string;
-  readonly speedCoupled?: boolean;
-  readonly rate?: number;
-}
-
-/** 程序化绑定：直接驱动语义节点局部轴角度，角度 = 映射(遥测源) 并钳制到 ±maxAngleDeg。 */
-export interface ProceduralBinding {
-  readonly id: string;
-  readonly drive: 'procedural';
-  readonly nodes: readonly string[];
-  readonly axis: 'x' | 'y' | 'z';
-  readonly source: 'telemetry.rudderDeg' | 'telemetry.speedMps';
-  readonly maxAngleDeg: number;
-  /** 源值 → 角度方向；缺省 +1。 */
-  readonly sign?: 1 | -1;
-}
-
-export type SemanticAnimationBinding = ClipLoopBinding | ProceduralBinding;
-
-export interface VersionedModelPackageDescriptor {
-  readonly packageId: string;
-  readonly shipId: string;
-  readonly modelVersion: string;
-  readonly releaseManifestSha256: string;
-  readonly sourceBlendSha256: string;
-  readonly baseUrl: string;
-  readonly roles: Readonly<Record<VersionedModelRole, VersionedModelArtifact>>;
-  /** 模型局部坐标基：glTF Y-up、舰艏沿 +X（场景基为 +Z 舰艏，见 basisYawRad）。 */
-  readonly coordinateBasis: { readonly forward: '+X'; readonly up: '+Y' };
-  readonly interfaceContract: VersionedModelInterfaceContract;
-  /** 设计水线锚定：模型局部 Y（米）。缺省时场景沿用 bbox 推导定位。 */
-  readonly verticalAnchor?: { readonly designWaterlineY: number };
-  /** 模型总长（米）：推进器锚点换算的场景缩放分母。 */
-  readonly modelLengthMeters?: number;
-  /** 推进器语义节点（模型局部米）：声明时尾迹逐桨发射；缺省保持 profile 单航迹。 */
-  readonly propulsors?: readonly {
-    readonly id: string;
-    readonly node: string;
-    readonly position: readonly [number, number, number];
-  }[];
-  /** 声明式动画绑定（L0 常开）：按语义名解析，单条失败 fail closed 不影响其余。 */
-  readonly semanticBindings?: readonly SemanticAnimationBinding[];
-  /** 遥测源归一化参数。 */
-  readonly telemetryScale?: {
-    readonly designSpeedMps: number;
-    readonly rudderLimitDeg: number;
-  };
-  /** 彩蛋（达标触发）：L1 主舰内巡检 clip；L2 从 interfaceContract.demoAnimations 随机一条。 */
-  readonly easterEgg?: {
-    readonly patrolClips: readonly { readonly clip: string; readonly loop: 'repeat' | 'pingpong' }[];
-  };
-}
-
-function artifact(baseUrl: string, role: VersionedModelRole, file: string, sha256: string, bytes: number): VersionedModelArtifact {
-  return { role, file, url: `${baseUrl}/${file}`, sha256, bytes };
-}
+import {
+  artifact,
+  isDescriptorArtifactUrl,
+  type SemanticAnimationBinding,
+  type VersionedModelInterfaceContract,
+  type VersionedModelPackageDescriptor,
+} from './types';
 
 /** v2.1.x 共用的接口合同（v2.1.1 仅改材质归属、v2.1.2 仅剔除伪 scale 轨道、v2.1.3 仅裁减 spin clip 保持尾，接口不变）。 */
 const V2_INTERFACE_CONTRACT: VersionedModelInterfaceContract = {
@@ -197,25 +114,64 @@ const V2_EASTER_EGG = {
   ],
 } as const;
 
-const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.1.3';
+const HERO_055_TO_SCENE = [
+  0, 0, -1, 0,
+  0, 1, 0, -7.05,
+  1, 0, 0, 0,
+  0, 0, 0, 1,
+] as const;
+
+const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.2.0';
 
 export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.1.3',
-  releaseManifestSha256: '7119609d278fa74faf1dc0dc9e97b501d14aefa5c39486859f18e92dd0ea093d',
-  sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
+  modelVersion: '2.2.0',
+  releaseManifestSha256: 'bc00a530c6d36e32f3bcea71ce7b040d858220e89d9f94cab7e1c004419ff781',
+  sourceBlendSha256: 'f01901ed23cf08668288386477311e74c3c903775f9870fe632a2ebc0e82fa3e',
   baseUrl: BASE_URL,
   roles: {
-    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', 'a6af851eb6239e626e35b78cda24c3ffc3ea7b1d466da53a42079fb35b972bc6', 3527712),
-    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', 'aae54a087ecbb7c096065f8cc77a6d970950816dc75b7364a54c5fd81136afab', 1726372),
-    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', 'd272cb7772d95d4a46fadb4edf9111214cce12fa68f912d156949d05bb368a78', 1145904),
+    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', '6431f167dcbd7a8c0365edac7fe6000bdec0674eca22559e6b1b652aa9f4fd7f', 3527488),
+    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', '31334cbb2eb50cf583e1496959e230d64b598cc447f20cabfbb9ba590bb55a0e', 1726148),
+    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', '658c0c43ba223814f78a1e2e29067d2aeb38c9da3ba532415be0741bf12c8069', 1145684),
     collision: artifact(BASE_URL, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
     payload: artifact(BASE_URL, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
     demo: artifact(BASE_URL, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
     'interactive-systems': artifact(BASE_URL, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: 0,
+  modelToSceneMatrix: HERO_055_TO_SCENE,
+  interfaceContract: V2_INTERFACE_CONTRACT,
+  verticalAnchor: { designWaterlineY: 0 },
+  modelLengthMeters: V2_MODEL_LENGTH_METERS,
+  propulsors: V2_PROPULSORS,
+  telemetryScale: V2_TELEMETRY_SCALE,
+  semanticBindings: V2_SEMANTIC_BINDINGS,
+  easterEgg: V2_EASTER_EGG,
+};
+
+const BASE_URL_V2_1_3 = '/assets/model-releases/type055-nanchang-101/v2.1.3';
+
+/** v2.1.3 描述符：保留为运行时有序回退（旧水线 6.6 + 基 yaw，无整合包矩阵）。 */
+export const TYPE055_NANCHANG_101_V2_1_3: VersionedModelPackageDescriptor = {
+  packageId: 'type055-nanchang-101',
+  shipId: 'type_055_destroyer_101_nanchang',
+  modelVersion: '2.1.3',
+  releaseManifestSha256: '7119609d278fa74faf1dc0dc9e97b501d14aefa5c39486859f18e92dd0ea093d',
+  sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
+  baseUrl: BASE_URL_V2_1_3,
+  roles: {
+    'ship-lod0': artifact(BASE_URL_V2_1_3, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', 'a6af851eb6239e626e35b78cda24c3ffc3ea7b1d466da53a42079fb35b972bc6', 3527712),
+    'ship-lod1': artifact(BASE_URL_V2_1_3, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', 'aae54a087ecbb7c096065f8cc77a6d970950816dc75b7364a54c5fd81136afab', 1726372),
+    'ship-lod2': artifact(BASE_URL_V2_1_3, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', 'd272cb7772d95d4a46fadb4edf9111214cce12fa68f912d156949d05bb368a78', 1145904),
+    collision: artifact(BASE_URL_V2_1_3, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
+    payload: artifact(BASE_URL_V2_1_3, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
+    demo: artifact(BASE_URL_V2_1_3, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
+    'interactive-systems': artifact(BASE_URL_V2_1_3, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -245,6 +201,7 @@ export const TYPE055_NANCHANG_101_V2_1_2: VersionedModelPackageDescriptor = {
     'interactive-systems': artifact(BASE_URL_V2_1_2, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -274,6 +231,7 @@ export const TYPE055_NANCHANG_101_V2_1_1: VersionedModelPackageDescriptor = {
     'interactive-systems': artifact(BASE_URL_V2_1_1, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -303,6 +261,7 @@ export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
     'interactive-systems': artifact(BASE_URL_V2_1_0, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -311,24 +270,6 @@ export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
   semanticBindings: V2_SEMANTIC_BINDINGS,
   easterEgg: V2_EASTER_EGG,
 };
-
-/** 质量档位 → 主舰 LOD 的唯一映射（高/中/低 → LOD0/1/2）。 */
-export const SHIP_LOD_BY_QUALITY_TIER: Readonly<Record<'high' | 'medium' | 'low', 'ship-lod0' | 'ship-lod1' | 'ship-lod2'>> = {
-  high: 'ship-lod0',
-  medium: 'ship-lod1',
-  low: 'ship-lod2',
-};
-
-export function shipLodRoleForQualityTier(tier: 'high' | 'medium' | 'low'): 'ship-lod0' | 'ship-lod1' | 'ship-lod2' {
-  return SHIP_LOD_BY_QUALITY_TIER[tier];
-}
-
-export function shipLodUrlForQualityTier(
-  descriptor: VersionedModelPackageDescriptor,
-  tier: 'high' | 'medium' | 'low',
-): string {
-  return descriptor.roles[shipLodRoleForQualityTier(tier)].url;
-}
 
 /**
  * 坐标基适配（唯一适配点）：把模型的 +X 舰艏 / Y-up 基装配进场景的 +Z 舰艏体系。
@@ -340,16 +281,25 @@ export function shipLodUrlForQualityTier(
 export const TYPE055_V2_BASIS_YAW_RAD = -Math.PI / 2;
 
 /** 已接收的 type055 版本化包 baseUrl 集合（激活版 + 有序回退版）。 */
-export const TYPE055_VERSIONED_PACKAGE_BASE_URLS: readonly string[] = [
-  TYPE055_NANCHANG_101_V2.baseUrl,
-  TYPE055_NANCHANG_101_V2_1_2.baseUrl,
-  TYPE055_NANCHANG_101_V2_1_1.baseUrl,
-  TYPE055_NANCHANG_101_V2_1_0.baseUrl,
+export const TYPE055_RECEIVED_PACKAGES: readonly VersionedModelPackageDescriptor[] = [
+  TYPE055_NANCHANG_101_V2,
+  TYPE055_NANCHANG_101_V2_1_3,
+  TYPE055_NANCHANG_101_V2_1_2,
+  TYPE055_NANCHANG_101_V2_1_1,
+  TYPE055_NANCHANG_101_V2_1_0,
 ];
 
-/** URL 是否属于任一已接收 type055 版本化包资产（坐标基适配判定唯一入口）。 */
+export const TYPE055_VERSIONED_PACKAGE_BASE_URLS: readonly string[] = TYPE055_RECEIVED_PACKAGES.map(
+  (descriptor) => descriptor.baseUrl,
+);
+
+/** URL 是否属于任一已接收 type055 版本化包资产（含 OSS 候选）。 */
 export function isType055VersionedAssetUrl(url: string): boolean {
-  return TYPE055_VERSIONED_PACKAGE_BASE_URLS.some((baseUrl) => url.startsWith(baseUrl));
+  return TYPE055_RECEIVED_PACKAGES.some((descriptor) => isDescriptorArtifactUrl(descriptor, url));
+}
+
+export function matchType055DescriptorByUrl(url: string): VersionedModelPackageDescriptor | null {
+  return TYPE055_RECEIVED_PACKAGES.find((descriptor) => isDescriptorArtifactUrl(descriptor, url)) ?? null;
 }
 
 /**

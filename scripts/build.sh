@@ -13,7 +13,6 @@ APT_MIRROR="${APT_MIRROR:-}"
 BUILD_OS_REV="${BUILD_OS_REV:-2026-08-01.1}"
 RUNNER_OS_REV="${RUNNER_OS_REV:-2026-08-01.1}"
 export NODE_MAX_OLD_SPACE_SIZE="${NODE_MAX_OLD_SPACE_SIZE:-12288}"
-BUILD_SCOPE="${BUILD_SCOPE:-runtime-bound}"
 
 # This name is deliberately fixed: dependency cache mounts are shared by all
 # ACT worktrees through the same local docker-container BuildKit instance.
@@ -24,14 +23,6 @@ if [[ ! "${NODE_MAX_OLD_SPACE_SIZE}" =~ ^[1-9][0-9]*$ ]]; then
   echo "ERROR: NODE_MAX_OLD_SPACE_SIZE 必须是正整数。" >&2
   exit 1
 fi
-case "${BUILD_SCOPE}" in
-  runtime-bound|app-only)
-    ;;
-  *)
-    echo "ERROR: BUILD_SCOPE 必须为 runtime-bound 或 app-only。" >&2
-    exit 1
-    ;;
-esac
 for revision in "${BUILD_OS_REV}" "${RUNNER_OS_REV}"; do
   if [[ ! "${revision}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
     echo "ERROR: BUILD_OS_REV/RUNNER_OS_REV 必须是非空版本标识。" >&2
@@ -127,8 +118,6 @@ if (( DOCKER_MEMORY_BYTES < DOCKER_MIN_MEMORY_BYTES )); then
 fi
 
 EXTERNAL_RUNTIME_DIR="${EXTERNAL_RUNTIME_DIR:-course-content/runtime}"
-TEXTBOOK_V2_RUNTIME_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbooks-v2"
-TEXTBOOK_RETRIEVAL_INDEX_DIR="${ROOT_DIR}/${EXTERNAL_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
 PROVENANCE_FILE="${OUTPUT_TAR}.provenance.json"
 DATABASE_URL_FOR_BUILD="${DATABASE_URL:-}"
 if [[ -z "${DATABASE_URL_FOR_BUILD}" && -f .env ]]; then
@@ -164,15 +153,6 @@ fi
 echo "[preflight] 校验 CourseCoverage Overlay"
 APP_REVISION="${APP_REVISION}" ./node_modules/.bin/tsx \
   scripts/db/import-course-coverage-overlay.ts --validate-only
-
-if [[ "${BUILD_SCOPE}" == "runtime-bound" ]]; then
-  echo "[preflight] 校验 resourceSet 外置教材 v2 runtime"
-  node "${ROOT_DIR}/scripts/release/validate-textbook-runtime-v2.mjs" \
-    --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
-    --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"
-else
-  echo "[preflight] app-only 镜像不声明或校验外置 runtime provenance"
-fi
 
 echo "[1/3] 本地发布输入校验（Prisma + 优化模型 + production TypeScript）"
 PRISMA_GENERATE_SKIP_AUTOINSTALL=1 ./node_modules/.bin/prisma validate
@@ -353,19 +333,10 @@ if [[ ! -f "${GENERATION_DIR}/index.json" ]]; then
   exit 1
 fi
 
-if [[ "${BUILD_SCOPE}" == "runtime-bound" ]]; then
-  node "${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs" write-sidecar \
-    --runtime-root "${TEXTBOOK_V2_RUNTIME_DIR}" \
-    --index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}" \
-    --image-tar "${OUTPUT_TAR}" \
-    --app-revision "${APP_REVISION}" \
-    --output "${PROVENANCE_FILE}"
-else
-  node "${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs" write-app-only-sidecar \
-    --image-tar "${OUTPUT_TAR}" \
-    --app-revision "${APP_REVISION}" \
-    --output "${PROVENANCE_FILE}"
-fi
+node "${ROOT_DIR}/scripts/release/textbook-runtime-v2-provenance.mjs" write-app-only-sidecar \
+  --image-tar "${OUTPUT_TAR}" \
+  --app-revision "${APP_REVISION}" \
+  --output "${PROVENANCE_FILE}"
 
 CURRENT_LINK_TMP="${CURRENT_CACHE_DIR}.next-${BASHPID:-$$}"
 rm -f "${CURRENT_LINK_TMP}"

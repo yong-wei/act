@@ -3,6 +3,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import { chromium } from '@playwright/test';
 
+import { accountByKey } from '../db/verified-test-accounts.mjs';
+
 function readArgument(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : null;
@@ -24,9 +26,10 @@ const viewports = [
   { name: 'desktop', width: 1440, height: 1000 },
   { name: 'mobile', width: 320, height: 900 },
 ];
+const admin = accountByKey('admin');
 const TEST_ACCOUNT = {
-  account: 'admin',
-  password: 'admin@Just',
+  account: admin.loginId,
+  password: admin.password,
 };
 
 function citationGuard(verified) {

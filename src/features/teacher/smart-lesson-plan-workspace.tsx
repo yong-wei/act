@@ -209,7 +209,7 @@ export function SmartLessonPlanWorkspace({
         },
         score: recommendationScore(query, `${book.title} ${range.title} ${range.naturalNumber ?? ''}`),
       })),
-    ]).sort((left, right) => right.score - left.score || left.label.localeCompare(right.label));
+    ]).sort((left, right) => right.score - left.score || (left.label < right.label ? -1 : left.label > right.label ? 1 : left.key < right.key ? -1 : left.key > right.key ? 1 : 0));
   }, [newTaskTopic, textbookCatalog]);
   const recommendedTextbookRange = textbookRangeOptions.find((option) => option.key === selectedTextbookRange)
     ?? textbookRangeOptions[0];
@@ -611,7 +611,7 @@ export function SmartLessonPlanWorkspace({
           {visibleTasks.map((task) => <button key={task.id} type="button" onClick={() => { setSelectedTaskId(task.id); setTaskIndexOpen(false); }} className={`w-full rounded-lg border p-3 text-left ${activeTask?.id === task.id ? 'border-primary bg-primary/5' : 'border-border'}`}>
             <span className="block truncate text-sm font-medium">{task.topic}</span>
             <span className="mt-1 block text-xs text-muted-foreground">{task.workspace?.stages.find((stage) => stage.id === task.workspace?.currentStage)?.title ?? task.currentStageTitle ?? '课程依据'} · {task.workspace?.statusLabel ?? task.statusLabel ?? '尚未开始'} · {task.durationMinutes} 分钟</span>
-            <span className="mt-1 block text-xs text-muted-foreground">更新于 {task.updatedAt ? new Date(task.updatedAt as unknown as string).toLocaleDateString() : '未知'}</span>
+            <span className="mt-1 block text-xs text-muted-foreground">更新于 {task.updatedAt ? formatShortDate(task.updatedAt as unknown as string) ?? '未知' : '未知'}</span>
           </button>)}
           {!visibleTasks.length ? <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">没有符合条件的任务。</p> : null}
         </div>
@@ -649,7 +649,7 @@ export function SmartLessonPlanWorkspace({
       </label>
       <select name="selectedClassId" defaultValue={classDiagnosisOptions.find((option) => option.isDefault)?.classId ?? ''} className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2">
         <option value="">不使用班级学情</option>
-        {classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}
+        {classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${formatShortDate(option.asOf) ?? '累计画像可用'}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}
       </select>
       <select name="durationMinutes" defaultValue="45" className="w-full min-w-0 max-w-full rounded-lg border border-border bg-background px-3 py-2"><option value="45">45 分钟</option><option value="90">90 分钟</option>{Array.from({ length: 19 }, (_, index) => 30 + index * 5).filter((value) => value !== 45 && value !== 90).map((value) => <option key={value} value={value}>{value} 分钟</option>)}</select>
       <label className="flex items-center gap-2 text-sm"><input name="outlineConfirmationRequired" type="checkbox" />生成提纲后暂停确认</label>
@@ -707,7 +707,7 @@ export function SmartLessonPlanWorkspace({
               <div><h4 className="text-sm font-medium">教学目标与来源</h4>{task.goals?.filter((item) => item.state !== 'REMOVED').map((item) => <div key={item.id} className="mt-1 rounded border border-border p-2 text-sm"><p>{item.content} · <SourceStateLabel state={item.sourceState} gapReason={item.gapReason} /></p><SourceBindingDetails bindings={item.sourceBindings} sourceOptions={sourceOptions} gapReason={item.gapReason} onSelect={(binding) => void updateSourceDecision(task, 'goal', item.id, 'replace', binding)} /><div className="mt-1 flex gap-2"><button type="button" className="text-xs text-primary" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'replace')}>替换</button><button type="button" className="text-xs text-muted-foreground" onClick={() => void updateSourceDecision(task, 'goal', item.id, 'remove')}>移除</button></div></div>)}</div>
             </div>
           </div>)}
-          {stageDetails('class-attainment', <div className="min-w-0 space-y-2"><label className="grid min-w-0 max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && SMART_JOB_EDIT_BLOCKING_STATES.includes(job.state as (typeof SMART_JOB_EDIT_BLOCKING_STATES)[number]))} className="w-full min-w-0 max-w-full rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${new Date(option.asOf).toLocaleDateString()}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
+          {stageDetails('class-attainment', <div className="min-w-0 space-y-2"><label className="grid min-w-0 max-w-md gap-1 text-sm">班级学情（当前累计画像）<select value={task.selectedClassId ?? ''} onChange={(event) => void updateClassDiagnosis(task, event.target.value)} disabled={Boolean(job && SMART_JOB_EDIT_BLOCKING_STATES.includes(job.state as (typeof SMART_JOB_EDIT_BLOCKING_STATES)[number]))} className="w-full min-w-0 max-w-full rounded border border-border bg-background px-3 py-2 disabled:opacity-50"><option value="">不使用班级学情</option>{classDiagnosisOptions.map((option) => <option key={option.classId} value={option.classId}>{option.className}{option.isDefault ? '（默认）' : ''} · {option.available ? option.asOf ? `截至 ${formatShortDate(option.asOf) ?? '累计画像可用'}` : '累计画像可用' : portraitAvailabilityLabel(option.availabilityReason)}</option>)}</select></label>{task.classContextStaleAt ? <p className="text-amber-700">班级选择已改变，已有生成内容已保留；请从提纲确认后重生成。</p> : null}</div>)}
           {stageDetails('lesson-generation', <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <button onClick={() => void refreshTask(task.id)} className="rounded border border-border px-3 py-1.5 text-sm">刷新进度</button>
@@ -792,6 +792,15 @@ function portraitAvailabilityLabel(reason: string) {
   if (reason === 'current-state-version-mismatch') return '累计画像版本不一致';
   if (reason === 'invalid-current-snapshot') return '累计画像暂不可用';
   return '暂无累计画像';
+}
+
+function formatShortDate(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function PreparationStageDetails({

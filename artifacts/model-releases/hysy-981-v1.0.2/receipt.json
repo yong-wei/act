@@ -1,0 +1,56 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "hysy-981",
+  "modelVersion": "1.0.2",
+  "capturedAt": "2026-09-09T03:03:15.133Z",
+  "packageTreeDigest": "fba78b11ecca4bd6dca3b3c1f098c659e5e4d3e7",
+  "sourceCommitAtCapture": "0930f6710746924491f04399ac630af72bb74f9b",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:github-release:HYSY981-ACT-v1.0.2",
+  "manifestSha256": "fd16b6bbfb7b2378ce56405d7df048f5a34b7b383fe108880dfd0bebd143978f",
+  "sourceBlendSha256": "5bb9e091771e26545b258067b566fe0f846ba4b5724b883b7cd999b879f2005d",
+  "roles": {
+    "ship-lod0": {
+      "file": "hysy-981-ship-lod0.glb",
+      "sha256": "8ed0b4f80003cba606f0451abcd5d28cfbf8fafacf544f5881fdb6c17e77c02a",
+      "bytes": 8803472,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "hysy-981-ship-lod1.glb",
+      "sha256": "db77a653373bbdb1be40094e8ebc4a054675c8d2c3e9130b2ac9a5e7ab1e2f25",
+      "bytes": 6815824,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "hysy-981-ship-lod2.glb",
+      "sha256": "c9c3073ab15c3c59913f9627aadc03c055c5a430b1ba06d61b3f86ec014ce5a7",
+      "bytes": 4538756,
+      "kind": "ship",
+      "lod": 2
+    }
+  },
+  "copiedFiles": [
+    {
+      "file": "hysy-981-ship-lod0.glb",
+      "sha256": "8ed0b4f80003cba606f0451abcd5d28cfbf8fafacf544f5881fdb6c17e77c02a",
+      "bytes": 8803472,
+      "role": "ship-lod0"
+    },
+    {
+      "file": "hysy-981-ship-lod1.glb",
+      "sha256": "db77a653373bbdb1be40094e8ebc4a054675c8d2c3e9130b2ac9a5e7ab1e2f25",
+      "bytes": 6815824,
+      "role": "ship-lod1"
+    },
+    {
+      "file": "hysy-981-ship-lod2.glb",
+      "sha256": "c9c3073ab15c3c59913f9627aadc03c055c5a430b1ba06d61b3f86ec014ce5a7",
+      "bytes": 4538756,
+      "role": "ship-lod2"
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}
