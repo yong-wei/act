@@ -657,7 +657,9 @@ function buildCorrectionContext(
       expectedMinutes,
       actualMinutes: Number(match[1]),
       ...(durationAllocation ? { durationAllocation } : {}),
-      instruction: `保持步骤数量、顺序、标题、教学活动、评价内容与 sourceBindings 不变；${durationAllocation ? '先将 steps.minutes 按 correctionContext.durationAllocation 逐项设置，再核对其总和；' : ''}stage.minutes 与每个步骤 minutes 都必须是正整数，所有步骤 minutes 之和必须严格等于 ${expectedMinutes} 分钟，stage.minutes 同步修正为 ${expectedMinutes}；不得扩展教学语义。`,
+      instruction: durationAllocation
+        ? `保持步骤数量、顺序、标题、教学活动、评价内容与 sourceBindings 不变；先将 steps.minutes 按 correctionContext.durationAllocation 逐项设置，再核对其总和；stage.minutes 与每个步骤 minutes 都必须是正整数，所有步骤 minutes 之和必须严格等于 ${expectedMinutes} 分钟，stage.minutes 同步修正为 ${expectedMinutes}；不得扩展教学语义。`
+        : `当前步骤数量无法分配为 ${expectedMinutes} 个正整数分钟；允许合并或减少步骤，但必须保留原有教学语义、顺序、必要的教学活动、评价内容与 sourceBindings。重新生成后，stage.minutes 与所有 steps.minutes 之和必须严格等于 ${expectedMinutes} 分钟，且每个 minutes 都必须为正整数；不得扩展教学语义。`,
     };
   }
   if (!receipt.issues.some((issue) => issue.code === 'stage-duration-mismatch')) return null;
