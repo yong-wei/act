@@ -453,11 +453,41 @@ function buildStageDurationInstructionOrFallback(
   }
 }
 
-function buildDurationAllocation(stepCount: number, expectedMinutes: number) {
-  if (!Number.isInteger(stepCount) || stepCount <= 0 || stepCount > expectedMinutes) return null;
-  const base = Math.floor(expectedMinutes / stepCount);
-  const remainder = expectedMinutes % stepCount;
-  return Array.from({ length: stepCount }, (_, index) => base + (index < remainder ? 1 : 0));
+function originalStepMinutes(output: unknown) {
+  if (!output || typeof output !== 'object' || !Array.isArray((output as { steps?: unknown }).steps)) return [];
+  return (output as { steps: Array<{ minutes?: unknown }> }).steps.map((step) => (
+    step && typeof step === 'object' && typeof step.minutes === 'number' && Number.isInteger(step.minutes) && step.minutes > 0
+      ? step.minutes
+      : 0
+  ));
+}
+
+function buildDurationAllocation(originalMinutes: number[], expectedMinutes: number) {
+  const stepCount = originalMinutes.length;
+  if (!Number.isInteger(stepCount) || stepCount <= 0 || !Number.isInteger(expectedMinutes) || stepCount > expectedMinutes) {
+    return null;
+  }
+  const weightSum = originalMinutes.reduce((total, minutes) => total + minutes, 0);
+  if (weightSum <= 0) {
+    const base = Math.floor(expectedMinutes / stepCount);
+    const remainder = expectedMinutes % stepCount;
+    return Array.from({ length: stepCount }, (_, index) => base + (index < remainder ? 1 : 0));
+  }
+  const raw = originalMinutes.map((minutes) => (minutes / weightSum) * expectedMinutes);
+  const allocation = raw.map((value) => Math.floor(value));
+  const leftover = expectedMinutes - allocation.reduce((total, minutes) => total + minutes, 0);
+  const order = raw
+    .map((value, index) => ({ index, frac: value - Math.floor(value) }))
+    .sort((left, right) => right.frac - left.frac || left.index - right.index);
+  for (let index = 0; index < leftover; index += 1) allocation[order[index].index] += 1;
+  while (allocation.some((minutes) => minutes <= 0)) {
+    const zero = allocation.findIndex((minutes) => minutes <= 0);
+    const donor = allocation.reduce((best, minutes, index) => (minutes > allocation[best] ? index : best), 0);
+    if (allocation[donor] <= 1) return null;
+    allocation[donor] -= 1;
+    allocation[zero] += 1;
+  }
+  return allocation;
 }
 
 function normalizeStageStepDurationIssues(issues: SmartLessonValidationReceipt['issues']) {
@@ -659,10 +689,7 @@ function buildCorrectionContext(
       return null;
     }
     if (!match || !Number.isInteger(expectedMinutes) || expectedMinutes <= 0) return null;
-    const stepCount = output && typeof output === 'object' && Array.isArray((output as { steps?: unknown }).steps)
-      ? (output as { steps: unknown[] }).steps.length
-      : 0;
-    const durationAllocation = buildDurationAllocation(stepCount, expectedMinutes);
+    const durationAllocation = buildDurationAllocation(originalStepMinutes(output), expectedMinutes);
     return {
       stage,
       expectedMinutes,

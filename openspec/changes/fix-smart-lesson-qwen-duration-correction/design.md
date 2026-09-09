@@ -17,7 +17,9 @@ For a sole `stage-step-duration-mismatch`, the worker reads the expected stage
 duration from the outline and the actual total from the validation message.
 When the candidate contains a usable step array, it also computes a positive
 integer allocation whose length matches the original step count and whose sum
-equals the expected duration. The correction instruction tells the model to
+equals the expected duration. The allocation prefers the original step-minute
+proportions via largest-remainder rounding; if original minutes are unusable,
+it falls back to an even split. The correction instruction tells the model to
 apply that allocation while preserving semantic fields and source bindings.
 
 If the candidate does not expose a usable step array, or its step count is

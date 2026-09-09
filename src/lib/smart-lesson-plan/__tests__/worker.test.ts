@@ -653,6 +653,74 @@ describe('smart lesson BullMQ worker', () => {
     }));
   });
 
+  it('allocates correction minutes by original step proportions', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 10], ['preAssessment', 5],
+        ['participatoryLearning', 5], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'OBJECTIVES',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-objectives', kind: 'OBJECTIVES', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 35,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const sourceBinding = {
+      citationId: sourcePackItem.citationTargetId,
+      sourceVersionId: sourcePackItem.metadata.versionId,
+      anchor: sourcePackItem.metadata.stableAnchor,
+      contentHash: sourcePackItem.metadata.contentHash,
+    };
+    const generate = vi.fn()
+      .mockResolvedValueOnce({
+        output: {
+          minutes: 10, teacherActivity: '讲授', studentActivity: '理解', assessment: '反馈',
+          steps: [
+            { title: '主说明', minutes: 4, teacherActivity: '引导', studentActivity: '练习', assessment: '观察', sourceBindings: [sourceBinding] },
+            { title: '补充', minutes: 1, teacherActivity: '提示', studentActivity: '记录', assessment: '提问', sourceBindings: [sourceBinding] },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({
+        output: {
+          minutes: 10, teacherActivity: '讲授', studentActivity: '理解', assessment: '反馈',
+          steps: [
+            { title: '主说明', minutes: 8, teacherActivity: '引导', studentActivity: '练习', assessment: '观察', sourceBindings: [sourceBinding] },
+            { title: '补充', minutes: 2, teacherActivity: '提示', studentActivity: '记录', assessment: '提问', sourceBindings: [sourceBinding] },
+          ],
+        },
+      });
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(serviceMocks.beginCorrection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      request: expect.objectContaining({
+        correctionContext: expect.objectContaining({
+          stage: 'OBJECTIVES',
+          expectedMinutes: 10,
+          actualMinutes: 5,
+          durationAllocation: [8, 2],
+        }),
+      }),
+    }));
+  });
+
   it('falls back to the generic correction prompt when other schema errors coexist with the duration mismatch', async () => {
     const outline = {
       keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,

@@ -20,7 +20,8 @@ exposes a usable step count.
 - **THEN** the correction context SHALL retain the expected and actual totals
 - **AND** when the candidate has a usable step array and a feasible positive-
   integer allocation can be derived, it SHALL include an allocation with the
-  same length and the expected total
+  same length and the expected total that prefers the original step-minute
+  proportions
 - **AND** when no such allocation can be derived, the correction instruction
   SHALL permit merging or reducing steps while preserving the teaching
   semantics and source bindings

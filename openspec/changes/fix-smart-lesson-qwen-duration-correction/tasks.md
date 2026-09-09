@@ -14,5 +14,6 @@
 - [x] Add worker regression coverage for initial duration instructions.
 - [x] Update targeted correction assertions for the v3 prompt and allocation.
 - [x] Add regression coverage for reducing an infeasible step count.
+- [x] Add regression coverage for proportion-preserving duration allocations.
 - [ ] Run a real-provider smoke after merge using the unchanged Qwen3.5
   experiment conditions.
