@@ -1463,8 +1463,8 @@
       "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
       "safeId": "ctc_modeling-71f0e8d834291c2c7d5e25b9",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "4e08567b57fe68dfe3f4e22c85ba23fdd6c7ee5ae013c9d1d67c42a711c177a2"
       },
       "infograph": {
         "state": "available",
@@ -6299,8 +6299,8 @@
       "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
       "safeId": "ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "98b69da7e891b5647d40e37f9afba85b32c37bceb16b1db5b52c562d8c78995b"
       },
       "infograph": {
         "state": "available",
@@ -6371,8 +6371,8 @@
       "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
       "safeId": "ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "5c08f312df4266377a68a6068ce07752faf627cdde8665949f39dafe7e9c6300"
       },
       "infograph": {
         "state": "available",
@@ -6491,8 +6491,8 @@
       "canonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
       "safeId": "ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "00ef15b21d2388b95f03d5740cb2f2081aa40dd98cf926731f9f55a262a873d5"
       },
       "infograph": {
         "state": "available",
@@ -6983,8 +6983,8 @@
       "canonicalId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
       "safeId": "ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "de8cb6f3936c7891e916b388faa9b73a87f4f54e7168ebb42af86b0a1ac6b490"
       },
       "infograph": {
         "state": "available",
@@ -7031,8 +7031,8 @@
       "canonicalId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
       "safeId": "ctkg_v3e-canonical-813c3692771aa00de2a18d93",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "b67c4a0f6b5725d992ca42913c0ac76fc0b1d71bd923886f136c8f8010f49bf6"
       },
       "infograph": {
         "state": "available",
@@ -7295,8 +7295,8 @@
       "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
       "safeId": "ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "4146282ecf05d185c9ed9a0731314014127e5eb6dade1770bd07261d879d4607"
       },
       "infograph": {
         "state": "available",
@@ -10043,8 +10043,8 @@
       "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
       "safeId": "ctkg_v3e-object-508501381207b32fdb98c6c2",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "47e21d423219ae55fce06a7dbfa36ceee3f606b9f9192a9c9b42d9b613e70d1b"
       },
       "infograph": {
         "state": "available",
@@ -11939,8 +11939,8 @@
       "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
       "safeId": "ctkg_v3e-object-8c4354096b719a1d5e090da4",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "00522a5996166ea750f890a2d81184e06a5120f6323f16b77c529d3fbcc19310"
       },
       "infograph": {
         "state": "missing",
@@ -12683,8 +12683,8 @@
       "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
       "safeId": "ctkg_v3e-object-aa79b6fedda690cfd68855aa",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "68916011d5ae7f150295e57b6e32067475aee4aae6a50789a990030d3b9625a6"
       },
       "infograph": {
         "state": "available",

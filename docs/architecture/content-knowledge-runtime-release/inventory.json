@@ -1,9 +1,9 @@
 {
-  "sourceRevision": "4b9b410f317bfa3c868d30078008259f0a067a2b",
-  "sourceTree": "fa07941f2425754a75127b0e274d66376c9a1994",
+  "sourceRevision": "ce73eabc89a1e996871b5532533a96bcd68b2d70",
+  "sourceTree": "684b53de50205ee82bf8181696c00f124f2d57e0",
   "generatedInputs": [],
   "counts": {
-    "course-content/scripts": 41,
+    "course-content/scripts": 42,
     "scripts/knowledge": 23,
     "scripts/knowledge-cutover": 80,
     "scripts/runtime-release": 44,
@@ -12,12 +12,12 @@
   "roleCounts": {
     "reader": 22,
     "compiler": 85,
-    "validator": 16,
+    "validator": 17,
     "operator-adapter": 51,
     "candidate-adapter": 13,
     "publication-writer": 6
   },
-  "commandCount": 193,
+  "commandCount": 194,
   "commands": [
     {
       "path": "course-content/scripts/authority-cards/README.md",
@@ -26,7 +26,7 @@
       "owner": "course",
       "role": "reader",
       "safetyMode": "read-only",
-      "contentHash": "b754327b51383404f01f0cc8cceaf9b980b58ba7a2b21b662c7b8e1315c2cca0"
+      "contentHash": "0f5736339009bdaefcd9c7f00088b9a1b195f5a68e2993f3c643d9fc661a39e5"
     },
     {
       "path": "course-content/scripts/authority-cards/batch_generate_runner.py",
@@ -80,7 +80,7 @@
       "owner": "course",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "11f838c782f941b1f61b9d45038c88478a08d30903d2f5905128dad1b91566a3"
+      "contentHash": "5b3246da030b40c08f56ab8d0ae31a581cfb9beff9079506513c418360a60ff9"
     },
     {
       "path": "course-content/scripts/authority-cards/normalize_authority_infograph_metadata.py",
@@ -323,7 +323,16 @@
       "owner": "course",
       "role": "validator",
       "safetyMode": "read-only",
-      "contentHash": "31c6c0166b9f087cc13d899b8cf92279d52376b61d4176568884b773047081d7"
+      "contentHash": "cea7052d656e52a0ddbb95361ad67e4e58ae1961dc3ab6fd59e4626ffe397c0c"
+    },
+    {
+      "path": "course-content/scripts/tests/test_bound_authority_card_export.py",
+      "commandId": "release:content-compiler:course-content/scripts/tests/test_bound_authority_card_export.py",
+      "toolchain": "content-compiler",
+      "owner": "course",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "69ab1ceb8a5d5fb1b69222ed45813d0b442b193444b4749dec1d78c0433c3779"
     },
     {
       "path": "course-content/scripts/textbook_hybrid_retrieval.py",
@@ -1232,7 +1241,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "7ce14e8f2ec2dad741c7dd2eba73afc57373a2f6ee50982bdb113694939b4935"
+      "contentHash": "2d1a5b5080b1c4333479145592c8468bc44559b9b1eb9b6648e41da1fbd99629"
     },
     {
       "path": "scripts/knowledge/generate-cross-domain-teaching.ts",
