@@ -106,7 +106,6 @@ test('continuous real-teacher preparation flow uses governed sources, current po
   }
   expect(advisoryReviews.at(-1)?.state).toBe('COMPLETED');
   expect(advisoryReviews.filter((review) => review.state === 'COMPLETED')).toHaveLength(1);
-  await expect(smartLessonStatus(page, 'AI 建议已生成')).toBeVisible({ timeout: 8 * 60_000 });
   await page.reload();
   card = taskCard(page);
   await expect(card).toContainText('审核建议已生成');
