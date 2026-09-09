@@ -1,0 +1,191 @@
+{
+  "contract": "act-bound-resource-content-repair/v1",
+  "authoritySnapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+  "authorization": "User requested completion from existing course handouts and textbooks on 2026-09-09.",
+  "numericVerification": {
+    "tool": "GNU Octave",
+    "passed": true,
+    "values": [
+      0,
+      1,
+      0.735758882342885,
+      0.2,
+      0,
+      16.303353482158,
+      1.813799364234218,
+      1.5,
+      0.2,
+      0.3333333333333333,
+      2,
+      -2
+    ]
+  },
+  "cards": [
+    {
+      "resourceId": "act:card:ctc_modeling-71f0e8d834291c2c7d5e25b9",
+      "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctc_modeling-71f0e8d834291c2c7d5e25b9.md",
+      "beforeSha256": "e7845540da481826b83e7ac0fe75ae68f93def7a3e395a6de147e8422e32e1af",
+      "sha256": "4e08567b57fe68dfe3f4e22c85ba23fdd6c7ee5ae013c9d1d67c42a711c177a2",
+      "sources": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/状态空间表达式_9_477dfe0d.md",
+          "sha256": "4c85bd6eb40cc9d9cba915d3992a6ce6f412608d159596e1b51de7d2e04be6d3"
+        },
+        {
+          "path": "course-content/authoring/lessons/2-1/design/2-1-handout.md",
+          "sha256": "72e724fb62fa243ad01329033da773165edffacc1838bb5c714cac68155b9afe"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-115de5ef0289a778cf5b69c6",
+      "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-115de5ef0289a778cf5b69c6.md",
+      "beforeSha256": "2746f3709f11c1e7ee57c98d3bda0c85c7a7e57549435287e19d4409f8db6310",
+      "sha256": "98b69da7e891b5647d40e37f9afba85b32c37bceb16b1db5b52c562d8c78995b",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/3-7/design/3-7-handout.md",
+          "sha256": "6182d2fb4b45b67c995c4985032ea1c80e569907f757b2ee1b021978746fe507"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886.md",
+      "beforeSha256": "db07137e7f2eebc3c30603c91066a9dd07702a521fa0adab92e2d6c1ae9899fe",
+      "sha256": "5c08f312df4266377a68a6068ce07752faf627cdde8665949f39dafe7e9c6300",
+      "sources": [
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/零输入响应_2_ee4b953b.md",
+          "sha256": "170b38f4c6f5ce7dc1f4408e6fb75bef26f7926bb8136375b9016a104eca3cf2"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-1/design/3-1-handout.md",
+          "sha256": "62da78f32b44e534923e0605f8e95f940c12ecf536ff199bd1f0983dda9b5aeb"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-299c52f97e423f68b4ac6093",
+      "canonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-299c52f97e423f68b4ac6093.md",
+      "beforeSha256": "2984998d9bb08952d6b7501ce677cd27b8483d74fe19911fe360e8ea8446a8e4",
+      "sha256": "00ef15b21d2388b95f03d5740cb2f2081aa40dd98cf926731f9f55a262a873d5",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/3-7/design/3-7-handout.md",
+          "sha256": "6182d2fb4b45b67c995c4985032ea1c80e569907f757b2ee1b021978746fe507"
+        },
+        {
+          "path": "course-content/authoring/lessons/2-2/design/2-2-handout.md",
+          "sha256": "9acdc1b9dc6288c64e5cc1ed43b549fc0b6e069ea633e8d08ad362b1603684cd"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "canonicalId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d.md",
+      "beforeSha256": "e289454ede648007ab20e386dbc7a9e5573a9107b0546b9ace1f02f462d7283f",
+      "sha256": "de8cb6f3936c7891e916b388faa9b73a87f4f54e7168ebb42af86b0a1ac6b490",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/2-1/design/2-1-handout.md",
+          "sha256": "72e724fb62fa243ad01329033da773165edffacc1838bb5c714cac68155b9afe"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-3/design/3-3-handout.md",
+          "sha256": "989dabb9fa5ce2aa2f356abb2f3dec94f76c654c8135d4fbefa32bb4369082a3"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-813c3692771aa00de2a18d93",
+      "canonicalId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-813c3692771aa00de2a18d93.md",
+      "beforeSha256": "3bde65cfe0c02fbb001a73a46e14831b2085c887b0adbd647247e712f9c3db03",
+      "sha256": "b67c4a0f6b5725d992ca42913c0ac76fc0b1d71bd923886f136c8f8010f49bf6",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/2-2/design/2-2-handout.md",
+          "sha256": "9acdc1b9dc6288c64e5cc1ed43b549fc0b6e069ea633e8d08ad362b1603684cd"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/动态性能指标_3_a10733c1.md",
+          "sha256": "86ec08e52edebee3564ca39156b24d7764c8206dd4b6408eb7364b90586c5162"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef.md",
+      "beforeSha256": "bb8c4a7b1fd75c2ed49a6402a2b54281ce1556d7e6b679aaf6ade1128b742cba",
+      "sha256": "4146282ecf05d185c9ed9a0731314014127e5eb6dade1770bd07261d879d4607",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/2-1/design/2-1-handout.md",
+          "sha256": "72e724fb62fa243ad01329033da773165edffacc1838bb5c714cac68155b9afe"
+        },
+        {
+          "path": "course-content/authoring/lessons/3-7/design/3-7-handout.md",
+          "sha256": "6182d2fb4b45b67c995c4985032ea1c80e569907f757b2ee1b021978746fe507"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-508501381207b32fdb98c6c2",
+      "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-508501381207b32fdb98c6c2.md",
+      "beforeSha256": "7f709596b3892aea9338abfe0ab947a532f6014d90df53a87c9c6ccd30d1253f",
+      "sha256": "47e21d423219ae55fce06a7dbfa36ceee3f606b9f9192a9c9b42d9b613e70d1b",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/2-1/design/2-1-handout.md",
+          "sha256": "72e724fb62fa243ad01329033da773165edffacc1838bb5c714cac68155b9afe"
+        },
+        {
+          "path": "course-content/authoring/lessons/4-2/design/4-2-handout.md",
+          "sha256": "ace17df82980ca8cddf047f3c37b50c9207719e23eeb402113b0ec9c0f1e4151"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-8c4354096b719a1d5e090da4",
+      "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-8c4354096b719a1d5e090da4.md",
+      "beforeSha256": "28c4251ed2edddb664976bb439c1307762c242ad5f78fcf42288b27fdda2d9dd",
+      "sha256": "00522a5996166ea750f890a2d81184e06a5120f6323f16b77c529d3fbcc19310",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/2-1/design/2-1-handout.md",
+          "sha256": "72e724fb62fa243ad01329033da773165edffacc1838bb5c714cac68155b9afe"
+        },
+        {
+          "path": "course-content/authoring/knowledge/cards/nodes/拉普拉斯变换_2_c635236f.md",
+          "sha256": "b05042bfcad857d4f82a8259582f07f217e9b12ee6a8d01e8ff496fc3fb3a00a"
+        }
+      ]
+    },
+    {
+      "resourceId": "act:card:ctkg_v3e-object-aa79b6fedda690cfd68855aa",
+      "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+      "path": "course-content/authoring/knowledge/cards/authority/nodes/ctkg_v3e-object-aa79b6fedda690cfd68855aa.md",
+      "beforeSha256": "b09ca83015c15ccafaae34d7fb5738fa9c2a27000ebf2ec5d0326547c870677a",
+      "sha256": "68916011d5ae7f150295e57b6e32067475aee4aae6a50789a990030d3b9625a6",
+      "sources": [
+        {
+          "path": "course-content/authoring/lessons/5-1/design/5-1-handout.md",
+          "sha256": "ec7d26d2ee55a84cb138cfbc7a8e45e19c3679232a0eab7f02d299ecb2f9f61a"
+        },
+        {
+          "path": "course-content/authoring/lessons/5-2/design/5-2-handout.md",
+          "sha256": "f5d12423f063d99bfb701a7af5f0b16710605548a3949a4dd70ad15d751898b2"
+        }
+      ]
+    }
+  ]
+}

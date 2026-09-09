@@ -1026,7 +1026,7 @@ function ActiveNodeDetail({
                           && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
                             <button
                               type="button"
-                              key={`${role}-${item.title}`}
+                              key={`${role}-${item.resourceId ?? item.title}`}
                               onClick={() => openResourceViewer({
                                 title: item.title,
                                 resourceKind: item.resourceKind,
@@ -1053,7 +1053,7 @@ function ActiveNodeDetail({
                             </button>
                           ) : (
                             <p
-                              key={`${role}-${item.title}`}
+                              key={`${role}-${item.resourceId ?? item.title}`}
                               data-active-resource-unavailable="true"
                               className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
                             >

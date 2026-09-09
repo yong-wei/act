@@ -193,6 +193,7 @@ export interface ActiveResourceViewerContent {
 }
 
 export interface ActiveResourceBinding {
+  resourceId?: string;
   title: string;
   bindingRole: ActiveResourceBindingRole;
   resourceKind: string;

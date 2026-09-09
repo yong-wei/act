@@ -4,6 +4,8 @@ const mocks = vi.hoisted(() => ({
   resolve: vi.fn(),
   canvas: vi.fn(),
   nodeDetail: vi.fn(),
+  publishedResources: vi.fn(),
+  catalogHash: 'c'.repeat(64),
 }));
 
 vi.mock('@/lib/authoritative-knowledge/engineering-authority-consumers', () => ({
@@ -23,14 +25,24 @@ vi.mock('@/lib/authority-domain-shards/identity', async (importOriginal) => {
         authority: {
           releaseId: 'release-1',
           snapshotHash: 'a'.repeat(64),
+          activationHash: 'b'.repeat(64),
         },
+        catalog: { catalogHash: mocks.catalogHash },
+        teaching: { status: 'available', projectionId: 'teaching-1', projectionHash: 'd'.repeat(64) },
+        match: { teaching: true },
       },
     }),
   };
 });
 
+vi.mock('@/lib/authority-domain-shards/published-resource-bindings', async (original) => ({
+  ...await original<typeof import('@/lib/authority-domain-shards/published-resource-bindings')>(),
+  readPublishedNodeResources: mocks.publishedResources,
+}));
+
 import {
   activeShardResponse,
+  activePublishedDetailResponse,
   readActiveCanvas,
   readActiveNode,
 } from '@/app/api/knowledge/_active-authority';
@@ -38,6 +50,7 @@ import {
   AuthorityShardIdentityError,
   AuthorityShardStoreError,
 } from '@/lib/authority-domain-shards';
+import { publishedNodeResourceFailure } from '@/lib/authority-domain-shards/published-resource-bindings';
 
 const resolved = {
   status: 'ready' as const,
@@ -132,6 +145,10 @@ beforeEach(() => {
 });
 
 describe('active Authority role-safe projections', () => {
+  beforeEach(() => {
+    mocks.catalogHash = 'c'.repeat(64);
+    mocks.publishedResources.mockRejectedValue(new Error('optional resource index unavailable'));
+  });
   const nodeShard = {
     shardClass: 'node-detail' as const,
     envelope: {
@@ -162,6 +179,25 @@ describe('active Authority role-safe projections', () => {
       semanticSupport: { supported: true, readOnly: true as const },
     },
   };
+
+  it('keeps valid student detail when the optional published resource index fails', async () => {
+    const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.node.id).toBe('node-1');
+    expect(body.node.resourceBindings.state).toBe('unavailable');
+    expect(body.node).not.toHaveProperty('teachingFields');
+    expect(JSON.stringify(body)).not.toContain('optional resource index unavailable');
+  });
+
+  it('rejects a selector change during the asynchronous resource lookup', async () => {
+    mocks.publishedResources.mockImplementationOnce(async () => {
+      mocks.catalogHash = 'f'.repeat(64);
+      return publishedNodeResourceFailure(nodeShard);
+    });
+    const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
+    expect(response.status).toBe(503);
+  });
 
   it.each([
     ['STUDENT' as const, false],

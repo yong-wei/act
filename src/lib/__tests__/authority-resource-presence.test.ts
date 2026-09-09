@@ -33,14 +33,18 @@ const ids = ['card-node', 'course-node', 'unavailable-node', 'empty-node'];
 beforeEach(() => { state.capture = 'a'.repeat(40); state.expected = state.capture; state.owned = true; state.sealed = true; });
 describe('qualified graph resource presence', () => {
   it('includes published cards and learner-visible course resource types', () => {
-    expect(availableIds(ids).sort()).toEqual(['card-node', 'course-node']);
+    expect(availableIds(ids).sort()).toEqual(['card-node', 'course-node', 'unavailable-node']);
     const types = activeAuthorityResourceTypes(envelope, ids, 'STUDENT');
     expect([...(types.get('card-node') ?? [])]).toEqual(['card']);
     expect([...(types.get('course-node') ?? [])]).toEqual(['lesson']);
+    expect([...(types.get('unavailable-node') ?? [])]).toEqual(['textbook']);
+    const projection = matchActiveTeachingProjection({ envelope });
+    const parent = projectAuthorityNodeResourceBindings({ nodeId: 'unavailable-node', bindings: projection.bindings!, resources: projection.resources! });
+    expect(parent.state === 'available' && parent.items.every((item) => item.availability === 'unavailable')).toBe(true);
   });
   it('preserves published types while a dirty app capture still blocks launches', () => {
     state.capture += '-dirty';
-    expect(availableIds(ids).sort()).toEqual(['card-node', 'course-node']);
+    expect(availableIds(ids).sort()).toEqual(['card-node', 'course-node', 'unavailable-node']);
     const projection = matchActiveTeachingProjection({ envelope });
     const bindings = projectAuthorityNodeResourceBindings({ nodeId: 'course-node', bindings: projection.bindings!, resources: projection.resources! });
     const closed = closeResourceBlockWithRegistryIndex({ bindings, index: tryLiveRegistryIndex(), expectedCaptureRevision: projection.authoringRevision });
@@ -48,7 +52,7 @@ describe('qualified graph resource presence', () => {
   });
   it('does not infer launch ownership from a published resource type', () => {
     state.owned = false;
-    expect(availableIds(ids).sort()).toEqual(['card-node', 'course-node']);
+    expect(availableIds(ids).sort()).toEqual(['card-node', 'course-node', 'unavailable-node']);
     const projection = matchActiveTeachingProjection({ envelope });
     const bindings = projectAuthorityNodeResourceBindings({ nodeId: 'course-node', bindings: projection.bindings!, resources: projection.resources! });
     const closed = closeResourceBlockWithRegistryIndex({ bindings, index: tryLiveRegistryIndex(), expectedCaptureRevision: projection.authoringRevision });

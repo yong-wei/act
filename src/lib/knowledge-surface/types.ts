@@ -55,6 +55,14 @@ export interface KnowledgeSurfaceRegistryIndexIdentity {
   identity: string;
   digest: string;
   captureRevision?: string | null;
+  publication?: {
+    projectionId: string;
+    projectionHash: string;
+    snapshotId: string;
+    snapshotHash: string;
+    scopeId: string | null;
+    runtimeReleaseId: string | null;
+  };
 }
 
 export interface KnowledgeSurfaceMathIdentity {

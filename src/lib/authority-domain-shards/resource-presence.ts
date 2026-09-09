@@ -27,7 +27,7 @@ export function activeAuthorityResourceTypes(envelope: AuthorityShardEnvelope, n
       const projected = projectAuthorityNodeResourceBindings({ nodeId,
         bindings: bindings.filter((binding) => binding.resourceId === resourceId), resources: [resource], viewerRole: role });
       const sanitized = sanitizePublicResourceBindingLaunches(projected, nodeId);
-      if (sanitized.state === 'available' && sanitized.items.some((item) => item.availability === 'available')) {
+      if (sanitized.state === 'available' && sanitized.items.length > 0) {
         const types = available.get(nodeId) ?? new Set<TeachingResourceType>();
         types.add(resource.resourceType);
         available.set(nodeId, types);

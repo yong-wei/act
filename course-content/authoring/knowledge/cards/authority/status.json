@@ -1,11 +1,11 @@
 {
   "schema": "authority-card-status.v1",
-  "generated_at": "2026-08-10T07:06:56+00:00",
+  "generated_at": "2026-09-09T12:33:13+00:00",
   "release_id": "control-theory-engineering-v0.12",
   "total_domain_concepts": 1236,
   "cards": {
-    "ok": 952,
-    "blocked": 284
+    "ok": 962,
+    "blocked": 274
   },
   "infographs": {
     "accepted": 1236
@@ -13,7 +13,8 @@
   "batch_cards": {
     "A:ok": 123,
     "B:ok": 829,
-    "C:blocked": 284
+    "C:blocked": 274,
+    "C:ok": 10
   },
   "batch_images": {
     "A:accepted": 123,
@@ -68,11 +69,6 @@
     {
       "safe_id": "ctkg_v3e-object-1ee77aa2b862870735a63c50",
       "entity_id": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
-      "reason": "description_too_short"
-    },
-    {
-      "safe_id": "ctkg_v3e-object-508501381207b32fdb98c6c2",
-      "entity_id": "ctkg:v3e-object-508501381207b32fdb98c6c2",
       "reason": "description_too_short"
     },
     {
@@ -141,11 +137,6 @@
       "reason": "description_too_short"
     },
     {
-      "safe_id": "ctkg_v3e-canonical-16ddaebf2fe19d65ecc35886",
-      "entity_id": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
-      "reason": "description_too_short"
-    },
-    {
       "safe_id": "ctkg_v3e-canonical-47a2e3c44742b45c55ac902d",
       "entity_id": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
       "reason": "description_too_short"
@@ -153,11 +144,6 @@
     {
       "safe_id": "ctkg_v3e-canonical-4f62334f630ea074128ec396",
       "entity_id": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
-      "reason": "description_too_short"
-    },
-    {
-      "safe_id": "ctkg_v3e-canonical-7d2ba18dbf550046f8683e0d",
-      "entity_id": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
       "reason": "description_too_short"
     },
     {
@@ -273,6 +259,21 @@
     {
       "safe_id": "ctkg_domainconcept_69b64bbfce9e45828d270eb4",
       "entity_id": "ctkg:domainconcept:69b64bbfce9e45828d270eb4",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_84a6b99accd85ba35da5a6a6",
+      "entity_id": "ctkg:domainconcept:84a6b99accd85ba35da5a6a6",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9b5b7d8e1adf2c35463467a8",
+      "entity_id": "ctkg:domainconcept:9b5b7d8e1adf2c35463467a8",
+      "reason": "description_too_short"
+    },
+    {
+      "safe_id": "ctkg_domainconcept_9bec0d6aa9ae6cf731207e85",
+      "entity_id": "ctkg:domainconcept:9bec0d6aa9ae6cf731207e85",
       "reason": "description_too_short"
     }
   ],

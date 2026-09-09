@@ -10,7 +10,7 @@ export const SOURCE_ROOTS = [
 ] as const;
 
 export const FROZEN_COUNTS = {
-  'course-content/scripts': 41,
+  'course-content/scripts': 42,
   'scripts/knowledge': 23,
   'scripts/knowledge-cutover': 80,
   'scripts/runtime-release': 44,
