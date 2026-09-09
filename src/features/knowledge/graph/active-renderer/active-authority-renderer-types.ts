@@ -25,6 +25,7 @@ export interface ActiveAuthorityRendererProps {
   selectedNodeId: string | null;
   hoveredNodeId: string | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
+  onBackgroundClick?: () => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
   layoutState: KnowledgeGraphLayoutState;
@@ -52,6 +53,7 @@ export interface ActiveAuthorityGraphProps {
   selectedNodeId: string | null;
   hoveredNodeId: string | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
+  onBackgroundClick?: () => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
   fitViewRequest: KnowledgeGraphFitRequest;

@@ -212,6 +212,17 @@ describe('sealed v0.37 locale qualification package (#1741)', () => {
 });
 
 describe('v0.37 locale projection (#1741)', () => {
+  it('retains a qualified English explanation in both bounded nodes and detail', () => {
+    const id = 'ctkg:v3e-canonical-9988510f6127d3086f4aa265';
+    const expected = sealed.manifest.records.find((row) => row.recordId === id && row.locale === 'en' && row.category === 'object-explanations')!.value;
+    const neighborhood = neighborhoodFixture();
+    neighborhood.objects = [{ ...neighborhood.objects[0]!, id, description: '中文说明' }];
+    const projected = applyLocaleToLearnerShard(neighborhood, 'en', sealed.manifest, receiptFor('en'));
+    expect(projected.objects[0]?.description).toBe(expected);
+    const detail = { shardClass: 'node-detail' as const, envelope: neighborhood.envelope,
+      node: { ...neighborhood.objects[0]!, teachingFields: {}, sources: [], media: { cardAvailable: false as const, infographAvailable: false as const } } };
+    expect(applyLocaleToLearnerShard(detail, 'en', sealed.manifest, receiptFor('en')).node.description).toBe(expected);
+  });
   it('projects root domain names and the aggregate entry from the interface catalog', () => {
     const projected = applyLocaleToLearnerShard(
       rootShardFixture(),

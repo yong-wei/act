@@ -18,6 +18,10 @@ function fixture() {
   put('authority-domain-shards/current.json', { shardSetId: 'shards', shardSetHash: hash, snapshotHash: 'snapshot' });
   put('authority-domain-shards/sets/shards/manifest.json', { shardSetHash: hash, envelope, files: shardFiles });
   files.set('course-content/runtime/knowledge/authority-domain-shards/sets/shards/domains/modeling/default.json', domain);
+  put('projection/releases/course/resources.jsonl', { resourceId: 'resource', resourceType: 'card', sourcePath: 'cards/example.md' });
+  put('projection/releases/course/bindings.jsonl', { resourceId: 'resource', canonicalId: 'local', role: 'EXPLAINS', scopeId: 'course', primary: false });
+  put('projection/releases/course/prerequisites.jsonl', { sourceCanonicalId: 'local', targetCanonicalId: 'external', strength: 'REQUIRED', scopeId: 'course' });
+  put('prerequisites/releases/prereq/projection-prerequisites.json', [{ sourceCanonicalId: 'local', targetCanonicalId: 'external', strength: 'REQUIRED', scopeId: 'course' }]);
   put('prerequisites/current.json', { publicationId: 'prereq', publicationHash: 'prereq-hash' });
   put('composite-envelopes/actkg-composite-envelope-registry.json', { envelopes: [{ qualified: true, name: 'qualified', authoritySnapshotHash: 'snapshot', projectionId: 'course', projectionHash: 'course-hash', publicationId: 'prereq', publicationHash: 'prereq-hash', shardSetId: 'shards', shardSetHash: hash }] });
   put('composite-envelopes/locale-manifests/qualified.json', { shardSet: { shardSetHash: hash }, authority: { snapshotHash: 'snapshot' }, interfaceCatalogDigest: 'interface', manifest: { denominators: [] } });
@@ -29,6 +33,17 @@ describe('frozen knowledge publication consistency', () => {
   it('accepts one coherent candidate with explicitly incomplete full-course coverage', () => {
     const f = fixture();
     expect(() => assertKnowledgePublicationConsistency(f.read, 'app')).not.toThrow();
+  });
+  it('rejects loss of an existing resource binding even when counts could be similar', () => {
+    const baseline = fixture();
+    const candidate = fixture();
+    candidate.put('projection/releases/course/bindings.jsonl', { resourceId: 'other', canonicalId: 'local', role: 'EXPLAINS', scopeId: 'course', primary: false });
+    expect(() => assertKnowledgePublicationConsistency(candidate.read, 'app', baseline.read)).toThrow('retained resource continuity');
+  });
+  it('rejects different prerequisite sets in course and path consumers', () => {
+    const f = fixture();
+    f.put('prerequisites/releases/prereq/projection-prerequisites.json', []);
+    expect(() => assertKnowledgePublicationConsistency(f.read, 'app')).toThrow('course and path prerequisite publication');
   });
   it('rejects an app capture mismatch', () => {
     const f = fixture();

@@ -12,3 +12,10 @@ Selecting an overview node SHALL disclose its bounded published neighborhood wit
 - **WHEN** the learner closes the detail panel
 - **THEN** the selection, disclosed scope, coordinates and camera SHALL remain unchanged
 - **AND** a separate return action SHALL restore the domain overview when requested
+
+### Requirement: Konling follows the current graph selection
+The Active workspace SHALL publish current node selection through the existing Konling context boundary. Opening Konling SHALL immediately show the selected node, and changing the selection while Konling is open SHALL update that context. Clearing selection or leaving the workspace SHALL remove stale node context.
+
+#### Scenario: Open Konling and then select another node
+- **WHEN** node A is selected before Konling opens and node B is subsequently selected
+- **THEN** Konling SHALL first show A and then B without requiring reopening or an additional click

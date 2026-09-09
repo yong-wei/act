@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type MouseEvent, type PointerEvent, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent, type RefObject } from 'react';
 
 export const FLOATING_DOCK_POSITION_KEY = 'act:konling-dock-position:v1';
 export interface FloatingDockPosition { right: number; bottom: number }
@@ -73,6 +73,15 @@ export function useFloatingDockPosition(dockRef: RefObject<HTMLDivElement | null
       window.removeEventListener('storage', storage);
     };
   }, [dockRef]);
+
+  // Registrations and the reset control can appear after the saved position is read.
+  // Measure their final width before paint instead of relying on the initial fallback.
+  useLayoutEffect(() => {
+    const point = positionRef.current;
+    if (!point || !dockRef.current) return;
+    const next = constrain(point);
+    if (next.right !== point.right || next.bottom !== point.bottom) apply(next);
+  });
 
   const resetPosition = () => {
     apply(null);

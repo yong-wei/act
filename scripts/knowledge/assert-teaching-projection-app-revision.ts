@@ -95,7 +95,10 @@ export function resolveTeachingProjectionRevisionAssertion(input: {
     input.sourceRevision,
   );
   assertTeachingProjectionAppRevision(authoringRevision, input.appRevision);
-  assertKnowledgePublicationConsistency((relative) => gitShow(input.repoRoot, input.sourceRevision, relative), input.appRevision);
+  assertKnowledgePublicationConsistency(
+    (relative) => gitShow(input.repoRoot, input.sourceRevision, relative), input.appRevision,
+    (relative) => gitShow(input.repoRoot, input.appRevision, relative),
+  );
   return {
     authoringRevision,
     appRevision: input.appRevision.trim().toLowerCase(),

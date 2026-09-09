@@ -8,6 +8,7 @@ import {
   getActiveAuthorityWorldBounds,
   type ActiveAuthorityLayoutSessions,
 } from './active-authority-geometry';
+import { activeFocusNodeIds } from './active-authority-visual';
 import { buildActiveAuthorityLabelDescriptors } from './active-authority-label-geometry';
 import { ActiveAuthorityLabelLayer, type ActiveAuthorityLabelLayerHandle } from './active-authority-label-layer';
 import { ActiveAuthorityGraph2D } from './active-authority-graph-2d';
@@ -22,6 +23,7 @@ export function ActiveAuthorityRenderer({
   selectedNodeId,
   hoveredNodeId,
   onNodeClick,
+  onBackgroundClick,
   onNodeHover,
   onNodeDragEnd,
   layoutState,
@@ -64,11 +66,12 @@ export function ActiveAuthorityRenderer({
   const labels = useMemo(
     () => buildActiveAuthorityLabelDescriptors({
       nodes: layoutNodes,
+      focusNodeIds: activeFocusNodeIds(links, selectedNodeId),
       kind,
       selectedNodeId,
       hoveredNodeId,
     }),
-    [hoveredNodeId, kind, layoutNodes, selectedNodeId],
+    [hoveredNodeId, kind, layoutNodes, links, selectedNodeId],
   );
   const worldBounds = useMemo(() => getActiveAuthorityWorldBounds(layoutNodes), [layoutNodes]);
 
@@ -124,6 +127,7 @@ export function ActiveAuthorityRenderer({
             selectedNodeId={selectedNodeId}
             hoveredNodeId={hoveredNodeId}
             onNodeClick={onNodeClick}
+            onBackgroundClick={onBackgroundClick}
             onNodeHover={onNodeHover}
             onNodeDragEnd={onNodeDragEnd}
             fitViewRequest={fitViewRequest}
@@ -153,6 +157,7 @@ export function ActiveAuthorityRenderer({
             selectedNodeId={selectedNodeId}
             hoveredNodeId={hoveredNodeId}
             onNodeClick={onNodeClick}
+            onBackgroundClick={onBackgroundClick}
             onNodeHover={onNodeHover}
             onNodeDragEnd={onNodeDragEnd}
             fitViewRequest={fitViewRequest}

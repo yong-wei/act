@@ -1,3 +1,4 @@
+import { attachActiveAuthorityResourcePresence } from '@/lib/authority-domain-shards/resource-presence';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
@@ -591,7 +592,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       ? resolveActiveLocaleRequest(request, capability)
       : { ok: true as const, locale: 'zh-CN' as const, capability };
     if (!resolved.ok) return resolved.response;
-    const raw = read();
+    const raw = attachActiveAuthorityResourcePresence(read(), role);
     const activeIdentity = resolveActiveShardIdentity();
     const receipt = capability.mode === 'complete-locale' && qualification?.qualification
       ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)

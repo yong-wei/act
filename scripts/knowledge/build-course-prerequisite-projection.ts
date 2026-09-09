@@ -1,8 +1,11 @@
 #!/usr/bin/env tsx
+import { createPrerequisiteAuthorDecision } from '@/lib/teaching-projection/prerequisites/publication';
+import { stagePrerequisitePublication, activatePrerequisitePublication, resolvePrerequisiteStorePaths } from '@/lib/teaching-projection/prerequisites/store';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { buildAuthoritySemanticCache } from '@/lib/latest-authority-oss-cutover/authority-semantic-cache';
 import { verifyMaterializedSnapshot, type AuthorityEngineeringBody, type AuthoritySnapshotManifest } from '@/lib/authoritative-knowledge/authority-snapshot';
 import { createDomainTeachingAuthorityEnvelope, authoritySelectionFromEnvelope } from '@/lib/teaching-projection/domain-fragments/validate';
 import { buildDomainTeachingFragment } from '@/lib/teaching-projection/domain-fragments/builder';
@@ -17,12 +20,22 @@ import type { DomainFragmentRelationAuthoring, DomainTeachingFragmentAuthoring }
 const root = process.cwd();
 const json = <T>(relative: string): T => JSON.parse(readFileSync(join(root, relative), 'utf8')) as T;
 const input = readCourseOrderInputs(root);
-const snapshotDir = `course-content/authoring/knowledge/authority/releases/${input.manifest.authority.snapshotId}`;
+const snapshotFlag = process.argv.indexOf('--snapshot-id');
+const snapshotId = snapshotFlag >= 0 ? process.argv[snapshotFlag + 1] : input.manifest.authority.snapshotId;
+if (!/^snap-[a-f0-9]{64}$/.test(snapshotId ?? '')) throw new Error('course-order: invalid snapshot id');
+const snapshotDir = `course-content/authoring/knowledge/authority/releases/${snapshotId}`;
 const manifest = json<AuthoritySnapshotManifest>(`${snapshotDir}/manifest.json`);
 const engineering = json<AuthorityEngineeringBody>(`${snapshotDir}/engineering.json`);
 verifyMaterializedSnapshot({ manifest, engineering });
-if (manifest.snapshotHash !== input.manifest.authority.snapshotHash || manifest.releaseId !== input.manifest.authority.releaseId) {
-  throw new Error('course-order: Authority capture changed');
+if (manifest.releaseId !== input.manifest.authority.releaseId) throw new Error('course-order: Authority release changed');
+if (manifest.snapshotHash !== input.manifest.authority.snapshotHash) {
+  const predecessorDir = 'course-content/authoring/knowledge/authority/releases/' + input.manifest.authority.snapshotId;
+  const predecessor = json<AuthorityEngineeringBody>(predecessorDir + '/engineering.json');
+  verifyMaterializedSnapshot({ manifest: json<AuthoritySnapshotManifest>(predecessorDir + '/manifest.json'), engineering: predecessor });
+  const semantic = buildAuthoritySemanticCache({ predecessor, successor: engineering });
+  if (semantic.summary.recomputedCount || semantic.summary.retiredCount) {
+    throw new Error('course-order: changed Authority semantics require reviewed course decisions');
+  }
 }
 const locale = json<{ manifest: { records: Array<{ locale: string; category: string; recordId: string; value: string }> } }>(
   'course-content/authoring/knowledge/cutover/envelopes/locale-manifests/control-theory-engineering-v0.37.json',
@@ -62,12 +75,17 @@ for (const edge of validation.edges) add({
   curatorId: 'course-plan-authoring', curatorRationale: edge.decision.rationale,
   authorDecisionId: edge.decision.decisionId,
 });
-const coreIds = [...new Set([...relations.values()].flatMap((relation) => [relation.sourceNodeId, relation.targetNodeId]))];
+const retainedCoreIds = input.manifest.retainedSources
+  .filter((source) => source.kind === 'domain-fragment')
+  .flatMap((source) => json<{ coreNodes: Array<{ canonicalId: string }> }>(source.path).coreNodes.map((node) => node.canonicalId));
+// Existing resource eligibility is independent of removing unsupported ordering edges.
+const coreIds = [...new Set([...retainedCoreIds, ...input.topics.flatMap((topic) => topic.canonicalIds),
+  ...[...relations.values()].flatMap((relation) => [relation.sourceNodeId, relation.targetNodeId])])];
 const revisionFlag = process.argv.indexOf('--authoring-revision');
 const revision = revisionFlag >= 0 ? process.argv[revisionFlag + 1] : execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 if (!/^[a-f0-9]{40}$/.test(revision ?? '')) throw new Error('course-order: a full authoring revision is required');
 const authority = createDomainTeachingAuthorityEnvelope({
-  binding: input.manifest.authority,
+  binding: { releaseId: manifest.releaseId, releaseSetId: manifest.releaseSetId, snapshotId: manifest.snapshotId, snapshotHash: manifest.snapshotHash },
   sourceDatasetHash: manifest.sourceDatasetHash,
   captureRevision: manifest.captureRevision,
   authoringRevision: revision,
@@ -82,7 +100,7 @@ const authoring: DomainTeachingFragmentAuthoring = {
     const topic = input.topics.find((topic) => topic.canonicalIds.includes(canonicalId));
     return { canonicalId, domainKeys: domainsFor(canonicalId), pathEligible: true, cardPolicy: 'OPTIONAL',
       moduleId: topic ? `module-${topic.units[0][0]}` : null,
-      rationale: topic?.rationale ?? '保留已发布课程先后修的端点。', sourceKind: 'PREREQUISITE_ENDPOINT',
+      rationale: topic?.rationale ?? '保留既有有效教学资源资格与关系端点，不据此生成课程先后修。', sourceKind: 'PREREQUISITE_ENDPOINT',
       sourceEvidence: topic?.evidenceRefs ?? input.manifest.retainedSources.map((source) => source.path) };
   }),
   relations: [...relations.values()],
@@ -109,7 +127,7 @@ if (adoption.adoptedEdges.length) {
   ] }, authority);
 }
 const artifacts = composeDomainTeachingProjection({ fragments: [fragment], authority, authoringRevision: revision });
-const report = { ...validation.report, retainedRelationCount: retained.length,
+const report = { ...validation.report, retainedRelationCount: retained.length, retainedResourceCoreCount: new Set(retainedCoreIds).size,
   engineeringDispositions: adoption.receipts.reduce<Record<string, number>>((counts, row) => {
     counts[row.disposition] = (counts[row.disposition] ?? 0) + 1;
     return counts;
@@ -121,6 +139,33 @@ if (process.argv.includes('--write')) {
   if (revisionFlag < 0) throw new Error('course-order: --write requires the frozen --authoring-revision');
   const status = execFileSync('git', ['status', '--porcelain', '--', COURSE_ORDER_RELATIVE], { encoding: 'utf8' }).trim();
   if (status) throw new Error('course-order: commit the reviewed course decisions before materialization');
+  const publishedEdges = artifacts.relations.filter((edge) => edge.relationType === 'PREREQUISITE').map((edge) => {
+    const decision = createPrerequisiteAuthorDecision({
+      sourceNodeId: edge.sourceNodeId, targetNodeId: edge.targetNodeId, strength: edge.strength!,
+      scopeId: 'act-control-theory', evidenceRefs: edge.evidenceRefs,
+      curatorRationale: edge.curatorRationale, curatorId: edge.curatorId ?? 'course-plan-authoring',
+      rationale: edge.curatorRationale ?? '保留已审核先修依据。',
+      authorityReleaseId: manifest.releaseId, authoringRevision: revision,
+    });
+    return { decision, edge: { sourceNodeId: edge.sourceNodeId, targetNodeId: edge.targetNodeId,
+      strength: edge.strength!, scopeId: 'act-control-theory', evidenceRefs: edge.evidenceRefs,
+      curatorRationale: edge.curatorRationale, curatorId: edge.curatorId,
+      status: 'PUBLISHED' as const, authorDecisionId: decision.decisionId,
+      candidateOrigin: adoption.adoptedEdges.some((adopted) => adopted.sourceNodeId === edge.sourceNodeId
+        && adopted.targetNodeId === edge.targetNodeId && adopted.strength === edge.strength)
+        ? 'ENGINEERING_RELATION' as const : null } };
+  });
+  const prerequisitePaths = resolvePrerequisiteStorePaths(join(root, 'course-content/runtime/knowledge/prerequisites'));
+  const publication = stagePrerequisitePublication(prerequisitePaths, {
+    useCurrentAsPrior: false,
+    scopeId: 'act-control-theory', authoringRevision: revision, authorityReleaseId: manifest.releaseId,
+    authorityNodes: engineering.objects.map((object) => ({ canonicalId: object.canonicalId, lifecycleStatus: object.lifecycleStatus ?? 'active' })),
+    coreNodes: authoring.coreNodes.map((node) => ({ ...node, scopeId: 'act-control-theory' })),
+    edges: publishedEdges.map((row) => row.edge), decisions: publishedEdges.map((row) => row.decision),
+    receipts: adoption.receipts,
+  });
+  if (publication.priorPreserved || !publication.artifacts.gate.passed) throw new Error('course-order: prerequisite publication rejected: ' + JSON.stringify(publication.findings));
+  activatePrerequisitePublication(prerequisitePaths, publication.publicationId);
   writeDomainTeachingRuntime({ repoRoot: root, artifacts, pointer: {
     contract: 'act-domain-teaching-projection-current/v1', projectionId: artifacts.manifest.projectionId,
     projectionHash: artifacts.manifest.projectionHash, authorityReleaseId: manifest.releaseId,

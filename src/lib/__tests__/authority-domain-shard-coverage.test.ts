@@ -580,7 +580,7 @@ describe('fifteen-domain runtime shard closure (#1738)', () => {
       expect(domain.objects.every((object) => (
         (AUTHORITY_DOMAIN_DEFAULT_TYPES as readonly string[]).includes(object.canonicalType)
       ))).toBe(true);
-      const overviewIds = new Set(domain.objects.map((object) => object.id));
+      const overviewIds = new Set([...domain.objects, ...(domain.teachingBoundaryObjects ?? [])].map((object) => object.id));
       for (const relation of domain.teachingRelations) {
         expect(overviewIds.has(relation.sourceId)).toBe(true);
         expect(overviewIds.has(relation.targetId)).toBe(true);

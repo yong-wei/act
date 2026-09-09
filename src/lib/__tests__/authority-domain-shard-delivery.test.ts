@@ -481,6 +481,17 @@ describe('authority domain shard delivery', () => {
     expect(shard.teachingBoundaries?.map((node) => node.canonicalId)).toContain(TIME);
     expect(shard.objects.map((node) => node.id)).not.toContain(TIME);
     expect(shard.teachingCoverage.relationCount).toBe(shard.teachingRelations.length);
+    let state = mergeAuthorityShard(createEmptyAuthorityShardWorkspace(), projectAuthorityLearnerShard(materialized.root));
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard(shard));
+    const neighborhood = materialized.neighborhoods[MODELING]!;
+    state = mergeAuthorityShard(state, projectAuthorityLearnerShard({ ...neighborhood,
+      objects: neighborhood.objects.filter((node) => node.id !== TIME),
+      relations: neighborhood.relations.filter((edge) => edge.sourceId !== TIME && edge.targetId !== TIME),
+      boundaries: neighborhood.boundaries.filter((node) => node.canonicalId !== TIME),
+    }));
+    expect(state.objectsByCanonicalId[TIME]).toBeDefined();
+    expect(state.boundaryRefsByCanonicalId[TIME]).toBeDefined();
+    expect(Object.values(state.relationsByLayerKey).some((edge) => edge.layer === 'ACT_TEACHING' && edge.targetId === TIME)).toBe(true);
   });
   it('stages an immutable shard closure without writing the active pointer', () => {
     const root = mkdtempSync(path.join(tmpdir(), 'authority-shard-stage-'));

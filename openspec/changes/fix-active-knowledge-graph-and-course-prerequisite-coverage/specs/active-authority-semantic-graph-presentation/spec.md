@@ -33,3 +33,21 @@ The graph SHALL provide one default-enabled prerequisite filter for published te
 #### Scenario: The same prerequisite has teaching and engineering sources
 - **WHEN** both sources are published
 - **THEN** one filter SHALL control their shared display without dropping provenance or changing direction
+
+### Requirement: Connected knowledge occupies the center with distributed peripheral isolates
+Initial 2D and 3D domain layouts SHALL place connected nodes centrally and distribute isolated nodes uniformly around them. An entirely disconnected graph SHALL use a uniform disk or volume. No isolated-node matrix or separate one-sided block SHALL be used.
+
+#### Scenario: Enter a mixed connected and isolated domain
+- **WHEN** the graph initializes or the user explicitly requests relayout
+- **THEN** connected nodes SHALL be central and isolated nodes SHALL be distributed around the central group in both dimensions
+
+### Requirement: Selection focus and filter presentation are consistent
+Selection SHALL highlight the selected node, its directly connected nodes and incident relations, dim nodes and relations outside that focus group, and hide labels outside that group until a canvas-background click clears focus. Default node types SHALL include only DomainConcept. A multi-select type menu SHALL open upward. An upward multi-select Node resources menu SHALL reuse the existing system resource types and current qualified published resources. Selected resource types SHALL match by OR and combine with object types by AND; an empty resource-type selection SHALL mean no resource restriction. Legend colors, line patterns and direction markers SHALL match both renderers.
+
+#### Scenario: Focus and clear a selected node
+- **WHEN** a node is selected and then the background is clicked
+- **THEN** focus SHALL clear and normal labels and emphasis SHALL return without changing saved coordinates or camera
+
+#### Scenario: Filter multiple resource types and object types
+- **WHEN** the user selects types in the upward menu and selects resource types
+- **THEN** only nodes meeting both selections SHALL be shown, using the currently qualified resource evidence

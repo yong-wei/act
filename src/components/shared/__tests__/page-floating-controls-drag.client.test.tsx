@@ -22,8 +22,10 @@ describe('shared Konling dock dragging', () => {
   let container: HTMLDivElement;
   let root: Root;
   let onSelect: ReturnType<typeof vi.fn>;
+  let measuredWidth = 112;
 
   beforeEach(() => {
+    measuredWidth = 112;
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1000 });
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
@@ -38,7 +40,7 @@ describe('shared Konling dock dragging', () => {
       const element = this as HTMLElement;
       const right = window.innerWidth - (Number.parseFloat(element.style.right) || 24);
       const bottom = window.innerHeight - (Number.parseFloat(element.style.bottom) || 16);
-      return { x: right - 112, y: bottom - 40, left: right - 112, top: bottom - 40, right, bottom, width: 112, height: 40, toJSON() { return {}; } };
+      return { x: right - measuredWidth, y: bottom - 40, left: right - measuredWidth, top: bottom - 40, right, bottom, width: measuredWidth, height: 40, toJSON() { return {}; } };
     });
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -94,6 +96,16 @@ describe('shared Konling dock dragging', () => {
     await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="恢复控灵默认位置"]')!.click());
     expect(window.localStorage.getItem(FLOATING_DOCK_POSITION_KEY)).toBeNull();
     expect(dock.dataset.platformFloatingDockSafeArea).toBe('bottom-right');
+  });
+
+  it('clamps the final registered dock width after restoring a saved mobile position', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    measuredWidth = 126;
+    window.localStorage.setItem(FLOATING_DOCK_POSITION_KEY, JSON.stringify({ right: 268, bottom: 40 }));
+    await mount();
+    const dock = container.querySelector<HTMLElement>('[data-page-floating-controls]')!;
+    expect(dock.style.right).toBe('252px');
+    expect(dock.getBoundingClientRect().left).toBe(12);
   });
 
   it('rolls a cancelled drag back without saving it', async () => {

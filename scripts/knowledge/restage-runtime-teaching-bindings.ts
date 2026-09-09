@@ -396,7 +396,8 @@ async function main(): Promise<void> {
     // input rows (e.g. identifier titles) must not shadow the fresh titles (#2042).
     .filter((row) => row.resourceType !== 'infographic');
   const bindings = readJsonl<RuntimeBindingRow>(`${releaseDir}/bindings.jsonl`);
-  const prerequisites = readJsonl<TeachingPrerequisiteAuthoring>(`${releaseDir}/prerequisites.jsonl`);
+  const prerequisitePointer = readJson<{ publicationId: string }>(`${PREREQ_REL}/current.json`);
+  const prerequisites = readJson<TeachingPrerequisiteAuthoring[]>(`${PREREQ_REL}/releases/${prerequisitePointer.publicationId}/projection-prerequisites.json`);
   const cardsIndex = readJson<{ cards: RuntimeCardRow[] }>(`${releaseDir}/cards-index.json`);
   const overlayCores = loadOverlayCores();
   const textbookLocators = loadTextbookLocators();

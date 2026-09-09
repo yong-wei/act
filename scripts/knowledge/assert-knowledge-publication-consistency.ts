@@ -6,7 +6,7 @@ import { qualifyReleaseLocales } from '@/lib/authority-locale-readiness/qualify'
 import { shardDigest, shardSha256 } from '@/lib/authority-domain-shards/hash';
 
 /** Read only the frozen candidate revision, never the publisher's dirty workspace. */
-export function assertKnowledgePublicationConsistency(read: (relative: string) => string, appRevision: string): void {
+export function assertKnowledgePublicationConsistency(read: (relative: string) => string, appRevision: string, readBaseline: (relative: string) => string = read): void {
   const root = 'course-content/runtime/knowledge';
   const json = <T>(relative: string): T => JSON.parse(read(root + '/' + relative)) as T;
   const check = (condition: unknown, reason: string): void => {
@@ -33,6 +33,23 @@ export function assertKnowledgePublicationConsistency(read: (relative: string) =
     && shardDigest({ envelope: shards.envelope, files: shards.files }) === shard.shardSetHash
     && shards.envelope.teaching.projectionHash === overlay.projectionHash, 'sealed domain shard teaching identity');
   const prereq = json<{ publicationId: string; publicationHash: string }>('prerequisites/current.json');
+  const rows = (bytes: string): Array<Record<string, unknown>> => bytes.split('\n').filter((line) => line.trim()).map((line) => JSON.parse(line));
+  const tuple = (row: Record<string, unknown>, fields: readonly string[]) => JSON.stringify(fields.map((field) => row[field] ?? null));
+  const baseline = JSON.parse(readBaseline(root + '/projection/current.json')) as { projectionId: string };
+  for (const [file, fields] of [
+    ['resources.jsonl', ['resourceId', 'resourceType', 'sourcePath']],
+    ['bindings.jsonl', ['resourceId', 'canonicalId', 'role', 'scopeId', 'primary', 'sourcePath']],
+  ] as const) {
+    const before = rows(readBaseline(root + '/projection/releases/' + baseline.projectionId + '/' + file));
+    const after = new Set(rows(read(root + '/projection/releases/' + course.projectionId + '/' + file)).map((row) => tuple(row, fields)));
+    check(before.every((row) => after.has(tuple(row, fields))), 'retained resource continuity: ' + file);
+  }
+  const prereqFields = ['sourceCanonicalId', 'targetCanonicalId', 'strength', 'scopeId'];
+  const publishedPrerequisites = json<Array<Record<string, unknown>>>('prerequisites/releases/' + prereq.publicationId + '/projection-prerequisites.json');
+  const coursePrerequisites = rows(read(root + '/projection/releases/' + course.projectionId + '/prerequisites.jsonl'));
+  const publishedPairs = new Set(publishedPrerequisites.map((row) => tuple(row, prereqFields)));
+  const coursePairs = new Set(coursePrerequisites.map((row) => tuple(row, prereqFields)));
+  check(publishedPairs.size === coursePairs.size && [...publishedPairs].every((key) => coursePairs.has(key)), 'course and path prerequisite publication');
   const registry = json<{ envelopes: CompositeEnvelopeRecord[] }>('composite-envelopes/actkg-composite-envelope-registry.json');
   const matches = registry.envelopes.filter((row) => row.qualified
     && row.authoritySnapshotHash === courseManifest.authoritySnapshotHash

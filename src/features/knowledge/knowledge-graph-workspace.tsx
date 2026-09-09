@@ -3,6 +3,7 @@
 import { useRef, useState, type ReactNode } from 'react';
 
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
+import { KnowledgeAiContextOwnership } from './graph/knowledge-ai-context-ownership';
 import { ActiveAuthorityGraph } from './active-authority-graph';
 import { CandidateAuthoritativeGraph } from './candidate-authoritative-graph';
 import { knowledgeGraphProductVersionLabel } from './graph/graph-presentation-contract';
@@ -173,6 +174,7 @@ export function KnowledgeGraphWorkspace({
         aria-hidden={mode !== 'active'}
         data-knowledge-session="active"
       >
+        <KnowledgeAiContextOwnership value={mode === 'active'}>
         <ActiveAuthorityGraph
           viewerRole={viewerRole}
           dimension={dimension}
@@ -183,6 +185,7 @@ export function KnowledgeGraphWorkspace({
           chromeHostRef={chromeHostRef}
           runtimeControlsRef={runtimeControlsRef}
         />
+        </KnowledgeAiContextOwnership>
       </div>
       {mode === 'candidate' && candidateDiagnosticEnabled ? (
         <div
@@ -202,7 +205,7 @@ export function KnowledgeGraphWorkspace({
         data-knowledge-legacy-view="true"
         data-knowledge-session="legacy"
       >
-        {legacy}
+        <KnowledgeAiContextOwnership value={mode === 'legacy'}>{legacy}</KnowledgeAiContextOwnership>
       </div>
     </div>
   );

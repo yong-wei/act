@@ -13,6 +13,10 @@ import {
   activeNodeRadius,
   activeNodeShape,
   activeRelationColor,
+  activeRelationStyle,
+  activeNodeOpacity,
+  activeFocusNodeIds,
+  activeLinkOpacity,
   activeRelationIsDirected,
   type ActiveAuthorityNodeShape,
 } from './active-authority-visual';
@@ -32,7 +36,7 @@ function withAlpha(hex: string, alpha: number): string {
 
 function focusedLink(link: ActiveAuthorityLayoutLink, selectedNodeId: string | null, hoveredNodeId: string | null): boolean {
   return link.sourceId === selectedNodeId || link.targetId === selectedNodeId
-    || link.sourceId === hoveredNodeId || link.targetId === hoveredNodeId;
+    || (!selectedNodeId && (link.sourceId === hoveredNodeId || link.targetId === hoveredNodeId));
 }
 
 function paintShape(
@@ -61,6 +65,7 @@ export function ActiveAuthorityGraph2D({
   selectedNodeId,
   hoveredNodeId,
   onNodeClick,
+  onBackgroundClick,
   onNodeHover,
   onNodeDragEnd,
   fitViewRequest,
@@ -83,6 +88,7 @@ export function ActiveAuthorityGraph2D({
   const graphRef = useRef<ActiveGraph2DMethods | undefined>(undefined);
   const projectionFrameRef = useRef<number | null>(null);
   const programmaticCameraRef = useRef(false);
+  const pendingCameraNotificationRef = useRef<{ scopeKey: string; pose: ReturnType<typeof activeAuthorityCameraPoseFrom2DTransform> } | null>(null);
   const settledGraphRef = useRef<readonly ActiveAuthorityLayoutNode[] | null>(null);
   const fittingGraphRef = useRef(false);
   const initialCameraReadyRef = useRef(false);
@@ -104,6 +110,7 @@ export function ActiveAuthorityGraph2D({
   const initializationFrameRef = useRef<number | null>(null);
   const initializationAttemptRef = useRef(0);
   const fitCountRef = useRef(0);
+  const focusedNodeIds = useMemo(() => activeFocusNodeIds(links, selectedNodeId), [links, selectedNodeId]);
   const graphData = useMemo(() => ({
     nodes: [...nodes],
     links: links.map((link) => ({ ...link })),
@@ -276,6 +283,7 @@ export function ActiveAuthorityGraph2D({
       if (initializationFrameRef.current !== null) window.cancelAnimationFrame(initializationFrameRef.current);
       initializationFrameRef.current = null;
       labelLayer?.cancel();
+      pendingCameraNotificationRef.current = null;
       graph?.pauseAnimation?.();
       queueMicrotask(() => {
         // React StrictMode performs a setup/cleanup/setup probe. The next
@@ -287,13 +295,13 @@ export function ActiveAuthorityGraph2D({
 
   const paintNode = useCallback((node: ActiveAuthorityLayoutNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const radius = activeNodeRadius(node);
-    const focused = node.id === selectedNodeId || node.id === hoveredNodeId;
+    const focused = node.id === selectedNodeId || (!selectedNodeId && node.id === hoveredNodeId);
     const lineScale = Math.max(0.2, globalScale);
     ctx.save();
     ctx.beginPath();
     paintShape(ctx, activeNodeShape(node), node.x, node.y, radius);
     ctx.fillStyle = activeNodeColor(node);
-    ctx.globalAlpha = node.id === selectedNodeId ? 1 : node.id === hoveredNodeId ? 0.94 : 0.82;
+    ctx.globalAlpha = activeNodeOpacity(node.id, selectedNodeId, hoveredNodeId, focusedNodeIds);
     ctx.fill();
     ctx.strokeStyle = focused ? '#f6fbff' : withAlpha('#dbe7ef', 0.38);
     ctx.lineWidth = (focused ? 2.5 : 1.2) / lineScale;
@@ -312,7 +320,7 @@ export function ActiveAuthorityGraph2D({
       ctx.fillRect(node.x + radius * 0.46, node.y - radius * 0.9, Math.max(2 / lineScale, radius * 0.22), Math.max(2 / lineScale, radius * 0.22));
     }
     ctx.restore();
-  }, [hoveredNodeId, selectedNodeId]);
+  }, [focusedNodeIds, hoveredNodeId, selectedNodeId]);
 
   const paintPointer = useCallback((node: ActiveAuthorityLayoutNode, color: string, ctx: CanvasRenderingContext2D, globalScale: number) => {
     ctx.save();
@@ -325,7 +333,7 @@ export function ActiveAuthorityGraph2D({
 
   const linkColor = useCallback((link: ActiveAuthorityLayoutLink) => {
     const color = activeRelationColor(link);
-    return focusedLink(link, selectedNodeId, hoveredNodeId) ? color : withAlpha(color, 0.36);
+    return withAlpha(color, activeLinkOpacity(link, selectedNodeId, hoveredNodeId));
   }, [hoveredNodeId, selectedNodeId]);
   const linkWidth = useCallback((link: ActiveAuthorityLayoutLink) => (
     focusedLink(link, selectedNodeId, hoveredNodeId) ? 2.4 : 0.9
@@ -336,11 +344,23 @@ export function ActiveAuthorityGraph2D({
 
   const handleZoom = useCallback((transform: { k: number; x: number; y: number }) => {
     if (initialCameraReadyRef.current && !programmaticCameraRef.current) {
-      onCameraManipulationRef.current(autoFitScopeKeyRef.current);
-      flushCameraPose(transform);
+      // react-kapsule may synchronously emit onZoom while applying size props
+      // in ForceGraph2D's render. Notify React owners only after that stack ends.
+      const queued = pendingCameraNotificationRef.current !== null;
+      pendingCameraNotificationRef.current = {
+        scopeKey: autoFitScopeKeyRef.current,
+        pose: activeAuthorityCameraPoseFrom2DTransform(transform, width, height),
+      };
+      if (!queued) queueMicrotask(() => {
+        const notification = pendingCameraNotificationRef.current;
+        pendingCameraNotificationRef.current = null;
+        if (!notification) return;
+        onCameraManipulationRef.current(notification.scopeKey);
+        onCameraPoseChangeRef.current?.(notification.scopeKey, notification.pose);
+      });
     }
     scheduleProjectionRef.current?.();
-  }, [flushCameraPose]);
+  }, [height, width]);
 
   return (
     <div
@@ -364,7 +384,8 @@ export function ActiveAuthorityGraph2D({
         nodeCanvasObjectMode={() => 'replace'}
         nodeCanvasObject={paintNode}
         nodePointerAreaPaint={paintPointer}
-        nodeLabel={(node) => activeNodeAccessibleName(node)}
+        nodeLabel={(node) => selectedNodeId && !focusedNodeIds.has(node.id) ? '' : activeNodeAccessibleName(node)}
+        linkLineDash={(link) => { const dash = activeRelationStyle(link).dash; return dash ? [...dash] : null; }}
         linkColor={linkColor as never}
         linkWidth={linkWidth as never}
         linkDirectionalArrowLength={arrowLength as never}
@@ -385,6 +406,7 @@ export function ActiveAuthorityGraph2D({
         onZoom={handleZoom}
         onZoomEnd={handleZoom}
         onNodeClick={(node) => onNodeClick(node)}
+        onBackgroundClick={onBackgroundClick}
         onNodeHover={(node) => onNodeHover(node)}
         onNodeDrag={() => scheduleProjection()}
         onNodeDragEnd={(node) => onNodeDragEnd(node)}

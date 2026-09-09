@@ -1,5 +1,7 @@
 'use client';
 
+import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
+
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MutableRefObject, useCallback } from 'react';
 import Image from 'next/image';
 import {
@@ -62,6 +64,9 @@ import { crossDomainNodeId } from './graph/cross-domain-cluster';
 import { ActiveAuthorityFilterPanel } from './active-authority-filter-panel';
 import { GovernedFormulaLabel } from './graph/semantic-label-layer';
 import { KnowledgeWorkspaceChromePortal } from './graph/knowledge-workspace-chrome';
+import { activeFocusNodeIds } from './graph/active-renderer/active-authority-visual';
+import { useOptionalGlobalAI } from '@/components/providers/global-ai-provider';
+import { useKnowledgeAiContextOwnership } from './graph/knowledge-ai-context-ownership';
 import { useKnowledgeGraphRuntimeLayout, useKnowledgeGraphRuntimeCamera } from './graph/use-knowledge-graph-runtime-layout';
 import type { ActiveAuthorityLayoutSessions } from './graph/active-renderer/active-authority-geometry';
 import { KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH } from './graph/viewport-fit';
@@ -265,6 +270,7 @@ function useActiveAuthorityWorkspace(
   disableFamily: (family: EngineeringRelationFamily) => void;
   familyFailures: Partial<Record<EngineeringRelationFamily, ShardFailureEntry>>;
   requestNeighborhood: (nodeId: string) => void;
+  cancelNeighborhood: () => void;
   neighborhoodFailures: Record<string, ShardFailureEntry>;
   localeRefreshFailure: string | null;
   resetDomain: () => void;
@@ -683,6 +689,7 @@ function useActiveAuthorityWorkspace(
     disableFamily,
     familyFailures,
     requestNeighborhood,
+    cancelNeighborhood: () => { neighborhoodIntentRef.current += 1; },
     neighborhoodFailures,
     localeRefreshFailure,
     resetDomain,
@@ -1239,6 +1246,14 @@ function SearchResults({
   );
 }
 
+function matchesActiveResourceTypes(node: { resourceTypes?: readonly TeachingResourceType[] } | undefined, types: ReadonlySet<TeachingResourceType>): boolean {
+  return types.size === 0 || Boolean(node?.resourceTypes?.some((type) => types.has(type)));
+}
+
+function defaultHiddenActiveTypes(): ReadonlySet<string> {
+  return new Set(knownActiveNodeTypes().filter((type) => type.canonicalType !== 'DomainConcept').map((type) => type.canonicalType));
+}
+
 export function ActiveAuthorityGraph({
   viewerRole: _viewerRole,
   dimension: dimensionProp,
@@ -1249,6 +1264,10 @@ export function ActiveAuthorityGraph({
   runtimeControlsRef,
 }: ActiveAuthorityGraphProps) {
   const dimension = dimensionProp ?? '2d';
+  const ai = useOptionalGlobalAI();
+  const ownsAiContext = useKnowledgeAiContextOwnership();
+  const updatePageContext = ai?.updatePageContext;
+  const clearDynamicPageContext = ai?.clearDynamicPageContext;
   const [retry, setRetry] = useState(0);
   const [locale, setLocale] = useState<AdmittedLocale>('zh-CN');
   const [requestedLocale, setRequestedLocale] = useState<AdmittedLocale>('zh-CN');
@@ -1262,6 +1281,7 @@ export function ActiveAuthorityGraph({
     disableFamily,
     familyFailures,
     requestNeighborhood,
+    cancelNeighborhood,
     neighborhoodFailures,
     localeRefreshFailure,
     resetDomain,
@@ -1293,12 +1313,14 @@ export function ActiveAuthorityGraph({
   const [query, setQuery] = useState('');
   // 独立可逆的节点类型筛选：集合保存被隐藏的注册类型身份（canonicalType），
   // 与 locale/维度无关，切换筛选不重建模型、坐标或相机（#1742）。
-  const [hiddenNodeTypes, setHiddenNodeTypes] = useState<ReadonlySet<string>>(new Set());
+  const [hiddenNodeTypes, setHiddenNodeTypes] = useState<ReadonlySet<string>>(defaultHiddenActiveTypes);
+  const [selectedResourceTypes, setSelectedResourceTypes] = useState<ReadonlySet<TeachingResourceType>>(() => new Set());
   const teachingRelationsVisible = workspace.enabledFamilies.includes('prerequisite-order');
   const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const graphMainRef = useRef<HTMLElement | null>(null);
   const mobileToolsRef = useRef<HTMLDivElement | null>(null);
   const selectionIntentRef = useRef(0);
+  const pendingTypeSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const isCompactViewport = viewportWidth !== null
     && viewportWidth <= KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH;
@@ -1388,6 +1410,8 @@ export function ActiveAuthorityGraph({
       const sourceInDomain = source?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
       const targetInDomain = target?.memberships.some((membership) => membership.domainId === workspace.activeDomainId) ?? false;
       if (sourceInDomain === targetInDomain) continue;
+      if ((source && hiddenNodeTypes.has(source.canonicalType)) || (target && hiddenNodeTypes.has(target.canonicalType))) continue;
+      if (!matchesActiveResourceTypes(source, selectedResourceTypes) || !matchesActiveResourceTypes(target, selectedResourceTypes)) continue;
       if (!visibleKeys.has(sourceInDomain ? relation.sourceId : relation.targetId)) continue;
       const boundary = sourceInDomain ? target : source;
       if (!boundary || !knownBoundaryIds.has(boundary.id)) continue;
@@ -1426,9 +1450,10 @@ export function ActiveAuthorityGraph({
       nodes: [...cluster.nodes.values()],
       links: [...cluster.links.values()],
     }));
-  }, [workspace, locale, teachingRelationsVisible, visibleKeys]);
+  }, [workspace, locale, teachingRelationsVisible, visibleKeys, hiddenNodeTypes, selectedResourceTypes]);
 
   const domainEpoch = `${workspace.envelope?.authorityCatalogVersion ?? ''}:${workspace.activeDomainId ?? ''}`;
+  const initializedDomainRef = useRef<string | null>(null);
   // locale 事务刷新会重建 domainOverviewIds 数组引用但内容不变；deps 用
   // 内容 key，过滤/选择/查询状态只在真正换域时重置（#1742）。
   const domainOverviewKey = workspace.domainOverviewIds.join('\u0000');
@@ -1442,16 +1467,20 @@ export function ActiveAuthorityGraph({
     if (pending && pending.intent !== selectionIntentRef.current) {
       pendingCrossDomainSelectionRef.current = null;
     }
-    // Desktop and mobile enter the same server-bounded DomainConcept
-    // overview; the desktop all-model-nodes initialization path is gone.
-    setSettledDomainEntryNodeCount(null);
-    setVisibleKeys(isCompactViewport
-      ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
-      : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds));
-    setSelectedNodeKey(null);
-    setInspectorOpen(false);
-    setQuery('');
-    setHiddenNodeTypes(new Set());
+    const enteringDomain = initializedDomainRef.current !== domainEpoch;
+    initializedDomainRef.current = domainEpoch;
+    if (enteringDomain) setSettledDomainEntryNodeCount(null);
+    setVisibleKeys((current) => enteringDomain || current.size === 0
+      ? (isCompactViewport ? selectInitialPrimaryDomainScope(model, visibleNodeLimit)
+        : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds))
+      : current);
+    if (enteringDomain) {
+      setSelectedNodeKey(null);
+      setInspectorOpen(false);
+      setQuery('');
+      setHiddenNodeTypes(defaultHiddenActiveTypes());
+      setSelectedResourceTypes(new Set());
+    }
     // modelReady gates the first composed graph; later model identity changes
     // (family/neighborhood merges) must not reset selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1626,10 +1655,11 @@ export function ActiveAuthorityGraph({
   const scopedGraph = useMemo(() => {
     if (!model) return null;
     const scoped = visibleActiveGraph(model, visibleKeys);
-    if (hiddenNodeTypes.size === 0) return scoped;
-    const filteredKeys = new Set(scoped.nodes.filter((node) => !hiddenNodeTypes.has(node.type.canonicalType)).map((node) => node.key));
+    if (hiddenNodeTypes.size === 0 && selectedResourceTypes.size === 0) return scoped;
+    const filteredKeys = new Set(scoped.nodes.filter((node) => !hiddenNodeTypes.has(node.type.canonicalType)
+      && matchesActiveResourceTypes(node.sourceNode, selectedResourceTypes)).map((node) => node.key));
     return visibleActiveGraph(model, filteredKeys);
-  }, [model, hiddenNodeTypes, visibleKeys]);
+  }, [model, hiddenNodeTypes, visibleKeys, selectedResourceTypes]);
   // #2052：桌面领域进入以「可见集覆盖完整 overview 范围」为分阶段并入
   // 完成里程碑；compact 视图本身有可见上限，以首次沉降为准。
   const domainEntryStageComplete = isCompactViewport
@@ -1647,19 +1677,20 @@ export function ActiveAuthorityGraph({
   // 面板只列当前有界逻辑图中已物化的注册类型；隐藏类型保留控件可逆（#1742）。
   const materializedNodeTypes = useMemo(() => {
     if (!model) return [];
-    const byType = new Map(model.nodes.map((node) => [node.type.canonicalType, node]));
+    const byType = new Map(Object.values(workspace.objectsByCanonicalId)
+      .filter((node) => node.semanticSupport.supported).map((node) => [node.canonicalType, node]));
     return knownActiveNodeTypes()
       .filter((type) => byType.has(type.canonicalType))
       .map((type) => {
         const materialized = byType.get(type.canonicalType)!;
         return {
           canonicalType: type.canonicalType,
-          shape: materialized.type.shape,
-          tone: materialized.type.tone,
-          fallbackLabel: materialized.type.label,
+          shape: type.shape,
+          tone: type.tone,
+          fallbackLabel: materialized.typeLabel ?? type.label,
         };
       });
-  }, [model]);
+  }, [model, workspace.objectsByCanonicalId]);
   const authorityView = useMemo(() => {
     if (!scopedGraph) return null;
     const haloIds = Object.keys(workspace.boundaryRefsByCanonicalId);
@@ -1684,6 +1715,51 @@ export function ActiveAuthorityGraph({
     return entries.length > 0 ? entries : undefined;
   }, [model, hiddenNodeTypes, workspace.domainOverviewIds]);
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
+  useEffect(() => {
+    const pending = pendingTypeSelectionRef.current;
+    if (!pending || pending.intent !== selectionIntentRef.current || pending.key !== selectedNodeKey || !selectedNode
+      || !workspace.loadedShardKeys.includes('node-neighborhood:' + selectedNodeKey)) return;
+    pendingTypeSelectionRef.current = null;
+    setHiddenNodeTypes((current) => {
+      const next = new Set(current);
+      for (const id of activeFocusNodeIds(visibleAuthorityShardRelations(workspace), selectedNodeKey)) {
+        const type = workspace.objectsByCanonicalId[id]?.canonicalType;
+        if (type) next.delete(type);
+      }
+      next.delete(selectedNode.type.canonicalType);
+      return next.size === current.size ? current : next;
+    });
+    if (!matchesActiveResourceTypes(selectedNode.sourceNode, selectedResourceTypes)) setSelectedResourceTypes(new Set());
+  }, [selectedNode, selectedNodeKey, selectedResourceTypes, workspace]);
+  const selectedName = selectedNode?.label;
+  const contextDomainName = workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName;
+  const contextTypeFilters = knownActiveNodeTypes().filter((type) => !hiddenNodeTypes.has(type.canonicalType)).map((type) => type.canonicalType).join(',');
+  const contextFamilyFilters = workspace.enabledFamilies.join(',');
+  const contextVisibleRelations = authorityView?.edges.length ?? 0;
+  const contextSelectedRelations = selectedNodeKey ? (model?.adjacency.get(selectedNodeKey)?.length ?? 0) : 0;
+  useEffect(() => {
+    if (!ownsAiContext) return;
+    return () => clearDynamicPageContext?.();
+  }, [clearDynamicPageContext, ownsAiContext]);
+  useEffect(() => {
+    if (!ownsAiContext || !updatePageContext) return;
+    updatePageContext({
+      courseId: 'knowledge', courseTitle: '知识资源', stepId: '/knowledge', pageType: 'workspace',
+      topic: selectedName ?? contextDomainName ?? '知识图谱', knowledgeType: 'C',
+      learningObjectives: ['结合知识图谱关系定位当前概念、资源和后续学习动作。'],
+      tools: ['search_knowledge_graph', 'recommend_next_action'],
+      systemPromptExtension: selectedName ? '当前知识图谱选中节点：' + selectedName : '当前知识图谱尚未选中节点。',
+      knowledgeWorkspaceHint: {
+        selectedNodeId: selectedName ? selectedNodeKey : null, requestedNodeId: selectedNodeKey,
+        status: selectedName ? 'selected-node' : selectedNodeKey ? 'degraded' : 'no-selection',
+        activeFilters: [contextTypeFilters, contextFamilyFilters, selectedResourceTypes.size > 0 ? [...selectedResourceTypes].sort().join(',') : '不限资源类型'],
+        densityMode: 'family-scoped', viewMode: dimension,
+        visibleRelationCount: contextVisibleRelations, selectedNodeRelationCount: contextSelectedRelations,
+      },
+    });
+  }, [ownsAiContext, updatePageContext, selectedNodeKey, selectedName, contextDomainName, contextTypeFilters,
+    contextFamilyFilters, selectedResourceTypes, dimension, contextVisibleRelations, contextSelectedRelations]);
+
   // #2052：跨领域合成节点的有界预览（名称/类型/摘要），复用既有浮层。
   const crossHoveredNodeId = hoveredNodeId?.startsWith('cross:') ? hoveredNodeId : null;
   const crossHoverPreview = crossHoveredNodeId
@@ -1715,11 +1791,18 @@ export function ActiveAuthorityGraph({
     if (!model && !workspace.objectsByCanonicalId[key] && !knownMemberships) return;
     const intent = selectionIntentRef.current + 1;
     selectionIntentRef.current = intent;
+    pendingTypeSelectionRef.current = { key, intent };
+    setSelectedResourceTypes(new Set());
     if (mode === 'search') {
       // The result button is removed when the query is cleared; restore focus
       // to the newly materialized semantic node or the canvas instead.
       setQuery('');
-      setHiddenNodeTypes(new Set());
+      setHiddenNodeTypes((current) => {
+        const next = new Set(current);
+        const type = workspace.objectsByCanonicalId[key]?.canonicalType ?? model?.nodeByKey.get(key)?.type.canonicalType;
+        if (type) next.delete(type);
+        return next;
+      });
       enableFamily('prerequisite-order');
     }
 
@@ -1778,6 +1861,11 @@ export function ActiveAuthorityGraph({
   }
 
   function toggleNodeTypeFilter(canonicalType: string) {
+    pendingTypeSelectionRef.current = null;
+    if (hiddenNodeTypes.has(canonicalType) && model) {
+      setVisibleKeys((current) => new Set([...current, ...model.nodes.filter((node) => node.type.canonicalType === canonicalType).map((node) => node.key)]));
+    }
+    if (!hiddenNodeTypes.has(canonicalType) && selectedNode?.type.canonicalType === canonicalType) clearSelection();
     setHiddenNodeTypes((current) => {
       const next = new Set(current);
       if (next.has(canonicalType)) next.delete(canonicalType);
@@ -1787,13 +1875,14 @@ export function ActiveAuthorityGraph({
   }
 
   function resetOverview() {
+    initializedDomainRef.current = null;
     selectionIntentRef.current += 1;
     pendingCrossDomainSelectionRef.current = null;
     resetDomain();
     setSelectedNodeKey(null);
     setInspectorOpen(false);
     setQuery('');
-    setHiddenNodeTypes(new Set());
+    setHiddenNodeTypes(defaultHiddenActiveTypes());
   }
   if (returnToRootRef) returnToRootRef.current = resetOverview;
   if (runtimeControlsRef) {
@@ -1828,6 +1917,16 @@ export function ActiveAuthorityGraph({
       : selectAuthorityDomainOverviewScope(model, workspace.domainOverviewIds));
   }
 
+  function clearSelection() {
+    selectionIntentRef.current += 1;
+    pendingCrossDomainSelectionRef.current = null;
+    cancelNeighborhood();
+    pendingTypeSelectionRef.current = null;
+    setSelectedNodeKey(null);
+    setInspectorOpen(false);
+    setHoveredNodeId(null);
+  }
+
   function closeDetail() {
     const key = selectedNodeKey;
     setInspectorOpen(false);
@@ -1848,8 +1947,9 @@ export function ActiveAuthorityGraph({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale} data-workspace-locale={workspace.selectedLocale}>
+      <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
       <div
-        className="pointer-events-none absolute left-3 top-3 z-40 max-[639px]:top-14"
+        className="flex justify-end pt-1"
         data-active-authority-header="true"
       >
         <div className="flex flex-col items-start gap-1">
@@ -1894,14 +1994,13 @@ export function ActiveAuthorityGraph({
         </div>
       </div>
 
-      <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 py-2" data-active-authority-context>
           <h2 className="min-w-0 text-sm font-semibold text-platform-fg-primary">
             {workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName
               ?? graphCopy(locale, 'scope.allDomains')}
             <span className="ml-2 font-normal text-platform-fg-secondary">
               {selectedNode ? `${selectedNode.label} · ${graphCopy(locale, 'scope.neighborhood')}`
-                : workspace.activeDomainId ? graphCopy(locale, 'scope.domainOverview') : graphCopy(locale, 'scope.domainDirectory')}
+                : workspace.activeDomainId ? graphCopy(locale, [...visibleKeys].some((key) => !workspace.domainOverviewIds.includes(key)) ? 'scope.currentRange' : 'scope.domainOverview') : graphCopy(locale, 'scope.domainDirectory')}
             </span>
           </h2>
           {selectedNodeKey ? (
@@ -1977,7 +2076,7 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
+          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden max-[639px]:overflow-y-auto max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
             <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
             <div className="mb-3 max-[639px]:mb-1 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto" data-active-authority-toolbar="true">
               <button
@@ -2052,14 +2151,15 @@ export function ActiveAuthorityGraph({
               </div>
             ) : null}
             {authorityView ? (
-              <div className="relative flex min-h-0 flex-1 flex-col" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
-                <div className="relative min-h-0 flex-1">
+              <div className="relative flex min-h-0 flex-1 flex-col max-[639px]:flex-none" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
+                <div className="relative min-h-0 flex-1 max-[639px]:h-[26rem] max-[639px]:flex-none">
                   <ActiveAuthorityRuntimeView
                     kind="domain"
                     view={authorityView}
                     dimension={dimension}
                     selectedNodeId={selectedNodeKey}
                     onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
+                    onClearSelection={clearSelection}
                     onHoverNode={setHoveredNodeId}
                     onEnterDomain={(visualRole) => {
                       void enterDomain(visualRole);
@@ -2092,6 +2192,8 @@ export function ActiveAuthorityGraph({
                     teachingCoverageNote={teachingCoverageNote}
                     teachingRelationsVisible={teachingRelationsVisible}
                     onToggleTeachingRelations={toggleTeachingRelations}
+                    selectedResourceTypes={selectedResourceTypes}
+                    onResourceTypesChange={(types) => { if (selectedNode && !matchesActiveResourceTypes(selectedNode.sourceNode, types)) clearSelection(); setSelectedResourceTypes(types); }}
                   />
                 ) : null}
               </div>

@@ -1,3 +1,4 @@
+import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
 /**
  * Versioned Authority domain shard contracts (#1375).
  *
@@ -151,6 +152,7 @@ export interface AuthorityShardPublicEnvelope {
 
 export interface AuthorityShardObject {
   id: string;
+  resourceTypes?: readonly TeachingResourceType[];
   canonicalType: string;
   label: string;
   /** Localized search/detail aliases; never used as identity. */

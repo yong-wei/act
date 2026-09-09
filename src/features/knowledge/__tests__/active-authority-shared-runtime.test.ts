@@ -70,7 +70,7 @@ describe('active authority shared force runtime', () => {
     expect(workspace).toContain('data-knowledge-toolbar-gutter="language"');
     expect(workspace).toContain('left-[16.5rem]');
     expect(graph).toContain('data-graph-language-switch="true"');
-    expect(graph).toContain('useKnowledgeGraphRuntimeLayout({ dimension })');
+    expect(graph).toContain('useKnowledgeGraphRuntimeLayout({ dimension, scopeKey: graphScopeKey, fixedLayout: true })');
     expect(workspace).toContain('data-knowledge-layout-control="fit-view"');
     expect(workspace).toContain('data-knowledge-layout-control="relayout"');
     expect(workspace).toContain('createGraphRuntimeSessionStore');

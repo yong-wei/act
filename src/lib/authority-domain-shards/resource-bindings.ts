@@ -150,7 +150,7 @@ export function projectAuthorityNodeResourceBindings(input: {
   return { state: 'available', items };
 }
 
-function matchActiveTeachingProjection(shard: AuthorityNodeDetailShard): {
+export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailShard, 'envelope'>): {
   status: 'unavailable' | 'mismatch' | 'available';
   authoringRevision: string | null;
   bindings?: readonly TeachingBindingRuntime[];

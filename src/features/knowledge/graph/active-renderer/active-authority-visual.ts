@@ -13,21 +13,6 @@ export const ACTIVE_TONE_COLORS: Record<string, string> = {
   muted: '#7f8b9a',
 };
 
-export const ACTIVE_RELATION_COLORS: Record<string, string> = {
-  prerequisite: '#c98a50',
-  contains: '#638fb0',
-  association: '#71808e',
-  cross_domain: '#5cabb6',
-  related: '#71808e',
-  derives: '#9a79a4',
-  derived_from: '#9a79a4',
-  applies_to: '#638fb0',
-  quantified_by: '#8f7eaa',
-  visualized_by: '#5b9b8c',
-  instance_of: '#6488b3',
-  follows: '#c98a50',
-};
-
 export type ActiveAuthorityNodeShape = 'circle' | 'square' | 'hexagon' | 'triangle' | 'diamond' | 'pentagon';
 
 function metadataFor(node: Pick<KnowledgeNodeData, 'metadata'>): Record<string, unknown> {
@@ -45,7 +30,7 @@ export function isActiveRootNode(node: Pick<KnowledgeNodeData, 'id' | 'metadata'
 export function activeNodeShape(node: Pick<KnowledgeNodeData, 'id' | 'nodeType' | 'metadata'>): ActiveAuthorityNodeShape {
   if (isActiveRootNode(node)) return 'circle';
   const shape = metadataFor(node).presentationShape;
-  if (shape === 'square' || shape === 'hexagon' || shape === 'triangle' || shape === 'diamond' || shape === 'pentagon') {
+  if (shape === 'square' || shape === 'diamond' || shape === 'hexagon' || shape === 'triangle' || shape === 'diamond' || shape === 'pentagon') {
     return shape;
   }
   if (shape === 'rounded') return 'square';
@@ -77,15 +62,54 @@ export function activeRelationType(link: Pick<KnowledgeLinkData, 'relation' | 'r
   return link.relationType ?? link.relation ?? 'related';
 }
 
-export function activeRelationColor(link: Pick<KnowledgeLinkData, 'relation' | 'relationType'>): string {
-  const relation = activeRelationType(link);
-  if (relation.toLowerCase().includes('prerequisite')) return ACTIVE_RELATION_COLORS.prerequisite;
-  return ACTIVE_RELATION_COLORS[relation] ?? ACTIVE_RELATION_COLORS[relation.toLowerCase()] ?? ACTIVE_RELATION_COLORS.related;
+export const ACTIVE_RELATION_STYLES = {
+  'prerequisite-order': { color: '#d99b60', dash: null, directed: true },
+  structure: { color: '#77acd2', dash: [9, 5], directed: true },
+  'derivation-and-representation': { color: '#b29bd5', dash: [2, 5], directed: true },
+  'application-and-analysis': { color: '#78baa6', dash: [14, 5], directed: true },
+  association: { color: '#a1a9b5', dash: [5, 7], directed: false },
+} as const;
+
+export function activeRelationStyle(link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily'>) {
+  const family = link.relationFamily;
+  if (family && family in ACTIVE_RELATION_STYLES) return ACTIVE_RELATION_STYLES[family as keyof typeof ACTIVE_RELATION_STYLES];
+  const relation = activeRelationType(link).toLowerCase();
+  if (relation.includes('prerequisite') || family === 'teaching-prerequisite') return ACTIVE_RELATION_STYLES['prerequisite-order'];
+  if (relation === 'contains' || family === 'teaching-containment') return ACTIVE_RELATION_STYLES.structure;
+  if (['derives', 'derived_from', 'represented_by', 'visualized_by'].includes(relation)) return ACTIVE_RELATION_STYLES['derivation-and-representation'];
+  if (['applies_to', 'quantified_by'].includes(relation)) return ACTIVE_RELATION_STYLES['application-and-analysis'];
+  return ACTIVE_RELATION_STYLES.association;
 }
 
-export function activeRelationIsDirected(link: Pick<KnowledgeLinkData, 'relation' | 'relationType'>): boolean {
-  const relation = activeRelationType(link).toLowerCase();
-  return relation !== 'association' && relation !== 'related';
+export function activeRelationColor(link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily'>): string {
+  return activeRelationStyle(link).color;
+}
+
+export function activeRelationIsDirected(link: Pick<KnowledgeLinkData, 'relation' | 'relationType' | 'relationFamily' | 'directed'>): boolean {
+  return link.directed ?? activeRelationStyle(link).directed;
+}
+
+export function activeFocusNodeIds(links: readonly Pick<KnowledgeLinkData, 'sourceId' | 'targetId'>[], selected: string | null): ReadonlySet<string> {
+  const ids = new Set<string>();
+  if (!selected) return ids;
+  ids.add(selected);
+  for (const link of links) if (link.sourceId === selected || link.targetId === selected) {
+    ids.add(link.sourceId);
+    ids.add(link.targetId);
+  }
+  return ids;
+}
+
+export function activeNodeOpacity(id: string, selected: string | null, hovered: string | null, focusedNodes?: ReadonlySet<string>): number {
+  if (selected) return id === selected ? 1 : focusedNodes?.has(id) ? 0.94 : 0.13;
+  return id === hovered ? 1 : 0.88;
+}
+
+export function activeLinkOpacity(link: Pick<KnowledgeLinkData, 'sourceId' | 'targetId'>, selected: string | null, hovered: string | null): number {
+  const focus = selected ?? hovered;
+  if (!focus) return 0.68;
+  if (link.sourceId === focus || link.targetId === focus) return 1;
+  return selected ? 0.06 : 0.32;
 }
 
 export function activeNodeAccessibleName(node: Pick<KnowledgeNodeData, 'name' | 'richTitle' | 'mathematics'> & { accessibleName?: string }): string {

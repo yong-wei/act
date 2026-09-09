@@ -23,6 +23,7 @@ import {
 import type { AuthorityGraphViewModel } from './authority-graph-view-model';
 import { packActiveAuthorityRootEntries } from './active-authority-root-entries';
 import { crossDomainNodeId, readCrossDomainCanonicalId } from './graph/cross-domain-cluster';
+import { activeFocusNodeIds } from './graph/active-renderer/active-authority-visual';
 import { toSharedRuntimeRelationType } from './authority-graph-view-model';
 import { runtimeNodeTypeFor } from './graph/authority-runtime-adapter';
 import { KNOWLEDGE_LABEL_OVERVIEW_COMPACT_MAX_NODES } from './graph/label-policy';
@@ -56,6 +57,7 @@ interface ActiveAuthorityRuntimeViewProps {
   dimension: GraphDimension;
   selectedNodeId: string | null;
   onSelectNode: (canonicalId: string) => void;
+  onClearSelection?: () => void;
   onHoverNode: (canonicalId: string | null) => void;
   onEnterDomain: (visualRole: string) => void;
   hoverPreview?: {
@@ -83,7 +85,7 @@ interface ActiveAuthorityRuntimeViewProps {
   crossDomainClusters?: ReadonlyArray<{
     domainName: string;
     nodes: ReadonlyArray<{ canonicalId: string; name: string; typeLabel: string; summary: string }>;
-    links: ReadonlyArray<{ sourceId: string; targetId: string; predicate: string; relationFamily: string | null; sources?: readonly unknown[] }>;
+    links: ReadonlyArray<{ sourceId: string; targetId: string; predicate: string; relationFamily: string | null; sources?: readonly { direction?: string | null }[] }>;
   }>;
   /** #2052：点击跨领域概念节点时携带其 canonicalId 进入目标领域。 */
   onCrossDomainNodeClick?: (canonicalId: string) => void;
@@ -96,6 +98,7 @@ export function ActiveAuthorityRuntimeView({
   dimension,
   selectedNodeId,
   onSelectNode,
+  onClearSelection,
   onHoverNode,
   onEnterDomain,
   hoverPreview,
@@ -169,7 +172,9 @@ export function ActiveAuthorityRuntimeView({
       sourceId: link.sourceId,
       targetId: link.targetId,
       relation: link.predicate,
+      relationFamily: link.relationFamily,
       authoritySources: link.sources,
+      directed: link.sources?.[0] ? ['directed', 'source_to_target', 'source-to-target'].includes(link.sources[0].direction ?? '') : undefined,
       relationType: toSharedRuntimeRelationType({ predicate: link.predicate, relationFamily: link.relationFamily }),
     })))
     : []), [kind, crossDomainClusters]);
@@ -180,6 +185,7 @@ export function ActiveAuthorityRuntimeView({
   const links = useMemo(() => kind === 'root'
     ? []
     : [...domainLinks, ...crossLinks], [kind, domainLinks, crossLinks]);
+  const focusedNodes = useMemo(() => activeFocusNodeIds(links, selectedNodeId), [links, selectedNodeId]);
   const cameraScopeKey = `${sessionKey}:${dimension}`;
   const rootEntries = catalog
     ? packActiveAuthorityRootEntries(catalog, { viewportWidth: 960, viewportHeight: 640 })
@@ -236,8 +242,9 @@ export function ActiveAuthorityRuntimeView({
           selectedNodeId={selectedNodeId}
           hoveredNodeId={hoveredId}
           onNodeClick={handleNodeClick}
+          onBackgroundClick={onClearSelection}
           onNodeHover={(node) => {
-            if (kind === 'root' || !node || isActiveRootNavigationNode(node)) {
+            if (kind === 'root' || !node || isActiveRootNavigationNode(node) || (selectedNodeId && !focusedNodes.has(node.id))) {
               setHoveredId(null);
               onHoverNode(null);
               return;

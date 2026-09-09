@@ -50,6 +50,8 @@ export function toActiveRuntimeLinks(view: AuthorityGraphViewModel): KnowledgeLi
     sourceId: edge.sourceId,
     targetId: edge.targetId,
     relation: edge.predicate,
+    relationFamily: edge.relationFamily,
+    directed: edge.presentation.semantic.kind === 'directed',
     relationType: toSharedRuntimeRelationType({
       predicate: edge.predicate,
       relationFamily: edge.relationFamily,
