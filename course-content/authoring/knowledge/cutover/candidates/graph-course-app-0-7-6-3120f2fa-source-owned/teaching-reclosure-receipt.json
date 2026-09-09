@@ -1,0 +1,30 @@
+{
+  "contract": "r4-c6-teaching-governance-reclosure/v1",
+  "status": "COMPLETE",
+  "appRevision": "3120f2fabafed823e6cccd9219539f20b419f61f",
+  "compilerRevision": "2689086cc670535f5c4bf7b365edd9b403068a6a",
+  "sourceScopeHash": "f7018e9324f05d493a870988a0fcbbdaa9b79c9d69a33651f869fd118e2ffb98",
+  "successorScopeHash": "c797e2bda270346af2803c87bc52065d16f343a539e9f9bd97faec0f389363d8",
+  "successorSnapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+  "sourceDispositionHash": "3b0e40edf2495cbb299f6c633cade4a01dae6bec17a47e346ebd8589da84549b",
+  "sourceAdjustmentsHash": "3a7f9862c2cc567c996e798d9856011d434d1729ca75980643b60a5fe32acbef",
+  "dispositionHash": "35af7c737ece3fdd11c6014641cb1ba2179c61458aef81a4241385155c25ca30",
+  "semanticCacheHash": "0ad0b6745c8efcb910833a3306e4d730327a29d8bd8c29247623946d04bee154",
+  "courseProjectionHash": "0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "changedFields": [
+    "scopeHash",
+    "retiredMembers",
+    "prerequisiteDispositions"
+  ],
+  "retiredMembers": [
+    "ctc:modeling-423b845366304dc755fefcea",
+    "ctc:modeling-f6940765c7e8e5b74be204e0",
+    "ctf:68d4b357bceeebe4ef1c7a35",
+    "ctf:8f245a09ee5140ef7cb0829e"
+  ],
+  "retiredDispositionCount": 12,
+  "reusedCount": 22157,
+  "recomputedCount": 259,
+  "teachingClosureReceiptHash": "bba4dac84dba5278f0c5efc338100fc2655a9b14c3c14f0b19c997e8761417ae",
+  "receiptHash": "c94946a3f5c17717d1914d8966d6060f8e0c9b7392becef2a065ae85f4977d4a"
+}

@@ -1,0 +1,19 @@
+{
+  "contract": "coordinated-formal-resource-envelope-incremental-reuse/v1",
+  "allocationHash": "6f06ac19e4cb4138887930ca71c87643b0a1f9a923476cba729006be8d3b271d",
+  "authorityCaptureHash": "efc2ab7eb3ace6ed2ecc86ba8b89d00439c678d9c4e28f23cd7c4f689b391d6a",
+  "scopeHash": "c797e2bda270346af2803c87bc52065d16f343a539e9f9bd97faec0f389363d8",
+  "semanticCacheHash": "0ad0b6745c8efcb910833a3306e4d730327a29d8bd8c29247623946d04bee154",
+  "priorEnvelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+  "priorEnvelopeContract": "remediation-formal-resource-envelope/v1",
+  "priorEnvelopeSourceRevision": "425ebc3bf00fa39f7da623d994f24eb091c35247",
+  "resourceQualificationHash": "de11612797c21dff240e665e302784974ba447b75786a7e44c1c30cc60b38d11",
+  "currentProjectionId": "proj-228afa648be61f4824a694c546a5c801f16db1e925d9de0546e08c7569381333",
+  "currentProjectionHash": "228afa648be61f4824a694c546a5c801f16db1e925d9de0546e08c7569381333",
+  "resourceCount": 4117,
+  "boundResourceCount": 2513,
+  "bindingCount": 21633,
+  "appRevision": "3120f2fabafed823e6cccd9219539f20b419f61f",
+  "compilerRevision": "71e34c3c4ebe7a1005372b1b2e6adbe75aedd577",
+  "envelopeHash": "ce0a410eda7aaf90506fe756249b923d156e807eb33334a213f0e5e783b031ce"
+}

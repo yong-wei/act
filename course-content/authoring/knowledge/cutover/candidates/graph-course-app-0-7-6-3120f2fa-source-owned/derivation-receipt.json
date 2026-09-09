@@ -1,0 +1,12 @@
+{
+  "contract": "coordinated-baseline-derivation-incremental-reuse/v1",
+  "allocationHash": "6f06ac19e4cb4138887930ca71c87643b0a1f9a923476cba729006be8d3b271d",
+  "semanticCacheHash": "0ad0b6745c8efcb910833a3306e4d730327a29d8bd8c29247623946d04bee154",
+  "formalResourceEnvelopeHash": "ce0a410eda7aaf90506fe756249b923d156e807eb33334a213f0e5e783b031ce",
+  "sourceBaselineHash": "c7fdc45ef84401816177a3b8d1eb3999fedfbade319cb13a7d2546b7916bffe8",
+  "sourceResourceEnvelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+  "resourceQualificationHash": "de11612797c21dff240e665e302784974ba447b75786a7e44c1c30cc60b38d11",
+  "retainedFileCount": 1637,
+  "changedFileCount": 0,
+  "receiptHash": "d1bace1857dc5bea11ac6d6924427379c294663c7693dea1193cd6a3af97b42f"
+}
