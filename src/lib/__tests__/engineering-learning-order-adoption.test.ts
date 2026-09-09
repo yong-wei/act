@@ -56,6 +56,21 @@ function teachingDecision(edge: {
 }
 
 describe('engineering learning-order adoption (#2059)', () => {
+  it('recognizes a retained REQUIRED fact even when a recommended source occurs later', () => {
+    const result = adoptEngineeringLearningOrder({
+      relations: [{ id: 'eng', predicate: 'prerequisite', sourceId: 'a', targetId: 'b' }],
+      teachingEdges: [
+        { edgeId: 'required', sourceNodeId: 'a', targetNodeId: 'b', strength: 'REQUIRED' },
+        { edgeId: 'recommended', sourceNodeId: 'a', targetNodeId: 'b', strength: 'RECOMMENDED' },
+      ],
+      coreNodeIds: new Set(['a', 'b']), authorityIds: new Set(['a', 'b']),
+      scopeId: SCOPE, authorityReleaseId: AUTHORITY, projectionCaptureId: null,
+      authoringRevision: REVISION, snapshotHash: SNAPSHOT,
+    });
+    expect(result.receipts[0].disposition).toBe('already-teaching');
+    expect(result.adoptedEdges).toEqual([]);
+  });
+
   it('puts minted prerequisite through the post-requisite adoption channel', () => {
     expect(isEngineeringLearningOrderPredicate('prerequisite')).toBe(true);
     expect(isEngineeringLearningOrderPredicate('provides_foundation')).toBe(true);

@@ -79,6 +79,7 @@ export interface ActiveCanvasRelation {
   targetId: string;
   direction: string | null;
   direct: boolean | null;
+  strength?: 'REQUIRED' | 'RECOMMENDED' | null;
   qualityTier: string;
   governance: {
     reviewStatus: string | null;

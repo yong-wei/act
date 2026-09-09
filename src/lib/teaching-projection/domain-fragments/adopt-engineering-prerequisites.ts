@@ -1,7 +1,7 @@
 /**
  * Build-time teaching-order planner (#2007).
- * Ingests published course prerequisites and spans remaining
- * course-content-related overview concepts by syllabus unit order.
+ * Ingests published prerequisites. Missing connections require explicit
+ * course authoring decisions; ordering identifiers or units never makes facts.
  * Runtime loaders must not call this against live family shards.
  */
 
@@ -144,7 +144,6 @@ export function planOverviewTeachingOrder(input: {
   const emitted = new Set<string>();
   const requiredPairs: Array<{ sourceNodeId: string; targetNodeId: string }> = [];
   const content = new Set(input.contentNodeIds);
-  const nodeUnits = input.nodeUnits ?? new Map<string, string>();
 
   const planned = new Map<string, PlannedTeachingOrderEdge>();
   const mark = (edge: PlannedTeachingOrderEdge) => {
@@ -168,6 +167,7 @@ export function planOverviewTeachingOrder(input: {
   const existingPrereq = input.existingTeaching.filter(
     (edge) => edge.relationType === 'PREREQUISITE' && edge.sourceNodeId !== edge.targetNodeId,
   );
+  requiredPairs.push(...existingPrereq.filter((edge) => edge.strength === 'REQUIRED'));
 
   for (const overview of input.overviews) {
     const related = uniquePreserveOrder(overview.nodeIds.filter((id) => content.has(id)));
@@ -198,70 +198,11 @@ export function planOverviewTeachingOrder(input: {
       });
     }
 
-    const rankOf = (id: string) => unitRank(nodeUnits.get(id));
-    const scheduledLimit = COURSE_UNIT_ORDER.length;
-    const sortedRelated = [...related].sort((left, right) => rankOf(left) - rankOf(right));
-    for (let index = 1; index < sortedRelated.length; index += 1) {
-      const sourceNodeId = sortedRelated[index - 1]!;
-      const targetNodeId = sortedRelated[index]!;
-      const sourceRank = rankOf(sourceNodeId);
-      const targetRank = rankOf(targetNodeId);
-      if (sourceRank >= targetRank || targetRank >= scheduledLimit) continue;
-      if (forest.find(sourceNodeId) === forest.find(targetNodeId)) continue;
-      forest.union(sourceNodeId, targetNodeId);
-      mark({
-        sourceNodeId,
-        targetNodeId,
-        relationType: 'PREREQUISITE',
-        strength: 'RECOMMENDED',
-        domainKeys: [overview.domainId],
-        provenance: 'teaching-extension',
-        engineeringRelationId: null,
-      });
-    }
-    const leftover = new Map<string, string[]>();
-    for (const nodeId of related) {
-      const root = forest.find(nodeId);
-      const membersOfRoot = leftover.get(root) ?? [];
-      membersOfRoot.push(nodeId);
-      leftover.set(root, membersOfRoot);
-    }
-    if (leftover.size > 1) {
-      const components = [...leftover.values()].sort((left, right) => (
-        Math.min(...left.map(rankOf)) - Math.min(...right.map(rankOf))
-      ));
-      for (let index = 1; index < components.length; index += 1) {
-        const left = components[index - 1]!;
-        const right = components[index]!;
-        const leftMin = Math.min(...left.map(rankOf));
-        const rightMin = Math.min(...right.map(rankOf));
-        let sourceNodeId = left.find((id) => rankOf(id) === leftMin) ?? left[0]!;
-        let targetNodeId = right.find((id) => rankOf(id) === rightMin) ?? right[0]!;
-        if (rankOf(sourceNodeId) > rankOf(targetNodeId)) {
-          [sourceNodeId, targetNodeId] = [targetNodeId, sourceNodeId];
-        }
-        const sourceRank = rankOf(sourceNodeId);
-        const targetRank = rankOf(targetNodeId);
-        forest.union(sourceNodeId, targetNodeId);
-        mark({
-          sourceNodeId,
-          targetNodeId,
-          relationType: 'PREREQUISITE',
-          strength: 'RECOMMENDED',
-          domainKeys: [overview.domainId],
-          provenance: sourceRank < targetRank && targetRank < scheduledLimit
-            ? 'teaching-extension'
-            : 'unscheduled-extension',
-          engineeringRelationId: null,
-        });
-      }
-    }
-
     const roots = new Set(related.map((id) => forest.find(id)));
     if (roots.size > 1) {
       throw new OverviewTeachingOrderError(
         'overview-disconnected',
-        `domain ${overview.domainId} course-content-related overview is not weakly connected`,
+        `domain ${overview.domainId} needs explicit course-order/dependencies.jsonl decisions; automatic gap filling is forbidden`,
       );
     }
   }

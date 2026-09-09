@@ -310,6 +310,8 @@ export function applyLocaleToLearnerShard<T extends AuthorityLearnerShard>(
     return {
       ...next,
       objects: next.objects.map((object) => mapObject(object, manifest, receipt, locale)),
+      teachingBoundaryObjects: next.teachingBoundaryObjects?.map((object) => mapObject(object, manifest, receipt, locale)),
+      teachingBoundaries: next.teachingBoundaries?.map((boundary) => mapBoundary(boundary, manifest, receipt, locale)),
       teachingRelations: next.teachingRelations.map((relation) => (
         mapRelation(relation, manifest, receipt, locale)
       )),

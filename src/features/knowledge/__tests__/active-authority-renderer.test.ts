@@ -5,6 +5,8 @@ import {
   activeAuthorityStructureSignature,
   deriveActiveAuthorityLayout,
   getActiveAuthorityWorldBounds,
+  reconcileActiveAuthorityLayout,
+  type ActiveAuthorityLayoutSession,
 } from '../graph/active-renderer/active-authority-geometry';
 import {
   buildActiveAuthorityLabelDescriptors,
@@ -39,6 +41,38 @@ function link(
 }
 
 describe('active authority renderer geometry', () => {
+  it('preserves initialized positions through filters, new neighbors and localized labels', () => {
+    const session: ActiveAuthorityLayoutSession = { nodes: new Map(), relayoutVersion: 0 };
+    const nodes = Array.from({ length: 153 }, (_, i) => node(`n-${i}`, `概念${i}`));
+    const input = { nodes, links: [] as KnowledgeLinkData[], dimension: '2d' as const, relayoutVersion: 0 };
+    const initial = reconcileActiveAuthorityLayout(session, input);
+    const positions = new Map(initial.map((n) => [n.id, [n.x, n.y, n.z]]));
+    reconcileActiveAuthorityLayout(session, { ...input, nodes: nodes.slice(0, 12) });
+    const expanded = reconcileActiveAuthorityLayout(session, {
+      ...input,
+      nodes: [...nodes.map((n) => ({ ...n, name: `English ${n.id}` })), node('new', '新增邻域')],
+      links: [link('new-edge', 'n-0', 'new')],
+    });
+    for (const n of expanded.filter((n) => positions.has(n.id))) {
+      expect([n.x, n.y, n.z]).toEqual(positions.get(n.id));
+    }
+    expect(expanded.find((n) => n.id === 'n-0')).toBe(initial.find((n) => n.id === 'n-0'));
+    expect(expanded.find((n) => n.id === 'n-0')?.name).toBe('English n-0');
+  });
+
+  it('gives root and disconnected domain 3D graphs comparable extent on all three axes', () => {
+    for (const kind of ['root', 'domain']) {
+      const nodes = Array.from({ length: kind === 'root' ? 16 : 153 }, (_, i) => ({
+        ...node(`${kind}-${i}`, `节点${i}`),
+        ...(kind === 'root' ? { metadata: { presentationKind: 'domain' } } : {}),
+      }));
+      const layout = deriveActiveAuthorityLayout({ nodes, links: [], dimension: '3d' });
+      const bounds = getActiveAuthorityWorldBounds(layout);
+      expect(bounds.depth / Math.max(bounds.width, bounds.height)).toBeGreaterThan(0.4);
+      expect(layout.every((n) => [n.x, n.y, n.z].every(Number.isFinite))).toBe(true);
+    }
+  });
+
   it('packs root entries around the world origin with balanced coordinates', () => {
     const roots = ['modeling', 'frequency', 'stability', 'state-space', 'aggregate'].map((id) => ({
       ...node(`root-entry-${id}`, id),

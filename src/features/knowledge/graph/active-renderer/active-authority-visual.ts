@@ -126,8 +126,7 @@ export function isFiniteActiveCameraPose(pose: ActiveAuthorityCameraPose | null 
 }
 
 export function canRestoreActiveCameraPose(pose: ActiveAuthorityCameraPose | null | undefined, width: number, height: number): boolean {
-  return isFiniteActiveCameraPose(pose) && (!pose.viewport
-    || (Math.abs(pose.viewport.width - width) <= 1 && Math.abs(pose.viewport.height - height) <= 1));
+  return isFiniteActiveCameraPose(pose) && width > 0 && height > 0;
 }
 
 export function disposeActiveObject3D(object: Object3D): void {

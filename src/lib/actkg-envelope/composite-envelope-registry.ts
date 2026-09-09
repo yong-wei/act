@@ -40,7 +40,15 @@ export class CompositeEnvelopeError extends Error {
   }
 }
 
-const cache = new Map<string, readonly CompositeEnvelopeRecord[]>();
+const cache = new Map<string, { bytes: string; rows: readonly CompositeEnvelopeRecord[] }>();
+
+/** Runtime metadata travels with the selected release; legacy images retain their authoring fallback. */
+export function compositeEnvelopeDirectory(repoRoot = process.cwd()): string {
+  const runtime = path.join(repoRoot, 'course-content/runtime/knowledge/composite-envelopes');
+  return existsSync(runtime)
+    ? runtime
+    : path.dirname(path.join(repoRoot, COMPOSITE_ENVELOPE_REGISTRY_RELATIVE));
+}
 
 function assertNotLatest(value: string): void {
   if (value === 'latest' || value.endsWith('/latest') || value.includes('@latest')) {
@@ -85,13 +93,14 @@ function parseEnvelope(value: unknown): CompositeEnvelopeRecord {
 
 export function loadCompositeEnvelopeRegistry(repoRoot = process.cwd()): readonly CompositeEnvelopeRecord[] {
   const root = path.resolve(repoRoot);
-  const cached = cache.get(root);
-  if (cached) return cached;
-  const filePath = path.join(root, COMPOSITE_ENVELOPE_REGISTRY_RELATIVE);
+  const filePath = path.join(compositeEnvelopeDirectory(root), 'actkg-composite-envelope-registry.json');
   if (!existsSync(filePath)) {
     throw new CompositeEnvelopeError('envelope-registry-missing', `sealed envelope registry missing: ${COMPOSITE_ENVELOPE_REGISTRY_RELATIVE}`);
   }
-  const parsed = asRecord(JSON.parse(readFileSync(filePath, 'utf8')));
+  const bytes = readFileSync(filePath, 'utf8');
+  const cached = cache.get(filePath);
+  if (cached?.bytes === bytes) return cached.rows;
+  const parsed = asRecord(JSON.parse(bytes));
   if (parsed.contract !== COMPOSITE_ENVELOPE_REGISTRY_CONTRACT) {
     throw new CompositeEnvelopeError('envelope-registry-contract', 'sealed envelope registry contract is invalid');
   }
@@ -100,7 +109,7 @@ export function loadCompositeEnvelopeRegistry(repoRoot = process.cwd()): readonl
     throw new CompositeEnvelopeError('envelope-registry-empty', 'sealed envelope registry has no qualified envelopes');
   }
   const frozen = Object.freeze(envelopes);
-  cache.set(root, frozen);
+  cache.set(filePath, { bytes, rows: frozen });
   return frozen;
 }
 

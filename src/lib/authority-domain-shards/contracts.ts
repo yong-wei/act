@@ -187,6 +187,7 @@ export interface AuthorityShardRelation {
   targetId: string;
   direction: string | null;
   direct: boolean | null;
+  strength?: 'REQUIRED' | 'RECOMMENDED' | null;
   qualityTier: string;
   governance: {
     reviewStatus: string | null;
@@ -242,6 +243,8 @@ export interface AuthorityDomainDefaultShard {
   visualRole: Exclude<DomainVisualRole, 'aggregate'>;
   objects: readonly AuthorityShardObject[];
   teachingRelations: readonly AuthorityShardRelation[];
+  teachingBoundaryObjects?: readonly AuthorityShardObject[];
+  teachingBoundaries?: readonly AuthorityShardBoundaryRef[];
   teachingCoverage: AuthorityShardTeachingCoverage;
 }
 

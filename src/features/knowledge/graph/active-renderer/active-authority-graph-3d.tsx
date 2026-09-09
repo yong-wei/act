@@ -120,10 +120,8 @@ export function ActiveAuthorityGraph3D({
   const programmaticCameraRef = useRef(false);
   const settledGraphRef = useRef<readonly ActiveAuthorityLayoutNode[] | null>(null);
   const fittingGraphRef = useRef(false);
-  const pendingResizeFitRef = useRef(false);
   const initialCameraReadyRef = useRef(false);
   const pendingExplicitFitRef = useRef(false);
-  const previousSizeRef = useRef<{ width: number; height: number } | null>(null);
   const selectedNodeIdRef = useRef<string | null>(selectedNodeId);
   const hoveredNodeIdRef = useRef<string | null>(hoveredNodeId);
   const previousFitRequestRef = useRef(fitViewRequest.id);
@@ -131,7 +129,7 @@ export function ActiveAuthorityGraph3D({
   const previousReheatRef = useRef(engineReheatRevision);
   const graphNodesRef = useRef<readonly ActiveAuthorityLayoutNode[]>([]);
   const scheduleProjectionRef = useRef<(() => void) | null>(null);
-  const fitGraphRef = useRef<((reason: 'initial' | 'explicit' | 'resize') => boolean) | null>(null);
+  const fitGraphRef = useRef<((reason: 'initial' | 'explicit') => boolean) | null>(null);
   const settleAfterRenderRef = useRef<(() => void) | null>(null);
   const autoFitConsumedRef = useRef(autoFitConsumed);
   const autoFitScopeKeyRef = useRef(autoFitScopeKey);
@@ -144,7 +142,7 @@ export function ActiveAuthorityGraph3D({
   const initializationFrameRef = useRef<number | null>(null);
   const initializationAttemptRef = useRef(0);
   const graphData = useMemo(() => ({
-    nodes: nodes.map((node) => ({ ...node })),
+    nodes: [...nodes],
     links: links.map((link) => ({ ...link })),
   }), [links, nodes]);
   selectedNodeIdRef.current = selectedNodeId;
@@ -205,7 +203,7 @@ export function ActiveAuthorityGraph3D({
     }
   }, [height, width]);
 
-  const fitGraph = useCallback((reason: 'initial' | 'explicit' | 'resize') => {
+  const fitGraph = useCallback((reason: 'initial' | 'explicit') => {
     const graph = graphRef.current;
     const camera = graph?.camera?.() as THREE.PerspectiveCamera | undefined;
     if (!graph || typeof graph.cameraPosition !== 'function' || !camera
@@ -236,7 +234,6 @@ export function ActiveAuthorityGraph3D({
     initialCameraReadyRef.current = true;
     if (reason === 'initial' && !autoFitConsumedRef.current) onAutoFitConsumedRef.current(autoFitScopeKeyRef.current);
     pendingExplicitFitRef.current = false;
-    pendingResizeFitRef.current = false;
     reportCameraPose();
     scheduleProjectionRef.current?.();
     return true;
@@ -247,11 +244,11 @@ export function ActiveAuthorityGraph3D({
     const currentNodes = graphNodesRef.current;
     if (fittingGraphRef.current) return;
     if (settledGraphRef.current === currentNodes && initialCameraReadyRef.current
-      && !pendingExplicitFitRef.current && !pendingResizeFitRef.current) return;
+      && !pendingExplicitFitRef.current) return;
     fittingGraphRef.current = true;
     try {
       const reason = pendingExplicitFitRef.current ? 'explicit'
-        : pendingResizeFitRef.current ? 'resize' : !initialCameraReadyRef.current ? 'initial' : null;
+        : !initialCameraReadyRef.current ? 'initial' : null;
       if (reason && !fitGraphRef.current?.(reason)) return;
       const changed = settledGraphRef.current !== currentNodes;
       settledGraphRef.current = currentNodes;
@@ -272,7 +269,7 @@ export function ActiveAuthorityGraph3D({
       initializationFrameRef.current = null;
       settleAfterRenderRef.current?.();
       if (settledGraphRef.current === graphNodesRef.current && initialCameraReadyRef.current
-        && !pendingExplicitFitRef.current && !pendingResizeFitRef.current) return;
+        && !pendingExplicitFitRef.current) return;
       if (initializationAttemptRef.current < 120) {
         initializationAttemptRef.current += 1;
         initializationFrameRef.current = window.requestAnimationFrame(initialize);
@@ -299,21 +296,12 @@ export function ActiveAuthorityGraph3D({
   }, [fitViewRequest.id, graphData.nodes]);
 
   useEffect(() => {
-    const previous = previousSizeRef.current;
-    previousSizeRef.current = { width, height };
-    if (!previous || (previous.width === width && previous.height === height)) return;
-    pendingResizeFitRef.current = true;
-    fitGraphRef.current?.('resize');
-  }, [graphData.nodes, height, width]);
-
-  useEffect(() => {
     if (previousScopeKeyRef.current === autoFitScopeKey) return;
     previousScopeKeyRef.current = autoFitScopeKey;
     settledGraphRef.current = null;
     fittingGraphRef.current = false;
     initialCameraReadyRef.current = false;
     pendingExplicitFitRef.current = false;
-    pendingResizeFitRef.current = false;
   }, [autoFitScopeKey]);
 
   useEffect(() => {

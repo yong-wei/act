@@ -110,6 +110,7 @@ describe('active authority renderer lifecycle', () => {
   let root: Root;
 
   beforeEach(() => {
+    vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -123,6 +124,7 @@ describe('active authority renderer lifecycle', () => {
     mountedRoots.delete(root);
     container.remove();
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('uses the real active renderer branch, fits after settle, and keeps labels non-empty', async () => {
@@ -158,6 +160,20 @@ describe('active authority renderer lifecycle', () => {
     expect(container.querySelector('[data-active-authority-graph-3d="true"]')).not.toBeNull();
     expect(graphMocks.threeD.cameraPosition).toHaveBeenCalledTimes(1);
     expect(container.querySelector('[data-knowledge-3d-node-label="node-a"]')?.textContent).toContain('基础概念');
+  });
+
+  it('keeps positions and camera through resize and a topology update', async () => {
+    const input = props();
+    await act(async () => root.render(createElement(ActiveAuthorityRenderer, input)));
+    const initial = graphMocks.twoD.props.graphData as { nodes: Array<{ id: string; x: number; y: number }> };
+    const points = initial.nodes.map((node) => [node.id, node.x, node.y]);
+    const fits = graphMocks.twoD.centerAt.mock.calls.length;
+    Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 800 });
+    await act(async () => window.dispatchEvent(new Event('resize')));
+    await act(async () => root.render(createElement(ActiveAuthorityRenderer, { ...input, links: [] })));
+    const next = graphMocks.twoD.props.graphData as typeof initial;
+    expect(next.nodes.map((node) => [node.id, node.x, node.y])).toEqual(points);
+    expect(graphMocks.twoD.centerAt).toHaveBeenCalledTimes(fits);
   });
 
   it('recreates engine-disposed 3D bodies and updates focus without flushing the scene', async () => {

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { NextResponse } from 'next/server';
 
-import { loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
+import { compositeEnvelopeDirectory, loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 import { shardDigest } from '@/lib/authority-domain-shards/hash';
 import {
@@ -29,7 +29,6 @@ import { localeDigest } from './digest';
 import { contentDigestFor, denominatorDigestFor, isAdmittedLocale, qualifyReleaseLocales } from './qualify';
 import { historicalLocaleCapability } from './presentation-state';
 import {
-  LOCALE_MANIFESTS_DIR_RELATIVE,
   readLocaleQualificationPackage,
   verifyLocaleQualificationPackage,
 } from './qualification-package';
@@ -120,7 +119,7 @@ function localeEvidenceFingerprint(
   }
   // 证据指纹包含密封资格包的内容 digest：包字节漂移即失效缓存。包目录
   // 按仓库契约只承载有限个 composite 包（当前仅 v0.37）。
-  const pkgDir = join(repoRoot, LOCALE_MANIFESTS_DIR_RELATIVE);
+  const pkgDir = join(compositeEnvelopeDirectory(repoRoot), 'locale-manifests');
   let packageDigest = 'missing';
   if (existsSync(pkgDir)) {
     const names = readdirSync(pkgDir).filter((file) => file.endsWith('.json')).sort();
@@ -137,6 +136,7 @@ function localeEvidenceFingerprint(
     recomputedSetHash,
     pointer.shardSetId,
     packageDigest,
+    localeDigest(loadCompositeEnvelopeRegistry(repoRoot)),
   ].join(':');
 }
 

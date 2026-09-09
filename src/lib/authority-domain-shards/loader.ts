@@ -22,6 +22,7 @@ import {
   type AuthorityNodeNeighborhoodShard,
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
+  type AuthorityShardObject,
   type AuthorityShardCoverageReceipt,
   type AuthorityShardSetManifest,
   type EngineeringRelationFamily,
@@ -147,22 +148,46 @@ function reconcileTeachingEnvelope<T extends {
       const overlay = createTeachingOverlay(teachingPointer, {
         artifacts: teachingArtifacts,
       });
-      // Same overview bounding as materialization: only teaching edges whose
-      // endpoints are both members of this bounded concept overview (#1738).
       const overviewIds = new Set(domainShard.objects.map((object) => object.id));
+      const teachingRelations = overlay.relations(domainShard.domainId)
+        .filter((relation) => overviewIds.has(relation.sourceId) || overviewIds.has(relation.targetId))
+        .sort((left, right) => left.id.localeCompare(right.id));
+      const boundaryIds = [...new Set(teachingRelations.flatMap((relation) => [relation.sourceId, relation.targetId]))]
+        .filter((id) => !overviewIds.has(id)).sort();
+      const teachingBoundaryObjects: AuthorityShardObject[] = boundaryIds.map((canonicalId) => {
+        const node = readVerifiedShard<AuthorityNodeDetailShard>(context, shardRelativePaths({ canonicalId }).detail!, 'node-detail').node;
+        const membership = context.identity.catalog.memberships.find((row) => row.canonicalId === canonicalId);
+        return {
+          id: node.id, canonicalType: node.canonicalType, label: node.label,
+          aliases: node.aliases ?? [], description: node.description,
+          governance: node.governance, semanticSupport: node.semanticSupport,
+          richTitle: node.richTitle, richDescription: node.richDescription,
+          memberships: (membership?.domainIds ?? []).map((domainId) => ({
+            domainId, preferred: domainId === membership?.preferredDomainId,
+            visualRole: context.identity.catalog.domains.find((domain) => domain.domainId === domainId)!.visualRole,
+          })),
+        };
+      });
+      const teachingBoundaries = teachingBoundaryObjects.map((object) => ({
+        canonicalId: object.id, label: object.label, aliases: object.aliases,
+        canonicalType: object.canonicalType,
+        adjacentDomainIds: object.memberships.map((membership) => membership.domainId),
+      }));
       return {
         ...domainShard,
         envelope,
-        teachingRelations: overlay.relations(domainShard.domainId)
-          .filter((relation) => overviewIds.has(relation.sourceId) && overviewIds.has(relation.targetId))
-          .sort((left, right) => left.id.localeCompare(right.id)),
-        teachingCoverage: overlay.coverage(domainShard.domainId),
+        teachingRelations,
+        teachingBoundaryObjects,
+        teachingBoundaries,
+        teachingCoverage: { ...overlay.coverage(domainShard.domainId), relationCount: teachingRelations.length },
       } as unknown as T;
     }
     return {
       ...domainShard,
       envelope,
       teachingRelations: [],
+      teachingBoundaryObjects: [],
+      teachingBoundaries: [],
       teachingCoverage: teachingCoverageFromState(domainShard.domainId, 'unavailable'),
     } as unknown as T;
   }

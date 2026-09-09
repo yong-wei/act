@@ -468,6 +468,20 @@ function writeTeachingProjectionFixture(root: string) {
 }
 
 describe('authority domain shard delivery', () => {
+  it('delivers cross-domain teaching prerequisites with qualified boundary endpoints', () => {
+    const published = publishedTeachingArtifacts();
+    const artifacts = { ...published.artifacts, relations: published.artifacts.relations.map((edge) => ({
+      ...edge, sourceNodeId: MODELING, targetNodeId: TIME, domainKeys: ['system-modeling' as const],
+    })) };
+    const { materialized } = writeShards(createTeachingOverlay(published.pointer, { artifacts }));
+    const shard = materialized.domainDefaults['system-modeling'];
+    expect(shard.teachingRelations.length).toBeGreaterThan(0);
+    expect(shard.teachingRelations.every((edge) => edge.targetId === TIME)).toBe(true);
+    expect(shard.teachingBoundaryObjects?.map((node) => node.id)).toContain(TIME);
+    expect(shard.teachingBoundaries?.map((node) => node.canonicalId)).toContain(TIME);
+    expect(shard.objects.map((node) => node.id)).not.toContain(TIME);
+    expect(shard.teachingCoverage.relationCount).toBe(shard.teachingRelations.length);
+  });
   it('stages an immutable shard closure without writing the active pointer', () => {
     const root = mkdtempSync(path.join(tmpdir(), 'authority-shard-stage-'));
     tempRoots.push(root);

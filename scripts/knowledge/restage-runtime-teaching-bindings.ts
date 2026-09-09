@@ -329,7 +329,10 @@ function option(name: string): string | undefined {
 }
 
 function currentHead(): string {
-  return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  const revision = option('--authoring-revision') ?? execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error('authoring revision must be a full frozen Git SHA');
+  execFileSync('git', ['cat-file', '-e', revision + '^{commit}'], { cwd: ROOT });
+  return revision;
 }
 
 async function main(): Promise<void> {
@@ -543,7 +546,7 @@ async function main(): Promise<void> {
   }
 
   const sidecarRel = `${OVERLAY_REL}/releases/${overlayPointer.projectionId}/inspector-sidecar.json`;
-  const sidecar = readJson<{
+  const sidecar = existsSync(abs(sidecarRel)) ? readJson<{
     contract: string;
     envelopeProjectionId: string;
     envelopeProjectionHash: string;
@@ -553,7 +556,17 @@ async function main(): Promise<void> {
     authorityReleaseSetId: string;
     authoritySnapshotId: string;
     authoritySnapshotHash: string;
-  }>(sidecarRel);
+  }>(sidecarRel) : {
+    contract: 'act-inspector-teaching-sidecar/v1',
+    envelopeProjectionId: overlayPointer.projectionId,
+    envelopeProjectionHash: overlayPointer.projectionHash,
+    courseProjectionId: staged.projectionId,
+    courseProjectionHash: staged.projectionHash,
+    authorityReleaseId: manifest.authorityReleaseId,
+    authorityReleaseSetId: manifest.authorityReleaseSetId,
+    authoritySnapshotId: manifest.authoritySnapshotId,
+    authoritySnapshotHash: manifest.authoritySnapshotHash,
+  };
   sidecar.courseProjectionId = staged.projectionId;
   sidecar.courseProjectionHash = staged.projectionHash;
   writeJson(sidecarRel, sidecar);

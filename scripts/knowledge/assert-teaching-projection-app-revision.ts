@@ -1,3 +1,4 @@
+import { assertKnowledgePublicationConsistency } from './assert-knowledge-publication-consistency';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -49,7 +50,7 @@ export function parseTeachingProjectionRevisionAssertionArgs(argv: string[]): {
 function gitShow(repoRoot: string, revision: string, relativePath: string): string {
   return execFileSync('git', ['-C', repoRoot, 'show', `${revision}:${relativePath}`], {
     encoding: 'utf8',
-    maxBuffer: 2 * 1024 * 1024,
+    maxBuffer: 64 * 1024 * 1024,
   });
 }
 
@@ -94,6 +95,7 @@ export function resolveTeachingProjectionRevisionAssertion(input: {
     input.sourceRevision,
   );
   assertTeachingProjectionAppRevision(authoringRevision, input.appRevision);
+  assertKnowledgePublicationConsistency((relative) => gitShow(input.repoRoot, input.sourceRevision, relative), input.appRevision);
   return {
     authoringRevision,
     appRevision: input.appRevision.trim().toLowerCase(),

@@ -24,7 +24,7 @@ interface ActiveAuthorityFilterPanelProps {
   onRetryFamily: (family: EngineeringRelationFamily) => void;
   /** 教学关系覆盖状态（不可用/未发布等）；null 表示无说明。 */
   teachingCoverageNote: string | null;
-  /** 教学关系层默认可见、独立可逆（#1742 review）。 */
+  /** Unified visibility of published teaching and engineering prerequisites. */
   teachingRelationsVisible: boolean;
   onToggleTeachingRelations: () => void;
   avoidExpandedKonling?: boolean;
@@ -63,7 +63,7 @@ function NodeTypeShapeSample({ shape, tone }: { shape: string; tone: string }) {
   );
 }
 
-/** 教学顺序为实线、工程关系族为虚线；样本即图例，不再单独渲染 legend 行。 */
+/** 样本即图例；先后修来源仍保留在关系载荷中。 */
 function RelationLineSample({ family }: { family: 'teaching' | EngineeringRelationFamily }) {
   return (
     <svg viewBox="0 0 28 8" aria-hidden="true" className="h-2 w-7 shrink-0 overflow-visible" data-active-authority-family-sample={family}>
@@ -151,16 +151,27 @@ export function ActiveAuthorityFilterPanel({
           className={`inline-flex min-w-0 items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary ${teachingRelationsVisible
             ? 'border-sky-300/50 bg-sky-400/10 text-sky-100'
             : 'border-platform-border text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'}`}
-          data-authority-relation-family="teaching-order"
+          data-authority-relation-family="prerequisite-order"
           data-authority-family-enabled={teachingRelationsVisible ? 'true' : 'false'}
         >
           <RelationLineSample family="teaching" />
-          {graphCopy(locale, 'filter.teachingOrder')}
+          {graphCopy(locale, 'filter.family.prerequisite-order')}
           {teachingCoverageNote ? (
             <span data-authority-teaching-coverage="true" className="text-[11px] text-sky-200/80">{teachingCoverageNote}</span>
           ) : null}
         </button>
-        {ENGINEERING_RELATION_FAMILIES.map((family) => {
+        {familyFailures['prerequisite-order'] ? (
+          <span role="alert" data-authority-family-failure="prerequisite-order" className="max-w-44 text-[11px] text-red-200">
+            {familyFailures['prerequisite-order'].message}
+            {familyFailures['prerequisite-order'].retryable ? (
+              <button type="button" onClick={() => onRetryFamily('prerequisite-order')}
+                data-authority-family-retry="prerequisite-order" className="ml-1 underline underline-offset-2">
+                {graphCopy(locale, 'filter.family.retry')}
+              </button>
+            ) : null}
+          </span>
+        ) : null}
+        {ENGINEERING_RELATION_FAMILIES.filter((family) => family !== 'prerequisite-order').map((family) => {
           const enabled = enabledFamilies.includes(family);
           const failure = familyFailures[family];
           return (

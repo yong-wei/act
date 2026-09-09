@@ -7,6 +7,7 @@ import type { ActiveAuthorityLabelLayerHandle } from './active-authority-label-l
 import type {
   ActiveAuthorityLabelDescriptor,
   ActiveAuthorityLayoutNode,
+  ActiveAuthorityLayoutSessions,
 } from './active-authority-geometry';
 
 export interface ActiveAuthorityCameraPose {
@@ -27,6 +28,7 @@ export interface ActiveAuthorityRendererProps {
   onNodeHover: (node: KnowledgeNodeData | null) => void;
   onNodeDragEnd: (node: KnowledgeNodeData) => void;
   layoutState: KnowledgeGraphLayoutState;
+  layoutSessions?: ActiveAuthorityLayoutSessions;
   fitViewRequest: KnowledgeGraphFitRequest;
   relayoutVersion: number;
   engineReheatRevision: number;

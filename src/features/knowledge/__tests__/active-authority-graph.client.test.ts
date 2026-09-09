@@ -395,6 +395,7 @@ describe('active Authority knowledge workspace client boundary', () => {
   }> | null;
 
   beforeEach(() => {
+    vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1024 });
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -1158,7 +1159,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-knowledge-workspace-toolbar="true"] [data-active-authority-toolbar="true"]')).toBeNull();
     expect(container.querySelector('[data-knowledge-workspace-chrome-slot="true"] [data-active-authority-toolbar="true"]')).not.toBeNull();
     expect(container.querySelector('[data-knowledge-layout-control="fit-view"]')).not.toBeNull();
-    expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-relation-family="prerequisite-order"]')).not.toBeNull();
 
     await act(async () => {
       [...container.querySelectorAll('button')].find((button) => button.textContent === '旧版')!.click();
@@ -1421,7 +1422,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-authority-aggregate-entry="true"]')).not.toBeNull();
 
     await enterModelingDomain({ families: false });
-    expect(container.querySelector('[data-authority-relation-family="teaching-order"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-relation-family="prerequisite-order"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-placement="below-canvas"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')?.classList.contains('absolute')).toBe(false);
@@ -1618,6 +1619,9 @@ describe('active Authority knowledge workspace client boundary', () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
       const path = url.split('?')[0] ?? '';
+      if (path.endsWith('/families/prerequisite-order')) {
+        return mockResponse({ ...familyShard('prerequisite-order', []), envelope: url.includes('locale=en') ? englishEnvelope : shardEnvelope });
+      }
       if (url.includes('locale=en')) {
         // 事务性刷新要求全部英文分片共享同一 locale envelope（#1741）。
         if (path.endsWith('/api/knowledge/shards/active')) {
@@ -1680,7 +1684,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
     await enterModelingDomain({ families: false });
 
-    const teachingToggle = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="teaching-order"]');
+    const teachingToggle = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="prerequisite-order"]');
     expect(teachingToggle?.getAttribute('aria-checked')).toBe('true');
     expect(container.querySelector('[data-active-authority-relation="teaching-panel"]')).not.toBeNull();
 
@@ -1990,11 +1994,14 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).not.toBeNull();
 
-    // Leaving the neighborhood restores the same overview deterministically.
+    // Escape closes only the inspector; navigation uses the explicit return.
     await act(async () => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       await new Promise((resolve) => window.setTimeout(resolve, 5));
     });
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();
+    await act(async () => container.querySelector<HTMLButtonElement>('[data-active-authority-return-overview]')!.click());
     expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-node="node-concept"]')).not.toBeNull();
     expect(container.querySelector('[data-active-node-detail="node-formula"]')).toBeNull();

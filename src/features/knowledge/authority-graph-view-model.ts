@@ -57,6 +57,7 @@ export interface AuthorityGraphViewEdge {
   readonly layer: 'ENGINEERING' | 'ACT_TEACHING' | undefined;
   readonly relationFamily: string | null | undefined;
   readonly presentation: ActiveRelationView;
+  readonly sources?: readonly ActiveCanvasRelation[];
 }
 
 export interface AuthorityGraphViewModel {
@@ -161,14 +162,40 @@ export function createAuthorityGraphViewModel(input: {
       layer: relation.sourceRelation.layer,
       relationFamily: relation.sourceRelation.relationFamily,
       presentation: relation,
+      sources: [relation.sourceRelation],
     }));
+
+  const presentedEdges: AuthorityGraphViewEdge[] = [];
+  const prerequisites = new Map<string, number>();
+  for (const edge of edges) {
+    if (!isAuthorityPrerequisite(edge)) {
+      presentedEdges.push(edge);
+      continue;
+    }
+    const key = `${edge.sourceId}\u0000${edge.targetId}\u0000${edge.presentation.sourceRelation.direction}`;
+    const previousIndex = prerequisites.get(key);
+    if (previousIndex === undefined) {
+      prerequisites.set(key, presentedEdges.length);
+      presentedEdges.push(edge);
+    } else {
+      const previous = presentedEdges[previousIndex];
+      const representative = edge.layer === 'ACT_TEACHING' ? edge : previous;
+      presentedEdges[previousIndex] = { ...representative, sources: [...(previous.sources ?? []), ...edge.sources] };
+    }
+  }
 
   return {
     contract: AUTHORITY_GRAPH_VIEW_MODEL_CONTRACT,
     nodes,
-    edges,
+    edges: presentedEdges,
     rootNavigation: input.rootNavigation ?? [],
   };
+}
+
+export function isAuthorityPrerequisite(relation: { predicate: string; relationFamily?: string | null }): boolean {
+  return relation.predicate.toLowerCase() === 'prerequisite'
+    || relation.relationFamily === 'teaching-prerequisite'
+    || relation.relationFamily === 'prerequisite-order';
 }
 
 export function defaultEnabledTeachingFamilies(): AuthorityTeachingFamily[] {
