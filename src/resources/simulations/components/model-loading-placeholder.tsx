@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Html, useProgress } from '@react-three/drei'
 import { simulationScenePalette } from './simulation-theme'
 
@@ -10,8 +11,28 @@ export function ModelLoadingPlaceholder({
   label?: string
   sublabel?: string
 }) {
-  const { progress, active } = useProgress()
-  const percent = Math.round(progress)
+  const [percent, setPercent] = useState(0)
+  const [active, setActive] = useState(false)
+
+  useEffect(() => {
+    let frame = 0
+    const apply = (progress: number, nextActive: boolean) => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(() => {
+        setPercent(Math.round(progress))
+        setActive(nextActive)
+      })
+    }
+    const initial = useProgress.getState()
+    apply(initial.progress, initial.active)
+    const unsubscribe = useProgress.subscribe((state) => {
+      apply(state.progress, state.active)
+    })
+    return () => {
+      window.cancelAnimationFrame(frame)
+      unsubscribe()
+    }
+  }, [])
 
   return (
     <group position={[0, 20, 0]}>

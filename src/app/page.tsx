@@ -40,7 +40,7 @@ import {
 } from '@/lib/browser-delivery/client'
 import type { SimulationModelId } from '@/lib/browser-delivery/types'
 import { matchActivatedFleetPackage } from '@/resources/simulations/model-packages/fleet-packages'
-import { shipLodCandidatesForQualityTier } from '@/resources/simulations/model-packages/types'
+import { shipLodMountPlan } from '@/resources/simulations/model-packages/types'
 import { PlatformBrandLockup } from '@/components/shared/platform-brand-lockup'
 import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
@@ -51,22 +51,21 @@ import {
   type PlatformNavigationIconKey,
 } from '@/lib/platform-role-navigation'
 
-function homePreviewCandidates(logicalId: SimulationModelId): readonly string[] {
-  const activated = matchActivatedFleetPackage(logicalId, resolveVersionedDefault(logicalId))
-  if (activated) {
-    // 天鲸 LOD2 是远景简化档，首页卡片尺寸下会看起来像旧示意模型；用教学默认 LOD1。
-    const tier = logicalId === 'dredger' ? 'medium' : 'low'
-    return shipLodCandidatesForQualityTier(activated, tier)
-  }
-  return [resolveRegisteredSimulationModel(logicalId).originalUrl]
+function homePreviewTier(logicalId: SimulationModelId) {
+  // 天鲸 LOD2 是远景简化档，首页卡片尺寸下会看起来像旧示意模型；用教学默认 LOD1。
+  return logicalId === 'dredger' ? 'medium' : 'low'
 }
 
 function homePreviewModelPath(logicalId: SimulationModelId): string {
-  return homePreviewCandidates(logicalId)[0] ?? resolveRegisteredSimulationModel(logicalId).originalUrl
+  const activated = matchActivatedFleetPackage(logicalId, resolveVersionedDefault(logicalId))
+  if (activated) return shipLodMountPlan(activated, homePreviewTier(logicalId)).local
+  return resolveRegisteredSimulationModel(logicalId).originalUrl
 }
 
 function homePreviewFallbackPath(logicalId: SimulationModelId): string | undefined {
-  return homePreviewCandidates(logicalId)[1]
+  const activated = matchActivatedFleetPackage(logicalId, resolveVersionedDefault(logicalId))
+  if (activated) return shipLodMountPlan(activated, homePreviewTier(logicalId)).preferred
+  return undefined
 }
 
 function homePosterPath(logicalId: SimulationModelId): string {
