@@ -1,3 +1,4 @@
+import { attachActiveAuthorityResourcePresence } from '@/lib/authority-domain-shards/resource-presence';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
@@ -86,6 +87,8 @@ import {
 import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-cutover-live';
 import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
+import { publishedNodeResourceFailure, publishedResourceEnvelopeKey, readPublishedNodeResources, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
+import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -546,6 +549,26 @@ export function activeShardResponse<T extends AuthorityLearnerShard>(
   return activeShardResponseForRole(read, role, request);
 }
 
+export async function activePublishedDetailResponse(
+  read: () => AuthorityNodeDetailShard,
+  role: KnowledgeRole,
+  request: Request,
+): Promise<NextResponse> {
+  const rejected = knowledgeSurfaceSelectorRejection(request);
+  if (rejected) return rejected;
+  try {
+    const shard = read();
+    const resources = await readPublishedNodeResources(shard).catch((error) => {
+      if (error instanceof PublishedResourceSelectionChangedError) throw error;
+      return publishedNodeResourceFailure(shard);
+    });
+    return activeShardResponseForRole(() => shard, role, request, resources);
+  } catch (error) {
+    const failure = shardFailureCode(error);
+    return NextResponse.json({ error: failure.message, code: failure.code }, { status: failure.status });
+  }
+}
+
 function sanitizeResourceBindings(
   bindings: ActiveNodeResourceBindings,
   nodeId: string,
@@ -579,6 +602,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   read: () => T,
   role: KnowledgeRole | undefined,
   request?: Request,
+  publishedResources?: PublishedNodeResources,
 ): NextResponse {
   try {
     if (request) {
@@ -591,8 +615,14 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       ? resolveActiveLocaleRequest(request, capability)
       : { ok: true as const, locale: 'zh-CN' as const, capability };
     if (!resolved.ok) return resolved.response;
-    const raw = read();
+    const raw = attachActiveAuthorityResourcePresence(read(), role);
     const activeIdentity = resolveActiveShardIdentity();
+    if (publishedResources && (raw.shardClass !== 'node-detail'
+      || raw.node.id !== publishedResources.nodeId
+      || publishedResourceEnvelopeKey(raw.envelope) !== publishedResources.envelopeKey
+      || publishedResourceEnvelopeKey(activeIdentity.envelope) !== publishedResources.envelopeKey)) {
+      throw new Error('Node resource publication changed while reading');
+    }
     const receipt = capability.mode === 'complete-locale' && qualification?.qualification
       ? (resolved.locale === 'en' ? qualification.qualification.en : qualification.qualification.zhCN)
       : null;
@@ -617,8 +647,10 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
       const mathematics = projectGovernedFormulaToActiveMathematics(detail.node.mathematics)
         ?? projectActiveNodeMathematics(detail.node.teachingFields);
-      const teachingCaptureRevision = readActiveTeachingCaptureRevision(raw as AuthorityNodeDetailShard);
-      const closedResources = sanitizeResourceBindings(
+      const teachingCaptureRevision = publishedResources
+        ? publishedResources.teachingCaptureRevision
+        : readActiveTeachingCaptureRevision(raw as AuthorityNodeDetailShard);
+      const closedResources = publishedResources ?? sanitizeResourceBindings(
         attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard, role),
         (raw as AuthorityNodeDetailShard).node.id,
         teachingCaptureRevision,
@@ -640,6 +672,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
         teachingCaptureRevision,
         latestCutover,
       });
+      publishedResources?.assertCurrent();
       return NextResponse.json(
         surface.status === 'ok' ? withKnowledgeSurface(payload, surface.knowledgeSurface) : payload,
       );

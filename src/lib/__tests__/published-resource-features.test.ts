@@ -1,9 +1,12 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { resolveLegacyTextbookResource, LEGACY_TEXTBOOK_RESOURCE_RESOLUTIONS } from '@/lib/engineering-textbook-mapping/legacy-resource-resolutions';
+import { loadStructuralUnitIndex, resolveStructuralUnit } from '@/lib/engineering-textbook-mapping/coordinates';
 
 import {
   buildPublishedResourceFeatureIndex,
@@ -16,10 +19,79 @@ import {
 } from '@/lib/published-resource-reference';
 import type { TeachingProjectionArtifacts, TeachingResourceRuntime } from '@/lib/teaching-projection/contracts';
 import type { AuthorityEngineeringBody } from '@/lib/authoritative-knowledge/authority-snapshot';
+import type { AnyActRuntimeReleaseManifest } from '@/lib/runtime-release';
 
 const HASH_A = 'a'.repeat(64);
 const HASH_B = 'b'.repeat(64);
 const HASH_C = 'c'.repeat(64);
+
+describe('reviewed legacy textbook references', () => {
+  it('resolves all eight references to the documented book and structural unit', async () => {
+    const evidence = JSON.parse(readFileSync(join(process.cwd(),
+      'course-content/authoring/knowledge/teaching-projection/textbook-locators/legacy-reference-resolutions.json'), 'utf8')) as {
+        entries: Array<{ resourceId: string; bookId: string; edition: string; structuralPath: string[]; structuralUnitId: string }>;
+      };
+    expect(Object.keys(LEGACY_TEXTBOOK_RESOURCE_RESOLUTIONS).sort()).toEqual(evidence.entries.map((entry) => entry.resourceId).sort());
+    expect(evidence.entries).toHaveLength(8);
+    const units = await loadStructuralUnitIndex({ bookIds: [...new Set(evidence.entries.map((entry) => entry.bookId))] });
+    for (const entry of evidence.entries) {
+      const target = resolveLegacyTextbookResource(entry.resourceId)!;
+      expect(target).toMatchObject({ bookId: entry.bookId, edition: entry.edition, structuralPath: entry.structuralPath });
+      expect(resolveStructuralUnit(units, { bookId: target.bookId, structuralPath: target.structuralPath }).unitId).toBe(entry.structuralUnitId);
+    }
+    expect(resolveLegacyTextbookResource('act:textbook-section:cts.section-unknown')).toBeNull();
+  });
+
+  it('requires the pinned edition and unit, and versions the mapped subtree', () => {
+    const root = mkdtempSync(join(tmpdir(), 'legacy-textbook-reference-'));
+    const book = join(root, 'resources/textbooks-v2/dorf-modern-control-systems');
+    mkdirSync(book, { recursive: true });
+    const resource = versionResource('act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-01', 'textbook-chapter');
+    const units = [
+      { structuralPath: ['chapter-chapter-07'], chapterId: 'chapter-07', markdown: '# Root locus' },
+      { structuralPath: ['chapter-chapter-07', 'section-7.3'], chapterId: 'chapter-07', markdown: 'Departure angles' },
+    ];
+    try {
+      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend.kind).toBe('reference-only');
+      writeFileSync(join(book, 'manifest.json'), JSON.stringify({ bookId: 'dorf-modern-control-systems', edition: '14th Global Edition' }));
+      writeFileSync(join(book, 'units.jsonl'), units.map((unit) => JSON.stringify(unit)).join('\n'));
+      const first = buildVersionIndex([resource], { runtimeRoot: root }).resources[0];
+      expect(first.backend).toEqual({ kind: 'route', href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-07' });
+      units[1].markdown = 'Updated departure-angle explanation';
+      writeFileSync(join(book, 'units.jsonl'), units.map((unit) => JSON.stringify(unit)).join('\n'));
+      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].version).not.toBe(first.version);
+      writeFileSync(join(book, 'manifest.json'), JSON.stringify({ bookId: 'dorf-modern-control-systems', edition: 'wrong edition' }));
+      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend.kind).toBe('reference-only');
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  it('accepts manifest-owned blob-view links and rejects different target bytes', () => {
+    const root = mkdtempSync(join(tmpdir(), 'textbook-blob-view-'));
+    const prefix = 'resources/textbooks-v2/dorf-modern-control-systems';
+    const book = join(root, prefix);
+    const blobs = join(root, '.act-runtime-blobs');
+    mkdirSync(book, { recursive: true });
+    mkdirSync(blobs);
+    const resource = versionResource('act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-01', 'textbook-chapter');
+    const bytes = {
+      'manifest.json': JSON.stringify({ bookId: 'dorf-modern-control-systems', edition: '14th Global Edition' }),
+      'units.jsonl': JSON.stringify({ structuralPath: ['chapter-chapter-07'], chapterId: 'chapter-07', markdown: '# Root locus' }),
+    };
+    const manifest = { schemaVersion: 'act-runtime-release.v2', releaseId: 'runtime-fixture',
+      files: Object.entries(bytes).map(([name, content]) => ({ path: prefix + '/' + name,
+        sha256: createHash('sha256').update(content).digest('hex') })) } as AnyActRuntimeReleaseManifest;
+    try {
+      for (const [name, content] of Object.entries(bytes)) {
+        writeFileSync(join(blobs, name), content);
+        symlinkSync(join(blobs, name), join(book, name));
+      }
+      expect(buildVersionIndex([resource], { runtimeRoot: root, runtimeManifest: manifest }).resources[0].backend.kind).toBe('route');
+      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend.kind).toBe('reference-only');
+      writeFileSync(join(blobs, 'units.jsonl'), bytes['units.jsonl'] + '\nchanged');
+      expect(buildVersionIndex([resource], { runtimeRoot: root, runtimeManifest: manifest }).resources[0].backend.kind).toBe('reference-only');
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+});
 
 function identity(resourceId: string): PublishedResourceIdentity {
   return {
@@ -166,6 +238,7 @@ function buildVersionIndex(
     projectionHash?: string;
     runtimeReleaseId?: string | null;
     runtimeRoot?: string;
+    runtimeManifest?: AnyActRuntimeReleaseManifest;
     infographTokens?: ReadonlySet<string>;
   } = {},
 ) {
@@ -174,6 +247,7 @@ function buildVersionIndex(
     engineering: fixtureEngineering(),
     runtimeReleaseId: options.runtimeReleaseId ?? null,
     runtimeRoot: options.runtimeRoot,
+    runtimeManifest: options.runtimeManifest,
     cardReader: () => null,
     infographTokens: options.infographTokens ?? new Set(),
     now: new Date('2026-09-08T00:00:00.000Z'),

@@ -103,6 +103,8 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 数据中心角色可见性已经完成实现：`/data-center` 只面向教师和管理员，学生直接访问默认进入 `/profile/evidence`；普通数据中心 UI 的“演示数据”来源标签默认隐藏，由管理员配置控制，管理员审计和治理视图仍保留来源可见性。`artifacts/commercial-ui/data-center-operations-roles-416/` 保存学生重定向、教师标签关闭/开启和管理员审计来源可见证据。
 
+Active 图谱的本地修复已加入固定 2D/3D 坐标与相机、选中邻域聚焦、向上展开的对象与节点资源类型多选，以及控灵选中状态同步和跨页面拖动位置。课程先修作者决策覆盖模块 1—5 的 143 个知识项，其中 133 项映射到现有 Authority，10 项保留明确缺口；候选关系保留既有资源资格，共 466 个核心节点、571 条关系。完整资源候选与生产激活仍在验证，不能据此认定已上线或全课程覆盖完成。
+
 统一 UI 治理已经覆盖二级导航、知识图谱壳层和角色可见性。知识图谱近期又完成根节点气泡布局、边界几何和 inspector 持久化治理；React Doctor 系列中的 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect 已归档到 specs。
 
 ## 课程内容与 runtime

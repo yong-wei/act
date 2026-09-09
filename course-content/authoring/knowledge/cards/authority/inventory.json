@@ -1,6 +1,6 @@
 {
   "schema": "authority-card-manifest.v1",
-  "generated_at": "2026-08-10T07:03:54.837170+00:00",
+  "generated_at": "2026-09-09T12:33:13.512986+00:00",
   "release_id": "control-theory-engineering-v0.12",
   "projection_path": "course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json",
   "counts": {
@@ -9,8 +9,8 @@
     "batch_B": 829,
     "batch_C": 284,
     "cardable": 946,
-    "cards_ok": 952,
-    "cards_blocked": 284,
+    "cards_ok": 962,
+    "cards_blocked": 274,
     "cards_missing": 0,
     "cards_invalid": 0,
     "infographs_accepted": 1236,
@@ -19255,7 +19255,7 @@
       "degree": 3,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -19535,7 +19535,7 @@
       "degree": 2,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -19595,7 +19595,7 @@
       "degree": 2,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -20155,7 +20155,7 @@
       "degree": 1,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -20655,7 +20655,7 @@
       "degree": 1,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -20815,7 +20815,7 @@
       "degree": 1,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -21115,7 +21115,7 @@
       "degree": 0,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -24195,7 +24195,7 @@
       "degree": 0,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -24255,7 +24255,7 @@
       "degree": 0,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {
@@ -24295,7 +24295,7 @@
       "degree": 0,
       "batch": "C",
       "cardable": false,
-      "card_status": "blocked",
+      "card_status": "ok",
       "infograph_status": "accepted"
     },
     {

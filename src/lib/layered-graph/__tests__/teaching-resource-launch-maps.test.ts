@@ -96,13 +96,21 @@ describe('teaching resource launch maps', () => {
     );
   });
 
-  it('leaves unknown, book-level, and chapter-locator targets unavailable without guessing coordinates', () => {
+  it('opens the explicitly repaired chapter reference with its reviewed coordinates', () => {
+    const id = 'act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-01';
+    const maps = buildTeachingResourceLaunchMaps([resource(id, 'textbook-chapter')]);
+    expect(maps.resourceLaunchTargets[id]).toBe(
+      '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-07',
+    );
+  });
+
+  it('leaves unknown, book-level, and unreviewed chapter targets unavailable without guessing coordinates', () => {
     const maps = buildTeachingResourceLaunchMaps([
       resource('act:project:ctc:canonical-node', 'project'),
       resource('act:simulation:unknown-registry', 'simulation'),
       resource('act:audio:no-lesson', 'audio'),
       resource('act:textbook:dorf-modern-control-systems-14th', 'textbook'),
-      resource('act:textbook-chapter:dorf-modern-control-systems-14th:ch-root-locus-01', 'textbook-chapter'),
+      resource('act:textbook-chapter:dorf-modern-control-systems-14th:ch-unreviewed', 'textbook-chapter'),
     ]);
     expect(maps.resourceLaunchTargets).toEqual({});
     expect(Object.values(maps.resourceLaunchTargets)).not.toContain('ctc:canonical-node');

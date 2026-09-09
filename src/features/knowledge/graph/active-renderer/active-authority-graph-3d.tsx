@@ -16,6 +16,10 @@ import {
   activeNodeRadius,
   activeNodeShape,
   activeRelationColor,
+  activeRelationStyle,
+  activeNodeOpacity,
+  activeFocusNodeIds,
+  activeLinkOpacity,
   activeRelationIsDirected,
   disposeActiveObject3D,
   type ActiveAuthorityNodeShape,
@@ -65,18 +69,27 @@ function createNodeObject(node: ActiveAuthorityLayoutNode): THREE.Group {
   return group;
 }
 
-function setNodeFocus(group: THREE.Group, node: ActiveAuthorityLayoutNode, focused: boolean, selected: boolean): void {
+function setNodeFocus(group: THREE.Group, node: ActiveAuthorityLayoutNode, selectedNodeId: string | null, hoveredNodeId: string | null, focusedNodeIds: ReadonlySet<string>): void {
+  const selected = node.id === selectedNodeId;
+  const focused = selected || (!selectedNodeId && node.id === hoveredNodeId);
   const body = group.children.find((child) => child.userData.activeAuthorityBody) as THREE.Mesh | undefined;
   if (!body) return;
   const material = body.material as THREE.MeshLambertMaterial;
   material.color.set(activeNodeColor(node));
-  material.opacity = selected ? 1 : focused ? 0.98 : 0.94;
+  material.opacity = activeNodeOpacity(node.id, selectedNodeId, hoveredNodeId, focusedNodeIds);
+  material.depthWrite = material.opacity > 0.5;
+  for (const child of group.children) {
+    if (!child.userData.activeAuthorityResourceBadge) continue;
+    const badge = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
+    badge.transparent = true;
+    badge.opacity = material.opacity;
+  }
   group.scale.setScalar(selected ? 1.16 : focused ? 1.08 : 1);
 }
 
 function focusedLink(link: ActiveAuthorityLayoutLink, selectedNodeId: string | null, hoveredNodeId: string | null): boolean {
   return link.sourceId === selectedNodeId || link.targetId === selectedNodeId
-    || link.sourceId === hoveredNodeId || link.targetId === hoveredNodeId;
+    || (!selectedNodeId && (link.sourceId === hoveredNodeId || link.targetId === hoveredNodeId));
 }
 
 function withAlpha(hex: string, alpha: number): string {
@@ -95,6 +108,7 @@ export function ActiveAuthorityGraph3D({
   selectedNodeId,
   hoveredNodeId,
   onNodeClick,
+  onBackgroundClick,
   onNodeHover,
   onNodeDragEnd,
   fitViewRequest,
@@ -116,14 +130,13 @@ export function ActiveAuthorityGraph3D({
   const graphHostRef = useRef<HTMLDivElement | null>(null);
   const graphRef = useRef<ActiveGraph3DMethods | undefined>(undefined);
   const nodeObjectCacheRef = useRef(new Map<string, THREE.Group>());
+  const linkObjectCacheRef = useRef(new Map<string, THREE.Line>());
   const projectionFrameRef = useRef<number | null>(null);
   const programmaticCameraRef = useRef(false);
   const settledGraphRef = useRef<readonly ActiveAuthorityLayoutNode[] | null>(null);
   const fittingGraphRef = useRef(false);
-  const pendingResizeFitRef = useRef(false);
   const initialCameraReadyRef = useRef(false);
   const pendingExplicitFitRef = useRef(false);
-  const previousSizeRef = useRef<{ width: number; height: number } | null>(null);
   const selectedNodeIdRef = useRef<string | null>(selectedNodeId);
   const hoveredNodeIdRef = useRef<string | null>(hoveredNodeId);
   const previousFitRequestRef = useRef(fitViewRequest.id);
@@ -131,7 +144,7 @@ export function ActiveAuthorityGraph3D({
   const previousReheatRef = useRef(engineReheatRevision);
   const graphNodesRef = useRef<readonly ActiveAuthorityLayoutNode[]>([]);
   const scheduleProjectionRef = useRef<(() => void) | null>(null);
-  const fitGraphRef = useRef<((reason: 'initial' | 'explicit' | 'resize') => boolean) | null>(null);
+  const fitGraphRef = useRef<((reason: 'initial' | 'explicit') => boolean) | null>(null);
   const settleAfterRenderRef = useRef<(() => void) | null>(null);
   const autoFitConsumedRef = useRef(autoFitConsumed);
   const autoFitScopeKeyRef = useRef(autoFitScopeKey);
@@ -143,8 +156,11 @@ export function ActiveAuthorityGraph3D({
   const lifecycleGenerationRef = useRef(0);
   const initializationFrameRef = useRef<number | null>(null);
   const initializationAttemptRef = useRef(0);
+  const focusedNodeIds = useMemo(() => activeFocusNodeIds(links, selectedNodeId), [links, selectedNodeId]);
+  const focusedNodeIdsRef = useRef(focusedNodeIds);
+  focusedNodeIdsRef.current = focusedNodeIds;
   const graphData = useMemo(() => ({
-    nodes: nodes.map((node) => ({ ...node })),
+    nodes: [...nodes],
     links: links.map((link) => ({ ...link })),
   }), [links, nodes]);
   selectedNodeIdRef.current = selectedNodeId;
@@ -205,7 +221,7 @@ export function ActiveAuthorityGraph3D({
     }
   }, [height, width]);
 
-  const fitGraph = useCallback((reason: 'initial' | 'explicit' | 'resize') => {
+  const fitGraph = useCallback((reason: 'initial' | 'explicit') => {
     const graph = graphRef.current;
     const camera = graph?.camera?.() as THREE.PerspectiveCamera | undefined;
     if (!graph || typeof graph.cameraPosition !== 'function' || !camera
@@ -236,7 +252,6 @@ export function ActiveAuthorityGraph3D({
     initialCameraReadyRef.current = true;
     if (reason === 'initial' && !autoFitConsumedRef.current) onAutoFitConsumedRef.current(autoFitScopeKeyRef.current);
     pendingExplicitFitRef.current = false;
-    pendingResizeFitRef.current = false;
     reportCameraPose();
     scheduleProjectionRef.current?.();
     return true;
@@ -247,11 +262,11 @@ export function ActiveAuthorityGraph3D({
     const currentNodes = graphNodesRef.current;
     if (fittingGraphRef.current) return;
     if (settledGraphRef.current === currentNodes && initialCameraReadyRef.current
-      && !pendingExplicitFitRef.current && !pendingResizeFitRef.current) return;
+      && !pendingExplicitFitRef.current) return;
     fittingGraphRef.current = true;
     try {
       const reason = pendingExplicitFitRef.current ? 'explicit'
-        : pendingResizeFitRef.current ? 'resize' : !initialCameraReadyRef.current ? 'initial' : null;
+        : !initialCameraReadyRef.current ? 'initial' : null;
       if (reason && !fitGraphRef.current?.(reason)) return;
       const changed = settledGraphRef.current !== currentNodes;
       settledGraphRef.current = currentNodes;
@@ -272,7 +287,7 @@ export function ActiveAuthorityGraph3D({
       initializationFrameRef.current = null;
       settleAfterRenderRef.current?.();
       if (settledGraphRef.current === graphNodesRef.current && initialCameraReadyRef.current
-        && !pendingExplicitFitRef.current && !pendingResizeFitRef.current) return;
+        && !pendingExplicitFitRef.current) return;
       if (initializationAttemptRef.current < 120) {
         initializationAttemptRef.current += 1;
         initializationFrameRef.current = window.requestAnimationFrame(initialize);
@@ -299,21 +314,12 @@ export function ActiveAuthorityGraph3D({
   }, [fitViewRequest.id, graphData.nodes]);
 
   useEffect(() => {
-    const previous = previousSizeRef.current;
-    previousSizeRef.current = { width, height };
-    if (!previous || (previous.width === width && previous.height === height)) return;
-    pendingResizeFitRef.current = true;
-    fitGraphRef.current?.('resize');
-  }, [graphData.nodes, height, width]);
-
-  useEffect(() => {
     if (previousScopeKeyRef.current === autoFitScopeKey) return;
     previousScopeKeyRef.current = autoFitScopeKey;
     settledGraphRef.current = null;
     fittingGraphRef.current = false;
     initialCameraReadyRef.current = false;
     pendingExplicitFitRef.current = false;
-    pendingResizeFitRef.current = false;
   }, [autoFitScopeKey]);
 
   useEffect(() => {
@@ -356,6 +362,7 @@ export function ActiveAuthorityGraph3D({
     const graph = graphRef.current;
     const lifecycleState = lifecycleGenerationRef;
     const nodeObjects = nodeObjectCacheRef.current;
+    const linkObjects = linkObjectCacheRef.current;
     graph?.resumeAnimation?.();
     return () => {
       if (projectionFrameRef.current !== null) window.cancelAnimationFrame(projectionFrameRef.current);
@@ -369,6 +376,8 @@ export function ActiveAuthorityGraph3D({
         if (lifecycleState.current !== generation) return;
         for (const object of nodeObjects.values()) disposeActiveObject3D(object);
         nodeObjects.clear();
+        for (const object of linkObjects.values()) disposeActiveObject3D(object);
+        linkObjects.clear();
       });
     };
   }, [labelLayerRef]);
@@ -377,9 +386,9 @@ export function ActiveAuthorityGraph3D({
     for (const node of graphData.nodes) {
       const object = nodeObjectCacheRef.current.get(node.id);
       if (!object) continue;
-      setNodeFocus(object, node, node.id === selectedNodeId || node.id === hoveredNodeId, node.id === selectedNodeId);
+      setNodeFocus(object, node, selectedNodeId, hoveredNodeId, focusedNodeIds);
     }
-  }, [graphData.nodes, hoveredNodeId, selectedNodeId]);
+  }, [focusedNodeIds, graphData.nodes, hoveredNodeId, selectedNodeId]);
 
   const nodeObject = useCallback((node: ActiveAuthorityLayoutNode): THREE.Group => {
     // ForceGraph owns object reuse and clears custom groups when rebuilding.
@@ -388,15 +397,51 @@ export function ActiveAuthorityGraph3D({
     setNodeFocus(
       created,
       node,
-      node.id === selectedNodeIdRef.current || node.id === hoveredNodeIdRef.current,
-      node.id === selectedNodeIdRef.current,
+      selectedNodeIdRef.current,
+      hoveredNodeIdRef.current,
+      focusedNodeIdsRef.current,
     );
     nodeObjectCacheRef.current.set(node.id, created);
     return created;
   }, []);
+  const linkObject = useCallback((link: ActiveAuthorityLayoutLink) => {
+    const style = activeRelationStyle(link);
+    const opacity = activeLinkOpacity(link, selectedNodeIdRef.current, hoveredNodeIdRef.current);
+    const material = style.dash
+      ? new THREE.LineDashedMaterial({ color: style.color, transparent: true, opacity, dashSize: style.dash[0], gapSize: style.dash[1] })
+      : new THREE.LineBasicMaterial({ color: style.color, transparent: true, opacity });
+    material.depthWrite = false;
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+    const object = new THREE.Line(geometry, material);
+    linkObjectCacheRef.current.set(link.id, object);
+    return object;
+  }, []);
+  const updateLinkPosition = useCallback((object: THREE.Object3D, coordinates: { start: { x: number; y: number; z: number }; end: { x: number; y: number; z: number } }) => {
+    const line = object as THREE.Line;
+    const attribute = line.geometry.getAttribute('position') as THREE.BufferAttribute;
+    const next = [coordinates.start.x, coordinates.start.y, coordinates.start.z, coordinates.end.x, coordinates.end.y, coordinates.end.z];
+    if (next.some((value, index) => attribute.array[index] !== Math.fround(value))) {
+      attribute.array.set(next);
+      attribute.needsUpdate = true;
+      line.geometry.computeBoundingSphere();
+      if (line.material instanceof THREE.LineDashedMaterial) line.computeLineDistances();
+    }
+    return true;
+  }, []);
+  useEffect(() => {
+    const visible = new Set(graphData.links.map((link) => link.id));
+    for (const id of linkObjectCacheRef.current.keys()) if (!visible.has(id)) linkObjectCacheRef.current.delete(id);
+    for (const link of graphData.links) {
+      const material = linkObjectCacheRef.current.get(link.id)?.material as THREE.LineBasicMaterial | undefined;
+      if (!material) continue;
+      material.opacity = activeLinkOpacity(link, selectedNodeId, hoveredNodeId);
+      material.color.set(activeRelationColor(link));
+    }
+  }, [graphData.links, hoveredNodeId, selectedNodeId]);
   const linkColor = useCallback((link: ActiveAuthorityLayoutLink) => {
     const color = activeRelationColor(link);
-    return focusedLink(link, selectedNodeId, hoveredNodeId) ? color : withAlpha(color, 0.4);
+    return withAlpha(color, activeLinkOpacity(link, selectedNodeId, hoveredNodeId));
   }, [hoveredNodeId, selectedNodeId]);
   const linkWidth = useCallback((link: ActiveAuthorityLayoutLink) => (
     focusedLink(link, selectedNodeId, hoveredNodeId) ? 2.3 : 0.9
@@ -426,7 +471,10 @@ export function ActiveAuthorityGraph3D({
         nodeVal={(node) => activeNodeRadius(node) ** 2}
         nodeThreeObject={nodeObject}
         nodeThreeObjectExtend={false}
-        nodeLabel={(node) => activeNodeAccessibleName(node)}
+        nodeLabel={(node) => selectedNodeId && !focusedNodeIds.has(node.id) ? '' : activeNodeAccessibleName(node)}
+        linkThreeObject={linkObject as never}
+        linkThreeObjectExtend={false}
+        linkPositionUpdate={updateLinkPosition as never}
         linkColor={linkColor as never}
         linkWidth={linkWidth as never}
         linkDirectionalArrowLength={arrowLength as never}
@@ -443,6 +491,7 @@ export function ActiveAuthorityGraph3D({
         onEngineStop={handleEngineStop}
         onEngineTick={handleEngineTick}
         onNodeClick={(node) => onNodeClick(node)}
+        onBackgroundClick={onBackgroundClick}
         onNodeHover={(node) => onNodeHover(node)}
         onNodeDrag={() => scheduleProjection()}
         onNodeDragEnd={(node) => onNodeDragEnd(node)}

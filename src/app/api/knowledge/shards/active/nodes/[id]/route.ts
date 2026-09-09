@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 import {
-  activeShardResponse,
+  activePublishedDetailResponse,
   activeUnavailableResponse,
   authorizeActiveGraph,
   readActiveDetailShard,
@@ -26,7 +26,7 @@ export async function GET(
   try {
     const authorization = await authorizeActiveGraph();
     if (!authorization.ok) return authorization.response;
-    return activeShardResponse(() => readActiveDetailShard(id), authorization.role, request);
+    return await activePublishedDetailResponse(() => readActiveDetailShard(id), authorization.role, request);
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Active Authority detail shard request failed:', error);

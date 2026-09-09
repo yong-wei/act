@@ -187,7 +187,8 @@ export function validateIncomingShard(
   const localeChanged = !publicEnvelopesShareLocaleProfile(current.envelope, shard.envelope)
     || current.localeRefreshPending;
   const incomingObjects = shard.shardClass === 'domain-default'
-    || shard.shardClass === 'relation-family'
+    ? [...shard.objects, ...(shard.teachingBoundaryObjects ?? [])]
+    : shard.shardClass === 'relation-family'
     || shard.shardClass === 'node-neighborhood'
     ? shard.objects
     : shard.shardClass === 'node-detail'
@@ -195,7 +196,7 @@ export function validateIncomingShard(
       : [];
   const incomingBoundaries = shard.shardClass === 'relation-family' || shard.shardClass === 'node-neighborhood'
     ? shard.boundaries
-    : [];
+    : shard.shardClass === 'domain-default' ? shard.teachingBoundaries ?? [] : [];
   const seen = new Map<string, { label: string; aliases: readonly string[] }>();
   const checkPresentation = (id: string, label: string, aliases: readonly string[]): boolean => {
     const prior = seen.get(id);
@@ -337,6 +338,12 @@ export function mergeAuthorityShard(
     const boundedDetails = Object.fromEntries(
       Object.entries(detailsByCanonicalId).filter(([id]) => Boolean(boundedObjects[id])),
     );
+    for (const object of shard.teachingBoundaryObjects ?? []) {
+      boundedObjects[object.id] = mergeObject(boundedObjects[object.id], object, localeChanged);
+    }
+    for (const boundary of shard.teachingBoundaries ?? []) {
+      boundaryRefsByCanonicalId[boundary.canonicalId] = boundary;
+    }
     for (const relation of shard.teachingRelations) {
       relationsByLayerKey[relationCacheKey(relation)] = relation;
     }
@@ -345,6 +352,7 @@ export function mergeAuthorityShard(
       ...current,
       envelope,
       objectsByCanonicalId: boundedObjects,
+      boundaryRefsByCanonicalId,
       relationsByLayerKey,
       teachingCoverageByDomain,
       detailsByCanonicalId: boundedDetails,
@@ -397,10 +405,16 @@ export function mergeAuthorityShard(
   }
 
   if (shard.shardClass === 'node-neighborhood') {
+    const overviewIds = new Set(current.domainOverviewIds);
+    const teachingEndpointIds = Object.values(current.relationsByLayerKey)
+      .filter((relation) => relation.layer === 'ACT_TEACHING'
+        && (overviewIds.has(relation.sourceId) || overviewIds.has(relation.targetId)))
+      .flatMap((relation) => [relation.sourceId, relation.targetId]);
     // 连续披露不形成无界缓存：保留域概览、已启用关系族成员和本邻域，
     // 淘汰上一个邻域引入的对象/详情/边界/关系及其加载键（#1738）。
     const retainedIds = new Set<string>([
       ...current.domainOverviewIds,
+      ...teachingEndpointIds,
       ...current.familyObjectKeys,
       ...shard.objects.map((object) => object.id),
       ...shard.boundaries.map((boundary) => boundary.canonicalId),

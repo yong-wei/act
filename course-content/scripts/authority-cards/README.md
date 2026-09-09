@@ -60,6 +60,10 @@ python3 course-content/scripts/authority-cards/normalize_authority_infograph_met
 
 Fail-closed: definitions and relations only from domain-projection description + DomainConcept links. No invented engineering examples or misconceptions. Cards with `status: draft-blocked` are not exported to runtime; accepted infographs remain independently exportable.
 
+用户明确要求课程补充时，可依据已有讲义和教材补全已绑定卡片。卡片保留原 Canonical 和资源身份，声明 `content_origin: act-course-enrichment`，并在 wave 记录中保存来源摘要与数值核验。确定性生成器保留这些正文，只有显式 `--force` 才会改写。补充正文属于 ACT 教学内容，不改写 Authority 事实。
+
+当前聚合包可保留较早组件的 `domain-projection.json`，不能修改其 release 字段冒充聚合身份。课程补充卡片使用当前导出器的定向参数：`python3 scripts/knowledge/export-authority-learning-content-v2.py --copy-authoring-card <safe_id>`。它核对当前 Authority、卡片实体及来源，再复制指定作者文件，并重新生成包含教学层身份的学习内容清单。
+
 The combined runtime learning manifest is v2 and seals the Authority release,
 release-set and snapshot identity from the supplied immutable shard-set manifest.
 Its projection and release evidence must name that same Authority release. A

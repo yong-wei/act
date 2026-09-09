@@ -5,7 +5,8 @@ import {
   forceSimulation,
   forceX,
   forceY,
-} from 'd3-force';
+  forceZ,
+} from 'd3-force-3d';
 
 import type { KnowledgeLinkData, KnowledgeNodeData } from '../../knowledge-graph-system';
 import type { GraphDimension } from '../../graph-runtime-session';
@@ -70,6 +71,7 @@ interface MutableLayoutNode extends ActiveAuthorityLayoutNode {
   __clusterX: number;
   __clusterY: number;
   __levelY: number;
+  __clusterZ: number;
 }
 
 interface ComponentBucket {
@@ -239,6 +241,7 @@ function applyStoredPositions(
 function makeRootLayout(
   nodes: MutableLayoutNode[],
   layoutState: KnowledgeGraphLayoutState | undefined,
+  dimension: GraphDimension,
 ): void {
   const ordered = [...nodes].sort((left, right) => left.id.localeCompare(right.id));
   const count = ordered.length;
@@ -253,15 +256,29 @@ function makeRootLayout(
     node.__clusterX = 0;
     node.__clusterY = 0;
     node.__levelY = 0;
+    node.__clusterZ = 0;
+    if (dimension === '3d') {
+      Object.assign(node, volumePoint(index, count, Math.max(240, Math.cbrt(count) * 140), true));
+    }
   });
   const hasStoredPosition = applyStoredPositions(nodes, layoutState);
-  if (!hasStoredPosition) centerNodes(nodes, false);
+  if (!hasStoredPosition) centerNodes(nodes, dimension === '3d');
+}
+
+function volumePoint(index: number, count: number, radius: number, surface = false) {
+  const vertical = 1 - 2 * (index + 0.5) / Math.max(1, count);
+  const angle = index * Math.PI * (3 - Math.sqrt(5));
+  const r = surface ? radius : radius * Math.cbrt(0.25 + stableUnit(`volume:${index}`) * 0.75);
+  const horizontal = Math.sqrt(1 - vertical * vertical);
+  return { x: r * horizontal * Math.cos(angle), y: r * vertical, z: r * horizontal * Math.sin(angle) };
 }
 
 function makeDomainSeeds(
   nodes: MutableLayoutNode[],
   links: readonly KnowledgeLinkData[],
   layoutSalt = '0',
+  dimension: GraphDimension = '2d',
+  layoutState?: KnowledgeGraphLayoutState,
 ): void {
   const ids = nodes.map((node) => node.id);
   const componentById = unionFind(ids, links);
@@ -280,7 +297,7 @@ function makeDomainSeeds(
     }))
     .sort((left, right) => right.members.length - left.members.length || left.key.localeCompare(right.key));
   const connected = buckets.filter((bucket) => bucket.members.length > 1);
-  const anchorRadius = connected.length <= 1 ? 0 : Math.max(150, connected.length * 108);
+  const anchorRadius = connected.length <= 1 ? 0 : Math.max(150, Math.sqrt(connected.length) * 108);
   const nodeGapX = 122;
   const nodeGapY = 118;
 
@@ -310,31 +327,23 @@ function makeDomainSeeds(
       node.__clusterX = clusterX;
       node.__clusterY = clusterY;
       node.__levelY = clusterY + (level - maxLevel / 2) * nodeGapY;
+      if (dimension === '3d') {
+        const point = volumePoint(bucket.members.indexOf(node), bucket.members.length, Math.cbrt(bucket.members.length) * 90);
+        node.x = clusterX + point.x;
+        node.y = clusterY + point.y;
+        node.z = point.z;
+        node.__clusterX = node.x;
+        node.__levelY = node.y;
+      }
+      node.__clusterZ = node.z;
     });
   });
 
   const isolates = buckets.filter((bucket) => bucket.members.length === 1).flatMap((bucket) => bucket.members);
-  if (isolates.length > 0) {
-    const connectedMaxX = connected.length > 0 ? Math.max(...connected.flatMap((bucket) => bucket.members.map((node) => node.x))) : 0;
-    const columns = Math.max(1, Math.ceil(Math.sqrt(isolates.length * 1.6)));
-    const rows = Math.ceil(isolates.length / columns);
-    isolates.forEach((node, index) => {
-      const row = Math.floor(index / columns);
-      const rowCount = Math.min(columns, isolates.length - row * columns);
-      const column = index % columns;
-      node.x = (connected.length > 0 ? connectedMaxX + 190 : 0) + (column - (rowCount - 1) / 2) * 146;
-      node.y = (row - (rows - 1) / 2) * 132;
-      node.z = (stableUnit(`${layoutSalt}:${node.id}:isolated-z`) - 0.5) * 100;
-      node.layoutLevel = 0;
-      node.layoutComponent = connected.length + index;
-      node.__clusterX = node.x;
-      node.__clusterY = node.y;
-      node.__levelY = node.y;
-    });
-  }
-
-  const hasLinks = links.length > 0;
-  if (hasLinks) {
+  const connectedNodes = connected.flatMap((bucket) => bucket.members);
+  // Existing positions participate as fixed anchors while only new nodes settle.
+  const hasStoredPosition = applyStoredPositions(nodes, layoutState);
+  if (connectedNodes.length > 0) {
     type SimulationLink = {
       source: string | MutableLayoutNode;
       target: string | MutableLayoutNode;
@@ -347,7 +356,7 @@ function makeDomainSeeds(
       relation: link.relation,
       relationType: link.relationType,
     }));
-    const simulation = forceSimulation<MutableLayoutNode, SimulationLink>(nodes)
+    const simulation = forceSimulation<MutableLayoutNode, SimulationLink>(connectedNodes, dimension === '3d' ? 3 : 2)
       .force('link', forceLink<MutableLayoutNode, SimulationLink>(simulationLinks)
         .id((node) => node.id)
         .distance((link) => isPrerequisite(link) ? 138 : 112)
@@ -357,8 +366,44 @@ function makeDomainSeeds(
       .force('cluster-x', forceX<MutableLayoutNode>((node) => node.__clusterX).strength(0.11))
       .force('hierarchy-y', forceY<MutableLayoutNode>((node) => node.__levelY).strength(0.18))
       .stop();
+    if (dimension === '3d') {
+      simulation.force('depth-z', forceZ<MutableLayoutNode>((node) => node.__clusterZ).strength(0.18));
+    }
     for (let tick = 0; tick < 72; tick += 1) simulation.tick();
   }
+  if (!hasStoredPosition && connectedNodes.length > 0) centerNodes(connectedNodes, dimension === '3d');
+  const center = connectedNodes.length > 0 ? {
+    x: (Math.min(...connectedNodes.map((node) => node.x)) + Math.max(...connectedNodes.map((node) => node.x))) / 2,
+    y: (Math.min(...connectedNodes.map((node) => node.y)) + Math.max(...connectedNodes.map((node) => node.y))) / 2,
+    z: dimension === '3d' ? (Math.min(...connectedNodes.map((node) => node.z)) + Math.max(...connectedNodes.map((node) => node.z))) / 2 : 0,
+  } : { x: 0, y: 0, z: 0 };
+  const inner = connectedNodes.length > 0
+    ? Math.max(...connectedNodes.map((node) => Math.hypot(node.x - center.x, node.y - center.y, dimension === '3d' ? node.z - center.z : 0) + node.renderRadius)) + 110
+    : 0;
+  const outer = dimension === '3d'
+    ? Math.cbrt(inner ** 3 + Math.max(1, isolates.length) * 100 ** 3)
+    : Math.sqrt(inner ** 2 + Math.max(1, isolates.length) * 105 ** 2);
+  const rotation = stableUnit(layoutSalt) * Math.PI * 2;
+  isolates.forEach((node, index) => {
+    node.layoutLevel = 0;
+    node.layoutComponent = connected.length + index;
+    if (layoutState?.positionsByNodeId[node.id]) return;
+    const fraction = (index + 0.5) / isolates.length;
+    const angle = rotation + index * Math.PI * (3 - Math.sqrt(5));
+    if (dimension === '3d') {
+      const vertical = 1 - 2 * fraction;
+      const radius = Math.cbrt(inner ** 3 + stableUnit(layoutSalt + ':' + node.id) * (outer ** 3 - inner ** 3));
+      const horizontal = Math.sqrt(1 - vertical ** 2);
+      node.x = center.x + radius * horizontal * Math.cos(angle);
+      node.y = center.y + radius * vertical;
+      node.z = center.z + radius * horizontal * Math.sin(angle);
+    } else {
+      const radius = Math.sqrt(inner ** 2 + fraction * (outer ** 2 - inner ** 2));
+      node.x = center.x + radius * Math.cos(angle);
+      node.y = center.y + radius * Math.sin(angle);
+      node.z = 0;
+    }
+  });
   nodes.forEach((node) => {
     node.x = finite(node.x, 0);
     node.y = finite(node.y, 0);
@@ -386,13 +431,13 @@ export function deriveActiveAuthorityLayout(input: {
       __clusterX: 0,
       __clusterY: 0,
       __levelY: 0,
+      __clusterZ: 0,
     } satisfies MutableLayoutNode));
   const links = validLinks(nodes, input.links);
-  if (nodes.every(isRootNode)) makeRootLayout(nodes, input.layoutState);
+  if (nodes.every(isRootNode)) makeRootLayout(nodes, input.layoutState, input.dimension);
   else {
-    makeDomainSeeds(nodes, links, input.layoutSalt);
-    const hasStoredPosition = applyStoredPositions(nodes, input.layoutState);
-    if (!hasStoredPosition) centerNodes(nodes, input.dimension === '3d');
+    makeDomainSeeds(nodes, links, input.layoutSalt, input.dimension, input.layoutState);
+    applyStoredPositions(nodes, input.layoutState);
   }
   if (input.dimension === '2d') {
     nodes.forEach((node) => {
@@ -408,7 +453,50 @@ export function deriveActiveAuthorityLayout(input: {
       node.positionZ = node.z;
     });
   }
-  return nodes.map(({ __clusterX: _clusterX, __clusterY: _clusterY, __levelY: _levelY, ...node }) => node);
+  return nodes.map(({ __clusterX: _clusterX, __clusterY: _clusterY, __levelY: _levelY, __clusterZ: _clusterZ, ...node }) => ({
+    ...node, fx: node.x, fy: node.y, fz: node.z,
+  }));
+}
+
+export interface ActiveAuthorityLayoutSession {
+  nodes: Map<string, ActiveAuthorityLayoutNode>;
+  relayoutVersion: number;
+}
+
+export type ActiveAuthorityLayoutSessions = Map<string, ActiveAuthorityLayoutSession>;
+
+/** Presentation refresh and incremental disclosure never reseed existing nodes. */
+export function reconcileActiveAuthorityLayout(
+  session: ActiveAuthorityLayoutSession,
+  input: Parameters<typeof deriveActiveAuthorityLayout>[0] & { relayoutVersion: number },
+): ActiveAuthorityLayoutNode[] {
+  if (session.relayoutVersion !== input.relayoutVersion) {
+    session.nodes.clear();
+    session.relayoutVersion = input.relayoutVersion;
+  }
+  const stored = Object.fromEntries([...session.nodes].map(([id, node]) => [id, {
+    x: node.x, y: node.y, z: node.z, pinned: true,
+  }]));
+  const positions = { ...stored, ...input.layoutState?.positionsByNodeId };
+  const seeded = input.nodes.some((node) => !session.nodes.has(node.id))
+    ? new Map(deriveActiveAuthorityLayout({
+      ...input,
+      layoutState: { version: input.layoutState?.version ?? 0, positionsByNodeId: positions },
+    }).map((node) => [node.id, node]))
+    : new Map<string, ActiveAuthorityLayoutNode>();
+  return [...input.nodes].sort((a, b) => a.id.localeCompare(b.id)).map((node) => {
+    const existing = session.nodes.get(node.id) ?? seeded.get(node.id)!;
+    const point = input.layoutState?.positionsByNodeId[node.id] ?? existing;
+    const x = point.x;
+    const y = point.y;
+    const z = input.dimension === '2d' ? 0 : finite(point.z, existing.z);
+    Object.assign(existing, node, {
+      x, y, z, positionX: x, positionY: y, positionZ: z, fx: x, fy: y, fz: z,
+      renderRadius: nodeRadius(node),
+    });
+    session.nodes.set(node.id, existing);
+    return existing;
+  });
 }
 
 export function cloneActiveAuthorityLinks(

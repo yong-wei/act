@@ -1,0 +1,498 @@
+{
+  "contract": "act-course-prerequisite-decisions/v1",
+  "authority": {
+    "contract": "actkg-engineering-authority-current/v1",
+    "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "snapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+    "activationReceiptId": "coordinated-r6-admission-v037",
+    "activatedAt": "2026-09-07T19:10:00.000Z"
+  },
+  "coverageScope": "available-authority",
+  "fullCourseCoverage": false,
+  "acceptedAuthorityGapPolicy": "User 2026-09-09: deliver existing Authority scope and retain explicit course gaps; do not claim full-course completion.",
+  "requiredUnits": [
+    "1-1",
+    "1-2",
+    "1-3",
+    "1-4",
+    "1-5",
+    "2-1",
+    "2-2",
+    "2-3",
+    "2-4",
+    "3-1",
+    "3-2",
+    "3-3",
+    "3-4",
+    "3-5",
+    "3-6",
+    "3-7",
+    "3-8",
+    "3-9",
+    "4-1",
+    "4-2",
+    "4-3",
+    "4-4",
+    "4-5",
+    "4-6",
+    "4-7",
+    "5-1",
+    "5-2",
+    "5-3",
+    "5-4",
+    "5-5",
+    "5-6"
+  ],
+  "sourceFiles": [
+    {
+      "path": "course-content/syllabus-refactor/blueprint.md",
+      "sha256": "0f4bf57e53ad7d132de89740a6055ef853aa586a9c45a0301b98ad43e25d6e2d"
+    },
+    {
+      "path": "course-content/syllabus-refactor/module-skeletons.md",
+      "sha256": "f2ff3e9c5c818c6f7171f1893cd1926d5512fd899c23206635e1b302eeec7ca2"
+    },
+    {
+      "path": "course-content/syllabus-refactor/unit-design-details/module1.md",
+      "sha256": "c7ce8f68012cf372570f4752f041d1dcc2ec26ef2ff3afce28e2039ec826020a"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-1/graph/nodes.jsonl",
+      "sha256": "c529c01dc46578094b18a9c86037faff7f8f6da61ac8793d1264346a8fc3be19"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-2/graph/nodes.jsonl",
+      "sha256": "97d1f3ddc258dcf96884377c249899bc51ef0c5ae1d2c349ca3dc5e59071c9b2"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-3/graph/nodes.jsonl",
+      "sha256": "f4309a00b86bf48b691bc082baf19436d66196bffd3f10e5c4a87eb3bed82a32"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-4/graph/nodes.jsonl",
+      "sha256": "8f682c9cee6fd5f4c6c2a0a5c4685f1ad501cc0d6117c666f0905c71add75cf2"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-5/graph/nodes.jsonl",
+      "sha256": "c3c455110c8b58b8440e706a011fa4e4898320e99f0e5bc8ee68bc10f299a4d9"
+    },
+    {
+      "path": "course-content/syllabus-refactor/unit-design-details/module2.md",
+      "sha256": "2626075cbe4b7aee6b1a2cff2643af56b3649ec522e2a116dad6d6403bfebf3e"
+    },
+    {
+      "path": "course-content/authoring/lessons/2-1/graph/nodes.jsonl",
+      "sha256": "ed0bd6352cb13e3741f4803feb132bbacc4dd3e4630f884fe083f6c236e50d50"
+    },
+    {
+      "path": "course-content/authoring/lessons/2-2/graph/nodes.jsonl",
+      "sha256": "851467f80c519b038f23fda1acddda9e1a84255ad108130b631dacff9c068a31"
+    },
+    {
+      "path": "course-content/authoring/lessons/2-3/graph/nodes.jsonl",
+      "sha256": "06501ad23aa5de0edd5e100a45b5631a9d35291293e88befb3c59f2b9fc93740"
+    },
+    {
+      "path": "course-content/syllabus-refactor/unit-design-details/module3.md",
+      "sha256": "7fd1355edfe08e3a69ef739d78549570383b70218ef0838239bf8d577466f451"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-2/graph/nodes.jsonl",
+      "sha256": "a7421b0d3d3fcd810422f1f12b30fe3072f3c576a17410246ac5b2f9aa1d04c6"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-3/graph/nodes.jsonl",
+      "sha256": "d766690fe317bed159975375033583012f69faee99bb3574814d399ca658956d"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-4/graph/nodes.jsonl",
+      "sha256": "83684f81517d823cb14b085957b58e56dcc6105c5bf707905b5604bba1d0be53"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-5/graph/nodes.jsonl",
+      "sha256": "7b0d491caa52302a3f76bb591d475eb63b211f42f45bc98c250e71a84fc3e1c3"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-6/graph/nodes.jsonl",
+      "sha256": "b7d29cc32de5a7b5cee13c59aaa81892ac458f77bb10cab2bc6e3c29fab6af63"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-7/graph/nodes.jsonl",
+      "sha256": "2d6b62ac11dfcf8ee958db2b53db6061d6c121042ec186eed3e2070297401ad9"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-8/graph/nodes.jsonl",
+      "sha256": "bbfb42bd0e427b227c50875149b47995ef799d7a73d933af082ec951270ab7df"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-9/graph/nodes.jsonl",
+      "sha256": "54062c9073314f539b67fd4005c5cc57bffe249bb851d3393f8f215e66f72149"
+    },
+    {
+      "path": "course-content/syllabus-refactor/unit-design-details/module4.md",
+      "sha256": "b1896e133690dcea4f35995f85ead96da3af841b31f0b05188b2ad64ab874ae8"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-1/graph/nodes.jsonl",
+      "sha256": "2e52a737b73298dbb52624d8ef25d75648cabda60a8f337be303847dd0e30134"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-2/graph/nodes.jsonl",
+      "sha256": "bc2a62df6737db3675efeafe5be77571f1c0affdf2ef1d18f857407978b3200e"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-3/graph/nodes.jsonl",
+      "sha256": "a853f6721b8a2a655a01d9241507d6b91454da971535235b235436f4253455f7"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-4/graph/nodes.jsonl",
+      "sha256": "9726151e72af1fa8036c9e424f411c12475c402c37c9cf71d96981ddbe4398e7"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-5/graph/nodes.jsonl",
+      "sha256": "cc0f3d233b606634d3b6ada5766cf97e68581399c10533cf5ccb30eb5dc8236e"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-6/graph/nodes.jsonl",
+      "sha256": "ed49eca6e9d628e9a592d856f1256c1d5618363ff6c0fad77c45166a142baa71"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-7/graph/nodes.jsonl",
+      "sha256": "5faebaddc7f0417daf7d9cfa0eb1231a450fdabc78eebca1c12b6990daeb9e6b"
+    },
+    {
+      "path": "course-content/syllabus-refactor/unit-design-details/module5.md",
+      "sha256": "3490eaa94a9bcb5156caa6e371b0d8d08baca0711cef4a88dc49a6af2faef856"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-1/graph/nodes.jsonl",
+      "sha256": "e7fb6b91c36659dbe48302a5209057a4fc32907c75227c9d7c070792ec5ecf83"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-2/graph/nodes.jsonl",
+      "sha256": "da872f367c0a14c920eec4992394f0923070ade1e54fab31b3070447dc7320a0"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-3/graph/nodes.jsonl",
+      "sha256": "6f64541283b2bb096d3a80a1c62596c616ceff3442e572fa40b16e47ef8a8007"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-4/graph/nodes.jsonl",
+      "sha256": "89b0bd37d4049c1387c57f369233cf02c7071fe3bc0f82861ed4b77eb6dbe1c5"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-5/graph/nodes.jsonl",
+      "sha256": "62127d7a09153ffe03b3215d324aa25b6c271ebe189aab965fc5c1c18d75088c"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-6/graph/nodes.jsonl",
+      "sha256": "c70885b79c299dd9527c97933b4f837a801b45e48fdc69d1112834f71b96ca67"
+    },
+    {
+      "path": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+      "sha256": "27a0fefc28e27687b83d5c443f92b4d8351823490dc5e264479eb65babb4fdcd"
+    },
+    {
+      "path": "course-content/runtime/knowledge/teaching-projection/domain-fragments/releases/proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f/fragments/dtf-432d2da9485692d0e297b37750d14e14f57e1140b439de5e99f62753798a9562.json",
+      "sha256": "3e552f002503a8ce55590987232c475fd79f92f45f54a6c08428e1d4d1d093ee"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-1/design/1-1-handout.md",
+      "sha256": "71ee78b0d0855c0ef7379756a41c57db4bda496a87cdfdb954716b305139ec15"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-2/design/1-2-handout.md",
+      "sha256": "cf7996e9829d7783115864dc73bc749d4c68302d7bbf3179a706375bdccf81a7"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-3/design/1-3-handout.md",
+      "sha256": "a27916309d1a067c395c375ac316314611569438799c351914d71dd3456f61a5"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-4/design/1-4-handout.md",
+      "sha256": "349c39a37e78b706fb00d1de36ab1acfad3c678697e64af05f67e7aba6cd41de"
+    },
+    {
+      "path": "course-content/authoring/lessons/1-5/design/1-5-handout.md",
+      "sha256": "b3022ae16f1a9cc6342cc53630eb357b47ea4e3662ce9ae392e9b52583acfae8"
+    },
+    {
+      "path": "course-content/authoring/lessons/2-1/design/2-1-handout.md",
+      "sha256": "72e724fb62fa243ad01329033da773165edffacc1838bb5c714cac68155b9afe"
+    },
+    {
+      "path": "course-content/authoring/lessons/2-2/design/2-2-handout.md",
+      "sha256": "9acdc1b9dc6288c64e5cc1ed43b549fc0b6e069ea633e8d08ad362b1603684cd"
+    },
+    {
+      "path": "course-content/authoring/lessons/2-3/design/2-3-handout.md",
+      "sha256": "c1708073f5e442812571fc495a5cd4274a572f5b42d67e09c9776af0306eca5d"
+    },
+    {
+      "path": "course-content/authoring/lessons/2-4/design/2-4-handout.md",
+      "sha256": "0e4b34fcd29dd7c0d21e30c26554a4a09f77f841a0fd8a56ee051b7b1202e6b3"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-1/design/3-1-handout.md",
+      "sha256": "62da78f32b44e534923e0605f8e95f940c12ecf536ff199bd1f0983dda9b5aeb"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-2/design/3-2-handout.md",
+      "sha256": "5d351b8c4e5bd257d19a8a109dea88229214389906d0fb9f59822961dd243d9a"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-3/design/3-3-handout.md",
+      "sha256": "989dabb9fa5ce2aa2f356abb2f3dec94f76c654c8135d4fbefa32bb4369082a3"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-4/design/3-4-handout.md",
+      "sha256": "1d7d5a3ae9b356c026a37f079203fd5a6c8ed028df911e81b9c21a4759cf350e"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-5/design/3-5-handout.md",
+      "sha256": "3eb4c8724f2f32ea556f550229b975b78a28dfd83a0d97299cbc3917739529f8"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-6/design/3-6-handout.md",
+      "sha256": "bbdf685c663f3f6c6dcd6a7438d880faf14adb656e2c3bc19ddee6e2e0777122"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-7/design/3-7-handout.md",
+      "sha256": "6182d2fb4b45b67c995c4985032ea1c80e569907f757b2ee1b021978746fe507"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-8/design/3-8-handout.md",
+      "sha256": "68ede92395576e8db832382b61659772b6767a97463314fc4dbbb410a94fa25e"
+    },
+    {
+      "path": "course-content/authoring/lessons/3-9/design/3-9-handout.md",
+      "sha256": "388fdaeef1c78cd0efcb1b9c21d8b37fd748a5f495beb5257974ab0e8e174aa3"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-1/design/4-1-handout.md",
+      "sha256": "b0948ea22f739ec2d79fee2b19c757ea2163dd2f0b6b2b1388910913e0913935"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-2/design/4-2-handout.md",
+      "sha256": "ace17df82980ca8cddf047f3c37b50c9207719e23eeb402113b0ec9c0f1e4151"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-3/design/4-3-handout.md",
+      "sha256": "445a8f2488bc11514539236a4c36e687bcc89bfdb291a9e97efadf13f2ef887a"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-4/design/4-4-handout.md",
+      "sha256": "c13870f4b23eaeb32ca37f3724d977287102963293b68d18acb37c72181df7f3"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-5/design/4-5-handout.md",
+      "sha256": "cbb8c45dc2f97ef07be354f5dd8fafd1ed5ee10385591eb59976d8a57e0ee394"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-6/design/4-6-handout.md",
+      "sha256": "521db7f080e960bbbb6d6cca8a1a21d51573897192fc0084a66e01a3814feb21"
+    },
+    {
+      "path": "course-content/authoring/lessons/4-7/design/4-7-handout.md",
+      "sha256": "fdd4faa56ea0a8a85e410b70c7b34799c0efb775ac48bf2a842b2369fb29b4b8"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-1/design/5-1-handout.md",
+      "sha256": "ec7d26d2ee55a84cb138cfbc7a8e45e19c3679232a0eab7f02d299ecb2f9f61a"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-2/design/5-2-handout.md",
+      "sha256": "f5d12423f063d99bfb701a7af5f0b16710605548a3949a4dd70ad15d751898b2"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-3/design/5-3-handout.md",
+      "sha256": "777f2e57834d2cc3b68ae12677144447a5d67deec9374d08b91aa5fac3d5dc9a"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-4/design/5-4-handout.md",
+      "sha256": "0933d68288be81f9b8c9f822d57cc8ac09b7dadce6a0c669516e6071610c22fd"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-5/design/5-5-handout.md",
+      "sha256": "a7869c91bcff5ef45bb3e473155bc56758ca7edd3e5998d7b2531ed43f88278e"
+    },
+    {
+      "path": "course-content/authoring/lessons/5-6/design/5-6-handout.md",
+      "sha256": "7f6964a481c938932cd9b59b99f363e909ea05c69caa8a84d3ea9abfdf7b2d29"
+    }
+  ],
+  "decisionFiles": [
+    "topics.jsonl",
+    "units.jsonl",
+    "dependencies.jsonl"
+  ],
+  "requiredTopics": [
+    "system",
+    "feedback",
+    "open-loop",
+    "closed-loop",
+    "error-signal",
+    "gain",
+    "model",
+    "ode",
+    "lti",
+    "superposition",
+    "laplace",
+    "inverse-laplace",
+    "transfer",
+    "block-diagram",
+    "block-algebra",
+    "flow-graph",
+    "flow-branch",
+    "forward-path",
+    "flow-loop",
+    "flow-determinant",
+    "cofactor",
+    "mason",
+    "integrator",
+    "p-control",
+    "poles",
+    "zeros",
+    "characteristic",
+    "closed-poles",
+    "step",
+    "ramp",
+    "impulse",
+    "acceleration",
+    "first-order",
+    "second-order",
+    "step-response",
+    "time-constant",
+    "damping",
+    "natural-frequency",
+    "damped-frequency",
+    "underdamped",
+    "critical-damping",
+    "overdamped",
+    "rise-time",
+    "peak-time",
+    "overshoot",
+    "settling-time",
+    "convolution",
+    "partial-fractions",
+    "modes",
+    "dominant-poles",
+    "dominant-approximation",
+    "stability",
+    "bibo",
+    "marginal",
+    "routh",
+    "routh-array",
+    "auxiliary",
+    "stability-range",
+    "shift-stability",
+    "root-locus",
+    "open-gain",
+    "breakaway",
+    "breakin",
+    "asymptote",
+    "imaginary-crossing",
+    "departure",
+    "generalized-locus",
+    "zero-degree",
+    "sinusoidal-response",
+    "frequency-response",
+    "fourier-coefficients",
+    "magnitude",
+    "phase",
+    "bode",
+    "bode-asymptote",
+    "corner-frequency",
+    "nyquist-plot",
+    "gain-crossover",
+    "phase-crossover",
+    "phase-margin",
+    "gain-margin",
+    "bandwidth",
+    "resonance",
+    "nyquist-criterion",
+    "nonminimum-phase",
+    "pd",
+    "velocity-feedback",
+    "lead",
+    "final-value",
+    "steady-error",
+    "system-type",
+    "static-error",
+    "error-coefficients-method",
+    "pi",
+    "lag",
+    "pid",
+    "pid-tuning",
+    "feedforward",
+    "reference-feedforward",
+    "disturbance-feedforward",
+    "sensitivity",
+    "complementary-sensitivity",
+    "itae",
+    "nonlinear",
+    "saturation",
+    "dead-zone",
+    "hysteresis",
+    "linearization",
+    "phase-plane",
+    "phase-trajectory",
+    "describing-function",
+    "limit-cycle",
+    "mpc",
+    "data-driven",
+    "rl",
+    "mass",
+    "constrained-optimization",
+    "pareto",
+    "structure-search",
+    "imc",
+    "fourier-transform",
+    "open-transfer",
+    "closed-transfer",
+    "disturbance-rejection",
+    "measurement-noise",
+    "uncertainty",
+    "equilibrium",
+    "compensation",
+    "series-compensation",
+    "feedback-compensation",
+    "compound-compensation",
+    "prefilter",
+    "root-gain",
+    "open-poles",
+    "open-zeros",
+    "non-dominant",
+    "performance",
+    "zero-second-order",
+    "relay",
+    "friction",
+    "backlash",
+    "quantization",
+    "rate-limit"
+  ],
+  "acceptedGapTopics": [
+    "mpc",
+    "data-driven",
+    "rl",
+    "mass",
+    "constrained-optimization",
+    "pareto",
+    "structure-search",
+    "imc",
+    "fourier-transform",
+    "rate-limit"
+  ],
+  "retainedSources": [
+    {
+      "path": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+      "kind": "course-prerequisites"
+    },
+    {
+      "path": "course-content/runtime/knowledge/teaching-projection/domain-fragments/releases/proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f/fragments/dtf-432d2da9485692d0e297b37750d14e14f57e1140b439de5e99f62753798a9562.json",
+      "kind": "domain-fragment"
+    }
+  ]
+}

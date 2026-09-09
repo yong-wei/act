@@ -3,6 +3,7 @@ import {
   type InteractiveLessonIdentityRecord,
 } from '@/lib/interactive-lesson-identity';
 import { TEXTBOOK_ID_ALIASES } from '@/lib/engineering-textbook-mapping/aliases';
+import { resolveLegacyTextbookResource } from '@/lib/engineering-textbook-mapping/legacy-resource-resolutions';
 import { buildLessonHandoutPrintPath } from '@/lib/handout-pdf';
 import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { unitTokenFromResourceId } from '@/lib/teaching-projection/runtime-full-binding';
@@ -105,6 +106,13 @@ export function buildTeachingResourceLaunchMaps(
   const resourceRegistryIds: Record<string, string> = {};
 
   for (const resource of resources) {
+    const legacyTextbook = resource.resourceType === 'textbook-chapter' || resource.resourceType === 'textbook-section'
+      ? resolveLegacyTextbookResource(resource.resourceId) : null;
+    if (legacyTextbook) {
+      resourceLaunchTargets[resource.resourceId] = '/textbooks/' + [legacyTextbook.bookId, legacyTextbook.edition,
+        ...legacyTextbook.structuralPath].map(encodeURIComponent).join('/');
+      continue;
+    }
     const lessonToken = extractLessonKeyFromResource(resource)
       ?? (['video', 'audio', 'podcast', 'exercise'].includes(resource.resourceType)
         ? mediaOrExerciseLessonToken(resource.resourceId)

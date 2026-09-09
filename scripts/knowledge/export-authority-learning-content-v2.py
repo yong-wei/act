@@ -9,13 +9,18 @@ stale manifests are rejected by scripts/knowledge/check-authority-surface-linkag
 from __future__ import annotations
 
 import hashlib
+import argparse
 import json
+import os
 import re
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CARD_ROOT = ROOT / "course-content/runtime/knowledge/cards/authority/nodes"
+AUTHORING_CARD_ROOT = ROOT / "course-content/authoring/knowledge/cards/authority/nodes"
 INFOGRAPH_ROOT = ROOT / "course-content/runtime/knowledge/infographs/authority/nodes"
 CATALOG = ROOT / "course-content/runtime/knowledge/authority-domain-catalog/catalog.json"
 SHARDS_CURRENT = ROOT / "course-content/runtime/knowledge/authority-domain-shards/current.json"
@@ -45,13 +50,45 @@ def load_teaching_seal() -> dict[str, str]:
     return {"teachingProjectionId": projection_id, "teachingProjectionHash": projection_hash}
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--copy-authoring-card", action="append", default=[], metavar="SAFE_ID")
+    args = parser.parse_args(argv)
     catalog = json.loads(CATALOG.read_text())
     graph_ids = {row["canonicalId"] for row in catalog["memberships"]}
     shards = json.loads(SHARDS_CURRENT.read_text())
     authority = json.loads(AUTHORITY_CURRENT.read_text())
     seal = load_teaching_seal()
-    cards = sorted(CARD_ROOT.glob("*.md"))
+    copies: dict[str, Path] = {}
+    source_hashes: dict[str, str] = {}
+    if args.copy_authoring_card:
+        binding = catalog.get("authorityBinding", {})
+        if any(authority.get(key) != shards.get(key) or binding.get(key) != shards.get(key)
+               for key in ("snapshotId", "snapshotHash", "releaseId")):
+            raise SystemExit("course card export refuses mixed Authority identities")
+        if not authority.get("releaseSetId") or authority.get("releaseSetId") != binding.get("releaseSetId"):
+            raise SystemExit("course card export refuses mixed Authority release sets")
+        for safe_id in sorted(set(args.copy_authoring_card)):
+            if not SAFE_ID_RE.fullmatch(safe_id):
+                raise SystemExit("course card export received an unsafe id")
+            source = AUTHORING_CARD_ROOT / f"{safe_id}.md"
+            if not source.is_file() or source.is_symlink():
+                raise SystemExit(f"course card source is absent: {safe_id}")
+            source_bytes = source.read_bytes()
+            text = source_bytes.decode("utf-8")
+            entity = ENTITY_RE.search(text)
+            if (not entity or entity.group(1).strip().replace(":", "_") != safe_id
+                    or entity.group(1).strip() not in graph_ids
+                    or not re.search(r"^content_origin:\s*act-course-enrichment\s*$", text, re.M)
+                    or not re.search(r"^status:\s*ready\s*$", text, re.M)
+                    or not re.search(r"^authority_release_id:\s*" + re.escape(shards["releaseId"]) + r"\s*$", text, re.M)
+                    or "**一句话定义**" not in text or "### 完整解释" not in text):
+                raise SystemExit(f"course card source is not qualified: {safe_id}")
+            copies[safe_id] = source
+            source_hashes[safe_id] = hashlib.sha256(source_bytes).hexdigest()
+    card_paths = {path.stem: path for path in CARD_ROOT.glob("*.md")}
+    card_paths.update(copies)
+    cards = sorted(card_paths.values(), key=lambda path: path.stem)
     if not cards:
         # Empty-directory protection: a missing runtime card set must never
         # silently publish an empty manifest (#2045 task 1.2).
@@ -127,7 +164,22 @@ def main() -> int:
         **seal,
         "nodes": sorted(nodes, key=lambda row: row["canonicalId"]),
     }
-    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+    if any(sha256(source) != source_hashes[safe_id] for safe_id, source in copies.items()):
+        raise SystemExit("course card source changed during export")
+    for safe_id, source in copies.items():
+        with tempfile.NamedTemporaryFile(dir=CARD_ROOT, prefix=f".{safe_id}-", suffix=".tmp", delete=False) as temporary:
+            temporary_path = Path(temporary.name)
+        try:
+            shutil.copy2(source, temporary_path)
+            if sha256(temporary_path) != source_hashes[safe_id] or source_hashes[safe_id] != next(node["card"]["sha256"] for node in nodes if node["safeId"] == safe_id):
+                raise SystemExit(f"course card changed during export: {safe_id}")
+            os.replace(temporary_path, CARD_ROOT / f"{safe_id}.md")
+        finally:
+            temporary_path.unlink(missing_ok=True)
+    with tempfile.NamedTemporaryFile(dir=OUT.parent, prefix=".learning-content-", suffix=".tmp", mode="w", encoding="utf-8", delete=False) as temporary:
+        temporary.write(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+        temporary_path = Path(temporary.name)
+    os.replace(temporary_path, OUT)
     print(
         f"wrote {OUT.relative_to(ROOT)} nodes={len(nodes)} "
         f"missingInfographs={missing_infographs} seal={seal['teachingProjectionId']}"

@@ -249,11 +249,18 @@ def main() -> None:
             blocked_skip += 1
             continue
         node = by_id[row["entity_id"]]
+        out_path = args.out_dir / f"{row['safe_id']}.md"
+        if out_path.exists() and not args.force and re.search(
+            r"^content_origin:\s*act-course-enrichment\s*$",
+            out_path.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        ):
+            skipped += 1
+            continue
         body = render_card(row, node, adj, by_id, args.release_id, projection_rel)
         # extract hash from body
         m = re.search(r"authority_source_sha256:\s*([0-9a-f]{64})", body)
         new_hash = m.group(1) if m else ""
-        out_path = args.out_dir / f"{row['safe_id']}.md"
         old = existing_hash(out_path)
         if out_path.exists() and old == new_hash and not args.force:
             skipped += 1

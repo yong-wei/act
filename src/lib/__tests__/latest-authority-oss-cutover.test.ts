@@ -602,6 +602,14 @@ describe('Authority semantic cache', () => {
     expect(cache.entries.map((entry) => entry.disposition)).toEqual(['REUSED', 'REUSED']);
   });
 
+  it('preserves unknown relation direction when comparing capture semantics', () => {
+    const cache = buildAuthoritySemanticCache({
+      predecessor: { objects: [object], relations: [{ ...relation, direct: null }] },
+      successor: { objects: [object], relations: [{ ...relation, direct: false }] },
+    });
+    expect(cache.summary).toMatchObject({ reusedCount: 1, recomputedCount: 1, retiredCount: 0 });
+  });
+
   it('recomputes only a record whose Canonical semantics changed', () => {
     const cache = buildAuthoritySemanticCache({
       predecessor: { objects: [object], relations: [relation] },

@@ -1,4 +1,4 @@
-import rawCaseData from '../../../../course-content/authoring/lessons/4-3/media/raw/generated-data/4-3-compound-design-data.json';
+import rawCaseData from '../../../../course-content/runtime/lessons/4-3/media/generated-data/4-3-compound-design-data.json';
 
 import type {
   ComplexPoint,

@@ -8,6 +8,7 @@
 
 import { Suspense, useState, useCallback, useEffect, useRef, useMemo, useReducer, type CSSProperties, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react';
 import { BookOpen, Filter, LocateFixed, SlidersHorizontal, X } from 'lucide-react';
+import { useKnowledgeAiContextOwnership } from './graph/knowledge-ai-context-ownership';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import type { SanitizedKnowledgeLessonContext } from '@/lib/knowledge-lesson-overlay';
@@ -158,6 +159,8 @@ export interface KnowledgeNodeData {
 // 知识连接接口
 export interface KnowledgeLinkData {
   id: string;
+  relationFamily?: string | null;
+  directed?: boolean;
   sourceId: string;
   targetId: string;
   relation: string;
@@ -212,7 +215,8 @@ export function KnowledgeGraphSystem({
   trustedLessonId = null,
   viewerRole = 'student',
 }: KnowledgeGraphSystemProps) {
-  const { updatePageContext, isOpen: aiSidebarOpen } = useGlobalAI();
+  const { updatePageContext, clearDynamicPageContext, isOpen: aiSidebarOpen } = useGlobalAI();
+  const ownsAiContext = useKnowledgeAiContextOwnership();
   const initialRequestedNodeId = initialSelectedNodeId;
   const [graphCache, setGraphCache] = useState<KnowledgeGraphCacheState>(() => buildInitialGraphCache(initialNodes, initialLinks));
   const [navigation, dispatchNavigation] = useReducer(
@@ -1223,6 +1227,12 @@ export function KnowledgeGraphSystem({
   const desktopActiveToolLabel = desktopToolItems.find((item) => item.id === desktopActiveTool)?.label ?? '';
 
   useEffect(() => {
+    if (!ownsAiContext) return;
+    return () => clearDynamicPageContext?.();
+  }, [clearDynamicPageContext, ownsAiContext]);
+
+  useEffect(() => {
+    if (!ownsAiContext) return;
     updatePageContext({
       courseId: 'knowledge',
       courseTitle: '知识资源',
@@ -1247,6 +1257,7 @@ export function KnowledgeGraphSystem({
       },
     });
   }, [
+    ownsAiContext,
     displayLinks.length,
     knowledgeWorkspaceFilterSummary,
     requestedNodeId,

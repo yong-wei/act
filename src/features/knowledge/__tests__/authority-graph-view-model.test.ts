@@ -41,6 +41,21 @@ function relation(id: string, predicate: string, sourceId: string, targetId: str
 }
 
 describe('authority graph view model', () => {
+  it('shows equivalent prerequisites once while preserving both sources and strength', () => {
+    const teaching = { ...relation('teaching', 'PREREQUISITE', 'ctc:a', 'ctc:b'), strength: 'REQUIRED' as const };
+    const engineering = { ...relation('engineering', 'prerequisite', 'ctc:a', 'ctc:b'), layer: 'ENGINEERING' as const, relationFamily: 'prerequisite-order' };
+    const view = createAuthorityGraphViewModel({
+      nodes: [node('ctc:a', 'DomainConcept', '自然频率'), node('ctc:b', 'DomainConcept', '峰值时间')],
+      relations: [engineering, teaching],
+      enabledRelationFamilies: ['teaching-prerequisite', 'prerequisite-order'],
+    });
+    expect(view.edges).toHaveLength(1);
+    expect(view.edges[0].sources?.map((source) => source.id).sort()).toEqual(['engineering', 'teaching']);
+    expect(view.edges[0].sources?.find((source) => source.id === 'teaching')?.strength).toBe('REQUIRED');
+    expect(view.edges[0].sourceId).toBe('ctc:a');
+    expect(view.edges[0].targetId).toBe('ctc:b');
+  });
+
   it('rejects legacy graph DTOs and omits unavailable names', () => {
     expect(() => assertRejectsLegacyGraphDto({ id: 'x', positionX: 1 })).toThrow(/legacy graph DTO/);
     const view = createAuthorityGraphViewModel({

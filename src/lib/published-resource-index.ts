@@ -9,6 +9,7 @@ import { buildTeachingResourceLaunchMaps } from './layered-graph/teaching-resour
 import { getAllRegisteredResourceMetadata, getRegisteredResourceMetadata } from './resource-registry-metadata';
 import { ARENA_CHALLENGE_OBJECTS, ARENA_CHALLENGE_TASKS, getArenaChallengeObject, getArenaChallengeTask } from '@/features/arena/domain';
 import { TEXTBOOK_ID_ALIASES } from './engineering-textbook-mapping/aliases';
+import { resolveLegacyTextbookResource } from './engineering-textbook-mapping/legacy-resource-resolutions';
 import { fromResourceIdToken } from './teaching-projection/textbook-locators/identity';
 import { humanTitleFromResourceId } from './teaching-projection/resource-title';
 import { readAgreedLiveCourseProjection, resolveConfiguredTeachingProjectionRoot } from './teaching-projection/live-course-pointer';
@@ -25,7 +26,7 @@ import type { AuthorityEngineeringBody } from './authoritative-knowledge/authori
 import type { PublishedResourceBackend, PublishedResourceFeature, PublishedResourceFeatureIndex, PublishedResourceIdentity } from './published-resource-reference';
 
 const INDEX_VERSION = 'published-resource-features/v1';
-const INDEX_IMPLEMENTATION_REVISION = 10;
+const INDEX_IMPLEMENTATION_REVISION = 13;
 const indexPromises = new Map<string, Promise<PublishedResourceFeatureIndex>>();
 const ESTIMATED_MINUTES: Record<TeachingResourceType, number> = {
   card: 5, infographic: 3, handout: 12, video: 8, audio: 15, podcast: 15,
@@ -308,7 +309,27 @@ type ResourceVersionState = {
   sourceContent: Map<string, string | null>;
   infographicContent: Map<string, string | null>;
   textbookUnits: Map<string, ReadonlyMap<string, string>>;
+  runtimeFiles?: ReadonlyMap<string, string>;
 };
+
+function runtimeFileHash(file: string, runtimeRoot: string, files: ReadonlyMap<string, string>): string | null {
+  const key = relative(runtimeRoot, file).replaceAll('\\', '/');
+  return isSafeResourceContentPath(key) ? files.get(key) ?? null : null;
+}
+
+/** Blob views use controlled symlinks; the immutable manifest must own their exact bytes. */
+function runtimeFileBytes(file: string, runtimeRoot: string, files?: ReadonlyMap<string, string>): Buffer | null {
+  if (!files) return stableFileBytes(file);
+  const expected = runtimeFileHash(file, runtimeRoot, files);
+  if (!expected) return null;
+  try {
+    const before = statSync(file);
+    if (!before.isFile()) return null;
+    const bytes = readFileSync(file);
+    const after = statSync(file);
+    return before.size === after.size && before.mtimeMs === after.mtimeMs && sha256Bytes(bytes) === expected ? bytes : null;
+  } catch { return null; }
+}
 
 function isSafeResourceContentPath(value: string): boolean {
   return Boolean(value)
@@ -405,6 +426,7 @@ function textbookAssetDigests(
   runtimeRoot: string,
   bookId: string,
   chapterId: string,
+  runtimeFiles?: ReadonlyMap<string, string>,
 ): string[] {
   const refs = [...markdown.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+["'][^)]*)?\)/gu)]
     .map((match) => match[1])
@@ -413,16 +435,18 @@ function textbookAssetDigests(
     const assetPath = ref.startsWith('assets/') ? ref.slice('assets/'.length) : ref;
     if (!isSafeResourceContentPath(assetPath)) return `${ref}:invalid`;
     const file = join(runtimeRoot, 'resources/textbooks', bookId, 'assets', chapterId, ...assetPath.split('/'));
-    return `${ref}:${stableFileDigest(file) ?? 'missing'}`;
+    const hash = runtimeFiles ? runtimeFileHash(file, runtimeRoot, runtimeFiles) : stableFileDigest(file);
+    return `${ref}:${hash ?? 'missing'}`;
   });
 }
 
 function loadTextbookUnitVersions(
   runtimeRoot: string,
   bookId: string,
+  runtimeFiles?: ReadonlyMap<string, string>,
 ): ReadonlyMap<string, string> {
   const file = join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE, bookId, 'units.jsonl');
-  const bytes = stableFileBytes(file);
+  const bytes = runtimeFileBytes(file, runtimeRoot, runtimeFiles);
   const versions = new Map<string, string>();
   if (!bytes) return versions;
   for (const line of bytes.toString('utf8').split(/\r?\n/u)) {
@@ -442,7 +466,7 @@ function loadTextbookUnitVersions(
       if (!chapterId || !isSafeResourceContentPath(chapterId)) continue;
       versions.set(structuralPath.join('/'), `content:${digest({
         markdown: unit.markdown,
-        assets: textbookAssetDigests(unit.markdown, runtimeRoot, bookId, chapterId),
+        assets: textbookAssetDigests(unit.markdown, runtimeRoot, bookId, chapterId, runtimeFiles),
       })}`);
     } catch {
       // A malformed unit leaves that resource without a content identity.
@@ -455,20 +479,35 @@ function textbookUnitContentVersion(
   resourceId: string,
   runtimeRoot: string,
   cache: Map<string, ReadonlyMap<string, string>>,
+  runtimeFiles?: ReadonlyMap<string, string>,
 ): string | null {
-  const decoded = decodedSection(resourceId);
+  const legacy = resolveLegacyTextbookResource(resourceId);
+  const decoded = legacy ? [legacy.bookId, ...legacy.structuralPath].join(':') : decodedSection(resourceId);
   if (!decoded) return null;
   const segments = decoded.split(':');
   const alias = TEXTBOOK_ID_ALIASES.find((entry) => entry.readerBookId === segments[0]);
   const structuralPath = segments.slice(1);
   if (!alias || structuralPath.length === 0) return null;
+  if (legacy) {
+    try {
+      const manifest = JSON.parse(runtimeFileBytes(join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE, alias.readerBookId, 'manifest.json'), runtimeRoot, runtimeFiles)?.toString('utf8') ?? '{}');
+      if (manifest.bookId !== alias.readerBookId || manifest.edition !== alias.edition) return null;
+    } catch { return null; }
+  }
   const fileKey = join(runtimeRoot, TEXTBOOK_RUNTIME_RELATIVE, alias.readerBookId, 'units.jsonl');
   let versions = cache.get(fileKey);
   if (!versions) {
-    versions = loadTextbookUnitVersions(runtimeRoot, alias.readerBookId);
+    versions = loadTextbookUnitVersions(runtimeRoot, alias.readerBookId, runtimeFiles);
     cache.set(fileKey, versions);
   }
-  return versions.get(structuralPath.join('/')) ?? null;
+  const selected = structuralPath.join('/');
+  if (!versions.has(selected)) return null;
+  if (legacy) {
+    const subtree = [...versions.entries()].filter(([key]) => key === selected || key.startsWith(selected + '/'))
+      .sort(([left], [right]) => left.localeCompare(right));
+    return `content:${digest(subtree)}`;
+  }
+  return versions.get(selected) ?? null;
 }
 
 function backendVersion(backend: PublishedResourceBackend): unknown {
@@ -524,8 +563,8 @@ function resourceContentVersion(input: {
     const hash = infographicContentVersion(backend.token, runtimeRoot, state.infographicContent);
     if (hash) return `content:${hash}`;
   }
-  if (resource.resourceType === 'textbook-section') {
-    const version = textbookUnitContentVersion(resource.resourceId, runtimeRoot, state.textbookUnits);
+  if (resource.resourceType === 'textbook-section' || resource.resourceType === 'textbook-chapter') {
+    const version = textbookUnitContentVersion(resource.resourceId, runtimeRoot, state.textbookUnits, state.runtimeFiles);
     if (version) return version;
   }
   if (derivedContentVersion) return `derived:${derivedContentVersion}`;
@@ -586,6 +625,7 @@ export function buildPublishedResourceFeatureIndex(input: {
   const runtimeRoot = input.runtimeRoot ?? join(process.cwd(), 'course-content/runtime');
   const versionState: ResourceVersionState = {
     sourceContent: new Map(), infographicContent: new Map(), textbookUnits: new Map(),
+    runtimeFiles: input.runtimeManifest ? new Map(input.runtimeManifest.files.map((file) => [file.path, file.sha256])) : undefined,
   };
   const resources = artifacts.resources.map((resource): PublishedResourceFeature => {
     if (ids.has(resource.resourceId)) throw new Error('Duplicate published resource identity');
@@ -593,12 +633,24 @@ export function buildPublishedResourceFeatureIndex(input: {
     const matched = bindings.get(resource.resourceId) ?? [];
     const coverage = [...new Set(matched.map((binding) => binding.canonicalId))].sort();
     const bindingValid = coverage.every((id) => canonicalIds.has(id));
-    let title = safeTitle(resource);
+    const registered = resource.resourceType === 'simulation'
+      ? getRegisteredResourceMetadata(launch.resourceRegistryIds[resource.resourceId] ?? '')
+      : null;
+    let title = registered?.label || safeTitle(resource);
     let summary = title;
     let derivedContentVersion: string | null = null;
     let mediaVersionStamp: string | null = null;
     let backend: PublishedResourceBackend;
-    if (resource.resourceType === 'card') {
+    const legacyTextbook = resource.resourceType === 'textbook-chapter' || resource.resourceType === 'textbook-section'
+      ? resolveLegacyTextbookResource(resource.resourceId) : null;
+    if (legacyTextbook) {
+      title = legacyTextbook.title;
+      const href = launch.resourceLaunchTargets[resource.resourceId];
+      backend = href && isStudentVisiblePathTarget(href)
+        && textbookUnitContentVersion(resource.resourceId, runtimeRoot, versionState.textbookUnits, versionState.runtimeFiles)
+        ? { kind: 'route', href }
+        : { kind: 'reference-only', reason: '对应版本的教材单元尚未发布。' };
+    } else if (resource.resourceType === 'card') {
       const card = input.cardReader(resource.resourceId.slice('act:card:'.length), resource.sourcePath);
       if (card) {
         title = card.title || title;
@@ -718,7 +770,14 @@ function persistIndex(file: string, index: PublishedResourceFeatureIndex): void 
 }
 
 /** Only index creation reads card bodies; repeated planning consumes this metadata cache. */
-export async function loadPublishedResourceFeatureIndex(): Promise<PublishedResourceFeatureIndex> {
+export class PublishedResourceSelectionChangedError extends Error {}
+
+export interface PublishedResourceFeatureIndexCapture {
+  index: PublishedResourceFeatureIndex;
+  assertCurrent: () => void;
+}
+
+export async function loadPublishedResourceFeatureIndexCapture(): Promise<PublishedResourceFeatureIndexCapture> {
   const live = readAgreedLiveCourseProjection();
   if (!live) throw new Error('The published teaching resource selection is unavailable');
   const root = resolveConfiguredTeachingProjectionRoot();
@@ -732,8 +791,10 @@ export async function loadPublishedResourceFeatureIndex(): Promise<PublishedReso
   const assertCaptureCurrent = () => {
     const after = readAgreedLiveCourseProjection();
     if (after?.projectionId !== live.projectionId || after.projectionHash !== live.projectionHash || runtimeStamp() !== runtime
+      || sourceStamp(['projection-manifest.json', 'resources.jsonl', 'bindings.jsonl', 'gate.json']
+        .map((name) => join(release, name))) !== stamp
       || digest(resolveActiveShardIdentity().envelope) !== envelopeFingerprint) {
-      throw new Error('Resource publication changed while indexing');
+      throw new PublishedResourceSelectionChangedError('Resource publication changed while indexing');
     }
   };
   const key = digest([INDEX_VERSION, INDEX_IMPLEMENTATION_REVISION, live.projectionId, live.projectionHash,
@@ -780,11 +841,15 @@ export async function loadPublishedResourceFeatureIndex(): Promise<PublishedReso
     const index = await promise;
     // This single return boundary covers freshly built, disk and memory results.
     assertCaptureCurrent();
-    return index;
+    return { index, assertCurrent: assertCaptureCurrent };
   } catch (error) {
     if (indexPromises.get(key) === promise) indexPromises.delete(key);
     throw error;
   }
+}
+
+export async function loadPublishedResourceFeatureIndex(): Promise<PublishedResourceFeatureIndex> {
+  return (await loadPublishedResourceFeatureIndexCapture()).index;
 }
 
 /** Retained entries are written only after observing an agreed active publication. */

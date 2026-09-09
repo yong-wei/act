@@ -178,7 +178,7 @@ function mapObject(
   return {
     ...object,
     label: name ?? uncoveredNameLabel(locale, object.label),
-    description: uncoveredDescription(locale, explanation ?? object.description),
+    description: locale === 'en' && !name ? null : explanation ?? uncoveredDescription(locale, object.description),
     aliases: aliases ? Object.freeze([aliases]) : uncoveredAliases(locale, object.aliases ?? []),
     typeLabel: typeLabel ?? object.typeLabel ?? null,
   };
@@ -310,6 +310,8 @@ export function applyLocaleToLearnerShard<T extends AuthorityLearnerShard>(
     return {
       ...next,
       objects: next.objects.map((object) => mapObject(object, manifest, receipt, locale)),
+      teachingBoundaryObjects: next.teachingBoundaryObjects?.map((object) => mapObject(object, manifest, receipt, locale)),
+      teachingBoundaries: next.teachingBoundaries?.map((boundary) => mapBoundary(boundary, manifest, receipt, locale)),
       teachingRelations: next.teachingRelations.map((relation) => (
         mapRelation(relation, manifest, receipt, locale)
       )),
@@ -352,7 +354,7 @@ export function applyLocaleToLearnerShard<T extends AuthorityLearnerShard>(
     node: {
       ...detail.node,
       label: name ?? uncoveredNameLabel(locale, detail.node.label),
-      description: uncoveredDescription(locale, explanation ?? detail.node.description),
+      description: locale === 'en' && !name ? null : explanation ?? uncoveredDescription(locale, detail.node.description),
       aliases: aliases ? Object.freeze([aliases]) : uncoveredAliases(locale, detail.node.aliases ?? []),
       typeLabel: typeLabel ?? detail.node.typeLabel ?? null,
       sources: detail.node.sources.map((source) => ({

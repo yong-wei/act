@@ -1,0 +1,121 @@
+{
+  "stage": "local-development",
+  "productionValidated": false,
+  "projectionId": "proj-e24d5f8886be49b1b100e154b9b5f199c121b2cecd03c81d5a9215b319ca40e8",
+  "snapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
+  "resources": {
+    "total": 4038,
+    "bound": 2351,
+    "boundWithUnavailableBackend": 0
+  },
+  "repairs": {
+    "cards": 10,
+    "textbookReferences": 8
+  },
+  "ui": {
+    "selectedNode": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "listed": 50,
+    "disabled": 0,
+    "cardBodyRendered": true,
+    "katexNodes": 14,
+    "textbookReaderOpened": true
+  },
+  "http": [
+    {
+      "resourceKind": "课程步骤",
+      "status": 200,
+      "pageKind": "route",
+      "targetStatus": 200,
+      "targetType": "text/html; charset=utf-8",
+      "title": "方法总结与轻量桥接——从时域指标走向参数与极点趋势"
+    },
+    {
+      "resourceKind": "仿真",
+      "status": 200,
+      "pageKind": "route",
+      "targetStatus": 200,
+      "targetType": "text/html; charset=utf-8",
+      "title": "极点操纵器"
+    },
+    {
+      "resourceKind": "视频",
+      "status": 200,
+      "pageKind": "media",
+      "targetStatus": 200,
+      "targetType": "video/mp4",
+      "title": "3-7 视频"
+    },
+    {
+      "resourceKind": "音频",
+      "status": 200,
+      "pageKind": "media",
+      "targetStatus": 200,
+      "targetType": "audio/mp4",
+      "title": "3-7 音频"
+    },
+    {
+      "resourceKind": "课程",
+      "status": 200,
+      "pageKind": "route",
+      "targetStatus": 200,
+      "targetType": "text/html; charset=utf-8",
+      "title": "2-2：时域响应基础——从响应曲线到动态性能指标"
+    },
+    {
+      "resourceKind": "知识卡",
+      "status": 200,
+      "pageKind": "card",
+      "targetStatus": null,
+      "targetType": null,
+      "title": "终值定理 | Final Value Theorem"
+    },
+    {
+      "resourceKind": "讲义",
+      "status": 200,
+      "pageKind": "route",
+      "targetStatus": 200,
+      "targetType": "text/html; charset=utf-8",
+      "title": "2-2 讲义"
+    },
+    {
+      "resourceKind": "信息图",
+      "status": 200,
+      "pageKind": "infographic",
+      "targetStatus": 200,
+      "targetType": "image/png",
+      "title": "终值定理"
+    },
+    {
+      "resourceKind": "教材节",
+      "status": 200,
+      "pageKind": "route",
+      "targetStatus": 200,
+      "targetType": "text/html; charset=utf-8",
+      "title": "Rules for Determining a Positive ( $180^{\\circ}$ ) Root Locus"
+    },
+    {
+      "resourceKind": "习题",
+      "status": 200,
+      "pageKind": "route",
+      "targetStatus": 200,
+      "targetType": "text/html; charset=utf-8",
+      "title": "3-3 练习"
+    },
+    {
+      "resourceKind": "教材",
+      "status": 200,
+      "pageKind": "container",
+      "targetStatus": null,
+      "targetType": null,
+      "title": "Modern Control Systems (Dorf/Bishop, 14th)"
+    },
+    {
+      "resourceKind": "教材章节",
+      "status": 200,
+      "pageKind": "route",
+      "targetStatus": 200,
+      "targetType": "text/html; charset=utf-8",
+      "title": "根轨迹法（Dorf，第 7 章）"
+    }
+  ]
+}

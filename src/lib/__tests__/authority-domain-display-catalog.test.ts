@@ -537,6 +537,10 @@ describe('committed authority domain display catalog store', () => {
     'CONSUMER_ACTIVATION_ROOT',
   ] as const;
   const previousStoreEnv = new Map<string, string | undefined>();
+  const currentBinding = JSON.parse(readFileSync(path.join(repoRoot,
+    'course-content/authoring/knowledge/authority/current.json'), 'utf8')) as {
+      snapshotId: string; snapshotHash: string; releaseId: string;
+    };
   let engineeringBytesBefore = '';
   let engineeringHashBefore = '';
   let manifestBytesBefore = '';
@@ -592,9 +596,9 @@ describe('committed authority domain display catalog store', () => {
         'utf8',
       ),
     ) as { snapshotId: string; snapshotHash: string; releaseId: string };
-    expect(gitCurrent.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
-    expect(gitCurrent.snapshotHash).toBe(SUCCESSOR_SNAPSHOT_HASH);
-    expect(gitCurrent.releaseId).toBe(SUCCESSOR_RELEASE_ID);
+    expect(gitCurrent.snapshotId).toBe(currentBinding.snapshotId);
+    expect(gitCurrent.snapshotHash).toBe(currentBinding.snapshotHash);
+    expect(gitCurrent.releaseId).toBe(currentBinding.releaseId);
 
     const resolved = resolveActiveEngineeringGraphAuthority(
       resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot(repoRoot)),
@@ -602,15 +606,15 @@ describe('committed authority domain display catalog store', () => {
     );
     expect(resolved.status).toBe('ready');
     expect(resolved.activationMode).toBe('use-combination');
-    expect(resolved.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
-    expect(resolved.snapshotHash).toBe(SUCCESSOR_SNAPSHOT_HASH);
-    expect(resolved.releaseId).toBe(SUCCESSOR_RELEASE_ID);
+    expect(resolved.snapshotId).toBe(currentBinding.snapshotId);
+    expect(resolved.snapshotHash).toBe(currentBinding.snapshotHash);
+    expect(resolved.releaseId).toBe(currentBinding.releaseId);
 
     const activeCatalog = readActiveDomainCatalog();
     expect(activeCatalog.status).toBe('available');
     if (activeCatalog.status === 'available') {
-      expect(activeCatalog.catalog.authorityBinding.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
-      expect(activeCatalog.catalog.authorityBinding.releaseId).toBe(SUCCESSOR_RELEASE_ID);
+      expect(activeCatalog.catalog.authorityBinding.snapshotId).toBe(currentBinding.snapshotId);
+      expect(activeCatalog.catalog.authorityBinding.releaseId).toBe(currentBinding.releaseId);
     }
     const activeRoot = readActiveDomainRootPresentation();
     expect(activeRoot.status).toBe('available');
@@ -640,13 +644,13 @@ describe('committed authority domain display catalog store', () => {
   it('binds committed runtime catalog to the successor Authority independently of Git current', () => {
     const paths = resolveAuthorityDomainCatalogPaths(repoRoot);
     const successorBinding = {
-      snapshotId: SUCCESSOR_SNAPSHOT_ID,
-      snapshotHash: SUCCESSOR_SNAPSHOT_HASH,
-      releaseId: SUCCESSOR_RELEASE_ID,
+      snapshotId: currentBinding.snapshotId,
+      snapshotHash: currentBinding.snapshotHash,
+      releaseId: currentBinding.releaseId,
     };
     const catalog = loadAuthorityDomainCatalogRuntime(paths, successorBinding);
-    expect(catalog.authorityBinding.snapshotId).toBe(SUCCESSOR_SNAPSHOT_ID);
-    expect(catalog.authorityBinding.releaseId).toBe(SUCCESSOR_RELEASE_ID);
+    expect(catalog.authorityBinding.snapshotId).toBe(currentBinding.snapshotId);
+    expect(catalog.authorityBinding.releaseId).toBe(currentBinding.releaseId);
     expect(catalog.domains).toHaveLength(15);
     expect(catalog.aggregate.entryId).toBe(AGGREGATE_ENTRY_ID);
     expect(catalog.aggregate.domainCount).toBe(15);

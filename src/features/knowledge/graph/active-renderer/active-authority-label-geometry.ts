@@ -46,6 +46,7 @@ function labelLayoutFor(node: ActiveAuthorityLayoutNode): KnowledgeNodeLabelLayo
 export function buildActiveAuthorityLabelDescriptors(input: {
   nodes: readonly ActiveAuthorityLayoutNode[];
   kind: 'root' | 'domain';
+  focusNodeIds?: ReadonlySet<string>;
   selectedNodeId: string | null;
   hoveredNodeId: string | null;
 }): ActiveAuthorityLabelDescriptor[] {
@@ -73,7 +74,7 @@ export function buildActiveAuthorityLabelDescriptors(input: {
       width: Math.max(54, label.width + (isRootNode(node) ? 20 : 12)),
       height: label.height + (mathematics?.state === 'available' ? 18 : 0),
       fontSize: isRootNode(node) ? ACTIVE_AUTHORITY_ROOT_LABEL_FONT_SIZE : ACTIVE_AUTHORITY_LABEL_FONT_SIZE,
-      priority: labelPriority(node, input.selectedNodeId, input.hoveredNodeId),
+      priority: node.id !== input.selectedNodeId && input.focusNodeIds?.has(node.id) ? 4 : labelPriority(node, input.selectedNodeId, input.selectedNodeId ? null : input.hoveredNodeId),
       isRoot: input.kind === 'root' || isRootNode(node),
     } satisfies ActiveAuthorityLabelDescriptor;
   });
@@ -109,10 +110,13 @@ export function placeActiveAuthorityLabels(input: {
   const hardBudget = Math.min(ACTIVE_AUTHORITY_LABEL_SCREEN_BUDGET, ordered.length);
   const placements = ordered.map((descriptor) => {
     const point = input.points.get(descriptor.id);
+    if (input.selectedNodeId && descriptor.priority < 4) {
+      return { ...descriptor, x: point?.x ?? 0, y: point?.y ?? 0, visible: false, opacity: 0 };
+    }
     if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
       return { ...descriptor, x: 0, y: 0, visible: false, opacity: 0 };
     }
-    const isPriority = descriptor.id === input.selectedNodeId || descriptor.id === input.hoveredNodeId;
+    const isPriority = descriptor.id === input.selectedNodeId || (input.selectedNodeId ? descriptor.priority >= 4 : descriptor.id === input.hoveredNodeId);
     const maxWidth = Math.max(48, width - padding * 2);
     const labelWidth = Math.min(descriptor.width, maxWidth);
     const scale = Math.max(0.25, point.scale ?? 1);

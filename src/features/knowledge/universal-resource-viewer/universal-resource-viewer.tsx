@@ -6,6 +6,7 @@ import { ExternalLink, Maximize2, Minimize2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { platformLayerStyle } from '@/components/platform/platform-layers';
+import { parsePublishedResourceHref } from '@/lib/published-resource-reference';
 import { KnowledgeCard, normalizeKnowledgeMetadata } from '../knowledge-card';
 import { canEmbedResourceHref } from './embed-policy';
 import { subscribeResourceViewer } from './open-resource-viewer';
@@ -13,7 +14,8 @@ import type { UniversalResourceViewerDescriptor } from './types';
 
 function ViewerBody({ descriptor }: { descriptor: UniversalResourceViewerDescriptor }) {
   const kind = descriptor.resourceKind.toLowerCase();
-  if (kind === '知识卡' || kind === 'card') {
+  const published = descriptor.href ? parsePublishedResourceHref(descriptor.href) : null;
+  if (!published && (kind === '知识卡' || kind === 'card')) {
     const node = descriptor.node ?? {
       name: descriptor.title,
       description: descriptor.title,
@@ -35,7 +37,7 @@ function ViewerBody({ descriptor }: { descriptor: UniversalResourceViewerDescrip
       </div>
     );
   }
-  if (kind === '信息图' || kind === 'infographic') {
+  if (!published && (kind === '信息图' || kind === 'infographic')) {
     return descriptor.imageSrc ? (
       <div className="relative h-full w-full bg-black">
         <Image

@@ -222,7 +222,7 @@
   }
 
   @media (min-width: 1280px) {
-    body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls] {
+    body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls][data-platform-floating-dock-safe-area="bottom-right"] {
       right: auto !important;
       left: 1rem;
       width: max-content;
@@ -230,14 +230,14 @@
   }
 
   @media (max-width: 1279px) {
-    body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls] {
+    body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls][data-platform-floating-dock-safe-area="bottom-right"] {
       top: 7rem;
       bottom: auto !important;
     }
   }
 
   @media (min-width: 1024px) {
-    body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls] {
+    body:has([data-knowledge-inspector="floating-right-edge"]) [data-page-floating-controls][data-platform-floating-dock-safe-area="bottom-right"] {
       right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
     }
 
