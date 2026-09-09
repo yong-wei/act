@@ -24,6 +24,14 @@ import { VersionedShipModel } from '@/resources/simulations/components/versioned
 import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import { boxProjectsInsideNdc, framePerspectiveCameraToBox } from '@/resources/simulations/scene/camera';
 
+function requiredRoleUrl(artifact: { url: string } | undefined, role: string): string {
+  if (!artifact) throw new Error(`missing-role:${role}`);
+  return artifact.url;
+}
+
+const TYPE055_DEMO_URL = requiredRoleUrl(TYPE055_NANCHANG_101_V2.roles.demo, 'demo');
+const TYPE055_PAYLOAD_URL = requiredRoleUrl(TYPE055_NANCHANG_101_V2.roles.payload, 'payload');
+
 type QaApi = {
   ready: boolean;
   shipUrl: string | null;
@@ -161,7 +169,7 @@ function QaShip({ url }: { url: string }) {
 
 /** 武器演示：仅显式激活后才挂载（延迟加载证据由网络请求记录）。 */
 function QaDemo() {
-  const { scene, animations } = useGLTF(TYPE055_NANCHANG_101_V2.roles.demo.url, true, true);
+  const { scene, animations } = useGLTF(TYPE055_DEMO_URL, true, true);
   const mounted = useMemo(() => cloneSkinnedScene(scene), [scene]);
   const mixer = useMemo(() => new THREE.AnimationMixer(mounted), [mounted]);
   useFrame((_, delta) => mixer.update(delta));
@@ -185,7 +193,7 @@ function QaDemo() {
 
 /** 武器载荷：按需加载 + 弹药模板运行时克隆生成与寿命销毁（与主舰生命周期分离）。 */
 function QaPayload() {
-  const { scene } = useGLTF(TYPE055_NANCHANG_101_V2.roles.payload.url, true, true);
+  const { scene } = useGLTF(TYPE055_PAYLOAD_URL, true, true);
   // ref 为生成实例的即时真源；renderTick 只触发重渲染，保证 QA API 同步可断言
   const spawnedRef = useRef<THREE.Object3D[]>([]);
   const [renderTick, setRenderTick] = useState(0);

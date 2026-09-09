@@ -11,7 +11,6 @@ import {
   OrbitControls,
   Line,
   Grid,
-  useGLTF,
   PerspectiveCamera,
 } from '@react-three/drei';
 import { useSearchParams } from 'next/navigation';
@@ -19,8 +18,8 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { Compass, Video, Orbit, ArrowDownFromLine } from 'lucide-react';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
-import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
+import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import { persistSceneTraceRun } from '../persisted-run-client';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
@@ -87,6 +86,11 @@ import {
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromMilliseconds,
 } from '../lib/simulation-timing';
+import {
+  absoluteHeadingErrorDeg,
+  advanceAttainment,
+  createAttainmentState,
+} from '../lib/heading-attainment';
 import {
   buildCruiseTelemetryBridgeSummary,
   type CruiseTelemetryBridgeSummary,
@@ -166,7 +170,6 @@ const CRUISE_ROUTE_TURN_HEADING = 30;
 const CRUISE_ROUTE_EXTENSION = 5200;
 const CRUISE_HEADING_PRIMARY = simulationScenePalette.cruiseHeadingPrimary;
 const CRUISE_HEADING_SECONDARY = simulationScenePalette.cruiseHeadingSecondary;
-const CRUISE_HULL_SINK_OFFSET = 2.5;
 const CRUISE_EVALUATION_DURATION_SEC = 300;
 
 function createCruiseTraceRunId(): string {
@@ -310,106 +313,27 @@ function Ocean({ seaState, sceneTheme }: { seaState: number; sceneTheme: Simulat
 
 // ============ 邮轮模型组件 ============
 
-const MODEL = resolveRegisteredSimulationModel('luxury-liner');
-
 function CruiseShipModel(props: {
   position: Vector2;
   heading: number;
   rollAngle: number;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
+  resetToken: number;
 }) {
   return (
-    <FallbackGltfModel
-      candidates={MODEL.candidates}
-      render={(url) => <CruiseShipModelScene url={url} {...props} />}
+    <VersionedFleetShip
+      logicalId="luxury-liner"
+      simRef={props.simRef}
+      position={props.position}
+      headingRad={props.heading}
+      extraEuler={{ z: props.rollAngle }}
+      sceneLengthMeters={CRUISE_ADORA_PARAMS.LENGTH}
+      resetToken={props.resetToken}
+      legacyYawOffsetRad={Math.PI / 2}
+      fallbackDraftMeters={CRUISE_ADORA_PARAMS.DRAFT}
     />
   );
 }
-
-function CruiseShipModelScene({
-  url,
-  position,
-  heading,
-  rollAngle,
-}: {
-  url: string;
-  position: Vector2;
-  heading: number;
-  rollAngle: number;
-}) {
-  const { scene } = useGLTF(url, true, true);
-  const groupRef = useRef<THREE.Group>(null);
-
-  const { model, scale, modelHeight } = useMemo(() => {
-    const cloned = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(cloned);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-
-    // 居中模型
-    cloned.position.sub(center);
-
-    // 启用阴影和修复材质
-    cloned.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
-        child.frustumCulled = false;
-        if (child.material) {
-          // 修复材质可见性问题
-          child.material.transparent = false;
-          child.material.opacity = 1;
-          child.material.side = THREE.DoubleSide;
-          // 确保材质可见
-          child.material.visible = true;
-          child.material.needsUpdate = true;
-        }
-      }
-    });
-
-    // 计算缩放 - 目标长度约 324m (爱达·魔都号实际长度)
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetLength = CRUISE_ADORA_PARAMS.LENGTH;
-    const calculatedScale = targetLength / maxDim;
-
-    // 调试输出
-    console.log('Cruise model loaded:', {
-      originalSize: { x: size.x, y: size.y, z: size.z },
-      maxDim,
-      targetLength,
-      calculatedScale,
-      modelHeight: size.y * calculatedScale,
-    });
-
-    return { model: cloned, scale: calculatedScale, modelHeight: size.y * calculatedScale };
-  }, [scene]);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.position.x = position.x;
-      groupRef.current.position.y = modelHeight * 0.5 - CRUISE_ADORA_PARAMS.DRAFT - CRUISE_HULL_SINK_OFFSET;
-      groupRef.current.position.z = position.z;
-      groupRef.current.rotation.y = -heading + Math.PI / 2;
-      groupRef.current.rotation.z = rollAngle;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      <primitive object={model} scale={scale} />
-      {/* 船艏标记 */}
-      <mesh position={[0, modelHeight * 0.6, 0]}>
-        <sphereGeometry args={[6, 16, 16]} />
-        <meshBasicMaterial color={simulationScenePalette.cruisePrimary} />
-      </mesh>
-    </group>
-  );
-}
-
-// 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(MODEL.primary);
 
 // ============ 航迹线组件 ============
 
@@ -1479,6 +1403,7 @@ function VisualizationLayer({
   onRequestFreeMode,
   resetToken,
   resetSignal,
+  simRef,
 }: {
   state: CruiseSimulationState;
   virtualModeEnabled: boolean;
@@ -1491,6 +1416,7 @@ function VisualizationLayer({
   onRequestFreeMode: () => void;
   resetToken: number;
   resetSignal: number;
+  simRef: React.MutableRefObject<BindingTelemetrySource>;
 }) {
   return (
     <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
@@ -1528,6 +1454,8 @@ function VisualizationLayer({
           position={state.position}
           heading={toRadians(state.heading)}
           rollAngle={state.rollAngle}
+          simRef={simRef}
+          resetToken={resetToken}
         />
       </Suspense>
       <DesiredRouteLine points={desiredRoutePoints} />
@@ -1714,6 +1642,7 @@ export default function CruiseSimulation() {
   // 循环回调与启动 effect 引用稳定，运行期间不 teardown 重建。
   const controlRef = useRef({
     isPaused: false,
+    isRunning: false,
     targetHeading: 0,
     controlMode: 'pid' as CruiseSimulationState['controlMode'],
     manualRudder: 0,
@@ -1729,6 +1658,13 @@ export default function CruiseSimulation() {
   const virtualModeRef = useRef(true);
   const timeRef = useRef(0);
   const lastHudUpdateRef = useRef(0);
+  const bindingRef = useRef<BindingTelemetrySource>({
+    rudderDeg: 0,
+    speedMps: CRUISE_ADORA_PARAMS.CRUISE_SPEED,
+    attainedCount: 0,
+    advancing: false,
+  });
+  const attainmentRef = useRef(createAttainmentState(0));
 
   const [cameraMode, setCameraMode] = useState<string>('chase');
   const [showGrid, setShowGrid] = useState(true);
@@ -1863,6 +1799,18 @@ export default function CruiseSimulation() {
       finMetrics = engine.getFinStabilizerMetrics();
       internalState = engine.getInternalState();
 
+      const headingError = absoluteHeadingErrorDeg(simState.heading, missionTargetHeading);
+      let attainedCount = bindingRef.current.attainedCount;
+      if (advanceAttainment(attainmentRef.current, missionTargetHeading, headingError, 5, stepDt)) {
+        attainedCount += 1;
+      }
+      bindingRef.current = {
+        rudderDeg: simState.rudder,
+        speedMps: simState.speed,
+        attainedCount,
+        advancing: control.isRunning && !control.isPaused,
+      };
+
       const centripetalAccelG = Math.abs((simState.speed * toRadians(simState.yawRate)) / 9.81);
       const rollInducedAccelG = Math.abs(Math.sin(simState.waveRoll)) * 1.2;
       const lateralAccelG = centripetalAccelG + rollInducedAccelG;
@@ -1934,6 +1882,7 @@ export default function CruiseSimulation() {
   useEffect(() => {
     controlRef.current = {
       isPaused: state.isPaused,
+      isRunning: state.isRunning,
       targetHeading: state.targetHeading,
       controlMode: state.controlMode,
       manualRudder: state.manualRudder,
@@ -1945,7 +1894,7 @@ export default function CruiseSimulation() {
       pidGains: state.pidGains,
       runDurationSec: state.runDurationSec,
     };
-  }, [state.isPaused, state.targetHeading, state.controlMode, state.manualRudder, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains, state.runDurationSec]);
+  }, [state.isPaused, state.isRunning, state.targetHeading, state.controlMode, state.manualRudder, state.speed, state.seaState, state.waveDirection, state.finStabilizerEnabled, state.notchFilterEnabled, state.pidGains, state.runDurationSec]);
   useEffect(() => {
     speedScaleRef.current = speedScale;
   }, [speedScale]);
@@ -1996,6 +1945,13 @@ export default function CruiseSimulation() {
     lastTimeRef.current = 0;
     timeRef.current = 0;
     lastHudUpdateRef.current = 0;
+    attainmentRef.current = createAttainmentState(0);
+    bindingRef.current = {
+      rudderDeg: 0,
+      speedMps: CRUISE_ADORA_PARAMS.CRUISE_SPEED,
+      attainedCount: 0,
+      advancing: false,
+    };
     turnStartTimeRef.current = null;
     maxHeadingAfterTurnRef.current = CRUISE_ROUTE_TURN_HEADING;
     settleWindowStartRef.current = null;
@@ -2404,6 +2360,7 @@ export default function CruiseSimulation() {
         onRequestFreeMode={() => setCameraMode('free')}
         resetToken={resetCount}
           resetSignal={viewResetCount}
+        simRef={bindingRef}
       />
 
       <CameraViewSwitcher

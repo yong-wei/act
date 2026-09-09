@@ -19,6 +19,36 @@ export const SIMULATION_VERSIONED_DEFAULTS: Partial<Record<SimulationModelId, Ve
     modelVersion: '2.1.3',
     baseUrl: '/assets/model-releases/type055-nanchang-101/v2.1.3',
   },
+  'lng-carrier': {
+    packageId: 'lng-changheng',
+    modelVersion: '1.0.0',
+    baseUrl: '/assets/model-releases/lng-changheng/v1.0.0',
+  },
+  container: {
+    packageId: 'msc-tessa',
+    modelVersion: '1.0.0',
+    baseUrl: '/assets/model-releases/msc-tessa/v1.0.0',
+  },
+  icebreaker: {
+    packageId: 'xue-long-2',
+    modelVersion: '0.1.1',
+    baseUrl: '/assets/model-releases/xue-long-2/v0.1.1',
+  },
+  'luxury-liner': {
+    packageId: 'adora-magic-city',
+    modelVersion: '0.1.0',
+    baseUrl: '/assets/model-releases/adora-magic-city/v0.1.0',
+  },
+  'drilling-rig': {
+    packageId: 'hysy-981',
+    modelVersion: '1.0.2',
+    baseUrl: '/assets/model-releases/hysy-981/v1.0.2',
+  },
+  dredger: {
+    packageId: 'dredger-tianjing',
+    modelVersion: '1.0.1',
+    baseUrl: '/assets/model-releases/dredger-tianjing/v1.0.1',
+  },
 };
 
 export function resolveVersionedDefault(logicalId: SimulationModelId): VersionedDefaultActivation | null {

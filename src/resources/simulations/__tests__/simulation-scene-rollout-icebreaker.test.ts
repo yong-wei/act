@@ -56,9 +56,8 @@ describe('icebreaker pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(ICEBREAKER);
-    expect(source).toContain("resolveRegisteredSimulationModel('icebreaker')");
-    expect(source).toContain('FallbackGltfModel');
-    expect(source).toContain('frustumCulled = false');
+    expect(source).toContain('VersionedFleetShip');
+    expect(source).toContain("logicalId=\"icebreaker\"");
   });
 
   it('gates the heading indicator behind the teaching-annotations toggle and keeps trail line', () => {

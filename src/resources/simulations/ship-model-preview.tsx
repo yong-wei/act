@@ -50,6 +50,13 @@ const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/drilling-rig.glb': new THREE.Vector3(0, 0, -1),
 }
 
+function resolvePreviewForward(modelPath: string): THREE.Vector3 {
+  if (modelPath.startsWith('/assets/model-releases/dredger-tianjing/')) {
+    return new THREE.Vector3(0, 0, 1)
+  }
+  return (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
+}
+
 const MODEL_YAW_ROTATION: Record<string, number> = {
   '/assets/dredger.glb': Math.PI,
   '/assets/Lng-carrier.glb': Math.PI,
@@ -112,7 +119,7 @@ export function preloadShipModel(modelPath: string, priority: PreloadPriority = 
 
   const run = () => {
     queuePreload(() => {
-      useGLTF.preload(modelPath)
+      useGLTF.preload(modelPath, true, true)
     })
   }
 
@@ -137,8 +144,8 @@ class ModelLoadBoundary extends Component<{
   }
 }
 
-function CenteredModel({ modelPath, onReady }: { modelPath: string; onReady: () => void }) {
-  const { scene } = useGLTF(modelPath)
+function CenteredGltfModel({ modelPath, onReady }: { modelPath: string; onReady: () => void }) {
+  const { scene } = useGLTF(modelPath, true, true)
 
   const { model, scale, rotation } = useMemo(() => {
     const cloned = scene.clone(true)
@@ -160,7 +167,7 @@ function CenteredModel({ modelPath, onReady }: { modelPath: string; onReady: () 
     const maxDim = Math.max(size.x, size.y, size.z) || 1
     const targetSize = 1.6
     const scale = targetSize / maxDim
-    const forward = (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
+    const forward = resolvePreviewForward(modelPath)
     const rotation = new THREE.Quaternion().setFromUnitVectors(forward, STANDARD_FORWARD)
     const extraYaw = MODEL_YAW_ROTATION[modelPath] ?? 0
     if (extraYaw !== 0) {
@@ -292,7 +299,7 @@ function ShipModelPreviewSession({
           <AutoOrbit controlsRef={controlsRef} isInteractingRef={isInteractingRef} />
           <ModelLoadBoundary onError={handleModelError}>
             <Suspense fallback={null}>
-              <CenteredModel modelPath={modelPath} onReady={() => setIsModelReady(true)} />
+              <CenteredGltfModel modelPath={modelPath} onReady={() => setIsModelReady(true)} />
             </Suspense>
           </ModelLoadBoundary>
           <OrbitControls

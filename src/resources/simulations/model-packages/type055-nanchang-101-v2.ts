@@ -13,96 +13,14 @@
  * v2.1.2、v2.1.1、v2.1.0 保留为运行时有序回退（接口合同一致，仅动画字节/材质归属不同）。
  */
 
-export type VersionedModelRole =
-  | 'ship-lod0'
-  | 'ship-lod1'
-  | 'ship-lod2'
-  | 'collision'
-  | 'payload'
-  | 'demo'
-  | 'interactive-systems';
+export * from './types';
 
-export interface VersionedModelArtifact {
-  readonly role: VersionedModelRole;
-  readonly file: string;
-  readonly url: string;
-  readonly sha256: string;
-  readonly bytes: number;
-}
-
-export interface VersionedModelInterfaceContract {
-  /** 每档主舰 GLB 内的唯一动画数量（模型侧验证：15）。 */
-  readonly shipAnimationCount: number;
-  /** 代表性语义动画（场景/演示真正消费的接口，按名称绑定）。 */
-  readonly shipInterfaceAnimations: readonly string[];
-  /** 武器演示 GLB 的组合片段名（模型侧验证：8 个）。 */
-  readonly demoAnimations: readonly string[];
-  readonly vlsLoadedCount: number;
-  readonly hq10LoadedCount: number;
-  /** 透明贴花纹理名（两处 RGBA PNG 贴花）。 */
-  readonly decalImages: readonly string[];
-}
-
-/** clip 循环绑定：mixer 常开；speedCoupled 时 timeScale = rate × speed/designSpeed。 */
-export interface ClipLoopBinding {
-  readonly id: string;
-  readonly drive: 'clip-loop';
-  readonly clip: string;
-  readonly speedCoupled?: boolean;
-  readonly rate?: number;
-}
-
-/** 程序化绑定：直接驱动语义节点局部轴角度，角度 = 映射(遥测源) 并钳制到 ±maxAngleDeg。 */
-export interface ProceduralBinding {
-  readonly id: string;
-  readonly drive: 'procedural';
-  readonly nodes: readonly string[];
-  readonly axis: 'x' | 'y' | 'z';
-  readonly source: 'telemetry.rudderDeg' | 'telemetry.speedMps';
-  readonly maxAngleDeg: number;
-  /** 源值 → 角度方向；缺省 +1。 */
-  readonly sign?: 1 | -1;
-}
-
-export type SemanticAnimationBinding = ClipLoopBinding | ProceduralBinding;
-
-export interface VersionedModelPackageDescriptor {
-  readonly packageId: string;
-  readonly shipId: string;
-  readonly modelVersion: string;
-  readonly releaseManifestSha256: string;
-  readonly sourceBlendSha256: string;
-  readonly baseUrl: string;
-  readonly roles: Readonly<Record<VersionedModelRole, VersionedModelArtifact>>;
-  /** 模型局部坐标基：glTF Y-up、舰艏沿 +X（场景基为 +Z 舰艏，见 basisYawRad）。 */
-  readonly coordinateBasis: { readonly forward: '+X'; readonly up: '+Y' };
-  readonly interfaceContract: VersionedModelInterfaceContract;
-  /** 设计水线锚定：模型局部 Y（米）。缺省时场景沿用 bbox 推导定位。 */
-  readonly verticalAnchor?: { readonly designWaterlineY: number };
-  /** 模型总长（米）：推进器锚点换算的场景缩放分母。 */
-  readonly modelLengthMeters?: number;
-  /** 推进器语义节点（模型局部米）：声明时尾迹逐桨发射；缺省保持 profile 单航迹。 */
-  readonly propulsors?: readonly {
-    readonly id: string;
-    readonly node: string;
-    readonly position: readonly [number, number, number];
-  }[];
-  /** 声明式动画绑定（L0 常开）：按语义名解析，单条失败 fail closed 不影响其余。 */
-  readonly semanticBindings?: readonly SemanticAnimationBinding[];
-  /** 遥测源归一化参数。 */
-  readonly telemetryScale?: {
-    readonly designSpeedMps: number;
-    readonly rudderLimitDeg: number;
-  };
-  /** 彩蛋（达标触发）：L1 主舰内巡检 clip；L2 从 interfaceContract.demoAnimations 随机一条。 */
-  readonly easterEgg?: {
-    readonly patrolClips: readonly { readonly clip: string; readonly loop: 'repeat' | 'pingpong' }[];
-  };
-}
-
-function artifact(baseUrl: string, role: VersionedModelRole, file: string, sha256: string, bytes: number): VersionedModelArtifact {
-  return { role, file, url: `${baseUrl}/${file}`, sha256, bytes };
-}
+import {
+  artifact,
+  type SemanticAnimationBinding,
+  type VersionedModelInterfaceContract,
+  type VersionedModelPackageDescriptor,
+} from './types';
 
 /** v2.1.x 共用的接口合同（v2.1.1 仅改材质归属、v2.1.2 仅剔除伪 scale 轨道、v2.1.3 仅裁减 spin clip 保持尾，接口不变）。 */
 const V2_INTERFACE_CONTRACT: VersionedModelInterfaceContract = {
@@ -216,6 +134,7 @@ export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
     'interactive-systems': artifact(BASE_URL, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -245,6 +164,7 @@ export const TYPE055_NANCHANG_101_V2_1_2: VersionedModelPackageDescriptor = {
     'interactive-systems': artifact(BASE_URL_V2_1_2, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -274,6 +194,7 @@ export const TYPE055_NANCHANG_101_V2_1_1: VersionedModelPackageDescriptor = {
     'interactive-systems': artifact(BASE_URL_V2_1_1, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -303,6 +224,7 @@ export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
     'interactive-systems': artifact(BASE_URL_V2_1_0, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: -Math.PI / 2,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
@@ -311,24 +233,6 @@ export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
   semanticBindings: V2_SEMANTIC_BINDINGS,
   easterEgg: V2_EASTER_EGG,
 };
-
-/** 质量档位 → 主舰 LOD 的唯一映射（高/中/低 → LOD0/1/2）。 */
-export const SHIP_LOD_BY_QUALITY_TIER: Readonly<Record<'high' | 'medium' | 'low', 'ship-lod0' | 'ship-lod1' | 'ship-lod2'>> = {
-  high: 'ship-lod0',
-  medium: 'ship-lod1',
-  low: 'ship-lod2',
-};
-
-export function shipLodRoleForQualityTier(tier: 'high' | 'medium' | 'low'): 'ship-lod0' | 'ship-lod1' | 'ship-lod2' {
-  return SHIP_LOD_BY_QUALITY_TIER[tier];
-}
-
-export function shipLodUrlForQualityTier(
-  descriptor: VersionedModelPackageDescriptor,
-  tier: 'high' | 'medium' | 'low',
-): string {
-  return descriptor.roles[shipLodRoleForQualityTier(tier)].url;
-}
 
 /**
  * 坐标基适配（唯一适配点）：把模型的 +X 舰艏 / Y-up 基装配进场景的 +Z 舰艏体系。

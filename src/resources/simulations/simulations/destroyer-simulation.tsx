@@ -11,6 +11,11 @@ import { Line, useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/dr
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
+import {
+  advanceAttainment,
+  createAttainmentState,
+  type AttainmentState,
+} from '../lib/heading-attainment';
 import { resolveRegisteredSimulationModel, resolveVersionedDefault } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
 import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
@@ -118,6 +123,9 @@ import {
 } from '../physics/simulation-engine-facade';
 
 Chart.register(...registerables);
+
+export type { AttainmentState };
+export { advanceAttainment, createAttainmentState };
 
 // ============ 类型定义 ============
 
@@ -231,58 +239,6 @@ const normalizeSignedHeading = (heading: number) => {
   const normalized = normalizeHeading(heading);
   return normalized > 180 ? normalized - 360 : normalized;
 };
-
-export interface AttainmentState {
-  dwell: number;
-  armed: boolean;
-  maneuverActive: boolean;
-  initialTargetDeg: number;
-  /** 进入当前调节窗口以来的时间（s）：机动激活时清零；达标后再遇 >2×maxError 偏离重新武装时清零，开启新窗口。 */
-  maneuverTime: number;
-}
-
-export function createAttainmentState(initialTargetDeg = 0): AttainmentState {
-  return { dwell: 0, armed: true, maneuverActive: false, initialTargetDeg, maneuverTime: 0 };
-}
-
-/**
- * 彩蛋达标判定（视觉层只读计数）：目标航向偏离初始值（进入机动段）后，
- * 航向误差在 successCriteria.maxError 内持续 3s 记一次达标；
- * 误差超过 2×maxError 重新武装。直线巡航段（目标未变化）不记达标；
- * 目标渐变（斜坡插值）与阶跃同样识别，跟踪良好的斜坡段也可记达标。
- * 传入 maxSettlingTimeSec（successCriteria.maxSettlingTime）时，仅在调节时限内
- * 收敛才记达标；超时后本次机动不再计数，直到重新武装开启新调节窗口。
- */
-export function advanceAttainment(
-  state: AttainmentState,
-  targetDeg: number,
-  headingErrorDeg: number,
-  maxErrorDeg: number,
-  dt: number,
-  maxSettlingTimeSec?: number,
-): boolean {
-  if (!state.maneuverActive && Math.abs(normalizeSignedHeading(targetDeg - state.initialTargetDeg)) > 2) {
-    state.maneuverActive = true;
-    state.maneuverTime = 0;
-  }
-  if (!state.maneuverActive) return false;
-  state.maneuverTime += dt;
-  if (headingErrorDeg <= maxErrorDeg) {
-    state.dwell += dt;
-    const withinDeadline = maxSettlingTimeSec === undefined || state.maneuverTime <= maxSettlingTimeSec;
-    if (state.armed && state.dwell >= 3 && withinDeadline) {
-      state.armed = false;
-      return true;
-    }
-    return false;
-  }
-  state.dwell = 0;
-  if (headingErrorDeg > maxErrorDeg * 2) {
-    if (!state.armed) state.maneuverTime = 0;
-    state.armed = true;
-  }
-  return false;
-}
 
 type ScenarioLogic = {
   getDesiredHeading: (t: number) => number;

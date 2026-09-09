@@ -1,0 +1,56 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "msc-tessa",
+  "modelVersion": "1.0.0",
+  "capturedAt": "2026-09-09T02:07:03.835Z",
+  "packageTreeDigest": "553f2bfe78b86dbdeb048771f7ce1b46af8c5323",
+  "sourceCommitAtCapture": "0930f6710746924491f04399ac630af72bb74f9b",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/msc_tessa/exports/v1.0.0",
+  "manifestSha256": "da8ebe39bbcb0d92453324bd3191655cd358da035ec5131f591493ec33ed8754",
+  "sourceBlendSha256": "4071f36ddc02b2c365dcdc12a122151ccf8662da6b0a3b9f21bb213ed9bdb579",
+  "roles": {
+    "ship-lod0": {
+      "file": "msc-tessa-ship-lod0.glb",
+      "sha256": "75fdbb9a3f5bf886e0ddeff3ce8e21eb50be3cdd1531cd05c422387c6a33fe83",
+      "bytes": 31972684,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "msc-tessa-ship-lod1.glb",
+      "sha256": "4630058368a82f8bea33c7dfdf137b98d72f48fc18ad94ad45627a97499a6256",
+      "bytes": 13535476,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "msc-tessa-ship-lod2.glb",
+      "sha256": "d7c4e30f1b952d72f068c0adf36ff23ea2ff28ff19379ec03c3ddb2c6f3f02b8",
+      "bytes": 6845708,
+      "kind": "ship",
+      "lod": 2
+    }
+  },
+  "copiedFiles": [
+    {
+      "file": "msc-tessa-ship-lod0.glb",
+      "sha256": "75fdbb9a3f5bf886e0ddeff3ce8e21eb50be3cdd1531cd05c422387c6a33fe83",
+      "bytes": 31972684,
+      "role": "ship-lod0"
+    },
+    {
+      "file": "msc-tessa-ship-lod1.glb",
+      "sha256": "4630058368a82f8bea33c7dfdf137b98d72f48fc18ad94ad45627a97499a6256",
+      "bytes": 13535476,
+      "role": "ship-lod1"
+    },
+    {
+      "file": "msc-tessa-ship-lod2.glb",
+      "sha256": "d7c4e30f1b952d72f068c0adf36ff23ea2ff28ff19379ec03c3ddb2c6f3f02b8",
+      "bytes": 6845708,
+      "role": "ship-lod2"
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

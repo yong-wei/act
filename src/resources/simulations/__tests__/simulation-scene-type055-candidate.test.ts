@@ -42,7 +42,7 @@ describe('type055 production activation keeps legacy fallback', () => {
   it('resolves the destroyer default from the versioned activation pointer, not a scene hard-code', () => {
     const activation = resolveVersionedDefault('destroyer');
     expect(matchActivatedType055Package(activation)).toEqual(TYPE055_NANCHANG_101_V2);
-    expect(resolveVersionedDefault('icebreaker')).toBeNull();
+    expect(resolveVersionedDefault('dredger')?.packageId).toBe('dredger-tianjing');
     expect(matchActivatedType055Package(null)).toBeNull();
     expect(matchActivatedType055Package({
       packageId: TYPE055_NANCHANG_101_V2.packageId,

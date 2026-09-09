@@ -5,11 +5,10 @@
  * 使用 MMG 3-DOF 高保真模型和 DP 控制器
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type RefObject } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  useGLTF,
   Grid,
   Html,
   PerspectiveCamera,
@@ -18,8 +17,8 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
-import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
+import { type BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -51,6 +50,7 @@ import { ScenePostEffects } from '../scene/post';
 import { dredgerTianjingSceneVisual } from '../profiles/dredger-tianjing-scene';
 import { platformHeadingToSceneRad } from '../scene/heading';
 import { WaterHuggingLine } from '../scene/lines';
+import { advanceStationKeepAttainment } from '../lib/heading-attainment';
 import {
   Play,
   Pause,
@@ -211,88 +211,25 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 }
 
 /** 挖泥船模型 */
-const MODEL = resolveRegisteredSimulationModel('dredger');
-
 function DredgerModel(props: {
   position: Vector2;
   heading: number;
-  rudderAngle: number;
+  simRef: MutableRefObject<BindingTelemetrySource>;
+  resetToken: number;
 }) {
   return (
-    <FallbackGltfModel
-      candidates={MODEL.candidates}
-      render={(url) => <DredgerModelScene url={url} {...props} />}
+    <VersionedFleetShip
+      logicalId="dredger"
+      simRef={props.simRef}
+      position={props.position}
+      headingRad={props.heading}
+      sceneLengthMeters={120}
+      resetToken={props.resetToken}
+      legacyYawOffsetRad={0}
+      fallbackDraftMeters={TIANJING_DREDGER_PARAMS.DRAFT}
     />
   );
 }
-
-function DredgerModelScene({
-  url,
-  position,
-  heading,
-}: {
-  url: string;
-  position: Vector2;
-  heading: number;
-  rudderAngle: number;
-}) {
-  const { scene } = useGLTF(url, true, true);
-  const groupRef = useRef<THREE.Group>(null);
-
-  const { model, scale, modelHeight } = useMemo(() => {
-    const cloned = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(cloned);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-
-    // 居中模型
-    cloned.position.sub(center);
-
-    // 启用阴影
-    cloned.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
-        child.frustumCulled = false;
-      }
-    });
-
-    // 计算缩放 - 目标长度约 127m (天鲸号实际长度)
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetLength = 127.5;
-    const scale = targetLength / maxDim;
-
-    return { model: cloned, scale, modelHeight: size.y * scale };
-  }, [scene]);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.position.x = position.x;
-      groupRef.current.position.y = modelHeight * 0.5 - TIANJING_DREDGER_PARAMS.DRAFT;
-      groupRef.current.position.z = position.z;
-      // dredger GLB 长轴为 X（舰艏 local +X）；rotation.y=-h 使舰艏世界方向 (cos h,0,sin h)
-      // 与平台运动学一致。旧补偿（-h+π/2+π）按 Z 轴模型误设，模型侧向行驶 90°（QA 实测修正）。
-      groupRef.current.rotation.y = -heading;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      <primitive object={model} scale={scale} />
-      {/* 船首指示器 */}
-      <mesh position={[0, modelHeight * 0.6, 0]}>
-        <sphereGeometry args={[3, 16, 16]} />
-        <meshBasicMaterial color={simulationScenePalette.dredgerPrimary} />
-      </mesh>
-    </group>
-  );
-}
-
-// 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(MODEL.primary);
 
 /** 目标位置标记 */
 function TargetMarker({ position, heading }: { position: Vector2; heading: number }) {
@@ -740,6 +677,14 @@ export function DredgerSimulation() {
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
+  const bindingRef = useRef<BindingTelemetrySource>({
+    rudderDeg: 0,
+    speedMps: 0,
+    attainedCount: 0,
+    advancing: false,
+    cutterRpm: 0,
+  });
+  const stationKeepRef = useRef({ dwell: 0, armed: true });
 
   // 船舶配置
   const profile = dredgerTianjingProfile;
@@ -884,6 +829,20 @@ export function DredgerSimulation() {
       const speed = Math.sqrt(
         mmgStateRef.current.u ** 2 + mmgStateRef.current.v ** 2
       );
+      const insideDeadzone =
+        dpMetrics.positionError <= POSITION_ALARM_THRESHOLD_M
+        && dpMetrics.headingError <= 5;
+      let attainedCount = bindingRef.current.attainedCount;
+      if (advanceStationKeepAttainment(stationKeepRef.current, insideDeadzone, dt)) {
+        attainedCount += 1;
+      }
+      bindingRef.current = {
+        rudderDeg: toDegrees(mmgStateRef.current.rudderAngle),
+        speedMps: speed,
+        attainedCount,
+        advancing: true,
+        cutterRpm: config.dredgingEnabled ? 36 : 0,
+      };
 
       setMetrics({
         positionError: dpMetrics.positionError,
@@ -932,7 +891,10 @@ export function DredgerSimulation() {
 
   // 控制函数
   const handleStart = () => setIsRunning(true);
-  const handlePause = () => setIsRunning(false);
+  const handlePause = () => {
+    bindingRef.current = { ...bindingRef.current, advancing: false, cutterRpm: 0 };
+    setIsRunning(false);
+  };
   const handleReset = () => {
     setIsRunning(false);
     // DP 定位从静止开始（#1944）：不再带 2 m/s 前进初速
@@ -945,6 +907,14 @@ export function DredgerSimulation() {
     setTrajectory([]);
     positionAlarmRef.current = { since: null, active: false };
     setPositionAlarm(null);
+    stationKeepRef.current = { dwell: 0, armed: true };
+    bindingRef.current = {
+      rudderDeg: 0,
+      speedMps: 0,
+      attainedCount: 0,
+      advancing: false,
+      cutterRpm: 0,
+    };
     setMetrics({
       positionError: 0,
       headingError: 0,
@@ -1038,7 +1008,8 @@ export function DredgerSimulation() {
           <DredgerModel
             position={shipPosition}
             heading={shipHeading}
-            rudderAngle={mmgStateRef.current.rudderAngle}
+            simRef={bindingRef}
+            resetToken={resetCount}
           />
         </Suspense>
 

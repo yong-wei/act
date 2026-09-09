@@ -5,11 +5,10 @@
  * 使用 3DOF 耦合模型 + 解耦控制 + 8台推进器推力分配
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo, type RefObject } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject, type RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
   OrbitControls,
-  useGLTF,
   Grid,
   Html,
   PerspectiveCamera,
@@ -18,8 +17,8 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
-import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
+import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -119,6 +118,10 @@ import {
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromMilliseconds,
 } from '../lib/simulation-timing';
+import {
+  advanceStationKeepAttainment,
+  displayRpmFromThrust,
+} from '../lib/heading-attainment';
 import type { ControlMode, EthicalViolation, Vector2, ThrusterState } from '../core/types';
 import { toRadians, toDegrees } from '../core/constants';
 
@@ -212,89 +215,25 @@ function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
 }
 
 /** 钻井平台模型 */
-const MODEL = resolveRegisteredSimulationModel('drilling-rig');
-
 function DrillingPlatformModel(props: {
   position: Vector2;
   heading: number;
+  simRef: MutableRefObject<BindingTelemetrySource>;
+  resetToken: number;
 }) {
   return (
-    <FallbackGltfModel
-      candidates={MODEL.candidates}
-      render={(url) => <DrillingPlatformModelScene url={url} {...props} />}
+    <VersionedFleetShip
+      logicalId="drilling-rig"
+      simRef={props.simRef}
+      position={props.position}
+      headingRad={props.heading}
+      sceneLengthMeters={HYSY981_PLATFORM_PARAMS.LENGTH}
+      resetToken={props.resetToken}
+      legacyYawOffsetRad={Math.PI / 2}
+      fallbackDraftMeters={HYSY981_PLATFORM_PARAMS.DRAFT_TRANSIT}
     />
   );
 }
-
-function DrillingPlatformModelScene({
-  url,
-  position,
-  heading,
-}: {
-  url: string;
-  position: Vector2;
-  heading: number;
-}) {
-  const { scene } = useGLTF(url, true, true);
-  const groupRef = useRef<THREE.Group>(null);
-
-  const { model, scale, modelHeight } = useMemo(() => {
-    const cloned = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(cloned);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-
-    // 居中模型
-    cloned.position.sub(center);
-
-    // 启用阴影
-    cloned.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
-        child.frustumCulled = false;
-      }
-    });
-
-    // 计算缩放 - 目标长度约 114m (HYSY981 实际长度)
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetLength = 114;
-    const scale = targetLength / maxDim;
-
-    return { model: cloned, scale, modelHeight: size.y * scale };
-  }, [scene]);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      // 平台模型的可见“吃水”应仅占总高度的一小部分，避免整体沉入水面
-      const visualDraft = Math.min(
-        HYSY981_PLATFORM_PARAMS.DRAFT_OPERATING,
-        modelHeight * 0.22
-      );
-      groupRef.current.position.x = position.x;
-      groupRef.current.position.y = modelHeight * 0.5 - visualDraft;
-      groupRef.current.position.z = position.z;
-      groupRef.current.rotation.y = -heading + Math.PI / 2;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      <primitive object={model} scale={scale} />
-      {/* 平台中心指示器 */}
-      <mesh position={[0, modelHeight * 0.8, 0]}>
-        <sphereGeometry args={[4, 16, 16]} />
-        <meshBasicMaterial color={simulationScenePalette.danger} />
-      </mesh>
-    </group>
-  );
-}
-
-// 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(MODEL.primary);
 
 /** 目标位置标记 */
 function TargetMarker({ position, heading }: { position: Vector2; heading: number }) {
@@ -888,6 +827,13 @@ export function DrillingSimulation() {
   const [resetCount, setResetCount] = useState(0);
   const [viewResetCount, setViewResetCount] = useState(0);
   const sceneTheme = useSimulationSceneTheme();
+  const bindingRef = useRef<BindingTelemetrySource>({
+    rudderDeg: 0,
+    speedMps: 0,
+    attainedCount: 0,
+    advancing: false,
+  });
+  const stationKeepRef = useRef({ dwell: 0, armed: true });
 
   // 船舶配置
   const profile = drillingHYSY981Profile;
@@ -1004,6 +950,25 @@ export function DrillingSimulation() {
       );
       const headError = Math.abs(controlOutput.errorPsi);
       const totalPower = computeTotalPower(platformStateRef.current.thrusters);
+      const surgeSpeed = Math.hypot(platformStateRef.current.u, platformStateRef.current.v);
+      const insideDeadzone =
+        posError <= DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION
+        && headError <= 5;
+      let attainedCount = bindingRef.current.attainedCount;
+      if (advanceStationKeepAttainment(stationKeepRef.current, insideDeadzone, dt)) {
+        attainedCount += 1;
+      }
+      bindingRef.current = {
+        rudderDeg: 0,
+        speedMps: surgeSpeed,
+        attainedCount,
+        advancing: true,
+        thrusters: platformStateRef.current.thrusters.map((thruster) => ({
+          id: thruster.id,
+          azimuthRad: toRadians(thruster.azimuth),
+          rpm: displayRpmFromThrust(Math.abs(thruster.thrust), 800, 90),
+        })),
+      };
 
       // 更新指标
       setMetrics({
@@ -1073,6 +1038,11 @@ export function DrillingSimulation() {
     animationFrameRef.current = requestAnimationFrame(simulate);
   }, [isRunning, config, speedScale]);
 
+  useEffect(() => {
+    if (isRunning) return;
+    bindingRef.current = { ...bindingRef.current, advancing: false };
+  }, [isRunning]);
+
   // 启动/停止仿真
   useEffect(() => {
     if (isRunning) {
@@ -1094,6 +1064,13 @@ export function DrillingSimulation() {
     setIsRunning(false);
     platformStateRef.current = createSemiSub3DOFState(0, 0, 0);
     dpStateRef.current = createDPDecouplingState();
+    stationKeepRef.current = { dwell: 0, armed: true };
+    bindingRef.current = {
+      rudderDeg: 0,
+      speedMps: 0,
+      attainedCount: 0,
+      advancing: false,
+    };
     timeRef.current = 0;
     lastUpdateRef.current = performance.now();
     clockRef.current.reset();
@@ -1181,6 +1158,8 @@ export function DrillingSimulation() {
           <DrillingPlatformModel
             position={platformPosition}
             heading={platformHeading}
+            simRef={bindingRef}
+            resetToken={resetCount}
           />
         </Suspense>
 

@@ -54,9 +54,8 @@ describe('drilling pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(DRILLING);
-    expect(source).toContain("resolveRegisteredSimulationModel('drilling-rig')");
-    expect(source).toContain('FallbackGltfModel');
-    expect(source).toContain('frustumCulled = false');
+    expect(source).toContain('VersionedFleetShip');
+    expect(source).toContain("logicalId=\"drilling-rig\"");
   });
 
   it('gates the target marker behind the teaching-annotations toggle and keeps trajectory', () => {

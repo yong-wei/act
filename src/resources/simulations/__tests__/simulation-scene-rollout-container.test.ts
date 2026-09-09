@@ -54,9 +54,8 @@ describe('container pipeline integration', () => {
 
   it('wires the optimized model with error boundary and culling workaround', () => {
     const source = read(CONTAINER);
-    expect(source).toContain("resolveRegisteredSimulationModel('container')");
-    expect(source).toContain('FallbackGltfModel');
-    expect(source).toContain('frustumCulled = false');
+    expect(source).toContain('VersionedFleetShip');
+    expect(source).toContain("logicalId=\"container\"");
   });
 
   it('gates the heading indicator behind the teaching-annotations toggle and keeps wind indicator', () => {
