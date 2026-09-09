@@ -2,16 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
-import { encode } from 'next-auth/jwt';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
-import { createPrismaClient } from '../src/lib/prisma-client';
 import { encodeKonlingE2ESourceBindingsMetadata } from '../src/lib/ai/konling-e2e-chat-model';
 import {
   claimKonlingConversationTurn,
   completeKonlingConversationTurn,
 } from '../src/lib/konling-conversation-library';
+import { createPrismaClient } from '../src/lib/prisma-client';
 import { updateTaskSchema } from '../src/lib/smart-lesson-plan/task-input-schema';
+import { addVerifiedTeacherSession } from './smart-lesson-verified-teacher-session';
 
 const teacherId = requiredEnv('SMART_LESSON_E2E_TEACHER_ID');
 const sourceRevision = requiredEnv('SMART_LESSON_E2E_SOURCE_REVISION');
@@ -27,7 +27,7 @@ test('real provider structured actions persist across desktop, maximized history
   } else {
     expect(requiredEnv('SMART_LESSON_E2E_FIXTURE_TOKEN')).toBe('smart-lesson-real-browser-v1');
   }
-  await addTeacherSession(context);
+  await addVerifiedTeacherSession(context, teacherId);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/teacher/smart-prep');
   await expect(page.getByRole('heading', { name: '智能教案共创' })).toBeVisible();
@@ -427,28 +427,6 @@ async function advanceTaskRevision(taskId: string) {
 async function writeEvidence(value: Record<string, unknown>) {
   await mkdir(path.dirname(evidencePath), { recursive: true });
   await writeFile(evidencePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-}
-
-async function addTeacherSession(context: BrowserContext) {
-  const token = await encode({
-    secret: requiredEnv('NEXTAUTH_SECRET'),
-    token: {
-      id: teacherId,
-      email: 'smart-lesson-real-e2e@example.test',
-      name: '智能教案真实验收教师',
-      role: 'TEACHER',
-    },
-  });
-  await context.addCookies([{
-    name: 'next-auth.session-token',
-    value: token,
-    domain: '127.0.0.1',
-    path: '/',
-    httpOnly: true,
-    sameSite: 'Lax',
-    secure: false,
-    expires: Math.floor(Date.now() / 1000) + 3_600,
-  }]);
 }
 
 function requiredEnv(name: string) {

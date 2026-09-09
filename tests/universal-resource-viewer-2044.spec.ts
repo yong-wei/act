@@ -1,5 +1,7 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 
 async function login(context: BrowserContext) {
@@ -10,8 +12,7 @@ async function login(context: BrowserContext) {
   const response = await context.request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: baseURL,
       json: 'true',
     },

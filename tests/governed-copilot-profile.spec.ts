@@ -1,5 +1,7 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 for (const viewport of [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'mobile', width: 320, height: 900 },
@@ -87,8 +89,7 @@ async function establishAuthenticatedSession(context: BrowserContext) {
   const loginResponse = await context.request.post('/api/auth/callback/credentials?json=true', {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: '/ai/copilot',
       json: 'true',
     },

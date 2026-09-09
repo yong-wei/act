@@ -36,6 +36,24 @@ export function accountByKey(key) {
   return account;
 }
 
+export function credentialsFor(key, overrides = {}) {
+  const account = accountByKey(key);
+  const loginId = typeof overrides.loginId === 'string' && overrides.loginId.trim()
+    ? overrides.loginId.trim()
+    : account.loginId;
+  const password = typeof overrides.password === 'string' && overrides.password
+    ? overrides.password
+    : account.password;
+  return {
+    loginId,
+    password,
+    email: account.email,
+    name: account.name,
+    role: account.role,
+    account,
+  };
+}
+
 function candidateWhere(account) {
   const clauses = [
     { email: { equals: account.email, mode: 'insensitive' } },
