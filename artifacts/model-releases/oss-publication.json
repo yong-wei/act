@@ -1,0 +1,1003 @@
+{
+  "schema": "act-fleet-model-oss-publication/1",
+  "bucket": "act-course-models",
+  "prefix": "model-releases/",
+  "capturedAt": "2026-09-09T12:19:20.173852+00:00",
+  "objectCount": 165,
+  "createdCount": 0,
+  "reusedCount": 165,
+  "bytes": 169311208,
+  "objects": [
+    {
+      "key": "model-releases/adora-magic-city/v1.0.1/manifest.json",
+      "sha256": "16b837703fce1625386e6effc48664e9f0b2476e9f10dfcd6f35f19d6dab1998",
+      "bytes": 1939,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/adora-magic-city/v1.0.1/models/adora-magic-city-ship-lod0.glb",
+      "sha256": "badabacafdef99ce846db44cfb529e1c4424dda3e02e1cdeb4172b332b52faec",
+      "bytes": 22949872,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/adora-magic-city/v1.0.1/models/adora-magic-city-ship-lod1.glb",
+      "sha256": "23babd95b7659cb7a842107279053c579e6235b8c338b86b1317c538bf99cc78",
+      "bytes": 6434592,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/adora-magic-city/v1.0.1/models/adora-magic-city-ship-lod2.glb",
+      "sha256": "026c737c8b46cbed6cd7dec33e47beaaf18327355a5553a086c8c3cff82652b0",
+      "bytes": 1992404,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/adora-magic-city/v1.0.1/textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png",
+      "sha256": "0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1",
+      "bytes": 67860,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/adora-magic-city/v1.0.1/textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png",
+      "sha256": "a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba",
+      "bytes": 422599,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/adora-magic-city/v1.0.1/textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png",
+      "sha256": "ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220",
+      "bytes": 422564,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/manifest.json",
+      "sha256": "3eb8568bcf15fc44cb8c9989185cdbadd20c7554976070a876bdf92aa31dfb82",
+      "bytes": 12624,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/models/dredger-tianjing-ship-lod0.glb",
+      "sha256": "25613ad60b2f2cea1bd32366fc0d84f56fafd3168c53f7d8c786e60a9649110d",
+      "bytes": 7621804,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/models/dredger-tianjing-ship-lod1.glb",
+      "sha256": "56d58219b57876f37eb014aad737554212bd92720caa35c33c4e6985f34f72e2",
+      "bytes": 4659296,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/models/dredger-tianjing-ship-lod2.glb",
+      "sha256": "9f613d41583ff09e0dbdedbbbd405eabdac6c191dd244e90c1cb6174104b5091",
+      "bytes": 2148672,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/0170bb751683bfa13b0597e7826d4059b528b2f41d0d218ab49b545dc704bc4e.png",
+      "sha256": "0170bb751683bfa13b0597e7826d4059b528b2f41d0d218ab49b545dc704bc4e",
+      "bytes": 38174,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/079279fb4a91875433a1874ddb813f0e2c7a21cbc8242922bfeb377392c80f86.png",
+      "sha256": "079279fb4a91875433a1874ddb813f0e2c7a21cbc8242922bfeb377392c80f86",
+      "bytes": 25720,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/0e07018027281516b602442df2743663cda27aac91d524fb4108bc4e8f1012f9.png",
+      "sha256": "0e07018027281516b602442df2743663cda27aac91d524fb4108bc4e8f1012f9",
+      "bytes": 44524,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/11c02cc31f52845eb85df255bcf33ef83c8e4c402a04c6a98bd3fd643c72e016.png",
+      "sha256": "11c02cc31f52845eb85df255bcf33ef83c8e4c402a04c6a98bd3fd643c72e016",
+      "bytes": 598149,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/13aae20a81a51cb9b46f808b1c7b1161b6096f24e974db3225642f0bcc36b762.png",
+      "sha256": "13aae20a81a51cb9b46f808b1c7b1161b6096f24e974db3225642f0bcc36b762",
+      "bytes": 158343,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/1e8274b8094da8a7399ee4e9b0f693198d28868da9bd5993db7d710e939cfd4d.png",
+      "sha256": "1e8274b8094da8a7399ee4e9b0f693198d28868da9bd5993db7d710e939cfd4d",
+      "bytes": 147210,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/212d7d4333d100fa18edaa223833fbc3a1b82b271557652309eabe1cbd0a3443.png",
+      "sha256": "212d7d4333d100fa18edaa223833fbc3a1b82b271557652309eabe1cbd0a3443",
+      "bytes": 664484,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/2187b24e71e8fd98f619d3e77145e4ac0203d3cf40155f482287f24f551605a3.png",
+      "sha256": "2187b24e71e8fd98f619d3e77145e4ac0203d3cf40155f482287f24f551605a3",
+      "bytes": 613178,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/240b894946bfeb965db9e4d00bd278d5cd168a7ef606af8b77d9c15baef3727c.png",
+      "sha256": "240b894946bfeb965db9e4d00bd278d5cd168a7ef606af8b77d9c15baef3727c",
+      "bytes": 26360,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/2494de0f5df8dccb79d9b5f9cc05d8b04032851df599f39588939602c266fcad.png",
+      "sha256": "2494de0f5df8dccb79d9b5f9cc05d8b04032851df599f39588939602c266fcad",
+      "bytes": 433392,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/2aa2f759a81aa553e4e6d0ea3b94764903920e9dcbc47032c7e2e696422175e8.png",
+      "sha256": "2aa2f759a81aa553e4e6d0ea3b94764903920e9dcbc47032c7e2e696422175e8",
+      "bytes": 27185,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/2bd8683b124151bc33641001260f966ededa07978590060d31d4a7036194f3e5.png",
+      "sha256": "2bd8683b124151bc33641001260f966ededa07978590060d31d4a7036194f3e5",
+      "bytes": 587174,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/3767fa029ee897074f460c2c256e2d7a6020247cd3923bcfea50bfb41149a91e.png",
+      "sha256": "3767fa029ee897074f460c2c256e2d7a6020247cd3923bcfea50bfb41149a91e",
+      "bytes": 111704,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/46267433a1dbaa79907f16acbab907342ae1cf166e9e28da89ddb0e6ab5fd807.png",
+      "sha256": "46267433a1dbaa79907f16acbab907342ae1cf166e9e28da89ddb0e6ab5fd807",
+      "bytes": 591445,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/474865fb8d38602ea02962a50b7237e3b26c38283117f4700a55890c6395f4a5.png",
+      "sha256": "474865fb8d38602ea02962a50b7237e3b26c38283117f4700a55890c6395f4a5",
+      "bytes": 620555,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/4cd1323a34a7a49c0ff294dd56fe2fbc439bc3b6436b6b05a99a7bb0a9adad14.png",
+      "sha256": "4cd1323a34a7a49c0ff294dd56fe2fbc439bc3b6436b6b05a99a7bb0a9adad14",
+      "bytes": 455770,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/53f043ff7fec735bbf3356f1a509cf7aebedbffca56518e3748d3e34abcdd38e.png",
+      "sha256": "53f043ff7fec735bbf3356f1a509cf7aebedbffca56518e3748d3e34abcdd38e",
+      "bytes": 485112,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/5c5682cd18e09031b5fe7426b57eac23fd4d1434e1fb9d12aa036e806acd6f97.png",
+      "sha256": "5c5682cd18e09031b5fe7426b57eac23fd4d1434e1fb9d12aa036e806acd6f97",
+      "bytes": 32964,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/62cd323346f02f14104b9e2150996cf419f7e23d0d7d38ddc78c7c61af03548f.png",
+      "sha256": "62cd323346f02f14104b9e2150996cf419f7e23d0d7d38ddc78c7c61af03548f",
+      "bytes": 420001,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/62ef7420d573e0b38b1d2979c3b9e2ca5ff4b6f15adb2a0df28a821d2c5120f4.png",
+      "sha256": "62ef7420d573e0b38b1d2979c3b9e2ca5ff4b6f15adb2a0df28a821d2c5120f4",
+      "bytes": 433181,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/65f66139a63ccbea1ec452f12788152c2e05e96694fcbe3334b3c776c3300205.png",
+      "sha256": "65f66139a63ccbea1ec452f12788152c2e05e96694fcbe3334b3c776c3300205",
+      "bytes": 154814,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/66832306f3040d927d523db6ecc6a17f9078d19a0185b028cebf692b28283b29.png",
+      "sha256": "66832306f3040d927d523db6ecc6a17f9078d19a0185b028cebf692b28283b29",
+      "bytes": 432209,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/6fa5681fc52e3e085c90155cd797d3811a20c7b83b008776ef6818a5ea46129f.png",
+      "sha256": "6fa5681fc52e3e085c90155cd797d3811a20c7b83b008776ef6818a5ea46129f",
+      "bytes": 395076,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/782842206196de560da86644909f80c991beaa2fc7d8671cbd84e03154b22cc2.png",
+      "sha256": "782842206196de560da86644909f80c991beaa2fc7d8671cbd84e03154b22cc2",
+      "bytes": 40839,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/7838167536e788fa189804a1690086e4bc567ebc6bb8a1960bea14eb69ef6559.png",
+      "sha256": "7838167536e788fa189804a1690086e4bc567ebc6bb8a1960bea14eb69ef6559",
+      "bytes": 39711,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/7d3fd2f21c4baf43cb00734418d77dab6d1c75f46db58ce4a6b317f792b33e19.png",
+      "sha256": "7d3fd2f21c4baf43cb00734418d77dab6d1c75f46db58ce4a6b317f792b33e19",
+      "bytes": 108966,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/7dddd3da1874a18304ad7e08d8831f7bdfcceef381a939b7702712dfbcd4d711.png",
+      "sha256": "7dddd3da1874a18304ad7e08d8831f7bdfcceef381a939b7702712dfbcd4d711",
+      "bytes": 39119,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/85f5cefa8085e0e9e4ce140daa4b362bda3d3ce6725bae0abdca76ac7fc5f6c3.png",
+      "sha256": "85f5cefa8085e0e9e4ce140daa4b362bda3d3ce6725bae0abdca76ac7fc5f6c3",
+      "bytes": 36606,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/87d3efe18f4b7152118c012c9d08f606090634d3372896c79235c2efc9496604.png",
+      "sha256": "87d3efe18f4b7152118c012c9d08f606090634d3372896c79235c2efc9496604",
+      "bytes": 25338,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/9580aea8924d0a802c967d40cbca562c1cf64d5806333de677fcce340af9bbd2.png",
+      "sha256": "9580aea8924d0a802c967d40cbca562c1cf64d5806333de677fcce340af9bbd2",
+      "bytes": 108733,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/95c060385dff915957c26142da8236a72ce0d3290aa75b3a1ec21837b79fe025.png",
+      "sha256": "95c060385dff915957c26142da8236a72ce0d3290aa75b3a1ec21837b79fe025",
+      "bytes": 618801,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/986c4f851019df4b0a225972cfb19b1f1a1a24608c4b9c8ad937b56e00244c94.png",
+      "sha256": "986c4f851019df4b0a225972cfb19b1f1a1a24608c4b9c8ad937b56e00244c94",
+      "bytes": 27229,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/a076ca5ed8d02b1adca03c1250876bfe4cfdcc88e6e76be4f0593d23d5e6d1bc.png",
+      "sha256": "a076ca5ed8d02b1adca03c1250876bfe4cfdcc88e6e76be4f0593d23d5e6d1bc",
+      "bytes": 397686,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/ace305e025fba119382bae9520aee10d35ef41abc35d7afcd2642470a6761cd6.png",
+      "sha256": "ace305e025fba119382bae9520aee10d35ef41abc35d7afcd2642470a6761cd6",
+      "bytes": 40629,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/b0d5ed88c87034ee1d5e6528861474490b364ebe47d9f9dffcc339f6d694564f.png",
+      "sha256": "b0d5ed88c87034ee1d5e6528861474490b364ebe47d9f9dffcc339f6d694564f",
+      "bytes": 108885,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/b0f13af006c6c521d5d45dba9211fff32bdc4a338fefcbe384a01a34a1f56a56.png",
+      "sha256": "b0f13af006c6c521d5d45dba9211fff32bdc4a338fefcbe384a01a34a1f56a56",
+      "bytes": 444828,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/b30f1d11a8f8606d8edd6d2f7f8b187c1921247b17c9a982a62dae602299e04d.png",
+      "sha256": "b30f1d11a8f8606d8edd6d2f7f8b187c1921247b17c9a982a62dae602299e04d",
+      "bytes": 419237,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/bd605b919c320bc9764122456ee2fcb31e84583f86fa4986ffbb30b848d4c424.png",
+      "sha256": "bd605b919c320bc9764122456ee2fcb31e84583f86fa4986ffbb30b848d4c424",
+      "bytes": 154544,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/be915e45f04f797beb3ba3e7e5da82415862de4c2cd572929a1c3e8c89482b1b.png",
+      "sha256": "be915e45f04f797beb3ba3e7e5da82415862de4c2cd572929a1c3e8c89482b1b",
+      "bytes": 125163,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/c60fdd13c5d1845c8c9dae61cae84fffb533a1889eb9e2c95242ca1fb336da6b.png",
+      "sha256": "c60fdd13c5d1845c8c9dae61cae84fffb533a1889eb9e2c95242ca1fb336da6b",
+      "bytes": 26505,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/c76434fe2c46dab6a05127d81b14b62fe26861d45d40748e3bc83903c765daab.png",
+      "sha256": "c76434fe2c46dab6a05127d81b14b62fe26861d45d40748e3bc83903c765daab",
+      "bytes": 36541,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/cf1bc34ae5519db8ed27b9ef59a16bd15abd9e2ca199ddcc349bbd12dd3888cb.png",
+      "sha256": "cf1bc34ae5519db8ed27b9ef59a16bd15abd9e2ca199ddcc349bbd12dd3888cb",
+      "bytes": 102378,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/d38c7f183231cd85dd4d29bb8fdce425a987f6b6ac5b22c154fa6cd945992043.png",
+      "sha256": "d38c7f183231cd85dd4d29bb8fdce425a987f6b6ac5b22c154fa6cd945992043",
+      "bytes": 111216,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/d64d46c4fe5d1f3539c883700702b749fa14b2958e294d1b35f31987d7678ec2.png",
+      "sha256": "d64d46c4fe5d1f3539c883700702b749fa14b2958e294d1b35f31987d7678ec2",
+      "bytes": 99504,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/d69dd29a65ac65e8e21dacfa866ae5a7667c5999eeee2ad9ddd0563714dbc538.png",
+      "sha256": "d69dd29a65ac65e8e21dacfa866ae5a7667c5999eeee2ad9ddd0563714dbc538",
+      "bytes": 160404,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/dcc9a5ce7843389af4498f5d983100bff72aa48ad25cce1988e663d41e2d1a3a.png",
+      "sha256": "dcc9a5ce7843389af4498f5d983100bff72aa48ad25cce1988e663d41e2d1a3a",
+      "bytes": 103368,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/e1f508545b43ee6c78fc4430e1e27d3304f4032461dee92fc1e1af80b6460f94.png",
+      "sha256": "e1f508545b43ee6c78fc4430e1e27d3304f4032461dee92fc1e1af80b6460f94",
+      "bytes": 25811,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/e3890dabff9e74e07afbcf0e9c4a5bead76bc71d408d9c555ba2946312eaefa2.png",
+      "sha256": "e3890dabff9e74e07afbcf0e9c4a5bead76bc71d408d9c555ba2946312eaefa2",
+      "bytes": 456049,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/e899b0633fab69bb529377bc48b15d9525d3f3d061789bacb24f536a269b855d.png",
+      "sha256": "e899b0633fab69bb529377bc48b15d9525d3f3d061789bacb24f536a269b855d",
+      "bytes": 446687,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/ea63d028da1706076cb12b24f81f9f76384e12af7e3758b45cd7dad9bc19ab77.png",
+      "sha256": "ea63d028da1706076cb12b24f81f9f76384e12af7e3758b45cd7dad9bc19ab77",
+      "bytes": 173943,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/ef676af33303f979f6f4c13c88add4a51e777572dea9b427647710ce8dbdf5b8.png",
+      "sha256": "ef676af33303f979f6f4c13c88add4a51e777572dea9b427647710ce8dbdf5b8",
+      "bytes": 41290,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/f358530e1f462a2d62384b7a31988b84e892911f2d8e1fbf1c4208c4a90c866a.png",
+      "sha256": "f358530e1f462a2d62384b7a31988b84e892911f2d8e1fbf1c4208c4a90c866a",
+      "bytes": 154015,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/dredger-tianjing/v1.1.1/textures/f966c3c7a27eb73a96b14ff2ffc30c9edd5b6e1abc17f55df2cef486ecf8409c.png",
+      "sha256": "f966c3c7a27eb73a96b14ff2ffc30c9edd5b6e1abc17f55df2cef486ecf8409c",
+      "bytes": 99370,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/manifest.json",
+      "sha256": "5f03cc73173f94502d2891a432d5c0ba7dfcef533342688bd761fa3008574952",
+      "bytes": 5320,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/models/hysy-981-ship-lod0.glb",
+      "sha256": "26625689a73c013117fcdcef1c28a7a4b91a09ea345febf83d58c46884693349",
+      "bytes": 5808468,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/models/hysy-981-ship-lod1.glb",
+      "sha256": "66437e66825ae1f75e0d878ed2c3932361be2323b9c0ef6b94087aa712b25977",
+      "bytes": 3820820,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/models/hysy-981-ship-lod2.glb",
+      "sha256": "148bcbde326301a8b5060209bdc313c1eca72a57f5efc86135a988e9c6d6b8b8",
+      "bytes": 1543696,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/0833a3617fa8fd8c75270be71e1a9edccf6441097c50ded206035d6b5d5c9c4a.png",
+      "sha256": "0833a3617fa8fd8c75270be71e1a9edccf6441097c50ded206035d6b5d5c9c4a",
+      "bytes": 19210,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/152b32af8ec26662d7d580f1499c99e053a6f133d8ee5ca5c783cad34deb272d.png",
+      "sha256": "152b32af8ec26662d7d580f1499c99e053a6f133d8ee5ca5c783cad34deb272d",
+      "bytes": 21607,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/2f5b745109c959127d050a566aa452bcfeec6dc7cfc4c1ff0e18a57baef044f0.png",
+      "sha256": "2f5b745109c959127d050a566aa452bcfeec6dc7cfc4c1ff0e18a57baef044f0",
+      "bytes": 18867,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/417438fbe17aba0edc7b4b8939f5cb2a2bd731eb5b426ce4a663f51801a2b71d.png",
+      "sha256": "417438fbe17aba0edc7b4b8939f5cb2a2bd731eb5b426ce4a663f51801a2b71d",
+      "bytes": 59004,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/4b16b738857d3b9af251019f570c545a80f08ee3f51d87bbcfb555542703bf69.png",
+      "sha256": "4b16b738857d3b9af251019f570c545a80f08ee3f51d87bbcfb555542703bf69",
+      "bytes": 18612,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/4cb9219a18b99a69c84e187a4b72b70a4e5dedb22d27c1ab5612262e768cb018.png",
+      "sha256": "4cb9219a18b99a69c84e187a4b72b70a4e5dedb22d27c1ab5612262e768cb018",
+      "bytes": 41147,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/4da43595bd20d97be1112a67b7bdd00380b3eccd9cf1e56c483ce5388ccf541b.png",
+      "sha256": "4da43595bd20d97be1112a67b7bdd00380b3eccd9cf1e56c483ce5388ccf541b",
+      "bytes": 118720,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/646135875f447364ccd619fbc13d1015b1e3f1c726011f59e4e303f52bf3b184.png",
+      "sha256": "646135875f447364ccd619fbc13d1015b1e3f1c726011f59e4e303f52bf3b184",
+      "bytes": 66415,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/7fee47d9066339e2d34af2fc3f24872bf1b5b28cb531950784758710c29641e6.png",
+      "sha256": "7fee47d9066339e2d34af2fc3f24872bf1b5b28cb531950784758710c29641e6",
+      "bytes": 155902,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/8a71d61261b85223cf49fc3c32fdccb1a4b603b4721d517140c8889dc7195964.png",
+      "sha256": "8a71d61261b85223cf49fc3c32fdccb1a4b603b4721d517140c8889dc7195964",
+      "bytes": 52322,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/95b86583288c8ccfa3da726b074ebf5220b6a66c8d66d8a617643be2eec39f50.png",
+      "sha256": "95b86583288c8ccfa3da726b074ebf5220b6a66c8d66d8a617643be2eec39f50",
+      "bytes": 362904,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/9a8fe1dcad96e5b5e7b307c239c67c14469ecff7099c8ee6b3b4268e4530baed.png",
+      "sha256": "9a8fe1dcad96e5b5e7b307c239c67c14469ecff7099c8ee6b3b4268e4530baed",
+      "bytes": 65631,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/a4be6c839d70dfb116f55a6339e2ac14f3c65259bc42b2ff8fd0e1205529519b.png",
+      "sha256": "a4be6c839d70dfb116f55a6339e2ac14f3c65259bc42b2ff8fd0e1205529519b",
+      "bytes": 391504,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/a7baf7fa252c7da8d44e171da689db00c0ee7973a96b7c72decc6ca51d6fcd93.png",
+      "sha256": "a7baf7fa252c7da8d44e171da689db00c0ee7973a96b7c72decc6ca51d6fcd93",
+      "bytes": 749165,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/e109e9cdaf0788c839ffb2bdf173372c3674a85d750d129b651fd52ccd984ad1.png",
+      "sha256": "e109e9cdaf0788c839ffb2bdf173372c3674a85d750d129b651fd52ccd984ad1",
+      "bytes": 819244,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/ead57e9d27d5777ef70d9c55425c75fa20309a51bddf30531223041bef71492b.png",
+      "sha256": "ead57e9d27d5777ef70d9c55425c75fa20309a51bddf30531223041bef71492b",
+      "bytes": 644523,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/f2789b846f5a13b16df0dbef5d1fd15ad6979b9924a6879699a6a049e4cdbd63.png",
+      "sha256": "f2789b846f5a13b16df0dbef5d1fd15ad6979b9924a6879699a6a049e4cdbd63",
+      "bytes": 72912,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/fd3b7f4ee7268d0923ff793a004a7b6f1b284f96168db3f61c3b0b4d4fab85e2.png",
+      "sha256": "fd3b7f4ee7268d0923ff793a004a7b6f1b284f96168db3f61c3b0b4d4fab85e2",
+      "bytes": 181981,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/hysy-981/v1.1.1/textures/fdb1c329dbf47feb788cdd4e4470ca47cce3c03723c7be2f7c8883fdf4d9a562.png",
+      "sha256": "fdb1c329dbf47feb788cdd4e4470ca47cce3c03723c7be2f7c8883fdf4d9a562",
+      "bytes": 111883,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/manifest.json",
+      "sha256": "70270b78cbbcf030fac43e7b4df8bbce600d272aa6d15eaa72abee5e127b207f",
+      "bytes": 10895,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/models/lng-changheng-ship-lod0.glb",
+      "sha256": "6f294e520e3bbfebb631dcf3791f453f3387651cb0b1833aaafcfd4cadf56d2f",
+      "bytes": 10710900,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/models/lng-changheng-ship-lod1.glb",
+      "sha256": "2c615e8bcbc2100b2ab7227ad9d5290f7e37e6c7148719d32fe538f64a92bdc5",
+      "bytes": 6467760,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/models/lng-changheng-ship-lod2.glb",
+      "sha256": "4995b614934ccefad0830602e874e74e949edf8366b7eadc1407eb355f6297af",
+      "bytes": 4637340,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/004e3cb1535586da33bf7920adc876757253f99c7d3c3d9d8dfdfbe814367554.png",
+      "sha256": "004e3cb1535586da33bf7920adc876757253f99c7d3c3d9d8dfdfbe814367554",
+      "bytes": 332427,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/0c95b11471f700ccfc4263b94bb6a212ee35f25f9de91f2a037215c80cd92ba2.png",
+      "sha256": "0c95b11471f700ccfc4263b94bb6a212ee35f25f9de91f2a037215c80cd92ba2",
+      "bytes": 14629,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/125921f06cca64bfbc1f685030919b0ddbaf92121e9401a3888bbf50368ca5e6.png",
+      "sha256": "125921f06cca64bfbc1f685030919b0ddbaf92121e9401a3888bbf50368ca5e6",
+      "bytes": 117351,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/14ee9b768f2ef49167f653b3281a44c9a4bb6fad0a675d7f8e3ae8f6108de921.png",
+      "sha256": "14ee9b768f2ef49167f653b3281a44c9a4bb6fad0a675d7f8e3ae8f6108de921",
+      "bytes": 432921,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/1b79074fa94f330f12e506d0b737828be22f4a8d7e2e3af76ee5a54e6e31a83b.png",
+      "sha256": "1b79074fa94f330f12e506d0b737828be22f4a8d7e2e3af76ee5a54e6e31a83b",
+      "bytes": 24083,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/1bfcaaea6dde8a90ffc0fd9d23e47935d175e5d6d41c82ea3a6f56df4c6f6b0c.png",
+      "sha256": "1bfcaaea6dde8a90ffc0fd9d23e47935d175e5d6d41c82ea3a6f56df4c6f6b0c",
+      "bytes": 24130,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/269ab8cd8fefa295a07826999f5f1d29e74404b4f8c7f4c6b0e739e84430193f.png",
+      "sha256": "269ab8cd8fefa295a07826999f5f1d29e74404b4f8c7f4c6b0e739e84430193f",
+      "bytes": 23807,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/2f74679040aab2a4be3322f3bdba09baddd3b75bd788c04f823e4b0515fe4162.png",
+      "sha256": "2f74679040aab2a4be3322f3bdba09baddd3b75bd788c04f823e4b0515fe4162",
+      "bytes": 119413,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/31fd6c8285945f64eea2811ae4a8d616aaf17d79acb2a91614883274fe0e7928.png",
+      "sha256": "31fd6c8285945f64eea2811ae4a8d616aaf17d79acb2a91614883274fe0e7928",
+      "bytes": 102253,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/372ce89f6f66488da4c9713c8eb34dc71f426e47710f63bfe2780edd42808625.png",
+      "sha256": "372ce89f6f66488da4c9713c8eb34dc71f426e47710f63bfe2780edd42808625",
+      "bytes": 23225,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/38d41e770a2dc83cf2adcfd571b7b1f2f2a586c8ef252b711e4d53f2f882d767.png",
+      "sha256": "38d41e770a2dc83cf2adcfd571b7b1f2f2a586c8ef252b711e4d53f2f882d767",
+      "bytes": 101797,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/43358acd276197c1afe64e495b188c6500d50b651fefc84ec293f7865fa7924b.png",
+      "sha256": "43358acd276197c1afe64e495b188c6500d50b651fefc84ec293f7865fa7924b",
+      "bytes": 24733,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/43559e8fbf2d2c5e93d4997341a514dcc335dd2b68dd54bac016a78e3e104aeb.png",
+      "sha256": "43559e8fbf2d2c5e93d4997341a514dcc335dd2b68dd54bac016a78e3e104aeb",
+      "bytes": 434094,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/64a0db1cee7bb68b3060be5025bf8c52c9107eb20793d6958aa10a7b89c6b321.png",
+      "sha256": "64a0db1cee7bb68b3060be5025bf8c52c9107eb20793d6958aa10a7b89c6b321",
+      "bytes": 629571,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/69b880340d00bc6b92bfbf15800b244668627eedde7430a5b5ea4a7161b1665f.png",
+      "sha256": "69b880340d00bc6b92bfbf15800b244668627eedde7430a5b5ea4a7161b1665f",
+      "bytes": 123198,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/739a91f2b3e29eb10bc2271b0d337f109c049bfce8b08007d2cc43509b051ded.png",
+      "sha256": "739a91f2b3e29eb10bc2271b0d337f109c049bfce8b08007d2cc43509b051ded",
+      "bytes": 102312,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/77c1c9b871321ed489043e76a6d1f9f65d78d968acb6e9423d2429a6616ed806.png",
+      "sha256": "77c1c9b871321ed489043e76a6d1f9f65d78d968acb6e9423d2429a6616ed806",
+      "bytes": 16794,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/7ef50c94eac0696d65ef56c14e5f9b39c485dc2141275cdf7384a486a671df26.png",
+      "sha256": "7ef50c94eac0696d65ef56c14e5f9b39c485dc2141275cdf7384a486a671df26",
+      "bytes": 102789,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/807ae4604faa07197231b96ecc63017a65b8903287026abe64c33dab1a9471c2.png",
+      "sha256": "807ae4604faa07197231b96ecc63017a65b8903287026abe64c33dab1a9471c2",
+      "bytes": 459294,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/80b03f14db95fd291f22ef69db68a04dec12d99b53bdfd45b86eed37fed6eda5.png",
+      "sha256": "80b03f14db95fd291f22ef69db68a04dec12d99b53bdfd45b86eed37fed6eda5",
+      "bytes": 430195,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/84cf8ed5db3b3dc21048076cad469263f405da6c101adbe2e1d4b0fad83e9e62.png",
+      "sha256": "84cf8ed5db3b3dc21048076cad469263f405da6c101adbe2e1d4b0fad83e9e62",
+      "bytes": 23851,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/851b97be2084f5e49482a4f935ad6cf40a8e7a21e5d4d893ae9f95aec575107d.png",
+      "sha256": "851b97be2084f5e49482a4f935ad6cf40a8e7a21e5d4d893ae9f95aec575107d",
+      "bytes": 23323,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/8950d0f4110217f39b9ac6b137ffb3c830a9295075a58448ae86bc8f58697759.png",
+      "sha256": "8950d0f4110217f39b9ac6b137ffb3c830a9295075a58448ae86bc8f58697759",
+      "bytes": 73228,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/93235532fd3b172843f2f9f7c2c65d159333da41db9f6515b3330b6065dea04e.png",
+      "sha256": "93235532fd3b172843f2f9f7c2c65d159333da41db9f6515b3330b6065dea04e",
+      "bytes": 69313,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/9645422cafb37578c7a8c5608f2962db33008d5506850380819eecb829d128e9.png",
+      "sha256": "9645422cafb37578c7a8c5608f2962db33008d5506850380819eecb829d128e9",
+      "bytes": 627863,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/9d63d036625be18bb59f2a6fc895773c2fe726f81cb52bf9ba8d98dd82d063d3.png",
+      "sha256": "9d63d036625be18bb59f2a6fc895773c2fe726f81cb52bf9ba8d98dd82d063d3",
+      "bytes": 26119,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/afb2b76fab9549b209d5e87a1288f35e0a60954b3b17d53b63ff258c4f32d807.png",
+      "sha256": "afb2b76fab9549b209d5e87a1288f35e0a60954b3b17d53b63ff258c4f32d807",
+      "bytes": 25345,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/b108acc4e735fa670d68688577f7750e6dfe60f6cbf58ce9569be134787ddab8.png",
+      "sha256": "b108acc4e735fa670d68688577f7750e6dfe60f6cbf58ce9569be134787ddab8",
+      "bytes": 22002,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/b202357424fa7c105117725cf4f61cac77378ab3fc22fac1db235d551c9d162a.png",
+      "sha256": "b202357424fa7c105117725cf4f61cac77378ab3fc22fac1db235d551c9d162a",
+      "bytes": 610042,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/bda23cd5cbc2daecb5bcd9f3d0fe9089014fe55463855d286fe6b0528a37bcf9.png",
+      "sha256": "bda23cd5cbc2daecb5bcd9f3d0fe9089014fe55463855d286fe6b0528a37bcf9",
+      "bytes": 625955,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/c70e1b6a9c479ffc390586ce58d150c60a0a7d86c4d6aa73a236ee9dc9a02626.png",
+      "sha256": "c70e1b6a9c479ffc390586ce58d150c60a0a7d86c4d6aa73a236ee9dc9a02626",
+      "bytes": 433838,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/cade9178ea4de07856ac8bf3a722a4552ca41c264c67921d1dbc941345c1eb2f.png",
+      "sha256": "cade9178ea4de07856ac8bf3a722a4552ca41c264c67921d1dbc941345c1eb2f",
+      "bytes": 516065,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/d105ba0ab244aaa43de51d19935a4e20e8445ec2e778e2f646b77098f1904871.png",
+      "sha256": "d105ba0ab244aaa43de51d19935a4e20e8445ec2e778e2f646b77098f1904871",
+      "bytes": 335535,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/d1bf31f69f5802474bc5633dc68fdb9e7183cbf6201204fcebe80d6749c5cb7c.png",
+      "sha256": "d1bf31f69f5802474bc5633dc68fdb9e7183cbf6201204fcebe80d6749c5cb7c",
+      "bytes": 24899,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/d3ffa83a819df598f6758742f7d5d3a5bd3d5aa2dbd19759be096fc400754eb9.png",
+      "sha256": "d3ffa83a819df598f6758742f7d5d3a5bd3d5aa2dbd19759be096fc400754eb9",
+      "bytes": 124426,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/d97f005f7c9ce5af86456cb3dea7309c88d124cba364bad48be0377b3e39738c.png",
+      "sha256": "d97f005f7c9ce5af86456cb3dea7309c88d124cba364bad48be0377b3e39738c",
+      "bytes": 36229,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/e03d771131b9a2c241d1cf0e1fdccb098a920ac678078438fab6a9da783cc7c7.png",
+      "sha256": "e03d771131b9a2c241d1cf0e1fdccb098a920ac678078438fab6a9da783cc7c7",
+      "bytes": 156681,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/e0fcebc75fdfe4569aa7bc001302078828f4c3f75a0dbcd99d310eacbcc1ec3f.png",
+      "sha256": "e0fcebc75fdfe4569aa7bc001302078828f4c3f75a0dbcd99d310eacbcc1ec3f",
+      "bytes": 122346,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/e2a213bf0c9bf7082e2db18eaf88a1408d86e4bd6fe33435e9e09196d0917367.png",
+      "sha256": "e2a213bf0c9bf7082e2db18eaf88a1408d86e4bd6fe33435e9e09196d0917367",
+      "bytes": 431871,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/e77ea41bdce7c0f33b9e36cf70ce68366edf64ba974c813ff4a3d4c110645ce4.png",
+      "sha256": "e77ea41bdce7c0f33b9e36cf70ce68366edf64ba974c813ff4a3d4c110645ce4",
+      "bytes": 107168,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/e807a3ba9ad14c295708cf3a7380afda06b5054faeacadef67b4fdc49718f9dd.png",
+      "sha256": "e807a3ba9ad14c295708cf3a7380afda06b5054faeacadef67b4fdc49718f9dd",
+      "bytes": 24500,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/eb0b485e516cd2d2653fa14dfce7e883d3b704cbd04931d0fd4d3057c2d6c54d.png",
+      "sha256": "eb0b485e516cd2d2653fa14dfce7e883d3b704cbd04931d0fd4d3057c2d6c54d",
+      "bytes": 597280,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/f7f1b0fc357a864532019254e88028d033f6b3242cd4a8074af9281b5ff673e9.png",
+      "sha256": "f7f1b0fc357a864532019254e88028d033f6b3242cd4a8074af9281b5ff673e9",
+      "bytes": 101811,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/f87894f0817ab3e2c2bb727091cdf204d2e260b4a45781a641fb16a775f6ddb9.png",
+      "sha256": "f87894f0817ab3e2c2bb727091cdf204d2e260b4a45781a641fb16a775f6ddb9",
+      "bytes": 726291,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/lng-changheng/v1.1.1/textures/ffbeeef0964338629537dceae3c02c1e7a13135f10be5fbe83e30b4333bf2e20.png",
+      "sha256": "ffbeeef0964338629537dceae3c02c1e7a13135f10be5fbe83e30b4333bf2e20",
+      "bytes": 99667,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/msc-tessa/v1.1.1/manifest.json",
+      "sha256": "03b0b0d5f23e60baeb7db9f03ea207060545286221f407693a1a8bb6dcf76f48",
+      "bytes": 1261,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/msc-tessa/v1.1.1/models/msc-tessa-ship-lod0.glb",
+      "sha256": "52519cc2c3c8ef939b0fa7c22c487d44c6f6c931d214c86d3311a88b3084a487",
+      "bytes": 15126196,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/msc-tessa/v1.1.1/models/msc-tessa-ship-lod1.glb",
+      "sha256": "e56b291d700cc75143ee531aceea2b0fec90e483fdd4469e8ccdd9acc0a41e29",
+      "bytes": 6367796,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/msc-tessa/v1.1.1/models/msc-tessa-ship-lod2.glb",
+      "sha256": "13b3355f3379616f854f06283e590d3cf2327529556b32116333194fb6398052",
+      "bytes": 3359496,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/manifest.json",
+      "sha256": "37502cc1814b6be408b124d9b72a20b7f66031cd4a364bfe6a74fb3dda8081d8",
+      "bytes": 2715,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-collision.glb",
+      "sha256": "24fcb99fe32a66b992511048ad2f4b5d06c249379cc9734de82de056d9f7991d",
+      "bytes": 52472,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-interactive-systems.glb",
+      "sha256": "fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244",
+      "bytes": 14648,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod0.glb",
+      "sha256": "ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd",
+      "bytes": 3370584,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod1.glb",
+      "sha256": "83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd",
+      "bytes": 1569240,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod2.glb",
+      "sha256": "61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556",
+      "bytes": 988780,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-weapon-demo.glb",
+      "sha256": "bcbbf38947fbb2e90942b162cc1c6fcd3e82f506de1c6616c66ee498bc3e767b",
+      "bytes": 185120,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-weapon-payloads.glb",
+      "sha256": "c17a578374da69aa2617502cf26c5a928f4416ef5ddddb058bf919a3cec6ede8",
+      "bytes": 200848,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/textures/74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec.png",
+      "sha256": "74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec",
+      "bytes": 19795,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/type055-nanchang-101/v2.2.1/textures/e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0.png",
+      "sha256": "e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0",
+      "bytes": 137139,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/manifest.json",
+      "sha256": "7d5ac39938017b78c1ca3fbd46e9986224e86f86b5d7d353c26d1ae837517403",
+      "bytes": 3622,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/models/xue-long-2-ship-lod0.glb",
+      "sha256": "a1e33b97c240c821c0f9f2e226e41cb1cf4391b8fd2e12ec3bb8ea4d416e4e80",
+      "bytes": 7509328,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/models/xue-long-2-ship-lod1.glb",
+      "sha256": "dc09a991112beaf33afdcb51e09fbefa4155f9577ec8a9d8b0b6ccc5e607e45d",
+      "bytes": 6094404,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/models/xue-long-2-ship-lod2.glb",
+      "sha256": "f9d90d22c36a867ad6a76cc469ebf0252acca349f675683d2ee02ec3dd6cef12",
+      "bytes": 2319132,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/0c8029767a74fb2a93ed4d1d09822730d108157aaf23a8477729a88d8047a197.png",
+      "sha256": "0c8029767a74fb2a93ed4d1d09822730d108157aaf23a8477729a88d8047a197",
+      "bytes": 5128031,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/1eb25fcea35dae54220512120deb0fe76e064ee05d881bfdc38fe5e3c7d181a9.png",
+      "sha256": "1eb25fcea35dae54220512120deb0fe76e064ee05d881bfdc38fe5e3c7d181a9",
+      "bytes": 2175241,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8.png",
+      "sha256": "28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8",
+      "bytes": 14336,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/29d94604d6f260ddc3f8579e10b9b49636c618afdc99ce8caeb0d7a3b449cb75.png",
+      "sha256": "29d94604d6f260ddc3f8579e10b9b49636c618afdc99ce8caeb0d7a3b449cb75",
+      "bytes": 634621,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506.png",
+      "sha256": "3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506",
+      "bytes": 413234,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/7b5a8a925dba56e47f3d4c3717e6f6c5faf483e21be7814ff145c8bdad3e10e5.png",
+      "sha256": "7b5a8a925dba56e47f3d4c3717e6f6c5faf483e21be7814ff145c8bdad3e10e5",
+      "bytes": 13473,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695.png",
+      "sha256": "a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695",
+      "bytes": 70273,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/aac58ddbbc20fdaefd3239120a7dc386c7663a96af4a642430d36744f490b9df.png",
+      "sha256": "aac58ddbbc20fdaefd3239120a7dc386c7663a96af4a642430d36744f490b9df",
+      "bytes": 2180252,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/e95bbdeb0aac7a1bf7593644b8ef07ea848265158776ccb40e7d4325b0051956.png",
+      "sha256": "e95bbdeb0aac7a1bf7593644b8ef07ea848265158776ccb40e7d4325b0051956",
+      "bytes": 5135709,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b.png",
+      "sha256": "e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b",
+      "bytes": 233185,
+      "status": "reused"
+    },
+    {
+      "key": "model-releases/xue-long-2/v1.0.1/textures/f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825.png",
+      "sha256": "f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825",
+      "bytes": 404516,
+      "status": "reused"
+    }
+  ],
+  "errors": []
+}

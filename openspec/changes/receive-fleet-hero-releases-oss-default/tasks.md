@@ -11,8 +11,9 @@
 
 ## 3. OSS default
 
-- [x] 3.1 运行时包 LOD 候选：同源 → ESA → registry 单文件
+- [x] 3.1 运行时包 LOD 候选：公开存储 → 同源镜像 → registry 单文件
 - [x] 3.2 首页预览与海报识别 OSS URL
+- [x] 3.3 将七船 `model-releases/` 上传到 `act-course-models`（含贴图）
 
 ## 4. Verify
 

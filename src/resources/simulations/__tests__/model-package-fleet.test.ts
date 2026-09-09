@@ -20,6 +20,7 @@ import {
 import { TYPE055_NANCHANG_101_V2 } from '../model-packages/type055-nanchang-101-v2';
 import {
   shipLodCandidatesForQualityTier,
+  shipLodMountPlan,
   shipLodUrlForQualityTier,
   type VersionedModelPackageDescriptor,
 } from '../model-packages/types';
@@ -128,12 +129,16 @@ describe('fleet versioned model packages', () => {
     expect(TYPE055_NANCHANG_101_V2.modelToSceneMatrix?.[7]).toBe(-7.05);
   });
 
-  it('lists the same-origin copy before OSS for runtime-only packages', () => {
+  it('lists the OSS package path before the same-origin copy', () => {
     for (const entry of FLEET) {
-      const [local, oss] = shipLodCandidatesForQualityTier(entry.descriptor, 'low');
-      expect(local).toBe(shipLodUrlForQualityTier(entry.descriptor, 'low'));
-      expect(oss.startsWith('https://static.adapt-learn.online/assets/')).toBe(true);
-      expect(oss).toContain(entry.descriptor.roles['ship-lod2'].sha256);
+      const plan = shipLodMountPlan(entry.descriptor, 'low');
+      const [oss, local] = shipLodCandidatesForQualityTier(entry.descriptor, 'low');
+      expect(plan.local).toBe(shipLodUrlForQualityTier(entry.descriptor, 'low'));
+      expect(plan.preferred).toBe(`https://static.adapt-learn.online${plan.local.replace(/^\/assets/, '')}`);
+      expect(plan.candidates[0]).toBe(plan.preferred);
+      expect(local).toBe(plan.local);
+      expect(oss).toBe(plan.preferred);
+      expect(oss).toContain('/model-releases/');
     }
   });
 
@@ -183,16 +188,31 @@ describe('fleet versioned model packages', () => {
 describe('homepage preview uses activated low LOD', () => {
   it('points ship cards at activated low LOD', () => {
     const source = readFileSync(path.join(process.cwd(), 'src/app/page.tsx'), 'utf8');
-    expect(source).toContain('shipLodCandidatesForQualityTier');
+    expect(source).toContain('shipLodMountPlan');
     expect(source).not.toContain('isProceduralFleetPackage');
     expect(source).toContain("homePreviewModelPath('dredger')");
-    expect(source).toContain('homePreviewCandidates');
+    expect(source).toContain('homePreviewTier');
     expect(source).toContain("logicalId === 'dredger' ? 'medium' : 'low'");
     expect(source).toContain("homePreviewModelPath('destroyer')");
     expect(source).not.toContain("resolveRegisteredSimulationModel('destroyer').originalUrl");
     expect(source).toContain('getShipModelPosterPath(homePreviewModelPath(logicalId))');
     expect(source).toContain('homePreviewFallbackPath');
     expect(source).toContain('fallbackPath={currentScenario.fallbackPath}');
+    expect(source).toContain('.local');
+    expect(source).not.toContain('homePreviewCandidates(logicalId)[0]');
+  });
+});
+
+describe('versioned ship model first-paints the same-origin copy', () => {
+  it('does not pass the public URL to useGLTF until a HEAD probe succeeds', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/resources/simulations/components/versioned-ship-model.tsx'),
+      'utf8',
+    );
+    expect(source).toContain('useState(local)');
+    expect(source).toContain("fetch(preferred, { method: 'HEAD'");
+    expect(source).toContain('uniqueUrls([local, ...legacyCandidates])');
+    expect(source).not.toContain('useState(lodCandidates[0])');
   });
 });
 
@@ -220,7 +240,7 @@ describe('homepage posters follow the activated package', () => {
     expect(getShipModelPosterPath('/assets/model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod2.glb')).toBe(
       '/assets/destroyer.png',
     );
-    expect(getShipModelPosterPath('https://static.adapt-learn.online/assets/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/lng-changheng-ship-lod2.glb')).toBe(
+    expect(getShipModelPosterPath('https://static.adapt-learn.online/model-releases/lng-changheng/v1.1.1/models/lng-changheng-ship-lod2.glb')).toBe(
       '/assets/Lng-carrier.png',
     );
     expect(getShipModelPosterPath('/assets/model-releases/lng-changheng/v1.1.1/models/lng-changheng-ship-lod2.glb')).toBe(

@@ -12,4 +12,4 @@
 
 ## OSS
 
-对象键沿用 `assets/<sha256>/<basename>`，桶 `act-course-delivery`，主机 `static.adapt-learn.online`。`ACT_RUNTIME_ONLY` 的 GLB 在 `models/`，贴图走 `../textures/`。ESA 单文件对象无法解析相对贴图，故同源 `baseUrl` 优先，ESA 作次候选，最后才是 registry 单文件。不把 Authority Bucket 当 origin。
+对象键与本地包目录对齐：`model-releases/<packageId>/v<version>/...`，桶 `act-course-models`，主机 `static.adapt-learn.online`。发布身份只授该前缀的 List/Get/Put。`ACT_RUNTIME_ONLY` 的 GLB 在 `models/`，贴图走 `../textures/`，公开存储与镜像使用同一相对布局。候选顺序为公开存储 → 同源镜像 → registry 单文件。首帧只挂同源镜像；短超时 HEAD 成功后再切到公开地址。未接通公开域名时不得对 `static.adapt-learn.online` 调用 `useGLTF`。不把 `act-course-assets` 当 origin。ESA CORS 只放行 `https://act.adapt-learn.online` 的 GET/HEAD；本机开发源继续走镜像。
