@@ -1,9 +1,23 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const deploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8');
+
+const coordinatorFd = fs.openSync(path.join(root, 'deploy/podman/deploy.sh'), 'r');
+try {
+  const prelude = deploy.slice(0, deploy.indexOf('SCRIPT_DIR='));
+  const result = spawnSync('bash', ['-c', `${prelude}\nbash -c 'test ! -e /dev/fd/9'`], {
+    stdio: ['ignore', 'pipe', 'pipe', 'ignore', 'ignore', 'ignore', 'ignore', 'ignore', 'ignore', coordinatorFd],
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, `container subprocess must not inherit the coordinator lock: ${result.stderr}`);
+  assert.ok(fs.fstatSync(coordinatorFd).isFile(), 'the parent coordinator descriptor must remain open');
+} finally {
+  fs.closeSync(coordinatorFd);
+}
 
 assert.match(deploy, /--runtime-cutover-app-only/, 'deployment must expose a dedicated runtime cutover mode');
 assert.match(deploy, /RUNTIME_CUTOVER_APP_ONLY=1/, 'runtime cutover mode must be explicit');

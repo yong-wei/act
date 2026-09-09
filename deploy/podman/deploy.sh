@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The coordinator retains its fd 9 lock; Podman/conmon must not inherit it.
+exec 9>&-
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -f "${SCRIPT_DIR}/../.env.server" ] || [ -d "${SCRIPT_DIR}/../data" ]; then
   PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"

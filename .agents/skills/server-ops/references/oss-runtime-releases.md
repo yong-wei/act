@@ -93,3 +93,6 @@
 - 部分生产 Podman 的 `inspect --format {{.Image}}` 返回完整 64 位摘要而不带 `sha256:`。兼容性证明捕获阶段将这种完整摘要规范化为 OCI 身份；证明文件本身仍要求 `sha256:<64 hex>`，不接受短 ID 或标签替代。不要通过修改运行镜像或伪造证明绕过格式差异。
 - 现代 r4 协调生产状态没有旧 first-cutover marker，`remote-refresh-cutover-app.sh` 的 legacy marker 验证不适用。已核验应用 schema/migrations 未改变时，可在协调部署锁内使用现存 `4-deploy.sh --runtime-cutover-app-only` 替换经过 provenance 校验的应用镜像；前后核对全部选择器、活动回执、生命周期、挂载目录及数据库/Redis 容器身份，并保留原镜像和私有运行环境以恢复。不得使用会导入数据库的外层普通部署流程代替。
 - 本次服务器系统 Python 为 3.6；发送一次性只读核验程序时使用 `universal_newlines=True`，不要使用仅在较新版本支持的 `text=True`。
+
+- 协调器的 fd 9 锁不能继承给 `podman run` 派生的 conmon；否则父操作结束后仍可能占锁，后续恢复无法进入。部署子进程入口关闭 fd 9，父协调器保持持锁。若实际发生，先核对锁持有者确实为本次 app/worker 的 conmon，再在另一个操作锁内停止对应容器并恢复；不删除或替换锁文件来绕过活锁。
+- readyz 通过不等于图谱可用。应在重新创建应用后调用已认证的活动分片接口；若激活回执读取 EACCES，用 ECS 只读桥和独立发布身份验证 OSS 原始错误。两种身份均返回 `UserDisable / 0003-00000801` 时交由账户所有者恢复服务，禁止伪造本地回执或放宽消费者门禁。
