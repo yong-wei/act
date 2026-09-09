@@ -770,7 +770,14 @@ function persistIndex(file: string, index: PublishedResourceFeatureIndex): void 
 }
 
 /** Only index creation reads card bodies; repeated planning consumes this metadata cache. */
-export async function loadPublishedResourceFeatureIndex(): Promise<PublishedResourceFeatureIndex> {
+export class PublishedResourceSelectionChangedError extends Error {}
+
+export interface PublishedResourceFeatureIndexCapture {
+  index: PublishedResourceFeatureIndex;
+  assertCurrent: () => void;
+}
+
+export async function loadPublishedResourceFeatureIndexCapture(): Promise<PublishedResourceFeatureIndexCapture> {
   const live = readAgreedLiveCourseProjection();
   if (!live) throw new Error('The published teaching resource selection is unavailable');
   const root = resolveConfiguredTeachingProjectionRoot();
@@ -784,8 +791,10 @@ export async function loadPublishedResourceFeatureIndex(): Promise<PublishedReso
   const assertCaptureCurrent = () => {
     const after = readAgreedLiveCourseProjection();
     if (after?.projectionId !== live.projectionId || after.projectionHash !== live.projectionHash || runtimeStamp() !== runtime
+      || sourceStamp(['projection-manifest.json', 'resources.jsonl', 'bindings.jsonl', 'gate.json']
+        .map((name) => join(release, name))) !== stamp
       || digest(resolveActiveShardIdentity().envelope) !== envelopeFingerprint) {
-      throw new Error('Resource publication changed while indexing');
+      throw new PublishedResourceSelectionChangedError('Resource publication changed while indexing');
     }
   };
   const key = digest([INDEX_VERSION, INDEX_IMPLEMENTATION_REVISION, live.projectionId, live.projectionHash,
@@ -832,11 +841,15 @@ export async function loadPublishedResourceFeatureIndex(): Promise<PublishedReso
     const index = await promise;
     // This single return boundary covers freshly built, disk and memory results.
     assertCaptureCurrent();
-    return index;
+    return { index, assertCurrent: assertCaptureCurrent };
   } catch (error) {
     if (indexPromises.get(key) === promise) indexPromises.delete(key);
     throw error;
   }
+}
+
+export async function loadPublishedResourceFeatureIndex(): Promise<PublishedResourceFeatureIndex> {
+  return (await loadPublishedResourceFeatureIndexCapture()).index;
 }
 
 /** Retained entries are written only after observing an agreed active publication. */

@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const state = vi.hoisted(() => ({ switched: false, switchAt: '' }));
+const state = vi.hoisted(() => ({ switched: false, switchAt: '', projectionHash: 'a'.repeat(64) }));
 const projectionHash = 'a'.repeat(64);
 const snapshotHash = 'b'.repeat(64);
 const envelope = (changed: boolean) => ({
@@ -15,7 +15,7 @@ const envelope = (changed: boolean) => ({
 });
 
 vi.mock('@/lib/teaching-projection/live-course-pointer', () => ({
-  readAgreedLiveCourseProjection: () => ({ projectionId: 'proj-' + 'a'.repeat(64), projectionHash: 'a'.repeat(64) }),
+  readAgreedLiveCourseProjection: () => ({ projectionId: 'proj-' + state.projectionHash, projectionHash: state.projectionHash }),
   resolveConfiguredTeachingProjectionRoot: () => process.cwd(),
 }));
 vi.mock('@/lib/teaching-projection/store', () => ({
@@ -52,7 +52,7 @@ vi.mock('@/lib/runtime-active-release', () => ({
   isRuntimeMediaPath: () => false,
 }));
 
-import { clearPublishedResourceFeatureMemoryCache, loadPublishedResourceFeatureIndex } from '@/lib/published-resource-index';
+import { clearPublishedResourceFeatureMemoryCache, loadPublishedResourceFeatureIndex, loadPublishedResourceFeatureIndexCapture } from '@/lib/published-resource-index';
 
 describe('published resource index capture', () => {
   let root: string;
@@ -61,7 +61,7 @@ describe('published resource index capture', () => {
     root = mkdtempSync(join(tmpdir(), 'resource-capture-'));
     cache = join(tmpdir(), 'act-resource-features', createHash('sha256').update(JSON.stringify(root)).digest('hex').slice(0, 20));
     vi.spyOn(process, 'cwd').mockReturnValue(root);
-    state.switched = false; state.switchAt = '';
+    state.switched = false; state.switchAt = ''; state.projectionHash = projectionHash;
     clearPublishedResourceFeatureMemoryCache();
     infographic.mockReset().mockImplementation(() => {
       if (state.switchAt === 'during-infographic') state.switched = true;
@@ -96,5 +96,25 @@ describe('published resource index capture', () => {
     state.switchAt = 'after-capture';
     await expect(loadPublishedResourceFeatureIndex()).rejects.toThrow('Resource publication changed while indexing');
     expect(infographic).toHaveBeenCalledTimes(1);
+  });
+
+  it('retains a guard for a course switch after the asynchronous index load has returned', async () => {
+    const capture = await loadPublishedResourceFeatureIndexCapture();
+    capture.assertCurrent();
+    state.projectionHash = 'e'.repeat(64);
+    expect(() => capture.assertCurrent()).toThrow('Resource publication changed');
+  });
+
+  it.each([
+    'course-content/runtime/.act-runtime-release.v2.json',
+    'course-content/runtime/act-runtime-active-receipt.json',
+    'course-content/runtime/lessons/3-1/content.json',
+    'releases/proj-' + projectionHash + '/bindings.jsonl',
+  ])('rejects changed index source %s without an Authority or catalog change', async (relative) => {
+    const capture = await loadPublishedResourceFeatureIndexCapture();
+    const file = join(root, relative);
+    mkdirSync(join(file, '..'), { recursive: true });
+    writeFileSync(file, '{}\n');
+    expect(() => capture.assertCurrent()).toThrow('Resource publication changed');
   });
 });

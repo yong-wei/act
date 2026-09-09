@@ -3,12 +3,16 @@ import type { AuthorityNodeDetailShard } from '@/lib/authority-domain-shards/con
 import type { PublishedResourceFeature, PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
 import { parsePublishedResourceHref } from '@/lib/published-resource-reference';
 
-const state = vi.hoisted(() => ({ matched: true }));
-vi.mock('@/lib/published-resource-index', () => ({ loadPublishedResourceFeatureIndex: vi.fn() }));
+const state = vi.hoisted(() => ({ matched: true, projectionHash: 'a'.repeat(64), authoringRevision: '1'.repeat(40) }));
+vi.mock('@/lib/published-resource-index', async (original) => ({
+  ...await original<typeof import('@/lib/published-resource-index')>(),
+  loadPublishedResourceFeatureIndexCapture: vi.fn(),
+}));
 vi.mock('@/lib/authority-domain-shards/resource-bindings', () => ({
   matchActiveTeachingProjection: () => ({
     status: state.matched ? 'available' : 'mismatch',
-    projectionId: 'proj-' + 'a'.repeat(64), projectionHash: 'a'.repeat(64),
+    projectionId: 'proj-' + state.projectionHash, projectionHash: state.projectionHash,
+    authoringRevision: state.authoringRevision,
     scopeId: 'fixture',
     bindings: [
       { canonicalId: 'node', resourceId: 'act:lesson:3-1', role: 'EXPLAINS' },
@@ -48,7 +52,11 @@ function index(): PublishedResourceFeatureIndex {
   } as PublishedResourceFeatureIndex;
 }
 
-beforeEach(() => { state.matched = true; });
+function capturedIndex(value = index()) {
+  return { index: value, assertCurrent: vi.fn() };
+}
+
+beforeEach(() => { state.matched = true; state.projectionHash = 'a'.repeat(64); state.authoringRevision = '1'.repeat(40); });
 
 describe('published resources in the node inspector', () => {
   it('detects private-envelope changes across the asynchronous resource read', () => {
@@ -60,7 +68,7 @@ describe('published resources in the node inspector', () => {
     ]) expect(publishedResourceEnvelopeKey(changed)).not.toBe(before);
   });
   it('lists every bound resource once and retains its exact published reference', async () => {
-    const result = await readPublishedNodeResources(shard, async () => index());
+    const result = await readPublishedNodeResources(shard, async () => capturedIndex());
     expect(result.bindings.state).toBe('available');
     if (result.bindings.state !== 'available') throw new Error('Expected bound resources');
     expect(result.bindings.items.map((item) => item.resourceId)).toEqual(['act:lesson:3-1', 'act:textbook:book', 'act:card:blocked']);
@@ -77,7 +85,7 @@ describe('published resources in the node inspector', () => {
   });
 
   it('does not advertise a placeholder as readable content', async () => {
-    const result = await readPublishedNodeResources(shard, async () => index());
+    const result = await readPublishedNodeResources(shard, async () => capturedIndex());
     expect(result.bindings.state === 'available' && result.bindings.items[2]).toMatchObject({
       resourceId: 'act:card:blocked', availability: 'unavailable', launch: { href: null },
     });
@@ -87,10 +95,10 @@ describe('published resources in the node inspector', () => {
     for (const field of ['projectionHash', 'snapshotHash'] as const) {
       const changed = index();
       changed[field] = 'e'.repeat(64);
-      expect((await readPublishedNodeResources(shard, async () => changed)).bindings.state).toBe('unavailable');
+      expect((await readPublishedNodeResources(shard, async () => capturedIndex(changed))).bindings.state).toBe('unavailable');
     }
     state.matched = false;
-    const load = vi.fn(async () => index());
+    const load = vi.fn(async () => capturedIndex());
     expect((await readPublishedNodeResources(shard, load)).bindings.state).toBe('unavailable');
     expect(load).not.toHaveBeenCalled();
   });
@@ -98,9 +106,32 @@ describe('published resources in the node inspector', () => {
   it('rejects a missing or foreign resource instead of silently omitting its binding', async () => {
     const missing = index();
     missing.resources.pop();
-    await expect(readPublishedNodeResources(shard, async () => missing)).rejects.toThrow('identity differs');
+    await expect(readPublishedNodeResources(shard, async () => capturedIndex(missing))).rejects.toThrow('identity differs');
     const foreign = index();
     foreign.resources[0].identity.snapshotHash = 'e'.repeat(64);
-    await expect(readPublishedNodeResources(shard, async () => foreign)).rejects.toThrow('identity differs');
+    await expect(readPublishedNodeResources(shard, async () => capturedIndex(foreign))).rejects.toThrow('identity differs');
+  });
+
+  it.each(['projectionHash', 'authoringRevision'] as const)('rejects a sidecar %s change while loading the index', async (field) => {
+    await expect(readPublishedNodeResources(shard, async () => {
+      state[field] = 'e'.repeat(field === 'projectionHash' ? 64 : 40);
+      return capturedIndex();
+    })).rejects.toThrow('course projection changed');
+  });
+
+  it('carries the captured teaching revision and rechecks it at the response boundary', async () => {
+    const capture = capturedIndex();
+    const result = await readPublishedNodeResources(shard, async () => capture);
+    expect(result.teachingCaptureRevision).toBe('1'.repeat(40));
+    result.assertCurrent();
+    expect(capture.assertCurrent).toHaveBeenCalledTimes(2);
+    state.authoringRevision = '2'.repeat(40);
+    expect(() => result.assertCurrent()).toThrow('course projection changed');
+  });
+
+  it('rejects resource references with a different runtime identity from their index', async () => {
+    const mixed = index();
+    mixed.resources[0].identity.runtimeReleaseId = 'runtime-other';
+    await expect(readPublishedNodeResources(shard, async () => capturedIndex(mixed))).rejects.toThrow('identity differs');
   });
 });

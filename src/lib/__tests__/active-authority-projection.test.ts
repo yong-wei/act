@@ -51,6 +51,7 @@ import {
   AuthorityShardStoreError,
 } from '@/lib/authority-domain-shards';
 import { publishedNodeResourceFailure } from '@/lib/authority-domain-shards/published-resource-bindings';
+import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
 
 const resolved = {
   status: 'ready' as const,
@@ -197,6 +198,21 @@ describe('active Authority role-safe projections', () => {
     });
     const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
     expect(response.status).toBe(503);
+  });
+
+  it('does not downgrade publication drift during indexing to an optional resource failure', async () => {
+    mocks.publishedResources.mockRejectedValueOnce(new PublishedResourceSelectionChangedError('private selection drift'));
+    const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
+    expect(response.status).toBe(503);
+    expect(JSON.stringify(await response.json())).not.toContain('private selection drift');
+  });
+
+  it('rejects changed resource publication at the final response boundary', async () => {
+    const assertCurrent = vi.fn(() => { throw new PublishedResourceSelectionChangedError('resource index or runtime changed'); });
+    mocks.publishedResources.mockResolvedValueOnce({ ...publishedNodeResourceFailure(nodeShard), assertCurrent });
+    const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
+    expect(response.status).toBe(503);
+    expect(assertCurrent).toHaveBeenCalledOnce();
   });
 
   it.each([

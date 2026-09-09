@@ -59,3 +59,11 @@ DEFER：完整测试中的既存工具路径读取边界、assessment 证据摘�
 Web/Worker typecheck、推送门禁、194 项发布命令清单、部署脚本与 Docker 迁移就绪检查均通过。相关域 89 文件 1087 项与 Python 13 项通过。增量 GitHub 审查范围为 89bf86f6c05af4d737c81a1b117fe9f53b222bbf..0f4e10c7e39c58862a9329e0cdfd948cd4d799bc，尚待回复。
 
 生产只读预检：Docker Desktop 24576 MiB 内存、8192 MiB Swap；远端可用空间约 34 GiB。生产 Runtime desired 为 9 月 6 日提交 24535a1922addb04c033f520aeb62eed8c049649 的已物化候选，active 仍为 runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde。该历史候选的资源须纳入连续性核验，未覆盖生产选择记录。
+
+## Codex P1 整改
+
+增量审查 89bf86f6c05af4d737c81a1b117fe9f53b222bbf..0f4e10c7e39c58862a9329e0cdfd948cd4d799bc 报告资源异步读取遗漏课程投影、资源索引与 Runtime 最终身份复核，判定 ACCEPT。索引加载现保留捕获时的同步校验函数，覆盖 agreed course projection、完整分片 envelope、投影源文件及 Runtime 源状态；详情在返回前同时复核侧车投影与索引捕获，并沿用捕获的 teaching revision。明确的身份漂移返回 503，普通资源加载故障仍保留安全的基础详情。31 项直接回归已通过，复审仅覆盖该 finding 与整改直接风险。
+
+资源审计命令入口的既存测试失败原因已复现：治理包装器返回 apply-rejected、executed=false 的标准输出回执，测试仍期待下游 Unsupported arguments 的 stderr。该命令、包装器与测试均未被本轮修改；保留拒绝执行行为，不绕过授权门禁以满足旧断言。
+
+P1 整改相关 6 文件 64 项测试通过，变更文件 ESLint 通过；真实已登录浏览器请求终值定理详情返回 200、50 项资源，registry publication 与资源引用仍绑定同一课程投影。

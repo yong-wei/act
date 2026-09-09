@@ -88,6 +88,7 @@ import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-c
 import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
 import { publishedNodeResourceFailure, publishedResourceEnvelopeKey, readPublishedNodeResources, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
+import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -557,7 +558,10 @@ export async function activePublishedDetailResponse(
   if (rejected) return rejected;
   try {
     const shard = read();
-    const resources = await readPublishedNodeResources(shard).catch(() => publishedNodeResourceFailure(shard));
+    const resources = await readPublishedNodeResources(shard).catch((error) => {
+      if (error instanceof PublishedResourceSelectionChangedError) throw error;
+      return publishedNodeResourceFailure(shard);
+    });
     return activeShardResponseForRole(() => shard, role, request, resources);
   } catch (error) {
     const failure = shardFailureCode(error);
@@ -643,7 +647,9 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       const detail = shard as unknown as PublicAuthorityNodeDetailShard;
       const mathematics = projectGovernedFormulaToActiveMathematics(detail.node.mathematics)
         ?? projectActiveNodeMathematics(detail.node.teachingFields);
-      const teachingCaptureRevision = readActiveTeachingCaptureRevision(raw as AuthorityNodeDetailShard);
+      const teachingCaptureRevision = publishedResources
+        ? publishedResources.teachingCaptureRevision
+        : readActiveTeachingCaptureRevision(raw as AuthorityNodeDetailShard);
       const closedResources = publishedResources ?? sanitizeResourceBindings(
         attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard, role),
         (raw as AuthorityNodeDetailShard).node.id,
@@ -666,6 +672,7 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
         teachingCaptureRevision,
         latestCutover,
       });
+      publishedResources?.assertCurrent();
       return NextResponse.json(
         surface.status === 'ok' ? withKnowledgeSurface(payload, surface.knowledgeSurface) : payload,
       );
