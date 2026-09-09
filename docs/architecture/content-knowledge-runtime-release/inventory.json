@@ -1,23 +1,23 @@
 {
-  "sourceRevision": "c253a4bdee893ae877dca8ab8f1d2468548e6615",
-  "sourceTree": "356eb70b25f899fecc543bc264c4737c09f8c2d7",
+  "sourceRevision": "4b9b410f317bfa3c868d30078008259f0a067a2b",
+  "sourceTree": "fa07941f2425754a75127b0e274d66376c9a1994",
   "generatedInputs": [],
   "counts": {
     "course-content/scripts": 41,
-    "scripts/knowledge": 19,
+    "scripts/knowledge": 23,
     "scripts/knowledge-cutover": 80,
     "scripts/runtime-release": 44,
     "scripts/release": 5
   },
   "roleCounts": {
     "reader": 22,
-    "compiler": 83,
-    "validator": 15,
-    "operator-adapter": 50,
+    "compiler": 85,
+    "validator": 16,
+    "operator-adapter": 51,
     "candidate-adapter": 13,
     "publication-writer": 6
   },
-  "commandCount": 189,
+  "commandCount": 193,
   "commands": [
     {
       "path": "course-content/scripts/authority-cards/README.md",
@@ -512,7 +512,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "2e32bd30590f0f857029419cf438ed4b8e452d2abc0c1cdb608f5c00f5262bd8"
+      "contentHash": "b25b2f608cb6a90f81319b4ee2af0ff5fcf6215170130486a81a095febe4a0ae"
     },
     {
       "path": "scripts/knowledge-cutover/build-r4-c4-reused-governance-artifacts.ts",
@@ -1109,13 +1109,40 @@
       "contentHash": "08074145a30f01b502a8af8e4f6dfd0a0f3ca31c7c9cfe8fb45175306ef228cb"
     },
     {
+      "path": "scripts/knowledge/assert-knowledge-publication-consistency.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/assert-knowledge-publication-consistency.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "validator",
+      "safetyMode": "read-only",
+      "contentHash": "5f26881289822f8bdeb90bb9da5a7c12b549916c123c6ded54dc65d6b83cde4d"
+    },
+    {
       "path": "scripts/knowledge/assert-teaching-projection-app-revision.ts",
       "commandId": "release:knowledge-release:scripts/knowledge/assert-teaching-projection-app-revision.ts",
       "toolchain": "knowledge-release",
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "afb3716cd483e685ae6365737724f9e43e6d8674437e4709a5a6c23994eaf441"
+      "contentHash": "9277b7dacb979fd0614d0f3c50e20504ad495195c778223de22d9826dae6f7b9"
+    },
+    {
+      "path": "scripts/knowledge/build-course-prerequisite-projection.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/build-course-prerequisite-projection.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "3dcb58a4bbde9cc37f38c697ef6b2f43b70ba2a5b7e0309d9316c80d1cb5e98b"
+    },
+    {
+      "path": "scripts/knowledge/build-current-composite-metadata.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/build-current-composite-metadata.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "3b4dcfcd250a4a397822052380a2853327e9a88f0c513f800f2f6102bd03fae1"
     },
     {
       "path": "scripts/knowledge/check-authority-surface-linkage.mjs",
@@ -1277,7 +1304,16 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "cf07461f4016782b50e4924871704733181337ef0066db6a3898471a6ea101d0"
+      "contentHash": "1fc8f8dcd92d5eef1de010e3958db0265a892d0023adc36567a1f315d17ef193"
+    },
+    {
+      "path": "scripts/knowledge/select-local-graph-course-candidate.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/select-local-graph-course-candidate.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "operator-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "94f9628eca54422b1d4d6d13750162b0a0cd3524f598b1d5d93cf5be6b70f6f9"
     },
     {
       "path": "scripts/release/export-textbook-runtime-v2.mjs",
