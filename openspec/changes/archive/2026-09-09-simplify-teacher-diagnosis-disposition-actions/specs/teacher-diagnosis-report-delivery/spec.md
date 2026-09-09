@@ -4,17 +4,23 @@
 
 The teacher delivery surface SHALL offer student detail and preparation links only when the destination is server-authorized and already exists. The teacher delivery read SHALL NOT query or match teacher-registered teaching resources for findings and SHALL NOT generate remediation-resource entries. Opening a destination SHALL NOT create a preparation pack, remediation task, intervention, or assignment.
 
+#### Scenario: Registered remediation resource exists
+
+- **WHEN** a finding has a governed knowledge-node binding and an accessible registered teaching resource
+- **THEN** the teacher delivery read SHALL NOT query or match that resource
+- **AND** the findings disposition area SHALL NOT render a remediation-resource entry or an intervention marker for it.
+
+#### Scenario: No registered resource exists
+
+- **WHEN** no accessible registered resource is bound to the finding
+- **THEN** the report SHALL NOT render a registered-remediation empty-state placeholder
+- **AND** it SHALL NOT manufacture a link.
+
 #### Scenario: Finding offers the preparation entry only
 
 - **WHEN** a finding has a governed knowledge-node binding
 - **THEN** the teacher MAY open the existing smart preparation workspace from that finding
 - **AND** the delivery read SHALL NOT query teaching resources registered to the teacher.
-
-#### Scenario: No remediation-resource matching occurs
-
-- **WHEN** an authorized teacher opens the teacher delivery version
-- **THEN** the server SHALL resolve delivery actions without querying or matching registered teaching resources
-- **AND** the findings disposition area SHALL NOT render a registered-remediation-resource entry or an empty-state placeholder about missing registered remediation resources.
 
 ## ADDED Requirements
 
