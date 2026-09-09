@@ -5,6 +5,8 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3002';
 const generatorFile = 'tests/adaptive-path-recommendation-provenance-evidence.spec.ts';
 const productionSourceFiles = [
@@ -169,8 +171,7 @@ async function login(context: BrowserContext) {
   const response = await context.request.post('/api/auth/callback/credentials?json=true', {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: '/',
       json: 'true',
     },

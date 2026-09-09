@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3200';
 const evidenceDir = path.resolve(process.cwd(), 'artifacts/commercial-ui/issue-993-series-precheck');
 const captureEvidence = process.env.UPDATE_VISUAL_EVIDENCE === '1';
@@ -16,8 +18,7 @@ async function establishAuthenticatedSession(context: BrowserContext) {
   const loginResponse = await context.request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: baseURL,
       json: 'true',
     },

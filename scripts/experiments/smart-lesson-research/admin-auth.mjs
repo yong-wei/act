@@ -1,12 +1,15 @@
+import { credentialsFor } from '../../db/verified-test-accounts.mjs';
 import { BASE_URL, apiRequest } from './lib.mjs';
 
-export const ADMIN_LOGIN_ID = process.env.SMART_LESSON_ADMIN_LOGIN_ID;
-export const ADMIN_PASSWORD = process.env.SMART_LESSON_ADMIN_PASSWORD;
+const adminCredentials = credentialsFor('admin', {
+  loginId: process.env.SMART_LESSON_ADMIN_LOGIN_ID,
+  password: process.env.SMART_LESSON_ADMIN_PASSWORD,
+});
+
+export const ADMIN_LOGIN_ID = adminCredentials.loginId;
+export const ADMIN_PASSWORD = adminCredentials.password;
 
 export async function adminLogin() {
-  if (!ADMIN_LOGIN_ID || !ADMIN_PASSWORD) {
-    throw new Error('缺少 SMART_LESSON_ADMIN_LOGIN_ID / SMART_LESSON_ADMIN_PASSWORD 环境变量');
-  }
   const jar = new Map();
   const remember = (response) => {
     const lines = response.headers.getSetCookie?.() ?? [];
