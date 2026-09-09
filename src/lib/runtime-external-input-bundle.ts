@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { execFile as execFileCallback } from 'node:child_process';
+import { execFile as execFileCallback, execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { lstat, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -893,7 +893,7 @@ export async function assertCommittedLearningContentManifestMatchesExport(repoRo
  * card/infograph must belong to a manifest node. A divergent runtimeRoot
  * cannot smuggle different or missing assets into the release (#2045).
  */
-export function assertLearningContentAssetsMatchManifest(repoRoot: string, files: readonly ExternalInputBundleFile[], gitPaths: ReadonlySet<string>): void {
+export function assertLearningContentAssetsMatchManifest(repoRoot: string, files: readonly ExternalInputBundleFile[], gitPaths: ReadonlyMap<string, string>): void {
   const manifestPath = path.join(repoRoot, 'course-content/runtime', LEARNING_CONTENT_MANIFEST_RUNTIME_PATH);
   let manifest: { nodes?: Array<{ safeId: string; card?: { state?: string; sha256?: string | null }; infograph?: { state?: string; sha256?: string | null } }> };
   try {
@@ -913,7 +913,14 @@ export function assertLearningContentAssetsMatchManifest(repoRoot: string, files
       if (expectedSha !== null && bundled.get(relativePath) !== expectedSha) failures.push(`hash:${relativePath}`);
       return;
     }
-    if (gitPaths.has(relativePath)) return;
+    const blobId = gitPaths.get(relativePath);
+    if (blobId) {
+      if (expectedSha !== null) {
+        const bytes = execFileSync('git', ['cat-file', 'blob', blobId], { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 });
+        if (createHash('sha256').update(bytes).digest('hex') !== expectedSha) failures.push(`hash:${relativePath}`);
+      }
+      return;
+    }
     failures.push(`missing:${relativePath}`);
   };
   const listed = new Set<string>();
@@ -979,7 +986,7 @@ export async function prepareTextbookExternalInputBundle(input: {
     baseFiles.push(file);
   }
   assertLearningContentInputsPresent(baseFiles);
-  assertLearningContentAssetsMatchManifest(input.repoRoot, baseFiles, new Set(gitTree.keys()));
+  assertLearningContentAssetsMatchManifest(input.repoRoot, baseFiles, gitTree);
 
   const overlayFiles: ExternalInputBundleFile[] = [];
   for (const prefix of EXTERNAL_INPUT_BUNDLE_PREFIXES) {
