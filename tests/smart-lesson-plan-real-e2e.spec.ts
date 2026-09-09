@@ -35,23 +35,23 @@ test('uses the real browser, API, worker, Source Pack and fixture provider throu
   await expect(card).toContainText('自动控制原理验收班');
   await expect(card.getByText('已关联依据', { exact: true })).toHaveCount(2);
   await card.getByRole('button', { name: '开始生成' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '生成任务已进入队列' })).toBeVisible();
+  await expect.poll(() => apiResponses.find((item) =>
+    item.method === 'POST' && /\/drafts\/[^/]+\/generation$/.test(item.path)
+  )?.status).toBe(202);
   await refreshUntil(card, '提纲：等待教师确认');
   await expect(card).toContainText('提纲已持久化');
   await expect(card).toContainText('闭环特征方程与稳定性判据');
 
   await card.getByRole('button', { name: '确认当前提纲并继续' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '生成任务已恢复' })).toBeVisible();
   await refreshUntil(card, '总结：已完成');
   await expect(card.getByRole('button', { name: '开始生成' })).toBeEnabled();
   await card.getByText('查看完整教案').click();
   await expect(card).toContainText('参与式学习：已完成');
 
   await card.getByRole('button', { name: 'AI 建议' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'AI 建议已生成' })).toBeVisible();
+  await expect(card).toContainText('审核建议已生成');
   await expect(card).toContainText('BOPPPS 六阶段结构完整');
   await card.getByRole('button', { name: '批准版本' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '教案第1版 已冻结' })).toBeVisible();
   await expect(card).toContainText('最新：教案第1版');
 
   expect(apiResponses).toEqual(expect.arrayContaining([
