@@ -116,6 +116,39 @@ export async function recordDiagnosisDisposition(input: {
   if (parsed.targetKind === 'finding' && !projection.findings.some((finding) => finding.targetKey === parsed.targetKey)) {
     throw new DiagnosisDeliveryError(400, 'diagnosis-disposition-target-invalid');
   }
+  const idempotencyWhere = {
+    reportId_actorId_idempotencyKey: {
+      reportId: report.id,
+      actorId: input.teacherId,
+      idempotencyKey: parsed.idempotencyKey,
+    },
+  };
+  // 同键重放先于动作引用校验：历史事件引用的动作可能已被移除（如 remediation 入口下线），
+  // 幂等重放必须返回既有事件而不是 403。
+  const existing = await prisma.diagnosisReportDispositionEvent.findUnique({
+    where: idempotencyWhere,
+    select: {
+      id: true,
+      targetKind: true,
+      targetKey: true,
+      action: true,
+      actionRef: true,
+      result: true,
+      idempotencyKey: true,
+      createdAt: true,
+    },
+  });
+  if (existing) {
+    if (existing.targetKind !== parsed.targetKind
+      || existing.targetKey !== parsed.targetKey
+      || existing.action !== parsed.action
+      || existing.actionRef !== (parsed.actionRef ?? null)) {
+      throw new DiagnosisDeliveryError(409, 'diagnosis-disposition-idempotency-conflict');
+    }
+    const { idempotencyKey, ...publicEvent } = existing;
+    void idempotencyKey;
+    return publicEvent;
+  }
   if (parsed.action === 'intervention-arranged') {
     if (!parsed.actionRef) throw new DiagnosisDeliveryError(400, 'diagnosis-disposition-action-ref-required');
     const actions = resolveTeacherDeliveryActions(report);
@@ -126,13 +159,7 @@ export async function recordDiagnosisDisposition(input: {
     throw new DiagnosisDeliveryError(400, 'diagnosis-disposition-action-ref-not-allowed');
   }
   const event = await prisma.diagnosisReportDispositionEvent.upsert({
-    where: {
-      reportId_actorId_idempotencyKey: {
-        reportId: report.id,
-        actorId: input.teacherId,
-        idempotencyKey: parsed.idempotencyKey,
-      },
-    },
+    where: idempotencyWhere,
     update: {},
     create: {
       reportId: report.id,

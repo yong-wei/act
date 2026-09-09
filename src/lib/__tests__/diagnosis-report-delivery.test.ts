@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   diagnosisReportFindFirst: vi.fn(),
   studentProfileFindFirst: vi.fn(),
   dispositionFindMany: vi.fn(),
+  dispositionFindUnique: vi.fn(),
   dispositionUpsert: vi.fn(),
   artifactUpsert: vi.fn(),
   exportCreate: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock('@/lib/prisma', () => ({
     studentProfile: { findFirst: mocks.studentProfileFindFirst },
     diagnosisReportDispositionEvent: {
       findMany: mocks.dispositionFindMany,
+      findUnique: mocks.dispositionFindUnique,
       upsert: mocks.dispositionUpsert,
     },
     diagnosisReportExportArtifact: { upsert: mocks.artifactUpsert },
@@ -72,6 +74,7 @@ describe('diagnosis report delivery service', () => {
     mocks.diagnosisReportFindFirst.mockResolvedValue(report);
     mocks.studentProfileFindFirst.mockResolvedValue({ id: 'profile-1' });
     mocks.dispositionFindMany.mockResolvedValue([]);
+    mocks.dispositionFindUnique.mockResolvedValue(null);
     mocks.dispositionUpsert.mockResolvedValue({
       id: 'event-1',
       targetKind: 'finding',
@@ -184,6 +187,33 @@ describe('diagnosis report delivery service', () => {
     })).rejects.toMatchObject({
       code: 'diagnosis-disposition-action-ref-forbidden',
     });
+    expect(mocks.dispositionUpsert).not.toHaveBeenCalled();
+  });
+
+  it('returns the stored event for a same-key replay even when its action reference no longer resolves', async () => {
+    mocks.dispositionFindUnique.mockResolvedValueOnce({
+      id: 'event-legacy',
+      targetKind: 'finding',
+      targetKey: 'finding:1',
+      action: 'intervention-arranged',
+      actionRef: '/teacher/resources/resource-nodes?q=稳定裕度补练',
+      result: 'recorded',
+      idempotencyKey: '44444444-4444-4444-8444-444444444444',
+      createdAt: new Date('2026-08-19T09:00:00.000Z'),
+    });
+    const event = await recordDiagnosisDisposition({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      reportId: 'report-1',
+      disposition: {
+        targetKind: 'finding',
+        targetKey: 'finding:1',
+        action: 'intervention-arranged',
+        actionRef: '/teacher/resources/resource-nodes?q=稳定裕度补练',
+        idempotencyKey: '44444444-4444-4444-8444-444444444444',
+      },
+    });
+    expect(event).toMatchObject({ id: 'event-legacy', action: 'intervention-arranged' });
     expect(mocks.dispositionUpsert).not.toHaveBeenCalled();
   });
 

@@ -14,6 +14,7 @@
 
 - [x] 3.1 `diagnosis-report-delivery.test.ts`：动作解析测试改为断言仅 `student`/`preparation` kind；新增「教师交付读取不查询 `teachingResource`」回归断言；`intervention-arranged` 伪造引用拒绝、幂等冲突与学生安全预览测试保持通过。
 - [x] 3.2 `diagnosis-report-delivery-view.test.tsx`：fixture 去掉 remediation 动作；新增「不渲染『暂无已注册补练资源』、不渲染『标记已安排干预』」回归断言；断言处置按钮携带区分 tone 的样式类；学生面与打印断言保持。
+- [x] 3.3 （Codex P2 修复）同键幂等重放先于动作引用校验：历史 `intervention-arranged` 事件引用已下线的 remediation URL 时，重放返回既有事件而非 403；补充跨版本重放回归测试。
 
 ## 4. 验证
 
