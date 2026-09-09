@@ -7,7 +7,7 @@ function fixture() {
   const files = new Map<string, string>();
   const put = (key: string, value: unknown) => files.set('course-content/runtime/knowledge/' + key, JSON.stringify(value));
   put('projection/current.json', { projectionId: 'course', projectionHash: 'course-hash' });
-  put('projection/releases/course/projection-manifest.json', { authoringRevision: 'app', gatePassed: true, projectionHash: 'course-hash', authoritySnapshotHash: 'snapshot' });
+  put('projection/releases/course/projection-manifest.json', { authoringRevision: 'app', gatePassed: true, projectionHash: 'course-hash', authoritySnapshotHash: 'snapshot', authoritySnapshotId: 'snapshot-id', authorityReleaseId: 'release' });
   put('teaching-projection/domain-fragments/current.json', { projectionId: 'overlay', projectionHash: 'overlay-hash' });
   put('teaching-projection/domain-fragments/releases/overlay/composed-manifest.json', { projectionHash: 'overlay-hash', authoringRevision: 'app', authorityBinding: { snapshotHash: 'snapshot' } });
   put('teaching-projection/domain-fragments/releases/overlay/inspector-sidecar.json', { envelopeProjectionId: 'overlay', envelopeProjectionHash: 'overlay-hash', courseProjectionId: 'course', courseProjectionHash: 'course-hash' });
@@ -27,7 +27,7 @@ function fixture() {
   put('composite-envelopes/locale-manifests/qualified.json', { shardSet: { shardSetHash: hash }, authority: { snapshotHash: 'snapshot' }, interfaceCatalogDigest: 'interface', manifest: { denominators: [] } });
   put('course-order/coverage.json', { projectionHash: 'overlay-hash', authoringRevision: 'app', fullCourseCoverage: false });
   const read = (key: string) => { const bytes = files.get(key); if (!bytes) throw new Error('missing:' + key); return bytes; };
-  return { put, read };
+  return { put, read, files };
 }
 describe('frozen knowledge publication consistency', () => {
   it('accepts one coherent candidate with explicitly incomplete full-course coverage', () => {
@@ -39,6 +39,29 @@ describe('frozen knowledge publication consistency', () => {
     const candidate = fixture();
     candidate.put('projection/releases/course/bindings.jsonl', { resourceId: 'other', canonicalId: 'local', role: 'EXPLAINS', scopeId: 'course', primary: false });
     expect(() => assertKnowledgePublicationConsistency(candidate.read, 'app', baseline.read)).toThrow('retained resource continuity');
+  });
+  it.each(['approved', 'missing-ruling', 'wrong-snapshot', 'bound-count', 'bound-row', 'wrong-type'])('checks frozen retirement evidence for an absent infographic (%s)', (variant) => {
+    const baseline = fixture();
+    const candidate = fixture();
+    const resourceId = 'act:infographic:ctc_retired';
+    const resourcePath = 'course-content/runtime/knowledge/projection/releases/course/resources.jsonl';
+    baseline.files.set(resourcePath, baseline.read(resourcePath) + '\n' + JSON.stringify({
+      resourceId, resourceType: variant === 'wrong-type' ? 'card' : 'infographic', sourcePath: null,
+      projectionStatus: 'EXPLICIT_NONE', bindingCount: variant === 'bound-count' ? 1 : 0,
+    }));
+    if (variant !== 'missing-ruling') baseline.files.set(
+      'course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r6/domain-catalog/retirement-ruling.json',
+      JSON.stringify({ contract: 'act-authority-domain-catalog-retirement-ruling/v1', snapshotId: variant === 'wrong-snapshot' ? 'other' : 'snapshot-id', retiredMembers: ['ctc:retired'] }),
+    );
+    if (variant === 'bound-row') {
+      const bindingPath = 'course-content/runtime/knowledge/projection/releases/course/bindings.jsonl';
+      const bytes = baseline.read(bindingPath) + '\n' + JSON.stringify({ resourceId, canonicalId: 'local', role: 'EXPLAINS' });
+      baseline.files.set(bindingPath, bytes);
+      candidate.files.set(bindingPath, bytes);
+    }
+    const verify = () => assertKnowledgePublicationConsistency(candidate.read, 'app', baseline.read);
+    if (variant === 'approved') expect(verify).not.toThrow();
+    else expect(verify).toThrow('retained resource continuity');
   });
   it('rejects different prerequisite sets in course and path consumers', () => {
     const f = fixture();
