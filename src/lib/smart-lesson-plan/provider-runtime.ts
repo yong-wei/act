@@ -22,7 +22,7 @@ import {
   type SmartLessonPlan,
 } from './schema';
 
-export const SMART_LESSON_PROMPT_VERSION = 'smart-lesson-plan.v2';
+export const SMART_LESSON_PROMPT_VERSION = 'smart-lesson-plan.v3';
 export const SMART_LESSON_REVIEW_PROMPT_VERSION = 'smart-lesson-review.v1';
 const SMART_LESSON_ADVISORY_TIMEOUT_MS = 180_000;
 

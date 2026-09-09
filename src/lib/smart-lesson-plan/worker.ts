@@ -420,12 +420,15 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
   const schema: z.ZodTypeAny = stage === 'OUTLINE'
     ? smartLessonOutlineOutputSchema
     : createBopppsStageSchemaForAllowedBindings(allowedSourceBindings);
+  const durationInstruction = stage === 'OUTLINE'
+    ? '先规划各 BOPPPS 阶段的正整数分钟分配，确认六个阶段分钟之和严格等于 durationMinutes；再生成 coursewareStepOutline。'
+    : buildStageDurationInstructionOrFallback(context, stage);
   return {
     schema,
     schemaVersion: stage === 'OUTLINE' ? 'smart-lesson-outline.v1' : `smart-lesson-boppps-${stage.toLowerCase()}.v1`,
     maxOutputTokens: stage === 'OUTLINE' ? 2_048 : 4_096,
-    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。sourceBindings 只能从 JSON Schema 枚举的可用来源绑定中完整选择；没有适用项时使用 []。每个 BOPPPS 阶段的 minutes 必须严格等于该阶段所有 steps 的 minutes 之和。输出必须符合 JSON Schema。',
-    prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。可用来源绑定（逐字复制，不得改写）：${JSON.stringify(allowedSourceBindings)}。已完成阶段：${JSON.stringify(previous)}。`,
+    system: '你是单课 BOPPPS 教案生成器。只能使用给定的已确认目标、知识点、服务端来源证据和聚合班级上下文；不得创建新的来源绑定。sourceBindings 只能从 JSON Schema 枚举的可用来源绑定中完整选择；没有适用项时使用 []。每个 BOPPPS 阶段的 minutes 必须严格等于该阶段所有 steps 的 minutes 之和。输出前必须重新加总每个阶段的 steps.minutes；任何不一致都必须在输出前修正。输出必须符合 JSON Schema。',
+    prompt: `生成阶段 ${stage}。任务上下文：${JSON.stringify(common)}。可用来源绑定（逐字复制，不得改写）：${JSON.stringify(allowedSourceBindings)}。已完成阶段：${JSON.stringify(previous)}。${durationInstruction}`,
     allowedSourceBindings,
     allowedBindingKeys: new Set(allowedSourceBindings.map(bindingKey)),
   };
@@ -434,6 +437,58 @@ async function buildStageRequest(db: WorkerDb, context: NonNullable<JobContext>,
 type SourceBinding = z.infer<typeof sourceBindingSchema>;
 
 const STAGE_STEP_DURATION_MISMATCH_MESSAGE = /^stage-step-duration-mismatch:(\d+):(\d+)$/;
+
+function buildStageDurationInstruction(expectedMinutes: number) {
+  return `当前阶段固定总时长为 ${expectedMinutes} 分钟。先决定 steps 的正整数分钟分配，再填写教学内容；输出前必须逐项相加并确认 steps.minutes 总和恰好等于 ${expectedMinutes}，同时将 stage.minutes 设置为 ${expectedMinutes}。若只有一个步骤，该步骤 minutes 必须直接设置为 ${expectedMinutes}；不得输出未经核对的 minutes。`;
+}
+
+function buildStageDurationInstructionOrFallback(
+  context: NonNullable<JobContext>,
+  stage: Exclude<SmartLessonGenerationStageKind, 'OUTLINE'>,
+) {
+  try {
+    return buildStageDurationInstruction(expectedStageMinutes(context, stage));
+  } catch {
+    return '输出前必须重新加总 steps.minutes，并确认其总和严格等于 stage.minutes；所有 minutes 必须为正整数。';
+  }
+}
+
+function originalStepMinutes(output: unknown) {
+  if (!output || typeof output !== 'object' || !Array.isArray((output as { steps?: unknown }).steps)) return [];
+  return (output as { steps: Array<{ minutes?: unknown }> }).steps.map((step) => (
+    step && typeof step === 'object' && typeof step.minutes === 'number' && Number.isInteger(step.minutes) && step.minutes > 0
+      ? step.minutes
+      : 0
+  ));
+}
+
+function buildDurationAllocation(originalMinutes: number[], expectedMinutes: number) {
+  const stepCount = originalMinutes.length;
+  if (!Number.isInteger(stepCount) || stepCount <= 0 || !Number.isInteger(expectedMinutes) || stepCount > expectedMinutes) {
+    return null;
+  }
+  const weightSum = originalMinutes.reduce((total, minutes) => total + minutes, 0);
+  if (weightSum <= 0) {
+    const base = Math.floor(expectedMinutes / stepCount);
+    const remainder = expectedMinutes % stepCount;
+    return Array.from({ length: stepCount }, (_, index) => base + (index < remainder ? 1 : 0));
+  }
+  const raw = originalMinutes.map((minutes) => (minutes / weightSum) * expectedMinutes);
+  const allocation = raw.map((value) => Math.floor(value));
+  const leftover = expectedMinutes - allocation.reduce((total, minutes) => total + minutes, 0);
+  const order = raw
+    .map((value, index) => ({ index, frac: value - Math.floor(value) }))
+    .sort((left, right) => right.frac - left.frac || left.index - right.index);
+  for (let index = 0; index < leftover; index += 1) allocation[order[index].index] += 1;
+  while (allocation.some((minutes) => minutes <= 0)) {
+    const zero = allocation.findIndex((minutes) => minutes <= 0);
+    const donor = allocation.reduce((best, minutes, index) => (minutes > allocation[best] ? index : best), 0);
+    if (allocation[donor] <= 1) return null;
+    allocation[donor] -= 1;
+    allocation[zero] += 1;
+  }
+  return allocation;
+}
 
 function normalizeStageStepDurationIssues(issues: SmartLessonValidationReceipt['issues']) {
   return issues.map((issue) => (STAGE_STEP_DURATION_MISMATCH_MESSAGE.test(issue.message)
@@ -634,11 +689,15 @@ function buildCorrectionContext(
       return null;
     }
     if (!match || !Number.isInteger(expectedMinutes) || expectedMinutes <= 0) return null;
+    const durationAllocation = buildDurationAllocation(originalStepMinutes(output), expectedMinutes);
     return {
       stage,
       expectedMinutes,
       actualMinutes: Number(match[1]),
-      instruction: `保持步骤数量、顺序、标题、教学活动、评价内容与 sourceBindings 不变；stage.minutes 与每个步骤 minutes 都必须是正整数，所有步骤 minutes 之和必须严格等于 ${expectedMinutes} 分钟，stage.minutes 同步修正为 ${expectedMinutes}；优先保持原有步骤时长比例，不得扩展教学语义。`,
+      ...(durationAllocation ? { durationAllocation } : {}),
+      instruction: durationAllocation
+        ? `保持步骤数量、顺序、标题、教学活动、评价内容与 sourceBindings 不变；先将 steps.minutes 按 correctionContext.durationAllocation 逐项设置，再核对其总和；stage.minutes 与每个步骤 minutes 都必须是正整数，所有步骤 minutes 之和必须严格等于 ${expectedMinutes} 分钟，stage.minutes 同步修正为 ${expectedMinutes}；不得扩展教学语义。`
+        : `当前步骤数量无法分配为 ${expectedMinutes} 个正整数分钟；允许合并或减少步骤，但必须保留原有教学语义、顺序、必要的教学活动、评价内容与 sourceBindings。重新生成后，stage.minutes 与所有 steps.minutes 之和必须严格等于 ${expectedMinutes} 分钟，且每个 minutes 都必须为正整数；不得扩展教学语义。`,
     };
   }
   if (!receipt.issues.some((issue) => issue.code === 'stage-duration-mismatch')) return null;

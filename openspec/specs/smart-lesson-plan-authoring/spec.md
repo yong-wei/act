@@ -453,13 +453,14 @@ All smart-preparation assistant entry points SHALL display `控灵` and Chinese 
 
 ### Requirement: Stage duration mismatches receive targeted automatic correction
 
-BOPPPS 阶段生成的时长类校验失败 SHALL 获得针对性的自动 correction：原始生成 prompt SHALL 声明阶段时长与步骤时长总和的一致性约束；步骤时长总和不一致 SHALL 被规范化为 correction 可处理的错误并携带实际值与目标值；每个阶段 attempt SHALL 保持一次 ORIGINAL + 一次 CORRECTION 的调用上限。
+BOPPPS 阶段生成的时长类校验失败 SHALL 获得针对性的自动 correction：原始生成 prompt SHALL 声明权威阶段时长，并要求输出前自检 `stage.minutes` 等于 `steps[].minutes` 之和；步骤时长总和不一致 SHALL 被规范化为 correction 可处理的错误并携带实际值与目标值；可行时 correction SHALL 给出保持原步骤数量与原时长比例的正整数分配；不可行时 SHALL 允许合并或减少步骤；每个阶段 attempt SHALL 保持一次 ORIGINAL + 一次 CORRECTION 的调用上限。
 
 #### Scenario: 原始生成携带时长一致性约束
 
 - **WHEN** worker 构造 BOPPPS 阶段生成请求
-- **THEN** system prompt SHALL 明确要求 `stage.minutes` 严格等于该阶段所有 `steps[].minutes` 之和
-- **AND** prompt version SHALL 标记为 `smart-lesson-plan.v2`，schema 版本保持不变。
+- **THEN** 请求 SHALL 给出权威阶段时长
+- **AND** system prompt SHALL 明确要求 `stage.minutes` 严格等于该阶段所有 `steps[].minutes` 之和，并在输出前重新加总核对
+- **AND** prompt version SHALL 标记为 `smart-lesson-plan.v3`，schema 版本保持不变。
 
 #### Scenario: 步骤时长总和不一致被规范化
 
@@ -469,9 +470,16 @@ BOPPPS 阶段生成的时长类校验失败 SHALL 获得针对性的自动 corre
 
 #### Scenario: Correction 收到具体时长修正约束
 
-- **WHEN** `stage-step-duration-mismatch` 是该次校验的唯一错误并触发自动 correction
-- **THEN** correction context SHALL 携带阶段名称、实际步骤时长总和与目标阶段时长（以已确认 outline 的阶段时长为权威）
-- **AND** correction 要求 SHALL 保持步骤数量、顺序、标题、教学活动、评价内容与 `sourceBindings` 不变，每个步骤时长为正整数且总和严格等于目标阶段时长，优先保持原时长比例，不扩展教学语义。
+- **WHEN** `stage-step-duration-mismatch` 是该次校验的唯一错误并触发自动 correction，且可从候选步骤导出可行的正整数分配
+- **THEN** correction context SHALL 携带阶段名称、实际步骤时长总和、目标阶段时长，以及与原步骤数量相同、总和等于目标、优先保持原时长比例的 `durationAllocation`
+- **AND** correction 要求 SHALL 保持步骤数量、顺序、标题、教学活动、评价内容与 `sourceBindings` 不变，先按该分配设置 `steps.minutes`，每个步骤时长为正整数且总和严格等于目标阶段时长，不扩展教学语义。
+
+#### Scenario: 无法导出可行分配时允许减少步骤
+
+- **WHEN** `stage-step-duration-mismatch` 是该次校验的唯一错误，但候选步骤数量大于目标时长或无法导出正整数分配
+- **THEN** correction context SHALL 省略 `durationAllocation`
+- **AND** correction 要求 SHALL NOT 锁定原步骤数量，允许合并或减少步骤，同时保留教学语义、顺序与 `sourceBindings`
+- **AND** 修正后 `stage.minutes` 与所有 `steps.minutes` 之和仍必须严格相等，且每个 minutes 为正整数。
 
 #### Scenario: 时长信息无法可靠解析或并存其他校验错误时诚实退化
 

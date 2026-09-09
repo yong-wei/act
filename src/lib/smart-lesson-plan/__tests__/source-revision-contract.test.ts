@@ -49,6 +49,10 @@ describe('smart lesson real-provider source revision contract', () => {
       path.join(process.cwd(), 'scripts/tests/run-smart-lesson-real-e2e.ts'),
       'utf8',
     );
+    const seed = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/smart-lesson-e2e-acceptance-seed.ts'),
+      'utf8',
+    );
     const migration = readFileSync(
       path.join(
         process.cwd(),
@@ -62,15 +66,17 @@ describe('smart lesson real-provider source revision contract', () => {
     expect(runner).toContain("process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED = '1';");
     expect(runner.indexOf("process.env.SMART_LESSON_REAL_PROVIDER_REQUIRED = '1';"))
       .toBeLessThan(runner.indexOf("await import('../../src/lib/smart-lesson-plan/worker')"));
-    expect(runner).toContain('SET LOCAL search_path TO "${schemaName}", public');
-    expect(runner).toContain('const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({');
-    expect(runner).toContain('BigInt(currentFence?.fence ?? 0) + 1n');
-    expect(runner).toContain('BigInt(currentFence?.learnerGeneration ?? 0) + 1n');
-    expect(runner).toContain('BigInt(currentFence?.classGeneration ?? 0) + 1n');
-    expect(runner).toContain('BigInt(currentFence?.queueGeneration ?? 0) + 1n');
-    expect(runner).toContain('cumulativePortraitCutoverFence.upsert({');
-    expect(runner).toContain("create: { id: 'global', ...fenceData }");
-    expect(runner).toContain('update: fenceData');
+    expect(runner).toContain("import { seedSmartLessonE2EClassContext } from './smart-lesson-e2e-acceptance-seed'");
+    expect(runner).toContain('await seedSmartLessonE2EClassContext(prisma, {');
+    expect(seed).toContain('SET LOCAL search_path TO "${input.schemaName}", public');
+    expect(seed).toContain('const currentFence = await tx.cumulativePortraitCutoverFence.findUnique({');
+    expect(seed).toContain('BigInt(currentFence?.fence ?? 0) + 1n');
+    expect(seed).toContain('BigInt(currentFence?.learnerGeneration ?? 0) + 1n');
+    expect(seed).toContain('BigInt(currentFence?.classGeneration ?? 0) + 1n');
+    expect(seed).toContain('BigInt(currentFence?.queueGeneration ?? 0) + 1n');
+    expect(seed).toContain('cumulativePortraitCutoverFence.upsert({');
+    expect(seed).toContain("create: { id: 'global', ...fenceData }");
+    expect(seed).toContain('update: fenceData');
     expect(migration).toContain(
       'SELECT * INTO run_row FROM "CumulativePortraitMigrationRun" WHERE "id" = NEW."activeMigrationRunId"',
     );
