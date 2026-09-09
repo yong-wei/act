@@ -20,8 +20,12 @@ integer allocation whose length matches the original step count and whose sum
 equals the expected duration. The correction instruction tells the model to
 apply that allocation while preserving semantic fields and source bindings.
 
-If the candidate does not expose a usable step array, the targeted context
-omits the allocation and retains the generic exact-sum instruction.
+If the candidate does not expose a usable step array, or its step count is
+greater than the authoritative stage duration and therefore cannot receive
+positive integer minutes, the targeted context omits the allocation. The
+correction instruction then permits merging or reducing steps while retaining
+the original teaching semantics and source bindings, and still requires exact
+sum equality.
 
 ## Compatibility
 

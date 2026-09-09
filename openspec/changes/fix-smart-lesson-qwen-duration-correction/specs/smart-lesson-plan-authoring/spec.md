@@ -18,13 +18,21 @@ exposes a usable step count.
 #### Scenario: A sole nested-step duration mismatch is corrected
 - **WHEN** validation reports only `stage-step-duration-mismatch`
 - **THEN** the correction context SHALL retain the expected and actual totals
-- **AND** when the candidate has a usable step array it SHALL include a
-  positive-integer allocation with the same length and the expected total
-- **AND** the correction instruction SHALL require applying and rechecking the
-  allocation without changing semantic fields or source bindings.
+- **AND** when the candidate has a usable step array and a feasible positive-
+  integer allocation can be derived, it SHALL include an allocation with the
+  same length and the expected total
+- **AND** when no such allocation can be derived, the correction instruction
+  SHALL permit merging or reducing steps while preserving the teaching
+  semantics and source bindings
+- **AND** the correction instruction SHALL require applying and rechecking
+  the resulting allocation without changing semantic fields or source
+  bindings.
 
-#### Scenario: A candidate has no usable step count
-- **WHEN** targeted correction cannot derive a valid step allocation
+#### Scenario: A candidate has no feasible step allocation
+- **WHEN** targeted correction cannot derive a valid positive-integer step
+  allocation
 - **THEN** the correction context SHALL omit the allocation
+- **AND** the correction instruction SHALL not require preserving an
+  infeasible step count
 - **AND** the correction instruction SHALL still require exact equality between
   `stage.minutes` and the sum of `steps.minutes`.
