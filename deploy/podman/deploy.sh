@@ -28,6 +28,12 @@ if [ "${APP_IMAGE+x}" = "x" ]; then
   operator_app_image_was_set=1
   operator_app_image="$APP_IMAGE"
 fi
+operator_latest_candidate_was_set=0
+operator_latest_candidate=""
+if [ "${LATEST_CUTOVER_CANDIDATE_DIR+x}" = "x" ]; then
+  operator_latest_candidate_was_set=1
+  operator_latest_candidate="$LATEST_CUTOVER_CANDIDATE_DIR"
+fi
 operator_knowledge_mode_was_set=0
 operator_knowledge_mode=""
 if [ "${ACT_KNOWLEDGE_DEPLOYMENT_MODE+x}" = "x" ]; then
@@ -138,6 +144,9 @@ elif [ "$file_app_image_was_set" = "1" ]; then
   APP_IMAGE="$file_app_image"
 else
   unset APP_IMAGE
+fi
+if [ "$operator_latest_candidate_was_set" = "1" ]; then
+  LATEST_CUTOVER_CANDIDATE_DIR="$operator_latest_candidate"
 fi
 if [ "$operator_runtime_content_dir_was_set" = "1" ]; then
   RUNTIME_CONTENT_DIR="$operator_runtime_content_dir"
