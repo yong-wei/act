@@ -22,16 +22,11 @@ import { HeroModelBasis } from '@/resources/simulations/components/hero-model-ba
 import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
 import {
-  TYPE055_NANCHANG_101_V2_1_0,
-  TYPE055_NANCHANG_101_V2_1_1,
-  TYPE055_NANCHANG_101_V2_1_2,
-  TYPE055_NANCHANG_101_V2_1_3,
   TYPE055_V2_BASIS_YAW_RAD,
   isType055VersionedAssetUrl,
   matchActivatedType055Package,
   matchType055DescriptorByUrl,
   propulsorSceneAnchors,
-  shipLodCandidatesForQualityTier,
   type VersionedModelPackageDescriptor,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
 import { SemanticBindingsRig } from '@/resources/simulations/components/semantic-bindings-rig';
@@ -536,7 +531,7 @@ declare global {
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败按 v2.1.3 → v2.1.2 → v2.1.1 → v2.1.0 → 旧 browser-delivery 链有序回退。 */
+/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败只回退旧 browser-delivery 单文件链。 */
 function DestroyerModel({
   simRef,
   resetToken,
@@ -558,20 +553,11 @@ function DestroyerModel({
     );
   }
 
-  // 有序回退：激活版（v2.2.0，由 VersionedShipModel 走 OSS→镜像）→ v2.1.3 → v2.1.2 → v2.1.1 → v2.1.0 → 旧单文件链。
-  const orderedFallback = [
-    ...shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_3, tier),
-    ...shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_2, tier),
-    ...shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier),
-    ...shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier),
-    ...MODEL.candidates,
-  ];
-
   return (
     <VersionedShipModel
       descriptor={descriptor}
       tier={tier}
-      legacyCandidates={orderedFallback}
+      legacyCandidates={MODEL.candidates}
       renderScene={(url) => {
         const resolved = matchType055DescriptorByUrl(url);
         const useMatrix = Boolean(resolved?.modelToSceneMatrix);

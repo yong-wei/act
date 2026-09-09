@@ -1,14 +1,13 @@
 /**
  * type055-nanchang-101 版本化模型包的 ACT 侧只读描述符。
  *
- * 身份由 `scripts/models/receive-type055-nanchang-101-v2.mjs` 接收时逐文件核验
- * （七 GLB + manifest 的 SHA-256 与大小，复制前后字节一致），收据位于
- * `artifacts/model-releases/type055-nanchang-101-v<version>/receipt.json`。
- * 本模块只登记已验证事实；ACT 不修补上游模型字节（缺陷返回 3DModels 发新版本）。
+ * 身份由 `scripts/models/receive-fleet-model-release.mjs` 接收时逐文件核验，
+ * 收据位于 `artifacts/model-releases/type055-nanchang-101-v2.2.1/receipt.json`。
+ * 本模块只登记当前激活版；旧版描述符与目录已退役。
+ * ACT 不修补上游模型字节（缺陷返回 3DModels 发新版本）。
  *
- * v2.2.0（当前激活）：整合包 `act-ship-release/1`，用声明矩阵一次挂载
- * （含 Y=−7.05），不再叠加旧 6.6 水线或 bbox 居中。
- * v2.1.3：裁减螺旋桨 clip 常量尾；v2.1.2 / v2.1.1 / v2.1.0 仍作有序回退。
+ * v2.2.1：ACT_RUNTIME_ONLY，GLB 在 models/，贴图在 textures/；
+ * 声明矩阵一次挂载（含 Y=−7.05）。加载失败只回退 registry 单文件链。
  */
 
 export * from './types';
@@ -21,7 +20,7 @@ import {
   type VersionedModelPackageDescriptor,
 } from './types';
 
-/** v2.1.x 共用的接口合同（v2.1.1 仅改材质归属、v2.1.2 仅剔除伪 scale 轨道、v2.1.3 仅裁减 spin clip 保持尾，接口不变）。 */
+/** 当前包接口合同。 */
 const V2_INTERFACE_CONTRACT: VersionedModelInterfaceContract = {
   shipAnimationCount: 15,
   shipInterfaceAnimations: [
@@ -56,8 +55,6 @@ const V2_INTERFACE_CONTRACT: VersionedModelInterfaceContract = {
   decalImages: ['g07-hull-number-101-rgba', 'g07-flight-deck-markings-rgba'],
 };
 
-// 模型局部 Y=0 为龙骨基线，设计水线 Y=6.6（= 吃水）；防锈漆覆盖到 Y=7.05（boot-top 余量）。
-const V2_VERTICAL_ANCHOR = { designWaterlineY: 6.6 } as const;
 const V2_MODEL_LENGTH_METERS = 179.69;
 const V2_PROPULSORS = [
   { id: 'prop-port', node: 'PROP_PORT', position: [-82.97, 2.71, -4.8] as const },
@@ -121,149 +118,29 @@ const HERO_055_TO_SCENE = [
   0, 0, 0, 1,
 ] as const;
 
-const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.2.0';
+const BASE_URL = '/assets/model-releases/type055-nanchang-101/v2.2.1';
 
 export const TYPE055_NANCHANG_101_V2: VersionedModelPackageDescriptor = {
   packageId: 'type055-nanchang-101',
   shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.2.0',
-  releaseManifestSha256: 'bc00a530c6d36e32f3bcea71ce7b040d858220e89d9f94cab7e1c004419ff781',
-  sourceBlendSha256: 'f01901ed23cf08668288386477311e74c3c903775f9870fe632a2ebc0e82fa3e',
+  modelVersion: '2.2.1',
+  releaseManifestSha256: '37502cc1814b6be408b124d9b72a20b7f66031cd4a364bfe6a74fb3dda8081d8',
+  sourceBlendSha256: 'eafce990f09757d4631305516bb80f8a5d95a920b1321c375c446dc117aaac83',
   baseUrl: BASE_URL,
   roles: {
-    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', '6431f167dcbd7a8c0365edac7fe6000bdec0674eca22559e6b1b652aa9f4fd7f', 3527488),
-    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', '31334cbb2eb50cf583e1496959e230d64b598cc447f20cabfbb9ba590bb55a0e', 1726148),
-    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', '658c0c43ba223814f78a1e2e29067d2aeb38c9da3ba532415be0741bf12c8069', 1145684),
-    collision: artifact(BASE_URL, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
-    payload: artifact(BASE_URL, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
-    demo: artifact(BASE_URL, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
-    'interactive-systems': artifact(BASE_URL, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
+    'ship-lod0': artifact(BASE_URL, 'ship-lod0', 'models/type055-nanchang-101-ship-lod0.glb', 'ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd', 3370584),
+    'ship-lod1': artifact(BASE_URL, 'ship-lod1', 'models/type055-nanchang-101-ship-lod1.glb', '83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd', 1569240),
+    'ship-lod2': artifact(BASE_URL, 'ship-lod2', 'models/type055-nanchang-101-ship-lod2.glb', '61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556', 988780),
+    collision: artifact(BASE_URL, 'collision', 'models/type055-nanchang-101-collision.glb', '24fcb99fe32a66b992511048ad2f4b5d06c249379cc9734de82de056d9f7991d', 52472),
+    payload: artifact(BASE_URL, 'payload', 'models/type055-nanchang-101-weapon-payloads.glb', 'c17a578374da69aa2617502cf26c5a928f4416ef5ddddb058bf919a3cec6ede8', 200848),
+    demo: artifact(BASE_URL, 'demo', 'models/type055-nanchang-101-weapon-demo.glb', 'bcbbf38947fbb2e90942b162cc1c6fcd3e82f506de1c6616c66ee498bc3e767b', 185120),
+    'interactive-systems': artifact(BASE_URL, 'interactive-systems', 'models/type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
   },
   coordinateBasis: { forward: '+X', up: '+Y' },
   basisYawRad: 0,
   modelToSceneMatrix: HERO_055_TO_SCENE,
   interfaceContract: V2_INTERFACE_CONTRACT,
   verticalAnchor: { designWaterlineY: 0 },
-  modelLengthMeters: V2_MODEL_LENGTH_METERS,
-  propulsors: V2_PROPULSORS,
-  telemetryScale: V2_TELEMETRY_SCALE,
-  semanticBindings: V2_SEMANTIC_BINDINGS,
-  easterEgg: V2_EASTER_EGG,
-};
-
-const BASE_URL_V2_1_3 = '/assets/model-releases/type055-nanchang-101/v2.1.3';
-
-/** v2.1.3 描述符：保留为运行时有序回退（旧水线 6.6 + 基 yaw，无整合包矩阵）。 */
-export const TYPE055_NANCHANG_101_V2_1_3: VersionedModelPackageDescriptor = {
-  packageId: 'type055-nanchang-101',
-  shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.1.3',
-  releaseManifestSha256: '7119609d278fa74faf1dc0dc9e97b501d14aefa5c39486859f18e92dd0ea093d',
-  sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
-  baseUrl: BASE_URL_V2_1_3,
-  roles: {
-    'ship-lod0': artifact(BASE_URL_V2_1_3, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', 'a6af851eb6239e626e35b78cda24c3ffc3ea7b1d466da53a42079fb35b972bc6', 3527712),
-    'ship-lod1': artifact(BASE_URL_V2_1_3, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', 'aae54a087ecbb7c096065f8cc77a6d970950816dc75b7364a54c5fd81136afab', 1726372),
-    'ship-lod2': artifact(BASE_URL_V2_1_3, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', 'd272cb7772d95d4a46fadb4edf9111214cce12fa68f912d156949d05bb368a78', 1145904),
-    collision: artifact(BASE_URL_V2_1_3, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
-    payload: artifact(BASE_URL_V2_1_3, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
-    demo: artifact(BASE_URL_V2_1_3, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
-    'interactive-systems': artifact(BASE_URL_V2_1_3, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
-  },
-  coordinateBasis: { forward: '+X', up: '+Y' },
-  basisYawRad: -Math.PI / 2,
-  interfaceContract: V2_INTERFACE_CONTRACT,
-  verticalAnchor: V2_VERTICAL_ANCHOR,
-  modelLengthMeters: V2_MODEL_LENGTH_METERS,
-  propulsors: V2_PROPULSORS,
-  telemetryScale: V2_TELEMETRY_SCALE,
-  semanticBindings: V2_SEMANTIC_BINDINGS,
-  easterEgg: V2_EASTER_EGG,
-};
-
-const BASE_URL_V2_1_2 = '/assets/model-releases/type055-nanchang-101/v2.1.2';
-
-/** v2.1.2 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.3）。 */
-export const TYPE055_NANCHANG_101_V2_1_2: VersionedModelPackageDescriptor = {
-  packageId: 'type055-nanchang-101',
-  shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.1.2',
-  releaseManifestSha256: 'e56460aae95234157fb738b36ba5e09e0165353e68f53e70c093f7f325989eb5',
-  sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
-  baseUrl: BASE_URL_V2_1_2,
-  roles: {
-    'ship-lod0': artifact(BASE_URL_V2_1_2, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', '9b59b3185681586a76af1b6c94522cbe99dca675c52132dde674468c9b568fd3', 3527132),
-    'ship-lod1': artifact(BASE_URL_V2_1_2, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', '2cbfe9dd6800b88304a2887835ccd695d3fa15a784a876260b409b9e037b3df0', 1729084),
-    'ship-lod2': artifact(BASE_URL_V2_1_2, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', 'eb7c551d177b78b619d1d4b6c35a02008a60248f89ad358114ad4033dab70327', 1138920),
-    collision: artifact(BASE_URL_V2_1_2, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
-    payload: artifact(BASE_URL_V2_1_2, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
-    demo: artifact(BASE_URL_V2_1_2, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
-    'interactive-systems': artifact(BASE_URL_V2_1_2, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
-  },
-  coordinateBasis: { forward: '+X', up: '+Y' },
-  basisYawRad: -Math.PI / 2,
-  interfaceContract: V2_INTERFACE_CONTRACT,
-  verticalAnchor: V2_VERTICAL_ANCHOR,
-  modelLengthMeters: V2_MODEL_LENGTH_METERS,
-  propulsors: V2_PROPULSORS,
-  telemetryScale: V2_TELEMETRY_SCALE,
-  semanticBindings: V2_SEMANTIC_BINDINGS,
-  easterEgg: V2_EASTER_EGG,
-};
-
-const BASE_URL_V2_1_1 = '/assets/model-releases/type055-nanchang-101/v2.1.1';
-
-/** v2.1.1 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.3）。 */
-export const TYPE055_NANCHANG_101_V2_1_1: VersionedModelPackageDescriptor = {
-  packageId: 'type055-nanchang-101',
-  shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.1.1',
-  releaseManifestSha256: '24f7dfdb2ec362d3fb4ac9fe0b1b6c63ce15d5c1f34b8603ddf5638932581430',
-  sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
-  baseUrl: BASE_URL_V2_1_1,
-  roles: {
-    'ship-lod0': artifact(BASE_URL_V2_1_1, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', '36f22dd282f7390766441588cfc8a46b1a1f3e13782f946bdb6a09f202131119', 3536140),
-    'ship-lod1': artifact(BASE_URL_V2_1_1, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', '16f7e9308a54fb948b6818bd79891f8756bb775ce3cd40bbb38d48dabff57d53', 1732928),
-    'ship-lod2': artifact(BASE_URL_V2_1_1, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', '506681dad4c4f2b0a36fdfc901583ff27c8bdb38cbd7ea8440e211925a23bc99', 1146052),
-    collision: artifact(BASE_URL_V2_1_1, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
-    payload: artifact(BASE_URL_V2_1_1, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
-    demo: artifact(BASE_URL_V2_1_1, 'demo', 'type055-nanchang-101-weapon-demo.glb', '28a8b54fb9fcae6a82450f7d88a8b29c689999e05156015055f838a3d9d42c7f', 185172),
-    'interactive-systems': artifact(BASE_URL_V2_1_1, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
-  },
-  coordinateBasis: { forward: '+X', up: '+Y' },
-  basisYawRad: -Math.PI / 2,
-  interfaceContract: V2_INTERFACE_CONTRACT,
-  verticalAnchor: V2_VERTICAL_ANCHOR,
-  modelLengthMeters: V2_MODEL_LENGTH_METERS,
-  propulsors: V2_PROPULSORS,
-  telemetryScale: V2_TELEMETRY_SCALE,
-  semanticBindings: V2_SEMANTIC_BINDINGS,
-  easterEgg: V2_EASTER_EGG,
-};
-
-const BASE_URL_V2_1_0 = '/assets/model-releases/type055-nanchang-101/v2.1.0';
-
-/** v2.1.0 描述符：保留为运行时有序回退（接口合同与语义声明同 v2.1.1）。 */
-export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
-  packageId: 'type055-nanchang-101',
-  shipId: 'type_055_destroyer_101_nanchang',
-  modelVersion: '2.1.0',
-  releaseManifestSha256: 'c4dcf49ab7c23ca1d0a269800f29a9dcd180f1e2795dc2db882e87575586f7c8',
-  sourceBlendSha256: 'c8a82074fefc4d935d5714f78fafc18df5bf48662774a0a30f78714f435d6357',
-  baseUrl: BASE_URL_V2_1_0,
-  roles: {
-    'ship-lod0': artifact(BASE_URL_V2_1_0, 'ship-lod0', 'type055-nanchang-101-ship-lod0.glb', '7cde4ffc671307a18815175d9e2cdb496b8326602ac5747d169c50a8184c5c6c', 3782868),
-    'ship-lod1': artifact(BASE_URL_V2_1_0, 'ship-lod1', 'type055-nanchang-101-ship-lod1.glb', '1dba6026bb5f7cfc27849a9cde1cc731c32e6af6785acd59b20f2b296e8da385', 1786884),
-    'ship-lod2': artifact(BASE_URL_V2_1_0, 'ship-lod2', 'type055-nanchang-101-ship-lod2.glb', '6f074262171bd2776793429aeb96c60049f8a24bd2b0cbe21b1bdaa4a1cf5df2', 1149624),
-    collision: artifact(BASE_URL_V2_1_0, 'collision', 'type055-nanchang-101-collision.glb', 'd9c99dd5270077585f39a6978af183986e461c028e51c39759948c6e14664db9', 52472),
-    payload: artifact(BASE_URL_V2_1_0, 'payload', 'type055-nanchang-101-weapon-payloads.glb', 'cd0cdc2ffec9f3b519452b2be3c52eaff52659d9cb818bc64edaba2bc50fa7f9', 200896),
-    demo: artifact(BASE_URL_V2_1_0, 'demo', 'type055-nanchang-101-weapon-demo.glb', '8583cc77bbe13794b21113feef62be486a416e8fb8df38138eae221c960bf45b', 185324),
-    'interactive-systems': artifact(BASE_URL_V2_1_0, 'interactive-systems', 'type055-nanchang-101-interactive-systems.glb', 'fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244', 14648),
-  },
-  coordinateBasis: { forward: '+X', up: '+Y' },
-  basisYawRad: -Math.PI / 2,
-  interfaceContract: V2_INTERFACE_CONTRACT,
-  verticalAnchor: V2_VERTICAL_ANCHOR,
   modelLengthMeters: V2_MODEL_LENGTH_METERS,
   propulsors: V2_PROPULSORS,
   telemetryScale: V2_TELEMETRY_SCALE,
@@ -280,13 +157,9 @@ export const TYPE055_NANCHANG_101_V2_1_0: VersionedModelPackageDescriptor = {
  */
 export const TYPE055_V2_BASIS_YAW_RAD = -Math.PI / 2;
 
-/** 已接收的 type055 版本化包 baseUrl 集合（激活版 + 有序回退版）。 */
+/** 当前激活的 type055 版本化包。 */
 export const TYPE055_RECEIVED_PACKAGES: readonly VersionedModelPackageDescriptor[] = [
   TYPE055_NANCHANG_101_V2,
-  TYPE055_NANCHANG_101_V2_1_3,
-  TYPE055_NANCHANG_101_V2_1_2,
-  TYPE055_NANCHANG_101_V2_1_1,
-  TYPE055_NANCHANG_101_V2_1_0,
 ];
 
 export const TYPE055_VERSIONED_PACKAGE_BASE_URLS: readonly string[] = TYPE055_RECEIVED_PACKAGES.map(

@@ -66,9 +66,15 @@ export function validateReceivedModelPackage(
   }
   const manifestDigest = io.sha256('manifest.json');
   if (manifestDigest !== descriptor.releaseManifestSha256) throw new Error('manifest-sha-mismatch');
-  // 分母封闭：候选目录只允许 manifest + 已登记角色文件，防止夹带未登记资产。
+  // 分母封闭：候选目录只允许 manifest + 已登记角色文件 + 内容寻址 textures/<sha>.png。
   const declared = new Set([...files, 'manifest.json']);
+  const textureSidecar = /^textures\/[0-9a-f]{64}\.png$/;
   for (const present of io.listFiles()) {
+    if (textureSidecar.test(present)) {
+      const digest = present.slice('textures/'.length, -'.png'.length);
+      if (io.sha256(present) !== digest) throw new Error(`texture-sha-mismatch:${present}`);
+      continue;
+    }
     if (!declared.has(present)) throw new Error(`undeclared-file:${present}`);
   }
   return {

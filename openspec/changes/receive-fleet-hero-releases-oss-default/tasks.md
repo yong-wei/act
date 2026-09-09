@@ -1,7 +1,7 @@
 ## 1. Receive
 
 - [x] 1.1 接收脚本改为读取 `act-ship-release/1`
-- [x] 1.2 接收七船新版本，保留旧目录
+- [x] 1.2 接收七船当前版本，退役并删除旧目录与旧描述符
 - [x] 1.3 更新海报为 `evidence/hero.png`
 
 ## 2. Descriptors and mount
@@ -11,7 +11,7 @@
 
 ## 3. OSS default
 
-- [x] 3.1 版本化 LOD 候选：OSS → 镜像 → 旧链
+- [x] 3.1 运行时包 LOD 候选：同源 → ESA → registry 单文件
 - [x] 3.2 首页预览与海报识别 OSS URL
 
 ## 4. Verify

@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
- * 接收 3DModels act-ship-release/1 整合包（主舰三档 LOD + 可选 055 辅助 GLB）。
+ * 接收 3DModels act-ship-release/1 的 ACT_RUNTIME_ONLY 包。
  *
- * 源目录必须含 release.json。SHA 与 fleet-hero-releases.json / release.models.lods 不一致则拒绝。
- * 旧版本目录不覆盖。
+ * 源目录必须含 release.json，并与 fleet-runtime-releases.json 的 manifestSha256 一致。
+ * 复制 models/ 三档主舰（爱达无 LOD0 时用 LOD1/2/3）+ 可选 055 辅助 GLB + textures/。
+ * GLB 图像 URI 为 ../textures/<sha>.png，不得只收 GLB。
+ * 只保留当前激活版本；同 packageId 的旧目录与收据在接收成功后删除。
+ * 服务回退只走 registry 单文件链，不保留旧版本化包。
  */
 
 import { execFileSync } from 'node:child_process';
@@ -22,6 +25,7 @@ import {
 import path from 'node:path';
 
 const DEFAULT_HERO_ROOT = '/Users/YW/.codex/worktrees/8440/3DModels';
+const FLEET_RUNTIME_CATALOG = 'shared/export/fleet-runtime-releases.json';
 
 const OTHER_ROLE_BY_FILE = {
   'type055-nanchang-101-collision.glb': 'collision',
@@ -32,39 +36,39 @@ const OTHER_ROLE_BY_FILE = {
 
 const CATALOG = {
   'xue-long-2': {
-    sourceRel: 'assets/xue_long_2/exports/v1.0.0',
-    expectedManifestSha256: '75a83f4ab05e7c535fd7e341529e84e94d9a5de039585e88d2893eba6db90a96',
+    sourceRel: 'assets/xue_long_2/exports/v1.0.1',
+    expectedManifestSha256: 'a7be9f64a4254b58f0529e2a9044d5f348dfb06261fcec1c9f4566a92cd28153',
     posters: ['public/assets/icebreaker.png'],
   },
   'adora-magic-city': {
-    sourceRel: 'assets/adora_magic_city/exports/v1.0.0',
-    expectedManifestSha256: '473c8e50d23ae21c11af75a71cb55fc03ea7f6f571acefb92f418070ed80dc19',
+    sourceRel: 'assets/adora_magic_city/exports/v1.0.1',
+    expectedManifestSha256: 'accabefd39060f5f2af2248f835380c28ed2379c3c7cf1b75f752cf2bdb7564a',
     posters: ['public/assets/luxury-liner.png'],
   },
   'msc-tessa': {
-    sourceRel: 'assets/msc_tessa/exports/v1.1.0',
-    expectedManifestSha256: '85363a4f28059ac255e9ae86446563effd6246a687582d0541f872d00bba1f32',
+    sourceRel: 'assets/msc_tessa/exports/v1.1.1',
+    expectedManifestSha256: 'ebfcda97940c9a12a6b4c5359b10534776550a2a481c34bd8c71c1eacc586328',
     posters: ['public/assets/container.png'],
   },
   'lng-changheng': {
-    sourceRel: 'assets/lng_changheng/exports/v1.1.0',
-    expectedManifestSha256: '607e23ed4bd55051ea5a496bbabd69a28b58153ed6c99f6595536c01f359f869',
+    sourceRel: 'assets/lng_changheng/exports/v1.1.1',
+    expectedManifestSha256: '03d57970f916b6f86e0362189f21decdcf68396c939262b86447f3bee4147332',
     posters: ['public/assets/Lng-carrier.png'],
   },
   'dredger-tianjing': {
-    sourceRel: 'models/act-dredger-tianjing/exports/v1.1.0',
-    expectedManifestSha256: '6349f951ec380d68939817e78b02644a3095b4371414c9f905478dc03ffe8e35',
+    sourceRel: 'models/act-dredger-tianjing/exports/v1.1.1',
+    expectedManifestSha256: 'c86bad48aca4d90ef7444e85622628a037a10c8d5345d84f1b3aac389052d606',
     posters: ['public/assets/dredger.png', 'public/assets/dredger-tianjing.png'],
   },
   'type055-nanchang-101': {
-    sourceRel: 'assets/type_055_destroyer/exports/v2.2.0',
-    expectedManifestSha256: 'eafce990f09757d4631305516bb80f8a5d95a920b1321c375c446dc117aaac83',
+    sourceRel: 'assets/type_055_destroyer/exports/v2.2.1',
+    expectedManifestSha256: '78b236851c5e59a62171ac3d7a616aeb79798eebcc420207811ffb667f959782',
     includeOtherGlbs: true,
     posters: ['public/assets/destroyer.png'],
   },
   'hysy-981': {
-    sourceRel: 'models/hysy981-blender/exports/v1.1.0',
-    expectedManifestSha256: '4021d91a3b8bcd98dcb6d3e144c09c3dc0d41f323c5bc7113a7a8a5bcec9f1cc',
+    sourceRel: 'models/hysy981-blender/exports/v1.1.1',
+    expectedManifestSha256: 'cb54aa1124768777bccd38a67031ae32b0f77129e55e2bc4c338087f70949044',
     posters: ['public/assets/drilling-rig.png'],
   },
 };
@@ -82,21 +86,40 @@ function repoRoot() {
   return execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf-8' }).trim();
 }
 
-function dirTreeDigest(root, dir) {
-  const entries = readdirSync(dir).sort().map((file) => {
-    const full = path.join(dir, file);
-    if (!statSync(full).isFile()) return null;
-    const blob = execFileSync('git', ['hash-object', '-w', full], {
-      encoding: 'utf-8',
-      cwd: root,
-    }).trim();
-    return `100644 blob ${blob}\t${file}`;
-  }).filter(Boolean);
-  return execFileSync('git', ['mktree'], {
-    input: `${entries.join('\n')}\n`,
-    cwd: root,
-    encoding: 'utf-8',
-  }).trim();
+function walkFiles(dir, prefix = '') {
+  const names = readdirSync(dir).sort();
+  const files = [];
+  for (const name of names) {
+    const rel = prefix ? `${prefix}/${name}` : name;
+    const full = path.join(dir, name);
+    if (statSync(full).isDirectory()) files.push(...walkFiles(full, rel));
+    else files.push(rel);
+  }
+  return files;
+}
+
+function dirTreeDigest(dir) {
+  const lines = walkFiles(dir).map((rel) => `${sha256(path.join(dir, rel))}  ${rel}`);
+  return createHash('sha256').update(`${lines.join('\n')}\n`).digest('hex');
+}
+
+function retirePriorVersions(root, packageId, keepVersion) {
+  const packageDir = path.join(root, 'public/assets/model-releases', packageId);
+  if (existsSync(packageDir)) {
+    for (const name of readdirSync(packageDir)) {
+      if (!name.startsWith('v') || name === `v${keepVersion}`) continue;
+      rmSync(path.join(packageDir, name), { recursive: true, force: true });
+      console.log(`retired prior package dir: ${packageId}/${name}`);
+    }
+  }
+  const artifactsDir = path.join(root, 'artifacts/model-releases');
+  if (!existsSync(artifactsDir)) return;
+  const keepReceipt = `${packageId}-v${keepVersion}`;
+  for (const name of readdirSync(artifactsDir)) {
+    if (!name.startsWith(`${packageId}-v`) || name === keepReceipt) continue;
+    rmSync(path.join(artifactsDir, name), { recursive: true, force: true });
+    console.log(`retired prior receipt: ${name}`);
+  }
 }
 
 function pickShipLods(lods) {
@@ -126,6 +149,35 @@ function parseArgs(argv) {
   return { all, packageId, sourceDir, heroRoot };
 }
 
+function assertFleetRuntimeCatalog(heroRoot, sourceRel, releaseSha) {
+  const catalogPath = path.join(heroRoot, FLEET_RUNTIME_CATALOG);
+  if (!statSync(catalogPath, { throwIfNoEntry: false })?.isFile()) {
+    fail(`missing ${FLEET_RUNTIME_CATALOG}`);
+  }
+  const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
+  if (catalog.distribution !== 'ACT_RUNTIME_ONLY') {
+    fail(`unexpected fleet catalog distribution ${catalog.distribution}`);
+  }
+  const entry = (catalog.releases ?? []).find((item) => item.path === sourceRel);
+  if (!entry) fail(`${sourceRel} missing from fleet-runtime-releases.json`);
+  if (entry.manifestSha256 !== releaseSha) {
+    fail(`${sourceRel} catalog sha ${entry.manifestSha256} != ${releaseSha}`);
+  }
+}
+
+function copyPoster(from, dest) {
+  mkdirSync(path.dirname(dest), { recursive: true });
+  if (from.endsWith('.webp') && dest.endsWith('.png')) {
+    execFileSync('sips', ['-s', 'format', 'png', from, '--out', dest], { stdio: 'pipe' });
+    if (!statSync(dest, { throwIfNoEntry: false })?.isFile() || statSync(dest).size <= 0) {
+      fail(`poster convert failed ${dest}`);
+    }
+    return;
+  }
+  cpSync(from, dest);
+  if (sha256(dest) !== sha256(from)) fail(`poster copy drift ${dest}`);
+}
+
 function receivePackage(packageId, heroRoot, sourceOverride) {
   const spec = CATALOG[packageId];
   if (!spec) fail(`unknown package ${packageId}`);
@@ -138,8 +190,12 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
   if (releaseSha !== spec.expectedManifestSha256) {
     fail(`${packageId} release.json sha256 ${releaseSha} != ${spec.expectedManifestSha256}`);
   }
+  assertFleetRuntimeCatalog(heroRoot, spec.sourceRel, releaseSha);
   const release = JSON.parse(readFileSync(releasePath, 'utf8'));
   if (release.schema !== 'act-ship-release/1') fail(`${packageId} unexpected schema ${release.schema}`);
+  if (release.distribution !== 'ACT_RUNTIME_ONLY') {
+    fail(`${packageId} unexpected distribution ${release.distribution}`);
+  }
   const shipLods = pickShipLods(release.models.lods);
   const modelVersion = release.version;
   const root = repoRoot();
@@ -154,7 +210,7 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
   const planned = shipLods.map((lod, index) => ({
     role: `ship-lod${index}`,
     from: lod.file,
-    to: `${packageId}-ship-lod${index}.glb`,
+    to: `models/${packageId}-ship-lod${index}.glb`,
     sha256: lod.sha256,
     bytes: lod.bytes,
     kind: 'ship',
@@ -171,13 +227,28 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
       planned.push({
         role,
         from: rel,
-        to: base,
+        to: `models/${base}`,
         sha256: sha256(from),
         bytes: statSync(from).size,
         kind: role,
         lod: null,
       });
     }
+  }
+
+  for (const texture of release.textures ?? []) {
+    if (!/^textures\/[0-9a-f]{64}\.png$/.test(texture.file)) {
+      fail(`unexpected texture path ${texture.file}`);
+    }
+    planned.push({
+      role: `texture:${texture.sha256}`,
+      from: texture.file,
+      to: texture.file,
+      sha256: texture.sha256,
+      bytes: texture.bytes,
+      kind: 'texture',
+      lod: null,
+    });
   }
 
   const verified = [];
@@ -212,15 +283,19 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
       for (const file of verified) {
         const from = path.join(sourceDir, file.from);
         const to = path.join(stagingDir, file.to);
+        mkdirSync(path.dirname(to), { recursive: true });
         cpSync(from, to);
         const after = sha256(to);
         if (after !== file.digest || statSync(to).size !== file.bytes) fail(`copy drift on ${file.to}`);
         copied.push({ file: file.to, sha256: after, bytes: file.bytes, role: file.role, kind: file.kind, lod: file.lod });
       }
+      const roles = copied.filter((item) => item.kind !== 'texture');
+      const textures = copied.filter((item) => item.kind === 'texture');
       const manifest = {
         schema: 'act-fleet-model-release/1',
         packageId,
         modelVersion,
+        distribution: 'ACT_RUNTIME_ONLY',
         sourceRelease: `3DModels:${spec.sourceRel}`,
         sourceCommit: release.source?.commit ?? null,
         upstreamReleaseSha256: releaseSha,
@@ -229,13 +304,18 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
           forward: release.coordinates.modelAxes.bow,
           up: release.coordinates.modelAxes.up,
         },
-        artifacts: Object.fromEntries(copied.map((item) => [item.role, {
+        artifacts: Object.fromEntries(roles.map((item) => [item.role, {
           file: item.file,
           sha256: item.sha256,
           bytes: item.bytes,
           kind: item.kind,
           lod: item.lod,
         }])),
+        textures: textures.map((item) => ({
+          file: item.file,
+          sha256: item.sha256,
+          bytes: item.bytes,
+        })),
       };
       writeFileSync(path.join(stagingDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
       mkdirSync(path.dirname(targetDir), { recursive: true });
@@ -250,42 +330,47 @@ function receivePackage(packageId, heroRoot, sourceOverride) {
     const heroFrom = path.join(sourceDir, heroRel);
     if (!statSync(heroFrom, { throwIfNoEntry: false })?.isFile()) fail(`missing hero image ${heroRel}`);
     for (const poster of spec.posters) {
-      const dest = path.join(root, poster);
-      mkdirSync(path.dirname(dest), { recursive: true });
-      cpSync(heroFrom, dest);
-      if (sha256(dest) !== sha256(heroFrom)) fail(`poster copy drift ${poster}`);
+      copyPoster(heroFrom, path.join(root, poster));
     }
   }
 
   const manifestPath = path.join(targetDir, 'manifest.json');
   const manifestSha = sha256(manifestPath);
+  const roles = copied.filter((item) => item.kind !== 'texture');
+  const textures = copied.filter((item) => item.kind === 'texture');
   const receipt = {
     schema: 'act-model-release-receipt/1',
     packageId,
     modelVersion,
     capturedAt: new Date().toISOString(),
-    packageTreeDigest: dirTreeDigest(root, targetDir),
+    packageTreeDigest: dirTreeDigest(targetDir),
     sourceCommitAtCapture: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf-8', cwd: root }).trim(),
     packageDirty,
     sourceRelease: `3DModels:${spec.sourceRel}`,
     upstreamReleaseSha256: releaseSha,
     manifestSha256: manifestSha,
-    sourceBlendSha256: release.source?.checksumSha256 ?? '',
+    sourceBlendSha256: release.source?.checksumSha256 || release.source?.releaseSha256 || '',
     modelToSceneMatrix: release.coordinates.modelToSceneMatrix,
-    roles: Object.fromEntries(copied.map((item) => [item.role, {
+    roles: Object.fromEntries(roles.map((item) => [item.role, {
       file: item.file,
       sha256: item.sha256,
       bytes: item.bytes,
       kind: item.kind,
       lod: item.lod,
     }])),
+    textures: textures.map((item) => ({
+      file: item.file,
+      sha256: item.sha256,
+      bytes: item.bytes,
+    })),
     copiedFiles: copied,
     integrity: 'source-and-destination-hashes-verified',
   };
   const receiptPath = path.join(root, `artifacts/model-releases/${packageId}-v${modelVersion}/receipt.json`);
   mkdirSync(path.dirname(receiptPath), { recursive: true });
   writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
-  console.log(`received ${packageId} v${modelVersion} (${copied.length} files + manifest)`);
+  retirePriorVersions(root, packageId, modelVersion);
+  console.log(`received ${packageId} v${modelVersion} (${roles.length} models + ${textures.length} textures + manifest)`);
   console.log(`target: ${targetRelative}`);
   console.log(`manifestSha256: ${manifestSha}`);
 }

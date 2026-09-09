@@ -1,0 +1,169 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "type055-nanchang-101",
+  "modelVersion": "2.2.1",
+  "capturedAt": "2026-09-09T07:30:04.301Z",
+  "packageTreeDigest": "94e9ddc435341d2459c8e4d178392a776c6f2feada37193a5a8c29b755238bf8",
+  "sourceCommitAtCapture": "0bcf26f6842d882e4a438e2cd75fb7bae091aa57",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/type_055_destroyer/exports/v2.2.1",
+  "upstreamReleaseSha256": "78b236851c5e59a62171ac3d7a616aeb79798eebcc420207811ffb667f959782",
+  "manifestSha256": "37502cc1814b6be408b124d9b72a20b7f66031cd4a364bfe6a74fb3dda8081d8",
+  "sourceBlendSha256": "eafce990f09757d4631305516bb80f8a5d95a920b1321c375c446dc117aaac83",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    -7.05,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "roles": {
+    "ship-lod0": {
+      "file": "models/type055-nanchang-101-ship-lod0.glb",
+      "sha256": "ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd",
+      "bytes": 3370584,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/type055-nanchang-101-ship-lod1.glb",
+      "sha256": "83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd",
+      "bytes": 1569240,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/type055-nanchang-101-ship-lod2.glb",
+      "sha256": "61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556",
+      "bytes": 988780,
+      "kind": "ship",
+      "lod": 2
+    },
+    "collision": {
+      "file": "models/type055-nanchang-101-collision.glb",
+      "sha256": "24fcb99fe32a66b992511048ad2f4b5d06c249379cc9734de82de056d9f7991d",
+      "bytes": 52472,
+      "kind": "collision",
+      "lod": null
+    },
+    "interactive-systems": {
+      "file": "models/type055-nanchang-101-interactive-systems.glb",
+      "sha256": "fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244",
+      "bytes": 14648,
+      "kind": "interactive-systems",
+      "lod": null
+    },
+    "demo": {
+      "file": "models/type055-nanchang-101-weapon-demo.glb",
+      "sha256": "bcbbf38947fbb2e90942b162cc1c6fcd3e82f506de1c6616c66ee498bc3e767b",
+      "bytes": 185120,
+      "kind": "demo",
+      "lod": null
+    },
+    "payload": {
+      "file": "models/type055-nanchang-101-weapon-payloads.glb",
+      "sha256": "c17a578374da69aa2617502cf26c5a928f4416ef5ddddb058bf919a3cec6ede8",
+      "bytes": 200848,
+      "kind": "payload",
+      "lod": null
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec.png",
+      "sha256": "74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec",
+      "bytes": 19795
+    },
+    {
+      "file": "textures/e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0.png",
+      "sha256": "e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0",
+      "bytes": 137139
+    }
+  ],
+  "copiedFiles": [
+    {
+      "file": "models/type055-nanchang-101-ship-lod0.glb",
+      "sha256": "ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd",
+      "bytes": 3370584,
+      "role": "ship-lod0",
+      "kind": "ship",
+      "lod": 0
+    },
+    {
+      "file": "models/type055-nanchang-101-ship-lod1.glb",
+      "sha256": "83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd",
+      "bytes": 1569240,
+      "role": "ship-lod1",
+      "kind": "ship",
+      "lod": 1
+    },
+    {
+      "file": "models/type055-nanchang-101-ship-lod2.glb",
+      "sha256": "61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556",
+      "bytes": 988780,
+      "role": "ship-lod2",
+      "kind": "ship",
+      "lod": 2
+    },
+    {
+      "file": "models/type055-nanchang-101-collision.glb",
+      "sha256": "24fcb99fe32a66b992511048ad2f4b5d06c249379cc9734de82de056d9f7991d",
+      "bytes": 52472,
+      "role": "collision",
+      "kind": "collision",
+      "lod": null
+    },
+    {
+      "file": "models/type055-nanchang-101-interactive-systems.glb",
+      "sha256": "fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244",
+      "bytes": 14648,
+      "role": "interactive-systems",
+      "kind": "interactive-systems",
+      "lod": null
+    },
+    {
+      "file": "models/type055-nanchang-101-weapon-demo.glb",
+      "sha256": "bcbbf38947fbb2e90942b162cc1c6fcd3e82f506de1c6616c66ee498bc3e767b",
+      "bytes": 185120,
+      "role": "demo",
+      "kind": "demo",
+      "lod": null
+    },
+    {
+      "file": "models/type055-nanchang-101-weapon-payloads.glb",
+      "sha256": "c17a578374da69aa2617502cf26c5a928f4416ef5ddddb058bf919a3cec6ede8",
+      "bytes": 200848,
+      "role": "payload",
+      "kind": "payload",
+      "lod": null
+    },
+    {
+      "file": "textures/74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec.png",
+      "sha256": "74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec",
+      "bytes": 19795,
+      "role": "texture:74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0.png",
+      "sha256": "e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0",
+      "bytes": 137139,
+      "role": "texture:e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0",
+      "kind": "texture",
+      "lod": null
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

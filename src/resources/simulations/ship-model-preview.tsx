@@ -51,16 +51,6 @@ const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/drilling-rig.glb': new THREE.Vector3(0, 0, -1),
 }
 
-function isActForwardLegacyPath(modelPath: string): boolean {
-  return (
-    modelPath.includes('/v1.0.0/lng-changheng')
-    || modelPath.includes('/v1.0.0/msc-tessa')
-    || modelPath.includes('/v1.0.0/hysy-981')
-    || modelPath.includes('/v1.0.2/hysy-981')
-    || (modelPath.startsWith('/assets/model-releases/dredger-tianjing/') && modelPath.includes('/v1.0.1/'))
-  )
-}
-
 function isHeroNativePlusX(modelPath: string): boolean {
   return (
     modelPath.includes('type055-nanchang-101')
@@ -74,9 +64,6 @@ function isHeroNativePlusX(modelPath: string): boolean {
 }
 
 function resolvePreviewForward(modelPath: string): THREE.Vector3 {
-  if (isActForwardLegacyPath(modelPath)) {
-    return new THREE.Vector3(0, 0, 1)
-  }
   if (isHeroNativePlusX(modelPath)) {
     return new THREE.Vector3(1, 0, 0)
   }

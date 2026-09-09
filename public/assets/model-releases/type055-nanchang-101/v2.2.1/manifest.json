@@ -1,0 +1,94 @@
+{
+  "schema": "act-fleet-model-release/1",
+  "packageId": "type055-nanchang-101",
+  "modelVersion": "2.2.1",
+  "distribution": "ACT_RUNTIME_ONLY",
+  "sourceRelease": "3DModels:assets/type_055_destroyer/exports/v2.2.1",
+  "sourceCommit": "812a1e2e7486b3f36e2f17520e4f853ab6743dc6",
+  "upstreamReleaseSha256": "78b236851c5e59a62171ac3d7a616aeb79798eebcc420207811ffb667f959782",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    -7.05,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "coordinateBasis": {
+    "forward": "+X",
+    "up": "+Y"
+  },
+  "artifacts": {
+    "ship-lod0": {
+      "file": "models/type055-nanchang-101-ship-lod0.glb",
+      "sha256": "ca07f94f0cbc015b42fe492bd050b39b9a89887ce4f872af241ada109ece6bfd",
+      "bytes": 3370584,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/type055-nanchang-101-ship-lod1.glb",
+      "sha256": "83c01d5a97a09b3ea9e9305d2ecad39cc4374f3b11ecb289eaa8a7011c32dbcd",
+      "bytes": 1569240,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/type055-nanchang-101-ship-lod2.glb",
+      "sha256": "61586d12b971e63bc9fa4afbaca8f39a0d7ff33aeaeba685cda3c98fc0bbc556",
+      "bytes": 988780,
+      "kind": "ship",
+      "lod": 2
+    },
+    "collision": {
+      "file": "models/type055-nanchang-101-collision.glb",
+      "sha256": "24fcb99fe32a66b992511048ad2f4b5d06c249379cc9734de82de056d9f7991d",
+      "bytes": 52472,
+      "kind": "collision",
+      "lod": null
+    },
+    "interactive-systems": {
+      "file": "models/type055-nanchang-101-interactive-systems.glb",
+      "sha256": "fbfcad67a3cadb5c7a8d2c111659b5099685d4355d9060f9c33b83f1313da244",
+      "bytes": 14648,
+      "kind": "interactive-systems",
+      "lod": null
+    },
+    "demo": {
+      "file": "models/type055-nanchang-101-weapon-demo.glb",
+      "sha256": "bcbbf38947fbb2e90942b162cc1c6fcd3e82f506de1c6616c66ee498bc3e767b",
+      "bytes": 185120,
+      "kind": "demo",
+      "lod": null
+    },
+    "payload": {
+      "file": "models/type055-nanchang-101-weapon-payloads.glb",
+      "sha256": "c17a578374da69aa2617502cf26c5a928f4416ef5ddddb058bf919a3cec6ede8",
+      "bytes": 200848,
+      "kind": "payload",
+      "lod": null
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec.png",
+      "sha256": "74325ec305c00c026dfdda2583baec866a48a8f8af2a9127b2fb3b1e21b738ec",
+      "bytes": 19795
+    },
+    {
+      "file": "textures/e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0.png",
+      "sha256": "e2f85f4791231d8634dd447899eff9da7c6137010ee9646558f50933692f4fe0",
+      "bytes": 137139
+    }
+  ]
+}

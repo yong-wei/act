@@ -167,12 +167,21 @@ export function shipLodUrlForQualityTier(
   return item.url;
 }
 
+export function artifactBasename(file: string): string {
+  const base = file.split('/').pop();
+  if (!base) throw new Error(`invalid-artifact-file:${file}`);
+  return base;
+}
+
 export function ossArtifactUrl(item: VersionedModelArtifact): string {
-  return esaObjectUrl(item.sha256, item.file);
+  return esaObjectUrl(item.sha256, artifactBasename(item.file));
 }
 
 export function artifactCandidateUrls(item: VersionedModelArtifact): readonly [string, string] {
-  return [ossArtifactUrl(item), item.url];
+  const oss = ossArtifactUrl(item);
+  // Runtime-only 包把 GLB 放在 models/，贴图走 ../textures/。ESA 单文件对象无法解析相对贴图，故同源目录优先。
+  if (item.file.includes('/')) return [item.url, oss];
+  return [oss, item.url];
 }
 
 export function shipLodCandidatesForQualityTier(
