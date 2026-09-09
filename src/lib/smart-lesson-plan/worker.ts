@@ -632,7 +632,18 @@ function buildCorrectionContext(
   output: unknown,
   receipt: SmartLessonValidationReceipt,
 ) {
-  if (stage === 'OUTLINE') return null;
+  if (stage === 'OUTLINE') {
+    const [soleIssue] = receipt.issues;
+    if (receipt.issues.length !== 1 || soleIssue?.code !== 'aggregate-context-ref-changed') return null;
+    const expectedAggregateContextRef = context.draft.task.aggregateClassContextRef ?? null;
+    return {
+      stage,
+      expectedAggregateContextRef,
+      instruction: expectedAggregateContextRef
+        ? `将 classAdaptation.aggregateContextRef 设为 ${expectedAggregateContextRef}，emphasis 可为空数组；不得改写其他提纲字段。`
+        : '将 classAdaptation 设为 null；不得改写其他提纲字段。',
+    };
+  }
   // 仅当步骤时长错误是该次校验的唯一错误时才锁定字段做定向修正；
   // 并存其他 schema 错误时锁定指令会阻止修复，退化通用修正。
   const [soleIssue] = receipt.issues;

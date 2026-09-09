@@ -376,11 +376,11 @@ function deterministicStructuredFixtureRuntime() {
             }],
             suggestions: ['保留教师最终判断并记录后续修订。'],
           }
-        : adaptFixtureDuration(await fixture.generateStage({
+        : adaptFixtureOutput(await fixture.generateStage({
             mode: 'success',
             stage: fixtureStage!,
             seed: input.idempotencyKey,
-          }), fixtureStage!, requestedFixtureDuration(input.prompt));
+          }), fixtureStage!, input.prompt);
       const parsed = input.schema.parse(output);
       const normalizedResponseId = `fixture:${contentHash({ schemaVersion: input.schemaVersion, output: parsed })}`;
       return {
@@ -409,6 +409,44 @@ function deterministicStructuredFixtureRuntime() {
 function requestedFixtureDuration(prompt: string) {
   const match = prompt.match(/"durationMinutes"\s*:\s*(\d{2,3})/);
   return match ? Number(match[1]) : 30;
+}
+
+function requestedFixtureClassContextRef(prompt: string) {
+  const fromTask = parseFixtureTaskContext(prompt)?.aggregateClassContext;
+  const ref = fromTask && typeof fromTask === 'object' && !Array.isArray(fromTask)
+    ? (fromTask as { contextRef?: unknown }).contextRef
+    : undefined;
+  if (typeof ref === 'string' && ref.startsWith('cumulative-class-portrait:') && ref.length <= 200) {
+    return ref;
+  }
+  return /"expectedAggregateContextRef"\s*:\s*"(cumulative-class-portrait:[^"]{1,160})"/.exec(prompt)?.[1] ?? null;
+}
+
+function parseFixtureTaskContext(prompt: string) {
+  const marker = '任务上下文：';
+  const endMarker = '。可用来源绑定';
+  const start = prompt.indexOf(marker);
+  const end = prompt.indexOf(endMarker);
+  if (start === -1 || end === -1 || end <= start + marker.length) return null;
+  try {
+    const parsed = JSON.parse(prompt.slice(start + marker.length, end)) as { aggregateClassContext?: unknown };
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function adaptFixtureOutput(output: unknown, stage: SmartLessonFixtureStage, prompt: string) {
+  const durationAdapted = adaptFixtureDuration(output, stage, requestedFixtureDuration(prompt));
+  if (stage !== 'OUTLINE') return durationAdapted;
+  const outline = structuredClone(durationAdapted) as {
+    classAdaptation: { aggregateContextRef: string | null; emphasis: string[] } | null;
+  };
+  const contextRef = requestedFixtureClassContextRef(prompt);
+  outline.classAdaptation = contextRef
+    ? { aggregateContextRef: contextRef, emphasis: outline.classAdaptation?.emphasis ?? [] }
+    : null;
+  return outline;
 }
 
 function adaptFixtureDuration(output: unknown, stage: SmartLessonFixtureStage, durationMinutes: number) {

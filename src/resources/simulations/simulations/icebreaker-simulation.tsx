@@ -5,11 +5,10 @@
  * 使用 Azipod 3-DOF 模型和冰阻力 Stick-Slip 模型
  */
 
-import { Suspense, useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, useState, useRef, useCallback, useEffect, type MutableRefObject } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import {
   OrbitControls,
-  useGLTF,
   Grid,
   Html,
   PerspectiveCamera,
@@ -18,8 +17,8 @@ import {
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
-import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
-import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { VersionedFleetShip } from '@/resources/simulations/components/versioned-fleet-ship';
+import type { BindingTelemetrySource } from '@/resources/simulations/components/semantic-bindings-rig';
 import { RightClickFreeModeBridge } from '../components/camera-controller';
 import { SCENE_CAMERA_SHOTS, StayPutCameraController } from '../scene/camera';
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
@@ -117,6 +116,12 @@ import {
   SIMULATION_MAX_SUB_STEPS,
   getSimulationDeltaFromMilliseconds,
 } from '../lib/simulation-timing';
+import {
+  absoluteHeadingErrorDeg,
+  advanceAttainment,
+  createAttainmentState,
+  displayRpmFromThrust,
+} from '../lib/heading-attainment';
 
 // ============ 类型定义 ============
 
@@ -162,113 +167,51 @@ interface RobustResponse {
 // ============ 着色器材质 ============
 
 /** 破冰船模型 */
-const MODEL = resolveRegisteredSimulationModel('icebreaker');
-
 function IcebreakerModel(props: {
   position: Vector2;
   heading: number;
   azimuth1: number;
   azimuth2: number;
+  simRef: MutableRefObject<BindingTelemetrySource>;
+  resetToken: number;
 }) {
   return (
-    <FallbackGltfModel
-      candidates={MODEL.candidates}
-      render={(url) => <IcebreakerModelScene url={url} {...props} />}
+    <VersionedFleetShip
+      logicalId="icebreaker"
+      simRef={props.simRef}
+      position={props.position}
+      headingRad={props.heading}
+      sceneLengthMeters={XUELONG_ICEBREAKER_PARAMS.LENGTH}
+      resetToken={props.resetToken}
+      legacyYawOffsetRad={Math.PI / 2}
+      fallbackDraftMeters={XUELONG_ICEBREAKER_PARAMS.DRAFT}
+      legacyOverlay={(scale) => (
+        <>
+          <group position={[-50 * scale / 122.5, 2, 5 * scale / 122.5]}>
+            <arrowHelper
+              args={[
+                new THREE.Vector3(Math.cos(props.azimuth1), 0, Math.sin(props.azimuth1)),
+                new THREE.Vector3(0, 0, 0),
+                10,
+                0x00ff00,
+              ]}
+            />
+          </group>
+          <group position={[-50 * scale / 122.5, 2, -5 * scale / 122.5]}>
+            <arrowHelper
+              args={[
+                new THREE.Vector3(Math.cos(props.azimuth2), 0, Math.sin(props.azimuth2)),
+                new THREE.Vector3(0, 0, 0),
+                10,
+                0x00ff00,
+              ]}
+            />
+          </group>
+        </>
+      )}
     />
   );
 }
-
-function IcebreakerModelScene({
-  url,
-  position,
-  heading,
-  azimuth1,
-  azimuth2,
-}: {
-  url: string;
-  position: Vector2;
-  heading: number;
-  azimuth1: number;
-  azimuth2: number;
-}) {
-  const { scene } = useGLTF(url, true, true);
-  const groupRef = useRef<THREE.Group>(null);
-
-  const { model, scale, modelHeight } = useMemo(() => {
-    const cloned = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(cloned);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-
-    // 居中模型
-    cloned.position.sub(center);
-
-    // 启用阴影
-    cloned.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        // meshopt 量化解码后几何包围球处于量化空间，按视锥剔除会在多数视角误剔除（样板同口径）。
-        child.frustumCulled = false;
-        if (child.material) {
-          child.material.transparent = false;
-          child.material.opacity = 1;
-          child.material.side = THREE.DoubleSide;
-          child.material.visible = true;
-          child.material.needsUpdate = true;
-        }
-      }
-    });
-
-    // 计算缩放 - 目标长度 122.5m (雪龙2号实际长度)
-    const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const targetLength = XUELONG_ICEBREAKER_PARAMS.LENGTH;
-    const calculatedScale = targetLength / maxDim;
-
-    return { model: cloned, scale: calculatedScale, modelHeight: size.y * calculatedScale };
-  }, [scene]);
-
-  useFrame(() => {
-    if (groupRef.current) {
-      groupRef.current.position.x = position.x;
-      groupRef.current.position.y = modelHeight * 0.5 - XUELONG_ICEBREAKER_PARAMS.DRAFT;
-      groupRef.current.position.z = position.z;
-      groupRef.current.rotation.y = -heading + Math.PI / 2;
-    }
-  });
-
-  return (
-    <group ref={groupRef}>
-      <primitive object={model} scale={scale} />
-      {/* Azipod 方向指示器 (简化表示) */}
-      <group position={[-50 * scale / 122.5, 2, 5 * scale / 122.5]}>
-        <arrowHelper
-          args={[
-            new THREE.Vector3(Math.cos(azimuth1), 0, Math.sin(azimuth1)),
-            new THREE.Vector3(0, 0, 0),
-            10,
-            0x00ff00,
-          ]}
-        />
-      </group>
-      <group position={[-50 * scale / 122.5, 2, -5 * scale / 122.5]}>
-        <arrowHelper
-          args={[
-            new THREE.Vector3(Math.cos(azimuth2), 0, Math.sin(azimuth2)),
-            new THREE.Vector3(0, 0, 0),
-            10,
-            0x00ff00,
-          ]}
-        />
-      </group>
-    </group>
-  );
-}
-
-// 预加载模型（仅压缩件，避免双份下载）
-useGLTF.preload(MODEL.primary);
 
 /** 航向指示器 */
 function HeadingIndicator({
@@ -413,6 +356,7 @@ function Scene({
   onCameraModeChange,
   resetToken,
   resetSignal,
+  simRef,
 }: {
   position: Vector2;
   heading: number;
@@ -429,6 +373,7 @@ function Scene({
   onCameraModeChange: (mode: string) => void;
   resetToken: number;
   resetSignal: number;
+  simRef: MutableRefObject<BindingTelemetrySource>;
 }) {
   return (
     <>
@@ -474,6 +419,8 @@ function Scene({
           heading={heading}
           azimuth1={azimuth1}
           azimuth2={azimuth2}
+          simRef={simRef}
+          resetToken={resetToken}
         />
       </Suspense>
 
@@ -1012,6 +959,13 @@ export default function IcebreakerSimulation() {
   const [viewResetCount, setViewResetCount] = useState(0);
   const [speedScale, setSpeedScale] = useState(1);
   const sceneTheme = useSimulationSceneTheme();
+  const bindingRef = useRef<BindingTelemetrySource>({
+    rudderDeg: 0,
+    speedMps: 0,
+    attainedCount: 0,
+    advancing: false,
+  });
+  const attainmentRef = useRef(createAttainmentState(0));
 
   // Azipod 参数 (使用预定义的默认参数)
   const azipodParams: Azipod3DOFParams = DEFAULT_AZIPOD_3DOF_PARAMS;
@@ -1098,6 +1052,28 @@ export default function IcebreakerSimulation() {
       const newIceState = iceStateRef.current;
       const newTime = currentTime + dt;
       simTimeRef.current = newTime;
+      const headingError = absoluteHeadingErrorDeg(currentHeading, config.targetHeading);
+      let attainedCount = bindingRef.current.attainedCount;
+      if (advanceAttainment(attainmentRef.current, config.targetHeading, headingError, 5, dt)) {
+        attainedCount += 1;
+      }
+      const maxThrustN = XUELONG_AZIPOD_PARAMS.MAX_SINGLE_THRUST * 1000;
+      bindingRef.current = {
+        rudderDeg: 0,
+        speedMps: speed,
+        attainedCount,
+        advancing: true,
+        azipod: {
+          P: {
+            azimuthRad: newState.azipod1.azimuth,
+            rpm: displayRpmFromThrust(Math.abs(newState.azipod1.thrust), maxThrustN, 145),
+          },
+          S: {
+            azimuthRad: newState.azipod2.azimuth,
+            rpm: displayRpmFromThrust(Math.abs(newState.azipod2.thrust), maxThrustN, 145),
+          },
+        },
+      };
 
       setSimTime(newTime);
       setPosition({ x: newState.x, z: newState.y });
@@ -1170,6 +1146,11 @@ export default function IcebreakerSimulation() {
     return () => cancelAnimationFrame(frameId);
   }, [isRunning, simulationStep, speedScale]);
 
+  useEffect(() => {
+    if (isRunning) return;
+    bindingRef.current = { ...bindingRef.current, advancing: false };
+  }, [isRunning]);
+
   // 重置
   const handleReset = useCallback(() => {
     setIsRunning(false);
@@ -1185,6 +1166,13 @@ export default function IcebreakerSimulation() {
     physicsStateRef.current = createAzipod3DOFState(0, 0, 0);
     iceStateRef.current = createIceBreakingState();
     controllerStateRef.current = createAzipodCourseKeeperState();
+    attainmentRef.current = createAttainmentState(config.targetHeading);
+    bindingRef.current = {
+      rudderDeg: 0,
+      speedMps: 0,
+      attainedCount: 0,
+      advancing: false,
+    };
 
     setMetrics({
       headingError: 0,
@@ -1200,7 +1188,7 @@ export default function IcebreakerSimulation() {
       time: 0,
     });
     setResetCount((previous) => previous + 1);
-  }, [config.speed]);
+  }, [config.speed, config.targetHeading]);
 
   const handleConfigChange = useCallback((updates: Partial<SimulationConfig>) => {
     setConfig((prev) => ({ ...prev, ...updates }));
@@ -1230,6 +1218,7 @@ export default function IcebreakerSimulation() {
           onCameraModeChange={setCameraMode}
           resetToken={resetCount}
           resetSignal={viewResetCount}
+          simRef={bindingRef}
         />
       </Canvas>
 

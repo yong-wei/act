@@ -3,6 +3,8 @@ import { mkdir } from 'node:fs/promises';
 
 import { expect, test, type BrowserContext, type Page, type Route } from '@playwright/test';
 
+import { verifiedAuthForm } from './verified-test-credentials';
+
 const goalId = 'control-correction';
 const activePathId = 'existing-active-path-1429';
 const pathId = 'candidate-comparison-path-1429';
@@ -228,8 +230,7 @@ async function login(context: BrowserContext) {
   const response = await context.request.post('/api/auth/callback/credentials?json=true', {
     form: {
       csrfToken: csrf.csrfToken!,
-      email: 'demo',
-      password: 'DemoStudent@Just2026!',
+      ...verifiedAuthForm('student'),
       callbackUrl: '/',
       json: 'true',
     },

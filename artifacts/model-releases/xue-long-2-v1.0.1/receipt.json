@@ -1,0 +1,226 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "xue-long-2",
+  "modelVersion": "1.0.1",
+  "capturedAt": "2026-09-09T07:30:03.418Z",
+  "packageTreeDigest": "8e1137d426e5cc15abba731f95b55bf013653af8657f9cbe63c9ca7498f2b57a",
+  "sourceCommitAtCapture": "0bcf26f6842d882e4a438e2cd75fb7bae091aa57",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/xue_long_2/exports/v1.0.1",
+  "upstreamReleaseSha256": "a7be9f64a4254b58f0529e2a9044d5f348dfb06261fcec1c9f4566a92cd28153",
+  "manifestSha256": "7d5ac39938017b78c1ca3fbd46e9986224e86f86b5d7d353c26d1ae837517403",
+  "sourceBlendSha256": "75a83f4ab05e7c535fd7e341529e84e94d9a5de039585e88d2893eba6db90a96",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "roles": {
+    "ship-lod0": {
+      "file": "models/xue-long-2-ship-lod0.glb",
+      "sha256": "a1e33b97c240c821c0f9f2e226e41cb1cf4391b8fd2e12ec3bb8ea4d416e4e80",
+      "bytes": 7509328,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/xue-long-2-ship-lod1.glb",
+      "sha256": "dc09a991112beaf33afdcb51e09fbefa4155f9577ec8a9d8b0b6ccc5e607e45d",
+      "bytes": 6094404,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/xue-long-2-ship-lod2.glb",
+      "sha256": "f9d90d22c36a867ad6a76cc469ebf0252acca349f675683d2ee02ec3dd6cef12",
+      "bytes": 2319132,
+      "kind": "ship",
+      "lod": 2
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/0c8029767a74fb2a93ed4d1d09822730d108157aaf23a8477729a88d8047a197.png",
+      "sha256": "0c8029767a74fb2a93ed4d1d09822730d108157aaf23a8477729a88d8047a197",
+      "bytes": 5128031
+    },
+    {
+      "file": "textures/1eb25fcea35dae54220512120deb0fe76e064ee05d881bfdc38fe5e3c7d181a9.png",
+      "sha256": "1eb25fcea35dae54220512120deb0fe76e064ee05d881bfdc38fe5e3c7d181a9",
+      "bytes": 2175241
+    },
+    {
+      "file": "textures/28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8.png",
+      "sha256": "28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8",
+      "bytes": 14336
+    },
+    {
+      "file": "textures/29d94604d6f260ddc3f8579e10b9b49636c618afdc99ce8caeb0d7a3b449cb75.png",
+      "sha256": "29d94604d6f260ddc3f8579e10b9b49636c618afdc99ce8caeb0d7a3b449cb75",
+      "bytes": 634621
+    },
+    {
+      "file": "textures/3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506.png",
+      "sha256": "3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506",
+      "bytes": 413234
+    },
+    {
+      "file": "textures/7b5a8a925dba56e47f3d4c3717e6f6c5faf483e21be7814ff145c8bdad3e10e5.png",
+      "sha256": "7b5a8a925dba56e47f3d4c3717e6f6c5faf483e21be7814ff145c8bdad3e10e5",
+      "bytes": 13473
+    },
+    {
+      "file": "textures/a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695.png",
+      "sha256": "a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695",
+      "bytes": 70273
+    },
+    {
+      "file": "textures/aac58ddbbc20fdaefd3239120a7dc386c7663a96af4a642430d36744f490b9df.png",
+      "sha256": "aac58ddbbc20fdaefd3239120a7dc386c7663a96af4a642430d36744f490b9df",
+      "bytes": 2180252
+    },
+    {
+      "file": "textures/e95bbdeb0aac7a1bf7593644b8ef07ea848265158776ccb40e7d4325b0051956.png",
+      "sha256": "e95bbdeb0aac7a1bf7593644b8ef07ea848265158776ccb40e7d4325b0051956",
+      "bytes": 5135709
+    },
+    {
+      "file": "textures/e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b.png",
+      "sha256": "e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b",
+      "bytes": 233185
+    },
+    {
+      "file": "textures/f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825.png",
+      "sha256": "f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825",
+      "bytes": 404516
+    }
+  ],
+  "copiedFiles": [
+    {
+      "file": "models/xue-long-2-ship-lod0.glb",
+      "sha256": "a1e33b97c240c821c0f9f2e226e41cb1cf4391b8fd2e12ec3bb8ea4d416e4e80",
+      "bytes": 7509328,
+      "role": "ship-lod0",
+      "kind": "ship",
+      "lod": 0
+    },
+    {
+      "file": "models/xue-long-2-ship-lod1.glb",
+      "sha256": "dc09a991112beaf33afdcb51e09fbefa4155f9577ec8a9d8b0b6ccc5e607e45d",
+      "bytes": 6094404,
+      "role": "ship-lod1",
+      "kind": "ship",
+      "lod": 1
+    },
+    {
+      "file": "models/xue-long-2-ship-lod2.glb",
+      "sha256": "f9d90d22c36a867ad6a76cc469ebf0252acca349f675683d2ee02ec3dd6cef12",
+      "bytes": 2319132,
+      "role": "ship-lod2",
+      "kind": "ship",
+      "lod": 2
+    },
+    {
+      "file": "textures/0c8029767a74fb2a93ed4d1d09822730d108157aaf23a8477729a88d8047a197.png",
+      "sha256": "0c8029767a74fb2a93ed4d1d09822730d108157aaf23a8477729a88d8047a197",
+      "bytes": 5128031,
+      "role": "texture:0c8029767a74fb2a93ed4d1d09822730d108157aaf23a8477729a88d8047a197",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/1eb25fcea35dae54220512120deb0fe76e064ee05d881bfdc38fe5e3c7d181a9.png",
+      "sha256": "1eb25fcea35dae54220512120deb0fe76e064ee05d881bfdc38fe5e3c7d181a9",
+      "bytes": 2175241,
+      "role": "texture:1eb25fcea35dae54220512120deb0fe76e064ee05d881bfdc38fe5e3c7d181a9",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8.png",
+      "sha256": "28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8",
+      "bytes": 14336,
+      "role": "texture:28520c96f744b6d34e5d31c0ce42034c6f624bc65e221bd105de041abbd29bc8",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/29d94604d6f260ddc3f8579e10b9b49636c618afdc99ce8caeb0d7a3b449cb75.png",
+      "sha256": "29d94604d6f260ddc3f8579e10b9b49636c618afdc99ce8caeb0d7a3b449cb75",
+      "bytes": 634621,
+      "role": "texture:29d94604d6f260ddc3f8579e10b9b49636c618afdc99ce8caeb0d7a3b449cb75",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506.png",
+      "sha256": "3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506",
+      "bytes": 413234,
+      "role": "texture:3ffa25b07926ce881dc85cf18953ceca0738103d9b7db0413e7e11ccf2b61506",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/7b5a8a925dba56e47f3d4c3717e6f6c5faf483e21be7814ff145c8bdad3e10e5.png",
+      "sha256": "7b5a8a925dba56e47f3d4c3717e6f6c5faf483e21be7814ff145c8bdad3e10e5",
+      "bytes": 13473,
+      "role": "texture:7b5a8a925dba56e47f3d4c3717e6f6c5faf483e21be7814ff145c8bdad3e10e5",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695.png",
+      "sha256": "a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695",
+      "bytes": 70273,
+      "role": "texture:a558c4030cccaa8adee4c61faca73efe01c8f7095825fd50c11f4a89c75d7695",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/aac58ddbbc20fdaefd3239120a7dc386c7663a96af4a642430d36744f490b9df.png",
+      "sha256": "aac58ddbbc20fdaefd3239120a7dc386c7663a96af4a642430d36744f490b9df",
+      "bytes": 2180252,
+      "role": "texture:aac58ddbbc20fdaefd3239120a7dc386c7663a96af4a642430d36744f490b9df",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/e95bbdeb0aac7a1bf7593644b8ef07ea848265158776ccb40e7d4325b0051956.png",
+      "sha256": "e95bbdeb0aac7a1bf7593644b8ef07ea848265158776ccb40e7d4325b0051956",
+      "bytes": 5135709,
+      "role": "texture:e95bbdeb0aac7a1bf7593644b8ef07ea848265158776ccb40e7d4325b0051956",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b.png",
+      "sha256": "e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b",
+      "bytes": 233185,
+      "role": "texture:e991e4d35b013b2c80f35358a94563b2bf34c4c156ae479a5fee7262fb09bd8b",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825.png",
+      "sha256": "f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825",
+      "bytes": 404516,
+      "role": "texture:f7a2f4036b61f52dc55d590a21cb1fadd764365f75de1fb80b607a5040b29825",
+      "kind": "texture",
+      "lod": null
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

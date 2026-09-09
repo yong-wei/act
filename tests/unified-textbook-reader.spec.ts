@@ -5,6 +5,8 @@ import { createInterface } from 'node:readline';
 
 import { expect, test, type BrowserContext } from '@playwright/test';
 
+import { credentialsFor } from '../scripts/db/verified-test-accounts.mjs';
+
 const BOOK_ID = 'hu-shousong-auto-control-8th';
 const RUNTIME_ROOT = path.join(
   process.cwd(),
@@ -14,9 +16,13 @@ const RUNTIME_ROOT = path.join(
   'textbooks-v2',
   BOOK_ID,
 );
+const admin = credentialsFor('admin', {
+  loginId: process.env.TEXTBOOK_READER_TEST_ACCOUNT,
+  password: process.env.TEXTBOOK_READER_TEST_PASSWORD,
+});
 const TEST_ACCOUNT = {
-  account: process.env.TEXTBOOK_READER_TEST_ACCOUNT ?? 'admin',
-  password: process.env.TEXTBOOK_READER_TEST_PASSWORD ?? 'admin@Just',
+  account: admin.loginId,
+  password: admin.password,
 };
 
 interface RuntimeUnit {

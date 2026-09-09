@@ -4,12 +4,11 @@
 
 ## 环境变量
 
-运行脚本前在 `.env` 或当前环境中设置：
+登录默认使用 `scripts/db/verified-test-accounts.mjs` 的三角色账号（教师 `test_teacher`，管理员 `admin`）。本地数据库若还没有这组账号，先运行 `node scripts/db/ensure-verified-test-accounts.mjs`。需要覆盖时再在 `.env` 或当前环境中设置：
 
-- `SMART_LESSON_TEACHER_LOGIN_ID`：实验教师登录账号
-- `SMART_LESSON_TEACHER_PASSWORD`：实验教师登录密码
-- `SMART_LESSON_ADMIN_LOGIN_ID`：管理员登录账号（仅在需要 AI provider 配置操作时）
-- `SMART_LESSON_ADMIN_PASSWORD`：管理员登录密码（仅在需要 AI provider 配置操作时）
+- `SMART_LESSON_TEACHER_LOGIN_ID` / `SMART_LESSON_TEACHER_PASSWORD`：覆盖默认教师登录
+- `SMART_LESSON_ADMIN_LOGIN_ID` / `SMART_LESSON_ADMIN_PASSWORD`：覆盖默认管理员登录（仅在需要 AI provider 配置操作时）
+- `SMART_LESSON_COURSE_BASIS_ID` / `SMART_LESSON_SOURCE_VERSION_ID`：覆盖默认课程依据与来源版本（必须属于登录教师）
 
 ## 主要脚本
 

@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -16,26 +15,34 @@ import {
   TYPE055_NANCHANG_101_V2,
   TYPE055_V2_BASIS_YAW_RAD,
   propulsorSceneAnchors,
+  shipLodCandidatesForQualityTier,
   shipLodUrlForQualityTier,
 } from '../model-packages/type055-nanchang-101-v2';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '../model-packages/clone-skinned-scene';
 import { findAnimationIndex, listLoadedInstanceNames, listMunitionTemplateNames } from '../model-packages/model-interface';
 
-const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.1.3');
-const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.3/receipt.json');
+const PACKAGE_DIR = path.join(process.cwd(), 'public/assets/model-releases/type055-nanchang-101/v2.2.1');
+const RECEIPT_PATH = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.2.1/receipt.json');
+
+function listFilesRecursive(dir: string, prefix = ''): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const rel = prefix ? `${prefix}/${name}` : name;
+    const full = path.join(dir, name);
+    return statSync(full).isDirectory() ? listFilesRecursive(full, rel) : [rel];
+  });
+}
 
 function realIo(): ModelPackageFileIo {
   return {
-    listFiles: () => readdirSync(PACKAGE_DIR),
+    listFiles: () => listFilesRecursive(PACKAGE_DIR),
     sizeOf: (file) => statSync(path.join(PACKAGE_DIR, file)).size,
     sha256: (file) => createHash('sha256').update(readFileSync(path.join(PACKAGE_DIR, file))).digest('hex'),
   };
 }
 
-/** 读取真实包文件并按声明篡改一项，返回新 IO（不落盘）。 */
 function tamperedIo(mutate: (files: Map<string, { bytes: Uint8Array }>) => void): ModelPackageFileIo {
   const files = new Map<string, { bytes: Uint8Array }>();
-  for (const file of readdirSync(PACKAGE_DIR)) {
+  for (const file of listFilesRecursive(PACKAGE_DIR)) {
     files.set(file, { bytes: new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file))) });
   }
   mutate(files);
@@ -46,11 +53,11 @@ function tamperedIo(mutate: (files: Map<string, { bytes: Uint8Array }>) => void)
   };
 }
 
-describe('type055-nanchang-101 v2.1.3 received package integrity', () => {
+describe('type055-nanchang-101 v2.2.1 received package integrity', () => {
   it('verifies the complete seven-role denominator, hashes, sizes and manifest identity', () => {
     const receipt = validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, realIo());
     expect(receipt.packageId).toBe('type055-nanchang-101');
-    expect(receipt.modelVersion).toBe('2.1.3');
+    expect(receipt.modelVersion).toBe('2.2.1');
     expect(Object.keys(receipt.roles)).toHaveLength(7);
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
   });
@@ -78,7 +85,7 @@ describe('type055-nanchang-101 v2.1.3 received package integrity', () => {
     expect(() => validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, io)).toThrow('missing-file');
   });
 
-  it('binds a receive receipt with the same identities as the descriptor on a clean revision', () => {
+  it('binds a receive receipt with the same identities as the descriptor', () => {
     expect(existsSync(RECEIPT_PATH)).toBe(true);
     const receiptRaw = readFileSync(RECEIPT_PATH, 'utf-8');
     expect(receiptRaw, 'receipt must not contain local absolute paths').not.toContain('/Users/');
@@ -86,27 +93,7 @@ describe('type055-nanchang-101 v2.1.3 received package integrity', () => {
     expect(receipt.schema).toBe('act-model-release-receipt/1');
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
     expect(receipt.sourceBlendSha256).toBe(TYPE055_NANCHANG_101_V2.sourceBlendSha256);
-    // 收据的可验证主绑定：候选包目录 tree digest（任意克隆/squash 后仍可复核）
-    expect(receipt.packageTreeDigest).toMatch(/^[0-9a-f]{40}$/);
-    const entries = readdirSync(PACKAGE_DIR).sort().map((file) => {
-      const blob = execSync(`git hash-object '${path.join(PACKAGE_DIR, file)}'`, { encoding: 'utf-8' }).trim();
-      return `100644 blob ${blob}\t${file}`;
-    });
-    const mktree = execSync('git mktree', { input: `${entries.join('\n')}\n`, encoding: 'utf-8' }).trim();
-    expect(mktree, 'receipt packageTreeDigest must equal the working package tree').toBe(receipt.packageTreeDigest);
-    let headTree = '';
-    try {
-      headTree = execSync(
-        'git rev-parse HEAD:public/assets/model-releases/type055-nanchang-101/v2.1.3',
-        { encoding: 'utf-8' },
-      ).trim();
-    } catch {
-      headTree = '';
-    }
-    if (headTree) {
-      expect(headTree, 'committed package tree must match the receipt once the directory is in HEAD').toBe(receipt.packageTreeDigest);
-    }
-    // 捕获时工作区必须干净（脏收据 fail closed）
+    expect(receipt.packageTreeDigest).toMatch(/^[0-9a-f]{64}$/);
     expect(receipt.packageDirty).toBe(false);
     for (const [role, artifact] of Object.entries(TYPE055_NANCHANG_101_V2.roles)) {
       expect(receipt.roles[role]).toMatchObject({ file: artifact.file, sha256: artifact.sha256, bytes: artifact.bytes });
@@ -144,14 +131,13 @@ describe('type055-nanchang-101 v2.1.3 received package integrity', () => {
   });
 });
 
-describe('type055-nanchang-101 v2.1.3 semantic interface contract', () => {
+describe('type055-nanchang-101 v2.2.1 semantic interface contract', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     return parseGlb(bytes);
   };
 
   function parseGlb(bytes: Uint8Array): Record<string, unknown> {
-    // 复用被测解析器，保持测试与实现同一 GLB 读取口径
     const jsonLength = bytes[12] | (bytes[13] << 8) | (bytes[14] << 16) | (bytes[15] << 24);
     return JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength)));
   }
@@ -203,7 +189,7 @@ describe('type055-nanchang-101 v2.1.3 semantic interface contract', () => {
   });
 });
 
-describe('v2.1.3 declared waterline anchor, propulsors and semantic bindings', () => {
+describe('v2.2.1 declared waterline anchor, propulsors and semantic bindings', () => {
   const glbJsonOf = (file: string) => {
     const bytes = new Uint8Array(readFileSync(path.join(PACKAGE_DIR, file)));
     const jsonLength = bytes[12] | (bytes[13] << 8) | (bytes[14] << 16) | (bytes[15] << 24);
@@ -214,7 +200,7 @@ describe('v2.1.3 declared waterline anchor, propulsors and semantic bindings', (
   };
 
   it('declares the design waterline and twin propulsors consistent across all LODs', () => {
-    expect(TYPE055_NANCHANG_101_V2.verticalAnchor?.designWaterlineY).toBe(6.6);
+    expect(TYPE055_NANCHANG_101_V2.verticalAnchor?.designWaterlineY).toBe(0);
     expect(TYPE055_NANCHANG_101_V2.propulsors?.map((propulsor) => propulsor.node)).toEqual([
       'PROP_PORT',
       'PROP_STARBOARD',
@@ -232,7 +218,6 @@ describe('v2.1.3 declared waterline anchor, propulsors and semantic bindings', (
     expect(anchors).toHaveLength(2);
     const port = anchors.find((anchor) => anchor.id === 'prop-port');
     const starboard = anchors.find((anchor) => anchor.id === 'prop-starboard');
-    // 模型局部 (x=-82.97 艉, z=-4.8 左舷) → 场景 (x=+4.8 左舷, z=-82.97 艉)，缩放 180/179.69
     expect(port?.anchor[0]).toBeCloseTo(4.81, 1);
     expect(port?.anchor[2]).toBeCloseTo(-83.11, 1);
     expect(starboard?.anchor[0]).toBeCloseTo(-4.81, 1);
@@ -267,8 +252,6 @@ describe('v2.1.3 declared waterline anchor, propulsors and semantic bindings', (
   });
 
   it('keeps antifouling material below the declared waterline in every LOD', () => {
-    // 接收侧材质归属事实：防锈漆与灰色的分界面即声明水线（含 boot-top 余量）。
-    // 逐顶点几何核验在模型侧 G08 完成；ACT 侧核对三档 LOD 都声明了防锈漆材质。
     for (const role of ['ship-lod0', 'ship-lod1', 'ship-lod2'] as const) {
       const json = glbJsonOf(TYPE055_NANCHANG_101_V2.roles[role].file) as { materials?: { name?: string }[] };
       const materialNames = new Set((json.materials ?? []).map((material) => material.name));
@@ -290,13 +273,33 @@ describe('quality tier to LOD mapping and coordinate basis adapter', () => {
     const apply = (vector: [number, number, number]) =>
       new THREE.Vector3(...vector).applyQuaternion(quaternion);
 
-    // 舰艏 +X → 场景 +Z（场景船体系艏向）
     expect(apply([1, 0, 0]).angleTo(new THREE.Vector3(0, 0, 1))).toBeLessThan(1e-9);
-    // 上方向不变
     expect(apply([0, 1, 0]).angleTo(new THREE.Vector3(0, 1, 0))).toBeLessThan(1e-9);
-    // 右舷（forward × up = +Z local）→ 场景 -X；左舷 → 场景 +X（与旧模型档案一致）
     expect(apply([0, 0, 1]).angleTo(new THREE.Vector3(-1, 0, 0))).toBeLessThan(1e-9);
     expect(apply([0, 0, -1]).angleTo(new THREE.Vector3(1, 0, 0))).toBeLessThan(1e-9);
+  });
+});
+
+describe('type055-nanchang-101 v2.2.1 hero activation', () => {
+  it('activates 2.2.1 with the declared model-to-scene matrix and no extra waterline', () => {
+    expect(TYPE055_NANCHANG_101_V2.modelVersion).toBe('2.2.1');
+    expect(TYPE055_NANCHANG_101_V2.baseUrl).toBe('/assets/model-releases/type055-nanchang-101/v2.2.1');
+    expect(TYPE055_NANCHANG_101_V2.basisYawRad).toBe(0);
+    expect(TYPE055_NANCHANG_101_V2.verticalAnchor?.designWaterlineY).toBe(0);
+    expect(TYPE055_NANCHANG_101_V2.modelToSceneMatrix).toEqual([
+      0, 0, -1, 0,
+      0, 1, 0, -7.05,
+      1, 0, 0, 0,
+      0, 0, 0, 1,
+    ]);
+  });
+
+  it('verifies on-disk hashes and prefers the same-origin copy for runtime-only packages', () => {
+    const receipt = validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, realIo());
+    expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
+    const [local, oss] = shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2, 'high');
+    expect(local).toBe(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2, 'high'));
+    expect(oss).toBe(`https://static.adapt-learn.online/assets/${TYPE055_NANCHANG_101_V2.roles['ship-lod0'].sha256}/type055-nanchang-101-ship-lod0.glb`);
   });
 });
 

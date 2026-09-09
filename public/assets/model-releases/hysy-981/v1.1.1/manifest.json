@@ -1,0 +1,151 @@
+{
+  "schema": "act-fleet-model-release/1",
+  "packageId": "hysy-981",
+  "modelVersion": "1.1.1",
+  "distribution": "ACT_RUNTIME_ONLY",
+  "sourceRelease": "3DModels:models/hysy981-blender/exports/v1.1.1",
+  "sourceCommit": "812a1e2e7486b3f36e2f17520e4f853ab6743dc6",
+  "upstreamReleaseSha256": "cb54aa1124768777bccd38a67031ae32b0f77129e55e2bc4c338087f70949044",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "coordinateBasis": {
+    "forward": "+X",
+    "up": "+Y"
+  },
+  "artifacts": {
+    "ship-lod0": {
+      "file": "models/hysy-981-ship-lod0.glb",
+      "sha256": "26625689a73c013117fcdcef1c28a7a4b91a09ea345febf83d58c46884693349",
+      "bytes": 5808468,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/hysy-981-ship-lod1.glb",
+      "sha256": "66437e66825ae1f75e0d878ed2c3932361be2323b9c0ef6b94087aa712b25977",
+      "bytes": 3820820,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/hysy-981-ship-lod2.glb",
+      "sha256": "148bcbde326301a8b5060209bdc313c1eca72a57f5efc86135a988e9c6d6b8b8",
+      "bytes": 1543696,
+      "kind": "ship",
+      "lod": 2
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/0833a3617fa8fd8c75270be71e1a9edccf6441097c50ded206035d6b5d5c9c4a.png",
+      "sha256": "0833a3617fa8fd8c75270be71e1a9edccf6441097c50ded206035d6b5d5c9c4a",
+      "bytes": 19210
+    },
+    {
+      "file": "textures/152b32af8ec26662d7d580f1499c99e053a6f133d8ee5ca5c783cad34deb272d.png",
+      "sha256": "152b32af8ec26662d7d580f1499c99e053a6f133d8ee5ca5c783cad34deb272d",
+      "bytes": 21607
+    },
+    {
+      "file": "textures/2f5b745109c959127d050a566aa452bcfeec6dc7cfc4c1ff0e18a57baef044f0.png",
+      "sha256": "2f5b745109c959127d050a566aa452bcfeec6dc7cfc4c1ff0e18a57baef044f0",
+      "bytes": 18867
+    },
+    {
+      "file": "textures/417438fbe17aba0edc7b4b8939f5cb2a2bd731eb5b426ce4a663f51801a2b71d.png",
+      "sha256": "417438fbe17aba0edc7b4b8939f5cb2a2bd731eb5b426ce4a663f51801a2b71d",
+      "bytes": 59004
+    },
+    {
+      "file": "textures/4b16b738857d3b9af251019f570c545a80f08ee3f51d87bbcfb555542703bf69.png",
+      "sha256": "4b16b738857d3b9af251019f570c545a80f08ee3f51d87bbcfb555542703bf69",
+      "bytes": 18612
+    },
+    {
+      "file": "textures/4cb9219a18b99a69c84e187a4b72b70a4e5dedb22d27c1ab5612262e768cb018.png",
+      "sha256": "4cb9219a18b99a69c84e187a4b72b70a4e5dedb22d27c1ab5612262e768cb018",
+      "bytes": 41147
+    },
+    {
+      "file": "textures/4da43595bd20d97be1112a67b7bdd00380b3eccd9cf1e56c483ce5388ccf541b.png",
+      "sha256": "4da43595bd20d97be1112a67b7bdd00380b3eccd9cf1e56c483ce5388ccf541b",
+      "bytes": 118720
+    },
+    {
+      "file": "textures/646135875f447364ccd619fbc13d1015b1e3f1c726011f59e4e303f52bf3b184.png",
+      "sha256": "646135875f447364ccd619fbc13d1015b1e3f1c726011f59e4e303f52bf3b184",
+      "bytes": 66415
+    },
+    {
+      "file": "textures/7fee47d9066339e2d34af2fc3f24872bf1b5b28cb531950784758710c29641e6.png",
+      "sha256": "7fee47d9066339e2d34af2fc3f24872bf1b5b28cb531950784758710c29641e6",
+      "bytes": 155902
+    },
+    {
+      "file": "textures/8a71d61261b85223cf49fc3c32fdccb1a4b603b4721d517140c8889dc7195964.png",
+      "sha256": "8a71d61261b85223cf49fc3c32fdccb1a4b603b4721d517140c8889dc7195964",
+      "bytes": 52322
+    },
+    {
+      "file": "textures/95b86583288c8ccfa3da726b074ebf5220b6a66c8d66d8a617643be2eec39f50.png",
+      "sha256": "95b86583288c8ccfa3da726b074ebf5220b6a66c8d66d8a617643be2eec39f50",
+      "bytes": 362904
+    },
+    {
+      "file": "textures/9a8fe1dcad96e5b5e7b307c239c67c14469ecff7099c8ee6b3b4268e4530baed.png",
+      "sha256": "9a8fe1dcad96e5b5e7b307c239c67c14469ecff7099c8ee6b3b4268e4530baed",
+      "bytes": 65631
+    },
+    {
+      "file": "textures/a4be6c839d70dfb116f55a6339e2ac14f3c65259bc42b2ff8fd0e1205529519b.png",
+      "sha256": "a4be6c839d70dfb116f55a6339e2ac14f3c65259bc42b2ff8fd0e1205529519b",
+      "bytes": 391504
+    },
+    {
+      "file": "textures/a7baf7fa252c7da8d44e171da689db00c0ee7973a96b7c72decc6ca51d6fcd93.png",
+      "sha256": "a7baf7fa252c7da8d44e171da689db00c0ee7973a96b7c72decc6ca51d6fcd93",
+      "bytes": 749165
+    },
+    {
+      "file": "textures/e109e9cdaf0788c839ffb2bdf173372c3674a85d750d129b651fd52ccd984ad1.png",
+      "sha256": "e109e9cdaf0788c839ffb2bdf173372c3674a85d750d129b651fd52ccd984ad1",
+      "bytes": 819244
+    },
+    {
+      "file": "textures/ead57e9d27d5777ef70d9c55425c75fa20309a51bddf30531223041bef71492b.png",
+      "sha256": "ead57e9d27d5777ef70d9c55425c75fa20309a51bddf30531223041bef71492b",
+      "bytes": 644523
+    },
+    {
+      "file": "textures/f2789b846f5a13b16df0dbef5d1fd15ad6979b9924a6879699a6a049e4cdbd63.png",
+      "sha256": "f2789b846f5a13b16df0dbef5d1fd15ad6979b9924a6879699a6a049e4cdbd63",
+      "bytes": 72912
+    },
+    {
+      "file": "textures/fd3b7f4ee7268d0923ff793a004a7b6f1b284f96168db3f61c3b0b4d4fab85e2.png",
+      "sha256": "fd3b7f4ee7268d0923ff793a004a7b6f1b284f96168db3f61c3b0b4d4fab85e2",
+      "bytes": 181981
+    },
+    {
+      "file": "textures/fdb1c329dbf47feb788cdd4e4470ca47cce3c03723c7be2f7c8883fdf4d9a562.png",
+      "sha256": "fdb1c329dbf47feb788cdd4e4470ca47cce3c03723c7be2f7c8883fdf4d9a562",
+      "bytes": 111883
+    }
+  ]
+}

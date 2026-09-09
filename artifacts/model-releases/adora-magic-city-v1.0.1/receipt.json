@@ -1,0 +1,122 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "adora-magic-city",
+  "modelVersion": "1.0.1",
+  "capturedAt": "2026-09-09T07:30:03.589Z",
+  "packageTreeDigest": "e6b307fe0ee9b710e37399e2ee735a40829737fb80d697a0dd5e4212db7756d4",
+  "sourceCommitAtCapture": "0bcf26f6842d882e4a438e2cd75fb7bae091aa57",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/adora_magic_city/exports/v1.0.1",
+  "upstreamReleaseSha256": "accabefd39060f5f2af2248f835380c28ed2379c3c7cf1b75f752cf2bdb7564a",
+  "manifestSha256": "16b837703fce1625386e6effc48664e9f0b2476e9f10dfcd6f35f19d6dab1998",
+  "sourceBlendSha256": "473c8e50d23ae21c11af75a71cb55fc03ea7f6f571acefb92f418070ed80dc19",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "roles": {
+    "ship-lod0": {
+      "file": "models/adora-magic-city-ship-lod0.glb",
+      "sha256": "badabacafdef99ce846db44cfb529e1c4424dda3e02e1cdeb4172b332b52faec",
+      "bytes": 22949872,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "models/adora-magic-city-ship-lod1.glb",
+      "sha256": "23babd95b7659cb7a842107279053c579e6235b8c338b86b1317c538bf99cc78",
+      "bytes": 6434592,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "models/adora-magic-city-ship-lod2.glb",
+      "sha256": "026c737c8b46cbed6cd7dec33e47beaaf18327355a5553a086c8c3cff82652b0",
+      "bytes": 1992404,
+      "kind": "ship",
+      "lod": 2
+    }
+  },
+  "textures": [
+    {
+      "file": "textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png",
+      "sha256": "0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1",
+      "bytes": 67860
+    },
+    {
+      "file": "textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png",
+      "sha256": "a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba",
+      "bytes": 422599
+    },
+    {
+      "file": "textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png",
+      "sha256": "ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220",
+      "bytes": 422564
+    }
+  ],
+  "copiedFiles": [
+    {
+      "file": "models/adora-magic-city-ship-lod0.glb",
+      "sha256": "badabacafdef99ce846db44cfb529e1c4424dda3e02e1cdeb4172b332b52faec",
+      "bytes": 22949872,
+      "role": "ship-lod0",
+      "kind": "ship",
+      "lod": 0
+    },
+    {
+      "file": "models/adora-magic-city-ship-lod1.glb",
+      "sha256": "23babd95b7659cb7a842107279053c579e6235b8c338b86b1317c538bf99cc78",
+      "bytes": 6434592,
+      "role": "ship-lod1",
+      "kind": "ship",
+      "lod": 1
+    },
+    {
+      "file": "models/adora-magic-city-ship-lod2.glb",
+      "sha256": "026c737c8b46cbed6cd7dec33e47beaaf18327355a5553a086c8c3cff82652b0",
+      "bytes": 1992404,
+      "role": "ship-lod2",
+      "kind": "ship",
+      "lod": 2
+    },
+    {
+      "file": "textures/0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1.png",
+      "sha256": "0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1",
+      "bytes": 67860,
+      "role": "texture:0a541abac9cadf8bae8a725b76693b7874a067e88604b455c85f9912d97de9c1",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba.png",
+      "sha256": "a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba",
+      "bytes": 422599,
+      "role": "texture:a2bf3b10f268a11f270ed5930576b39c9dcdfcd648c88e6116f1d650894400ba",
+      "kind": "texture",
+      "lod": null
+    },
+    {
+      "file": "textures/ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220.png",
+      "sha256": "ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220",
+      "bytes": 422564,
+      "role": "texture:ff1ff28cf53a144a239b54cc52c95228eb41c27af888aba5dbeba93be3b64220",
+      "kind": "texture",
+      "lod": null
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

@@ -11,20 +11,22 @@ import { Line, useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/dr
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import { SimulationClock } from '@/lib/simulation';
+import {
+  advanceAttainment,
+  createAttainmentState,
+  type AttainmentState,
+} from '../lib/heading-attainment';
 import { resolveRegisteredSimulationModel, resolveVersionedDefault } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from '@/resources/simulations/components/fallback-gltf-model';
+import { HeroModelBasis } from '@/resources/simulations/components/hero-model-basis';
 import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
 import {
-  TYPE055_NANCHANG_101_V2,
-  TYPE055_NANCHANG_101_V2_1_0,
-  TYPE055_NANCHANG_101_V2_1_1,
-  TYPE055_NANCHANG_101_V2_1_2,
   TYPE055_V2_BASIS_YAW_RAD,
   isType055VersionedAssetUrl,
   matchActivatedType055Package,
+  matchType055DescriptorByUrl,
   propulsorSceneAnchors,
-  shipLodUrlForQualityTier,
   type VersionedModelPackageDescriptor,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
 import { SemanticBindingsRig } from '@/resources/simulations/components/semantic-bindings-rig';
@@ -118,6 +120,9 @@ import {
 } from '../physics/simulation-engine-facade';
 
 Chart.register(...registerables);
+
+export type { AttainmentState };
+export { advanceAttainment, createAttainmentState };
 
 // ============ 类型定义 ============
 
@@ -231,58 +236,6 @@ const normalizeSignedHeading = (heading: number) => {
   const normalized = normalizeHeading(heading);
   return normalized > 180 ? normalized - 360 : normalized;
 };
-
-export interface AttainmentState {
-  dwell: number;
-  armed: boolean;
-  maneuverActive: boolean;
-  initialTargetDeg: number;
-  /** 进入当前调节窗口以来的时间（s）：机动激活时清零；达标后再遇 >2×maxError 偏离重新武装时清零，开启新窗口。 */
-  maneuverTime: number;
-}
-
-export function createAttainmentState(initialTargetDeg = 0): AttainmentState {
-  return { dwell: 0, armed: true, maneuverActive: false, initialTargetDeg, maneuverTime: 0 };
-}
-
-/**
- * 彩蛋达标判定（视觉层只读计数）：目标航向偏离初始值（进入机动段）后，
- * 航向误差在 successCriteria.maxError 内持续 3s 记一次达标；
- * 误差超过 2×maxError 重新武装。直线巡航段（目标未变化）不记达标；
- * 目标渐变（斜坡插值）与阶跃同样识别，跟踪良好的斜坡段也可记达标。
- * 传入 maxSettlingTimeSec（successCriteria.maxSettlingTime）时，仅在调节时限内
- * 收敛才记达标；超时后本次机动不再计数，直到重新武装开启新调节窗口。
- */
-export function advanceAttainment(
-  state: AttainmentState,
-  targetDeg: number,
-  headingErrorDeg: number,
-  maxErrorDeg: number,
-  dt: number,
-  maxSettlingTimeSec?: number,
-): boolean {
-  if (!state.maneuverActive && Math.abs(normalizeSignedHeading(targetDeg - state.initialTargetDeg)) > 2) {
-    state.maneuverActive = true;
-    state.maneuverTime = 0;
-  }
-  if (!state.maneuverActive) return false;
-  state.maneuverTime += dt;
-  if (headingErrorDeg <= maxErrorDeg) {
-    state.dwell += dt;
-    const withinDeadline = maxSettlingTimeSec === undefined || state.maneuverTime <= maxSettlingTimeSec;
-    if (state.armed && state.dwell >= 3 && withinDeadline) {
-      state.armed = false;
-      return true;
-    }
-    return false;
-  }
-  state.dwell = 0;
-  if (headingErrorDeg > maxErrorDeg * 2) {
-    if (!state.armed) state.maneuverTime = 0;
-    state.armed = true;
-  }
-  return false;
-}
 
 type ScenarioLogic = {
   getDesiredHeading: (t: number) => number;
@@ -578,7 +531,7 @@ declare global {
 // drei 的 useGLTF 第三参 useMeshopt=true 时内部装配 three-stdlib MeshoptDecoder（运行时解码）。
 const MODEL = resolveRegisteredSimulationModel('destroyer');
 
-/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败按 v2.1.2 → v2.1.1 → v2.1.0 → 旧 browser-delivery 链有序回退。 */
+/** 驱逐舰3D模型：生产默认由 registry 激活指针决定；失败只回退旧 browser-delivery 单文件链。 */
 function DestroyerModel({
   simRef,
   resetToken,
@@ -600,36 +553,26 @@ function DestroyerModel({
     );
   }
 
-  // 有序回退：激活版（v2.1.3）→ v2.1.2 → v2.1.1 → v2.1.0 → 旧单文件链。
-  const orderedFallback = [
-    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_2, tier),
-    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_1, tier),
-    shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2_1_0, tier),
-    ...MODEL.candidates,
-  ];
-
   return (
     <VersionedShipModel
       descriptor={descriptor}
       tier={tier}
-      legacyCandidates={orderedFallback}
-      renderScene={(url) => (
-        <DestroyerModelScene
-          url={url}
-          simRef={simRef}
-          resetToken={resetToken}
-          propWakeRef={propWakeRef}
-          // 坐标基适配只对模型包内资产生效；候选失败回退到旧 GLB 时不施加（旧模型已是 +Z 艏）
-          basisYawRad={isType055VersionedAssetUrl(url) ? TYPE055_V2_BASIS_YAW_RAD : 0}
-          descriptor={
-            url.startsWith(descriptor.baseUrl) ? descriptor
-              : url.startsWith(TYPE055_NANCHANG_101_V2_1_2.baseUrl) ? TYPE055_NANCHANG_101_V2_1_2
-                : url.startsWith(TYPE055_NANCHANG_101_V2_1_1.baseUrl) ? TYPE055_NANCHANG_101_V2_1_1
-                  : url.startsWith(TYPE055_NANCHANG_101_V2_1_0.baseUrl) ? TYPE055_NANCHANG_101_V2_1_0
-                    : null
-          }
-        />
-      )}
+      legacyCandidates={MODEL.candidates}
+      renderScene={(url) => {
+        const resolved = matchType055DescriptorByUrl(url);
+        const useMatrix = Boolean(resolved?.modelToSceneMatrix);
+        return (
+          <DestroyerModelScene
+            url={url}
+            simRef={simRef}
+            resetToken={resetToken}
+            propWakeRef={propWakeRef}
+            // 旧 2.1.x 仍用一次基 yaw；2.2.0 矩阵路径不再叠 yaw。旧单文件不施加。
+            basisYawRad={isType055VersionedAssetUrl(url) && !useMatrix ? TYPE055_V2_BASIS_YAW_RAD : 0}
+            descriptor={resolved}
+          />
+        );
+      }}
     />
   );
 }
@@ -656,6 +599,8 @@ function DestroyerModelScene({
   const { scene, animations } = useGLTF(url, true, true);
   const groupRef = useRef<THREE.Group>(null);
 
+  const useDeclaredMount = Boolean(descriptor?.modelToSceneMatrix);
+
   const { model, scale, waterlineOffset, propNodes } = useMemo(() => {
     const cloned = cloneSkinnedScene(scene);
     const box = new THREE.Box3().setFromObject(cloned);
@@ -664,7 +609,7 @@ function DestroyerModelScene({
     box.getSize(size);
     box.getCenter(center);
 
-    cloned.position.sub(center);
+    if (!useDeclaredMount) cloned.position.sub(center);
 
     cloned.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -678,13 +623,16 @@ function DestroyerModelScene({
 
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
     const targetLength = shipDimensions.length;
-    const calculatedScale = targetLength / maxDim;
+    const calculatedScale = useDeclaredMount && descriptor?.modelLengthMeters
+      ? targetLength / descriptor.modelLengthMeters
+      : targetLength / maxDim;
 
-    // 垂向锚定：版本化包按声明设计水线对齐波面参考；无声明模型沿用 bbox 推导
-    // （bbox 底部=龙骨假设，与既有行为逐位等价）。
-    const offset = descriptor?.verticalAnchor
-      ? (center.y - descriptor.verticalAnchor.designWaterlineY) * calculatedScale
-      : (size.y * calculatedScale) * 0.5 - shipDimensions.draft;
+    // 整合包矩阵已含水线平移；旧版本化包按声明水线；无声明模型沿用 bbox 推导。
+    const offset = useDeclaredMount
+      ? 0
+      : descriptor?.verticalAnchor
+        ? (center.y - descriptor.verticalAnchor.designWaterlineY) * calculatedScale
+        : (size.y * calculatedScale) * 0.5 - shipDimensions.draft;
 
     // 推进器语义节点解析（逐帧尾迹发射锚点）；节点缺失 fail closed 到静态锚点。
     const resolvePropNode = (id: string) => {
@@ -698,7 +646,7 @@ function DestroyerModelScene({
       waterlineOffset: offset,
       propNodes: { port: resolvePropNode('prop-port'), starboard: resolvePropNode('prop-starboard') },
     };
-  }, [scene, descriptor]);
+  }, [scene, descriptor, useDeclaredMount]);
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -746,17 +694,19 @@ function DestroyerModelScene({
   return (
     <group ref={groupRef}>
       <group rotation-y={basisYawRad}>
-        <primitive object={model} scale={scale} />
-        {descriptor ? (
-          <SemanticBindingsRig
-            key={resetToken}
-            model={model}
-            animations={animations}
-            descriptor={descriptor}
-            simRef={simRef}
-            modelScale={scale}
-          />
-        ) : null}
+        <HeroModelBasis matrix={descriptor?.modelToSceneMatrix}>
+          <primitive object={model} scale={scale} />
+          {descriptor ? (
+            <SemanticBindingsRig
+              key={resetToken}
+              model={model}
+              animations={animations}
+              descriptor={descriptor}
+              simRef={simRef}
+              modelScale={scale}
+            />
+          ) : null}
+        </HeroModelBasis>
       </group>
     </group>
   );

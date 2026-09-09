@@ -52,16 +52,19 @@ describe('dredger pipeline integration', () => {
     expect(rig).toContain('key={resetToken}');
   });
 
-  it('wires the optimized model with error boundary and culling workaround', () => {
+  it('wires the versioned fleet mount to Tianjing', () => {
     const source = read(DREDGER);
-    expect(source).toContain("resolveRegisteredSimulationModel('dredger')");
-    expect(source).toContain('FallbackGltfModel');
-    expect(source).toContain('frustumCulled = false');
+    expect(source).toContain('VersionedFleetShip');
+    expect(source).toContain('logicalId="dredger"');
+    expect(source).toContain('legacyYawOffsetRad={0}');
+    expect(source).toContain('sceneLengthMeters={120}');
+    expect(source).not.toContain('FallbackGltfModel');
+    expect(source).not.toContain('useGLTF.preload');
   });
 
-  it('aligns the model bow with the platform kinematics (X-axis GLB)', () => {
+  it('uses the shared outer yaw contract instead of the legacy X-axis GLB yaw', () => {
     const source = read(DREDGER);
-    expect(source).toContain('groupRef.current.rotation.y = -heading;');
+    expect(source).not.toContain('groupRef.current.rotation.y = -heading;');
     expect(source).not.toContain('-heading + Math.PI / 2 + Math.PI');
   });
 

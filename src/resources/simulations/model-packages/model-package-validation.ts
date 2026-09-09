@@ -9,7 +9,7 @@
  * 名字解析只允许稳定语义名与 extras，禁止 glTF 数组索引或 Blender 自动后缀。
  */
 
-import type { VersionedModelArtifact, VersionedModelPackageDescriptor, VersionedModelRole } from './type055-nanchang-101-v2';
+import type { VersionedModelArtifact, VersionedModelPackageDescriptor, VersionedModelRole } from './types';
 
 export interface ModelPackageFileIo {
   /** 候选目录内相对文件的 SHA-256 摘要（hex）；由调用方环境提供（Node 用 node:crypto）。 */
@@ -50,6 +50,7 @@ export function validateReceivedModelPackage(
   descriptor: VersionedModelPackageDescriptor,
   io: ModelPackageFileIo,
 ): PackageIntegrityReceipt {
+  if (!descriptor.roles) throw new Error('missing-role-denominator');
   const roles = Object.values(descriptor.roles);
   const files = new Set(roles.map((artifact) => artifact.file));
   if (roles.length === 0 || files.size !== roles.length) throw new Error('incomplete-role-denominator');
@@ -65,9 +66,15 @@ export function validateReceivedModelPackage(
   }
   const manifestDigest = io.sha256('manifest.json');
   if (manifestDigest !== descriptor.releaseManifestSha256) throw new Error('manifest-sha-mismatch');
-  // 分母封闭：候选目录只允许 manifest + 已登记角色文件，防止夹带未登记资产。
+  // 分母封闭：候选目录只允许 manifest + 已登记角色文件 + 内容寻址 textures/<sha>.png。
   const declared = new Set([...files, 'manifest.json']);
+  const textureSidecar = /^textures\/[0-9a-f]{64}\.png$/;
   for (const present of io.listFiles()) {
+    if (textureSidecar.test(present)) {
+      const digest = present.slice('textures/'.length, -'.png'.length);
+      if (io.sha256(present) !== digest) throw new Error(`texture-sha-mismatch:${present}`);
+      continue;
+    }
     if (!declared.has(present)) throw new Error(`undeclared-file:${present}`);
   }
   return {
@@ -174,17 +181,23 @@ export function validateModelPackageInterface(
   }
 
   const demoRaw = glbJson.demo;
-  if (!demoRaw) {
-    violations.push({ kind: 'missing-role', detail: 'demo' });
-  } else {
-    const demoNames = (asGltfJson(demoRaw).animations ?? []).map((clip) => String(clip.name ?? ''));
-    const expected = [...contract.demoAnimations].sort().join('|');
-    if (demoNames.length !== contract.demoAnimations.length || [...demoNames].sort().join('|') !== expected) {
-      violations.push({ kind: 'demo-animation-set', detail: demoNames.sort().join('|') });
+  if (contract.demoAnimations.length > 0 || descriptor.roles?.demo) {
+    if (!demoRaw) {
+      violations.push({ kind: 'missing-role', detail: 'demo' });
+    } else {
+      const demoNames = (asGltfJson(demoRaw).animations ?? []).map((clip) => String(clip.name ?? ''));
+      const expected = [...contract.demoAnimations].sort().join('|');
+      if (demoNames.length !== contract.demoAnimations.length || [...demoNames].sort().join('|') !== expected) {
+        violations.push({ kind: 'demo-animation-set', detail: demoNames.sort().join('|') });
+      }
     }
   }
 
   const payloadRaw = glbJson.payload;
+  const requiresPayload = contract.vlsLoadedCount > 0 || contract.hq10LoadedCount > 0 || Boolean(descriptor.roles?.payload);
+  if (!requiresPayload) {
+    return violations;
+  }
   if (!payloadRaw) {
     violations.push({ kind: 'missing-role', detail: 'payload' });
   } else {

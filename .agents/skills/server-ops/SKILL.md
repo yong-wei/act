@@ -67,6 +67,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 
 - 先确认当前环境：本地开发、远端生产，还是两边联动
 - 先做只读检查，再执行变更
+- 构建或发布命令需要管道收窄输出时，必须先 `set -o pipefail` 并回显真实 EXIT，不得以 `tail`/`tee` 的退出码判断发布成败（约束细节见 `references/deploy-and-verify.md`）
 - 若问题表现为课堂中 `同步错误`、`fail to fetch`、学生端不跟随教师进度、教师端无法推进步骤或 reveal/release 状态不同步，先读 `references/classroom-sync-errors.md`
 - 涉及部署时，先确认本次操作是否符合“本机构建、远端仅装载镜像”的固定模式；若不符合，立即停止
 - 远端目录若需要整理，只保留 `scripts/`、`deploy/podman/`、`.env*`、`data/runtime/act-obe.env` 与已物化的 OSS blob-view；不要恢复或同步一份本地 `course-content/runtime` 作为部署内容

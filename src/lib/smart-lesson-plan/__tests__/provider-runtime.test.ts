@@ -9,7 +9,7 @@ import {
   validateSmartLessonProviderOutput,
 } from '../provider-runtime';
 import { AIProviderCapabilityUnavailableError, type AIProviderSettings } from '../../ai/provider-settings';
-import { smartLessonAdvisoryReviewSchema, smartLessonPlanSchema } from '../schema';
+import { smartLessonAdvisoryReviewSchema, smartLessonOutlineOutputSchema, smartLessonPlanSchema } from '../schema';
 import { validPlanFixture } from './fixtures';
 
 const config = {
@@ -575,5 +575,44 @@ describe('smart lesson structured provider runtime', () => {
       code: 'structured-provider-unavailable',
       status: 503,
     });
+  });
+
+  it('binds the fixture outline classAdaptation to the aggregate contextRef in the task prompt', async () => {
+    vi.stubEnv('SMART_LESSON_E2E_FIXTURE_TOKEN', 'smart-lesson-real-browser-v1');
+    const contextRef = `cumulative-class-portrait:${'a'.repeat(64)}`;
+    const runtime = await resolveSmartLessonStructuredProvider();
+    const result = await runtime.generate({
+      schema: smartLessonOutlineOutputSchema,
+      schemaVersion: 'smart-lesson-outline.v1',
+      promptVersion: 'prompt.v1',
+      system: 'system',
+      prompt: `生成阶段 OUTLINE。任务上下文：${JSON.stringify({
+        durationMinutes: 30,
+        aggregateClassContext: { classId: 'class-1', contextRef },
+      })}。可用来源绑定：[]。已完成阶段：{}。`,
+      idempotencyKey: 'fixture-class-ref-1',
+    });
+    expect(result.output).toMatchObject({
+      classAdaptation: { aggregateContextRef: contextRef, emphasis: [] },
+    });
+    vi.unstubAllEnvs();
+  });
+
+  it('keeps fixture outline classAdaptation null when the task has no aggregate class context', async () => {
+    vi.stubEnv('SMART_LESSON_E2E_FIXTURE_TOKEN', 'smart-lesson-real-browser-v1');
+    const runtime = await resolveSmartLessonStructuredProvider();
+    const result = await runtime.generate({
+      schema: smartLessonOutlineOutputSchema,
+      schemaVersion: 'smart-lesson-outline.v1',
+      promptVersion: 'prompt.v1',
+      system: 'system',
+      prompt: `生成阶段 OUTLINE。任务上下文：${JSON.stringify({
+        durationMinutes: 30,
+        aggregateClassContext: null,
+      })}。可用来源绑定：[]。已完成阶段：{}。`,
+      idempotencyKey: 'fixture-class-ref-none',
+    });
+    expect(result.output).toMatchObject({ classAdaptation: null });
+    vi.unstubAllEnvs();
   });
 });

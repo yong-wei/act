@@ -2,11 +2,15 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-07
+> Last updated: 2026-09-09
 
 ---
 
 ## ✅ Done
+
+- 2026-09-09：七船当前激活为雪龙2 1.0.1、爱达 1.0.1、Tessa 1.1.1、长恒 1.1.1、天鲸 1.1.1、055 2.2.1、981 1.1.1。`ACT_RUNTIME_ONLY` 包（`models/` + `textures/`）已接收；旧版本化目录、收据与描述符已退役。加载失败只回退 registry 单文件链。同源目录优先于 ESA。相关 vitest 68 项通过。OpenSpec `receive-fleet-hero-releases-oss-default`。船模在应用镜像，不在 `course-content/runtime`。
+
+
 
 - 2026-09-06：核实 #2002–#2004 已归档，在 act-dev1 对齐 integration 后完成 Buddy propose #2024（合并图谱交互 QA，删除旧 #485 reader/格式检查），作为 #1915 子项 ready。提案提交 37e835a0e 已推送；39 项活动 OpenSpec strict 通过，独立提案审查无阻断。未实施。DG 的零 caller 4 行包装、转换 helper 约 20–30 行收益及旧 census CLI 66 行均未单独立项；不为目录整齐搬动仍有跨域职责的模块。原 archive-fix-path-resource-preference-override 分支提交保留，当前提案分支 codex/propose-next-entropy-cuts。
 

@@ -5,6 +5,7 @@ import { encode } from 'next-auth/jwt';
 import { prisma } from '../src/lib/prisma';
 import { projectSmartPreparationTask } from '../src/lib/smart-lesson-plan/workspace';
 
+// 打活库的隔离用户。不要改成 test_teacher，否则会撞三角色真账号。
 const teacherId = 'smart-lesson-playwright-teacher';
 const courseBasisId = 'smart-lesson-playwright-basis';
 const documentId = 'smart-lesson-playwright-document';

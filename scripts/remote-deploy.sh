@@ -39,8 +39,9 @@ LOCAL_RESOURCE_SET_HELPER="${ROOT_DIR}/scripts/release/textbook-resource-set.mjs
 LOCAL_RESOURCE_SET_CONFIG="${ROOT_DIR}/course-content/config/textbook-resource-set.json"
 REMOTE_RESOURCE_SET_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-resource-set.mjs"
 REMOTE_RESOURCE_SET_CONFIG="${REMOTE_PROJECT_DIR}/course-content/config/textbook-resource-set.json"
-TEXTBOOK_V2_BOOK_IDS="$(node "${LOCAL_RESOURCE_SET_HELPER}" ids)"
-TEXTBOOK_V2_BOOK_COUNT="$(node "${LOCAL_RESOURCE_SET_HELPER}" count)"
+# 仅 DEPLOY_SCOPE=all 的耦合发布路径需要本地 resourceSet 书目；应用发布不读取资源状态。
+TEXTBOOK_V2_BOOK_IDS=""
+TEXTBOOK_V2_BOOK_COUNT=""
 TEXTBOOK_V2_REQUIRED_FILES="manifest.json navigation.json units.jsonl anchors.jsonl windows.jsonl anomalies.jsonl samples.jsonl"
 TEXTBOOK_RETRIEVAL_REQUIRED_FILES="manifest.json windows.jsonl bodies.utf8 vectors.f32 lexical-terms.jsonl lexical-postings.bin build-report.json"
 LOCAL_APP_DEPLOY_SCRIPT="${LOCAL_APP_DEPLOY_SCRIPT:-${ROOT_DIR}/deploy/podman/deploy.sh}"
@@ -518,14 +519,15 @@ if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
       fail "RUNTIME_DELIVERY_MODE 必须为 ossfs-blob-view 或 ossfs-release。legacy-rsync 已退役，请使用 npm run deploy:runtime"
       ;;
   esac
+  TEXTBOOK_V2_BOOK_IDS="$(node "${LOCAL_RESOURCE_SET_HELPER}" ids)"
+  TEXTBOOK_V2_BOOK_COUNT="$(node "${LOCAL_RESOURCE_SET_HELPER}" count)"
 fi
 
 log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
   log "已启用 --skip-build，跳过本地构建，直接使用现有镜像产物"
 else
-  BUILD_SCOPE="$([[ "${DEPLOY_SCOPE}" == "app" ]] && printf '%s' app-only || printf '%s' runtime-bound)" \
-    OUTPUT_TAR="${LOCAL_IMAGE_TAR}" IMAGE_TAG="${REMOTE_APP_IMAGE}" \
+  OUTPUT_TAR="${LOCAL_IMAGE_TAR}" IMAGE_TAG="${REMOTE_APP_IMAGE}" \
     bash "${ROOT_DIR}/scripts/build.sh"
 fi
 

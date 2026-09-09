@@ -9,6 +9,8 @@
  * - 已可见模型的替换失败保持当前模型继续挂载；
  * - 首次候选加载失败沿 legacy 候选链回退（FallbackGltfModel 语义）。
  * 实验自有场景代码不得另建第二套重试状态机。
+ *
+ * 激活 LOD 默认顺序：OSS → 同源镜像 → legacy。
  */
 
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
@@ -16,15 +18,41 @@ import { useGLTF } from '@react-three/drei';
 
 import { FallbackGltfModel, ModelAssetErrorBoundary } from './fallback-gltf-model';
 import {
-  shipLodUrlForQualityTier,
+  shipLodCandidatesForQualityTier,
   type VersionedModelPackageDescriptor,
 } from '../model-packages/type055-nanchang-101-v2';
+
+function uniqueUrls(urls: readonly string[]): string[] {
+  return [...new Set(urls)];
+}
 
 /** 后台预载下一 LOD；加载完成前不渲染任何东西，失败由外层边界吞掉并保持当前模型。 */
 function LodPrefetch({ url, onReady }: { url: string; onReady: () => void }) {
   useGLTF(url, true, true);
   useEffect(() => { onReady(); }, [url, onReady]);
   return null;
+}
+
+function LodPrefetchChain({
+  urls,
+  onReady,
+}: {
+  urls: readonly string[];
+  onReady: (url: string) => void;
+}) {
+  const url = urls[0];
+  if (!url) return null;
+  const rest = urls.slice(1);
+  return (
+    <ModelAssetErrorBoundary
+      key={url}
+      fallback={rest.length > 0 ? <LodPrefetchChain urls={rest} onReady={onReady} /> : null}
+    >
+      <Suspense fallback={null}>
+        <LodPrefetch url={url} onReady={() => onReady(url)} />
+      </Suspense>
+    </ModelAssetErrorBoundary>
+  );
 }
 
 export function VersionedShipModel({
@@ -39,24 +67,18 @@ export function VersionedShipModel({
   legacyCandidates: readonly string[];
   renderScene: (url: string) => ReactNode;
 }) {
-  const lodUrl = shipLodUrlForQualityTier(descriptor, tier);
-  const [committedUrl, setCommittedUrl] = useState(lodUrl);
+  const lodCandidates = shipLodCandidatesForQualityTier(descriptor, tier);
+  const [committedUrl, setCommittedUrl] = useState(lodCandidates[0]);
 
-  // 首次（或回退后）加载失败 → FallbackGltfModel 沿候选链退回旧模型；
-  // 已可见后的档位切换 → 预载下一 LOD，就绪才提交，失败保持当前模型。
   return (
     <>
       <FallbackGltfModel
-        candidates={[committedUrl, ...legacyCandidates]}
+        candidates={uniqueUrls([committedUrl, ...lodCandidates, ...legacyCandidates])}
         render={renderScene}
       />
-      {committedUrl !== lodUrl ? (
-        <ModelAssetErrorBoundary key={lodUrl} fallback={null}>
-          <Suspense fallback={null}>
-            <LodPrefetch url={lodUrl} onReady={() => setCommittedUrl(lodUrl)} />
-          </Suspense>
-        </ModelAssetErrorBoundary>
-      ) : null}
+      {lodCandidates.includes(committedUrl) ? null : (
+        <LodPrefetchChain urls={lodCandidates} onReady={setCommittedUrl} />
+      )}
     </>
   );
 }

@@ -32,7 +32,7 @@ declare global {
 }
 
 /**
- * type055-nanchang-101 v2.1.1 生产切换浏览器验收（issue #1996）。
+ * type055-nanchang-101 v2.2.1 生产切换浏览器验收（issue #1996）。
  *
  * - QA 页首屏只请求一个 ship LOD；demo/payload/collision/interactive-systems 不被请求；
  * - 整舰取景 + 骨骼绑定的视觉证据；
@@ -41,15 +41,15 @@ declare global {
  * - 候选 GLB 加载失败时回退旧模型候选链，画布仍可渲染。
  */
 
-const PACKAGE_BASE = '/assets/model-releases/type055-nanchang-101/v2.1.1';
-const LOD_URLS = [`${PACKAGE_BASE}/type055-nanchang-101-ship-lod0.glb`, `${PACKAGE_BASE}/type055-nanchang-101-ship-lod1.glb`, `${PACKAGE_BASE}/type055-nanchang-101-ship-lod2.glb`];
-const DEMO_URL = `${PACKAGE_BASE}/type055-nanchang-101-weapon-demo.glb`;
-const PAYLOAD_URL = `${PACKAGE_BASE}/type055-nanchang-101-weapon-payloads.glb`;
-const COLLISION_URL = `${PACKAGE_BASE}/type055-nanchang-101-collision.glb`;
-const INTERACTIVE_URL = `${PACKAGE_BASE}/type055-nanchang-101-interactive-systems.glb`;
+const PACKAGE_BASE = '/assets/model-releases/type055-nanchang-101/v2.2.1';
+const LOD_URLS = [`${PACKAGE_BASE}/models/type055-nanchang-101-ship-lod0.glb`, `${PACKAGE_BASE}/models/type055-nanchang-101-ship-lod1.glb`, `${PACKAGE_BASE}/models/type055-nanchang-101-ship-lod2.glb`];
+const DEMO_URL = `${PACKAGE_BASE}/models/type055-nanchang-101-weapon-demo.glb`;
+const PAYLOAD_URL = `${PACKAGE_BASE}/models/type055-nanchang-101-weapon-payloads.glb`;
+const COLLISION_URL = `${PACKAGE_BASE}/models/type055-nanchang-101-collision.glb`;
+const INTERACTIVE_URL = `${PACKAGE_BASE}/models/type055-nanchang-101-interactive-systems.glb`;
 const LEGACY_PRIMARY = '/assets/models-opt/destroyer.glb';
 
-const EVIDENCE_DIR = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.1.1/browser-acceptance');
+const EVIDENCE_DIR = path.join(process.cwd(), 'artifacts/model-releases/type055-nanchang-101-v2.2.1/browser-acceptance');
 
 interface GlbRequestLedger {
   glbUrls: string[];
