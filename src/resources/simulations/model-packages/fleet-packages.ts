@@ -13,6 +13,14 @@ import {
   type VersionedModelPackageDescriptor,
 } from './types';
 
+/** 整合包统一：模型 +X 艏 → 场景 +Z 艏，无额外水线平移。 */
+const HERO_NATIVE_TO_SCENE = [
+  0, 0, -1, 0,
+  0, 1, 0, 0,
+  1, 0, 0, 0,
+  0, 0, 0, 1,
+] as const;
+
 function visualContract(
   shipAnimationCount: number,
   shipInterfaceAnimations: readonly string[],
@@ -352,14 +360,116 @@ export const DREDGER_TIANJING_V101: VersionedModelPackageDescriptor = {
   },
 };
 
+const LNG_BASE_V110 = '/assets/model-releases/lng-changheng/v1.1.0';
+export const LNG_CHANGHENG_V110: VersionedModelPackageDescriptor = {
+  ...LNG_CHANGHENG_V1,
+  modelVersion: '1.1.0',
+  releaseManifestSha256: '36e4e3d08ba5debfb541fdc3b8709f7cda309848d5d8563588c94b545a774de8',
+  sourceBlendSha256: 'e16db39d111f605d426a595a2fc8ce27a465685fda0f1947f31767dd8d980af8',
+  baseUrl: LNG_BASE_V110,
+  roles: {
+    'ship-lod0': artifact(LNG_BASE_V110, 'ship-lod0', 'lng-changheng-ship-lod0.glb', 'ea3cff4b5d893abb8e1a37774d4d1c2b679a45271713519c9aa32966098d7996', 18334232),
+    'ship-lod1': artifact(LNG_BASE_V110, 'ship-lod1', 'lng-changheng-ship-lod1.glb', 'db8c55f960c094bb1e83939af25cf138e59cd428947ee903d66014f3e8c186ba', 14090944),
+    'ship-lod2': artifact(LNG_BASE_V110, 'ship-lod2', 'lng-changheng-ship-lod2.glb', '1d469e223d97cf34b22c4804a1e57babcfa1f93682147b1bb67d9891be25bb78', 12260464),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: 0,
+  modelToSceneMatrix: HERO_NATIVE_TO_SCENE,
+};
+
+const TESSA_BASE_V110 = '/assets/model-releases/msc-tessa/v1.1.0';
+export const MSC_TESSA_V110: VersionedModelPackageDescriptor = {
+  ...MSC_TESSA_V1,
+  modelVersion: '1.1.0',
+  releaseManifestSha256: '9992c511247e98db0938df49d84aee59e2fc44f75a6180f006b04e49852631a6',
+  sourceBlendSha256: 'dfe9eb7cdf9e23baf93088f97be4877a8f5a5045f2edc3ca788774bcc9e8ef46',
+  baseUrl: TESSA_BASE_V110,
+  roles: {
+    'ship-lod0': artifact(TESSA_BASE_V110, 'ship-lod0', 'msc-tessa-ship-lod0.glb', '52519cc2c3c8ef939b0fa7c22c487d44c6f6c931d214c86d3311a88b3084a487', 15126196),
+    'ship-lod1': artifact(TESSA_BASE_V110, 'ship-lod1', 'msc-tessa-ship-lod1.glb', 'e56b291d700cc75143ee531aceea2b0fec90e483fdd4469e8ccdd9acc0a41e29', 6367796),
+    'ship-lod2': artifact(TESSA_BASE_V110, 'ship-lod2', 'msc-tessa-ship-lod2.glb', '13b3355f3379616f854f06283e590d3cf2327529556b32116333194fb6398052', 3359496),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: 0,
+  modelToSceneMatrix: HERO_NATIVE_TO_SCENE,
+};
+
+const XL2_BASE_V100 = '/assets/model-releases/xue-long-2/v1.0.0';
+export const XUE_LONG_2_V100: VersionedModelPackageDescriptor = {
+  ...XUE_LONG_2_V011,
+  modelVersion: '1.0.0',
+  releaseManifestSha256: '84a03708e930baad8fd8f611338ea8fa122e03d4d10be7d1e1d93d905bdbe59a',
+  sourceBlendSha256: '0363a7b096e45d9dca89af38340985f8fcd49d182d103809c3476d76ac31ac02',
+  baseUrl: XL2_BASE_V100,
+  roles: {
+    'ship-lod0': artifact(XL2_BASE_V100, 'ship-lod0', 'xue-long-2-ship-lod0.glb', '07f6c32aaa3f9e8003004b7df9679f2c1625893fb7ccbc3fd81142e57ece0ad2', 18491600),
+    'ship-lod1': artifact(XL2_BASE_V100, 'ship-lod1', 'xue-long-2-ship-lod1.glb', '2d2e2c05ccdcb686e0cfac09122c1ef50a6bf79e6ba299a2afbce0d05b3b34a4', 11168364),
+    'ship-lod2': artifact(XL2_BASE_V100, 'ship-lod2', 'xue-long-2-ship-lod2.glb', '44cf32a79a55b100d1fb5339b42aad4157f066ce84a73852ec2655033c01b4ae', 3454636),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: 0,
+  modelToSceneMatrix: HERO_NATIVE_TO_SCENE,
+};
+
+const ADORA_BASE_V100 = '/assets/model-releases/adora-magic-city/v1.0.0';
+export const ADORA_MAGIC_CITY_V100: VersionedModelPackageDescriptor = {
+  ...ADORA_MAGIC_CITY_V010,
+  modelVersion: '1.0.0',
+  releaseManifestSha256: '74e9db5300e7a059468222260b3668d0b7197ddf689a4df69d135365bdeeb891',
+  sourceBlendSha256: 'c8193a2cdc61a756745238ccfb8abd243f051dfb5aabef61a7be4921b0ea769c',
+  baseUrl: ADORA_BASE_V100,
+  roles: {
+    'ship-lod0': artifact(ADORA_BASE_V100, 'ship-lod0', 'adora-magic-city-ship-lod0.glb', '9cd3759921334a12869c93d900066f694e6c50ef5228b62b83cf89a8d5e006c4', 23862856),
+    'ship-lod1': artifact(ADORA_BASE_V100, 'ship-lod1', 'adora-magic-city-ship-lod1.glb', '0a16a760d9e1e9d29443603092747d393b26b87bc3562157a4b99948ce30fb10', 7347580),
+    'ship-lod2': artifact(ADORA_BASE_V100, 'ship-lod2', 'adora-magic-city-ship-lod2.glb', 'c1bfd4c4af9452f656bf8d14b68a713197089e330c12190d63547e3d3eae311f', 2905428),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: 0,
+  modelToSceneMatrix: HERO_NATIVE_TO_SCENE,
+};
+
+const HYSY_BASE_V110 = '/assets/model-releases/hysy-981/v1.1.0';
+export const HYSY_981_V110: VersionedModelPackageDescriptor = {
+  ...HYSY_981_V102,
+  modelVersion: '1.1.0',
+  releaseManifestSha256: 'e8784560cea34d3f97bac573fe599733aa4a042ba4f16cf2e938969da634a640',
+  sourceBlendSha256: '383f2ee2958639634555ef9d78370d7ceebadd1ef5b98bd19be94efbfa83ca52',
+  baseUrl: HYSY_BASE_V110,
+  roles: {
+    'ship-lod0': artifact(HYSY_BASE_V110, 'ship-lod0', 'hysy-981-ship-lod0.glb', '140f6599a9ea9495f6d9d059480924c340c581eaceabf19c650184d6c3c18791', 8803276),
+    'ship-lod1': artifact(HYSY_BASE_V110, 'ship-lod1', 'hysy-981-ship-lod1.glb', 'e1f504c43136d8732434eb205168b379530c003110b293f77632ad777c2db1de', 6815628),
+    'ship-lod2': artifact(HYSY_BASE_V110, 'ship-lod2', 'hysy-981-ship-lod2.glb', '315ae2cce75e4dc75b42bdf13a91cc98f0bf1576ec8dce0620993aa7b2ae7a0c', 4538556),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: 0,
+  modelToSceneMatrix: HERO_NATIVE_TO_SCENE,
+};
+
+const TIANJING_BASE_V110 = '/assets/model-releases/dredger-tianjing/v1.1.0';
+export const DREDGER_TIANJING_V110: VersionedModelPackageDescriptor = {
+  ...DREDGER_TIANJING_V101,
+  modelVersion: '1.1.0',
+  releaseManifestSha256: 'cb9113e730cc5cd7d643a0b663fa422fa8edaf2356058d4bc16bc18ddcc6305d',
+  sourceBlendSha256: '6c45ea9a08d3939af59957267605fab78a84a299ab923646f522caacb84cf281',
+  baseUrl: TIANJING_BASE_V110,
+  roles: {
+    'ship-lod0': artifact(TIANJING_BASE_V110, 'ship-lod0', 'dredger-tianjing-ship-lod0.glb', '9d497172cf2b53bf6db61e9a027561156ea1d23e5ebe650f6ad2443d1faa729e', 16223208),
+    'ship-lod1': artifact(TIANJING_BASE_V110, 'ship-lod1', 'dredger-tianjing-ship-lod1.glb', 'a58fb171527a8af14feb0816c26589dede14566c816db6110066fde804f92eb2', 13333256),
+    'ship-lod2': artifact(TIANJING_BASE_V110, 'ship-lod2', 'dredger-tianjing-ship-lod2.glb', '29dc3424ae55e4ed2d50404335f6e8647a9142e22f1a16ac339b1c6d9bdb1f16', 4330980),
+  },
+  coordinateBasis: { forward: '+X', up: '+Y' },
+  basisYawRad: 0,
+  modelToSceneMatrix: HERO_NATIVE_TO_SCENE,
+};
+
 export const FLEET_ACTIVE_PACKAGES: Partial<Record<SimulationModelId, VersionedModelPackageDescriptor>> = {
   destroyer: TYPE055_NANCHANG_101_V2,
-  'lng-carrier': LNG_CHANGHENG_V1,
-  container: MSC_TESSA_V1,
-  icebreaker: XUE_LONG_2_V011,
-  'luxury-liner': ADORA_MAGIC_CITY_V010,
-  'drilling-rig': HYSY_981_V102,
-  dredger: DREDGER_TIANJING_V101,
+  'lng-carrier': LNG_CHANGHENG_V110,
+  container: MSC_TESSA_V110,
+  icebreaker: XUE_LONG_2_V100,
+  'luxury-liner': ADORA_MAGIC_CITY_V100,
+  'drilling-rig': HYSY_981_V110,
+  dredger: DREDGER_TIANJING_V110,
 };
 
 export function matchActivatedFleetPackage(

@@ -52,7 +52,7 @@ describe('dredger pipeline integration', () => {
     expect(rig).toContain('key={resetToken}');
   });
 
-  it('wires the versioned fleet mount to Tianjing v1.0.1', () => {
+  it('wires the versioned fleet mount to Tianjing', () => {
     const source = read(DREDGER);
     expect(source).toContain('VersionedFleetShip');
     expect(source).toContain('logicalId="dredger"');

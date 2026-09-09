@@ -8,19 +8,19 @@ const MODEL_POSTER: Record<string, string> = {
   '/assets/drilling-rig.glb': '/assets/drilling-rig.png',
 }
 
-const MODEL_POSTER_PREFIXES: ReadonlyArray<readonly [string, string]> = [
-  ['/assets/model-releases/type055-nanchang-101/', '/assets/destroyer.png'],
-  ['/assets/model-releases/lng-changheng/', '/assets/Lng-carrier.png'],
-  ['/assets/model-releases/msc-tessa/', '/assets/container.png'],
-  ['/assets/model-releases/xue-long-2/', '/assets/icebreaker.png'],
-  ['/assets/model-releases/adora-magic-city/', '/assets/luxury-liner.png'],
-  ['/assets/model-releases/hysy-981/', '/assets/drilling-rig.png'],
-  ['/assets/model-releases/dredger-tianjing/', '/assets/dredger-tianjing.png'],
+const PACKAGE_POSTERS: ReadonlyArray<readonly [string, string]> = [
+  ['type055-nanchang-101', '/assets/destroyer.png'],
+  ['lng-changheng', '/assets/Lng-carrier.png'],
+  ['msc-tessa', '/assets/container.png'],
+  ['xue-long-2', '/assets/icebreaker.png'],
+  ['adora-magic-city', '/assets/luxury-liner.png'],
+  ['hysy-981', '/assets/drilling-rig.png'],
+  ['dredger-tianjing', '/assets/dredger-tianjing.png'],
 ]
 
 export function getShipModelPosterPath(modelPath: string) {
   const exact = MODEL_POSTER[modelPath]
   if (exact) return exact
-  const prefix = MODEL_POSTER_PREFIXES.find(([pathPrefix]) => modelPath.startsWith(pathPrefix))
-  return prefix?.[1] ?? '/assets/destroyer.png'
+  const byPackage = PACKAGE_POSTERS.find(([token]) => modelPath.includes(token))
+  return byPackage?.[1] ?? '/assets/destroyer.png'
 }

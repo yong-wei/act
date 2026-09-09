@@ -40,7 +40,7 @@ import {
 } from '@/lib/browser-delivery/client'
 import type { SimulationModelId } from '@/lib/browser-delivery/types'
 import { matchActivatedFleetPackage } from '@/resources/simulations/model-packages/fleet-packages'
-import { shipLodUrlForQualityTier } from '@/resources/simulations/model-packages/types'
+import { shipLodCandidatesForQualityTier } from '@/resources/simulations/model-packages/types'
 import { PlatformBrandLockup } from '@/components/shared/platform-brand-lockup'
 import { useTheme } from '@/components/providers/theme-provider'
 import { resolveHomeModelRenderMode, type ConnectionHint } from '@/lib/model-render-policy'
@@ -51,14 +51,22 @@ import {
   type PlatformNavigationIconKey,
 } from '@/lib/platform-role-navigation'
 
-function homePreviewModelPath(logicalId: SimulationModelId): string {
+function homePreviewCandidates(logicalId: SimulationModelId): readonly string[] {
   const activated = matchActivatedFleetPackage(logicalId, resolveVersionedDefault(logicalId))
   if (activated) {
     // 天鲸 LOD2 是远景简化档，首页卡片尺寸下会看起来像旧示意模型；用教学默认 LOD1。
     const tier = logicalId === 'dredger' ? 'medium' : 'low'
-    return shipLodUrlForQualityTier(activated, tier)
+    return shipLodCandidatesForQualityTier(activated, tier)
   }
-  return resolveRegisteredSimulationModel(logicalId).originalUrl
+  return [resolveRegisteredSimulationModel(logicalId).originalUrl]
+}
+
+function homePreviewModelPath(logicalId: SimulationModelId): string {
+  return homePreviewCandidates(logicalId)[0] ?? resolveRegisteredSimulationModel(logicalId).originalUrl
+}
+
+function homePreviewFallbackPath(logicalId: SimulationModelId): string | undefined {
+  return homePreviewCandidates(logicalId)[1]
 }
 
 function homePosterPath(logicalId: SimulationModelId): string {
@@ -71,6 +79,7 @@ const shipScenarios = [
     title: '海上半潜平台动力定位',
     description: '模拟半潜式钻井平台在复杂海况下的动力定位，学习多推进器协同与定点保持策略。',
     modelPath: homePreviewModelPath('drilling-rig'),
+    fallbackPath: homePreviewFallbackPath('drilling-rig'),
     posterPath: homePosterPath('drilling-rig'),
     difficulty: '高级',
     participants: '2,847',
@@ -84,6 +93,7 @@ const shipScenarios = [
     title: '雪龙号破冰船航行控制',
     description: '在极地环境中学习 Azipod 推进控制，体验冰阻力 Stick-Slip 效应导致的参数摄动。',
     modelPath: homePreviewModelPath('icebreaker'),
+    fallbackPath: homePreviewFallbackPath('icebreaker'),
     posterPath: homePosterPath('icebreaker'),
     difficulty: '专家',
     participants: '1,234',
@@ -97,6 +107,7 @@ const shipScenarios = [
     title: '挖泥船精确定位作业',
     description: '学习挖泥船在施工中的精确定位技术，掌握多点锚泊系统的协调控制。',
     modelPath: homePreviewModelPath('dredger'),
+    fallbackPath: homePreviewFallbackPath('dredger'),
     posterPath: homePosterPath('dredger'),
     difficulty: '中级',
     participants: '3,456',
@@ -110,6 +121,7 @@ const shipScenarios = [
     title: 'LNG船舶时滞控制',
     description: '体验大型 LNG 运输船的时滞控制挑战，学习 Smith 预估器与液货晃荡抑制技术。',
     modelPath: homePreviewModelPath('lng-carrier'),
+    fallbackPath: homePreviewFallbackPath('lng-carrier'),
     posterPath: homePosterPath('lng-carrier'),
     difficulty: '高级',
     participants: '1,876',
@@ -123,6 +135,7 @@ const shipScenarios = [
     title: 'MSC Tessa 集装箱船变质量控制',
     description: '体验超大型集装箱船的变质量控制挑战，学习增益调度PID策略与风载荷抑制技术。',
     modelPath: homePreviewModelPath('container'),
+    fallbackPath: homePreviewFallbackPath('container'),
     posterPath: homePosterPath('container'),
     difficulty: '高级',
     participants: '4,123',
@@ -136,6 +149,7 @@ const shipScenarios = [
     title: '爱达·魔都号邮轮舒适度控制',
     description: '体验中国首艘国产大型豪华邮轮的舒适度控制，学习减摇鳍与陷波滤波器抑制致晕频段。',
     modelPath: homePreviewModelPath('luxury-liner'),
+    fallbackPath: homePreviewFallbackPath('luxury-liner'),
     posterPath: homePosterPath('luxury-liner'),
     difficulty: '专家',
     participants: '987',
@@ -149,6 +163,7 @@ const shipScenarios = [
     title: '军用驱逐舰战术机动',
     description: '体验军用舰艇的高机动性控制，学习战术环境下的快速响应控制策略。',
     modelPath: homePreviewModelPath('destroyer'),
+    fallbackPath: homePreviewFallbackPath('destroyer'),
     posterPath: homePosterPath('destroyer'),
     difficulty: '专家',
     participants: '654',
@@ -431,6 +446,7 @@ export default function HomePage() {
               {shouldUseDynamicHomeModel ? (
                 <ShipModelPreview
                   modelPath={currentScenario.modelPath}
+                  fallbackPath={currentScenario.fallbackPath}
                   onInteractionStart={() => setIsDragging(true)}
                   onInteractionEnd={() => setIsDragging(false)}
                 />

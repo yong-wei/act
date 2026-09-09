@@ -22,6 +22,7 @@ import { getShipModelPosterPath } from '@/resources/simulations/ship-model-asset
 
 type ShipModelPreviewProps = {
   modelPath: string
+  fallbackPath?: string
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
 }
@@ -50,9 +51,34 @@ const MODEL_FORWARD: Record<string, THREE.Vector3> = {
   '/assets/drilling-rig.glb': new THREE.Vector3(0, 0, -1),
 }
 
+function isActForwardLegacyPath(modelPath: string): boolean {
+  return (
+    modelPath.includes('/v1.0.0/lng-changheng')
+    || modelPath.includes('/v1.0.0/msc-tessa')
+    || modelPath.includes('/v1.0.0/hysy-981')
+    || modelPath.includes('/v1.0.2/hysy-981')
+    || (modelPath.startsWith('/assets/model-releases/dredger-tianjing/') && modelPath.includes('/v1.0.1/'))
+  )
+}
+
+function isHeroNativePlusX(modelPath: string): boolean {
+  return (
+    modelPath.includes('type055-nanchang-101')
+    || modelPath.includes('xue-long-2')
+    || modelPath.includes('adora-magic-city')
+    || modelPath.includes('lng-changheng')
+    || modelPath.includes('msc-tessa')
+    || modelPath.includes('hysy-981')
+    || modelPath.includes('dredger-tianjing')
+  )
+}
+
 function resolvePreviewForward(modelPath: string): THREE.Vector3 {
-  if (modelPath.startsWith('/assets/model-releases/dredger-tianjing/')) {
+  if (isActForwardLegacyPath(modelPath)) {
     return new THREE.Vector3(0, 0, 1)
+  }
+  if (isHeroNativePlusX(modelPath)) {
+    return new THREE.Vector3(1, 0, 0)
   }
   return (MODEL_FORWARD[modelPath] ?? DEFAULT_FORWARD).clone().normalize()
 }
@@ -190,6 +216,7 @@ function CenteredGltfModel({ modelPath, onReady }: { modelPath: string; onReady:
 
 export function ShipModelPreview({
   modelPath,
+  fallbackPath,
   onInteractionStart,
   onInteractionEnd,
 }: ShipModelPreviewProps) {
@@ -197,6 +224,7 @@ export function ShipModelPreview({
     <ShipModelPreviewSession
       key={modelPath}
       modelPath={modelPath}
+      fallbackPath={fallbackPath}
       onInteractionStart={onInteractionStart}
       onInteractionEnd={onInteractionEnd}
     />
@@ -205,6 +233,7 @@ export function ShipModelPreview({
 
 function ShipModelPreviewSession({
   modelPath,
+  fallbackPath,
   onInteractionStart,
   onInteractionEnd,
 }: ShipModelPreviewProps) {
@@ -216,6 +245,8 @@ function ShipModelPreviewSession({
   const [retryCount, setRetryCount] = useState(0)
   const [retryKey, setRetryKey] = useState(0)
   const [loadFailed, setLoadFailed] = useState(false)
+  const [useFallback, setUseFallback] = useState(false)
+  const activePath = useFallback && fallbackPath ? fallbackPath : modelPath
 
   const posterPath = getShipModelPosterPath(modelPath)
   const isStaticOnly = shouldForceStaticByConnection(getConnectionHint())
@@ -231,7 +262,7 @@ function ShipModelPreviewSession({
     }
 
     const timer = window.setTimeout(() => {
-      preloadShipModel(modelPath, 'high')
+      preloadShipModel(activePath, 'high')
       setShowCanvas(true)
     }, 120)
 
@@ -242,15 +273,21 @@ function ShipModelPreviewSession({
         retryTimerRef.current = null
       }
     }
-  }, [isStaticOnly, modelPath])
+  }, [isStaticOnly, activePath])
 
   const handleModelError = () => {
     setIsModelReady(false)
+    if (fallbackPath && !useFallback) {
+      setUseFallback(true)
+      setRetryKey((prev) => prev + 1)
+      setShowCanvas(true)
+      return
+    }
     if (retryCount < 2) {
       const nextRetryCount = retryCount + 1
       setRetryCount(nextRetryCount)
       retryTimerRef.current = window.setTimeout(() => {
-        preloadShipModel(modelPath, 'high')
+        preloadShipModel(activePath, 'high')
         setRetryKey((prev) => prev + 1)
         setShowCanvas(true)
       }, 600 * nextRetryCount)
@@ -285,7 +322,7 @@ function ShipModelPreviewSession({
 
       {showCanvas && !isStaticOnly && !loadFailed ? (
         <Canvas
-          key={`${modelPath}-${retryKey}`}
+          key={`${activePath}-${retryKey}`}
           className={`h-full w-full transition-opacity duration-500 ${isModelReady ? 'opacity-100' : 'opacity-60'}`}
           camera={{ position: CAMERA_POSITION, fov: 35 }}
           onPointerDown={handleInteractionStart}
@@ -299,7 +336,7 @@ function ShipModelPreviewSession({
           <AutoOrbit controlsRef={controlsRef} isInteractingRef={isInteractingRef} />
           <ModelLoadBoundary onError={handleModelError}>
             <Suspense fallback={null}>
-              <CenteredGltfModel modelPath={modelPath} onReady={() => setIsModelReady(true)} />
+              <CenteredGltfModel modelPath={activePath} onReady={() => setIsModelReady(true)} />
             </Suspense>
           </ModelLoadBoundary>
           <OrbitControls

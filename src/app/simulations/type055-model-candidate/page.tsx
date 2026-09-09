@@ -17,9 +17,10 @@ import * as THREE from 'three';
 
 import {
   TYPE055_NANCHANG_101_V2,
-  TYPE055_V2_BASIS_YAW_RAD,
 } from '@/resources/simulations/model-packages/type055-nanchang-101-v2';
+import { isDescriptorArtifactUrl } from '@/resources/simulations/model-packages/types';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '@/resources/simulations/model-packages/clone-skinned-scene';
+import { HeroModelBasis } from '@/resources/simulations/components/hero-model-basis';
 import { VersionedShipModel } from '@/resources/simulations/components/versioned-ship-model';
 import { resolveRegisteredSimulationModel } from '@/lib/browser-delivery/client';
 import { boxProjectsInsideNdc, framePerspectiveCameraToBox } from '@/resources/simulations/scene/camera';
@@ -160,8 +161,14 @@ function QaShip({ url }: { url: string }) {
   return (
     <>
       <QaFramingCamera targetRef={groupRef} />
-      <group ref={groupRef} rotation-y={url.startsWith(TYPE055_NANCHANG_101_V2.baseUrl) ? TYPE055_V2_BASIS_YAW_RAD : 0}>
-        <primitive object={mounted} />
+      <group ref={groupRef}>
+        <HeroModelBasis
+          matrix={isDescriptorArtifactUrl(TYPE055_NANCHANG_101_V2, url)
+            ? TYPE055_NANCHANG_101_V2.modelToSceneMatrix
+            : undefined}
+        >
+          <primitive object={mounted} />
+        </HeroModelBasis>
       </group>
     </>
   );

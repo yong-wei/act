@@ -1,0 +1,81 @@
+{
+  "schema": "act-model-release-receipt/1",
+  "packageId": "msc-tessa",
+  "modelVersion": "1.1.0",
+  "capturedAt": "2026-09-09T05:44:46.112Z",
+  "packageTreeDigest": "8fc8b970abb7b25ec0c0e3ae2388a6f24ede2184",
+  "sourceCommitAtCapture": "71caa25faeee7bda32d2c70ac467ba37993b2bff",
+  "packageDirty": false,
+  "sourceRelease": "3DModels:assets/msc_tessa/exports/v1.1.0",
+  "upstreamReleaseSha256": "85363a4f28059ac255e9ae86446563effd6246a687582d0541f872d00bba1f32",
+  "manifestSha256": "9992c511247e98db0938df49d84aee59e2fc44f75a6180f006b04e49852631a6",
+  "sourceBlendSha256": "dfe9eb7cdf9e23baf93088f97be4877a8f5a5045f2edc3ca788774bcc9e8ef46",
+  "modelToSceneMatrix": [
+    0,
+    0,
+    -1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1
+  ],
+  "roles": {
+    "ship-lod0": {
+      "file": "msc-tessa-ship-lod0.glb",
+      "sha256": "52519cc2c3c8ef939b0fa7c22c487d44c6f6c931d214c86d3311a88b3084a487",
+      "bytes": 15126196,
+      "kind": "ship",
+      "lod": 0
+    },
+    "ship-lod1": {
+      "file": "msc-tessa-ship-lod1.glb",
+      "sha256": "e56b291d700cc75143ee531aceea2b0fec90e483fdd4469e8ccdd9acc0a41e29",
+      "bytes": 6367796,
+      "kind": "ship",
+      "lod": 1
+    },
+    "ship-lod2": {
+      "file": "msc-tessa-ship-lod2.glb",
+      "sha256": "13b3355f3379616f854f06283e590d3cf2327529556b32116333194fb6398052",
+      "bytes": 3359496,
+      "kind": "ship",
+      "lod": 2
+    }
+  },
+  "copiedFiles": [
+    {
+      "file": "msc-tessa-ship-lod0.glb",
+      "sha256": "52519cc2c3c8ef939b0fa7c22c487d44c6f6c931d214c86d3311a88b3084a487",
+      "bytes": 15126196,
+      "role": "ship-lod0",
+      "kind": "ship",
+      "lod": 0
+    },
+    {
+      "file": "msc-tessa-ship-lod1.glb",
+      "sha256": "e56b291d700cc75143ee531aceea2b0fec90e483fdd4469e8ccdd9acc0a41e29",
+      "bytes": 6367796,
+      "role": "ship-lod1",
+      "kind": "ship",
+      "lod": 1
+    },
+    {
+      "file": "msc-tessa-ship-lod2.glb",
+      "sha256": "13b3355f3379616f854f06283e590d3cf2327529556b32116333194fb6398052",
+      "bytes": 3359496,
+      "role": "ship-lod2",
+      "kind": "ship",
+      "lod": 2
+    }
+  ],
+  "integrity": "source-and-destination-hashes-verified"
+}

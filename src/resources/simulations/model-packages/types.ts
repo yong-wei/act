@@ -5,6 +5,8 @@
  * ACT 不修补上游模型字节。
  */
 
+import { esaObjectUrl } from '@/lib/browser-delivery/keys';
+
 export type VersionedShipLodRole = 'ship-lod0' | 'ship-lod1' | 'ship-lod2';
 export type VersionedOptionalRole = 'collision' | 'payload' | 'demo' | 'interactive-systems';
 export type VersionedModelRole = VersionedShipLodRole | VersionedOptionalRole;
@@ -100,9 +102,16 @@ export interface VersionedModelPackageDescriptor {
   readonly coordinateBasis: { readonly forward: '+X' | '+Z'; readonly up: '+Y' };
   /**
    * 坐标基适配（唯一适配点）：+X 艏 → 场景 +Z 艏为 −π/2；act-forward（+Z 艏）为 0。
-   * 只允许在模型挂载组件处应用一次。
+   * 只允许在模型挂载组件处应用一次。声明了 modelToSceneMatrix 时不要再叠一次。
    */
   readonly basisYawRad: number;
+  /** 行主序 4×4，对应 release.json coordinates.modelToSceneMatrix；用 Matrix4.set 一次应用。 */
+  readonly modelToSceneMatrix?: readonly [
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+  ];
   readonly interfaceContract: VersionedModelInterfaceContract;
   /** 设计水线锚定：模型局部 Y（米）。声明后场景不得再 bbox 居中或按总高归一化。 */
   readonly verticalAnchor?: { readonly designWaterlineY: number };
@@ -151,11 +160,40 @@ export function shipLodUrlForQualityTier(
   descriptor: VersionedModelPackageDescriptor,
   tier: 'high' | 'medium' | 'low',
 ): string {
-  const artifact = descriptor.roles?.[shipLodRoleForQualityTier(tier)];
-  if (!artifact) {
+  const item = descriptor.roles[shipLodRoleForQualityTier(tier)];
+  if (!item) {
     throw new Error(`missing-ship-lod:${descriptor.packageId}:${tier}`);
   }
-  return artifact.url;
+  return item.url;
+}
+
+export function ossArtifactUrl(item: VersionedModelArtifact): string {
+  return esaObjectUrl(item.sha256, item.file);
+}
+
+export function artifactCandidateUrls(item: VersionedModelArtifact): readonly [string, string] {
+  return [ossArtifactUrl(item), item.url];
+}
+
+export function shipLodCandidatesForQualityTier(
+  descriptor: VersionedModelPackageDescriptor,
+  tier: 'high' | 'medium' | 'low',
+): readonly [string, string] {
+  const item = descriptor.roles[shipLodRoleForQualityTier(tier)];
+  if (!item) {
+    throw new Error(`missing-ship-lod:${descriptor.packageId}:${tier}`);
+  }
+  return artifactCandidateUrls(item);
+}
+
+export function isDescriptorArtifactUrl(
+  descriptor: VersionedModelPackageDescriptor,
+  url: string,
+): boolean {
+  if (url.startsWith(descriptor.baseUrl)) return true;
+  return Object.values(descriptor.roles).some((item) => (
+    url === item.url || url === ossArtifactUrl(item)
+  ));
 }
 
 export function basisYawRadForForward(forward: '+X' | '+Z'): number {

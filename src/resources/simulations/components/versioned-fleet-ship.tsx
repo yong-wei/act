@@ -16,11 +16,12 @@ import {
   type SimulationModelId,
 } from '@/lib/browser-delivery/client';
 import { FallbackGltfModel } from './fallback-gltf-model';
+import { HeroModelBasis } from './hero-model-basis';
 import { VersionedShipModel } from './versioned-ship-model';
 import { SemanticBindingsRig, type BindingTelemetrySource } from './semantic-bindings-rig';
 import { cloneSkinnedScene } from '../model-packages/clone-skinned-scene';
 import { matchActivatedFleetPackage } from '../model-packages/fleet-packages';
-import { type VersionedModelPackageDescriptor } from '../model-packages/types';
+import { isDescriptorArtifactUrl, type VersionedModelPackageDescriptor } from '../model-packages/types';
 import { useSceneQuality } from '../scene/quality';
 
 export function VersionedFleetShip({
@@ -87,7 +88,8 @@ export function VersionedFleetShip({
       tier={tier}
       legacyCandidates={MODEL.candidates}
       renderScene={(url) => {
-        const versioned = url.startsWith(activated.baseUrl);
+        const versioned = isDescriptorArtifactUrl(activated, url);
+        const useMatrix = Boolean(versioned && activated.modelToSceneMatrix);
         return (
           <FleetModelScene
             url={url}
@@ -99,11 +101,12 @@ export function VersionedFleetShip({
             waterY={waterY}
             sceneLengthMeters={sceneLengthMeters}
             resetToken={resetToken}
-            basisYawRad={versioned ? activated.basisYawRad : 0}
+            basisYawRad={versioned && !useMatrix ? activated.basisYawRad : 0}
+            modelToSceneMatrix={useMatrix ? activated.modelToSceneMatrix : undefined}
             outerYawOffsetRad={versioned ? Math.PI / 2 : legacyYawOffsetRad}
             bboxCenter={!versioned}
             fallbackDraftMeters={fallbackDraftMeters}
-            verticalOffsetMeters={versioned ? verticalOffsetMeters : 0}
+            verticalOffsetMeters={versioned && !useMatrix ? verticalOffsetMeters : 0}
             legacyOverlay={versioned ? undefined : legacyOverlay}
           />
         );
@@ -123,6 +126,7 @@ function FleetModelScene({
   sceneLengthMeters,
   resetToken,
   basisYawRad,
+  modelToSceneMatrix,
   outerYawOffsetRad,
   bboxCenter,
   fallbackDraftMeters,
@@ -139,6 +143,7 @@ function FleetModelScene({
   sceneLengthMeters: number;
   resetToken: number;
   basisYawRad: number;
+  modelToSceneMatrix?: VersionedModelPackageDescriptor['modelToSceneMatrix'];
   outerYawOffsetRad: number;
   bboxCenter: boolean;
   fallbackDraftMeters: number;
@@ -172,10 +177,12 @@ function FleetModelScene({
       : sceneLengthMeters / (descriptor?.modelLengthMeters ?? sceneLengthMeters);
     const offset = bboxCenter
       ? (size.y * calculatedScale) * 0.5 - fallbackDraftMeters
-      : -(descriptor?.verticalAnchor?.designWaterlineY ?? 0) * calculatedScale + verticalOffsetMeters;
+      : modelToSceneMatrix
+        ? 0
+        : -(descriptor?.verticalAnchor?.designWaterlineY ?? 0) * calculatedScale + verticalOffsetMeters;
 
     return { model: cloned, scale: calculatedScale, waterlineOffset: offset };
-  }, [scene, descriptor, bboxCenter, sceneLengthMeters, fallbackDraftMeters, verticalOffsetMeters]);
+  }, [scene, descriptor, bboxCenter, modelToSceneMatrix, sceneLengthMeters, fallbackDraftMeters, verticalOffsetMeters]);
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -190,18 +197,20 @@ function FleetModelScene({
   return (
     <group ref={groupRef}>
       <group rotation-y={basisYawRad}>
-        <primitive object={model} scale={scale} />
-        {descriptor ? (
-          <SemanticBindingsRig
-            key={resetToken}
-            model={model}
-            animations={animations}
-            descriptor={descriptor}
-            simRef={simRef}
-            modelScale={scale}
-          />
-        ) : null}
-        {legacyOverlay ? legacyOverlay(scale) : null}
+        <HeroModelBasis matrix={modelToSceneMatrix}>
+          <primitive object={model} scale={scale} />
+          {descriptor ? (
+            <SemanticBindingsRig
+              key={resetToken}
+              model={model}
+              animations={animations}
+              descriptor={descriptor}
+              simRef={simRef}
+              modelScale={scale}
+            />
+          ) : null}
+          {legacyOverlay ? legacyOverlay(scale) : null}
+        </HeroModelBasis>
       </group>
     </group>
   );
