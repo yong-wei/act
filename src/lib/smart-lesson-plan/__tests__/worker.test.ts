@@ -522,6 +522,58 @@ describe('smart lesson BullMQ worker', () => {
     }));
   });
 
+  it('includes a checked duration allocation in the initial stage request', async () => {
+    const outline = {
+      keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
+      coursewareStepOutline: [
+        ['bridgeIn', 5], ['objectives', 5], ['preAssessment', 5],
+        ['participatoryLearning', 10], ['postAssessment', 5], ['summary', 5],
+      ].map(([bopppsStage, minutes]) => ({ title: String(bopppsStage), bopppsStage, minutes })),
+    };
+    const context = {
+      id: 'job-1', ownerId: 'teacher-1', draftId: 'draft-1', state: 'RUNNING', firstIncompleteStage: 'OBJECTIVES',
+      stages: [
+        { id: 'stage-outline', kind: 'OUTLINE', orderIndex: 0, state: 'COMPLETED', output: outline },
+        { id: 'stage-objectives', kind: 'OBJECTIVES', orderIndex: 1, state: 'PENDING', output: null },
+      ],
+      draft: { task: {
+        courseBasis: { title: '自动控制原理' }, topic: '稳定性', audience: '本科生', prerequisites: '', durationMinutes: 35,
+        aggregateClassContext: null, aggregateClassContextRef: null,
+        sources: [{ sourceVersionId: 'version-1' }], knowledgePoints: [], goals: [],
+      } },
+    };
+    const generate = vi.fn(async () => ({
+      output: {
+        minutes: 5, teacherActivity: '讲授', studentActivity: '参与', assessment: '观察',
+        steps: [{
+          title: '目标说明', minutes: 5, teacherActivity: '引导', studentActivity: '练习', assessment: '反馈',
+          sourceBindings: [{
+            citationId: sourcePackItem.citationTargetId,
+            sourceVersionId: sourcePackItem.metadata.versionId,
+            anchor: sourcePackItem.metadata.stableAnchor,
+            contentHash: sourcePackItem.metadata.contentHash,
+          }],
+        }],
+      },
+    }));
+    serviceMocks.begin.mockResolvedValue({
+      claimed: true, claimToken: 'claim-1', attempt: { id: 'attempt-1', idempotencyKey: 'attempt-key-1' },
+    });
+    serviceMocks.complete.mockResolvedValue({ state: 'PAUSED' });
+
+    await expect(processSmartLessonGenerationJob(
+      { smartLessonGenerationJob: { findUnique: vi.fn(async () => context) } } as never,
+      'job-1',
+      vi.fn(async () => ({ serviceId: 'provider-1', providerKind: 'openai-compatible', model: 'qwen', generate })) as never,
+    )).resolves.toEqual({ jobId: 'job-1', state: 'PAUSED' });
+
+    expect(generate).toHaveBeenCalledWith(expect.objectContaining({
+      prompt: expect.stringContaining('当前阶段固定总时长为 5 分钟'),
+      system: expect.stringContaining('输出前必须重新加总每个阶段的 steps.minutes'),
+      promptVersion: 'smart-lesson-plan.v3',
+    }));
+  });
+
   it('normalizes stage-step-duration-mismatch into a targeted correction context', async () => {
     const outline = {
       keyContent: ['稳定性'], difficultContent: [], limitations: [], classAdaptation: null,
@@ -585,13 +637,15 @@ describe('smart lesson BullMQ worker', () => {
           stage: 'OBJECTIVES',
           expectedMinutes: 5,
           actualMinutes: 3,
+          durationAllocation: [5],
           instruction: expect.stringContaining('严格等于 5 分钟'),
         },
       }),
     }));
     expect(generate).toHaveBeenNthCalledWith(2, expect.objectContaining({
       prompt: expect.stringContaining('"expectedMinutes":5'),
-      promptVersion: 'smart-lesson-plan.v2',
+      prompt: expect.stringContaining('"durationAllocation":[5]'),
+      promptVersion: 'smart-lesson-plan.v3',
     }));
     expect(serviceMocks.complete).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       attemptId: 'attempt-correction-1',
