@@ -2,10 +2,10 @@
   "contract": "act-authority-learning-content-manifest/v2",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
   "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
-  "authoritySnapshotId": "snap-b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
-  "authoritySnapshotHash": "b7c6992d75e8d62585f4fffe7d50752f0a4142ffb559c2c8da02195005776373",
-  "teachingProjectionId": "proj-3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
-  "teachingProjectionHash": "3ec9c4a4d57d5c6aa1fc87717b2aad5b0866184ee9b2fbbd214d697f2400351f",
+  "authoritySnapshotId": "snap-0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+  "authoritySnapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+  "teachingProjectionId": "proj-0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "teachingProjectionHash": "0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
   "nodes": [
     {
       "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
@@ -2495,8 +2495,8 @@
       "canonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
       "safeId": "ctc_modeling-c26fddc50074ec84707d5950",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "6cc3ab2b5c05f394fa5d3f376bdaac75574c5c09fccdc5045f3026a3b8afe5fe"
       },
       "infograph": {
         "state": "available",
@@ -6431,8 +6431,8 @@
       "canonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
       "safeId": "ctkg_v3e-canonical-23c4127cb1ffab795d290351",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "88ad0b8a789eb3bec341264fb496132aab653aadc4a8cfcb95bb94913130f4a9"
       },
       "infograph": {
         "state": "available",
@@ -6803,8 +6803,8 @@
       "canonicalId": "ctkg:v3e-canonical-55743366373a5197b074831b",
       "safeId": "ctkg_v3e-canonical-55743366373a5197b074831b",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "6c67fcfe5ab498269d2b6ac529c6d43d301480ecd1f7d1ffba063f7e7d2b778b"
       },
       "infograph": {
         "state": "available",
@@ -6839,8 +6839,8 @@
       "canonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
       "safeId": "ctkg_v3e-canonical-62bea9217008b56901615d9a",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "7166efd533dbe16338aebca89489664080843e4fcbfb449641b7becd0c8b4b4d"
       },
       "infograph": {
         "state": "available",
@@ -7535,8 +7535,8 @@
       "canonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
       "safeId": "ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "c988c1f75cba26cef2e23df448dbcc79ce45bae0d6c15b11758c490280540362"
       },
       "infograph": {
         "state": "available",
@@ -7847,8 +7847,8 @@
       "canonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
       "safeId": "ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "34002ccbe6fbd8aa80b4f263ed6d6d6fcf6e1896ec9ae81f477ce5936c330f33"
       },
       "infograph": {
         "state": "available",
@@ -10955,8 +10955,8 @@
       "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
       "safeId": "ctkg_v3e-object-69aaaef625010f7755f253e8",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "9789b6cc058caa1f55097ad209915230278ff6efdf774e15739bd010302b9866"
       },
       "infograph": {
         "state": "available",
@@ -13367,8 +13367,8 @@
       "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
       "safeId": "ctkg_v3e-object-c3d7e85e2b60c3320db8a44a",
       "card": {
-        "state": "blocked",
-        "sha256": null
+        "state": "available",
+        "sha256": "0982dbf900b5c212c6f948a7065f2ef930ada1599ed8fe63b4ce645aa181bfea"
       },
       "infograph": {
         "state": "available",

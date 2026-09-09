@@ -1,0 +1,23 @@
+{
+  "contract": "act-versioned-knowledge-consumer-activation-stage-receipt/v1",
+  "receiptId": "stage-2026-09-09T15-04-11-000Z",
+  "activationId": "activation-de00f0690b74e1933b60848f",
+  "activationHash": "a12af13e0c8d89619b87a0acc35d4b4d6f96d4b93459795dbad9aa0acfcc73e7",
+  "stagedAt": "2026-09-09T15:04:11.000Z",
+  "status": "staged",
+  "reasons": [
+    "complete-staged-materialization"
+  ],
+  "artifactHashes": {
+    "manifest.json": "4f60da4ef5aedd90ef4771ac38acc34a7d4917ac8cbb55257d26f15ecb4f1a53",
+    "engineering.json": "7b87974cdf9cfd88e15b5f0886dafd03df0cb33948210e930db13c53fe9cdd80",
+    "projection:projection-manifest.json": "f283c35350a0962e432e4475f72c2d4216e831cc8f2fef9d6b877c1edfd58e17",
+    "projection:resources.jsonl": "78ef216132652157915006c495befaca4e70f4652c57eebfd707a8fe76128318",
+    "projection:bindings.jsonl": "e6cecfbac44951e541bb74265bb52ddc6295ece7939b746802ee2f1589c1a43e",
+    "projection:cards-index.json": "8beab3ebf0714a52d3daed0d80e4d7c80c4be6cdda8233f7c8b2533017039542",
+    "projection:prerequisites.jsonl": "54d6a90f145535a1f23db8299804124a69be26ed6869485fc5fe1f58c16a5259",
+    "projection:core-nodes.json": "575fc8159102af850b8d355d1185f242094fb0d1371f4cf6090030b0d787dd4f",
+    "projection:impact-report.json": "2c0090c1eab3ebc65bd546ce54869daf2002e1491611d231cda292c8d5d2e337",
+    "projection:gate.json": "aafbb1b279428e1e1829263b773b516389089f31d6699193a4a186b0b8c2d181"
+  }
+}

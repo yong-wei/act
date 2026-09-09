@@ -1,0 +1,743 @@
+[
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0125a1674561b7f2d140ff0a",
+    "sourceId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+    "targetId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "already-teaching",
+    "teachingPair": {
+      "sourceNodeId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+      "targetNodeId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:078c8b27d202d7eb37059e68",
+    "sourceId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "targetId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:08fcab956c83430c3b6c96e9",
+    "sourceId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "targetId": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0adafa75a139a49da712f807",
+    "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "exception-teaching-conflict",
+    "teachingPair": {
+      "sourceNodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "targetNodeId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0b69afc5586262357770c214",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0bedcdf97a62df3223b67ffc",
+    "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0c862930672f99c863832b62",
+    "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetId": "ctkg:v3e-object-271dc725adcf9cbd115e003f",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0c88d500416231a3d1a7b5ee",
+    "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0d02ae9f744d0e1715869dc5",
+    "sourceId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+    "targetId": "ctkg:v3e-object-15bb04de4783aac94efc5a01",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0d703a8308a0c3c8f29c5146",
+    "sourceId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:0f8180e307e9dfd320e9cdfe",
+    "sourceId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+    "targetId": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:1164084ae03d7795c40a90de",
+    "sourceId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:19b488c24491ed5aecf9a5a6",
+    "sourceId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+    "targetId": "ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:1aa8466e334f4d158cdf65c1",
+    "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetId": "ctkg:v3e-object-87148367d17fdbebd5a95319",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:1b6ea3bb8ed116cb01043817",
+    "sourceId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+    "targetId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:1c23746e0c61931034e8b2fb",
+    "sourceId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:270848778c2ea606e035365d",
+    "sourceId": "ctkg:v3e-object-89ada9ada357e26bcd83dc11",
+    "targetId": "ctkg:v3e-object-ed01c7b027040e58ad92fa35",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:299992bb873c2f10065364ea",
+    "sourceId": "ctkg:v3e-object-0ffd784a046b2ff6fc583d23",
+    "targetId": "ctkg:v3e-object-7ec200eb09dcb2beb627f1eb",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:2d6b059431350068fab6e65e",
+    "sourceId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+    "targetId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:3199e8ebacd2c3d2fe40b30d",
+    "sourceId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetId": "ctkg:v3e-object-2c7489771bec99ead56be2ef",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:36df9d0845cb229a22f51f61",
+    "sourceId": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "targetId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "already-teaching",
+    "teachingPair": {
+      "sourceNodeId": "ctc:v11g-bde559972a3c77718ce84d2e",
+      "targetNodeId": "ctc:v11g-a3d09e397d88f3ae13bc9d89"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:37d31f4034ce16c11b2e90c7",
+    "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "exception-teaching-conflict",
+    "teachingPair": {
+      "sourceNodeId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+      "targetNodeId": "ctkg:v3e-object-e1caec9f68da5c573be699d5"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:38935f1d3f9118d4e0ef90ea",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-623dcdfc6bbae9f9b1a40d27",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:3eb9b4f086fcd001ce5793ef",
+    "sourceId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+    "targetId": "ctkg:v3e-object-fbebd7b09546031f82f974ed",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:4287b6fd984ae4c9b79c5c42",
+    "sourceId": "ctkg:v3e-object-2c60af6bdfb932de8cc33ca5",
+    "targetId": "ctkg:v3e-object-33f3fab8ae4fb405d2c60ad4",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:44562b7f9cd0bc96eadb3ee1",
+    "sourceId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "targetId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "already-teaching",
+    "teachingPair": {
+      "sourceNodeId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "targetNodeId": "ctc:v11g-13a9994c50acce777819aa2a"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:4a4cce299e5f31cef0540a56",
+    "sourceId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetId": "ctkg:v3e-object-36e31a50f047919209d08c48",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:4a78e23cd3776a39b5f94def",
+    "sourceId": "ctkg:domainconcept:bcb4481c7a310fb698ee71fb",
+    "targetId": "ctkg:domainconcept:9f33e6bc76dc80328b66a6dc",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:4e22a9d1411ee887a63c6a6a",
+    "sourceId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetId": "ctkg:v3e-object-8cf39aebda1d87c8394a3f9d",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:4ed13910b9cb75df2c1dbb36",
+    "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetId": "ctkg:v3e-object-b23d7969cb791dfac72b6319",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:5af4b1e896a8f803e561548b",
+    "sourceId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:628cf6baf701c8bd38c8aa4c",
+    "sourceId": "ctkg:domainconcept:3ffc77366f538e92e13a0296",
+    "targetId": "ctkg:domainconcept:5e637ae64f351feabf64218f",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:65b9a502d01728d2cfa9a3a9",
+    "sourceId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "exception-teaching-conflict",
+    "teachingPair": {
+      "sourceNodeId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+      "targetNodeId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:6d116a7d590b482fbc1805df",
+    "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetId": "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:6d1e414b89615dd6daff32ed",
+    "sourceId": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+    "targetId": "ctkg:v3e-object-ca34eff2440293f793a1aafa",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:70a7516808c321dfcb06aa70",
+    "sourceId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:721eeb562c730343a2e54594",
+    "sourceId": "ctkg:v3e-object-fc04597b173e68c152f0c971",
+    "targetId": "ctkg:v3e-object-7d0f4558ea9feb4c470dd47b",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:7245d9b1ef55a4cd56bdfeb4",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:769e8df15e189d9a942d9c8a",
+    "sourceId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:78961c73c9fc7691a0c65b08",
+    "sourceId": "ctkg:v3e-object-f1582fd7cc28d16eb111854d",
+    "targetId": "ctkg:v3e-object-f2f59dc7fc5571446872d432",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:7943fb22cfd4aa58d62eb08f",
+    "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:797c8775f199c318be66a5db",
+    "sourceId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:7c27a386da6cd4689718b344",
+    "sourceId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:7f0beb570b9c10aa875ec634",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-3584625f5f11346155d538d3",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:7f0c4160148c2030569e5bc5",
+    "sourceId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "targetId": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:87da50026215161eadc8cb49",
+    "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetId": "ctkg:v3e-object-cbfe80d3da0902843e4ec358",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:890c99469ac5a82681a311c0",
+    "sourceId": "ctkg:v3e-object-9b91b4b29c27f8d8916d9626",
+    "targetId": "ctkg:v3e-object-70598dd5728797c1595207c9",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:89f05fb05700df4342f4b448",
+    "sourceId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+    "targetId": "ctkg:v3e-object-9dd164e548b83a92f3777044",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:8c0a4006f6bd5de772553429",
+    "sourceId": "ctkg:v3e-object-2ca939471631d90bd6098990",
+    "targetId": "ctkg:v3e-object-2f12669555aed67867c3b7cd",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:91725fb7847b83bf6ce377ef",
+    "sourceId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+    "targetId": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:930d7d7c03a17697333e6993",
+    "sourceId": "ctkg:v3e-object-dc100c0a7e752839af01bbea",
+    "targetId": "ctkg:v3e-object-89ada9ada357e26bcd83dc11",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:968ea144dd83e967d31bd2d8",
+    "sourceId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "targetId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:96bd2ec860942d67de85dd77",
+    "sourceId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetId": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:975cdbbc1cc5cb2fb66e9926",
+    "sourceId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+    "targetId": "ctc:v11g-29bcae62e44c52ed219e6687",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:97a22e72faeb149636f86ac8",
+    "sourceId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+    "targetId": "ctkg:v3e-object-3dcfcc93901edd979be43f5c",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:9e0ad3be21ec8f18235f496f",
+    "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetId": "ctkg:v3e-object-015051ab889bc2e6b3fd1b54",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:a3e77efbdb1f451708f83440",
+    "sourceId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+    "targetId": "ctkg:v3e-object-6ecfad78b7fb0ba7b233047c",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:aa41edfbff6d452160e95d71",
+    "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetId": "ctkg:v3e-object-d4e994e83801bfcca363b375",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:aafcd3ad97df772179360d30",
+    "sourceId": "ctkg:v3e-object-b2913d437161b8d1e3eecfdf",
+    "targetId": "ctkg:v3e-object-150dc51f4f7d4306dab82a18",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:aea6294364be3cccf4bda889",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:b636b580f6c0869df0b8efe9",
+    "sourceId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetId": "ctkg:v3e-object-55036b61ed3fe680ef13f904",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:b71e26d3dfd45ccfa8e526d9",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-e56e84bbefb19024f10b648c",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:b995577e9c5b91997eebbf67",
+    "sourceId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "targetId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "already-teaching",
+    "teachingPair": {
+      "sourceNodeId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+      "targetNodeId": "ctc:v11g-f0a551cbfb667c38018a1aa9"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:bd7a9e16212666365e75690d",
+    "sourceId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "targetId": "ctc:v11g-95859dcad651c20058bf8726",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "already-teaching",
+    "teachingPair": {
+      "sourceNodeId": "ctc:modeling-8010502b57930c3dcb915af9",
+      "targetNodeId": "ctc:v11g-95859dcad651c20058bf8726"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:be9a4b53e0f4495056141fcd",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-865b301177a623225344064f",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "exception-teaching-conflict",
+    "teachingPair": {
+      "sourceNodeId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+      "targetNodeId": "ctkg:v3e-object-865b301177a623225344064f"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:d064decbaa3696873b3a39ab",
+    "sourceId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "targetId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:d1ee0f5ab989bd77c0644996",
+    "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetId": "ctkg:v3e-object-551346c07dd0adc110d95089",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:d5da5fa7a9eddfd4adbb84af",
+    "sourceId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:da515399fee49e0e2377991c",
+    "sourceId": "ctkg:v3e-object-762239378940cb45b78991b3",
+    "targetId": "ctkg:v3e-object-ecc6832589e61331293846d6",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:e0016294dfacc10ed59e6dbf",
+    "sourceId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "exception-teaching-conflict",
+    "teachingPair": {
+      "sourceNodeId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+      "targetNodeId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3"
+    }
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:e547add949afcfb173db8ef8",
+    "sourceId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:e5539adad2a6dd21b5892b39",
+    "sourceId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+    "targetId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:ebdea383c283f6ee9b034508",
+    "sourceId": "ctkg:v3e-object-1b7b0dc48c95ff419467dd86",
+    "targetId": "ctkg:v3e-object-9457cf16dcef3b40a9253837",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:ee1d2d9d5a53208cf91395dc",
+    "sourceId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "targetId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:f0ba4e3a835e948b73ae2436",
+    "sourceId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "targetId": "ctkg:v3e-object-963133ef890ba8f3bfeefcc5",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:f22ed0491f1b81be5b8c5edb",
+    "sourceId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetId": "ctc:v11g-daefb900250d1b7d86e36bdd",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:f6aa12bd1a06e83f78b4e99d",
+    "sourceId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+    "targetId": "ctkg:v3e-object-f3ae1a478d0e8faba241ebbb",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:fde533df3e4730fa42f74a33",
+    "sourceId": "ctkg:v3e-object-2a6df9c2e027152138c44554",
+    "targetId": "ctkg:v3e-object-66dd287a007d9b2b74781de5",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "rejected-not-core",
+    "teachingPair": null
+  },
+  {
+    "relationId": "ctkg:m4-u2u5:prerequisite:fe1bd08e67e2e45c4ee32914",
+    "sourceId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+    "targetId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+    "disposition": "adopted",
+    "teachingPair": null
+  }
+]

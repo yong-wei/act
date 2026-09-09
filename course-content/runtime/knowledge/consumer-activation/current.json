@@ -1,7 +1,7 @@
 {
   "contract": "act-versioned-knowledge-consumer-activation-current/v1",
-  "activationId": "activation-8e3583b9a606556590ec0c2c",
-  "activationHash": "62bbd9594c28a23c14d40a75849c67c3e938cd53bde4c15950bb0beb05420e7b",
-  "activationReceiptId": "coordinated-r6-admission-v037",
-  "activatedAt": "2026-09-07T19:00:00.000Z"
+  "activationId": "activation-de00f0690b74e1933b60848f",
+  "activationHash": "a12af13e0c8d89619b87a0acc35d4b4d6f96d4b93459795dbad9aa0acfcc73e7",
+  "activationReceiptId": "activation-c4da6096-2844-4a42-8033-9914b2939d52",
+  "activatedAt": "2026-09-09T15:15:20.803Z"
 }

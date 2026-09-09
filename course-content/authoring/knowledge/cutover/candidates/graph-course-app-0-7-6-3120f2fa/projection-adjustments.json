@@ -1,0 +1,9 @@
+{
+  "contract": "act-coordinated-projection-adjustments/v1",
+  "scopeHash": "c797e2bda270346af2803c87bc52065d16f343a539e9f9bd97faec0f389363d8",
+  "authoritySnapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+  "stagedAt": "2026-09-09T17:32:01.844Z",
+  "suppressedSelfLoopPrerequisites": [],
+  "inactiveDuplicateCards": [],
+  "retirementRuling": "course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r6/domain-catalog/retirement-ruling.json"
+}

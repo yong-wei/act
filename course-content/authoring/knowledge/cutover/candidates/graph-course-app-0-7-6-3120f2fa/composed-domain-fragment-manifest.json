@@ -1,0 +1,148 @@
+{
+  "contract": "act-domain-teaching-composed-manifest/v1",
+  "builderVersion": "act-domain-teaching-composition-builder/v1",
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+    "snapshotId": "snap-0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.37",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+      "snapshotId": "snap-0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+      "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a"
+    },
+    "sourceDatasetHash": "2f7f8245f44cbb32860e8873a3dbfcfbae6b9c931657929fc11655ee5828189e",
+    "captureRevision": "3120f2fabafed823e6cccd9219539f20b419f61f",
+    "nodeIndexDigest": "65d089254f5a0331a3a7fb75eb8783fd3b0702ac7e9ca8648559ea66973fde5a"
+  },
+  "authoringRevision": "3120f2fabafed823e6cccd9219539f20b419f61f",
+  "sourceInventoryDigest": "8686b6244cd70a85253a5fb5c371245690eaff8151513c96258fc76d1e70fa6f",
+  "authorityDigest": "4ecc0d5e4e970cd1d7b93097a71ffeedb6234b021c98d8e42dad47febbbedca3",
+  "fragments": [
+    {
+      "order": 0,
+      "fragmentId": "dtf-0a35bcb83636ffe9644de6cfe7835856e55a9a70467b31f0ec4f0ea314563633",
+      "fragmentKey": "course-plan-teaching-order-v1",
+      "fragmentVersion": "1",
+      "fragmentDigest": "0a35bcb83636ffe9644de6cfe7835856e55a9a70467b31f0ec4f0ea314563633",
+      "sourceInventoryDigest": "3ee605c132005375f211121e09143726541833c93f6b4628271afc14bd8df420",
+      "domainKeys": [
+        "classical-control-design",
+        "discrete-time-control-analysis",
+        "frequency-domain-analysis",
+        "nonlinear-system-analysis",
+        "robust-control-analysis-and-design",
+        "robustness-sensitivity-analysis",
+        "root-locus",
+        "stability-analysis",
+        "state-space-control-analysis-and-design",
+        "system-modeling",
+        "time-domain-analysis"
+      ]
+    }
+  ],
+  "domainCoverage": [
+    {
+      "domainId": "classical-control-design",
+      "coverage": "partial",
+      "coreNodeCount": 35,
+      "relationCount": 79,
+      "uncoveredCoreNodeCount": 12,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "discrete-time-control-analysis",
+      "coverage": "available",
+      "coreNodeCount": 3,
+      "relationCount": 4,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "frequency-domain-analysis",
+      "coverage": "partial",
+      "coreNodeCount": 76,
+      "relationCount": 98,
+      "uncoveredCoreNodeCount": 22,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "nonlinear-system-analysis",
+      "coverage": "partial",
+      "coreNodeCount": 37,
+      "relationCount": 34,
+      "uncoveredCoreNodeCount": 18,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "robust-control-analysis-and-design",
+      "coverage": "available",
+      "coreNodeCount": 2,
+      "relationCount": 6,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "robustness-sensitivity-analysis",
+      "coverage": "partial",
+      "coreNodeCount": 35,
+      "relationCount": 40,
+      "uncoveredCoreNodeCount": 10,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "root-locus",
+      "coverage": "partial",
+      "coreNodeCount": 46,
+      "relationCount": 98,
+      "uncoveredCoreNodeCount": 7,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "stability-analysis",
+      "coverage": "available",
+      "coreNodeCount": 16,
+      "relationCount": 38,
+      "uncoveredCoreNodeCount": 0,
+      "note": "该领域已发布可用的教学关系覆盖"
+    },
+    {
+      "domainId": "state-space-control-analysis-and-design",
+      "coverage": "partial",
+      "coreNodeCount": 27,
+      "relationCount": 7,
+      "uncoveredCoreNodeCount": 16,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "system-modeling",
+      "coverage": "partial",
+      "coreNodeCount": 65,
+      "relationCount": 138,
+      "uncoveredCoreNodeCount": 11,
+      "note": "该领域仅有部分教学关系已发布"
+    },
+    {
+      "domainId": "time-domain-analysis",
+      "coverage": "partial",
+      "coreNodeCount": 124,
+      "relationCount": 198,
+      "uncoveredCoreNodeCount": 29,
+      "note": "该领域仅有部分教学关系已发布"
+    }
+  ],
+  "coreNodeCount": 466,
+  "relationCount": 571,
+  "gateStatus": "PUBLISHED",
+  "gatePassed": true,
+  "sourceHashes": {
+    "fragments": "005aab8fa953ffff8414b5168444538bcff5a7c333e6c1d054be3f88ba08c5f5",
+    "sourceInventory": "8686b6244cd70a85253a5fb5c371245690eaff8151513c96258fc76d1e70fa6f",
+    "body": "4c28fc33e005cc7334df3abbec794dfc055266c8efe30bae029dbddfa630e19f"
+  },
+  "projectionId": "proj-0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "projectionHash": "0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a"
+}

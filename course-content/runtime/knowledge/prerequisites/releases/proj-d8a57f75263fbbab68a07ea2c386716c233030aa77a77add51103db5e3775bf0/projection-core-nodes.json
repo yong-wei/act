@@ -1,0 +1,3730 @@
+[
+  {
+    "canonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留不重复节点的路径及其支路增益乘积，作为梅森公式的不同输入。"
+  },
+  {
+    "canonicalId": "ctc:909e732d40f972bf760fa8ff",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应时域动态方程，作为变换域建模的输入。"
+  },
+  {
+    "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用一般输入输出放大倍数定义，不使用电位器或特定根轨迹归一化增益替代。"
+  },
+  {
+    "canonicalId": "ctc:modeling-023f560241f0e47081f0f59e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "对应从复域表达还原时域响应。"
+  },
+  {
+    "canonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用包含互不接触回路乘积的完整特征式定义。"
+  },
+  {
+    "canonicalId": "ctc:modeling-137c3394c7a146209fe2cd37",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-1897336a3fe60360d9fea3aa",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留整体因果结构与结构图方框两个层次，不以例题图替代概念。"
+  },
+  {
+    "canonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-239e401e0fcc8485f3a0533d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "对应保持变量关系的串并联、反馈及节点移动规则。"
+  },
+  {
+    "canonicalId": "ctc:modeling-30d05b970a0d4a71c9d243c3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-348746457d644126ff8ecf77",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留工作点附近的线性近似及泰勒展开方法，限制为局部。"
+  },
+  {
+    "canonicalId": "ctc:modeling-352b9bfe27ba1ab6b9c9672e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-385c515b4d8dbb550b664072",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "节点表示变量，支路表示单向依赖；两种对象不互相合并。"
+  },
+  {
+    "canonicalId": "ctc:modeling-3abaeb7a2cbf8d77276bf23c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "映射反馈信号相减的回路结构；分母符号以课程传递函数推导为准。"
+  },
+  {
+    "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "分别表示闭合回路和回路增益乘积。"
+  },
+  {
+    "canonicalId": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均要求移去与该前向通路相接触的回路，保留各自身份。"
+  },
+  {
+    "canonicalId": "ctc:modeling-5727d74e4587f60fe7b011ae",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用综合前向通路、回路与特征式求传递函数的概念对象，不以单一回路公式替代。"
+  },
+  {
+    "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-5da44f2fc98d268259459e04",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "节点表示变量，支路表示单向依赖；两种对象不互相合并。"
+  },
+  {
+    "canonicalId": "ctc:modeling-70629af71e754aac8b740638",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留工作点附近的线性近似及泰勒展开方法，限制为局部。"
+  },
+  {
+    "canonicalId": "ctc:modeling-70b08efcf6bb085e05de94cd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-71f0e8d834291c2c7d5e25b9",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "课程的对象表达对应数学模型这一已审核概念。"
+  },
+  {
+    "canonicalId": "ctc:modeling-7aef273143199795496abedb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "对应保持变量关系的串并联、反馈及节点移动规则。"
+  },
+  {
+    "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应传递函数零点，区别于闭环极点与坐标原点。"
+  },
+  {
+    "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留零初值定义和模型表征对象；不把初值响应并入传递函数。"
+  },
+  {
+    "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "课程以相互制约的组成部分解释系统；采用此定义，不把特定船型等同一般系统。"
+  },
+  {
+    "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应变量依赖的有向图表示。"
+  },
+  {
+    "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留不重复节点的路径及其支路增益乘积，作为梅森公式的不同输入。"
+  },
+  {
+    "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留零初值定义和模型表征对象；不把初值响应并入传递函数。"
+  },
+  {
+    "canonicalId": "ctc:modeling-afa39b57a646673e84b55f09",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留积分元件和 K/s 积分控制器，课程取共同积分作用，不推断硬件等价。"
+  },
+  {
+    "canonicalId": "ctc:modeling-bb52102ba5f63982e27e329a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留整体因果结构与结构图方框两个层次，不以例题图替代概念。"
+  },
+  {
+    "canonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用系数不随时间变化的线性模型，明确排除线性时变模型。"
+  },
+  {
+    "canonicalId": "ctc:modeling-c343400ab0cc996416d5a18a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-c499b71d908bd8fe4124c533",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用断开主反馈环路后的环路传递函数，区别于被控对象单独传递函数。"
+  },
+  {
+    "canonicalId": "ctc:modeling-c64dfb875b6343ff32d0acb2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留库仑摩擦与库仑加粘性摩擦，讲义5-1用其说明起动与低速边界。"
+  },
+  {
+    "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-e4d5dedd058631068d41b452",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均要求移去与该前向通路相接触的回路，保留各自身份。"
+  },
+  {
+    "canonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-f6875bd8fd4ad1250d8980d8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "分别表示闭合回路和回路增益乘积。"
+  },
+  {
+    "canonicalId": "ctc:modeling-v2r-split-0045791b9009bbe457f6e17a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均明确采用零时刻左侧作为下限，保留各自身份与来源。"
+  },
+  {
+    "canonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用传递函数分母根的定义。"
+  },
+  {
+    "canonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "明确对应闭环特征根，不与开环极点合并。"
+  },
+  {
+    "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留一般允许误差带与明确2%误差带的对象，不声称数值约定相同。"
+  },
+  {
+    "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应根轨迹离开复极点的方向。"
+  },
+  {
+    "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应根轨迹与稳定边界的交点。"
+  },
+  {
+    "canonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用相对摄动到传递函数相对变化的定义。"
+  },
+  {
+    "canonicalId": "ctc:v11g-2d0a8b878047bb6a5effc783",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用决定闭环根、相对稳定性和暂态性能的特征方程对象。"
+  },
+  {
+    "canonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应多个根在实轴相遇后离开的点。"
+  },
+  {
+    "canonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留趋于无穷的路径及其质心。"
+  },
+  {
+    "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "课程零点机理采用右半平面零点定义，不引入不稳定极点作为等同条件。"
+  },
+  {
+    "canonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用单参数变化的特征根轨迹定义，不合并双参数根轨迹族。"
+  },
+  {
+    "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用指定给定输入到输出的闭环传递函数，不把扰动或噪声通道混在同一个比值里。"
+  },
+  {
+    "canonicalId": "ctc:v11g-6bfefff084f66202b9af9dd4",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "保留一般增益选择与齐格勒-尼科尔斯方法的区分。"
+  },
+  {
+    "canonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-93b322aec104af4eb69aa152",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "保留一般增益选择与齐格勒-尼科尔斯方法的区分。"
+  },
+  {
+    "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "仅对应开环传递函数零点，为根轨迹端点分析服务。"
+  },
+  {
+    "canonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用主导根的相对阻尼参数含义。"
+  },
+  {
+    "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留广义情形和非增益参数情形的范围差异，不重复讲普通正增益轨迹。"
+  },
+  {
+    "canonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留广义情形和非增益参数情形的范围差异，不重复讲普通正增益轨迹。"
+  },
+  {
+    "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用时间常数形式的开环增益，保留其与根轨迹归一化增益的比例关系。"
+  },
+  {
+    "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留积分元件和 K/s 积分控制器，课程取共同积分作用，不推断硬件等价。"
+  },
+  {
+    "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-e00aa88647adaaf1c5d57462",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留趋于无穷的路径及其质心。"
+  },
+  {
+    "canonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留根轨迹增益及前向通路归一化对象，与时间常数形式的开环增益单列。"
+  },
+  {
+    "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用有界频段近似PD的超前校正对象，保留高频增益代价。"
+  },
+  {
+    "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "仅对应开环传递函数极点，不并入闭环极点。"
+  },
+  {
+    "canonicalId": "ctc:v11g-f3a9655898917afa28e9c600",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留根轨迹增益及前向通路归一化对象，与时间常数形式的开环增益单列。"
+  },
+  {
+    "canonicalId": "ctc:v12g-b536959708e2d0fe3c8c791a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应多分支汇合到实轴的点，区别于分离点。"
+  },
+  {
+    "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应增益参数为负时的轨迹。"
+  },
+  {
+    "canonicalId": "ctk:0c105ab10af8292335522f90",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctk:bf0f5469bda82070fe86211a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctk:eec4fcc124511436f12c5a2b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应指令输入补偿，保留逆直流增益方法的边界。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:0a8044ae6cb529e98bc20bca",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:150c8a62277a497691a2f785",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应扰动对跟踪误差影响的抑制能力。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "采用参数不确定或随时间变化的模型限制，不等同于任意新场景。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应可测扰动的前馈抑制，不将它应用于不可测扰动。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:6a32bc0cf2176839753ef717",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:6daaf5095018a332d359e2de",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用相对摄动到传递函数相对变化的定义。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应利用给定或可测扰动形成补偿，不与反馈控制混同。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应利用给定或可测扰动形成补偿，不与反馈控制混同。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应开环结构概念，不映射为开环传递函数或某个具体极点位置。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应破坏输出测量的高频无用信号。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:d59701f04ecd244e0d27dc18",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应闭合反馈的系统结构，区别于闭环带宽这一性能量。"
+  },
+  {
+    "canonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用 -180° 相位穿越处开环幅值的倒数。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "都在增益穿越频率处比较相角与 -180° 的差。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1i:canonical-object:b119bbd291671093ed77e284",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:03e84e6868be470e89d7b189",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:2797d3aa913c9ee0950a3794",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:451d032cc728cc7b2d78777d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:4f003638ec565661ed87c75c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:78740004842c245ca3b0aefd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:a917ed3f93905afc7ffab697",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两个对象均描述暂态消失后的误差，保留各自来源。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1j:source-object:d32e165eaa3e5a71374cfbdd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:0afb07f025ba35cf5979d332",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:13a498eacc1208a6a6511c62",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:31f8a3f2feef56daedb6f9a6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:65b1a16a65775a8037305769",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:b36a0cecee2ff56394ebfc5d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1k:canonical-object:b810a9c95ee221ddcdc4fa74",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:0288016a76137a098bdb289a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:035444f94f4424d5970ede61",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:0fe6155260a10d0af099f4b5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:304f9ab2e355cfe88da137b3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:53d87e756f397e73b6739eea",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用闭环幅频的 -3dB 定义，不与开环增益穿越频率合并。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:61290f3ec779c443f0bb411b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:ae84642eb0750cfa27a1c828",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v1l:canonical-object:ccb5acec3157456299b69ddf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2f:canonical-object:d9aed6663ee8a2f6ebc83e10",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2f:source-object:3bafca95ac7466898d2033f8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2h:canonical-object:4f950081fe58a82e7fdd42aa",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2h:source-object:552dae0908d9e549e2e5603d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2l:canonical-object:94708a97f7508321feb998ea",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "保留比例积分微分组合的工业控制器及其一般结构，不混同数字实现。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2m:canonical-object:ed9e310c8366ebba4c13be8f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:m3-v2w:source-object:2107b134aa2e942c147b9594",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均明确采用零时刻左侧作为下限，保留各自身份与来源。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留一般有理函数展开与互异极点覆盖法的不同用途。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应已确定通道和型别后计算稳态误差的方法。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用响应分量衰减快、对暂态影响较小的非主导极点条件。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "课程采用终值存在的极点条件，不把任意代入 s=0 当作合法终值。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-128a0f144821b8292a40f391",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "明确为阻尼为零时的 ω_n。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留速度反馈结构和调节其系数改善动态的设计方法。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应极点所代表的响应分量。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-259e4d04c7f9211c6b29d16e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "对应 LTI 输入与单位脉冲响应的卷积表达。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应单位阶跃激励下的输出过程。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留 RC 与 1/σ 两种一阶参数定义，不纳入超前网络专用时间常数。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-368d65c22b394c81a41d3889",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-3b13b6a4e2f356794270639c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留速度反馈结构和调节其系数改善动态的设计方法。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-3e670eae83dcdd8c322cd8f3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两个来源均为单位脉冲函数，不与脉冲传递函数混同。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-40d0c236680874a1246a0536",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "分别表示位置、速度、加速度系数，保留所对应输入类型。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-45043b8933ab8fcb71969904",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用传递函数分母根的定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "明确对应闭环特征根，不与开环极点合并。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用 PD 引入闭环零点后的二阶系统，区别于无零点标准模型。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-4d3c6d91fa4b39f8e6f0e3e3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两个来源都定义单位阶跃输入，分别保留其身份。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "三对象均为幅值分贝、相角相对于对数频率的图，保持来源身份。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-5182a714c3b04737e54be937",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-551c764f95f34a26e428f397",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-55743366373a5197b074831b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两个来源都定义单位阶跃输入，分别保留其身份。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-55fca34fcd2e39da4be3dc23",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-56682e1afa9b66eaf1f2d1c6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-589fba9b74d146b6eea6b269",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-59d77ba1b394f063dcdb3ccf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-5d7dffbbd218f48f41c0cc6a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-5fe5f2b25ce2e3dcb200be7f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留 RC 与 1/σ 两种一阶参数定义，不纳入超前网络专用时间常数。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "对应随时间线性增长的标准输入。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "分别表示位置、速度、加速度系数，保留所对应输入类型。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应 ζ=1 的相等负实根。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "分别表示位置、速度、加速度系数，保留所对应输入类型。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-6f6471247adcf055ff64569a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用稳定高阶系统中靠近虚轴且无邻近零点抵消的主导条件。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-74b29ecc40c6189d1377bff8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-76aa807571663d71e7bb5979",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用二阶动态方程定义，不将特定伺服系统当作全部二阶系统。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-78695c721c91aa330f0e5865",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-851a158dcbe62a71c788bda3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-854230c9b89910d971d8ccd6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-86852f5270a37631267f6b50",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-8a3d45ec41cfb63af9253e89",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-8d146e4add26f71181e7c891",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两个对象均描述暂态消失后的误差，保留各自来源。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用一阶动态方程定义；课程典型惯性对象在此落实。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-8faec57bdc84832ad60e5a1f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-9271b97eacc626af5c1b2e88",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-98fc8b71b67b8cf3f3266d2b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "在课程标准欠阻尼阶跃响应下，这些来源均指首次超调峰值时刻，保留各个对象及来源。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-9be29f3ad2006d157a5360b5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-9c5f83612d3255aa5805a9cb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留一般允许误差带与明确2%误差带的对象，不声称数值约定相同。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "在课程标准欠阻尼阶跃响应下，这些来源均指首次超调峰值时刻，保留各个对象及来源。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "按所分析环路在原点的极点数定义，不按控制器名称猜测。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "采用第一次从零到稳态值的定义，未把到邻域的另一惯例并入同一量。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-aa1dece70208ff2fe929e715",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ab642a336bbbbafc6327f6f2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应 0<ζ<1 的共轭复根及衰减振荡。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留一般有理函数展开与互异极点覆盖法的不同用途。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留一般有理函数展开与互异极点覆盖法的不同用途。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "在课程标准欠阻尼阶跃响应下，这些来源均指首次超调峰值时刻，保留各个对象及来源。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "对应 ζ>1 的不相等负实根及非周期响应。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-bfcd15f043984b100be886fe",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用 ω_d=ω_n√(1-ζ²)，不与 ω_n 混同。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-c8eb5072bc1783d917169c9a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-cb8b7f85d00d8e2dd1a5e38b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用主导共轭极点对高阶系统作近似分析的方法，保留近似条件。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "作为稳态误差中的二次输入类型。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-d36c1349ce7b90a16e2d6d12",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-d5ecd8a503bab6ad1e14ea25",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-dba237257bd95d0ab0c5de53",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用多个输入响应可相加的线性性质，支持给定和扰动通道分析。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两个定义均为最大偏离量与终值之比，百分数只影响表达。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-e0a76371093ca8d4b5c46a22",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-e0f8b5b944d35f3734b18b73",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "以给定与反馈之差定义误差；不混同稳态误差。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两个定义均为最大偏离量与终值之比，百分数只影响表达。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应扰动后恢复平衡的课程稳定性主题；不把局部、全局或内部稳定性混作同一判据。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-f08a86bd6385c786c529ef21",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "两个来源均为单位脉冲函数，不与脉冲传递函数混同。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-003aff0599f6e3790bfdb93a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-01762eade052b1f22b1318c1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-0946a016c136cdf4a417ed62",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留为满足性能而增加或调整校正结构的一般概念，不等同某一种控制器。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "采用滞环非线性，不与纯时间延迟混同。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应由任务和被控对象提出的性能要求，不只指某个时间量。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "采用含非线性元件的系统定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-13e696ca025028445460f1df",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "保留比例积分微分组合的工业控制器及其一般结构，不混同数字实现。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1724fe5a62311ceb13ab05bd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "保留积分元件和 K/s 积分控制器，课程取共同积分作用，不推断硬件等价。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "分别对应标准振荡环节峰值及其频率，保留存在条件。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-191274d4aa5307678e583641",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "仅采用相频特性为 -180° 的定义，不混入增益穿越。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象都位于误差点之后的前向通道，保持各自身份。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "都在增益穿越频率处比较相角与 -180° 的差。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-1f331a007aa3ca6c2c95d297",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用有界频段近似PD的超前校正对象，保留高频增益代价。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均明确 |L(jω)|=1，中文截止/穿越异名不改变所选定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-2352b539ff08187f42885709",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应全零行上一行构造的辅助多项式。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-239fecfdb347e1a48fb9d7cc",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-23a1c9229387ded552fbdbb3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-27e0a7e37803fbebc1b6f65a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应比例微分控制，不把纯微分器或数字PID当成同一对象。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "课程只采用数字实现造成分级输出及幅值误差的边界，不扩展成完整采样控制课程。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-2e2707d377000d69ac75b508",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应符号系数条件求反馈系统稳定参数区间。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-36f969bb5befa8ef9f8d0a99",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "采用孤立闭合相轨迹定义，不能将任意周期输入响应叫作极限环。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留频率特性比值与正弦响应概念，课堂显式区分输入输出通道。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "仅对应谐波系数和幅值谱，不能冒充未映射的完整傅里叶变换。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应改变增益而不改变相位的比例控制。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-4560252fd8979f3d44aed7bf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-4acaa9cd561fa2c6178265f9",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-508501381207b32fdb98c6c2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5104f48a9527029987e0519a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应利用给定或可测扰动形成补偿，不与反馈控制混同。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "单列输入输出稳定性及其有界性定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5353a18bed51a9273ba59709",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-56e0945e8704fa9f3c1dc356",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用虚轴单根且其他根在左半平面的条件，保留共振输入的限制。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "仅对应谐波系数和幅值谱，不能冒充未映射的完整傅里叶变换。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "单列输入输出稳定性及其有界性定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5963fddc1b8b31af98ba44bd",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "对应频率响应的分段渐近近似，不与根轨迹渐近线相混。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5b84bbf04a0ca0921a70e2e4",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5e3ecb030d6a454633f0a09a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-5e8744158554d1c79e590de4",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应执行幅值受限的非线性特性。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-6432b546cffc7431c0043607",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-655c25a7c9e926bc0004b983",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-6592690fdccf416b0340917b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两个来源对应比例与积分组合，未与滞后网络合并。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "对应小输入范围输出不响应的死区现象。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留开环右半平面极点计数及临界点包围关系。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应开环频率响应的幅相轨迹，不合并任意 F(s) 映射围线。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均明确 |L(jω)|=1，中文截止/穿越异名不改变所选定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留开环右半平面极点计数及临界点包围关系。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-797bab2e3f6333e28dccf1c6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留系数阵列及第一列两种对象，说明判稳所用信息。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "保留基波近似复增益及其分析方法，明确谐波线性化限制。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两个来源对应比例与积分组合，未与滞后网络合并。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "对应状态点随时间的曲线。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留频率特性比值与正弦响应概念，课堂显式区分输入输出通道。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用虚轴单根且其他根在左半平面的条件，保留共振输入的限制。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "单列输入输出稳定性及其有界性定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-87119ed807a83a53c1444215",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-905e09b9921961a6115e4603",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "分别表示二阶状态平面与相轨迹图解方法，不扩展为完整非线性理论。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-975104325de56502a2faf011",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用同频输出与输入的相位差。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-9a4c8dc9963685a6c39a5653",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-9b3052d4d15a96d495d8e6f5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-9b795692bacd0f13270cc086",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "分别表示二阶状态平面与相轨迹图解方法，不扩展为完整非线性理论。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "采用系统能够保持静止的状态定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象都将校正置于局部反馈通道，不与前馈相混。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-a3766ceadc2ea4fc53517bc2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "保留系数阵列及第一列两种对象，说明判稳所用信息。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-a7074b9889f65949ecaf5fe6",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-a9730b9a039605d79315e24f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "讲义5-1明确讲授继电器的阈值通断，不扩展至未讲授的施密特电路。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ac5da367d445afc46b4baca3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "分别对应标准振荡环节峰值及其频率，保留存在条件。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ae1017494c7f2d20cd53efad",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "讲义5-1明确把间隙和回程路径区别于静态死区。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b1568607de5e6fd3cba5663f",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象都将校正置于局部反馈通道，不与前馈相混。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应滞后网络的频段作用及截止频率代价。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "采用平移 s 平面坐标轴检查相对稳定度的方法。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "课程只采用数字实现造成分级输出及幅值误差的边界，不扩展成完整采样控制课程。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c4299241b84b2202369102e2",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留为满足性能而增加或调整校正结构的一般概念，不等同某一种控制器。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均为劳斯-赫尔维茨判据，不采用离散 w 域或降阶近似法替代。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "三对象均为幅值分贝、相角相对于对数频率的图，保持来源身份。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象均为劳斯-赫尔维茨判据，不采用离散 w 域或降阶近似法替代。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "对应扰动后恢复平衡的课程稳定性主题；不把局部、全局或内部稳定性混作同一判据。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "保留基波近似复增益及其分析方法，明确谐波线性化限制。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "分别保留库仑摩擦与库仑加粘性摩擦，讲义5-1用其说明起动与低速边界。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-d80dfe6ce979515d21845c81",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-dc0fa52ddfaabaca13395678",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "采用反馈回路与前馈校正组成整体的定义。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用同频输出与输入的幅值比。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用一阶环节 ω=1/τ 的转折频率。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "两对象都位于误差点之后的前向通道，保持各自身份。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-5",
+    "scopeId": "act-control-theory",
+    "rationale": "课程只采用数字实现造成分级输出及幅值误差的边界，不扩展成完整采样控制课程。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-2",
+    "scopeId": "act-control-theory",
+    "rationale": "采用稳定线性系统暂态衰减后同频输出的条件。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "保留为满足性能而增加或调整校正结构的一般概念，不等同某一种控制器。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-f20650600a6b6301d29c6025",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应滞后网络的频段作用及截止频率代价。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-fac170446815fe168f9a5469",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-fb97ed4cffee0e2317af990e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-1",
+    "scopeId": "act-control-theory",
+    "rationale": "三对象均为幅值分贝、相角相对于对数频率的图，保持来源身份。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-fbebd7b09546031f82f974ed",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "对应给定路径整形，不冒充改善扰动通道的反馈结构。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "ctkg:v3e-object-ff560d5d53d578d0bc57baeb",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": null,
+    "scopeId": "act-control-theory",
+    "rationale": "保留既有有效教学资源资格与关系端点，不据此生成课程先后修。"
+  },
+  {
+    "canonicalId": "m1r-v1d:object:2ed1de38a2cdae7a9f98e0b4",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-3",
+    "scopeId": "act-control-theory",
+    "rationale": "对应噪声等通道分析中的互补灵敏度函数。"
+  },
+  {
+    "canonicalId": "m1r-v1d:object:5dc35d8a90ffc6cc5ca18c4e",
+    "pathEligible": true,
+    "cardPolicy": "optional",
+    "moduleId": "module-4",
+    "scopeId": "act-control-theory",
+    "rationale": "保留时间加权绝对误差评价方法，不冒充ITSE或通用优化器。"
+  }
+]

@@ -1,6 +1,6 @@
 {
   "contract": "teaching-projection-ledger-governance-report/v1",
-  "generatedAt": "2026-09-07T15:44:00.016Z",
+  "generatedAt": "2026-09-09T15:11:21.232Z",
   "ledgerPath": "course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl",
   "quotas": {
     "contract": "teaching-projection-ledger-quotas/v1",
@@ -11,21 +11,11 @@
     "out-of-round-textbook": 0,
     "explicit-exemption": 1689
   },
-  "total": 1689,
+  "total": 1606,
   "countsByReason": {
-    "explicit-exemption": 1689
+    "explicit-exemption": 1606
   },
   "entries": [
-    {
-      "resourceId": "act:infographic:ctc_0f418dc24d2aacaaafdcdcc0",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_90af7a0497e616bbe6249c30",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
     {
       "resourceId": "act:infographic:ctc_c782502fe412ef828c662650",
       "reason": "explicit-exemption",
@@ -38,16 +28,6 @@
     },
     {
       "resourceId": "act:infographic:ctc_modeling-035c9d54765ac2b02802c971",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-05fbe60f54c183c4e3ded892",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-07799c3f876317e36fe669f8",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -127,11 +107,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-1a01abb71d037ed52c2bc394",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-1ca93c10f7b87df4cc16b696",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -163,11 +138,6 @@
     },
     {
       "resourceId": "act:infographic:ctc_modeling-2326548c33d3005ed44b3f18",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-239e401e0fcc8485f3a0533d",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -247,11 +217,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-385c515b4d8dbb550b664072",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-38bfb4cb62b1e9f867f951ae",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -278,11 +243,6 @@
     },
     {
       "resourceId": "act:infographic:ctc_modeling-405a39dbba1f6754b8e08afc",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-423b845366304dc755fefcea",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -332,22 +292,12 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-47e8eb68c1aa5cd068c72e54",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-49366083a7c2d25157dff636",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctc_modeling-4ab0ef32a4b6e8688292e5d1",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-4c7a0114a15c9e4039f6d193",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -397,11 +347,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-50ed406e4478b481d868adfb",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-542407d995b04730d1803912",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -427,11 +372,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-57c56ef58df2315f765a32dc",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-591b33e87b9709fd8e130365",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -448,11 +388,6 @@
     },
     {
       "resourceId": "act:infographic:ctc_modeling-5a8212ba438fbb1d8c953300",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-5e62391de61ac1af304601cb",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -557,11 +492,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-7aef273143199795496abedb",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-7b79aff5bd212553226ee1e7",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -638,11 +568,6 @@
     },
     {
       "resourceId": "act:infographic:ctc_modeling-8a0ff75844bf161eeea3c542",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-8aa475ed6514adc11f9b5c8d",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -762,11 +687,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-a2b2e4c67cee79eef87f3b81",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-a30f001ebd5a123a456a51da",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -797,11 +717,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-aa10e4daa1e969c557f6ef83",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-aae409768220828b9a79a1b4",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -813,11 +728,6 @@
     },
     {
       "resourceId": "act:infographic:ctc_modeling-ae27798a12142653b684e425",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-b2fd214ec64665147e16ff9d",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -882,11 +792,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-bddaef2510e39cbb62d60df2",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-c00613a7c1461d8693f43488",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -922,22 +827,7 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-c26fddc50074ec84707d5950",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-c52664289f7d9f3378930894",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-c5b0f0ad36036b531f6bcdec",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-c64dfb875b6343ff32d0acb2",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -1072,11 +962,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-e8a0502ecb67f574a5cb6c1b",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-e96fa139bbc059f3e779e62e",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -1137,11 +1022,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-f6940765c7e8e5b74be204e0",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_modeling-f6fc65484fb95cf89b67364f",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -1162,16 +1042,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_modeling-v2r-split-0045791b9009bbe457f6e17a",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_v11g-01781c7700bbf33340d39614",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -1187,22 +1057,12 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_v11g-13a9994c50acce777819aa2a",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_v11g-160c78d3827065aca5585f55",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctc_v11g-24c15d67a9c0976814a4d3c2",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_v11g-29bcae62e44c52ed219e6687",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -1237,22 +1097,12 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_v11g-5322cdb3c781cb7b9828732a",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_v11g-67c03c5207c095a08e761361",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctc_v11g-6b04c8283d317cd809eae369",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_v11g-6bfefff084f66202b9af9dd4",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -1288,11 +1138,6 @@
     },
     {
       "resourceId": "act:infographic:ctc_v11g-91ad9d6426185f59dea4a418",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_v11g-93b322aec104af4eb69aa152",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -1337,11 +1182,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_v11g-c8c8aef0d010e68842be7236",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_v11g-ca75f7e80d0a7ffd93fcbae5",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -1382,17 +1222,7 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctc_v11g-e00aa88647adaaf1c5d57462",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctc_v11g-e63bdb130c5a92d4eb8d936d",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctc_v11g-e73425ff41e0f022a641c4cd",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2232,16 +2062,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-04fd7f69994f8821467462e5",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-060bc33f21e93205ee271eda",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-09a1d7c35806072ff403281d",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -2267,11 +2087,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-1647a1b078950a5b81783825",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-1c6e0da621b7f363c81a8901",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -2292,11 +2107,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-23c4127cb1ffab795d290351",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-23e85dbf38c6880d27e4d02b",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -2308,11 +2118,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-canonical-26666fcfa05a85fef00fa4dd",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-2ec135b0a8506867adbe4bf1",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2363,16 +2168,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-canonical-503d2c6683ea029b37af79d3",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-55743366373a5197b074831b",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-62bea9217008b56901615d9a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2452,22 +2247,7 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-b1b7acfdda35086ace2d7091",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-b1fa48122cb30019661f9eaa",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-b2d966c11bb22eca4c7bd77e",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-b9fa7b3ae0d8d7044619ac55",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2492,22 +2272,7 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-c6fafdb175fcf88882f8b91f",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-c97db3319c6da0c0371648d5",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-cc82e137f42aa09df514e615",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-cd25e47d10ddfec280e82fde",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2593,11 +2358,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-canonical-f5ab87cb5fc7e1f248b279e0",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2693,11 +2453,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-0bb7941e989275e607a110d0",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-0bec8a41b344fe9a1e16c5e3",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2812,17 +2567,7 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-17cae71babbbfe193c0124a4",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-17f97568592a217c1d332948",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2892,22 +2637,12 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-22d70476ed16c55e186daa40",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-232cff230e48397cf46cb944",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-23665070dce851fbb0ebda8b",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2982,11 +2717,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-2c2f917a06c974fda55b52fd",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-2c4bb4e99c2a8a48b91e625a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3048,11 +2778,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-31fd73d9e24d1077744bf193",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-327cafd07ac8956536bab418",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3137,11 +2862,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-3af39a858b2949296df5387f",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-3d61744c1f15d0d0bbf20902",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3178,11 +2898,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-3f8e288fedb8ba46bfd02185",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-3fe181aa7c0967f58d1dbfee",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3292,11 +3007,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-5104f48a9527029987e0519a",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-51398ddba323aa3beeb5d89a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3308,11 +3018,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-51995a76d497d06a87b69675",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-51cfdcf1f943a39dfc550be1",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3367,11 +3072,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-570b74ec5294ac993add9b5f",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-57afdf17705015f8527052c5",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3393,16 +3093,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-58cea2373f68416e096759a9",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-58d24ff14a6b0b0cab5d393f",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-58de4bcc9bc42be0ce31abb7",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3577,17 +3267,7 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-69aaaef625010f7755f253e8",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-6a408c0b64c072f7bea3db47",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-6aab5205709de2fd044b4024",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3672,11 +3352,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-763fd65e573e7a65dfc4b79c",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-7669cc1cb18986463cbcfdf6",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3717,22 +3392,12 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-7aa500461c5109b7cffd9b19",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-7aeaea4f1aef78c48c3e8340",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-7aef0becfa3e700facb7a80e",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-7b59e975b2aaa6100b970b52",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3748,11 +3413,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-7d0f4558ea9feb4c470dd47b",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-7d20806108956a0f52c08f3a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3863,11 +3523,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-84350edf4a87ec7d0552e03e",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-865b301177a623225344064f",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4157,11 +3812,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-a5bc9701adc27b91f6da074b",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-a6fbcdc8f28199ec0f54ceeb",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -4198,11 +3848,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-ac356855cd7f28c6cbacea72",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-ac5da367d445afc46b4baca3",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4297,22 +3942,12 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-b51bc504a48917b2c5ec25c3",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-b667b9f8df2202d92a43a966",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-b6a2408064ca869300339823",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-b73224087c9c0475612e8635",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4357,11 +3992,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-bc4ed78c68c59c9b4ab42d4d",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-bd932075b5f988acebafc1b5",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -4402,17 +4032,7 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-c3d7e85e2b60c3320db8a44a",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-c429eb75a78f367236589b27",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-c437a7c8ef65d5677ad5c387",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4433,11 +4053,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-c4f81d9a0c83195cd1cebfe6",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-c6fd3f071d7b3ea64acf9760",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4512,11 +4127,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-cfdae92ada72d7710e7f1cee",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-cfee5cc12bf4f8da26e41ff1",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -4538,11 +4148,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-d4e994e83801bfcca363b375",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-d537d542fc83f3d91e2f6d72",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4613,11 +4218,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-dc824b634d98afec12f44ff1",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-dcb227bd6a2bb08a122e52d0",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4842,11 +4442,6 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
-      "resourceId": "act:infographic:ctkg_v3e-object-f9ac171d68c8622f62106397",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
       "resourceId": "act:infographic:ctkg_v3e-object-fa27f7e0f03c7c18dd56786d",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -4873,16 +4468,6 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-fb46cb0e4c4a87cac57dc14f",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-fb97ed4cffee0e2317af990e",
-      "reason": "explicit-exemption",
-      "detail": "authority-infograph-outside-overlay"
-    },
-    {
-      "resourceId": "act:infographic:ctkg_v3e-object-fbebd7b09546031f82f974ed",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
