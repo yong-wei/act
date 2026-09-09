@@ -64,6 +64,8 @@ Fail-closed: definitions and relations only from domain-projection description +
 
 当前聚合包可保留较早组件的 `domain-projection.json`，不能修改其 release 字段冒充聚合身份。课程补充卡片使用当前导出器的定向参数：`python3 scripts/knowledge/export-authority-learning-content-v2.py --copy-authoring-card <safe_id>`。它核对当前 Authority、卡片实体及来源，再复制指定作者文件，并重新生成包含教学层身份的学习内容清单。
 
+定向导出要求正文包含 `**一句话定义**` 和 `### 完整解释`；数学表达与示例写入这些内容区，不能仅改变小标题而遗漏导出契约要求的完整解释区。
+
 The combined runtime learning manifest is v2 and seals the Authority release,
 release-set and snapshot identity from the supplied immutable shard-set manifest.
 Its projection and release evidence must name that same Authority release. A
