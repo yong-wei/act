@@ -4,6 +4,7 @@ import importlib.util
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from hashlib import sha256
 from pathlib import Path
 
@@ -30,6 +31,18 @@ def load_helper():
 
 
 class RuntimeAppCompatibilityProofTest(unittest.TestCase):
+    def test_normalizes_complete_podman_image_ids_only_at_capture(self):
+        helper = load_helper()
+        for value in (IMAGE_DIGEST, IMAGE_DIGEST.removeprefix("sha256:")):
+            with self.subTest(value=value), patch.object(helper, "run", return_value=value):
+                self.assertEqual(helper.container_image("act-obe-app"), IMAGE_DIGEST)
+        for value in ("e" * 12, "localhost/act-obe-platform:latest", "sha512:" + "e" * 64):
+            with self.subTest(value=value), patch.object(helper, "run", return_value=value):
+                with self.assertRaises(ValueError):
+                    helper.container_image("act-obe-app")
+        with self.assertRaises(ValueError):
+            helper.image_digest("e" * 64, "serialized proof")
+
     def write_fixture(self, directory: Path):
         manifest = {
             "schemaVersion": "act-runtime-release.v2",

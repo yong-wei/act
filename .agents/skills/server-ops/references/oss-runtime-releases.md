@@ -86,3 +86,10 @@
 - v2 host authority 使用持久 marker：marker 缺失仅表示从未迁移，可读取 v1 selection/active receipt；`mode=v2` 时 lifecycle record 是唯一 authority，缺失或损坏只能从 marker 精确绑定的 journal after-image 恢复，否则失败关闭；v2→v1 rollback 写入并验证 v1 projection 后记录 `mode=v1-rollback`，绝不删除 marker。desired、active、rollback、publishing 与 retained lease 都是独立 GC root；failed desired 在显式取消、替换或成功激活前不得回收。Release 离开 active/rollback 的同一事务必须写入包含 UTC 时间、受控最大签名 TTL、派生 deadline 与策略版本的 lease；重复 retain 只能延长，`release-retained` 仅在 deadline 后经 generation-CAS 成功，时钟回拨或 lease 损坏必须失败关闭。
 - Blob GC 先在同一 lifecycle lock 内捕获 generation、lifecycle digest、全部受保护 manifest/receipt 和完整 continuation-safe object index，输出 immutable dry-run plan。执行前再次读取并比较 generation、index 和每个候选 blob 的大小/SHA；只允许删除 `runtime/blobs/sha256/<sha>` 中经重验的不可达 blob，普通 GC 永不删除 manifest 或 receipt。任何分页、identity、manifest、marker 或 selector 漂移均为零删除。
 - 外部输入包报告已跟踪知识卡缺失时，先核对路径空间：`listGitRuntimeTree` 的键相对 `course-content/runtime`，不能再次加此前缀。不得通过重复打包 Git 已提供的文件来掩盖校验器错误。完整 legacy 教材语料可按既有继承契约验证并保留，不用较小的新资源集静默覆盖它。
+
+
+### Podman 镜像身份与现代协调部署（2026-09-10）
+
+- 部分生产 Podman 的 `inspect --format {{.Image}}` 返回完整 64 位摘要而不带 `sha256:`。兼容性证明捕获阶段将这种完整摘要规范化为 OCI 身份；证明文件本身仍要求 `sha256:<64 hex>`，不接受短 ID 或标签替代。不要通过修改运行镜像或伪造证明绕过格式差异。
+- 现代 r4 协调生产状态没有旧 first-cutover marker，`remote-refresh-cutover-app.sh` 的 legacy marker 验证不适用。已核验应用 schema/migrations 未改变时，可在协调部署锁内使用现存 `4-deploy.sh --runtime-cutover-app-only` 替换经过 provenance 校验的应用镜像；前后核对全部选择器、活动回执、生命周期、挂载目录及数据库/Redis 容器身份，并保留原镜像和私有运行环境以恢复。不得使用会导入数据库的外层普通部署流程代替。
+- 本次服务器系统 Python 为 3.6；发送一次性只读核验程序时使用 `universal_newlines=True`，不要使用仅在较新版本支持的 `text=True`。
