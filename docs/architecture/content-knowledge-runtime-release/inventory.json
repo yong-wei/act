@@ -1,23 +1,23 @@
 {
-  "sourceRevision": "ce73eabc89a1e996871b5532533a96bcd68b2d70",
-  "sourceTree": "684b53de50205ee82bf8181696c00f124f2d57e0",
+  "sourceRevision": "8c7ea6b0f98cc611f2c88c58293493f00707d7b3",
+  "sourceTree": "82f4f98eb35376760b71594bd2362ba4d47d6b70",
   "generatedInputs": [],
   "counts": {
     "course-content/scripts": 42,
-    "scripts/knowledge": 23,
+    "scripts/knowledge": 26,
     "scripts/knowledge-cutover": 80,
     "scripts/runtime-release": 44,
     "scripts/release": 5
   },
   "roleCounts": {
     "reader": 22,
-    "compiler": 85,
+    "compiler": 87,
     "validator": 17,
     "operator-adapter": 51,
-    "candidate-adapter": 13,
+    "candidate-adapter": 14,
     "publication-writer": 6
   },
-  "commandCount": 194,
+  "commandCount": 197,
   "commands": [
     {
       "path": "course-content/scripts/authority-cards/README.md",
@@ -26,7 +26,7 @@
       "owner": "course",
       "role": "reader",
       "safetyMode": "read-only",
-      "contentHash": "0f5736339009bdaefcd9c7f00088b9a1b195f5a68e2993f3c643d9fc661a39e5"
+      "contentHash": "7ef270c51e8650468538ee67e5932347be638aa5b0d43591eeeface3aad384ce"
     },
     {
       "path": "course-content/scripts/authority-cards/batch_generate_runner.py",
@@ -323,7 +323,7 @@
       "owner": "course",
       "role": "validator",
       "safetyMode": "read-only",
-      "contentHash": "cea7052d656e52a0ddbb95361ad67e4e58ae1961dc3ab6fd59e4626ffe397c0c"
+      "contentHash": "d1d857fc44af6c351b445efe590807e528ab7cc0f63db0c79d367dda255330b9"
     },
     {
       "path": "course-content/scripts/tests/test_bound_authority_card_export.py",
@@ -692,7 +692,7 @@
       "owner": "knowledge",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "d9464f79b51cc7b63f7f635e5d6084a15583c0a5520477af07a16892db06a211"
+      "contentHash": "abb8190fb8e1900fc7c4298358bc662ac37966ebe6af2aa9f08838737b602e56"
     },
     {
       "path": "scripts/knowledge-cutover/derive-actkg-cutover-blueprint-decisions.ts",
@@ -998,7 +998,7 @@
       "owner": "knowledge",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "d027f5ecc302dc31e6a1dd67bf61c201ae06edefffbb7aad132063924bea870d"
+      "contentHash": "e8dbeb154f9034e34b766332f9731731380718663b9074959b30329a4f024674"
     },
     {
       "path": "scripts/knowledge-cutover/remote-application-refresh.sh",
@@ -1124,7 +1124,7 @@
       "owner": "knowledge",
       "role": "validator",
       "safetyMode": "read-only",
-      "contentHash": "5f26881289822f8bdeb90bb9da5a7c12b549916c123c6ded54dc65d6b83cde4d"
+      "contentHash": "5ff01eb5877e066fb0b0836f5a93ae912377c5a77f0b1f31be0bc3b708be3723"
     },
     {
       "path": "scripts/knowledge/assert-teaching-projection-app-revision.ts",
@@ -1244,6 +1244,15 @@
       "contentHash": "2d1a5b5080b1c4333479145592c8468bc44559b9b1eb9b6648e41da1fbd99629"
     },
     {
+      "path": "scripts/knowledge/finalize-current-resource-cutover.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/finalize-current-resource-cutover.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "140f33282b640983a262ac6766e794aaee998572c7a5834ee9d01f38a33a1275"
+    },
+    {
       "path": "scripts/knowledge/generate-cross-domain-teaching.ts",
       "commandId": "release:knowledge-release:scripts/knowledge/generate-cross-domain-teaching.ts",
       "toolchain": "knowledge-release",
@@ -1298,6 +1307,15 @@
       "contentHash": "8fa6f53217493f13786b60759ac8c946c31b2daef5c7609bb08ad0c54059c32a"
     },
     {
+      "path": "scripts/knowledge/prepare-current-resource-cutover.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/prepare-current-resource-cutover.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "candidate-adapter",
+      "safetyMode": "apply-gated",
+      "contentHash": "989ffd7dc8fe8631003d60dc04c93c27bd40c9c78eca9f87b66b6fc27bdb02e6"
+    },
+    {
       "path": "scripts/knowledge/rebuild-engineering-learning-order-prerequisites.ts",
       "commandId": "release:knowledge-release:scripts/knowledge/rebuild-engineering-learning-order-prerequisites.ts",
       "toolchain": "knowledge-release",
@@ -1305,6 +1323,15 @@
       "role": "compiler",
       "safetyMode": "apply-gated",
       "contentHash": "efcb36df3f2d183ffae8ce1d62d7407d116c606d50b718521917a018061051b5"
+    },
+    {
+      "path": "scripts/knowledge/reclose-current-course-governance.ts",
+      "commandId": "release:knowledge-release:scripts/knowledge/reclose-current-course-governance.ts",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "4bf2289bab59fd14b36658599cfc35d883a5c7bd9d5ce4dd89acb35981796154"
     },
     {
       "path": "scripts/knowledge/restage-runtime-teaching-bindings.ts",
