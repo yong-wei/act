@@ -20,13 +20,13 @@ test('uses the real browser, API, worker, Source Pack and fixture provider throu
 
   await page.goto('/teacher/smart-prep');
   await expect(page.getByRole('heading', { name: '智能教案共创' })).toBeVisible();
-  await page.getByPlaceholder('单课主题').fill(topic);
   await page.getByPlaceholder('授课对象').fill('自动化专业本科生');
   await page.getByPlaceholder('确认知识点').fill('闭环稳定性判据');
   await page.getByPlaceholder('确认教学目标').fill('判断闭环系统稳定性');
   await page.getByPlaceholder('先修要求（可选）').fill('传递函数与特征方程');
   await page.locator('select[name="durationMinutes"]').selectOption('30');
   await page.getByLabel('生成提纲后暂停确认').check();
+  await page.getByPlaceholder('单课主题').fill(topic);
   await expect(page.getByPlaceholder('单课主题')).toHaveValue(topic);
   await page.getByRole('button', { name: '确认并创建单课任务' }).click();
   await expect.poll(() => apiResponses.find((item) =>
