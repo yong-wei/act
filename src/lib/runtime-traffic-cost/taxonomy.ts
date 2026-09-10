@@ -14,9 +14,9 @@ export const INVENTORY: readonly InventoryEntry[] = [
   { routeClass: 'runtime-media-redirect', ownerPath: 'src/app/api/course-runtime/assets/[...assetPath]/route.ts', description: 'Manifest-bound /api/course-runtime/assets/* redirects to a 300s OSS URL.' },
   { routeClass: 'runtime-blob-view', ownerPath: 'scripts/runtime-release', description: 'Production Runtime internal OSS FUSE Blob view.' },
   { routeClass: 'runtime-blob-public-read', ownerPath: 'scripts/runtime-release/developer-oss', description: 'Developer workstation public OSS Blob reads.' },
-  { routeClass: 'publisher-public-upload', ownerPath: 'scripts/runtime-release/runtime-release-oss-publisher-bridge.py', description: 'Publisher PutObject of a new body.' },
-  { routeClass: 'publisher-metadata-check', ownerPath: 'scripts/runtime-release/runtime-release-oss-publisher-bridge.py', description: 'Publisher HeadObject metadata reuse with no body read.' },
-  { routeClass: 'publisher-legacy-body-readback', ownerPath: 'scripts/runtime-release/runtime-release-oss-publisher-bridge.py', description: 'Publisher legacy GetObject body readback.' },
+  { routeClass: 'publisher-public-upload', ownerPath: 'scripts/runtime-release/publish-runtime.py', description: 'Publisher PutObject of a new body.' },
+  { routeClass: 'publisher-metadata-check', ownerPath: 'scripts/runtime-release/runtime-doctor.py', description: 'Explicit doctor metadata check; daily publish does not HEAD.' },
+  { routeClass: 'publisher-legacy-body-readback', ownerPath: 'scripts/runtime-release/runtime-doctor.py', description: 'Explicit doctor blob readback; daily publish does not GET.' },
 ];
 
 const PREFIX_ROUTES: ReadonlyArray<readonly [RegExp, RouteClass]> = [

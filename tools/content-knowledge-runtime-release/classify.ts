@@ -36,28 +36,19 @@ const OPERATOR_ADAPTERS = new Set([
   'scripts/knowledge-cutover/restage-r4-c4-consumer-activation.ts',
   'scripts/runtime-release/act-runtime-blob-ossfs.service',
   'scripts/runtime-release/act-runtime-blob-view-helper.service',
-  'scripts/runtime-release/act-runtime-ossfs@.service',
-  'scripts/runtime-release/activate-runtime-blob-release.sh',
-  'scripts/runtime-release/activate-runtime-release.sh',
+  'scripts/runtime-release/activate-runtime.sh',
+  'scripts/runtime-release/activate-runtime.py',
+  'scripts/runtime-release/publish-runtime.py',
+  'scripts/runtime-release/materialize-runtime.py',
+  'scripts/runtime-release/runtime-doctor.py',
+  'scripts/runtime-release/runtime-gc.py',
   'scripts/runtime-release/bind-runtime-blob-view-helper.sh',
   'scripts/runtime-release/configure-runtime-blob-ossfs.sh',
-  'scripts/runtime-release/configure-runtime-ossfs-release.sh',
-  'scripts/runtime-release/execute-production-runtime-cutover.sh',
-  'scripts/runtime-release/perform-production-runtime-cutover.sh',
-  'scripts/runtime-release/retire-legacy-runtime-after-oss-cutover.sh',
-  'scripts/runtime-release/retire-unused-oss-runtime.py',
-  'scripts/runtime-release/rollback-runtime-release.sh',
-  'scripts/runtime-release/runtime-blob-activation-transaction.py',
-  'scripts/runtime-release/runtime-blob-release-gc.py',
 ]);
 
 const PUBLICATION_WRITERS = new Set([
   'scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime.ts',
   'scripts/knowledge-cutover/publish-actkg-v022-cutover-runtime.ts',
-  'scripts/runtime-release/act-runtime-release.ts',
-  'scripts/runtime-release/materialize-runtime-blob-release.py',
-  'scripts/runtime-release/runtime-blob-release-lifecycle.py',
-  'scripts/runtime-release/runtime-release-oss-publisher-bridge.py',
 ]);
 
 const READERS = new Set([
@@ -82,7 +73,6 @@ const READERS = new Set([
   'scripts/release/textbook-runtime-input-provenance.mjs',
   'scripts/release/textbook-runtime-v2-provenance.mjs',
   'scripts/runtime-release/runtime-media-inventory.ts',
-  'scripts/runtime-release/runtime-release-host-state.py',
 ]);
 
 export function toolchainFor(path: string): ToolchainId {

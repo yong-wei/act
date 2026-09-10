@@ -1,23 +1,23 @@
 {
-  "sourceRevision": "8c7ea6b0f98cc611f2c88c58293493f00707d7b3",
-  "sourceTree": "82f4f98eb35376760b71594bd2362ba4d47d6b70",
+  "sourceRevision": "3323d71926b16fda800b27a76fd0008dbdbb1aa7",
+  "sourceTree": "3cae210e7e80a3a690c6ff929991f71bf29d4555",
   "generatedInputs": [],
   "counts": {
     "course-content/scripts": 42,
-    "scripts/knowledge": 26,
-    "scripts/knowledge-cutover": 80,
-    "scripts/runtime-release": 44,
+    "scripts/knowledge": 25,
+    "scripts/knowledge-cutover": 81,
+    "scripts/runtime-release": 33,
     "scripts/release": 5
   },
   "roleCounts": {
-    "reader": 22,
-    "compiler": 87,
+    "reader": 21,
+    "compiler": 86,
     "validator": 17,
-    "operator-adapter": 51,
+    "operator-adapter": 46,
     "candidate-adapter": 14,
-    "publication-writer": 6
+    "publication-writer": 2
   },
-  "commandCount": 197,
+  "commandCount": 186,
   "commands": [
     {
       "path": "course-content/scripts/authority-cards/README.md",
@@ -161,7 +161,7 @@
       "owner": "course",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "cb058cf2f182366b1f15e160cdfa757c90c333f0403a1a46b2ce3f9ad5eb251d"
+      "contentHash": "197a2e8c1245e9ec393c04493242bab4af7995b09217516ab18323290821efd5"
     },
     {
       "path": "course-content/scripts/export_structured_textbook_runtime_v2.py",
@@ -539,7 +539,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "65629d4f6964c806282dacc1d7ff9591771f9a185c3d9b57866a2634f208499b"
+      "contentHash": "170faf3c96f8d3538197539a017f2d3b7272381d05d6a632bdac3481efd2201e"
     },
     {
       "path": "scripts/knowledge-cutover/build-r4-c5-qualification-artifacts.ts",
@@ -638,7 +638,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "360628688919126d4e9e36fa43b7e701864da237fa4b08f23c9487aa975c6aca"
+      "contentHash": "d9a4eb80c8a8a3b7845179646883f6e71fc4e16b7e9adf6638fd266ff1288973"
     },
     {
       "path": "scripts/knowledge-cutover/cleanup-failed-authority-identity.cjs",
@@ -666,6 +666,15 @@
       "role": "compiler",
       "safetyMode": "apply-gated",
       "contentHash": "8efb48221d1cd17bbdbe474ecfb55b7e52d93959ad094e79d49961189723df1c"
+    },
+    {
+      "path": "scripts/knowledge-cutover/control_plane_overlay_paths.py",
+      "commandId": "release:knowledge-release:scripts/knowledge-cutover/control_plane_overlay_paths.py",
+      "toolchain": "knowledge-release",
+      "owner": "knowledge",
+      "role": "compiler",
+      "safetyMode": "apply-gated",
+      "contentHash": "0f936db125ed40de3c1863256d526e6e67c715d2f6773c0c03cc5f1bcc02cc2c"
     },
     {
       "path": "scripts/knowledge-cutover/coordinate-latest-authority-oss-cutover.ts",
@@ -746,7 +755,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "0b29a948f593ea950843725ec7c9ca647ab4c7212c9e4bf68288f82c25691169"
+      "contentHash": "ece467c4f2d850b322c8bcf822fed22676043091d01e5d672133c5f6f2e9b32f"
     },
     {
       "path": "scripts/knowledge-cutover/negative-acceptance-remediation.ts",
@@ -998,7 +1007,7 @@
       "owner": "knowledge",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "e8dbeb154f9034e34b766332f9731731380718663b9074959b30329a4f024674"
+      "contentHash": "115d41cf938ea229fd12d96ee1c832eeb3718287bb1815dd4827651a22396971"
     },
     {
       "path": "scripts/knowledge-cutover/remote-application-refresh.sh",
@@ -1016,7 +1025,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "d288d160255a2e6de72fbffa4660a64e075798f046992840ea46f6d69383634c"
+      "contentHash": "0e4343555c731cfb9be5cbba0e66e5fbdab3356f6d26ee3026a992fda8630516"
     },
     {
       "path": "scripts/knowledge-cutover/remote-production-cutover.sh",
@@ -1124,16 +1133,7 @@
       "owner": "knowledge",
       "role": "validator",
       "safetyMode": "read-only",
-      "contentHash": "5ff01eb5877e066fb0b0836f5a93ae912377c5a77f0b1f31be0bc3b708be3723"
-    },
-    {
-      "path": "scripts/knowledge/assert-teaching-projection-app-revision.ts",
-      "commandId": "release:knowledge-release:scripts/knowledge/assert-teaching-projection-app-revision.ts",
-      "toolchain": "knowledge-release",
-      "owner": "knowledge",
-      "role": "compiler",
-      "safetyMode": "apply-gated",
-      "contentHash": "9277b7dacb979fd0614d0f3c50e20504ad495195c778223de22d9826dae6f7b9"
+      "contentHash": "e95a97411400fccaa9c11ae6a891acb4548b05a960183a0260884d7b67cd4e50"
     },
     {
       "path": "scripts/knowledge/build-course-prerequisite-projection.ts",
@@ -1151,7 +1151,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "3b4dcfcd250a4a397822052380a2853327e9a88f0c513f800f2f6102bd03fae1"
+      "contentHash": "4b7b37d2a250520b3750899489461affa614b088d8cbeff0b403fa1bd9520ffb"
     },
     {
       "path": "scripts/knowledge/check-authority-surface-linkage.mjs",
@@ -1250,7 +1250,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "140f33282b640983a262ac6766e794aaee998572c7a5834ee9d01f38a33a1275"
+      "contentHash": "3ef6aae4cbd86eec7592bebd21d46639872b5aacd73be0358f3970bfd8aa5a3c"
     },
     {
       "path": "scripts/knowledge/generate-cross-domain-teaching.ts",
@@ -1331,7 +1331,7 @@
       "owner": "knowledge",
       "role": "compiler",
       "safetyMode": "apply-gated",
-      "contentHash": "4bf2289bab59fd14b36658599cfc35d883a5c7bd9d5ce4dd89acb35981796154"
+      "contentHash": "b34c4249f1428c776970607cecb1ae18c0d08ecc6ff486b2f83739289fe5dd0e"
     },
     {
       "path": "scripts/knowledge/restage-runtime-teaching-bindings.ts",
@@ -1415,40 +1415,22 @@
       "contentHash": "475ee0829fe885d202f3d0a9e2de966746d2dbc86cd8795db125fa491609ab86"
     },
     {
-      "path": "scripts/runtime-release/act-runtime-ossfs@.service",
-      "commandId": "release:runtime-release:scripts/runtime-release/act-runtime-ossfs@.service",
+      "path": "scripts/runtime-release/activate-runtime.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/activate-runtime.py",
       "toolchain": "runtime-release",
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "3968231419d7aef9b8bc1931145c267d836a5305343f3384a6aa2d6273b84f59"
+      "contentHash": "6e482084ac79e2cd0c08451b81459a7c29797b599692b564b554c792eac3907e"
     },
     {
-      "path": "scripts/runtime-release/act-runtime-release.ts",
-      "commandId": "release:runtime-release:scripts/runtime-release/act-runtime-release.ts",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "publication-writer",
-      "safetyMode": "apply-gated",
-      "contentHash": "608dce29010958029858c07e7c9f8cda1bc95327ac9b7738de35871b918a7e30"
-    },
-    {
-      "path": "scripts/runtime-release/activate-runtime-blob-release.sh",
-      "commandId": "release:runtime-release:scripts/runtime-release/activate-runtime-blob-release.sh",
+      "path": "scripts/runtime-release/activate-runtime.sh",
+      "commandId": "release:runtime-release:scripts/runtime-release/activate-runtime.sh",
       "toolchain": "runtime-release",
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "45dc31c8b67a480fb00ba03976c6cd90d6ee9e7a4fed8dd49e0f7b671b340f68"
-    },
-    {
-      "path": "scripts/runtime-release/activate-runtime-release.sh",
-      "commandId": "release:runtime-release:scripts/runtime-release/activate-runtime-release.sh",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "operator-adapter",
-      "safetyMode": "apply-gated",
-      "contentHash": "9724c63e070fa0f0e70bac4864770d643c3b31de153afb510d98d4acf1e826fa"
+      "contentHash": "867864219c5b1cde7a218181c662dfdc98c615fea66c6d3ac07550d4e4a6636a"
     },
     {
       "path": "scripts/runtime-release/benchmark-textbook-retrieval.ts",
@@ -1478,15 +1460,6 @@
       "contentHash": "4eb8f4063a5173b2e46af2ab9b89f436199d61f73e9e2b2f2d084bf54b63c1e6"
     },
     {
-      "path": "scripts/runtime-release/configure-runtime-ossfs-release.sh",
-      "commandId": "release:runtime-release:scripts/runtime-release/configure-runtime-ossfs-release.sh",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "operator-adapter",
-      "safetyMode": "apply-gated",
-      "contentHash": "0e3d2fb4bb9258bbd4b94ee224ef8110905ddf56101d520dd355220a93613320"
-    },
-    {
       "path": "scripts/runtime-release/developer-oss/act-developer-runtime-gateway.service",
       "commandId": "release:runtime-release:scripts/runtime-release/developer-oss/act-developer-runtime-gateway.service",
       "toolchain": "runtime-release",
@@ -1511,7 +1484,7 @@
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "074c0e7634d28afe6a76ce7df02e9fda2a4a2f1e880b27dced928f91ac76bf85"
+      "contentHash": "faa88c270294b55a9eeacf069a600a8bf8f42a10ecdcfc4456f518bd4d509459"
     },
     {
       "path": "scripts/runtime-release/developer-oss/cli.py",
@@ -1649,103 +1622,49 @@
       "contentHash": "8ca4479e7854a25c3ee488d1bf09e7bfa194bd0d1f4e6e2d2425697bfa4804b9"
     },
     {
-      "path": "scripts/runtime-release/execute-production-runtime-cutover.sh",
-      "commandId": "release:runtime-release:scripts/runtime-release/execute-production-runtime-cutover.sh",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "operator-adapter",
-      "safetyMode": "apply-gated",
-      "contentHash": "abaa1ba1d081572917d291c7b2944e61f9c3bb9c5c245e78bf2f21a55b2e3841"
-    },
-    {
       "path": "scripts/runtime-release/inspect-textbook-corpus.py",
       "commandId": "release:runtime-release:scripts/runtime-release/inspect-textbook-corpus.py",
       "toolchain": "runtime-release",
       "owner": "platform",
       "role": "validator",
       "safetyMode": "read-only",
-      "contentHash": "185950efe20ab3f638c0885b6db9609c0df698beaaa87ba705f1ba08d72a166f"
+      "contentHash": "2dc0ae5547e8f07e587dc403843bfcd22f73bd8c932f5ea8f671af1e570137a7"
     },
     {
-      "path": "scripts/runtime-release/materialize-runtime-blob-release.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/materialize-runtime-blob-release.py",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "publication-writer",
-      "safetyMode": "apply-gated",
-      "contentHash": "d6e177f19e03a3a67ff22b2d7d2258cca90fcc429be17ee1832abed82f5b0205"
-    },
-    {
-      "path": "scripts/runtime-release/perform-production-runtime-cutover.sh",
-      "commandId": "release:runtime-release:scripts/runtime-release/perform-production-runtime-cutover.sh",
+      "path": "scripts/runtime-release/materialize-runtime.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/materialize-runtime.py",
       "toolchain": "runtime-release",
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "1ff1b9696c2a34b2577f59ae49114804a54cd5f651ce97eef3df2aa0b7c7320a"
+      "contentHash": "a207e7ddddbfe31e5acad7861ddea5fdf3fa964c037baa1d3625a6dd59f4e583"
     },
     {
-      "path": "scripts/runtime-release/retire-legacy-runtime-after-oss-cutover.sh",
-      "commandId": "release:runtime-release:scripts/runtime-release/retire-legacy-runtime-after-oss-cutover.sh",
+      "path": "scripts/runtime-release/publish-runtime.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/publish-runtime.py",
       "toolchain": "runtime-release",
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "db5fdf554f1a30b4ece6f434f21f34e9ee0a337b9e5371588aae16b72e102d38"
+      "contentHash": "6e470f3ed73c37797795ee9dfdc6cdcce3675dfce787544f162aeb836b3e5d1b"
     },
     {
-      "path": "scripts/runtime-release/retire-unused-oss-runtime.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/retire-unused-oss-runtime.py",
+      "path": "scripts/runtime-release/runtime-doctor.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-doctor.py",
       "toolchain": "runtime-release",
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "8fcd066e2aa6957837c1c4f3431002b5ff7d246f0733f43cf7383bd1ca3cb338"
+      "contentHash": "3a803fe5b387ae9999b56d12800020a06e12fafe3a1f834f3932024efeb57672"
     },
     {
-      "path": "scripts/runtime-release/rollback-runtime-release.sh",
-      "commandId": "release:runtime-release:scripts/runtime-release/rollback-runtime-release.sh",
+      "path": "scripts/runtime-release/runtime-gc.py",
+      "commandId": "release:runtime-release:scripts/runtime-release/runtime-gc.py",
       "toolchain": "runtime-release",
       "owner": "platform",
       "role": "operator-adapter",
       "safetyMode": "apply-gated",
-      "contentHash": "ea49c6fb67e771a5b48c0930a948758ac5a1d52403a4f60db710399353698278"
-    },
-    {
-      "path": "scripts/runtime-release/runtime-app-compatibility-proof.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/runtime-app-compatibility-proof.py",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "compiler",
-      "safetyMode": "apply-gated",
-      "contentHash": "77e7760d9a1a5b0640b337f65154075a4c21b1b389081c4d6f8c614c63dde295"
-    },
-    {
-      "path": "scripts/runtime-release/runtime-blob-activation-transaction.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/runtime-blob-activation-transaction.py",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "operator-adapter",
-      "safetyMode": "apply-gated",
-      "contentHash": "a4a8b123c40d57b864a640550321417331dcd2b856983961a4a4ca59bf90a32f"
-    },
-    {
-      "path": "scripts/runtime-release/runtime-blob-release-gc.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/runtime-blob-release-gc.py",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "operator-adapter",
-      "safetyMode": "apply-gated",
-      "contentHash": "59e179e605ef18726e7beda152c7ff20bb34909e308ef26203566a783fb31a1d"
-    },
-    {
-      "path": "scripts/runtime-release/runtime-blob-release-lifecycle.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/runtime-blob-release-lifecycle.py",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "publication-writer",
-      "safetyMode": "apply-gated",
-      "contentHash": "a9954ee67e59c6a607f06db5083abaea849305ce35748d338a8d18795a032daa"
+      "contentHash": "ca15350213600b25c3ffdb92049351c5e4256166054709123b97476ebad80eec"
     },
     {
       "path": "scripts/runtime-release/runtime-media-inventory.ts",
@@ -1755,24 +1674,6 @@
       "role": "reader",
       "safetyMode": "read-only",
       "contentHash": "020e7c08e2bd75fd08d19e3a1a6abff19051ef1b0336b2cb5e2b28919e1aabda"
-    },
-    {
-      "path": "scripts/runtime-release/runtime-release-host-state.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/runtime-release-host-state.py",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "reader",
-      "safetyMode": "read-only",
-      "contentHash": "2d3c43c24fb58235c14f53bc586a0060803314373e858d921dfc245513a4deaf"
-    },
-    {
-      "path": "scripts/runtime-release/runtime-release-oss-publisher-bridge.py",
-      "commandId": "release:runtime-release:scripts/runtime-release/runtime-release-oss-publisher-bridge.py",
-      "toolchain": "runtime-release",
-      "owner": "platform",
-      "role": "publication-writer",
-      "safetyMode": "apply-gated",
-      "contentHash": "7203523c81ca0bd1977f92acfc6d29502b740ab7711fe782d5182ef5e78864db"
     },
     {
       "path": "scripts/runtime-release/stage-textbook-retrieval-hot-cache.ts",

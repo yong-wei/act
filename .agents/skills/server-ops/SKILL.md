@@ -72,7 +72,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 若问题表现为课堂中 `同步错误`、`fail to fetch`、学生端不跟随教师进度、教师端无法推进步骤或 reveal/release 状态不同步，先读 `references/classroom-sync-errors.md`
 - 涉及部署时，先确认本次操作是否符合“本机构建、远端仅装载镜像”的固定模式；若不符合，立即停止
 - 远端目录若需要整理，只保留 `scripts/`、`deploy/podman/`、`.env*`、`data/runtime/act-obe.env` 与已物化的 OSS blob-view；不要恢复或同步一份本地 `course-content/runtime` 作为部署内容
-- 应用部署使用 `npm run deploy:app`（`remote-deploy.sh --app-only`），只更新镜像并绑定当前 blob-view；runtime 变更使用 `npm run deploy:runtime`。`legacy-rsync` 已退役，不得再同步本地 `course-content/runtime`
+- 应用部署使用 `npm run deploy:app`（`remote-deploy.sh --app-only`），只更新镜像并绑定当前 blob-view；runtime 变更使用 `npm run runtime:publish` 再 `npm run runtime:activate`。已删除 `deploy:runtime` 与 `deploy:all`。`legacy-rsync` 已退役，不得再同步本地 `course-content/runtime`
 - 涉及数据库覆盖导入时，先做本地备份
 - 涉及远端服务重启时，保留前后状态与关键日志
 - 验收至少覆盖容器状态、核心接口、关键环境变量和日志摘要
@@ -81,6 +81,6 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 已提交的 production cutover marker 存在时，普通 Legacy `remote-deploy.sh` 必须保持禁用；后续更新只能使用 cutover-aware 事务或显式 rollback，不得用常规部署重试覆盖 selector 状态
 - 生产**应用代码**发布与部署的唯一代码基线是一个已经进入 `origin/main` 的完整 Git commit。用户要求“部署”或“发布”时，先 fetch `origin/main`，冻结该 commit 与应用发布版本；如果当次需要把 `integration` 合入 `main`，合并必须在冻结前完成。冻结后不得读取、等待、比较或因 `integration` 的后续变化阻塞该次应用发布。
 - 每次生产应用发布必须有新的、明确的版本号，并同时写入镜像标签、应用工件/provenance 与最终发布回执。完整 `main` SHA 是代码内容身份，不能替代面向运维和回滚的应用发布版本号。
-- Runtime、图谱、索引等运行时发布与应用代码是两条独立版本线：它们可以直接冻结 `origin/integration` 的完整 commit 并使用独立 Runtime Release identity 发布，不要求与已发布应用的 `main` SHA 相同。发布前必须生成并核验一份兼容性证明，显式绑定应用 main revision、Runtime source revision、消费合同/格式版本及所需迁移状态；证明缺失、不兼容或漂移时停止 Runtime 选择。Runtime 发布不得重建、替换或回退应用镜像。
-- Runtime source 一经从 `origin/integration` 冻结，其后的 integration 提交同样不参与该 Runtime 发布；它既不能阻塞已冻结的 main 应用发布，也不能被无证据地追入当前 Runtime candidate。
-- 应用操作以 `origin/main` 的完整 SHA 和新应用发布版本为不可变起点；Runtime 操作则另行冻结 `origin/integration` 完整 SHA 和 Runtime Release identity。两者必须由兼容性证明连接，而不是要求 SHA 相等；任一侧冻结后都不得追逐另一侧后续漂移。
+- Runtime、图谱、索引等运行时发布与应用代码是两条独立版本线。`runtime:publish` 读取工作树字节，把 Git SHA 只写入 provenance；不要求与已发布应用的 `main` SHA 相同，也不再核验兼容性收据。Runtime 发布不得重建、替换或回退应用镜像。
+- `runtime:publish` 只决定哪些字节进入 OSS；`runtime:activate` 只切换宿主机 `current`/`previous`。内容正确性在作者态/CI 完成；存储完整性靠 CAS 与显式 `runtime:doctor`，日常发布不得全量重读未改文件。
+- 应用操作以 `origin/main` 的完整 SHA 和新应用发布版本为不可变起点。任一侧发布后都不得把另一次无关变更追进当次操作。

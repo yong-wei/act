@@ -13,23 +13,22 @@
 
 ## 未使用 OSS 对象退役
 
-生产切到 v2 blob-view 后，Bucket 里仍可能留下完整的 v1 前缀树，以及不被 active/rollback（及 desired/publishing/retained）引用的 blob。退役只允许走 `scripts/runtime-release/retire-unused-oss-runtime.py`：
+生产切到 v2 blob-view 后，Bucket 里仍可能留下完整的 v1 前缀树，以及不再被 `current`/`previous` 引用的 release 目录。退役只允许走显式 `npm run runtime:gc`：
 
-- `plan` 是默认动作，只列举和 HEAD/GET，不删除。
-- 删除范围仅限 `runtime/releases/` 与不可达的 `runtime/blobs/sha256/<sha>`。
-- 永不删除 `runtime/blob-releases/` 的 manifest/receipt，也不删除受保护 release 能到达的 blob。
-- `plan` / `execute` 必须持有 `--state-dir` 的 lifecycle 锁，保护集只来自 desired/active/rollback/publishing/retained，并绑定 `lifecycleGeneration` 与 `lifecycleSha256`。serving proof、plan 与 receipt 必须捕获并校验同一干净 Git 修订；脏工作区失败关闭。serving proof 只证明生产仍在服务该 active/rollback，不能手填扩大或缩小保护集。
-- `execute` 必须带 `--authorize-unused-oss-runtime-deletion yes`，并与已审查 plan 的 `planSha256` 完全一致；任一身份、对象集、lifecycle、Git 修订或 serving proof 漂移都失败关闭。
+- 默认 dry-run，只报告可移除的 release，不删除。
+- 保护集是 `current`、`previous`、仍被 ClassSession 引用的 release，以及人工 `--pin`。
+- `--execute` 只移除未被保护的 release 视图与 `runtime/blob-releases/<id>` 目录；永不删除 `runtime/blobs/sha256/<sha>`。
+- 全量 Blob 存在性与哈希审计属于 `npm run runtime:doctor -- --full`，不得挂到 publish/activate 或应用部署。
 
 ## 当前生产部署合同
 
 生产已切到 v2 `ossfs-blob-view`。应用容器只读 bind 已物化 view，不再从 ECS 本地 `course-content/runtime` 提供课程内容。
 
 - `npm run deploy:app`（`scripts/remote-deploy.sh --app-only`）只构建/上传/装载应用镜像，并绑定当前 blob-view。
-- `npm run deploy:runtime` 只做本机 OSS 发布与 ECS 物化/选择，不得 rsync 完整 runtime，也不得构建镜像或改数据库。
-- `npm run deploy:all` 按上述顺序组合。
+- `npm run runtime:publish` 把工作树变化写入 OSS CAS 与不可变 v2 manifest；`npm run runtime:activate` 再切换宿主机 `current`/`previous`。二者都不得 rsync 完整 runtime，也不得构建镜像或改数据库。
+- 应用与 Runtime 都变时按上述顺序分别执行；已删除 `deploy:runtime` 与 `deploy:all`。
 - `deploy/podman/deploy.sh`（远端 `4-deploy.sh`）默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，只 bind 现有 view 与 helper FUSE；view 缺失时失败关闭。
-- `remote-deploy.sh` 默认同样是 `ossfs-blob-view`，不会把本地 `course-content/runtime` rsync 到服务器。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。
+- `remote-deploy.sh` 默认同样是 `ossfs-blob-view`，不会把本地 `course-content/runtime` rsync 到服务器。`legacy-rsync` 已退役；更新 runtime 只能使用 `runtime:publish` 与 `runtime:activate`。
 - v1 `ossfs-release` 命令仅用于历史 prefix release，不是日常路径。
 
 ## 身份与权限
@@ -48,47 +47,30 @@ ECS 使用用户创建的受限服务角色 `act-runtime-oss-release-operator-ec
 
 普通 RAM 角色 `act-runtime-oss-release-operator` 预留为本机或受控 CI 的维护目标角色。它只允许在 `runtime/blobs/sha256/*`、`runtime/blob-releases/*` 与明确批准的发布来源前缀内执行发布、校验和经审查的回收操作；它不授予 Bucket 级管理、生产 selector、ossfs 配置、容器或数据库权限。该角色的信任策略应限定到专用本机维护身份，例如 `act-runtime-maintainer` RAM 用户或企业 SSO/OIDC 身份；维护身份自身只拥有对该一个角色的 `sts:AssumeRole` 权限。
 
-本机维护必须通过浏览器 OAuth、CloudSSO 或 OIDC 获取短期凭证后再 AssumeRole；不得把长期 AccessKey、Secret、STS token 写入仓库、`.env`、脚本、manifest 或日志。当前 SSH publisher/bridge 只接受 ECS IMDS 的 `act-runtime-oss-release-operator-ecs`，因此上述本机角色不能直接替代现有命令；后续必须实现并审查独立的本机 publisher adapter，保持相同的不可覆盖写入、readback 哈希校验、manifest-last 和发布互斥协议。不得以 `ossutil sync` 或普通对象覆盖取代该协议。
+本机维护必须通过浏览器 OAuth、CloudSSO 或 OIDC 获取短期凭证后再 AssumeRole；不得把长期 AccessKey、Secret、STS token 写入仓库、`.env`、脚本、manifest 或日志。日常发布已是本机 `runtime:publish`：用 ossutil 条件 PUT 写入 CAS blob，最后写不可变 manifest。不得以 `ossutil sync` 或普通对象覆盖取代该协议。ECS IMDS 的 `act-runtime-oss-release-operator-ecs` 仍只服务只读挂载、物化与恢复，不作为日常发布编排。
 
 创建本机维护身份、收窄普通 operator 角色的信任策略以及配置本机短期认证，均不改变正在运行的 ECS 导入。导入期间不得变更 ECS 实例绑定、`act-runtime-oss-release-operator-ecs` 的有效权限或 ossfs 配置；也不得让本机维护通道与 ECS 导入并发执行发布、导入或回收写操作。仅在当前导入产生终止 manifest、远端复核通过并释放其发布锁后，才可启用本机写入通道。
 
 ## 发布、验证与检查
 
-v1 发布命令在保存内容真源的主工作树运行。v2 发布命令必须从已冻结、可从 `origin/integration` 到达的 Git commit 的 `course-content/runtime` tree 读取 regular blobs；不得扫描工作树。本机不需要、也不得配置 OSS 长期凭据。
+日常 v2 发布扫描本机 `course-content/runtime` 工作树。本地 SQLite 索引记录 path/size/mtime_ns/sha256；只对 metadata 变化的文件计算哈希，再对新增内容做条件 PUT。`sourceRevision` 默认写入 `git rev-parse HEAD`，只作 provenance。索引缺失必须显式 `--bootstrap`，不得静默全量。凭据仍只来自本机受管 provider，不得写入仓库。
 
 ```bash
-npx tsx scripts/runtime-release/act-runtime-release.ts plan \
-  --runtime-root <main-worktree-runtime> \
-  --source-revision <40-char-git-sha>
+npm run runtime:publish -- --oss-bucket act-course-assets
+# 索引缺失时：
+npm run runtime:publish -- --oss-bucket act-course-assets --bootstrap
 
-npx tsx scripts/runtime-release/act-runtime-release.ts publish-streaming \
-  --runtime-root <main-worktree-runtime> \
-  --source-revision <40-char-git-sha> \
-  --release-id <release-id-from-plan> \
-  --bucket act-course-assets \
-  --ssh-target root@<ecs-host> \
-  --remote-bridge-path </absolute/runtime-release-oss-publisher-bridge.py> \
-  --known-hosts-file </absolute/known_hosts> \
-  --identity-file </absolute/ssh-private-key> \
-  --output <verification-receipt.json>
+npm run runtime:activate -- \
+  --store-dir <store> \
+  --state-dir <state> \
+  --release-id <release-id>
 
-npx tsx scripts/runtime-release/act-runtime-release.ts verify \
-  --release-id <release-id> --bucket act-course-assets \
-  --ssh-target root@<ecs-host> \
-  --remote-bridge-path </absolute/runtime-release-oss-publisher-bridge.py> \
-  --known-hosts-file </absolute/known_hosts> \
-  --identity-file </absolute/ssh-private-key> \
-  --output <verification-receipt.json>
-
-npx tsx scripts/runtime-release/act-runtime-release.ts inspect \
-  --release-id <release-id> --bucket act-course-assets \
-  --ssh-target root@<ecs-host> \
-  --remote-bridge-path </absolute/runtime-release-oss-publisher-bridge.py> \
-  --known-hosts-file </absolute/known_hosts> \
-  --identity-file </absolute/ssh-private-key>
+npm run runtime:rollback -- --store-dir <store> --state-dir <state>
+npm run runtime:doctor -- --store-dir <store> --state-dir <state> --full
+npm run runtime:gc -- --store-dir <store> --state-dir <state>
 ```
 
-将 bridge 脚本以固定、root-owned 路径部署到 ECS 后，`publish-streaming` 以单个 SSH 流发送 frozen manifest 和缺失对象；ECS 不产生完整 runtime staging 副本。bridge 对每个 Release 前缀持有排他锁，只续传与 manifest 完全一致的既有对象，并在逐对象远端 SHA-256/size 校验后最后写入 manifest。任一中断、额外对象或不匹配都会失败，且不得生成 selection。Release prefix 从不覆盖、从不原地修复。`publish-streaming`、`verify` 与 `inspect` 都在 ECS 上通过上述精确 IMDS 角色执行，不在本机伪造 RAM Role。`verify` 核验 manifest、完整 key/size 集合和三个有上限的代表对象；完整 body hash 只保留在 publisher upload/readback 收据中。
+`runtime:publish` 不激活。激活只比较 current manifest 的 Δ 路径、确认这些 Blob 可见、检查固定 sentinel，然后原子切换 `current`/`previous`。回滚交换两个指针，不重新上传。`runtime:doctor` 与 `runtime:gc` 不得由 publish、activate 或 `deploy:app` 隐式调用。对象键保持 `runtime/blobs/sha256/<sha256>` 与 `runtime/blob-releases/<releaseId>/manifest.json`。
 
 ## 2026-08-11 实际候选证据
 
@@ -113,61 +95,35 @@ npx tsx scripts/runtime-release/act-runtime-release.ts inspect \
 npm run deploy:app -- --skip-build
 
 # runtime 内容
-npm run deploy:runtime
-
-# 历史 v1 prefix release（非日常路径）
-RUNTIME_DELIVERY_MODE=ossfs-release \
-RUNTIME_RELEASE_ID=<new-release-id> \
-RUNTIME_EXPECTED_ACTIVE_RELEASE=<none-or-current-release-id> \
-RUNTIME_VERIFICATION_RECEIPT=<verified-receipt.json> \
-RUNTIME_OSS_RAM_ROLE=<runtime-role> \
-scripts/remote-deploy.sh --skip-build
+npm run runtime:publish -- --oss-bucket act-course-assets
+npm run runtime:activate -- --store-dir <store> --state-dir <state> --release-id <release-id>
 ```
 
-宿主机在 `flock` 下把 desired selection 写入 ext4，并在 mount、hash、容器 `/api/readyz` 成功后才写 active receipt。OSS 不使用可变 `current.json`：OSS PutObject 不提供可依赖的 CAS 语义。
+宿主机只保留 `current` 与 `previous`。OSS 不使用可变 `current.json`：OSS PutObject 不提供可依赖的 CAS 语义。
 
 ## 回退与热缓存
 
-回退必须重新验证目标旧 Release，并传入当前 active release 作为 fence：
+回退交换宿主机 `current` 与 `previous`，不重新上传：
 
 ```bash
-scripts/runtime-release/rollback-runtime-release.sh \
-  --release-id <verified-old-release> \
-  --expected-active-release <current-release> \
-  --verification-receipt <old-release-receipt.json> \
-  --ram-role <runtime-role>
+npm run runtime:rollback -- --store-dir <store> --state-dir <state>
 ```
 
 候选挂载如果造成 retrieval 明显、可重复的读取退化，可运行 `stage-textbook-retrieval-hot-cache.ts`。它只复制三项热索引，目录以 manifest SHA-256 命名并逐文件校验；未出现候选性能回归时不得启用该缓存。
 
 ## 删除前的人工确认点
 
-删除旧 ECS runtime 必须显式传入 `execute-production-runtime-cutover.sh --delete-legacy-runtime`，并同时指定已验证的 OSS rollback Release 与其 receipt。该受限操作仅在 active receipt 已选择新 Release、app 将该 Release 的只读 ossfs 路径唯一 bind 到 `/app/course-content/runtime`，且最多只有同一 Release 的 `knowledge/projection` 只读子路径 bind、app/worker 都不再持有 legacy runtime 或其子路径的 bind、worker 不持有 runtime、Authority 或 Teaching Projection 的文件系统 bind、`readyz` 正常、rollback Release 能重新挂载并通过 manifest/文件集合/代表性内容验证之后执行。它只删除精确 legacy runtime 目录，保留 OSS 中的新旧 Release、selector、active receipt 和退休收据。
+删除旧 ECS runtime 必须在 `runtime:activate` 成功、app 将当前 Release 的只读 ossfs 路径唯一 bind 到 `/app/course-content/runtime`，且最多只有同一 Release 的 `knowledge/projection` 只读子路径 bind、app/worker 都不再持有 legacy runtime 或其子路径的 bind、worker 不持有 runtime、Authority 或 Teaching Projection 的文件系统 bind、`readyz` 正常、`previous` Release 仍可挂载之后，再由人工确认执行。它只删除精确 legacy runtime 目录，保留 OSS 中的新旧 Release 与宿主机指针。未引用的 release 目录走 `runtime:gc`；Blob 默认保留。
 
 预期可释放的上限是当前 runtime 已分配空间约 5.95GB；实际释放量受文件系统块、仍保留的热缓存和旧目录状态影响。
 
 未解决风险：生产容器尚未以该候选 Release 启动，因而 application-level 课程路由与媒体短时 redirect 仍须在实际切换事务中验证；19 项媒体输入仍 unresolved。旧 ECS runtime 的删除继续等待生产 smoke、可回退 Release 与人工确认。
 
-## v2 Blob Release 候选流程（不含生产选择）
+## v2 Blob Release 候选流程（历史，生产已切过）
 
-v2 将相同 SHA-256 内容存为 `runtime/blobs/sha256/<sha256>`，每个逻辑 Release 仅保留 `manifest.json` 与 `receipt.json`。该流程不修改 v1 selector、active receipt、ossfs 挂载、Podman bind 或生产角色；候选通过前，v1 仍是唯一生产 authority。
+v2 将相同 SHA-256 内容存为 `runtime/blobs/sha256/<sha256>`，每个逻辑 Release 保留不可变 `manifest.json`。生产已使用该对象键；日常不再走 `act-runtime-release.ts`、SSH publisher bridge、lifecycle 或 `materialize-runtime-blob-release.py`。现行入口见上文「发布、验证与检查」。
 
-1. 在冻结的 Git commit 上计算候选身份。v2 CLI 必须从该 commit 的 `course-content/runtime` Git tree 读取 regular blob，不能扫描工作树；正式发布的 commit 必须是 `origin/integration` 的祖先。`build-manifest` 只写本地候选文件，不能视为已发布。
-
-   ```bash
-    npx tsx scripts/runtime-release/act-runtime-release.ts build-manifest \
-     --repo-root <repository-root> \
-     --source-revision <40-char-git-sha> \
-     --format v2 \
-     --output <candidate-manifest.json>
-   ```
-
-2. 通过现有 SSH publisher 以 `--format v2` 发布。bridge 只将缺失 blob 条件写入，独立校验已存在 blob 的 size/SHA，写入 immutable receipt 后才把 manifest 作为终止对象。publish receipt 和后续 verify receipt 都必须保存，且不得包含凭据。
-3. 以当前 ECS operator role `inspect --format v2` 取得远端 manifest 与 receipt；将 blob namespace 以只读 ossfs 挂载到仅宿主机可见的目录。在 ext4 候选目录执行 `materialize-runtime-blob-release.py prepare`、`verify`，再测量教材索引的 cold、warm、concurrent 读取。`select` 只改变候选 view-root 的本地 `current` 指针，不得接入 Podman。
-4. 使用 `runtime-blob-release-lifecycle.py` 初始化独立候选 state。marker 缺失时 v1 state 仍有效；marker 为 `v2` 后 lifecycle/journal 为唯一 authority。desired、active、rollback、publishing 与 retained lease 都进入 protected set，失败的 desired 不能被 GC 删除。Release 离开 active/rollback 时，状态事务自动写入不短于媒体签名最大 TTL 的 lease；只在 deadline 已到且 generation-CAS 的 `release-retained` 成功后取消该保护。
-5. 只对 disposable local mirror 演练 `runtime-blob-release-gc.py plan` 与 `execute`。真实 OSS 回收必须另有经审查的 bridge deletion adapter、同一 lifecycle lock、完整 continuation-safe object index、generation fence、逐对象 readback 和删除 receipt；普通 GC 不删除 manifest 或 receipt。
-
-候选完成证据至少包含：发布/读取 receipt、manifest/blob closure、物化目录全量校验、课程/媒体/检索 smoke、cold/warm/concurrent benchmark、lifecycle crash/recovery、GC dry-run，以及 v1 rollback projection。满足这些条件后，才可单独请求 v2 production selection 授权。
+历史候选清单只用于理解当时的第一次导入，不得当作现行命令：当时要求从冻结 Git tree 读 blob、SSH 条件写入、独立 lifecycle/journal，以及本地 mirror 上的 GC dry-run。这些控制面脚本已删除。
 
 ## 知识图谱根入口 404（coverage 收据缺失）恢复路径（#1942）
 
@@ -178,7 +134,7 @@ v2 将相同 SHA-256 内容存为 `runtime/blobs/sha256/<sha256>`，每个逻辑
 恢复路径：
 
 1. 目标身份以 composite registry 的 v0.37 条目为唯一真源（shard set、catalog、activation 五元组），不接受手工拼装。
-2. 以包含目标分片集的 Git commit（必须是 `origin/integration` 祖先）按上文 v2 Blob Release 候选流程发布新 release 并 select；或由 cutover 控制面脚本在同一事务内上传分片集 blob、写入 `sets/<shard-set-id>/` 链接并切换 `knowledge/authority-domain-shards/current.json` 指针。
+2. 以包含目标分片集的工作树运行 `runtime:publish` 再 `runtime:activate`；或由 cutover 控制面脚本在同一事务内上传分片集 blob、写入 `sets/<shard-set-id>/` 链接并切换 `knowledge/authority-domain-shards/current.json` 指针。知识 cutover 只能调用新的 activate/rollback，不得恢复已删除的 Runtime lifecycle。
 3. 切换后核验：根分片 API 返回 200；容器日志不再出现 locale-qualification historical fallback 警告；`/knowledge` 已登录视觉验收通过。
 
 英文切换伴随条件：运行时镜像必须打包 `course-content/authoring/knowledge/cutover/envelopes/locale-manifests/`（Dockerfile 与 `.dockerignore` 同时放行，#1942 已修）；资格包内的 `interfaceCatalogDigest` 绑定编译期文案目录，新增界面文案键后必须用 `scripts/knowledge-cutover/build-v037-r5-locale-qualification.ts` 重封资格包。

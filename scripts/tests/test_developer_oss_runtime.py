@@ -18,6 +18,7 @@ sys.path.insert(0, str(DEV))
 
 from bootstrap import (  # noqa: E402
     linux_preflight,
+    materialize_view,
     mount_fields,
     parse_readyz_identity,
     prepare,
@@ -294,19 +295,13 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         blob_root = root / "blobs"
         view_root = root / "materialized"
         view_root.mkdir()
-        script = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
-        subprocess.run([sys.executable, str(script), "prepare", "--manifest", str(manifest_path), "--receipt", str(receipt_path), "--blob-root", str(blob_root), "--view-root", str(view_root)], check=True, capture_output=True)
+        os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
+        materialize_view(manifest_path, receipt_path, blob_root, view_root, manifest["releaseId"])
         view = view_root / "views" / manifest["releaseId"]
         for candidate in sorted(view.rglob("*"), key=lambda path: len(path.parts), reverse=True):
             if candidate.is_dir() and not candidate.is_symlink():
                 os.chmod(candidate, 0o755)
         os.chmod(view, 0o755)
-        for command in (
-            [sys.executable, str(script), "attach-helper", "--release-id", manifest["releaseId"], "--view-root", str(view_root), "--blob-root", str(blob_root), "--test-fixture"],
-            [sys.executable, str(script), "verify", "--release-id", manifest["releaseId"], "--view-root", str(view_root)],
-            [sys.executable, str(script), "select", "--release-id", manifest["releaseId"], "--view-root", str(view_root)],
-        ):
-            subprocess.run(command, check=True, capture_output=True)
         selected = view_root / "current"
         lesson = selected / "lessons" / "1-1" / "lesson.json"
         self.assertEqual(lesson.read_bytes(), b'{"lesson":"1-1"}\n')
@@ -1147,27 +1142,10 @@ GOVERNANCE_REGISTRY = {
 
 
 def materialize_fixture_view(root, manifest, manifest_path, receipt_path):
-    script = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
+    os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
     view_root = root / "materialized"
     view_root.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        [sys.executable, str(script), "prepare", "--manifest", str(manifest_path), "--receipt", str(receipt_path),
-         "--blob-root", str(root / "blobs"), "--view-root", str(view_root), "--skip-blob-hash"],
-        check=True, capture_output=True,
-    )
-    subprocess.run(
-        [sys.executable, str(script), "attach-helper", "--release-id", manifest["releaseId"],
-         "--view-root", str(view_root), "--blob-root", str(root / "blobs"), "--test-fixture"],
-        check=True, capture_output=True,
-    )
-    subprocess.run(
-        [sys.executable, str(script), "verify", "--release-id", manifest["releaseId"], "--view-root", str(view_root)],
-        check=True, capture_output=True,
-    )
-    subprocess.run(
-        [sys.executable, str(script), "select", "--release-id", manifest["releaseId"], "--view-root", str(view_root)],
-        check=True, capture_output=True,
-    )
+    materialize_view(manifest_path, receipt_path, root / "blobs", view_root, manifest["releaseId"])
     return view_root / "current"
 
 

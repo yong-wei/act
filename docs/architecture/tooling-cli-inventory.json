@@ -10,7 +10,7 @@
       "build",
       "wasm:build:control-engine"
     ],
-    "uniqueSecurityValidator": "release/rollback safety validation stays with the existing runtime-release validator chain (test:runtime-release-activation-rollback, test:runtime-production-cutover-contract); inventory adds no second validator"
+    "uniqueSecurityValidator": "release/rollback safety validation stays with the runtime CAS contract tests (test:runtime-cas-publish, test:runtime-cas-activate, test:runtime-cas-doctor); inventory adds no second validator"
   },
   "namespaces": {
     "build": {
@@ -554,17 +554,9 @@
         "receiptPrivacyClass": "logs stay local under .logs/"
       },
       "commands": {
-        "deploy:all": {
-          "status": "active",
-          "target": "scripts/deploy-all-with-runtime-blobs.sh"
-        },
         "deploy:app": {
           "status": "active",
           "target": "scripts/remote-deploy.sh"
-        },
-        "deploy:runtime": {
-          "status": "active",
-          "target": "scripts/deploy-runtime-blob-release.sh"
         },
         "dev": {
           "status": "active",
@@ -590,6 +582,26 @@
         "runtime:dev-validate-policy": {
           "status": "active",
           "target": "scripts/runtime-release/developer-oss/cli.py"
+        },
+        "runtime:publish": {
+          "status": "active",
+          "target": "scripts/runtime-release/publish-runtime.py"
+        },
+        "runtime:activate": {
+          "status": "active",
+          "target": "scripts/runtime-release/activate-runtime.sh"
+        },
+        "runtime:rollback": {
+          "status": "active",
+          "target": "scripts/runtime-release/activate-runtime.sh"
+        },
+        "runtime:doctor": {
+          "status": "active",
+          "target": "scripts/runtime-release/runtime-doctor.py"
+        },
+        "runtime:gc": {
+          "status": "active",
+          "target": "scripts/runtime-release/runtime-gc.py"
         },
         "shutdown": {
           "status": "active",
@@ -1043,9 +1055,21 @@
           "status": "active",
           "target": "scripts/tests/test-runtime-media-handout-disposition-review.ts"
         },
+        "test:runtime-cas-activate": {
+          "status": "active",
+          "target": "scripts/tests/test_activate_runtime.py"
+        },
+        "test:runtime-cas-doctor": {
+          "status": "active",
+          "target": "scripts/tests/test_runtime_doctor_gc.py"
+        },
+        "test:runtime-cas-publish": {
+          "status": "active",
+          "target": "scripts/tests/test_publish_runtime.py"
+        },
         "test:runtime-production-cutover-contract": {
           "status": "active",
-          "target": "scripts/tests/test-runtime-production-cutover-contract.mjs"
+          "target": "scripts/tests/test_activate_runtime.py"
         },
         "test:runtime-production-readyz": {
           "status": "active",
@@ -1053,15 +1077,15 @@
         },
         "test:runtime-release-activation-rollback": {
           "status": "active",
-          "target": "scripts/tests/test-runtime-release-activation-rollback.mjs"
+          "target": "scripts/tests/test_activate_runtime.py"
         },
         "test:runtime-release-deployment-contract": {
           "status": "active",
-          "target": "scripts/tests/test-runtime-release-deployment-contract.mjs"
+          "target": "scripts/tests/test_publish_runtime.py"
         },
         "test:runtime-release-oss-publisher-bridge": {
           "status": "active",
-          "target": "scripts/tests/test-runtime-release-oss-publisher-bridge.mjs"
+          "target": "scripts/tests/test_publish_runtime.py"
         },
         "test:semester-usage": {
           "status": "active",
@@ -1192,6 +1216,18 @@
   },
   "retired": [
     {
+      "command": "deploy:all",
+      "canonical": "deploy:app",
+      "evidence": "Combined app+runtime wrapper scripts/deploy-all-with-runtime-blobs.sh was deleted. Application deploy remains deploy:app; Runtime now uses runtime:publish then runtime:activate.",
+      "removedInChange": "simplify-runtime-cas-publish-activate"
+    },
+    {
+      "command": "deploy:runtime",
+      "canonical": "runtime:publish",
+      "evidence": "scripts/deploy-runtime-blob-release.sh and the old act-runtime-release control plane were deleted. Daily Runtime publish is runtime:publish; activation is the separate runtime:activate command.",
+      "removedInChange": "simplify-runtime-cas-publish-activate"
+    },
+    {
       "command": "db:materialize-core-semantic-review",
       "canonical": "db:resource-field-completion-audit",
       "evidence": "Identical target scripts/db/generate-resource-field-completion-audit.ts via tools/migration-backfill/cli.ts apply; no env divergence; live callers (delivery-clean test, resource-field-completion-audit.test.ts) all use the canonical name.",
@@ -1248,7 +1284,7 @@
   ],
   "rollback": "Restore a retired alias by re-adding its package.json script line (identical target and cli invocation are recorded in the retired entries). No selector, deployment, receipt or database state is touched by this consolidation.",
   "sourceIdentity": {
-    "captureDenominatorSha256": "ea77a725f73295ddf03fcc851aed80fa6764dac7f42df3ad6ab6386ff2c65277",
+    "captureDenominatorSha256": "ebd3e1bb05d6b08c337794bb00e9b92d61bfd9bf1b1e1aa692140e6b0141cf6a",
     "note": "captureDenominatorSha256 binds this inventory to its full capture denominator: the package.json scripts object (sorted), the git blob sha1 of every declared target file, the documented direct-invoke command list, and the direct-invoke operator identities parsed from scripts/README.md and AGENTS.md. Any later change to command bodies, target script contents, documented invocations, or inventory classification without an identity refresh fails closed in tooling-cli-inventory.test.ts via workspace and git-HEAD double comparison. Refresh with: npx tsx scripts/tests/refresh-tooling-cli-inventory-identity.ts"
   },
   "documentedDirectEntries": [

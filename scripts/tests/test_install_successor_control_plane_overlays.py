@@ -586,7 +586,7 @@ class InstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):
 
 
 REMOTE = ROOT / "scripts/knowledge-cutover/remote-install-successor-control-plane-overlays.sh"
-MATERIALIZER = ROOT / "scripts/runtime-release/materialize-runtime-blob-release.py"
+MATERIALIZER = ROOT / "scripts/runtime-release/materialize-runtime.py"
 
 
 class RemoteInstallSuccessorControlPlaneOverlaysTest(unittest.TestCase):

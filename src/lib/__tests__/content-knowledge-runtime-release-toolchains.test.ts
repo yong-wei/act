@@ -36,14 +36,14 @@ describe('content knowledge runtime release toolchains', () => {
       role: 'operator-adapter',
       retirementCondition: 'retain-as-explicit-operator-adapter',
     });
-    expect(classifyReleasePath('scripts/runtime-release/materialize-runtime-blob-release.py')).toMatchObject({
+    expect(classifyReleasePath('scripts/runtime-release/publish-runtime.py')).toMatchObject({
       toolchain: 'runtime-release',
-      role: 'publication-writer',
+      role: 'operator-adapter',
     });
     expect(classifyReleasePath('scripts/runtime-release/developer-oss/cli.py').role).toBe('operator-adapter');
     expect(classifyReleasePath('scripts/knowledge/select-local-graph-course-candidate.ts').role).toBe('operator-adapter');
     expect(classifyReleasePath('scripts/knowledge/assert-knowledge-publication-consistency.ts').safetyMode).toBe('read-only');
-    expect(classifyReleasePath('scripts/runtime-release/activate-runtime-release.sh').role).toBe('operator-adapter');
+    expect(classifyReleasePath('scripts/runtime-release/activate-runtime.sh').role).toBe('operator-adapter');
   });
 
   it('rejects apply without approval and never executes publication or activation', () => {
@@ -93,7 +93,13 @@ describe('content knowledge runtime release toolchains', () => {
   it('qualifies the live captured-tree inventory without product writer imports', () => {
     const result = checkContentKnowledgeRuntimeRelease(process.cwd());
     expect(result.counts).toEqual(FROZEN_COUNTS);
-    expect(result.commands).toHaveLength(42 + 26 + 80 + 44 + 5);
+    expect(result.commands).toHaveLength(
+      FROZEN_COUNTS['course-content/scripts']
+        + FROZEN_COUNTS['scripts/knowledge']
+        + FROZEN_COUNTS['scripts/knowledge-cutover']
+        + FROZEN_COUNTS['scripts/runtime-release']
+        + FROZEN_COUNTS['scripts/release'],
+    );
     expect(result.commands.some((item) => item.role === 'operator-adapter')).toBe(true);
     expect(result.commands.some((item) => item.path === CHARACTERIZATION_PATHS.content)).toBe(true);
     expect(result.characterization.knowledge.projectionHandoff).toEqual(PROJECTION_HANDOFF);
@@ -111,7 +117,8 @@ describe('content knowledge runtime release toolchains', () => {
     expect(result.sampleReceipt.artifactDigest).toBeNull();
     expect(result.characterization.runtime.artifactDigest).toBeNull();
     expect(result.sampleReceipt.sourceRevision).toBe(result.characterization.content.sourceRevision);
-    expect(pkg.scripts['deploy:runtime']).toContain('scripts/deploy-runtime-blob-release.sh');
+    expect(pkg.scripts['runtime:publish']).toContain('scripts/runtime-release/publish-runtime.py');
+    expect(pkg.scripts['runtime:activate']).toContain('scripts/runtime-release/activate-runtime.sh');
     expect(pkg.scripts['startup:oss-runtime']).toContain('scripts/runtime-release/developer-oss/cli.py');
     const exportCommand = result.commands.find((item) => item.path === 'scripts/release/export-textbook-runtime-v2.mjs');
     const publishCommand = result.commands.find((item) => item.path === CHARACTERIZATION_PATHS.knowledge);

@@ -133,8 +133,9 @@ describe('tooling CLI delivery and graph gates', () => {
 
   it('keeps release/rollback validation and non-activating publication checks active', () => {
     const releaseContractCommands = [
-      'test:runtime-release-activation-rollback',
-      'test:runtime-production-cutover-contract',
+      'test:runtime-cas-publish',
+      'test:runtime-cas-activate',
+      'test:runtime-cas-doctor',
       'content-knowledge-runtime:check',
       'teaching-projection:check',
     ];

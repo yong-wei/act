@@ -30,6 +30,16 @@ scripts/
 | `npm run test:integration` | PostgreSQL/Redis/worker 等适配层测试 |
 | `npm run test:e2e:playwright` | 历史 Playwright 全量，现由 nightly/E2E 组件保留 |
 | `npm run db:sync-remote` | 用远端数据库替换本地开发库，脚本会先备份本地库 |
+| `npm run deploy:app` | 只发布应用镜像并绑定现有 blob-view |
+| `npm run runtime:publish` | 把课程 Runtime 增量写入 OSS CAS |
+| `npm run runtime:activate` | 切换宿主机 `current`/`previous` |
+| `npm run runtime:rollback` | 交换 `current` 与 `previous` |
+| `npm run runtime:doctor` | 显式全量校验，不在发布热路径 |
+| `npm run runtime:gc` | 显式回收未引用 release，默认不删 Blob |
+
+## 应用与 Runtime 发布
+
+应用镜像与课程 Runtime 是两条独立发布线。`deploy:app` 只装载镜像；Runtime 先 `runtime:publish` 再 `runtime:activate`。已删除 `deploy:runtime` 与 `deploy:all`，不得再同步本地 `course-content/runtime`。
 
 ## 本地启停
 
