@@ -19,7 +19,7 @@
 
 ## Decisions
 
-1. **继续复用 `btn-disposition` 类，只改成不透明色。** 不新增组件库或按钮 primitive。
+1. **不透明色写在组件旁的 `diagnosis-disposition-buttons.css`。** 继续复用 `btn-disposition` 类名，不新增按钮 primitive。样式不放回 `globals.css`，避免该文件的开发缓存盖住实色规则。
 2. **备课入口单独用 `btn-disposition-primary`。** 它是导航，不是处置记录。
 3. **选中态写在 `DispositionButton`。** 用当前 `latestByTarget` 对照 action，设置 `aria-pressed` 并加勾选图标。
 4. **浏览器验收复用既有诊断交付 Playwright 夹具路由。** 不接真实班级 ID，不依赖 capture-gated 证据套件。
