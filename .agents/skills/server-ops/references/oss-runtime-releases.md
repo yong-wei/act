@@ -49,7 +49,7 @@
 - `deploy:app` / `remote-deploy.sh --app-only` 只处理应用镜像与应用部署，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，绑定远端已物化 view；`4-deploy.sh` 只做只读 bind，不复制 runtime。
 - `remote-deploy.sh` 不再默认 rsync。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run runtime:publish` 与 `npm run runtime:activate`。已删除 `deploy:runtime` 与 `deploy:all`。不要让 runtime-only 修改进入 image/database 发布链路。
 - `runtime:publish` 读取 `course-content/runtime` 工作树，`sourceRevision` 默认写入 `git rev-parse HEAD`，只作 provenance；它不要求与生产应用的 `origin/main` revision 相同，也不再核验兼容性收据。索引在 `var/cache/runtime-release/index.sqlite`；缺失时必须显式 `--bootstrap`。未改文件且同一 sourceRevision 再发布应为 `hashed=0`、`uploaded=0`，且无 OSS HEAD/GET。
-- `runtime:doctor --full` 与 `runtime:gc` 是独立只读/回收命令。日常 publish/activate 与应用部署不得调用它们。`runtime:gc` 默认 dry-run，且永不删除 Blob。`--execute` 必须在 `.act-runtime-selection.lock` 内重读保护集，删除 view 前卸载 helper，并保留 current、previous、课堂引用的 `CourseBundleRevision.runtimeReleaseId` 与 pin；显式 `--session-release` 与数据库发现结果取并集，不能代替发现。发现不到课堂引用时失败关闭，夹具才允许 `--no-session-refs`。
+- `runtime:doctor --full` 与 `runtime:gc` 是独立只读/回收命令。日常 publish/activate 与应用部署不得调用它们。生产 doctor 用 `--manifest` 读 cas-store 中的单份清单，用 `--blob-root` 读 ossfs Blob。`runtime:gc` 默认 dry-run，且永不删除 Blob。`--execute` 必须在 `.act-runtime-selection.lock` 内重读保护集，删除 view 前卸载 helper，并保留 current、previous、课堂引用的 `CourseBundleRevision.runtimeReleaseId` 与 pin；显式 `--session-release` 与数据库发现结果取并集，不能代替发现。发现不到课堂引用时失败关闭，夹具才允许 `--no-session-refs`。
 
 ## 发布与删除顺序
 

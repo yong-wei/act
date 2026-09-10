@@ -30,7 +30,15 @@ INDEX_SCHEMA = "runtime-publish-index.v1"
 SHA256_PATTERN = __import__("re").compile(r"^[a-f0-9]{64}$")
 RELEASE_ID_PATTERN = __import__("re").compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 IGNORED_NAMES = {".DS_Store", ".act-runtime-release.v1.json", ".act-runtime-release.v2.json"}
-OSS_HIT_MARKERS = ("already exists", "filealreadyexists", "forbid-overwrite", "preconditionfailed")
+OSS_HIT_MARKERS = (
+    "filealreadyexists",
+    "preconditionfailed",
+    "status code: 412",
+    "statuscode: 412",
+    "http status: 412",
+    '"status": 412',
+    '"status":412',
+)
 
 
 class PublishError(RuntimeError):

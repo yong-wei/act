@@ -583,6 +583,36 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertEqual(switched["previous"], first["releaseId"])
             self.assertEqual(os.readlink(state / "previous"), f"views/{first['releaseId']}")
 
+    def test_receipt_write_failure_restores_selection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            blocked = state / "blocked-receipt"
+            blocked.mkdir()
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            failed = self.activate(
+                store,
+                state,
+                second["releaseId"],
+                "--active-receipt",
+                str(blocked),
+                expect_ok=False,
+            )
+            self.assertIn("unable to write active receipt after current pointer commit", failed.stderr)
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+            pointers = json.loads((state / "pointers.json").read_text(encoding="utf-8"))
+            self.assertEqual(pointers["current"], first["releaseId"])
+            receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(receipt["selection"]["releaseId"], first["releaseId"])
+
     def test_helper_leaf_links_do_not_stat_helper_files(self):
         materialize = load_materialize()
         with tempfile.TemporaryDirectory() as directory:

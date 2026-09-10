@@ -98,6 +98,45 @@ class RuntimeDoctorGcTests(unittest.TestCase):
             self.assertGreaterEqual(report["hashed"], 1)
             self.assertEqual((state / "pointers.json").read_text(encoding="utf-8"), before)
 
+    def test_doctor_accepts_split_manifest_and_blob_root(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            blob_root = root / "ossfs" / "blobs"
+            cas = root / "cas-store"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            manifest = store / "runtime" / "blob-releases" / first["releaseId"] / "manifest.json"
+            cas_manifest = cas / "runtime" / "blob-releases" / first["releaseId"] / "manifest.json"
+            cas_manifest.parent.mkdir(parents=True)
+            cas_manifest.write_bytes(manifest.read_bytes())
+            blob_root.mkdir(parents=True)
+            for blob in (store / "runtime" / "blobs" / "sha256").iterdir():
+                (blob_root / blob.name).write_bytes(blob.read_bytes())
+            report = self.run_json(
+                [
+                    "python3",
+                    str(DOCTOR),
+                    "--store-dir",
+                    str(cas),
+                    "--state-dir",
+                    str(state),
+                    "--release-id",
+                    first["releaseId"],
+                    "--manifest",
+                    str(cas_manifest),
+                    "--blob-root",
+                    str(blob_root),
+                    "--full",
+                ]
+            )
+            self.assertEqual(report["releaseId"], first["releaseId"])
+            self.assertGreaterEqual(report["hashed"], 1)
+
     def test_gc_dry_run_keeps_blobs_and_execute_retains_current_previous_and_pins(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

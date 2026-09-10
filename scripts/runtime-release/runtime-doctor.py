@@ -58,13 +58,16 @@ def audit(args):
             raise DoctorError("no current release to audit")
         release_id = pointers["current"]
     pointers = read_pointers(Path(args.state_dir)) if args.state_dir else {"current": None, "previous": None}
-    manifest = MATERIALIZE.load_manifest(MATERIALIZE.manifest_path(store, release_id))
+    if args.manifest:
+        manifest = MATERIALIZE.load_manifest(Path(args.manifest))
+    else:
+        manifest = MATERIALIZE.load_manifest(MATERIALIZE.manifest_path(store, release_id))
     if manifest["releaseId"] != release_id:
         raise DoctorError("manifest releaseId does not match the requested release")
     checked = 0
     hashed = 0
     for item in manifest["files"]:
-        blob = MATERIALIZE.blob_path(store, item["sha256"])
+        blob = MATERIALIZE.blob_path(store, item["sha256"], blob_root=args.blob_root)
         try:
             size = blob.stat().st_size
         except OSError:
@@ -93,6 +96,8 @@ def build_parser():
     parser.add_argument("--store-dir", required=True)
     parser.add_argument("--state-dir")
     parser.add_argument("--release-id")
+    parser.add_argument("--manifest")
+    parser.add_argument("--blob-root")
     parser.add_argument("--full", action="store_true")
     return parser
 

@@ -126,7 +126,7 @@ def snapshot_bytes(path):
 
 def restore_bytes(path, payload):
     if payload is None:
-        if path.exists() or path.is_symlink():
+        if path.is_symlink() or (path.exists() and path.is_file()):
             path.unlink()
         return
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -289,7 +289,12 @@ def activate(args):
     receipt_path = resolve_active_receipt_path(args, state_dir)
     previous_receipt = snapshot_bytes(receipt_path)
     commit_selection(state_dir, next_pointers, view)
-    write_active_receipt(receipt_path, candidate, receipt_generation(receipt_path) + 1)
+    try:
+        write_active_receipt(receipt_path, candidate, receipt_generation(receipt_path) + 1)
+    except Exception as error:
+        restore_selection(state_dir, pointers)
+        restore_bytes(receipt_path, previous_receipt)
+        raise ActivateError("unable to write active receipt after current pointer commit: %s" % error)
     reload = optional_command(args.reload_consumers, os.environ.get("ACT_RUNTIME_RELOAD_CONSUMERS"))
     if reload:
         try:
@@ -324,7 +329,15 @@ def rollback(args):
     receipt_path = resolve_active_receipt_path(args, state_dir)
     previous_receipt = snapshot_bytes(receipt_path)
     commit_selection(state_dir, next_pointers, previous_view)
-    write_active_receipt(receipt_path, previous_manifest, receipt_generation(receipt_path) + 1)
+    try:
+        write_active_receipt(receipt_path, previous_manifest, receipt_generation(receipt_path) + 1)
+    except Exception as error:
+        current_view = MATERIALIZE.existing_view(state_dir, pointers["current"])
+        if current_view is None:
+            raise ActivateError("unable to write active receipt after current pointer commit: %s" % error)
+        commit_selection(state_dir, pointers, current_view)
+        restore_bytes(receipt_path, previous_receipt)
+        raise ActivateError("unable to write active receipt after current pointer commit: %s" % error)
     reload = optional_command(args.reload_consumers, os.environ.get("ACT_RUNTIME_RELOAD_CONSUMERS"))
     if reload:
         try:

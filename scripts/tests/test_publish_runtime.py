@@ -254,6 +254,47 @@ class PublishRuntimeTests(unittest.TestCase):
             self.assertIn("put-object", log_text)
             self.assertIn("--forbid-overwrite", log_text)
 
+    def test_ossutil_unknown_forbid_overwrite_flag_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "oss"
+            fake = root / "fake-ossutil"
+            fake.write_text(
+                "\n".join(
+                    [
+                        "#!/usr/bin/env python3",
+                        "import sys",
+                        "sys.stderr.write('unknown flag: --forbid-overwrite\\n')",
+                        "sys.exit(1)",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            os.chmod(fake, os.stat(fake).st_mode | stat.S_IEXEC)
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"1-1"}\n'})
+            result = self.publish(
+                "--root",
+                str(runtime),
+                "--index",
+                str(index),
+                "--oss-bucket",
+                "test-bucket",
+                "--ossutil",
+                str(fake),
+                "--source-revision",
+                SOURCE_REVISION,
+                "--bootstrap",
+                expect_ok=False,
+            )
+            self.assertIn("conditional PUT failed", result.stderr)
+            self.assertFalse(any(store.rglob("*")))
+            connection = __import__("sqlite3").connect(index)
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM files").fetchone()[0], 0)
+            connection.close()
+
 
 if __name__ == "__main__":
     unittest.main()
