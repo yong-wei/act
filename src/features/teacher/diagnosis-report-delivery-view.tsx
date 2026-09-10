@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { ExternalLink, FileCheck2, Printer, ShieldCheck } from 'lucide-react';
+import { Check, ExternalLink, FileCheck2, Printer, ShieldCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import type { DiagnosisDeliveryAction } from '@/lib/diagnosis-report-delivery';
 import type { DiagnosisDeliveryProjection } from '@/lib/diagnosis-report-delivery-projection';
+
+import './diagnosis-disposition-buttons.css';
 
 type DeliveryEvent = {
   id: string;
@@ -141,10 +143,10 @@ export function DiagnosisReportDeliveryView({
                         <div className="mt-4 border-t border-border pt-4 print:hidden">
                           <p className="text-xs text-subtle">当前处置：{latest ? dispositionLabel(latest.action) : '尚未记录'}。处置不会清除风险。</p>
                           <div className="mt-3 flex flex-wrap gap-2">
-                            <DispositionButton label="待处理" tone="pending" busy={submitting === `${finding.targetKey}:pending`} onClick={() => record('finding', finding.targetKey, 'pending')} />
-                            <DispositionButton label="已完成处置" tone="success" busy={submitting === `${finding.targetKey}:completed`} onClick={() => record('finding', finding.targetKey, 'completed')} />
+                            <DispositionButton label="待处理" tone="pending" pressed={latest?.action === 'pending'} busy={submitting === `${finding.targetKey}:pending`} onClick={() => record('finding', finding.targetKey, 'pending')} />
+                            <DispositionButton label="已完成处置" tone="success" pressed={latest?.action === 'completed'} busy={submitting === `${finding.targetKey}:completed`} onClick={() => record('finding', finding.targetKey, 'completed')} />
                             {findingActions.map((action) => (
-                              <Link key={`${action.kind}:${action.href}`} href={action.href} className="btn-disposition btn-disposition-neutral">
+                              <Link key={`${action.kind}:${action.href}`} href={action.href} className={deliveryActionClass(action.kind)} data-disposition-control={action.kind === 'preparation' ? 'primary' : 'neutral'}>
                                 {action.label}<ExternalLink className="h-3 w-3" />
                               </Link>
                             ))}
@@ -178,11 +180,11 @@ export function DiagnosisReportDeliveryView({
                 <div className="flex items-center gap-2"><FileCheck2 className="h-5 w-5 text-sky-600" /><h2 className="font-semibold">报告处置</h2></div>
                 <p className="mt-2 text-sm text-subtle">记录教师处理进度，不修改报告、成绩、画像、趋势或风险。</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <DispositionButton label="已查看" tone="neutral" busy={submitting === 'report:viewed'} onClick={() => record('report', 'report', 'viewed')} />
-                  <DispositionButton label="待处理" tone="pending" busy={submitting === 'report:pending'} onClick={() => record('report', 'report', 'pending')} />
-                  <DispositionButton label="已完成处置" tone="success" busy={submitting === 'report:completed'} onClick={() => record('report', 'report', 'completed')} />
+                  <DispositionButton label="已查看" tone="neutral" pressed={latestByTarget.get('report')?.action === 'viewed'} busy={submitting === 'report:viewed'} onClick={() => record('report', 'report', 'viewed')} />
+                  <DispositionButton label="待处理" tone="pending" pressed={latestByTarget.get('report')?.action === 'pending'} busy={submitting === 'report:pending'} onClick={() => record('report', 'report', 'pending')} />
+                  <DispositionButton label="已完成处置" tone="success" pressed={latestByTarget.get('report')?.action === 'completed'} busy={submitting === 'report:completed'} onClick={() => record('report', 'report', 'completed')} />
                   {actions.filter((action) => action.targetKey === 'report').map((action) => (
-                    <Link key={action.href} href={action.href} className="btn-disposition btn-disposition-neutral">{action.label}</Link>
+                    <Link key={action.href} href={action.href} className={deliveryActionClass(action.kind)} data-disposition-control={action.kind === 'preparation' ? 'primary' : 'neutral'}>{action.label}</Link>
                   ))}
                 </div>
                 {message ? <p className="mt-3 text-sm" role="status">{message}</p> : null}
@@ -203,13 +205,30 @@ function Meta({ label, value }: { label: string; value: string }) {
   return <div><dt className="text-xs text-subtle">{label}</dt><dd className="mt-1 font-medium">{value}</dd></div>;
 }
 
-function DispositionButton({ label, tone, busy, onClick }: {
+function deliveryActionClass(kind: DiagnosisDeliveryAction['kind']) {
+  return kind === 'preparation' ? 'btn-disposition btn-disposition-primary' : 'btn-disposition btn-disposition-neutral';
+}
+
+function DispositionButton({ label, tone, busy, pressed, onClick }: {
   label: string;
   tone: 'neutral' | 'pending' | 'success';
   busy: boolean;
+  pressed: boolean;
   onClick: () => void;
 }) {
-  return <button type="button" disabled={busy} onClick={onClick} className={`btn-disposition btn-disposition-${tone}`}>{busy ? '记录中…' : label}</button>;
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      aria-pressed={pressed}
+      data-disposition-control={tone}
+      onClick={onClick}
+      className={`btn-disposition btn-disposition-${tone}`}
+    >
+      {pressed ? <Check className="h-3.5 w-3.5" aria-hidden /> : null}
+      {busy ? '记录中…' : label}
+    </button>
+  );
 }
 
 function formatDate(value: string) {
