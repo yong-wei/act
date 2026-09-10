@@ -201,6 +201,34 @@ class RuntimeDoctorGcTests(unittest.TestCase):
             self.assertTrue((store / "runtime" / "blob-releases" / first["releaseId"]).is_dir())
 
 
+    def test_gc_protects_current_symlink_without_pointers_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            (state / "pointers.json").unlink()
+            executed = self.run_json(
+                [
+                    "python3",
+                    str(GC),
+                    "--store-dir",
+                    str(store),
+                    "--state-dir",
+                    str(state),
+                    "--execute",
+                    "--no-session-refs",
+                ],
+                env=self.gc_env(),
+            )
+            self.assertEqual(executed["current"], first["releaseId"])
+            self.assertEqual(executed["removableReleases"], [])
+            self.assertTrue((store / "runtime" / "blob-releases" / first["releaseId"]).is_dir())
+
     def test_hot_path_scripts_do_not_invoke_doctor_or_gc(self):
         hot_paths = [
             ROOT / "scripts/runtime-release/publish-runtime.py",

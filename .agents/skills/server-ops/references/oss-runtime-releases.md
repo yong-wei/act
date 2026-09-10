@@ -45,7 +45,7 @@
 
 ## v2 日常增量发布
 
-- `runtime:publish` 只处理工作树扫描、Δ 哈希、条件 PUT 与不可变 manifest；`runtime:activate` 在 ECS 的 Python 3.6 上读取 ossfs blob 根（`--blob-root`）和单份已下载 manifest，核对 Δ Blob 与 sentinel，物化出生产收据与 `.act-runtime-blobs` helper 目录，对候选视图跑 smoke，再在 `.act-runtime-selection.lock` 下原子切换 `data/runtime/blob-views/current`（以及 `live` 别名）与 `previous`。生产 `--state-dir` 必须是 `blob-views` 根。`--reload-consumers` 失败必须恢复原指针。二者都不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
+- `runtime:publish` 只处理工作树扫描、Δ 哈希、条件 PUT 与不可变 manifest；`runtime:activate` 在 ECS 的 Python 3.6 上读取 ossfs blob 根（`--blob-root`）和单份已下载 manifest，核对 Δ Blob 与 sentinel，物化出生产收据与 `.act-runtime-blobs` helper 目录，对候选视图跑 smoke，再在 `.act-runtime-selection.lock` 下原子切换 `data/runtime/blob-views/current`（以及 `live` 别名）与 `previous`。缺少 `pointers.json` 时必须从现有 `current` 符号链接迁移 outgoing release；旧 v2 可选 `source` 必须计入 manifest 摘要。`blob-views` 加 `--blob-root` 时，提交指针前要把 ossfs blob 根只读 bind 到候选 helper。生产 `--state-dir` 必须是 `blob-views` 根。`--reload-consumers` 失败必须恢复原指针。二者都不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
 - `deploy:app` / `remote-deploy.sh --app-only` 只处理应用镜像与应用部署，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，绑定远端已物化 view；`4-deploy.sh` 只做只读 bind，不复制 runtime。
 - `remote-deploy.sh` 不再默认 rsync。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run runtime:publish` 与 `npm run runtime:activate`。已删除 `deploy:runtime` 与 `deploy:all`。不要让 runtime-only 修改进入 image/database 发布链路。
 - `runtime:publish` 读取 `course-content/runtime` 工作树，`sourceRevision` 默认写入 `git rev-parse HEAD`，只作 provenance；它不要求与生产应用的 `origin/main` revision 相同，也不再核验兼容性收据。索引在 `var/cache/runtime-release/index.sqlite`；缺失时必须显式 `--bootstrap`。未改文件且同一 sourceRevision 再发布应为 `hashed=0`、`uploaded=0`，且无 OSS HEAD/GET。

@@ -2,12 +2,27 @@
 """Independent runtime GC. Default dry-run retains every blob."""
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+
+def load_materializer():
+    spec = importlib.util.spec_from_file_location("materialize_runtime", str(SCRIPT_DIR / "materialize-runtime.py"))
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+MATERIALIZE = load_materializer()
 
 
 SESSION_SQL = 'SELECT DISTINCT "runtimeReleaseId" FROM "CourseBundleRevision" WHERE "runtimeReleaseId" <> \'\''
@@ -24,11 +39,10 @@ class GcError(RuntimeError):
 
 
 def read_pointers(state_dir):
-    path = state_dir / "pointers.json"
-    if not path.is_file():
-        return {"current": None, "previous": None}
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    return {"current": raw.get("current"), "previous": raw.get("previous")}
+    try:
+        return MATERIALIZE.read_host_pointers(state_dir)
+    except MATERIALIZE.MaterializeError as error:
+        raise GcError(str(error))
 
 
 def list_release_ids(store, state_dir):
@@ -39,6 +53,15 @@ def list_release_ids(store, state_dir):
     views = state_dir / "views"
     if views.is_dir():
         found.update(path.name for path in views.iterdir() if path.is_dir())
+    if state_dir.is_dir():
+        found.update(
+            path.name
+            for path in state_dir.iterdir()
+            if path.is_dir()
+            and not path.is_symlink()
+            and path.name not in MATERIALIZE.POINTER_NAMES
+            and MATERIALIZE.RELEASE_ID_PATTERN.fullmatch(path.name)
+        )
     return sorted(found)
 
 
@@ -94,6 +117,9 @@ def execute(store, state_dir, removable):
         view = state_dir / "views" / release_id
         if view.exists():
             shutil.rmtree(str(view))
+        sibling = state_dir / release_id
+        if sibling.is_dir() and not sibling.is_symlink() and sibling.name not in MATERIALIZE.POINTER_NAMES:
+            shutil.rmtree(str(sibling))
         release_dir = store / "runtime" / "blob-releases" / release_id
         if release_dir.exists():
             shutil.rmtree(str(release_dir))

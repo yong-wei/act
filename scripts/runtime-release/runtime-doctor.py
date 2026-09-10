@@ -30,11 +30,10 @@ class DoctorError(RuntimeError):
 
 
 def read_pointers(state_dir):
-    path = state_dir / "pointers.json"
-    if not path.is_file():
-        return {"current": None, "previous": None}
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    return {"current": raw.get("current"), "previous": raw.get("previous")}
+    try:
+        return MATERIALIZE.read_host_pointers(state_dir)
+    except MATERIALIZE.MaterializeError as error:
+        raise DoctorError(str(error))
 
 
 def hash_file(path):

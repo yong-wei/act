@@ -21,6 +21,9 @@ LOCAL_MANIFEST = MATERIALIZED_MANIFEST
 RELEASE_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 GIT_REVISION_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+OBJECT_ID_PATTERN = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+EXTERNAL_INPUT_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9._-]{0,126}[a-z0-9])?$")
+POINTER_NAMES = ("current", "live", "previous", "views")
 RESERVED_VIEW_NAMES = {
     MATERIALIZED_MANIFEST,
     MATERIALIZATION_RECEIPT,
@@ -81,9 +84,58 @@ def require_sha256(value, label):
     return value
 
 
+def require_hex_object_id(value, label):
+    if not isinstance(value, str) or not OBJECT_ID_PATTERN.fullmatch(value.lower()):
+        raise MaterializeError("%s is invalid" % label)
+    return value.lower()
+
+
+def canonical_source(value, label):
+    if not isinstance(value, dict):
+        raise MaterializeError("%s must be an object" % label)
+    keys = set(value.keys())
+    if "gitObjectId" in value:
+        if keys != {"gitObjectId"}:
+            raise MaterializeError("%s has unsupported fields" % label)
+        return {"gitObjectId": require_hex_object_id(value.get("gitObjectId"), "%s.gitObjectId" % label)}
+    if "bundleSemanticSha256" in value or "bundleWireSha256" in value:
+        expected = {"externalInputId", "externalInputManifestObjectId", "bundleSemanticSha256", "bundleWireSha256"}
+        if keys != expected:
+            raise MaterializeError("%s has unsupported fields" % label)
+        input_id = value.get("externalInputId")
+        if not isinstance(input_id, str) or not EXTERNAL_INPUT_ID_PATTERN.fullmatch(input_id):
+            raise MaterializeError("%s.externalInputId is invalid" % label)
+        return {
+            "externalInputId": input_id,
+            "externalInputManifestObjectId": require_hex_object_id(
+                value.get("externalInputManifestObjectId"),
+                "%s.externalInputManifestObjectId" % label,
+            ),
+            "bundleSemanticSha256": require_sha256(value.get("bundleSemanticSha256"), "%s.bundleSemanticSha256" % label),
+            "bundleWireSha256": require_sha256(value.get("bundleWireSha256"), "%s.bundleWireSha256" % label),
+        }
+    if keys != {"externalInputId", "externalInputManifestObjectId"}:
+        raise MaterializeError("%s has unsupported fields" % label)
+    input_id = value.get("externalInputId")
+    if not isinstance(input_id, str) or not EXTERNAL_INPUT_ID_PATTERN.fullmatch(input_id):
+        raise MaterializeError("%s.externalInputId is invalid" % label)
+    return {
+        "externalInputId": input_id,
+        "externalInputManifestObjectId": require_hex_object_id(
+            value.get("externalInputManifestObjectId"),
+            "%s.externalInputManifestObjectId" % label,
+        ),
+    }
+
+
 def canonical_file_entry(item):
     if not isinstance(item, dict):
         raise MaterializeError("manifest.files entries must be objects")
+    allowed = {"path", "objectKey", "sizeBytes", "sha256"}
+    if "source" in item:
+        allowed.add("source")
+    if set(item.keys()) - allowed:
+        raise MaterializeError("manifest.files entry has unsupported fields")
     relative = normalized_relative_path(item.get("path"))
     digest = require_sha256(item.get("sha256"), "%s.sha256" % relative)
     size = require_int(item.get("sizeBytes"), "%s.sizeBytes" % relative)
@@ -91,7 +143,10 @@ def canonical_file_entry(item):
     expected_key = "runtime/blobs/sha256/%s" % digest
     if object_key != expected_key:
         raise MaterializeError("blob key is not derived from file SHA-256: %s" % relative)
-    return {"path": relative, "objectKey": expected_key, "sizeBytes": size, "sha256": digest}
+    entry = {"path": relative, "objectKey": expected_key, "sizeBytes": size, "sha256": digest}
+    if "source" in item:
+        entry["source"] = canonical_source(item.get("source"), "%s.source" % relative)
+    return entry
 
 
 def validate_manifest(raw):
@@ -165,16 +220,80 @@ def parse_receipt(path, manifest, wire):
     return receipt
 
 
+def existing_view(state_dir, release_id):
+    if not release_id:
+        return None
+    candidates = (state_dir / "views" / release_id, state_dir / release_id)
+    for path in candidates:
+        if path.is_dir() and not path.is_symlink():
+            return path
+    return None
+
+
+def release_id_from_symlink(state_dir, name):
+    link = state_dir / name
+    if not link.exists() and not link.is_symlink():
+        return None
+    if not link.is_symlink():
+        raise MaterializeError("%s pointer must be a symlink to a runtime view" % name)
+    raw = os.readlink(str(link))
+    target = Path(raw)
+    if not target.is_absolute():
+        target = state_dir / target
+    release_id = target.name
+    if release_id in RESERVED_VIEW_NAMES or release_id in POINTER_NAMES:
+        raise MaterializeError("%s pointer does not name a runtime release" % name)
+    if not RELEASE_ID_PATTERN.fullmatch(release_id):
+        raise MaterializeError("%s pointer does not name a runtime release" % name)
+    return release_id
+
+
+def legacy_selection_release_id(state_dir):
+    candidates = (state_dir / "act-runtime-selection.json", state_dir.parent / "act-runtime-selection.json")
+    for path in candidates:
+        if not path.is_file():
+            continue
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            raise MaterializeError("legacy runtime selection is unreadable")
+        if not isinstance(raw, dict):
+            raise MaterializeError("legacy runtime selection is invalid")
+        if raw.get("schemaVersion") == "runtime-release-active-receipt.v1":
+            raw = raw.get("selection") or {}
+        if not isinstance(raw, dict):
+            raise MaterializeError("legacy runtime selection is invalid")
+        release_id = raw.get("releaseId")
+        if not isinstance(release_id, str) or not RELEASE_ID_PATTERN.fullmatch(release_id):
+            raise MaterializeError("legacy runtime selection does not name a runtime release")
+        return release_id
+    return None
+
+
+def read_host_pointers(state_dir):
+    path = state_dir / "pointers.json"
+    if path.is_file():
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        return {"current": raw.get("current"), "previous": raw.get("previous")}
+    current = release_id_from_symlink(state_dir, "current")
+    previous = release_id_from_symlink(state_dir, "previous")
+    selected = legacy_selection_release_id(state_dir)
+    if selected and current and selected != current:
+        raise MaterializeError("legacy runtime selection does not match the current view")
+    if current is None and selected:
+        if existing_view(state_dir, selected) is None:
+            raise MaterializeError("legacy runtime selection does not name a materialized current view")
+        current = selected
+    return {"current": current, "previous": previous}
+
+
 def report_active(view_root):
     current = view_root / "current"
     if not current.is_symlink():
         raise MaterializeError("no materialized runtime is selected")
-    target = os.readlink(current)
-    if not target.startswith("views/") or not RELEASE_ID_PATTERN.fullmatch(target.split("/", 1)[1]):
-        raise MaterializeError("materialized current pointer is invalid")
-    release_id = target.split("/", 1)[1]
-    view = (view_root / target).resolve()
-    if not view.is_dir():
+    release_id = release_id_from_symlink(view_root, "current")
+    view = existing_view(view_root, release_id)
+    if view is None:
         raise MaterializeError("selected view is missing")
     return {"activeReleaseId": release_id, "viewPath": str(view)}
 

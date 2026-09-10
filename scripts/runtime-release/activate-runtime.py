@@ -43,11 +43,7 @@ def pointers_path(state_dir):
 
 
 def read_pointers(state_dir):
-    path = pointers_path(state_dir)
-    if not path.is_file():
-        return {"current": None, "previous": None}
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    return {"current": raw.get("current"), "previous": raw.get("previous")}
+    return MATERIALIZE.read_host_pointers(state_dir)
 
 
 def write_pointers_atomic(state_dir, pointers):
@@ -114,10 +110,7 @@ def retarget_pointer(state_dir, name, view):
 def retarget_selection(state_dir, current_view, previous_release_id):
     retarget_pointer(state_dir, "current", current_view)
     retarget_pointer(state_dir, "live", current_view)
-    previous_view = state_dir / "views" / previous_release_id if previous_release_id else None
-    if previous_view is not None and not previous_view.is_dir():
-        previous_view = None
-    retarget_pointer(state_dir, "previous", previous_view)
+    retarget_pointer(state_dir, "previous", MATERIALIZE.existing_view(state_dir, previous_release_id))
 
 
 def commit_selection(state_dir, pointers, current_view):
@@ -135,8 +128,8 @@ def restore_selection(state_dir, pointers):
     if not current_id:
         commit_selection(state_dir, {"current": None, "previous": None}, None)
         return
-    current_view = state_dir / "views" / current_id
-    if not current_view.is_dir():
+    current_view = MATERIALIZE.existing_view(state_dir, current_id)
+    if current_view is None:
         raise ActivateError("unable to restore previous current view after consumer reload failure")
     commit_selection(state_dir, pointers, current_view)
 
@@ -187,12 +180,36 @@ def resolve_blob_root(args):
     return optional_command(args.blob_root, os.environ.get("ACT_RUNTIME_BLOB_ROOT"))
 
 
+def default_bind_helper_command(state_dir, blob_root):
+    if not (is_production_view_root(state_dir) and blob_root):
+        return None
+    return "bash %s" % (SCRIPT_DIR / "bind-runtime-blob-view-helper.sh")
+
+
+def resolve_bind_helper(args, state_dir, blob_root):
+    return optional_command(args.bind_helper, os.environ.get("ACT_RUNTIME_BIND_HELPER"), default_bind_helper_command(state_dir, blob_root))
+
+
+def run_bind_helper(command, view, blob_root):
+    if not command:
+        return
+    env = os.environ.copy()
+    candidate = str(view.resolve())
+    env["ACT_RUNTIME_CANDIDATE_VIEW"] = candidate
+    env["ACT_RUNTIME_BLOB_VIEW"] = candidate
+    if blob_root:
+        env["ACT_RUNTIME_BLOB_ROOT"] = blob_root
+    run_shell(command, env, "candidate helper bind failed")
+
+
 def load_release_manifest(store, state_dir, release_id, manifest_override):
     if manifest_override:
         return MATERIALIZE.load_manifest(Path(manifest_override))
-    view_marker = state_dir / "views" / release_id / MATERIALIZE.MATERIALIZED_MANIFEST
-    if view_marker.is_file():
-        return MATERIALIZE.load_manifest(view_marker)
+    view = MATERIALIZE.existing_view(state_dir, release_id)
+    if view is not None:
+        marker = view / MATERIALIZE.MATERIALIZED_MANIFEST
+        if marker.is_file():
+            return MATERIALIZE.load_manifest(marker)
     return MATERIALIZE.load_manifest(MATERIALIZE.manifest_path(store, release_id))
 
 
@@ -210,6 +227,7 @@ def activate(args):
     delta = MATERIALIZE.changed_paths(current_manifest, candidate)
     MATERIALIZE.assert_blobs_visible(store, candidate, delta, blob_root=blob_root)
     view = MATERIALIZE.materialize_view(store, candidate, state_dir / "views" / candidate["releaseId"], blob_root=blob_root)
+    run_bind_helper(resolve_bind_helper(args, state_dir, blob_root), view, blob_root)
     opened = open_sentinels(view, candidate, args.sentinel)
     smoke = optional_command(args.smoke, os.environ.get("ACT_RUNTIME_SMOKE"))
     run_smoke(smoke, view, smoke_required(args, state_dir))
@@ -237,8 +255,8 @@ def rollback(args):
     pointers = read_pointers(state_dir)
     if not pointers["previous"]:
         raise ActivateError("no previous release to restore")
-    previous_view = state_dir / "views" / pointers["previous"]
-    if not previous_view.is_dir():
+    previous_view = MATERIALIZE.existing_view(state_dir, pointers["previous"])
+    if previous_view is None:
         raise ActivateError("previous view is not materialized; rollback will not rebuild it")
     next_pointers = {"current": pointers["previous"], "previous": pointers["current"]}
     commit_selection(state_dir, next_pointers, previous_view)
@@ -247,8 +265,8 @@ def rollback(args):
         try:
             run_shell(reload, None, "consumer reload failed after current pointer commit")
         except ActivateError:
-            current_view = state_dir / "views" / pointers["current"] if pointers["current"] else None
-            if current_view is None or not current_view.is_dir():
+            current_view = MATERIALIZE.existing_view(state_dir, pointers["current"])
+            if current_view is None:
                 raise
             commit_selection(state_dir, pointers, current_view)
             raise
@@ -274,6 +292,7 @@ def build_parser():
     parser.add_argument("--smoke")
     parser.add_argument("--require-smoke", action="store_true")
     parser.add_argument("--reload-consumers")
+    parser.add_argument("--bind-helper")
     return parser
 
 

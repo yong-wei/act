@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import subprocess
@@ -13,7 +14,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PUBLISH = ROOT / "scripts/runtime-release/publish-runtime.py"
 ACTIVATE = ROOT / "scripts/runtime-release/activate-runtime.py"
+MATERIALIZE = ROOT / "scripts/runtime-release/materialize-runtime.py"
 SOURCE_REVISION = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+
+
+def load_materialize():
+    spec = importlib.util.spec_from_file_location("materialize_runtime", str(MATERIALIZE))
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 class ActivateRuntimeTests(unittest.TestCase):
@@ -348,6 +358,161 @@ class ActivateRuntimeTests(unittest.TestCase):
             )
             self.assertEqual(switched["current"], first["releaseId"])
             self.assertEqual((state / "current" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
+
+    def rewrite_manifest_source(self, manifest_path: Path, source: dict) -> None:
+        materialize = load_materialize()
+        raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+        files = []
+        for item in raw["files"]:
+            files.append(
+                {
+                    "path": item["path"],
+                    "objectKey": item["objectKey"],
+                    "sizeBytes": item["sizeBytes"],
+                    "sha256": item["sha256"],
+                    "source": source,
+                }
+            )
+        without = {
+            "schemaVersion": raw["schemaVersion"],
+            "releaseId": raw["releaseId"],
+            "sourceRevision": raw["sourceRevision"],
+            "fileCount": raw["fileCount"],
+            "totalBytes": raw["totalBytes"],
+            "treeSha256": raw["treeSha256"],
+            "files": files,
+        }
+        raw["files"] = files
+        raw["manifestSha256"] = materialize.sha256_text(materialize.stable_stringify(without))
+        manifest_path.write_text(json.dumps(raw, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    def test_first_activate_seeds_previous_from_existing_current(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            (state / "pointers.json").unlink()
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            switched = self.activate(store, state, second["releaseId"])
+            self.assertEqual(switched["current"], second["releaseId"])
+            self.assertEqual(switched["previous"], first["releaseId"])
+            self.assertEqual(os.readlink(state / "previous"), f"views/{first['releaseId']}")
+
+    def test_legacy_selection_mismatch_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "data" / "runtime" / "blob-views"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"], "--smoke", "true")
+            (state / "pointers.json").unlink()
+            (state.parent / "act-runtime-selection.json").write_text(
+                json.dumps(
+                    {
+                        "schemaVersion": "runtime-release-selection.v1",
+                        "generation": 1,
+                        "releaseId": "runtime-not-the-current-release-id-xxxxxxxxxxxxxxxx",
+                        "manifestSha256": "a" * 64,
+                        "treeSha256": "b" * 64,
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            result = self.activate(store, state, first["releaseId"], "--smoke", "true", expect_ok=False)
+            self.assertIn("legacy runtime selection does not match the current view", result.stderr)
+
+    def test_optional_source_field_is_kept_in_manifest_digest(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            manifest = store / "runtime" / "blob-releases" / first["releaseId"] / "manifest.json"
+            self.rewrite_manifest_source(manifest, {"gitObjectId": "dddddddddddddddddddddddddddddddddddddddd"})
+            switched = self.activate(store, state, first["releaseId"])
+            self.assertEqual(switched["current"], first["releaseId"])
+            copied = json.loads((state / "current" / ".act-runtime-release.v2.json").read_text(encoding="utf-8"))
+            self.assertEqual(copied["files"][0]["source"], {"gitObjectId": "dddddddddddddddddddddddddddddddddddddddd"})
+
+    def test_production_blob_root_binds_helper_before_reload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "data" / "runtime" / "blob-views"
+            blob_root = root / "ossfs" / "blobs"
+            bound = root / "bound"
+            reloaded = root / "reloaded"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            blob_root.mkdir(parents=True)
+            for blob in (store / "runtime" / "blobs" / "sha256").iterdir():
+                (blob_root / blob.name).write_bytes(blob.read_bytes())
+            switched = self.activate(
+                store,
+                state,
+                first["releaseId"],
+                "--smoke",
+                "true",
+                "--blob-root",
+                str(blob_root),
+                "--bind-helper",
+                (
+                    f'test "${{ACT_RUNTIME_BLOB_VIEW##*/}}" = "{first["releaseId"]}" && '
+                    f'test "$ACT_RUNTIME_BLOB_ROOT" = "{blob_root}" && '
+                    f'test ! -e "{reloaded}" && printf bound > "{bound}"'
+                ),
+                "--reload-consumers",
+                f'test -f "{bound}" && printf ok > "{reloaded}"',
+            )
+            self.assertEqual(switched["current"], first["releaseId"])
+            self.assertEqual(bound.read_text(encoding="utf-8"), "bound")
+            self.assertEqual(reloaded.read_text(encoding="utf-8"), "ok")
+
+    def test_bind_helper_failure_does_not_switch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "data" / "runtime" / "blob-views"
+            blob_root = root / "ossfs" / "blobs"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            blob_root.mkdir(parents=True)
+            for blob in (store / "runtime" / "blobs" / "sha256").iterdir():
+                (blob_root / blob.name).write_bytes(blob.read_bytes())
+            result = self.activate(
+                store,
+                state,
+                first["releaseId"],
+                "--smoke",
+                "true",
+                "--blob-root",
+                str(blob_root),
+                "--bind-helper",
+                "exit 4",
+                expect_ok=False,
+            )
+            self.assertIn("candidate helper bind failed", result.stderr)
+            self.assertFalse((state / "current").exists())
+            self.assertFalse((state / "pointers.json").exists())
 
     def test_host_scripts_use_python36_syntax(self):
         forbidden = (
