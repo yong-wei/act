@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -27,18 +28,12 @@ INDEX_UNAVAILABLE = "local publish index unavailable\nrun with --bootstrap to re
 SCHEMA_VERSION = "act-runtime-release.v2"
 RECEIPT_SCHEMA_VERSION = "act-runtime-release-receipt.v2"
 INDEX_SCHEMA = "runtime-publish-index.v1"
-SHA256_PATTERN = __import__("re").compile(r"^[a-f0-9]{64}$")
-RELEASE_ID_PATTERN = __import__("re").compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
+SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
+RELEASE_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 IGNORED_NAMES = {".DS_Store", ".act-runtime-release.v1.json", ".act-runtime-release.v2.json"}
-OSS_HIT_MARKERS = (
-    "filealreadyexists",
-    "preconditionfailed",
-    "status code: 412",
-    "statuscode: 412",
-    "http status: 412",
-    '"status": 412',
-    '"status":412',
-)
+OSS_CONFLICT_CODES = {"filealreadyexists", "preconditionfailed"}
+OSS_CONFLICT_STATUS = {409, 412}
+OSS_XML_CODE = re.compile(r"<Code>\s*([^<]+)\s*</Code>", re.IGNORECASE)
 
 
 class PublishError(RuntimeError):
@@ -167,10 +162,55 @@ class OssutilObjectStore:
             os.unlink(temp_path)
         if process.returncode == 0:
             return "created"
-        detail = b" ".join((process.stdout, process.stderr)).decode("utf-8", errors="replace").lower()
-        if any(marker in detail for marker in OSS_HIT_MARKERS):
+        if is_structured_cas_hit(process.stdout, process.stderr):
             return "hit"
+        detail = b" ".join((process.stdout, process.stderr)).decode("utf-8", errors="replace")
         raise PublishError(f"conditional PUT failed for {key}: {detail.strip() or process.returncode}")
+
+
+def _json_objects(text: str) -> list[object]:
+    objects: list[object] = []
+    decoder = json.JSONDecoder()
+    index = 0
+    while index < len(text):
+        start = text.find("{", index)
+        if start < 0:
+            break
+        try:
+            value, end = decoder.raw_decode(text, start)
+        except json.JSONDecodeError:
+            index = start + 1
+            continue
+        objects.append(value)
+        index = end
+    return objects
+
+
+def _conflict_status(value: object) -> int | None:
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+def _payload_is_conflict(value: object) -> bool:
+    if not isinstance(value, dict):
+        return False
+    error = value["error"] if isinstance(value.get("error"), dict) else value
+    status = _conflict_status(
+        error.get("statusCode") or error.get("StatusCode") or error.get("status") or error.get("httpStatus")
+    )
+    raw_code = error.get("errorCode") or error.get("Code") or error.get("code")
+    code = str(raw_code).lower() if raw_code is not None else ""
+    return status in OSS_CONFLICT_STATUS or code in OSS_CONFLICT_CODES
+
+
+def is_structured_cas_hit(stdout: bytes, stderr: bytes) -> bool:
+    text = b"\n".join((stdout, stderr)).decode("utf-8", errors="replace")
+    if any(_payload_is_conflict(value) for value in _json_objects(text)):
+        return True
+    match = OSS_XML_CODE.search(text)
+    return bool(match and match.group(1).strip().lower() in OSS_CONFLICT_CODES)
 
 
 def open_index(path: Path, *, bootstrap: bool) -> sqlite3.Connection:
