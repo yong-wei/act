@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -218,5 +219,32 @@ describe('act runtime release manifest', () => {
       ...manifest,
       files: [{ ...manifest.files[0], source: { externalInputId: 'current-production-runtime-v1', externalInputManifestObjectId: 'd'.repeat(40), bundleSemanticSha256: 'e'.repeat(64) } }, ...manifest.files.slice(1)],
     })).toThrow(/source has unsupported or missing fields/);
+  });
+
+  it('accepts a v2 manifest written by the daily CAS publisher', async () => {
+    const root = await fixture();
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'act-cas-publish-'));
+    roots.push(workspace);
+    const publisher = path.resolve(process.cwd(), 'scripts/runtime-release/publish-runtime.py');
+    const published = spawnSync('python3', [
+      publisher,
+      '--root',
+      root,
+      '--index',
+      path.join(workspace, 'index.sqlite'),
+      '--store-dir',
+      path.join(workspace, 'store'),
+      '--source-revision',
+      revision,
+      '--bootstrap',
+    ], { encoding: 'utf8' });
+    expect(published.status, published.stderr).toBe(0);
+    const metrics = JSON.parse(published.stdout) as { releaseId: string };
+    const raw = JSON.parse(await readFile(path.join(workspace, 'store', 'runtime', 'blob-releases', metrics.releaseId, 'manifest.json'), 'utf8'));
+    const parsed = parseRuntimeBlobReleaseManifest(raw);
+    expect(parsed.releaseId).toBe(deriveRuntimeReleaseId(revision, parsed.treeSha256));
+    expect(parsed.files.map((file) => file.objectKey)).toEqual(parsed.files.map((file) => runtimeBlobObjectKey(file.sha256)));
+    const receiptRaw = JSON.parse(await readFile(path.join(workspace, 'store', 'runtime', 'blob-releases', metrics.releaseId, 'receipt.json'), 'utf8'));
+    expect(parseRuntimeBlobReleaseReceipt(receiptRaw).releaseId).toBe(parsed.releaseId);
   });
 });

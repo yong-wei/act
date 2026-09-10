@@ -32,6 +32,7 @@ function write(file: string, value: unknown) {
 }
 
 function capturePredecessor() {
+  throw new Error('Runtime lifecycle inspect 已退役。知识合同通过后请使用 npm run runtime:activate');
   const program = String.raw`const fs=require('node:fs'),cp=require('node:child_process'),crypto=require('node:crypto');
 const root='/home/projects/act',state=root+'/data/runtime';
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');

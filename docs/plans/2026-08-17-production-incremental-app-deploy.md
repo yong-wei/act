@@ -1,5 +1,7 @@
 # 2026-08-17 生产增量应用发布
 
+> 历史计划。现行 Runtime 入口是 `runtime:publish` / `runtime:activate` / `runtime:rollback`；`deploy:runtime` 与 `deploy:all` 已删除。
+
 ## Goal
 
 把当前 `origin/integration` 的应用镜像发到生产，保持已恢复的 OSS blob-view 与 v0.18 五选择器不变。

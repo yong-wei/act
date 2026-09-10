@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+echo "ERROR: Runtime lifecycle/activation-transaction 已退役。知识合同通过后请使用 npm run runtime:activate" >&2
+exit 1
+
 # Execute the authorized r4 production transition. The outer journal owns the
 # Authority pointer and the Runtime lifecycle together; the Runtime activator
 # deliberately returns with consumers stopped so the final active receipt can

@@ -33,7 +33,7 @@ rtk ssh root@121.40.124.135 "df -h /; podman system df"
 
 - Docker Desktop 设置值必须为 `MemoryMiB=24576`、`SwapMiB=8192`；Docker VM 可见内存受虚拟化开销影响可以略低于 24 GiB，但不得低于脚本的 20 GiB 门槛
 - 先确认远端有足够空间接收镜像 tar、完成 `podman load` 并保留数据库备份；空间不足时先精确核对未使用镜像、旧 tar 与 external Buildah 容器，保留当前版本的直接前驱回滚镜像
-- 应用构建工作树必须与冻结的 `origin/main` 目标提交一致；Runtime 发布工作树必须与冻结的 `origin/integration` 目标提交一致。镜像 provenance 与 Runtime manifest 各自记录完整 source revision、独立发布 identity，并共同由兼容性证明绑定；不得以 tag 名或短 SHA 代替内容身份
+- 应用构建工作树必须与冻结的 `origin/main` 目标提交一致。Runtime 发布读取 `course-content/runtime` 工作树，Git SHA 只作 provenance，不要求与应用 `main` SHA 相同。镜像 provenance 与 Runtime manifest 各自记录独立发布 identity；不得以 tag 名或短 SHA 代替内容身份
 
 2. 本地验证
 ```bash
@@ -56,7 +56,7 @@ NODE_OPTIONS='--max-old-space-size=12288' \
 rtk bash scripts/build.sh
 ```
 
-镜像构建只在容器内 Next 编译、TypeScript、镜像导出和 provenance 全部成功时成立。构建完成后记录 tar SHA-256，并核对应用 provenance 的 `appRevision`。Runtime/索引若独立发布，其 `runtimeSourceRevision`、`indexSourceRevision` 与 digest 进入 Runtime manifest 和兼容性证明；只有缺少兼容性证明、合同不匹配或 source identity 漂移才 fail closed，不能仅因应用与 Runtime revision 不同而拒绝发布。
+镜像构建只在容器内 Next 编译、TypeScript、镜像导出和 provenance 全部成功时成立。构建完成后记录 tar SHA-256，并核对应用 provenance 的 `appRevision`。Runtime 独立发布时写入自己的 source revision 与 manifest digest；不能仅因应用与 Runtime revision 不同而拒绝应用发布，也不得把 Runtime 发布绑回镜像构建。
 
 4. 远端部署
 
@@ -76,23 +76,24 @@ REMOTE_APP_IMAGE='localhost/act-obe-platform:<version>-<short-sha>' \
 rtk npm run deploy:app -- --skip-build
 ```
 
-runtime 内容变更走 OSS 发布与物化，不得 rsync：
+runtime 内容变更走 CAS 发布与 current/previous 激活，不得 rsync：
 
 ```bash
-rtk npm run deploy:runtime
+rtk npm run runtime:publish
+rtk npm run runtime:activate -- --store-dir <store> --state-dir <state> --release-id <release-id>
 ```
 
-两者都变时：
+两者都变时先完成 Runtime 发布与激活，再部署应用；已删除 `deploy:all`。回滚只交换指针：
 
 ```bash
-rtk npm run deploy:all
+rtk npm run runtime:rollback -- --store-dir <store> --state-dir <state>
 ```
 
 说明：
 
 - `deploy:app` / `remote-deploy.sh --app-only` 只上传并装载应用镜像，绑定远端已物化的 `ossfs-blob-view`
 - `remote-deploy.sh` 默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，不会同步本地 `course-content/runtime`
-- 更新课程 runtime 只能用 `deploy:runtime`；`legacy-rsync` 已退役，不得再同步本地 `course-content/runtime`
+- 更新课程 runtime 只能用 `runtime:publish` 与 `runtime:activate`；`legacy-rsync`、`deploy:runtime` 与 `deploy:all` 已退役，不得再同步本地 `course-content/runtime`
 - `4-deploy.sh` 只 bind 现有 view，不负责发布或复制 runtime
 - 若发现远端存在 `src/`、`prisma/`、`package.json` 等源码残留，先清理到最小运维壳层，再继续部署
 - 若 `deploy/podman/deploy.sh` 已使用 `--add-host` 为 `app/worker` 注入数据库与 Redis 的静态主机映射，`deploy/podman/configure-service.sh` 必须在数据库就绪后重新执行 `4-deploy.sh --app-only`，不要再用 `podman start` 复用旧的 `app/worker` 容器；否则数据库或 Redis 重启后 IP 改变，旧容器内静态映射会立刻失效
@@ -174,4 +175,4 @@ rtk proxy osascript -e 'quit app "Docker"'
 
 生产**应用代码**发布从 `origin/main` 发起。先 fetch `origin/main`，记录其完整 SHA，并分配一个新的应用发布版本号；镜像标签、tar/provenance、远端回执都必须使用同一个版本。若需将 `integration` 合入 `main`，这是发布前的 Git 操作；一旦 `main` SHA 已冻结，后续 `integration` 的提交不再参与本次应用构建、验证、部署或阻断判断。
 
-Runtime、图谱和索引可独立从冻结的 `origin/integration` commit 发布，并使用独立的 Runtime Release identity；它们不要求与应用 `main` SHA 相同。Runtime 选择前必须核验记录了应用 main revision、Runtime source revision、消费合同/格式版本和迁移状态的兼容性证明。冻结后的 integration 后续提交不参与该 Runtime 发布，Runtime 发布也不得重新构建、替换或回退应用镜像。
+Runtime、图谱和索引可独立发布，并使用独立的 Runtime Release identity；它们不要求与应用 `main` SHA 相同。日常发布是 `runtime:publish` 再 `runtime:activate`，不再核验兼容性收据。Runtime 发布也不得重新构建、替换或回退应用镜像。

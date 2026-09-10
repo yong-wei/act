@@ -99,7 +99,7 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 图谱节点使用类型形状和克制的颜色区分对象，资源标记表示可用内容；关系箭头保留真实方向。知识卡兼容已发布的旧 Markdown 格式，并保留公式、段落及安全的内容校验。完整名称可从搜索、目录、标签和详情访问。
 
-既有生产部署记录（v0.6.1，保留原发布边界）：产品就绪由既有 `act-knowledge-surface/v1` 上的只读 latest-cutover verifier 判定：必须重开并校验最终 `coordinated-active-receipt`、Authority `current.json` 文件哈希、domain catalog/shards、完整 Teaching Projection 与 composed domain fragments、prerequisites、formal resource envelope、consumer activation 与 Runtime active identity。Git 树 `course-content/authoring/knowledge/authority/current.json` 已与生产宿主机现行 v0.37 逐字节对齐（`snap-e2d8b92f…`）；生产 Runtime 身份为 `runtime-150a505a…`。应用已发布 `v0.6.1`（`93a70aed…`，GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.1），经 `scripts/build.sh`（`BUILD_SCOPE=app-only`）与 `deploy:app --skip-build` 部署。读取时 successor overlay 已把 Teaching Projection（`c9a6f33e…`）与 composed domain-fragments（`eb4d2d63…`）装到后继 blob-view；密封 shard set 仍为 `ads-c462da19`，未重物化。生产 `latestCutover` 为 `successor/ready`；合格领域（如根轨迹、频域）展示非空教学关系，不再出现「教学关系暂不可用」。不得重跑 cand-d4e722dc 10.7，不得为修 Teaching 再 `deploy:runtime`。日常应用更新仍走 cutover-aware `deploy:app --skip-build`。
+既有生产部署记录（v0.6.1，保留原发布边界）：产品就绪由既有 `act-knowledge-surface/v1` 上的只读 latest-cutover verifier 判定：必须重开并校验最终 `coordinated-active-receipt`、Authority `current.json` 文件哈希、domain catalog/shards、完整 Teaching Projection 与 composed domain fragments、prerequisites、formal resource envelope、consumer activation 与 Runtime active identity。Git 树 `course-content/authoring/knowledge/authority/current.json` 已与生产宿主机现行 v0.37 逐字节对齐（`snap-e2d8b92f…`）；生产 Runtime 身份为 `runtime-150a505a…`。应用已发布 `v0.6.1`（`93a70aed…`，GitHub Release https://github.com/yong-wei/act/releases/tag/v0.6.1），经 `scripts/build.sh`（`BUILD_SCOPE=app-only`）与 `deploy:app --skip-build` 部署。读取时 successor overlay 已把 Teaching Projection（`c9a6f33e…`）与 composed domain-fragments（`eb4d2d63…`）装到后继 blob-view；密封 shard set 仍为 `ads-c462da19`，未重物化。生产 `latestCutover` 为 `successor/ready`；合格领域（如根轨迹、频域）展示非空教学关系，不再出现「教学关系暂不可用」。不得重跑 cand-d4e722dc 10.7，不得为修 Teaching 再 `runtime:activate`。日常应用更新仍走 cutover-aware `deploy:app --skip-build`。
 
 数据中心角色可见性已经完成实现：`/data-center` 只面向教师和管理员，学生直接访问默认进入 `/profile/evidence`；普通数据中心 UI 的“演示数据”来源标签默认隐藏，由管理员配置控制，管理员审计和治理视图仍保留来源可见性。`artifacts/commercial-ui/data-center-operations-roles-416/` 保存学生重定向、教师标签关闭/开启和管理员审计来源可见证据。
 
@@ -281,13 +281,16 @@ rtk bash scripts/build.sh
 rtk npm run deploy:app -- --skip-build
 ```
 
-课程 runtime 走独立 OSS 发布，不要用应用部署脚本同步本地 tree：
+课程 Runtime 走独立 CAS 发布，不要用应用部署脚本同步本地 tree：
 
 ```bash
-rtk npm run deploy:runtime
+rtk npm run runtime:publish
+rtk npm run runtime:activate -- --store-dir /home/projects/act/data/runtime/cas-store --blob-root /home/projects/act/data/runtime/ossfs/blobs --state-dir /home/projects/act/data/runtime/blob-views --release-id <release-id> --smoke '<candidate-view readiness command>' --reload-consumers 'bash /home/projects/act/scripts/4-deploy.sh --runtime-cutover-app-only'
 ```
 
-生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`/api/readyz` 在 blob-view 模式下投影最小 active runtime 身份（Release ID 与 digest），供开发工作站发现，不返回对象路径或凭据。应用镜像构建（`scripts/build.sh`）只生成明确未绑定 runtime 的 app-only provenance，应用发布不校验也不绑定本地外置教材资源；`remote-deploy.sh` 的耦合 runtime 选择路径在 provenance 门禁 fail-closed。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run deploy:runtime`。合作者在 Linux/WSL2/Lima 中使用 `npm run startup:oss-runtime`，经 ECS 激活网关按需读取签发时的 host-active Release；同一机器上的多个 worktree 共享一份网关 Blob 适配器与磁盘缓存，Release pin 与租约仍按 checkout 独立。凭据是仓库外共享网关令牌，不复用 Publisher、OSS AccessKey 或 SSH。隔离的 `static.adapt-learn.online` ESA PoC 由 `npm run esa-delivery:qualify` 资格合同约束：只用 `act-course-delivery`、禁止 Authority Bucket origin，没有 owner 接受服务角色前不得改 DNS。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)、[开发 OSS 接入说明](./operations/developer-oss-runtime-access.md)、[共享缓存](./operations/developer-oss-shared-cache.md) 与 [static ESA Delivery](./operations/static-esa-delivery.md)。
+回滚交换 `current`/`previous`：`rtk npm run runtime:rollback -- --store-dir <store> --state-dir <state>`。全量校验与回收只走显式 `runtime:doctor` / `runtime:gc`。
+
+生产排障需同时检查应用容器、worker、scheduler、PostgreSQL、Redis、systemd 服务和 `/api/readyz`。生产容器从已物化的 OSS blob-view 只读 bind 读取 runtime，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`。`/api/readyz` 在 blob-view 模式下投影最小 active runtime 身份（Release ID 与 digest），供开发工作站发现，不返回对象路径或凭据。应用镜像构建（`scripts/build.sh`）只生成明确未绑定 runtime 的 app-only provenance，应用发布不校验也不绑定本地外置教材资源。`legacy-rsync`、`deploy:runtime` 与 `deploy:all` 已退役；更新 runtime 只能使用 `runtime:publish` 与 `runtime:activate`。合作者在 Linux/WSL2/Lima 中使用 `npm run startup:oss-runtime`，经 ECS 激活网关按需读取签发时的 host-active Release；同一机器上的多个 worktree 共享一份网关 Blob 适配器与磁盘缓存，Release pin 与租约仍按 checkout 独立。凭据是仓库外共享网关令牌，不复用 Publisher、OSS AccessKey 或 SSH。隔离的 `static.adapt-learn.online` ESA PoC 由 `npm run esa-delivery:qualify` 资格合同约束：只用 `act-course-delivery`、禁止 Authority Bucket origin，没有 owner 接受服务角色前不得改 DNS。操作细则见 [OSS runtime 迁移手册](./operations/oss-runtime-migration.md)、[开发 OSS 接入说明](./operations/developer-oss-runtime-access.md)、[共享缓存](./operations/developer-oss-shared-cache.md) 与 [static ESA Delivery](./operations/static-esa-delivery.md)。
 
 ## 维护入口
 

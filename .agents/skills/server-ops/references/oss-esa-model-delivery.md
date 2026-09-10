@@ -31,5 +31,5 @@
 ## 与应用、Runtime 和图谱发布的关系
 
 - 创建 Bucket、ESA 记录、证书或模型对象不会更新已经运行的应用。只有包含模型解析器变更的应用提交进入 `origin/main`、构建出新的版本化镜像并按 `deploy:app` 发布后，生产页面才会使用 ESA-first 路径。
-- `deploy:app` 仍只绑定远端现有的 `ossfs-blob-view` Runtime。模型 Bucket 不能替代 `deploy:runtime`，也不能作为图谱、课程 Runtime 或 authority cutover 成功的证据。
-- 发布前同时核验应用镜像的 main revision、Runtime manifest/receipt 的独立 identity、图谱/资源激活证据和模型 ESA smoke；任一凭据、Runtime 或图谱读取失败时保持既有应用、Runtime selector 与 authority，不以模型链路成功掩盖其他失败。
+- `deploy:app` 仍只绑定远端现有的 `ossfs-blob-view` Runtime。模型 Bucket 不能替代 `runtime:publish` / `runtime:activate`，也不能作为图谱、课程 Runtime 或 authority cutover 成功的证据。
+- 发布前同时核验应用镜像的 main revision、Runtime current 身份、图谱/资源激活证据和模型 ESA smoke；任一凭据、Runtime 或图谱读取失败时保持既有应用、Runtime 指针与 authority，不以模型链路成功掩盖其他失败。

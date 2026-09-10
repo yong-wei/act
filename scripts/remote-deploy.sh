@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
 SKIP_BUILD="${SKIP_BUILD:-0}"
-DEPLOY_SCOPE="all"
+DEPLOY_SCOPE="app"
 SSH_TARGET="${SSH_TARGET:-root@121.40.124.135}"
 REMOTE_PROJECT_DIR="${REMOTE_PROJECT_DIR:-/home/projects/act}"
 LOCAL_IMAGE_TAR="${LOCAL_IMAGE_TAR:-deploy/images/act-obe.tar}"
@@ -39,7 +39,7 @@ LOCAL_RESOURCE_SET_HELPER="${ROOT_DIR}/scripts/release/textbook-resource-set.mjs
 LOCAL_RESOURCE_SET_CONFIG="${ROOT_DIR}/course-content/config/textbook-resource-set.json"
 REMOTE_RESOURCE_SET_HELPER="${REMOTE_PROJECT_DIR}/scripts/textbook-resource-set.mjs"
 REMOTE_RESOURCE_SET_CONFIG="${REMOTE_PROJECT_DIR}/course-content/config/textbook-resource-set.json"
-# 仅 DEPLOY_SCOPE=all 的耦合发布路径需要本地 resourceSet 书目；应用发布不读取资源状态。
+# 应用发布不读取本地 resourceSet 书目；Runtime 走 runtime:publish / runtime:activate。
 TEXTBOOK_V2_BOOK_IDS=""
 TEXTBOOK_V2_BOOK_COUNT=""
 TEXTBOOK_V2_REQUIRED_FILES="manifest.json navigation.json units.jsonl anchors.jsonl windows.jsonl anomalies.jsonl samples.jsonl"
@@ -58,13 +58,6 @@ REMOTE_EXPORT_DB_SCRIPT="${REMOTE_EXPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/script
 REMOTE_LOAD_IMAGES_SCRIPT="${REMOTE_LOAD_IMAGES_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/2-load-images.sh}"
 REMOTE_IMPORT_DB_SCRIPT="${REMOTE_IMPORT_DB_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/3-import-db.sh}"
 REMOTE_NGINX_SCRIPT="${REMOTE_NGINX_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/6-configure-nginx.sh}"
-LOCAL_RUNTIME_RELEASE_DIR="${LOCAL_RUNTIME_RELEASE_DIR:-${ROOT_DIR}/scripts/runtime-release}"
-REMOTE_RUNTIME_RELEASE_DIR="${REMOTE_RUNTIME_RELEASE_DIR:-${REMOTE_PROJECT_DIR}/scripts/runtime-release}"
-REMOTE_RUNTIME_HOST_STATE_SCRIPT="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/runtime-release-host-state.py}"
-REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT="${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/configure-runtime-ossfs-release.sh}"
-REMOTE_RUNTIME_ACTIVATE_SCRIPT="${REMOTE_RUNTIME_ACTIVATE_SCRIPT:-${REMOTE_PROJECT_DIR}/scripts/activate-runtime-release.sh}"
-REMOTE_RUNTIME_OSSFS_SERVICE="${REMOTE_RUNTIME_OSSFS_SERVICE:-/etc/systemd/system/act-runtime-ossfs@.service}"
-REMOTE_RUNTIME_VERIFICATION_RECEIPT="${REMOTE_RUNTIME_VERIFICATION_RECEIPT:-${REMOTE_PROJECT_DIR}/data/runtime/act-runtime-release-verification.json}"
 PUBLIC_URL="${PUBLIC_URL:-https://act.adapt-learn.online/}"
 APP_NAME_HINT="${APP_NAME_HINT:-act-obe-app}"
 DB_NAME_HINT="${DB_NAME_HINT:-act-obe-postgres}"
@@ -102,15 +95,15 @@ while [[ $# -gt 0 ]]; do
 默认行为:
   1. 调用 scripts/build.sh 本地构建镜像
   2. 上传 deploy/images/act-obe.tar 到远端
-  3. 绑定远端已物化的 OSS blob-view，执行应用部署并验证
+  3. 绑定远端已物化的 Runtime view，执行应用部署并验证
 
-本脚本默认 RUNTIME_DELIVERY_MODE=ossfs-blob-view，不会 rsync
-course-content/runtime。更新 runtime 请使用 npm run deploy:runtime。
-legacy-rsync 已退役；更新 runtime 只能使用 npm run deploy:runtime。
+本脚本只做应用部署，不会 rsync course-content/runtime。
+更新 Runtime 请使用 npm run runtime:publish 与 npm run runtime:activate。
+legacy-rsync 已退役。
 
 选项:
   --skip-build   跳过本地构建，直接上传并部署现有镜像产物
-  --app-only     仅更新镜像和应用；不传输、选择或验证 runtime release
+  --app-only     与默认行为相同，保留兼容入口
 EOF
       exit 0
       ;;
@@ -128,6 +121,13 @@ fail() {
   printf 'ERROR: %s\n' "$*" >&2
   exit 1
 }
+
+if [[ "${DEPLOY_SCOPE}" != "app" ]]; then
+  fail "remote-deploy.sh 只做应用部署。Runtime 请使用 npm run runtime:publish 与 npm run runtime:activate"
+fi
+if [[ "${RUNTIME_DELIVERY_MODE}" == "legacy-rsync" ]]; then
+  fail "legacy-rsync 已退役。更新 course-content/runtime 请使用 npm run runtime:publish 与 npm run runtime:activate"
+fi
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -225,7 +225,7 @@ set -euo pipefail
 view=\"${view_dir}\"
 if [ ! -d \"\${view}\" ]; then
   echo \"ERROR: ossfs-blob-view 缺少已物化 current view: \${view}\" >&2
-  echo \"ERROR: 更新 runtime 请使用 npm run deploy:runtime，不要 rsync course-content/runtime\" >&2
+  echo \"ERROR: 更新 runtime 请使用 npm run runtime:publish 与 npm run runtime:activate，不要 rsync course-content/runtime\" >&2
   exit 1
 fi
 if [ ! -e \"\${view}/.act-runtime-release.v2.json\" ] && [ ! -L \"\${view}/.act-runtime-release.v2.json\" ]; then
@@ -253,33 +253,6 @@ test -e /app/course-content/runtime/.act-runtime-release.v2.json
 test -e /app/course-content/runtime/.act-runtime-release-materialization.v1.json
 test -d /app/course-content/runtime/.act-runtime-blobs
 '"
-}
-
-require_oss_runtime_release_inputs() {
-  [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-release" ]] || return 0
-  [[ "${RUNTIME_RELEASE_ID}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || fail "ossfs-release 缺少有效 RUNTIME_RELEASE_ID"
-  [[ "${RUNTIME_EXPECTED_ACTIVE_RELEASE}" == "none" || "${RUNTIME_EXPECTED_ACTIVE_RELEASE}" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]] || fail "ossfs-release 缺少有效 RUNTIME_EXPECTED_ACTIVE_RELEASE（首次切换使用 none）"
-  [[ -f "${RUNTIME_VERIFICATION_RECEIPT}" ]] || fail "ossfs-release 缺少本地 verification receipt"
-  [[ "${RUNTIME_OSS_RAM_ROLE}" =~ ^[A-Za-z0-9_+=,.@-]{1,128}$ ]] || fail "ossfs-release 缺少有效 ECS RAM Role 名称"
-  for file in runtime-release-host-state.py configure-runtime-ossfs-release.sh activate-runtime-release.sh rollback-runtime-release.sh act-runtime-ossfs@.service; do
-    [[ -f "${LOCAL_RUNTIME_RELEASE_DIR}/${file}" ]] || fail "ossfs-release 本地工具缺失: ${LOCAL_RUNTIME_RELEASE_DIR}/${file}"
-  done
-}
-
-sync_oss_runtime_release_host_tools() {
-  remote "mkdir -p '${REMOTE_RUNTIME_RELEASE_DIR}' '$(dirname "${REMOTE_RUNTIME_HOST_STATE_SCRIPT}")' '$(dirname "${REMOTE_RUNTIME_VERIFICATION_RECEIPT}")' '$(dirname "${REMOTE_RUNTIME_OSSFS_SERVICE}")'"
-  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/runtime-release-host-state.py" "${SSH_TARGET}:${REMOTE_RUNTIME_HOST_STATE_SCRIPT}.tmp"
-  remote "chmod 0755 '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}.tmp' && mv '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}.tmp' '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}'"
-  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/configure-runtime-ossfs-release.sh" "${SSH_TARGET}:${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}.tmp"
-  remote "chmod 0755 '${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}.tmp' && mv '${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}.tmp' '${REMOTE_RUNTIME_OSSFS_CONFIG_SCRIPT}'"
-  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/activate-runtime-release.sh" "${SSH_TARGET}:${REMOTE_RUNTIME_ACTIVATE_SCRIPT}.tmp"
-  remote "chmod 0755 '${REMOTE_RUNTIME_ACTIVATE_SCRIPT}.tmp' && mv '${REMOTE_RUNTIME_ACTIVATE_SCRIPT}.tmp' '${REMOTE_RUNTIME_ACTIVATE_SCRIPT}'"
-  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh" "${SSH_TARGET}:${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh.tmp"
-  remote "chmod 0755 '${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh.tmp' && mv '${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh.tmp' '${REMOTE_RUNTIME_RELEASE_DIR}/rollback-runtime-release.sh'"
-  scp -q "${LOCAL_RUNTIME_RELEASE_DIR}/act-runtime-ossfs@.service" "${SSH_TARGET}:${REMOTE_RUNTIME_OSSFS_SERVICE}.tmp"
-  remote "chmod 0644 '${REMOTE_RUNTIME_OSSFS_SERVICE}.tmp' && mv '${REMOTE_RUNTIME_OSSFS_SERVICE}.tmp' '${REMOTE_RUNTIME_OSSFS_SERVICE}' && systemctl daemon-reload"
-  scp -q "${RUNTIME_VERIFICATION_RECEIPT}" "${SSH_TARGET}:${REMOTE_RUNTIME_VERIFICATION_RECEIPT}.tmp"
-  remote "chmod 0600 '${REMOTE_RUNTIME_VERIFICATION_RECEIPT}.tmp' && mv '${REMOTE_RUNTIME_VERIFICATION_RECEIPT}.tmp' '${REMOTE_RUNTIME_VERIFICATION_RECEIPT}'"
 }
 
 guard_no_committed_production_cutover() {
@@ -505,24 +478,6 @@ require_cmd curl
 require_cmd python3
 require_cmd node
 
-if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
-  case "${RUNTIME_DELIVERY_MODE}" in
-    ossfs-blob-view)
-      ;;
-    ossfs-release)
-      require_oss_runtime_release_inputs
-      ;;
-    legacy-rsync)
-      fail "legacy-rsync 已退役。更新 course-content/runtime 请使用 npm run deploy:runtime"
-      ;;
-    *)
-      fail "RUNTIME_DELIVERY_MODE 必须为 ossfs-blob-view 或 ossfs-release。legacy-rsync 已退役，请使用 npm run deploy:runtime"
-      ;;
-  esac
-  TEXTBOOK_V2_BOOK_IDS="$(node "${LOCAL_RESOURCE_SET_HELPER}" ids)"
-  TEXTBOOK_V2_BOOK_COUNT="$(node "${LOCAL_RESOURCE_SET_HELPER}" count)"
-fi
-
 log "[1/5] 本地构建"
 if [[ "${SKIP_BUILD}" == "1" ]]; then
   log "已启用 --skip-build，跳过本地构建，直接使用现有镜像产物"
@@ -546,13 +501,8 @@ PROVENANCE_DEPLOYMENT_SCOPE="$(
     --sidecar "${LOCAL_PROVENANCE_FILE}" \
     --field deploymentScope
 )"
-if [[ "${DEPLOY_SCOPE}" == "app" ]]; then
-  [[ "${PROVENANCE_DEPLOYMENT_SCOPE}" == "app-only" ]] \
-    || fail "--app-only 必须使用 deploymentScope=app-only 的镜像 provenance"
-else
-  [[ "${PROVENANCE_DEPLOYMENT_SCOPE}" == "runtime-bound" ]] \
-    || fail "包含 runtime 选择的部署必须使用 runtime-bound 镜像 provenance"
-fi
+[[ "${PROVENANCE_DEPLOYMENT_SCOPE}" == "app-only" ]] \
+  || fail "--app-only 必须使用 deploymentScope=app-only 的镜像 provenance"
 PROVENANCE_APP_REVISION="$(
   node "${LOCAL_PROVENANCE_HELPER}" print-field \
     --sidecar "${LOCAL_PROVENANCE_FILE}" \
@@ -608,36 +558,8 @@ remote "mv '${REMOTE_TMP_RESOURCE_SET_HELPER}' '${REMOTE_RESOURCE_SET_HELPER}'"
 scp -q "${LOCAL_RESOURCE_SET_CONFIG}" "${SSH_TARGET}:${REMOTE_TMP_RESOURCE_SET_CONFIG}"
 remote "mv '${REMOTE_TMP_RESOURCE_SET_CONFIG}' '${REMOTE_RESOURCE_SET_CONFIG}'"
 
-if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
-  case "${RUNTIME_DELIVERY_MODE}" in
-    ossfs-blob-view)
-      log "- ossfs-blob-view：不传输 runtime 内容，绑定远端已物化 view"
-      REMOTE_RUNTIME_DIR="${REMOTE_BLOB_VIEW_ROOT}/current"
-      REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
-      REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
-      ;;
-    legacy-rsync)
-      fail "legacy-rsync 已退役。更新 course-content/runtime 请使用 npm run deploy:runtime"
-      ;;
-    ossfs-release)
-      log "- 同步 OSS runtime release 主机工具与已验证 receipt（不复制 runtime 内容）"
-      sync_oss_runtime_release_host_tools
-      REMOTE_RUNTIME_DIR="${REMOTE_OSSFS_MOUNT_ROOT}/${RUNTIME_RELEASE_ID}"
-      REMOTE_TEXTBOOK_V2_RUNTIME_DIR="${REMOTE_RUNTIME_DIR}/resources/textbooks-v2"
-      REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR="${REMOTE_RUNTIME_DIR}/resources/textbook-hybrid-retrieval/bge-m3"
-      ;;
-    *)
-      fail "RUNTIME_DELIVERY_MODE 必须为 ossfs-blob-view 或 ossfs-release。legacy-rsync 已退役，请使用 npm run deploy:runtime"
-      ;;
-  esac
-else
-  log "- --app-only：保留当前 runtime 选择，不传输或变更 runtime 内容"
-fi
-
-if [[ "${DEPLOY_SCOPE}" == "all" && "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
-  log "- 预检远端已物化 blob-view，缺失时失败关闭而不是 rsync runtime"
-  check_remote_blob_view
-fi
+log "- ossfs-blob-view：不传输 runtime 内容"
+log "- --app-only：保留当前 runtime 选择，不传输或变更 runtime 内容"
 
 scp -q "${LOCAL_APP_DEPLOY_SCRIPT}" "${SSH_TARGET}:${REMOTE_TMP_APP_DEPLOY_SCRIPT}"
 remote "chmod +x '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' && mv '${REMOTE_TMP_APP_DEPLOY_SCRIPT}' '${REMOTE_APP_DEPLOY_SCRIPT}'"
@@ -704,27 +626,7 @@ remote "bash -lc 'set -euo pipefail
   echo \"[remote-deploy] Step 4/7: 导入最新数据库\"
   \"${REMOTE_IMPORT_DB_SCRIPT}\"
   echo \"[remote-deploy] Step 5/8: 启动应用容器\"
-  if [ \"${DEPLOY_SCOPE}\" = \"all\" ] && [ \"${RUNTIME_DELIVERY_MODE}\" = \"ossfs-release\" ]; then
-    RUNTIME_DELIVERY_MODE=ossfs-release \\
-      ACT_RUNTIME_OSS_RAM_ROLE=\"${RUNTIME_OSS_RAM_ROLE}\" \\
-      ACT_RUNTIME_OSS_BUCKET=act-course-assets \\
-      ACT_RUNTIME_OSS_REGION=oss-cn-hangzhou \\
-      APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \\
-      ACT_RUNTIME_DEPLOY_SCRIPT=\"${REMOTE_APP_DEPLOY_SCRIPT}\" \\
-      \"${REMOTE_RUNTIME_ACTIVATE_SCRIPT}\" \\
-        --release-id \"${RUNTIME_RELEASE_ID}\" \\
-        --expected-active-release \"${RUNTIME_EXPECTED_ACTIVE_RELEASE}\" \\
-        --verification-receipt \"${REMOTE_RUNTIME_VERIFICATION_RECEIPT}\" \\
-        --ram-role \"${RUNTIME_OSS_RAM_ROLE}\"
-  elif [ \"${DEPLOY_SCOPE}\" = \"all\" ] && [ \"${RUNTIME_DELIVERY_MODE}\" = \"ossfs-blob-view\" ]; then
-    RUNTIME_DELIVERY_MODE=ossfs-blob-view \\
-      RUNTIME_CONTENT_DIR=\"${REMOTE_BLOB_VIEW_ROOT}/current\" \\
-      ${RUNTIME_OSS_RAM_ROLE:+ACT_RUNTIME_OSS_RAM_ROLE=\"${RUNTIME_OSS_RAM_ROLE}\" }\\
-      APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \\
-      \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
-  else
-    APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
-  fi
+  APP_IMAGE=\"${REMOTE_APP_IMAGE}\" \"${REMOTE_APP_DEPLOY_SCRIPT}\" --app-only
   echo \"[remote-deploy] Step 6/8: 同步 runtime 知识图谱到数据库\"
   # seed:knowledge is intentionally apply-gated for ad-hoc use. This is the
   # controlled deployment execution path after the immutable runtime is mounted.
@@ -746,28 +648,8 @@ remote "test -f '${REMOTE_PROVENANCE_INPUT_HELPER}'"
 remote "test -f '${REMOTE_RESOURCE_SET_HELPER}'"
 remote "test -f '${REMOTE_RESOURCE_SET_CONFIG}'"
 
-if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
-  if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
-    log "- 校验远端已物化 blob-view（不按镜像 provenance 重核 runtime）"
-    check_remote_blob_view
-  else
-    log "- 校验远端 runtime 目录"
-    remote "test -d '${REMOTE_RUNTIME_DIR}'"
-    check_remote_textbook_v2_files
-    check_remote_runtime_pointer_absence
-    remote "cd '${REMOTE_PROJECT_DIR}' && node '${REMOTE_PROVENANCE_HELPER}' verify-runtime \
-      --runtime-root '${REMOTE_TEXTBOOK_V2_RUNTIME_DIR}' \
-      --index-dir '${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}' \
-      --sidecar '${REMOTE_PROVENANCE_FILE}'"
-    if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-release" ]]; then
-      remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o FSTYPE | grep -Eq '^fuse(\\.|\$)'"
-      remote "findmnt -rn -T '${REMOTE_RUNTIME_DIR}' -o OPTIONS | grep -Eq '(^|,)ro(,|\$)'"
-      remote "python3 '${REMOTE_RUNTIME_HOST_STATE_SCRIPT}' active --state-dir '${REMOTE_PROJECT_DIR}/data/runtime' | grep -q '\"activeReleaseId\":\"${RUNTIME_RELEASE_ID}\"'"
-    fi
-  fi
-else
-  log "- --app-only：跳过 runtime release 验证"
-fi
+log "- --app-only：跳过 runtime release 验证"
+remote "test -d '${REMOTE_RUNTIME_DIR}'"
 
 log "- 校验远端应用部署脚本已更新 runtime 挂载"
 remote "grep -q '/app/course-content/runtime:ro' '${REMOTE_APP_DEPLOY_SCRIPT}'"
@@ -796,16 +678,6 @@ if remote "bash -lc 'set -a; [ -f \"${REMOTE_PROJECT_DIR}/.env.server\" ] && . \
 else
   log "- 校验容器内 Wolfram Cloud MCP 就绪"
   remote "podman exec '${APP_NAME_HINT}' ./scripts/math-calc/check-wolfram-ready.sh"
-fi
-
-if [[ "${DEPLOY_SCOPE}" == "all" ]]; then
-  if [[ "${RUNTIME_DELIVERY_MODE}" == "ossfs-blob-view" ]]; then
-    log "- 校验应用容器已绑定 ossfs-blob-view"
-    check_container_blob_view
-  else
-    log "- 校验应用容器只读挂载中的 resourceSet 教材 v2 runtime"
-    check_container_textbook_v2_files
-  fi
 fi
 
 log "- 校验数据库连通性"

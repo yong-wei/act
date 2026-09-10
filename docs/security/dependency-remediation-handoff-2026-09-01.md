@@ -6,7 +6,7 @@ Candidate revision: `8c8758e4ad5b879166283be645c2439725ec918b`
 
 This batch does not deploy production. Roll app, worker, and scheduler
 together onto the candidate image. Keep the existing PostgreSQL and Redis
-containers and volumes. Do not `deploy:runtime`, and do not restore the
+containers and volumes. Do not `runtime:activate`, and do not restore the
 database unless a later incident proves data corruption.
 
 ## Selected versions

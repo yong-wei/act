@@ -400,3 +400,18 @@ def test_resolve_lessons_export_all_skips_mainline_draft(monkeypatch, tmp_path):
     lessons = export_runtime.resolve_lessons(argparse.Namespace(export_all=True, lesson=None))
 
     assert lessons == ['1-1']
+
+
+def test_write_if_changed_keeps_mtime_for_identical_bytes(tmp_path):
+    unrelated = tmp_path / 'lessons' / '1-2' / 'lesson.json'
+    changed = tmp_path / 'lessons' / '1-1' / 'lesson.json'
+    export_runtime.write_json(unrelated, {'lesson_id': '1-2', 'title': 'stable'})
+    export_runtime.write_json(changed, {'lesson_id': '1-1', 'title': 'before'})
+    unrelated_mtime = unrelated.stat().st_mtime_ns
+    changed_mtime = changed.stat().st_mtime_ns
+
+    export_runtime.write_json(unrelated, {'lesson_id': '1-2', 'title': 'stable'})
+    export_runtime.write_json(changed, {'lesson_id': '1-1', 'title': 'after'})
+
+    assert unrelated.stat().st_mtime_ns == unrelated_mtime
+    assert json.loads(changed.read_text(encoding='utf-8'))['title'] == 'after'

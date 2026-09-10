@@ -2,13 +2,15 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-09
+> Last updated: 2026-09-10
 
 ---
 
 ## ✅ Done
 
-- 2026-09-09：七船当前激活为雪龙2 1.0.1、爱达 1.0.1、Tessa 1.1.1、长恒 1.1.1、天鲸 1.1.1、055 2.2.1、981 1.1.1。`ACT_RUNTIME_ONLY` 包（`models/` + `textures/`）已接收；旧版本化目录、收据与描述符已退役。加载失败只回退 registry 单文件链。同源目录优先于 ESA。相关 vitest 68 项通过。OpenSpec `receive-fleet-hero-releases-oss-default`。船模在应用镜像，不在 `course-content/runtime`。
+- 2026-09-10：`simplify-runtime-cas-publish-activate` R1–R5 已落地；PR #2078。Codex 首轮 5 条 P1 已按生产合同修复：激活改 `blob-views/current`、物化写 v1 收据与 helper 目录、清单按 publisher 公式校验、GC execute 课堂引用失败关闭、smoke 绑定候选视图。未生产部署。
+- 2026-09-10：CORS 只放行生产源。船模公开目录回源与首帧同源探测已合入 `origin/integration@2f715f022`（`1bf80e002`）。未部署。
+- 2026-09-09：七船当前激活为雪龙2 1.0.1、爱达 1.0.1、Tessa 1.1.1、长恒 1.1.1、天鲸 1.1.1、055 2.2.1、981 1.1.1。旧版本化目录与描述符已退役。用户建了 `act-course-models` 并授 `model-releases/` 的 List/Get/Put。165 个对象已上传。ESA 已接通：`static.adapt-learn.online` CNAME 为 `static.adapt-learn.online.a1.initww.com`。CORS 只放行 `https://act.adapt-learn.online`。根域与 `act` 仍指向 `121.40.124.135`。本机 3002 继续走镜像。
 
 
 
@@ -91,6 +93,10 @@
 ---
 
 ## 🚀 Next phase
+
+- 2026-09-10：PR #2078 等待新 HEAD 的 Codex 复审。同一 HEAD 不得再发 `@codex review`。不要生产 `deploy:app` / `runtime:activate`。不要再跑已删的 `deploy:runtime`。既有失败：`test-r4-c5-cutover-contract.mjs`（密封选择器漂移）、overlay installer 对密封 domain-teaching 重算哈希（与本变更无关）。
+
+- 2026-09-10：CORS 方案 1 已确认（只放行 `https://act.adapt-learn.online`）。船模公开存储加载已合入 `origin/integration@2f715f022`（功能提交 `1bf80e002`）。未 `deploy:app`。不要加 A 记录。不要改课程运行态 desired。CORS `Access-Control-Expose-Headers` 里 `ontent-Range` 少了首字母 C，可后修。
 
 - 2026-09-07：#2044 / PR #2057 归档 HEAD `02765f5` 复审未清场：P1 viewer-shell 被 API href 清洗打成 unavailable；P2 缓存键未走配置的教学投影根。正在按根因一并修完后再对 latest HEAD 请求一次复审。不要关 #1033。不要 `deploy:app` / `deploy:runtime`。不要主动调用 Claude。不要改 overlay A / `activation-0b72f577`。
 

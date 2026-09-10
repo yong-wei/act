@@ -10,7 +10,6 @@ const coordinator = path.join(root, 'scripts/knowledge-cutover/coordinate-latest
 const qualificationArtifacts = path.join(root, 'scripts/knowledge-cutover/build-r4-c5-qualification-artifacts.ts');
 const remote = fs.readFileSync(path.join(root, 'scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh'), 'utf8');
 const deploy = fs.readFileSync(path.join(root, 'scripts/knowledge-cutover/deploy-r4-c5-coordinated-cutover.sh'), 'utf8');
-const activationTransaction = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-activation-transaction.py'), 'utf8');
 
 for (const invariant of [
   'flock -x 9',
@@ -181,7 +180,11 @@ assert.ok(
   deploy.includes('composed-domain-fragment-manifest.json'),
   'local wrapper must gate and upload the composed domain-fragment manifest with the candidate',
 );
-assert.match(activationTransaction, /--coordinated-runtime-authorization/, 'activation wrapper must forward the pre-activation authorization');
+assert.match(
+  remote,
+  /Runtime lifecycle\/activation-transaction 已退役/,
+  'coordinated Runtime activation must fail closed onto runtime:activate',
+);
 assert.ok(
   remote.includes('composed domain-fragment manifest does not match its recomputed identity'),
   'production preflight must recompute composed-manifest identity instead of trusting self-asserted digests',
@@ -206,7 +209,7 @@ assert.ok(
   remote.includes('Runtime manifest extension does not bind the composed domain-fragment identities'),
   'production preflight must require the Runtime extension to bind the composed domain-fragment identities',
 );
-assert.doesNotMatch(activationTransaction, /coordinated-graph-receipt/, 'activation wrapper must not retain the cyclic final-receipt argument');
+assert.match(remote, /npm run runtime:activate/, 'retired coordinated Runtime path must name the daily activate command');
 
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'act-r4-c5-builder-'));
 try {
