@@ -23,7 +23,8 @@
 | TypeScript 门禁 | `typecheck`（production graph）+ `typecheck:test/tools/web/worker` 各自独立 |
 | 迁移/回填 | `tools/migration-backfill/cli.ts`（apply/check/dry-run） |
 | 内容/知识/运行时发布 | `tools/content-knowledge-runtime-release/cli.ts`（check/dry-run/apply/write/run），非激活 |
-| 发布/回滚安全验证 | 既有 runtime-release validator 链（`test:runtime-release-activation-rollback` 等），inventory 不引入第二 validator |
+| 发布/回滚安全验证 | Runtime CAS 合同测试（`test:runtime-cas-publish` / `test:runtime-cas-activate` / `test:runtime-cas-doctor`），inventory 不引入第二 validator |
+| 课程 Runtime 发布 | `runtime:publish` 后 `runtime:activate`；回滚 `runtime:rollback`；全量校验/回收走显式 `runtime:doctor` / `runtime:gc` |
 
 ## 本次收敛（C34）
 

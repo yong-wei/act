@@ -78,7 +78,8 @@ from shared_mount import (
 )
 
 REQUIRED_ARCH = {"x86_64", "amd64", "aarch64", "arm64"}
-MATERIALIZER_NAME = "materialize-runtime-blob-release.py"
+MATERIALIZER_NAME = "materialize-runtime.py"
+HELPER_NAME = ".act-runtime-blobs"
 
 
 def load_materializer():
@@ -307,12 +308,23 @@ def read_selection_receipt(path: Path) -> dict[str, Any] | None:
 
 
 def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, view_root: Path, release_id: str) -> Path:
-    materializer = Path(__file__).resolve().parent.parent / MATERIALIZER_NAME
-    python = sys.executable
-    run([python, str(materializer), "prepare", "--manifest", str(manifest_path), "--receipt", str(receipt_path), "--blob-root", str(blob_root), "--view-root", str(view_root), "--skip-blob-hash"])
-    helper = view_root / "views" / release_id / ".act-runtime-blobs"
+    materializer = load_materializer()
+    manifest, wire = materializer.parse_manifest(manifest_path)
+    materializer.parse_receipt(receipt_path, manifest, wire)
+    if manifest["releaseId"] != release_id:
+        fail("fetched manifest releaseId does not match readiness identity")
+    view = view_root / "views" / release_id
+    helper = view / HELPER_NAME
+    view.mkdir(parents=True, exist_ok=True)
+    helper.mkdir(parents=True, exist_ok=True)
     if os.environ.get("ACT_RUNTIME_DEV_ALLOW_NON_LINUX") == "1":
-        run([python, str(materializer), "attach-helper", "--release-id", release_id, "--view-root", str(view_root), "--blob-root", str(blob_root), "--test-fixture"])
+        for item in manifest["files"]:
+            source = blob_root / item["sha256"]
+            if not source.is_file():
+                fail("fixture blob is missing: %s" % item["sha256"])
+            target = helper / item["sha256"]
+            if not target.exists():
+                target.write_bytes(source.read_bytes())
     elif is_mounted(helper):
         if not is_readonly_mount(helper):
             fail("helper blob bind must be read-only")
@@ -321,8 +333,21 @@ def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, v
         run(privileged_mount(["remount-ro", str(helper)]))
         if not is_readonly_mount(helper):
             fail("helper blob bind must be read-only")
-    run([python, str(materializer), "verify", "--release-id", release_id, "--view-root", str(view_root)])
-    run([python, str(materializer), "select", "--release-id", release_id, "--view-root", str(view_root)])
+    for item in manifest["files"]:
+        destination = view / item["path"]
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.exists() or destination.is_symlink():
+            destination.unlink()
+        destination.symlink_to(("%s%s/%s" % ("../" * item["path"].count("/"), HELPER_NAME, item["sha256"])))
+        if not destination.exists():
+            fail("logical leaf is not readable: %s" % item["path"])
+    (view / materializer.LOCAL_MANIFEST).write_bytes(wire if wire.endswith(b"\n") else wire + b"\n")
+    current = view_root / "current"
+    temporary = view_root / "current.tmp"
+    if temporary.exists() or temporary.is_symlink():
+        temporary.unlink()
+    os.symlink("views/%s" % release_id, temporary)
+    os.replace(temporary, current)
     return helper
 
 

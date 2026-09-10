@@ -116,15 +116,25 @@ def normalize_authoring_node(node: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
-def write_json(path: Path, data: Any) -> None:
+def write_if_changed(path: Path, content: str, *, encoding: str = 'utf-8') -> bool:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    encoded = content.encode(encoding)
+    try:
+        if path.read_bytes() == encoded:
+            return False
+    except OSError:
+        pass
+    path.write_bytes(encoded)
+    return True
+
+
+def write_json(path: Path, data: Any) -> None:
+    write_if_changed(path, json.dumps(data, ensure_ascii=False, indent=2) + '\n')
 
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     content = '\n'.join(json.dumps(record, ensure_ascii=False) for record in records)
-    path.write_text((content + '\n') if content else '', encoding='utf-8')
+    write_if_changed(path, (content + '\n') if content else '')
 
 
 def normalize_bloom_level(value: str | None) -> str:
@@ -609,9 +619,9 @@ def export_review_bundle(lesson_id: str) -> dict[str, Any]:
             continue
         destination_name = with_lesson_prefix(lesson_id, source_name)
         destination = review_dir / destination_name
-        destination.write_text(
+        write_if_changed(
+            destination,
             rewrite_markdown_media(source.read_text(encoding='utf-8'), runtime_fragment),
-            encoding='utf-8',
         )
         legacy_destination = review_dir / source_name
         if legacy_destination.exists() and legacy_destination != destination:

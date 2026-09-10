@@ -65,23 +65,17 @@ def fail(message):
 
 
 def load_materializer():
-    candidates = [
-        Path(__file__).resolve().parents[1] / "materialize-runtime-blob-release.py",
-        Path(__file__).resolve().parents[1] / "runtime-release" / "materialize-runtime-blob-release.py",
-    ]
-    last_error = "materializer is unavailable"
-    for path in candidates:
-        if not path.is_file() or path.is_symlink():
-            continue
-        spec = importlib.util.spec_from_file_location("materialize_runtime_blob_release", str(path))
-        if spec is None or spec.loader is None:
-            continue
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        if hasattr(module, "read_control_plane_pointer") and hasattr(module, "discover_control_plane_overlay_regular_paths"):
-            return module
-        last_error = "materializer %s lacks control-plane overlay helpers" % path
-    fail(last_error)
+    path = Path(__file__).resolve().parent / "control_plane_overlay_paths.py"
+    if not path.is_file() or path.is_symlink():
+        fail("control-plane overlay helpers are missing")
+    spec = importlib.util.spec_from_file_location("control_plane_overlay_paths", str(path))
+    if spec is None or spec.loader is None:
+        fail("control-plane overlay helpers are unreadable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if hasattr(module, "read_control_plane_pointer") and hasattr(module, "discover_control_plane_overlay_regular_paths"):
+        return module
+    fail("control-plane overlay helpers lack required functions")
 
 
 def require_real_directory(path, label):

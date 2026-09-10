@@ -918,14 +918,14 @@ assert.match(
 assert.equal(
   remoteDeployScript.includes('LOCAL_PROVENANCE_FILE="${LOCAL_PROVENANCE_FILE:-${LOCAL_IMAGE_TAR}.provenance.json}"') &&
     remoteDeployScript.includes('verify-image') &&
-    remoteDeployScript.includes('verify-runtime') &&
+    !remoteDeployScript.includes('verify-runtime') &&
     remoteDeployScript.includes('REMOTE_PROVENANCE_FILE') &&
     remoteDeployScript.includes('REMOTE_PROVENANCE_HELPER') &&
     remoteDeployScript.includes('podman image inspect') &&
     remoteDeployScript.includes('org.opencontainers.image.revision') &&
     remoteDeployScript.includes('loaded image revision mismatch'),
   true,
-  '普通与 skip-build 部署必须验证并上传 sidecar，复核远端 runtime/tar，并在启动应用前核对镜像 revision label',
+  '应用部署必须验证并上传镜像 sidecar，在启动前核对 revision label；Runtime 不走 remote-deploy',
 );
 
 assert.equal(
@@ -992,9 +992,9 @@ assert.equal(
   textbookRetrievalRequiredFiles.every((fileName) =>
     textbookV2ProvenanceHelper.includes(`'${fileName}'`)) &&
     !buildScript.includes('--index-dir "${TEXTBOOK_RETRIEVAL_INDEX_DIR}"') &&
-    remoteDeployScript.includes('--index-dir \'${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\''),
+    !remoteDeployScript.includes('--index-dir \'${REMOTE_TEXTBOOK_RETRIEVAL_INDEX_DIR}\''),
   true,
-  '远端 ossfs-release 验收必须把固定 index 纳入同一 revision/digest 合同；应用 build 不再绑定本地 index',
+  '教材 index 合同仍由 provenance helper 持有；应用 build 与 remote-deploy 都不再绑定 index',
 );
 
 console.log('runtime externalized deploy test passed');

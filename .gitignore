@@ -105,6 +105,9 @@ unit41-step*.png
 # Local CodeGraph index
 .codegraph/
 
+# Daily runtime CAS publish index
+var/cache/runtime-release/
+
 # SkillOpt-Sleep local runtime
 /.skillopt-sleep/
 

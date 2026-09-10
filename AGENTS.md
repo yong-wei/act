@@ -95,6 +95,9 @@
 - `rtk npm run wasm:build:control-engine`
 - `rtk npm run worker:dev` / `rtk npm run worker:scheduler`
 - `rtk npm run db:session-data-quality` / `rtk npm run db:evidence-source-coverage`
+- `rtk npm run deploy:app`（仅应用镜像；`remote-deploy.sh --app-only`）
+- `rtk npm run runtime:publish` / `runtime:activate` / `runtime:rollback`（课程 Runtime CAS 发布与 `current`/`previous` 切换；发布不激活）
+- `rtk npm run runtime:doctor` / `runtime:gc`（显式全量校验与回收；不得由发布或应用部署隐式调用）
 
 按改动风险选择最小充分验证：文档只需结构和 diff 检查；共享逻辑、课程 runtime、DB、仿真或 UI 改动需要对应测试；影响用户页面时补充浏览器或 Playwright 验收。
 
@@ -163,6 +166,7 @@
 - 完成重大功能更新时，根据范围更新 `docs/ProjectDescription.md`，并提交可验证的项目状态。
 - 当前 CI 只在 `main` push 与 `workflow_dispatch` 执行；PR 的 `statusCheckRollup: []` 不是阻塞项，但本地验证、评审线程、mergeability 与元数据门禁仍然有效。
 - 镜像构建默认使用 `rtk bash scripts/build.sh`；除非排查脚本本身，不直接手写 `docker buildx build`。
+- 应用发布与课程 Runtime 发布分离。应用只走 `deploy:app`；Runtime 只走 `runtime:publish` 之后的 `runtime:activate`（回滚用 `runtime:rollback`）。已删除 `deploy:runtime` 与 `deploy:all`，不得再同步本地 `course-content/runtime`。
 
 ## MCP 与工具选择
 

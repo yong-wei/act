@@ -163,6 +163,7 @@ function immutableWrite(out: string, value: unknown): void {
 }
 
 function main(): void {
+  fail('Runtime lifecycle inspect 已退役。知识合同通过后请使用 npm run runtime:activate');
   const out = argument('--out', DEFAULT_OUT);
   const allowStagedDesired = flag('--allow-staged-desired');
   const remote = readRemote();

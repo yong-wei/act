@@ -113,7 +113,7 @@ function verifyLegacyRsyncRetired() {
     assert.match(
       retired.stderr,
       /legacy-rsync 已退役/u,
-      'legacy-rsync 必须明确提示改用 deploy:runtime',
+      'legacy-rsync 必须明确提示改用 runtime:publish / runtime:activate',
     );
     assert.equal(
       fs.existsSync(rsyncLog),
@@ -212,7 +212,7 @@ function verifyLegacyRemoteTransactionQuoting(script) {
   const result = spawnSync('bash', ['-c', `
 set -euo pipefail
 remote() { printf 'argc=%s\\n' "$#"; printf '%s\\n' "$1" | bash -n; }
-DEPLOY_SCOPE=all
+DEPLOY_SCOPE=app
 RUNTIME_DELIVERY_MODE=ossfs-blob-view
 REMOTE_PROJECT_DIR=/tmp/act
 APP_NAME_HINT=app
@@ -267,7 +267,7 @@ function main() {
   assert.match(
     script,
     /legacy-rsync 已退役/,
-    'legacy-rsync 必须失败关闭并提示改用 deploy:runtime',
+    'legacy-rsync 必须失败关闭并提示改用 runtime:publish / runtime:activate',
   );
   assert.equal(
     script.includes('rsync "${runtime_rsync_args[@]}"'),
@@ -293,8 +293,13 @@ function main() {
   );
   assert.match(
     script,
-    /remote "cd '\$\{REMOTE_PROJECT_DIR\}' && node '\$\{REMOTE_PROVENANCE_HELPER\}' verify-runtime \\/,
-    '远端 runtime provenance 校验必须从远端项目根目录解析 resourceSet 配置',
+    /remote "cd '\$\{REMOTE_PROJECT_DIR\}' && node '\$\{REMOTE_PROVENANCE_HELPER\}' verify-image \\/,
+    '应用部署只从远端项目根目录校验镜像 provenance，不重核 runtime',
+  );
+  assert.equal(
+    script.includes('verify-runtime'),
+    false,
+    '应用部署不得调用 verify-runtime；Runtime 走 runtime:publish / runtime:activate',
   );
 
   assert.equal(
@@ -317,9 +322,9 @@ function main() {
 
   assert.equal(
     script.includes('--app-only 必须使用 deploymentScope=app-only 的镜像 provenance') &&
-      script.includes('包含 runtime 选择的部署必须使用 runtime-bound 镜像 provenance'),
+      !script.includes('包含 runtime 选择的部署必须使用 runtime-bound 镜像 provenance'),
     true,
-    'app-only 部署必须使用不声明 runtime 的 provenance；runtime 选择路径在 provenance 门禁保持 fail-closed',
+    '应用部署只接受 app-only provenance；Runtime 发布不再走 remote-deploy.sh',
   );
 
   assert.match(
@@ -355,20 +360,20 @@ function main() {
     /REMOTE_PRODUCTION_CUTOVER_MARKER="\$\{REMOTE_PRODUCTION_CUTOVER_MARKER:-\$\{REMOTE_BLOB_VIEW_ROOT\}\/current\/knowledge\/production-cutover-transactions\/current\.json\}"/,
     '默认 blob-view 必须定位已物化 view 上的生产切换 marker',
   );
-  const blobViewVerify = script.slice(
-    script.indexOf('log "- 校验远端已物化 blob-view'),
-    script.indexOf('log "- 校验远端 runtime 目录"'),
-  );
-  assert.match(blobViewVerify, /check_remote_blob_view/);
-  assert.doesNotMatch(
-    blobViewVerify,
-    /guard_no_committed_production_cutover|check_remote_authority_current_pointer_absence/,
-    '默认 ossfs-blob-view 验收不得因 Legacy cutover/authority 门禁失败',
+  assert.match(
+    script,
+    /ossfs-blob-view：不传输 runtime 内容/,
+    '应用部署不得传输 runtime 内容',
   );
   assert.match(
     script,
-    /check_remote_runtime_pointer_absence/,
-    'ossfs-release 验收仍须检查 production pointer 不存在',
+    /--app-only：跳过 runtime release 验证/,
+    '应用部署不得在发布路径上重核 runtime release',
+  );
+  assert.match(
+    script,
+    /npm run runtime:publish 与 npm run runtime:activate/,
+    'Runtime 更新必须指向独立的 publish/activate 入口',
   );
 
   assert.match(

@@ -9,7 +9,7 @@ STATE_DIR="${ACT_RUNTIME_STATE_DIR:-$PROJECT_DIR/data/runtime}"
 VIEW_ROOT="${ACT_RUNTIME_BLOB_VIEW_ROOT:-$STATE_DIR/blob-views}"
 DEPLOY="${ACT_RUNTIME_APP_DEPLOY_SCRIPT:-$PROJECT_DIR/scripts/4-deploy.sh}"
 INSTALLER="${ACT_RUNTIME_TEACHING_OVERLAY_INSTALLER:-$PROJECT_DIR/scripts/knowledge-cutover/install-successor-control-plane-overlays.py}"
-MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-$PROJECT_DIR/scripts/materialize-runtime-blob-release.py}"
+MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-$PROJECT_DIR/scripts/runtime-release/materialize-runtime.py}"
 
 source_dir=""
 expected_authority=""

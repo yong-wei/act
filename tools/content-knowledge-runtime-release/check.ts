@@ -119,7 +119,9 @@ export function checkContentKnowledgeRuntimeRelease(cwd: string): ReleaseCheckRe
   if (!commands.some((item) => item.toolchain === 'knowledge-release' && item.role === 'publication-writer')) {
     failures.push('missing-knowledge-publication-writer');
   }
-  if (!commands.some((item) => item.toolchain === 'runtime-release' && item.role === 'publication-writer')) {
+  if (!commands.some((item) => (
+    item.toolchain === 'runtime-release' && item.path === CHARACTERIZATION_PATHS.runtime
+  ))) {
     failures.push('missing-runtime-publication-writer');
   }
   if (!commands.some((item) => item.role === 'operator-adapter')) {

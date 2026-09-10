@@ -7,7 +7,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-LIFECYCLE_PATH = ROOT / "scripts/runtime-release/runtime-blob-release-lifecycle.py"
 INSPECT_PATH = ROOT / "scripts/runtime-release/inspect-textbook-corpus.py"
 REQUIRED_RUNTIME = [
     "manifest.json",
@@ -28,9 +27,6 @@ REQUIRED_INDEX = [
     "build-report.json",
 ]
 
-LIFECYCLE_SPEC = importlib.util.spec_from_file_location("lifecycle_for_corpus_inspect", str(LIFECYCLE_PATH))
-LIFECYCLE = importlib.util.module_from_spec(LIFECYCLE_SPEC)
-LIFECYCLE_SPEC.loader.exec_module(LIFECYCLE)
 INSPECT_SPEC = importlib.util.spec_from_file_location("textbook_corpus_inspect", str(INSPECT_PATH))
 INSPECT = importlib.util.module_from_spec(INSPECT_SPEC)
 INSPECT_SPEC.loader.exec_module(INSPECT)
@@ -132,19 +128,13 @@ class TextbookCorpusInspectTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.state = self.root / "state"
+        self.state.mkdir(parents=True)
         self.active = identity("runtime-active", "a")
         self.rollback = identity("runtime-rollback", "b")
-        after = LIFECYCLE.lifecycle({
-            "schemaVersion": "runtime-blob-release-lifecycle.v2",
-            "generation": 2,
-            "transactionId": "b" * 32,
-            "desired": None,
-            "active": self.active,
-            "rollback": self.rollback,
-            "publishing": [],
-            "retained": [],
-        })
-        LIFECYCLE.transaction(self.state, after)
+        (self.state / "pointers.json").write_text(
+            json.dumps({"current": self.active["releaseId"], "previous": self.rollback["releaseId"]}) + "\n",
+            encoding="utf-8",
+        )
         self.revision = "a" * 40
         self.active_books = ["control-encyclopedia", "hu-shousong-exercise-analysis-3rd"]
         self.rollback_books = [
@@ -190,19 +180,10 @@ class TextbookCorpusInspectTests(unittest.TestCase):
         original = INSPECT.run_node_inspect
 
         def mutate_then_inspect(view_root):
-            after = LIFECYCLE.lifecycle({
-                **LIFECYCLE.read_v2(self.state),
-                "generation": 3,
-                "transactionId": "c" * 32,
-            })
-            marker = {
-                "schemaVersion": "runtime-release-authority.v2",
-                "mode": "v2",
-                "generation": after["generation"],
-                "lifecycleSha256": LIFECYCLE.digest(after),
-            }
-            LIFECYCLE.write_atomic(self.state / "act-runtime-blob-lifecycle.v2.json", after)
-            LIFECYCLE.write_atomic(self.state / "act-runtime-authority.v2.json", marker)
+            (self.state / "pointers.json").write_text(
+                json.dumps({"current": "runtime-mutated", "previous": self.rollback["releaseId"]}) + "\n",
+                encoding="utf-8",
+            )
             return original(view_root)
 
         INSPECT.run_node_inspect = mutate_then_inspect

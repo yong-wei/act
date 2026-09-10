@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""Independent runtime GC. Default dry-run retains every blob."""
+
+import argparse
+import importlib.util
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+
+def load_materializer():
+    spec = importlib.util.spec_from_file_location("materialize_runtime", str(SCRIPT_DIR / "materialize-runtime.py"))
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+MATERIALIZE = load_materializer()
+
+
+SESSION_SQL = 'SELECT DISTINCT "runtimeReleaseId" FROM "CourseBundleRevision" WHERE "runtimeReleaseId" <> \'\''
+SESSION_DISCOVERY_UNAVAILABLE = (
+    "session release discovery unavailable\n"
+    "set DATABASE_URL or pass --session-release / --no-session-refs"
+)
+
+
+class GcError(RuntimeError):
+    def __init__(self, message, code=2):
+        super(GcError, self).__init__(message)
+        self.code = code
+
+
+def read_pointers(state_dir):
+    try:
+        return MATERIALIZE.read_host_pointers(state_dir)
+    except MATERIALIZE.MaterializeError as error:
+        raise GcError(str(error))
+
+
+def list_release_ids(store, state_dir):
+    found = set()
+    releases = store / "runtime" / "blob-releases"
+    if releases.is_dir():
+        found.update(path.name for path in releases.iterdir() if path.is_dir())
+    views = state_dir / "views"
+    if views.is_dir():
+        found.update(path.name for path in views.iterdir() if path.is_dir())
+    if state_dir.is_dir():
+        found.update(
+            path.name
+            for path in state_dir.iterdir()
+            if path.is_dir()
+            and not path.is_symlink()
+            and path.name not in MATERIALIZE.POINTER_NAMES
+            and MATERIALIZE.RELEASE_ID_PATTERN.fullmatch(path.name)
+        )
+    return sorted(found)
+
+
+def query_session_releases(database_url):
+    process = subprocess.run(
+        ["psql", database_url, "-v", "ON_ERROR_STOP=1", "-Atc", SESSION_SQL],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    if process.returncode != 0:
+        raise GcError("session release discovery failed")
+    return set(line.strip() for line in process.stdout.splitlines() if line.strip())
+
+
+def resolve_session_releases(args):
+    explicit = set(item for item in args.session_release if item)
+    if args.no_session_refs:
+        return explicit
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        return explicit | query_session_releases(database_url)
+    if args.execute:
+        raise GcError(SESSION_DISCOVERY_UNAVAILABLE)
+    return explicit
+
+
+def plan(args):
+    store = Path(args.store_dir)
+    state_dir = Path(args.state_dir)
+    pointers = read_pointers(state_dir)
+    session_releases = resolve_session_releases(args)
+    retained = set(item for item in (pointers["current"], pointers["previous"]) + tuple(args.pin) + tuple(session_releases) if item)
+    releases = list_release_ids(store, state_dir)
+    removable = [release_id for release_id in releases if release_id not in retained]
+    return {
+        "action": "gc",
+        "dryRun": not args.execute,
+        "current": pointers["current"],
+        "previous": pointers["previous"],
+        "sessionReleases": sorted(session_releases),
+        "retained": sorted(retained),
+        "removableReleases": removable,
+        "blobsDeleted": 0,
+    }
+
+
+def unmount_helper(view):
+    helper = view / MATERIALIZE.HELPER_NAME
+    if not os.path.ismount(str(helper)):
+        return
+    process = subprocess.run(
+        ["umount", str(helper)],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    if process.returncode != 0 or os.path.ismount(str(helper)):
+        raise GcError("unable to unmount helper before deleting view: %s" % helper)
+
+
+def execute(store, state_dir, removable, retained):
+    protected = set(item for item in retained if item)
+    for release_id in removable:
+        if release_id in protected:
+            raise GcError("refusing to delete a retained release: %s" % release_id)
+        view = state_dir / "views" / release_id
+        if view.exists():
+            unmount_helper(view)
+            shutil.rmtree(str(view))
+        sibling = state_dir / release_id
+        if sibling.is_dir() and not sibling.is_symlink() and sibling.name not in MATERIALIZE.POINTER_NAMES:
+            unmount_helper(sibling)
+            shutil.rmtree(str(sibling))
+        release_dir = store / "runtime" / "blob-releases" / release_id
+        if release_dir.exists():
+            shutil.rmtree(str(release_dir))
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(description="Report or remove unreferenced runtime releases. Never deletes blobs.")
+    parser.add_argument("--store-dir", required=True)
+    parser.add_argument("--state-dir", required=True)
+    parser.add_argument("--pin", action="append", default=[])
+    parser.add_argument("--session-release", action="append", default=[])
+    parser.add_argument("--no-session-refs", action="store_true")
+    parser.add_argument("--execute", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    return parser
+
+
+def main(argv=None):
+    args = build_parser().parse_args(argv)
+    if args.dry_run and args.execute:
+        sys.stderr.write("--dry-run cannot be combined with --execute\n")
+        return 2
+    try:
+        if args.execute:
+            with MATERIALIZE.selection_lock(Path(args.state_dir)):
+                result = plan(args)
+                execute(Path(args.store_dir), Path(args.state_dir), result["removableReleases"], result["retained"])
+                result["dryRun"] = False
+        else:
+            result = plan(args)
+    except GcError as error:
+        sys.stderr.write("%s\n" % error)
+        return error.code
+    sys.stdout.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

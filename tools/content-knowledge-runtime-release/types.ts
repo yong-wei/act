@@ -11,16 +11,16 @@ export const SOURCE_ROOTS = [
 
 export const FROZEN_COUNTS = {
   'course-content/scripts': 42,
-  'scripts/knowledge': 26,
-  'scripts/knowledge-cutover': 80,
-  'scripts/runtime-release': 44,
+  'scripts/knowledge': 25,
+  'scripts/knowledge-cutover': 81,
+  'scripts/runtime-release': 33,
   'scripts/release': 5,
 } as const;
 
 export const CHARACTERIZATION_PATHS = {
   content: 'course-content/scripts/export-runtime.sh',
   knowledge: 'scripts/knowledge-cutover/publish-actkg-v018-cutover-runtime.ts',
-  runtime: 'scripts/runtime-release/materialize-runtime-blob-release.py',
+  runtime: 'scripts/runtime-release/publish-runtime.py',
 } as const;
 
 export const PROJECTION_HANDOFF = {

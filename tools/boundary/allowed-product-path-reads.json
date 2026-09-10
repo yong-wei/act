@@ -91,7 +91,12 @@
   },
   {
     "from": "src/lib/runtime-traffic-cost/taxonomy.ts",
-    "to": "scripts/runtime-release/runtime-release-oss-publisher-bridge.py",
+    "to": "scripts/runtime-release/publish-runtime.py",
+    "kind": "path-string"
+  },
+  {
+    "from": "src/lib/runtime-traffic-cost/taxonomy.ts",
+    "to": "scripts/runtime-release/runtime-doctor.py",
     "kind": "path-string"
   }
 ]

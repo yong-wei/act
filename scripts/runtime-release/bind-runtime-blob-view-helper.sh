@@ -5,15 +5,24 @@ set -euo pipefail
 # helper. Blob root must already be mounted by act-runtime-blob-ossfs.service.
 
 BLOB_ROOT="${ACT_RUNTIME_BLOB_ROOT:-/home/projects/act/data/runtime/ossfs/blobs}"
+VIEW="${ACT_RUNTIME_BLOB_VIEW:-}"
 VIEW_CURRENT="${ACT_RUNTIME_BLOB_VIEW_CURRENT:-/home/projects/act/data/runtime/blob-views/current}"
 
-[[ -L "$VIEW_CURRENT" ]] || {
-  echo "ERROR: blob-view current is not a symlink: $VIEW_CURRENT" >&2
-  exit 1
-}
-view="$(readlink -f "$VIEW_CURRENT")"
+if [[ -n "$VIEW" ]]; then
+  [[ -d "$VIEW" && ! -L "$VIEW" ]] || {
+    echo "ERROR: blob-view is not a real directory: $VIEW" >&2
+    exit 1
+  }
+  view="$(readlink -f "$VIEW")"
+else
+  [[ -L "$VIEW_CURRENT" ]] || {
+    echo "ERROR: blob-view current is not a symlink: $VIEW_CURRENT" >&2
+    exit 1
+  }
+  view="$(readlink -f "$VIEW_CURRENT")"
+fi
 [[ -n "$view" && -d "$view" && ! -L "$view" ]] || {
-  echo "ERROR: blob-view current does not resolve to a real directory" >&2
+  echo "ERROR: blob-view does not resolve to a real directory" >&2
   exit 1
 }
 helper="$view/.act-runtime-blobs"
