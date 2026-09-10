@@ -59,6 +59,7 @@ description: Use only when the user explicitly requests deploying or publishing 
 - 课堂同步错误与 `Failed to fetch` 根因分流: `references/classroom-sync-errors.md`
 - 部署与验收: `references/deploy-and-verify.md`
 - OSS 不可变运行时发布与 ossfs 兼容挂载: `references/oss-runtime-releases.md`
+- 私有 OSS 经 ESA 分发版本化仿真模型: `references/oss-esa-model-delivery.md`（仅当任务涉及 `act-course-models`、`static.adapt-learn.online`、GLB/贴图加载、ESA 缓存或模型发布验收时读取；它不替代 Runtime 发布流程）
 - 数据库导出/下载/本地恢复: `references/database-sync.md`
 - 测试账号核对与修复: `references/test-accounts.md`
 - 部署期磁盘清理辅助脚本（孤儿 overlay 层扫描 / `layers.json` 元数据联动修复）: `scripts/overlay-orphan-scan.py`、`scripts/fix-stale-layer-records.py`，用法见 `references/remote-investigation.md` 的“部署期磁盘耗尽”一节
