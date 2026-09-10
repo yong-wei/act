@@ -12,11 +12,13 @@ to guess which bytes are safe to reuse.
 import argparse
 import base64
 from concurrent.futures import ThreadPoolExecutor
+import ctypes
 import fcntl
 import hashlib
 import json
 import os
 import re
+import signal
 import stat
 import subprocess
 import sys
@@ -60,6 +62,7 @@ MIN_FREE_BYTES = 1024 * 1024 * 1024
 MAX_SAFE_INTEGER = 9007199254740991
 MAX_READ_BRIDGE_MESSAGE_BYTES = 128 * 1024 * 1024
 READ_BRIDGE_WORKERS = 8
+PR_SET_PDEATHSIG = 1
 OBJECT_NUMBER_SUMMARY = re.compile(r"^Object Number is:? [0-9]+$")
 TOTAL_SIZE_SUMMARY = re.compile(r"^Total Size is:? [0-9]+$")
 ELAPSED_SUMMARY = re.compile(r"^[0-9]+(?:\.[0-9]+)?\(s\) elapsed$")
@@ -82,6 +85,24 @@ _READ_BRIDGE: Optional[Dict[str, Any]] = None
 
 def fail(message: str) -> NoReturn:
     raise RuntimeError(message)
+
+
+def bind_read_bridge_to_ssh_parent() -> None:
+    """Stop a read-only bridge if its invoking SSH session disappears."""
+    if sys.platform != "linux":
+        return
+    parent_pid = os.getppid()
+    if parent_pid <= 1:
+        return
+    try:
+        prctl = ctypes.CDLL(None, use_errno=True).prctl
+        prctl.restype = ctypes.c_int
+        if prctl(PR_SET_PDEATHSIG, signal.SIGTERM, 0, 0, 0) != 0:
+            raise OSError(ctypes.get_errno(), "prctl(PR_SET_PDEATHSIG) failed")
+    except (AttributeError, OSError) as error:
+        fail("read bridge cannot bind its lifetime to the SSH parent: %s" % error)
+    if os.getppid() != parent_pid:
+        fail("read bridge SSH parent exited before its lifetime binding was armed")
 
 
 def test_mode() -> bool:
@@ -2457,6 +2478,8 @@ def main() -> None:
     parser.add_argument("--read-bridge-port", type=int)
     arguments = parser.parse_args()
     configure_local_publisher(arguments)
+    if arguments.operation == "blob-publish-read":
+        bind_read_bridge_to_ssh_parent()
     if arguments.credential_mode == "ecs-read" and arguments.operation not in {"list", "get", "verify", "blob-publish-read"}:
         fail("ECS read mode permits only readback operations")
     bucket = validate_bucket(arguments.bucket)

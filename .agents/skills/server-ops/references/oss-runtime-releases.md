@@ -24,6 +24,7 @@
 - 发布前必须先在声明的内容真源目录计算完整 manifest；仅有相同 Git revision 不足以证明 ECS 既有 runtime 与该真源字节相同。若准备直接以 ECS 本地 runtime 为上传源，必须独立重算其 file count、total bytes 与 tree SHA-256，并与真源 manifest 完全一致；不一致时不得上传 ECS 旧树、不得覆盖正在服务的 legacy runtime，也不得在接近满盘的主机上复制完整 staging 目录。此时应使用经审计的流式本地→ECS publisher transport，或另行准备有容量的发布执行环境。
 - 首次导入、协议升级、存储异常后和人工触发的 full audit 必须从 OSS 重新读取并校验 manifest 与所有唯一 Blob 的大小和哈希；任一缺失或不匹配均不得选择该 Release。不得复用、覆盖或原地修复已经发布的 Release。
 - 日常 v2 发布以 immutable parent manifest 作为证明缓存：只读取、哈希、HEAD 和上传 changed/unknown Git Blob；同 Git OID 的 rename 直接继承，继承 Blob 不得再次下载、重新哈希或逐项 HEAD。Blob 条件写入后立即以大小和 metadata 复核，receipt 先于 terminal manifest 写入。ECS 后续验证只需校验 manifest/receipt、view receipt、只读挂载、拓扑、变更 Blob 与代表性读取；全量 body-hash 审计属于独立周期性诊断。
+- 首次发布大图谱 Runtime 时，read bridge 的 preflight 会对未被 parent manifest 覆盖、但 OSS 已存在的 Blob 做 metadata 校验；在返回首个控制行前不会显示进度。先根据候选唯一 Blob 数和 parent 覆盖数估算耗时，不能仅凭一段时间无输出判为死锁。中断本机发布后，必须核验 lifecycle 的 `publishing` 已清空，并确认没有同一 release 的孤立 `blob-publish-read` 进程组，再开始新的发布；read bridge 必须随 SSH 父会话终止，避免孤立校验继续占用 OSS。
 - OSS `PutObject` 不具备条件写入语义，不能把对象存储中的可变 `current.json` 当作并发安全的生产指针。单 ECS 的运行时选择使用宿主机 ext4 上受权限保护的 state directory：固定 `flock` 锁、期望 active release、单调 generation、临时文件 `fsync`、原子 rename、目录 `fsync`。desired selection 与 health 后写入的 active receipt 分开保存。
 - 任何仍会替换 Legacy runtime 目录或重建其消费者的部署路径，也必须在远端实际变更脚本内持有同一 `.act-runtime-selection.lock`，覆盖停止消费者、目录提升、容器重建、readiness 与失败恢复；本地调用器或多次 SSH 连接不能构成锁。OSS active receipt 已存在时，Legacy 路径必须失败关闭。
 - 回滚仅选择一个已完整复核的旧 Release；先写 desired，再重新挂载并重启容器，健康检查成功后才更新 active receipt。失败的候选不得覆盖此前 active receipt。
