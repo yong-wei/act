@@ -110,13 +110,33 @@ def plan(args):
     }
 
 
-def execute(store, state_dir, removable):
+def unmount_helper(view):
+    helper = view / MATERIALIZE.HELPER_NAME
+    if not os.path.ismount(str(helper)):
+        return
+    process = subprocess.run(
+        ["umount", str(helper)],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    if process.returncode != 0 or os.path.ismount(str(helper)):
+        raise GcError("unable to unmount helper before deleting view: %s" % helper)
+
+
+def execute(store, state_dir, removable, retained):
+    protected = set(item for item in retained if item)
     for release_id in removable:
+        if release_id in protected:
+            raise GcError("refusing to delete a retained release: %s" % release_id)
         view = state_dir / "views" / release_id
         if view.exists():
+            unmount_helper(view)
             shutil.rmtree(str(view))
         sibling = state_dir / release_id
         if sibling.is_dir() and not sibling.is_symlink() and sibling.name not in MATERIALIZE.POINTER_NAMES:
+            unmount_helper(sibling)
             shutil.rmtree(str(sibling))
         release_dir = store / "runtime" / "blob-releases" / release_id
         if release_dir.exists():
@@ -141,10 +161,13 @@ def main(argv=None):
         sys.stderr.write("--dry-run cannot be combined with --execute\n")
         return 2
     try:
-        result = plan(args)
         if args.execute:
-            execute(Path(args.store_dir), Path(args.state_dir), result["removableReleases"])
-            result["dryRun"] = False
+            with MATERIALIZE.selection_lock(Path(args.state_dir)):
+                result = plan(args)
+                execute(Path(args.store_dir), Path(args.state_dir), result["removableReleases"], result["retained"])
+                result["dryRun"] = False
+        else:
+            result = plan(args)
     except GcError as error:
         sys.stderr.write("%s\n" % error)
         return error.code

@@ -485,7 +485,9 @@ class ActivateRuntimeTests(unittest.TestCase):
                 (
                     f'test "${{ACT_RUNTIME_BLOB_VIEW##*/}}" = "{first["releaseId"]}" && '
                     f'test "$ACT_RUNTIME_BLOB_ROOT" = "{blob_root}" && '
-                    f'test ! -e "{reloaded}" && printf bound > "{bound}"'
+                    f'test ! -e "{reloaded}" && '
+                    f'for item in "$ACT_RUNTIME_BLOB_ROOT"/*; do cp "$item" "$ACT_RUNTIME_BLOB_VIEW/.act-runtime-blobs/"; done && '
+                    f'printf bound > "{bound}"'
                 ),
                 "--reload-consumers",
                 f'test -f "{bound}" && printf ok > "{reloaded}"',
@@ -580,6 +582,99 @@ class ActivateRuntimeTests(unittest.TestCase):
             switched = self.activate(store, state, second["releaseId"])
             self.assertEqual(switched["previous"], first["releaseId"])
             self.assertEqual(os.readlink(state / "previous"), f"views/{first['releaseId']}")
+
+    def test_helper_leaf_links_do_not_stat_helper_files(self):
+        materialize = load_materialize()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            view = root / "view"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            manifest = materialize.load_manifest(store / "runtime" / "blob-releases" / first["releaseId"] / "manifest.json")
+            materialize.prepare_view(view, manifest)
+            probes = []
+            original = Path.is_file
+
+            def wrapped(self):
+                if self.parent.name == materialize.HELPER_NAME:
+                    probes.append(str(self))
+                return original(self)
+
+            Path.is_file = wrapped  # type: ignore[method-assign]
+            try:
+                materialize.populate_view(store, manifest, view, use_helper_leaves=True)
+            finally:
+                Path.is_file = original  # type: ignore[method-assign]
+            self.assertEqual(probes, [])
+            lesson = view / "lessons" / "1-1" / "lesson.json"
+            self.assertTrue(lesson.is_symlink())
+            self.assertIn(materialize.HELPER_NAME, os.readlink(lesson))
+
+    def test_rollback_rebinds_previous_helper_before_switch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            blob_root = root / "ossfs" / "blobs"
+            bind = 'for item in "$ACT_RUNTIME_BLOB_ROOT"/*; do cp "$item" "$ACT_RUNTIME_BLOB_VIEW/.act-runtime-blobs/"; done'
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            blob_root.mkdir(parents=True)
+            for blob in (store / "runtime" / "blobs" / "sha256").iterdir():
+                (blob_root / blob.name).write_bytes(blob.read_bytes())
+            self.activate(
+                store,
+                state,
+                first["releaseId"],
+                "--blob-root",
+                str(blob_root),
+                "--bind-helper",
+                bind,
+            )
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            for blob in (store / "runtime" / "blobs" / "sha256").iterdir():
+                target = blob_root / blob.name
+                if not target.exists():
+                    target.write_bytes(blob.read_bytes())
+            self.activate(
+                store,
+                state,
+                second["releaseId"],
+                "--blob-root",
+                str(blob_root),
+                "--bind-helper",
+                bind,
+            )
+            helper = state / "views" / first["releaseId"] / ".act-runtime-blobs"
+            for item in helper.iterdir():
+                if item.is_file():
+                    item.unlink()
+            rolled = self.run_json(
+                [
+                    "python3",
+                    str(ACTIVATE),
+                    "--store-dir",
+                    str(store),
+                    "--state-dir",
+                    str(state),
+                    "--rollback",
+                    "--blob-root",
+                    str(blob_root),
+                    "--bind-helper",
+                    bind,
+                    "--sentinel",
+                    "lessons/1-1/lesson.json",
+                ]
+            )
+            self.assertEqual(rolled["current"], first["releaseId"])
+            self.assertEqual((state / "current" / "lessons" / "1-1" / "lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
 
     def test_helper_leaves_are_used_instead_of_copying_blobs(self):
         with tempfile.TemporaryDirectory() as directory:

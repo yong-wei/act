@@ -2,7 +2,6 @@
 """Activate or roll back a published runtime release with current/previous pointers."""
 
 import argparse
-import fcntl
 import importlib.util
 import json
 import os
@@ -57,34 +56,6 @@ def write_pointers_atomic(state_dir, pointers):
 def is_production_view_root(state_dir):
     resolved = state_dir.as_posix().rstrip("/")
     return state_dir.name == "blob-views" or resolved.endswith("/data/runtime/blob-views")
-
-
-def selection_lock_path(state_dir):
-    override = os.environ.get("ACT_RUNTIME_SELECTION_LOCK")
-    if override:
-        return Path(override)
-    if state_dir.name == "blob-views":
-        return state_dir.parent / ".act-runtime-selection.lock"
-    return state_dir / ".act-runtime-selection.lock"
-
-
-class selection_lock(object):
-    def __init__(self, state_dir):
-        self.path = selection_lock_path(state_dir)
-        self.handle = None
-
-    def __enter__(self):
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.handle = open(str(self.path), "a+")
-        fcntl.flock(self.handle.fileno(), fcntl.LOCK_EX)
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        if self.handle is not None:
-            fcntl.flock(self.handle.fileno(), fcntl.LOCK_UN)
-            self.handle.close()
-            self.handle = None
-        return False
 
 
 def optional_command(*values):
@@ -269,6 +240,23 @@ def run_bind_helper(command, view, blob_root):
     run_shell(command, env, "candidate helper bind failed")
 
 
+def uses_helper_leaves(view, bind_command):
+    if bind_command:
+        return True
+    helper = view / MATERIALIZE.HELPER_NAME
+    return helper.is_dir() and os.path.ismount(str(helper))
+
+
+def make_view_selectable(args, store, state_dir, view, manifest, blob_root):
+    if not MATERIALIZE.view_matches_manifest(view, manifest):
+        MATERIALIZE.prepare_view(view, manifest)
+    bind = resolve_bind_helper(args, state_dir, blob_root)
+    run_bind_helper(bind, view, blob_root)
+    use_helper = uses_helper_leaves(view, bind)
+    MATERIALIZE.populate_view(store, manifest, view, blob_root=blob_root, use_helper_leaves=use_helper)
+    return open_sentinels(view, manifest, args.sentinel)
+
+
 def load_release_manifest(store, state_dir, release_id, manifest_override):
     if manifest_override:
         return MATERIALIZE.load_manifest(Path(manifest_override))
@@ -294,11 +282,7 @@ def activate(args):
     delta = MATERIALIZE.changed_paths(current_manifest, candidate)
     MATERIALIZE.assert_blobs_visible(store, candidate, delta, blob_root=blob_root)
     view = state_dir / "views" / candidate["releaseId"]
-    if not MATERIALIZE.view_matches_manifest(view, candidate):
-        MATERIALIZE.prepare_view(view, candidate)
-    run_bind_helper(resolve_bind_helper(args, state_dir, blob_root), view, blob_root)
-    MATERIALIZE.populate_view(store, candidate, view, blob_root=blob_root)
-    opened = open_sentinels(view, candidate, args.sentinel)
+    opened = make_view_selectable(args, store, state_dir, view, candidate, blob_root)
     smoke = optional_command(args.smoke, os.environ.get("ACT_RUNTIME_SMOKE"))
     run_smoke(smoke, view, smoke_required(args, state_dir))
     next_pointers = {"current": candidate["releaseId"], "previous": pointers["current"]}
@@ -333,7 +317,10 @@ def rollback(args):
     if previous_view is None:
         raise ActivateError("previous view is not materialized; rollback will not rebuild it")
     next_pointers = {"current": pointers["previous"], "previous": pointers["current"]}
-    previous_manifest = load_release_manifest(Path(args.store_dir), state_dir, pointers["previous"], None)
+    store = Path(args.store_dir)
+    previous_manifest = load_release_manifest(store, state_dir, pointers["previous"], None)
+    blob_root = resolve_blob_root(args)
+    make_view_selectable(args, store, state_dir, previous_view, previous_manifest, blob_root)
     receipt_path = resolve_active_receipt_path(args, state_dir)
     previous_receipt = snapshot_bytes(receipt_path)
     commit_selection(state_dir, next_pointers, previous_view)
@@ -379,7 +366,7 @@ def build_parser():
 def main(argv=None):
     args = build_parser().parse_args(argv)
     try:
-        with selection_lock(Path(args.state_dir)):
+        with MATERIALIZE.selection_lock(Path(args.state_dir)):
             if args.rollback:
                 if args.release_id:
                     raise ActivateError("--rollback cannot be combined with --release-id")

@@ -2,6 +2,7 @@
 """Build a host view from an immutable v2 manifest without rehashing blobs."""
 
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -296,6 +297,34 @@ def read_host_pointers(state_dir):
     return {"current": current, "previous": previous}
 
 
+def selection_lock_path(state_dir):
+    override = os.environ.get("ACT_RUNTIME_SELECTION_LOCK")
+    if override:
+        return Path(override)
+    if state_dir.name == "blob-views":
+        return state_dir.parent / ".act-runtime-selection.lock"
+    return state_dir / ".act-runtime-selection.lock"
+
+
+class selection_lock(object):
+    def __init__(self, state_dir):
+        self.path = selection_lock_path(state_dir)
+        self.handle = None
+
+    def __enter__(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.handle = open(str(self.path), "a+")
+        fcntl.flock(self.handle.fileno(), fcntl.LOCK_EX)
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if self.handle is not None:
+            fcntl.flock(self.handle.fileno(), fcntl.LOCK_UN)
+            self.handle.close()
+            self.handle = None
+        return False
+
+
 def report_active(view_root):
     current = view_root / "current"
     if not current.is_symlink():
@@ -358,12 +387,13 @@ def assert_blobs_visible(store, manifest, paths, blob_root=None):
 
 def resolve_view_destination(view, relative):
     view_root = view.resolve()
-    destination = (view / relative).resolve()
+    destination = view / relative
+    parent = destination.parent.resolve()
     try:
-        destination.relative_to(view_root)
+        parent.relative_to(view_root)
     except ValueError:
         raise MaterializeError("unsafe materialized path: %s" % relative)
-    return destination
+    return parent / destination.name
 
 
 def link_or_copy(source, destination):
@@ -376,19 +406,16 @@ def link_or_copy(source, destination):
         shutil.copyfile(source, destination, follow_symlinks=False)
 
 
-def place_logical_file(store, view, item, blob_root=None):
-    digest = item["sha256"]
+def place_logical_file(store, view, item, blob_root=None, use_helper_leaves=False):
     destination = resolve_view_destination(view, item["path"])
-    helper_leaf = view / HELPER_NAME / digest
-    if helper_leaf.is_file() and not helper_leaf.is_symlink():
-        if helper_leaf.stat().st_size != item["sizeBytes"]:
-            raise MaterializeError("helper blob size mismatch: %s" % digest)
+    if use_helper_leaves:
+        helper_leaf = view / HELPER_NAME / item["sha256"]
         destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.exists() or destination.is_symlink():
             destination.unlink()
         os.symlink(os.path.relpath(str(helper_leaf), str(destination.parent)), str(destination))
         return
-    source = blob_path(store, digest, blob_root=blob_root)
+    source = blob_path(store, item["sha256"], blob_root=blob_root)
     if not source.is_file():
         raise MaterializeError("blob is not visible: %s" % item["objectKey"])
     link_or_copy(source, destination)
@@ -430,9 +457,9 @@ def prepare_view(view, manifest):
     return view
 
 
-def populate_view(store, manifest, view, blob_root=None):
+def populate_view(store, manifest, view, blob_root=None, use_helper_leaves=False):
     for item in manifest["files"]:
-        place_logical_file(store, view, item, blob_root=blob_root)
+        place_logical_file(store, view, item, blob_root=blob_root, use_helper_leaves=use_helper_leaves)
     return view
 
 

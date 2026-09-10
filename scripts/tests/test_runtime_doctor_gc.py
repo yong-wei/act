@@ -257,6 +257,7 @@ class RuntimeDoctorGcTests(unittest.TestCase):
             self.assertEqual(executed["current"], first["releaseId"])
             self.assertEqual(executed["removableReleases"], [])
             self.assertTrue((store / "runtime" / "blob-releases" / first["releaseId"]).is_dir())
+            self.assertTrue((state / ".act-runtime-selection.lock").is_file())
 
     def test_hot_path_scripts_do_not_invoke_doctor_or_gc(self):
         hot_paths = [
