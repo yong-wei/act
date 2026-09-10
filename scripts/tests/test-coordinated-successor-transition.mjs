@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const remote = fs.readFileSync(path.join(root, 'scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh'), 'utf8');
+const cutoverInputBuilder = fs.readFileSync(path.join(root, 'scripts/knowledge-cutover/build-r4-c5-cutover-input.ts'), 'utf8');
 const deploy = fs.readFileSync(path.join(root, 'deploy/podman/deploy.sh'), 'utf8');
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'coordinated-successor-'));
 const quote = (value) => `'${value.replaceAll("'", "'\\''")}'`;
@@ -127,6 +128,40 @@ try {
   assert.equal(checkResourceProof(qualificationBody).status, 0);
   assert.notEqual(checkResourceProof({ ...qualificationBody, resources: [{ ...qualificationBody.resources[0], readable: false }] }).status, 0);
   assert.notEqual(checkResourceProof({ ...qualificationBody, snapshotHash: '5'.repeat(64) }).status, 0);
+
+  const reclosureBlockStart = remote.indexOf("if teaching_reclosure.get('successorSnapshotHash')");
+  const reclosureBlockEnd = remote.indexOf("if projection_adjustment.get('authoritySnapshotHash')", reclosureBlockStart);
+  assert.ok(reclosureBlockStart >= 0 && reclosureBlockEnd > reclosureBlockStart, 'remote preflight must validate the sealed governance reclosure fields');
+  const sourceOwnedReclosure = JSON.parse(fs.readFileSync(
+    path.join(root, 'course-content/authoring/knowledge/cutover/candidates/graph-course-app-0-7-6-3120f2fa-source-owned/teaching-reclosure-receipt.json'),
+    'utf8',
+  ));
+  const checkRemoteReclosure = (changedFields) => spawnSync('python3', ['-c', [
+    'import sys',
+    `successor={'snapshotHash':${JSON.stringify(sourceOwnedReclosure.successorSnapshotHash)}}`,
+    `teaching_reclosure={'successorSnapshotHash':${JSON.stringify(sourceOwnedReclosure.successorSnapshotHash)},'changedFields':${JSON.stringify(changedFields)}}`,
+    remote.slice(reclosureBlockStart, reclosureBlockEnd),
+  ].join('\n')], { encoding: 'utf8' });
+  assert.deepEqual(
+    sourceOwnedReclosure.changedFields,
+    ['scopeHash', 'retiredMembers', 'prerequisiteDispositions'],
+    'the source-owned candidate must declare every reclosed governance field',
+  );
+  assert.ok(
+    cutoverInputBuilder.includes("JSON.stringify(['scopeHash', 'retiredMembers', 'prerequisiteDispositions'])"),
+    'the local c5 candidate builder must accept the reclosure contract emitted by the source-owned producer',
+  );
+  assert.equal(
+    checkRemoteReclosure(sourceOwnedReclosure.changedFields).status,
+    0,
+    'the complete remote preflight must accept the sealed source-owned reclosure receipt',
+  );
+  assert.equal(checkRemoteReclosure(['scopeHash']).status, 0, 'the remote preflight preserves the legacy sealed receipt contract');
+  assert.notEqual(
+    checkRemoteReclosure(['scopeHash', 'retiredMembers']).status,
+    0,
+    'the remote preflight rejects a partial governance reclosure field set',
+  );
   console.log('coordinated successor transition checks passed');
 } finally {
   fs.rmSync(fixture, { recursive: true, force: true });

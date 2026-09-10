@@ -370,7 +370,7 @@ if not isinstance(authority_labels,dict) or any(authority_labels.get(key) != suc
 installed_manifest=json.load(open(manifest, encoding='utf-8'))
 if any(installed_manifest.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
   raise SystemExit('installed Authority snapshot manifest differs from successor')
-if teaching_reclosure.get('successorSnapshotHash') != successor.get('snapshotHash') or teaching_reclosure.get('changedFields') != ['scopeHash']:
+if teaching_reclosure.get('successorSnapshotHash') != successor.get('snapshotHash') or teaching_reclosure.get('changedFields') not in (['scopeHash'], ['scopeHash','retiredMembers','prerequisiteDispositions']):
   raise SystemExit('teaching governance reclosure does not bind the successor Authority')
 if projection_adjustment.get('authoritySnapshotHash') != successor.get('snapshotHash'):
   raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
