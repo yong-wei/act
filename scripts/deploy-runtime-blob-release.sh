@@ -19,7 +19,6 @@ REMOTE_HOST_STATE="${REMOTE_RUNTIME_HOST_STATE_SCRIPT:-$REMOTE_PROJECT_DIR/scrip
 REMOTE_MATERIALIZER="${REMOTE_RUNTIME_BLOB_MATERIALIZER:-$REMOTE_PROJECT_DIR/scripts/materialize-runtime-blob-release.py}"
 REMOTE_LIFECYCLE="${REMOTE_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
 REMOTE_ACTIVATION_TRANSACTION="${REMOTE_RUNTIME_BLOB_ACTIVATION_TRANSACTION:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py}"
-REMOTE_COMPATIBILITY_PROOF="${REMOTE_RUNTIME_APP_COMPATIBILITY_PROOF:-$REMOTE_PROJECT_DIR/scripts/runtime-release/runtime-app-compatibility-proof.py}"
 REMOTE_ACTIVATOR="${REMOTE_RUNTIME_BLOB_ACTIVATOR:-$REMOTE_PROJECT_DIR/scripts/activate-runtime-blob-release.sh}"
 REMOTE_APP_DEPLOY="${REMOTE_APP_DEPLOY_SCRIPT:-$REMOTE_PROJECT_DIR/scripts/4-deploy.sh}"
 BUCKET="${ACT_OSS_BUCKET:-act-course-assets}"
@@ -39,7 +38,6 @@ coordinated_runtime_authorization=""
 coordinated_runtime_binding=""
 formal_resource_envelope_hash=""
 stage_only=0
-explicit_app_revision=""
 publishing_identity_started=0
 publishing_generation=""
 resuming_published_release=0
@@ -60,7 +58,6 @@ while [[ $# -gt 0 ]]; do
     --coordinated-runtime-binding) coordinated_runtime_binding="$2"; shift 2 ;;
     --formal-resource-envelope-hash) formal_resource_envelope_hash="$2"; shift 2 ;;
     --stage-only) stage_only=1; shift ;;
-    --app-revision) explicit_app_revision="$2"; shift 2 ;;
     *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -131,7 +128,6 @@ for remote_path in \
   "$REMOTE_MATERIALIZER" \
   "$REMOTE_LIFECYCLE" \
   "$REMOTE_ACTIVATION_TRANSACTION" \
-  "$REMOTE_COMPATIBILITY_PROOF" \
   "$REMOTE_ACTIVATOR" \
   "$REMOTE_APP_DEPLOY"; do
   [[ "$remote_path" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "ERROR: remote path is unsafe: $remote_path" >&2; exit 1; }
@@ -154,42 +150,6 @@ copy_atomic() {
   remote "chmod 0755 '${remote_path}.tmp' && mv '${remote_path}.tmp' '${remote_path}'"
 }
 
-read_deployed_app_revision() {
-  local app_container="${ACT_RUNTIME_APP_CONTAINER:-act-obe-app}"
-  local revision
-  revision="$(remote "podman exec ${app_container} /bin/sh -eu -c 'cat /app/.app-revision'")"
-  revision="$(printf '%s' "$revision" | tr -d '[:space:]')"
-  [[ "$revision" =~ ^[a-f0-9]{40}$ ]] || {
-    echo "ERROR: deployed application revision is invalid" >&2
-    exit 1
-  }
-  printf '%s' "$revision"
-}
-
-assert_teaching_projection_against_deployed_app() {
-  local candidate_source_revision="$1"
-  [[ "$candidate_source_revision" =~ ^[a-f0-9]{40}$ ]] || {
-    echo "ERROR: candidate source revision is invalid" >&2
-    exit 1
-  }
-  local deployed_app_revision
-  if [[ -n "${explicit_app_revision}" ]]; then
-    deployed_app_revision="$(printf '%s' "$explicit_app_revision" | tr -d '[:space:]')"
-  elif [[ -n "${ACT_RUNTIME_TARGET_APP_REVISION:-}" ]]; then
-    deployed_app_revision="$(printf '%s' "$ACT_RUNTIME_TARGET_APP_REVISION" | tr -d '[:space:]')"
-  else
-    deployed_app_revision="$(read_deployed_app_revision)"
-  fi
-  [[ "$deployed_app_revision" =~ ^[a-f0-9]{40}$ ]] || {
-    echo "ERROR: target application revision is invalid" >&2
-    exit 1
-  }
-  npx tsx "$ROOT_DIR/scripts/knowledge/assert-teaching-projection-app-revision.ts" \
-    --repo-root "$ROOT_DIR" \
-    --source-revision "$candidate_source_revision" \
-    --app-revision "$deployed_app_revision"
-}
-
 if [[ "$resuming_published_release" == "1" ]]; then
   artifact_dir="$resume_artifact_dir"
   manifest="$artifact_dir/manifest.json"
@@ -209,7 +169,6 @@ if [[ "$resuming_published_release" == "1" ]]; then
     --release-manifest "$manifest" \
     --learning-manifest "$ROOT_DIR/course-content/runtime/knowledge/authority-learning-content-manifest.json"
   source_revision="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sourceRevision"])' "$manifest")"
-  assert_teaching_projection_against_deployed_app "$source_revision"
   build_elapsed_milliseconds=0
   publish_elapsed_milliseconds=0
 else
@@ -247,7 +206,6 @@ else
   fi
   rm -f "$LC_TMP"
   node "$ROOT_DIR/scripts/knowledge/check-authority-surface-linkage.mjs" >/dev/null
-  assert_teaching_projection_against_deployed_app "$source_revision"
   build_started_seconds=$SECONDS
   build_args=(build-manifest --repo-root "$ROOT_DIR" --source-revision "$source_revision" --format v2 --output "$manifest" --receipt-output "$release_receipt" --source-provenance-proof-output "$source_provenance_proof")
   build_args+=(--daily-report-output "$daily_report")
@@ -487,12 +445,11 @@ if [[ "$resuming_published_release" != "1" ]]; then
   publish_elapsed_milliseconds=$(( (SECONDS - publish_started_seconds) * 1000 ))
 fi
 
-remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_COMPATIBILITY_PROOF")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
+remote "mkdir -p '$REMOTE_RUNTIME_RELEASE_DIR' '$REMOTE_ARTIFACT_ROOT/$release_id' '$(dirname "$REMOTE_HOST_STATE")' '$(dirname "$REMOTE_MATERIALIZER")' '$(dirname "$REMOTE_LIFECYCLE")' '$(dirname "$REMOTE_ACTIVATION_TRANSACTION")' '$(dirname "$REMOTE_ACTIVATOR")' '$(dirname "$REMOTE_APP_DEPLOY")'"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-release-host-state.py" "$REMOTE_HOST_STATE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/materialize-runtime-blob-release.py" "$REMOTE_MATERIALIZER"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-release-lifecycle.py" "$REMOTE_LIFECYCLE"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-blob-activation-transaction.py" "$REMOTE_ACTIVATION_TRANSACTION"
-copy_atomic "$ROOT_DIR/scripts/runtime-release/runtime-app-compatibility-proof.py" "$REMOTE_COMPATIBILITY_PROOF"
 copy_atomic "$ROOT_DIR/scripts/runtime-release/activate-runtime-blob-release.sh" "$REMOTE_ACTIVATOR"
 copy_atomic "$ROOT_DIR/deploy/podman/deploy.sh" "$REMOTE_APP_DEPLOY"
 for name in manifest.json release-receipt.json source-provenance-proof.json publisher-verification.json; do
@@ -519,7 +476,7 @@ stage_only_arg=""
 if [[ "$stage_only" == "1" ]]; then
   stage_only_arg=" --stage-only"
 fi
-remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' ACT_RUNTIME_COMPATIBILITY_PROOF_SCRIPT='$REMOTE_COMPATIBILITY_PROOF' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'$stage_only_arg"
+remote "ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT='$REMOTE_LIFECYCLE' $remote_coordinated_env$REMOTE_ACTIVATOR --release-id '$release_id' --expected-active-release '$expected_active_release' --manifest '$REMOTE_ARTIFACT_ROOT/$release_id/manifest.json' --release-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/release-receipt.json' --verification-receipt '$REMOTE_ARTIFACT_ROOT/$release_id/publisher-verification.json' --ram-role '$ram_role'$stage_only_arg"
 activation_elapsed_milliseconds=$(( (SECONDS - activation_started_seconds) * 1000 ))
 if [[ "$stage_only" == "1" ]]; then
   materialization_receipt="$artifact_dir/materialization-receipt.json"

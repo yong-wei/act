@@ -266,6 +266,8 @@ def activation_journal(value: Any) -> Dict[str, Any]:
         "targetGeneration", "previousIdentity", "targetIdentity",
         "targetLifecycleSha256",
     ]
+    # Historical interrupted journals may carry a retired proof projection.
+    # Accept it only to finish recovery; new journals never write it.
     optional = ["compatibilityProofSha256", "operation"]
     allowed = [sorted(required)] + [sorted(required + optional[:count]) for count in range(1, len(optional) + 1)]
     if not isinstance(value, dict) or sorted(value) not in allowed:
@@ -622,7 +624,7 @@ def host_active(state_dir: Path, host_script: Path) -> Optional[Dict[str, Any]]:
     return value if isinstance(value, dict) else None
 
 
-def project_host_active(state_dir: Path, host_script: Path, target: Dict[str, Any], compatibility_proof_sha256: Optional[str] = None) -> Dict[str, Any]:
+def project_host_active(state_dir: Path, host_script: Path, target: Dict[str, Any]) -> Dict[str, Any]:
     command = [
             sys.executable, str(host_script), "mark-active-v2",
             "--state-dir", str(state_dir),
@@ -630,8 +632,6 @@ def project_host_active(state_dir: Path, host_script: Path, target: Dict[str, An
             "--manifest-sha256", target["manifestSha256"],
             "--tree-sha256", target["treeSha256"],
     ]
-    if compatibility_proof_sha256:
-        command.extend(["--compatibility-proof-sha256", compatibility_proof_sha256])
     result = subprocess.run(
         command,
         stdout=subprocess.PIPE,
@@ -1007,14 +1007,7 @@ def recover_and_project_unlocked(state_dir: Path, host_script: Path) -> Dict[str
     # injected a crash into the interrupted activation's receipt write.
     host_crash = os.environ.pop("ACT_RUNTIME_HOST_STATE_CRASH_AT", None)
     try:
-        compatibility_proof_sha256 = None
-        if (
-            journal_value is not None
-            and current["active"] == journal_value["targetIdentity"]
-            and current["generation"] == journal_value["targetGeneration"]
-        ):
-            compatibility_proof_sha256 = journal_value["compatibilityProofSha256"] or None
-        project_host_active(state_dir, host_script, current["active"], compatibility_proof_sha256)
+        project_host_active(state_dir, host_script, current["active"])
     finally:
         if host_crash is not None:
             os.environ["ACT_RUNTIME_HOST_STATE_CRASH_AT"] = host_crash
@@ -1058,34 +1051,26 @@ def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, 
         current = read_v2(state_dir)
         if args.expected_generation != current["generation"]:
             fail("expected lifecycle generation does not match current authority")
-        candidate = read_identity_file(args.identity) if operation in {"activate", "requalify"} else current["rollback"]
+        candidate = read_identity_file(args.identity) if operation == "activate" else current["rollback"]
         if candidate is None:
             fail("there is no verified rollback release")
         if operation == "activate" and current["desired"] != candidate:
             fail("only the exact desired candidate may be activated")
-        if operation == "requalify" and current["active"] != candidate:
-            fail("only the exact active Runtime identity may be requalified")
-        compatibility_proof_sha256 = getattr(args, "compatibility_proof_sha256", "") if operation in {"activate", "requalify"} else ""
-        if compatibility_proof_sha256 and not SHA256.fullmatch(compatibility_proof_sha256):
-            fail("compatibility proof digest is invalid")
-        if operation != "requalify":
+        if operation == "activate":
             require_coordinated_activation_gate(state_dir, candidate, args)
         journal_value = {
             "schemaVersion": ACTIVATION_SCHEMA,
             "status": "prepared",
             "transactionId": uuid.uuid4().hex,
             "expectedGeneration": current["generation"],
-            "targetGeneration": current["generation"] if operation == "requalify" else current["generation"] + 1,
+            "targetGeneration": current["generation"] + 1,
             "previousIdentity": current["active"],
             "targetIdentity": candidate,
             "targetLifecycleSha256": "",
-            "compatibilityProofSha256": compatibility_proof_sha256,
         }
-        if operation == "requalify":
-            journal_value["operation"] = "requalify"
         write_atomic(state_dir / ACTIVATION_FILE, journal_value)
         activation_crash("after-intent")
-        committed = current if operation == "requalify" else transaction(state_dir, active_after(current, operation, args))
+        committed = transaction(state_dir, active_after(current, operation, args))
         activation_crash("after-lifecycle")
         committed = read_v2(state_dir)
         if committed["generation"] != journal_value["targetGeneration"] or committed["active"] != candidate:
@@ -1095,12 +1080,7 @@ def activate_and_project(args: argparse.Namespace, operation: str) -> Dict[str, 
         journal_value["targetLifecycleSha256"] = digest(committed)
         write_atomic(state_dir / ACTIVATION_FILE, journal_value)
         activation_crash("after-lifecycle-journal")
-        project_host_active(
-            state_dir,
-            host_script,
-            committed["active"],
-            journal_value["compatibilityProofSha256"] or None,
-        )
+        project_host_active(state_dir, host_script, committed["active"])
         activation_crash("after-receipt-readback")
         journal_value["status"] = "receipt-committed"
         write_atomic(state_dir / ACTIVATION_FILE, journal_value)
@@ -1359,17 +1339,14 @@ def main() -> None:
     project_recover_parser = commands.add_parser("recover-and-project")
     project_recover_parser.add_argument("--state-dir", required=True)
     project_recover_parser.add_argument("--host-state-script", required=True)
-    for name in ("activate-and-project", "requalify-and-project", "rollback-and-project"):
+    for name in ("activate-and-project", "rollback-and-project"):
         command = commands.add_parser(name)
         command.add_argument("--state-dir", required=True)
         command.add_argument("--expected-generation", required=True, type=int)
         command.add_argument("--host-state-script", required=True)
     commands.choices["activate-and-project"].add_argument("--identity", required=True)
-    commands.choices["activate-and-project"].add_argument("--compatibility-proof-sha256")
     commands.choices["activate-and-project"].add_argument("--coordinated-runtime-authorization")
     commands.choices["activate-and-project"].add_argument("--coordinated-runtime-binding")
-    commands.choices["requalify-and-project"].add_argument("--identity", required=True)
-    commands.choices["requalify-and-project"].add_argument("--compatibility-proof-sha256", required=True)
     args = parser.parse_args()
     if args.command == "initialize-v2":
         result = initialize(args)
@@ -1393,8 +1370,6 @@ def main() -> None:
         result = activate_and_project(args, "rollback")
     elif args.command == "activate-and-project":
         result = activate_and_project(args, "activate")
-    elif args.command == "requalify-and-project":
-        result = activate_and_project(args, "requalify")
     elif args.command == "rollback-and-project":
         result = activate_and_project(args, "rollback")
     elif args.command == "rollback-to-v1":

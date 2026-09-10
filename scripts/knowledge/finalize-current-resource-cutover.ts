@@ -60,7 +60,7 @@ async function main() {
   const out = join(root, candidate), appRevision = option('--app-revision');
   if (!/^[a-f0-9]{40}$/.test(appRevision)) throw new Error('full application revision required');
   const gitRead = (p: string) => execFileSync('git', ['show', appRevision + ':' + p], { cwd: root, encoding: 'utf8', maxBuffer: 96 * 1024 * 1024 });
-  assertKnowledgePublicationConsistency((p) => readFileSync(join(root, p), 'utf8'), appRevision, gitRead);
+  assertKnowledgePublicationConsistency((p) => readFileSync(join(root, p), 'utf8'), gitRead);
   const allocation = read<CoordinationAllocationRecord>(join(out, 'allocation.json'));
   assertAllocationRecordSealed(allocation);
   const pointer = (p: string) => read<Record<string, string>>(join(root, 'course-content/runtime/knowledge', p, 'current.json'));

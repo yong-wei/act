@@ -26,17 +26,11 @@ V2_RELEASE_RECEIPT_SCHEMA = "act-runtime-release-receipt.v2"
 V2_MATERIALIZATION_SCHEMA = "runtime-blob-materialization.v1"
 V2_MANIFEST_OBJECT_PREFIX = "runtime/blob-releases/"
 V2_MANIFEST_FILENAME = "manifest.json"
-COMPATIBILITY_PROOF_DIR = "runtime-app-compatibility"
-COMPATIBILITY_SCHEMA = "runtime-app-compatibility.v1"
 
 
 
 def fail(message: str) -> None:
     raise ValueError(message)
-
-
-def canonical_json(value: Any) -> bytes:
-    return json.dumps(value, separators=(",", ":"), sort_keys=True, ensure_ascii=False).encode("utf-8")
 
 
 def require_digest(value: Any, name: str) -> str:
@@ -75,26 +69,6 @@ def require_deployment(value: Any):
     }
 
 
-def require_compatibility(value: Any, selection: dict):
-    if not isinstance(value, dict):
-        fail("active receipt compatibility is invalid")
-    required = {"schemaVersion", "proofSha256", "runtimeSourceRevision", "appRevision", "imageDigest", "migrationSetSha256", "consumerContract"}
-    if set(value) != required or value.get("schemaVersion") != COMPATIBILITY_SCHEMA:
-        fail("active receipt compatibility is invalid")
-    contract = value.get("consumerContract")
-    if not isinstance(contract, str) or not re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,127}", contract):
-        fail("active receipt compatibility consumer contract is invalid")
-    return {
-        "schemaVersion": COMPATIBILITY_SCHEMA,
-        "proofSha256": require_digest(value.get("proofSha256"), "compatibility.proofSha256"),
-        "runtimeSourceRevision": require_git_revision(value.get("runtimeSourceRevision"), "compatibility.runtimeSourceRevision"),
-        "appRevision": require_git_revision(value.get("appRevision"), "compatibility.appRevision"),
-        "imageDigest": require_image_digest(value.get("imageDigest"), "compatibility.imageDigest"),
-        "migrationSetSha256": require_digest(value.get("migrationSetSha256"), "compatibility.migrationSetSha256"),
-        "consumerContract": contract,
-    }
-
-
 def require_selection(value: Any):
     if not isinstance(value, dict) or value.get("schemaVersion") != "runtime-release-selection.v1":
         fail("selection is invalid")
@@ -123,8 +97,6 @@ def require_active_receipt(value: Any):
     deployment = require_deployment(value.get("deployment"))
     if deployment:
         receipt["deployment"] = deployment
-    if "compatibility" in value:
-        receipt["compatibility"] = require_compatibility(value["compatibility"], receipt["selection"])
     return receipt
 
 
@@ -610,48 +582,6 @@ def mark_active_v2(args: argparse.Namespace):
         "selection": selection,
         "healthCheck": "readyz",
     }
-    compatibility_proof_sha256 = getattr(args, "compatibility_proof_sha256", None)
-    if compatibility_proof_sha256:
-        compatibility_proof_sha256 = require_digest(compatibility_proof_sha256, "compatibilityProofSha256")
-        compatibility_path = state_dir / COMPATIBILITY_PROOF_DIR / f"{compatibility_proof_sha256}.json"
-        if compatibility_path.is_symlink() or not compatibility_path.is_file():
-            fail("runtime compatibility proof path is invalid")
-        wire = compatibility_path.read_bytes()
-        if hashlib.sha256(wire).hexdigest() != compatibility_proof_sha256:
-            fail("runtime compatibility proof filename does not match its content")
-        try:
-            proof = json.loads(wire.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            fail(f"runtime compatibility proof is invalid: {error}")
-        if canonical_json(proof) + b"\n" != wire:
-            fail("runtime compatibility proof is not canonical")
-        runtime = proof.get("runtime") if isinstance(proof, dict) else None
-        application = proof.get("application") if isinstance(proof, dict) else None
-        migration = proof.get("migrationSet") if isinstance(proof, dict) else None
-        if (
-            not isinstance(runtime, dict)
-            or not isinstance(application, dict)
-            or not isinstance(migration, dict)
-            or runtime.get("releaseId") != release
-            or runtime.get("manifestSha256") != manifest_sha
-            or runtime.get("treeSha256") != tree_sha
-        ):
-            fail("runtime compatibility proof does not bind the active identity")
-        receipt["compatibility"] = require_compatibility({
-            "schemaVersion": proof.get("schemaVersion"),
-            "proofSha256": compatibility_proof_sha256,
-            "runtimeSourceRevision": runtime.get("sourceRevision"),
-            "appRevision": application.get("revision"),
-            "imageDigest": application.get("imageDigest"),
-            "migrationSetSha256": migration.get("sha256"),
-            "consumerContract": proof.get("consumerContract"),
-        }, selection)
-    elif previous_receipt and previous_receipt.get("selection") == selection and "compatibility" in previous_receipt:
-        # Recovery may need to re-project an already-active identity after a
-        # process crash. Retain its validated historical proof rather than
-        # silently erasing the evidence solely because this repair did not
-        # execute a new candidate qualification.
-        receipt["compatibility"] = previous_receipt["compatibility"]
     write_atomic(state_dir / ACTIVE_RECEIPT_FILE, receipt)
     return receipt
 
@@ -840,7 +770,6 @@ def main() -> None:
     marker_v2.add_argument("--release-id", required=True)
     marker_v2.add_argument("--manifest-sha256", required=True)
     marker_v2.add_argument("--tree-sha256", required=True)
-    marker_v2.add_argument("--compatibility-proof-sha256")
     candidate_receipt = subcommands.add_parser("candidate-readyz-receipt")
     candidate_receipt.add_argument("--state-dir", required=True)
     candidate_receipt.add_argument("--release-id", required=True)

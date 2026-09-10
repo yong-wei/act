@@ -6,14 +6,9 @@ import path from 'node:path';
 
 const root = process.cwd();
 const activation = fs.readFileSync(path.join(root, 'scripts/runtime-release/activate-runtime-blob-release.sh'), 'utf8');
-const activationTransaction = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-activation-transaction.py'), 'utf8');
 const lifecycle = fs.readFileSync(path.join(root, 'scripts/runtime-release/runtime-blob-release-lifecycle.py'), 'utf8');
 const coordinatedCutover = fs.readFileSync(
   path.join(root, 'scripts/knowledge-cutover/remote-activate-r4-coordinated-cutover.sh'),
-  'utf8',
-);
-const compatibilityProof = fs.readFileSync(
-  path.join(root, 'scripts/runtime-release/runtime-app-compatibility-proof.py'),
   'utf8',
 );
 const runtimeDeploy = fs.readFileSync(path.join(root, 'scripts/deploy-runtime-blob-release.sh'), 'utf8');
@@ -74,9 +69,6 @@ for (const invariant of [
   'active media resolver did not return a private signed redirect',
   'candidate media smoke failed and lifecycle rollback could not complete',
   'ACT_RUNTIME_BLOB_MEDIA_SMOKE_FAIL',
-  'ACT_RUNTIME_COMPATIBILITY_PROOF_SCRIPT',
-  'runtime-app-compatibility',
-  'runtime-app-compatibility-proof.py',
   'podman container exists "$APP_CONTAINER"',
   "grep -E '^APP_IMAGE=(sha256:)?[a-f0-9]{64}$' \"$ENV_FILE\"",
   'persisted runtime environment does not contain a valid app image digest',
@@ -94,29 +86,12 @@ assert.ok(
   'provisional candidate readiness receipt must exist before its view reaches consumers',
 );
 assert.ok(
-  activation.lastIndexOf('run_candidate_consumer_smoke') < activation.lastIndexOf('runtime-app-compatibility-proof.py')
-    || activation.lastIndexOf('run_candidate_consumer_smoke') < activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture'),
-  '兼容性证明只能在候选消费者 smoke 成功后捕获',
-);
-assert.ok(
-  activation.lastIndexOf('inspect-application') < activation.lastIndexOf('run_candidate_consumer_smoke'),
-  'candidate consumers must start from a captured deployed application identity',
-);
-assert.ok(
-  activation.lastIndexOf('verify_qualification_environment') > activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture'),
-  'the captured proof must be compared with the application identity observed before candidate smoke',
-);
-assert.ok(
-  activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" capture') < activation.lastIndexOf('stage_lifecycle_desired'),
-  '兼容性证明必须在 desired 生命周期状态写入前完成',
+  activation.lastIndexOf('run_candidate_consumer_smoke') < activation.lastIndexOf('stage_lifecycle_desired'),
+  'actual candidate consumers must pass before desired lifecycle state is written',
 );
 assert.ok(
   activation.lastIndexOf('stage_lifecycle_desired') < activation.lastIndexOf('python3 "$HOST_STATE_SCRIPT" select'),
   'v2 desired 生命周期状态必须在 legacy selector 改变前写入',
-);
-assert.ok(
-  activation.lastIndexOf('COMPATIBILITY_PROOF_SCRIPT" verify') < activation.lastIndexOf('ACTIVATION_TRANSACTION" activate'),
-  '活跃切换前必须重新核验 runtime-app 兼容性证明',
 );
 assert.ok(
   activation.lastIndexOf('trap restore_runtime_consumers ERR') <
@@ -619,66 +594,15 @@ assert.match(
 );
 
 assert.equal(packageJson.scripts['deploy:runtime'], 'bash ./scripts/deploy-runtime-blob-release.sh');
-assert.match(
-  runtimeDeploy,
-  /assert_teaching_projection_against_deployed_app/,
-  'runtime deploy must bind Teaching Projection authoringRevision to the candidate and deployed app',
-);
-assert.equal(
-  (runtimeDeploy.match(/assert_teaching_projection_against_deployed_app "\$/g) ?? []).length,
-  2,
-  'resume and fresh publish must both compare the candidate source revision with the deployed app revision',
-);
-assert.match(
-  runtimeDeploy,
-  /--source-revision "\$candidate_source_revision"/,
-  'the Teaching Projection assertion must receive the candidate source revision, not the operator worktree',
-);
-assert.match(
-  runtimeDeploy,
-  /--app-revision "\$deployed_app_revision"/,
-  'the Teaching Projection assertion must receive the deployed application revision',
-);
-assert.match(
-  runtimeDeploy,
-  /podman exec \$\{app_container\} \/bin\/sh -eu -c 'cat \/app\/\.app-revision'/,
-  'runtime deploy must read the deployed application revision from the target container',
-);
-assert.equal(
-  (runtimeDeploy.match(/assert-teaching-projection-app-revision\.ts/g) ?? []).length,
-  1,
-  'the Teaching Projection assertion is invoked through the candidate-vs-deployed helper',
-);
-assert.match(compatibilityProof, /runtime-app-compatibility\.v1/, 'compatibility proof helper must expose the v1 receipt schema');
-assert.match(compatibilityProof, /origin\/integration|sourceRevision/, 'compatibility proof must bind the Runtime source revision');
-assert.match(compatibilityProof, /\/app\/\.app-revision/, 'compatibility proof must read the embedded application revision');
-assert.match(compatibilityProof, /_prisma_migrations/, 'compatibility proof must bind the applied Prisma migration set');
-assert.match(compatibilityProof, /def inspect_application/, 'compatibility proof helper must expose deployed consumer identity capture');
-assert.match(activation, /application identity or migration set changed while candidate consumers were qualified/, 'application replacement during qualification must fail before selection');
-assert.match(compatibilityProof, /proof body, rather than\n    just the Runtime identity, therefore owns the filename/, 'each proof filename must bind the qualified application identity');
+assert.doesNotMatch(runtimeDeploy, /app-revision|TARGET_APP_REVISION|assert-teaching-projection-app-revision/, 'runtime deployment must not use an application revision proxy');
 assert.match(activation, /ACT_RUNTIME_LEGACY_MIGRATION/, 'the coordinated activation exception must require explicit migration intent');
 assert.match(coordinatedCutover, /ACT_RUNTIME_LEGACY_MIGRATION=1/, 'the historical outer transaction must declare its migration intent');
-assert.match(activation, /--compatibility-proof-sha256 "\$compatibility_proof_sha256"/, 'daily Runtime selection must pass its exact compatibility proof into the lifecycle projection');
-assert.match(activation, /if \[\[ "\$release_id" == "\$old_active" \]\]; then[\s\S]*ACTIVATION_TRANSACTION" requalify[\s\S]*--compatibility-proof-sha256 "\$compatibility_proof_sha256"/, 'same-identity requalification must journal the exact newly verified compatibility proof');
-assert.match(activationTransaction, /requalify-and-project/, 'the activation transaction must expose a same-identity proof projection command');
-assert.match(lifecycle, /only the exact active Runtime identity may be requalified/, 'the lifecycle must fence same-identity proof projection to the active Runtime identity');
-assert.match(runtimeDeploy, /runtime-app-compatibility-proof\.py/, 'runtime deploy must copy the compatibility proof helper to ECS');
 assert.equal(packageJson.scripts['deploy:app'], 'bash ./scripts/remote-deploy.sh --app-only');
 assert.equal(packageJson.scripts['deploy:all'], 'bash ./scripts/deploy-all-with-runtime-blobs.sh');
 assert.match(
   deployAll,
   /deploy-runtime-blob-release\.sh" "\$@" --stage-only/,
   'combined fresh publish must stage a non-selectable Runtime before replacing the application',
-);
-assert.match(
-  deployAll,
-  /ACT_RUNTIME_TARGET_APP_REVISION/,
-  'combined deployment must pin the Teaching Projection assertion to the upcoming application revision',
-);
-assert.match(
-  deployAll,
-  /git -C "\$ROOT_DIR" rev-parse HEAD/,
-  'combined deployment must take the coordinated application revision from the same git HEAD that build.sh stamps',
 );
 assert.match(
   deployAll,
@@ -690,32 +614,10 @@ assert.ok(
   'combined fresh publish must stage Runtime before replacing the application',
 );
 assert.ok(
-  deployAll.indexOf('unset ACT_RUNTIME_TARGET_APP_REVISION') < deployAll.lastIndexOf('--resume-published-artifact-dir'),
-  'combined fresh publish must select the staged Runtime against the live app revision after deploy',
-);
-assert.ok(
   deployAll.indexOf('remote-deploy.sh" --app-only') < deployAll.lastIndexOf('--resume-published-artifact-dir'),
   'combined deployment must select Runtime only after the application is replaced',
 );
-assert.ok(
-  deployAll.lastIndexOf('assert_after_activation') > deployAll.lastIndexOf('--resume-published-artifact-dir'),
-  'combined deployment must re-assert Teaching Projection after Runtime selection',
-);
-assert.match(
-  deployAll,
-  /Resume-only: preflight/,
-  'combined resume must validate the published candidate against target HEAD before replacing the application',
-);
-assert.match(
-  runtimeDeploy,
-  /ACT_RUNTIME_TARGET_APP_REVISION/,
-  'runtime deploy must honor a coordinated target application revision from deploy:all',
-);
-assert.match(
-  runtimeDeploy,
-  /explicit_app_revision/,
-  'runtime deploy may receive an explicit --app-revision instead of the live container',
-);
+assert.doesNotMatch(deployAll, /TARGET_APP_REVISION|assert_after_activation|app-revision/, 'combined deployment must rely on the actual post-deploy consumer smoke instead of a revision proxy');
 assert.match(appDeploy, /DEPLOY_SCOPE="app"/, 'application deployment must select its app-only scope explicitly');
 assert.match(appDeploy, /--app-only：保留当前 runtime 选择/, 'application deployment must retain the existing runtime selection');
 assert.match(appDeploy, /RUNTIME_DELIVERY_MODE="\$\{RUNTIME_DELIVERY_MODE:-ossfs-blob-view\}"/, 'application deployment must default to the production blob view');
