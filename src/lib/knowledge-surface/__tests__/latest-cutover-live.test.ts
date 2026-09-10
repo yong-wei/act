@@ -8,7 +8,6 @@ import { describe, expect, it } from 'vitest';
 import { projectionDigest } from '@/lib/teaching-projection/hash';
 
 import { resolveLiveLatestKnowledgeCutover } from '../latest-cutover-live';
-import { GENERATION_3_PUBLISHED_RELATIVE_BY_FRAGMENT_KEY } from '@/lib/latest-authority-oss-cutover/successor-domain-fragments';
 
 const SUCCESSOR_RUNTIME = {
   releaseId: 'runtime-150a505ac26b2130278fa269f41830f83a9d97658db4afd0aedddde',
@@ -173,10 +172,10 @@ describe('live latest knowledge cutover resolver', () => {
         path.join(knowledgeRoot, 'authority-domain-catalog/catalog.json'),
       ).catalogHash as string;
 
-      // 组合清单与 fragment 直接采用已发布的 generation-3 工件（语义 digest 自洽）。
+      // The fixture must use the same composed projection as the current shard set.
+      const teachingProjectionId = readJson(path.join(knowledgeRoot, 'teaching-projection/domain-fragments/current.json')).projectionId as string;
       const fragmentsRoot = path.join(
-        repoRoot,
-        'course-content/authoring/knowledge/teaching-projection/domain-fragments/generation-3',
+        knowledgeRoot, 'teaching-projection/domain-fragments/releases', teachingProjectionId,
       );
       const composed = readJson(path.join(fragmentsRoot, 'composed-manifest.json'));
       const composedFragments = composed.fragments as Array<{ fragmentId: string; fragmentKey: string }>;
@@ -184,9 +183,8 @@ describe('live latest knowledge cutover resolver', () => {
       mkdirSync(path.join(candidateRoot, 'domain-fragments'), { recursive: true });
       writeJson(path.join(candidateRoot, 'composed-domain-fragment-manifest.json'), composed);
       for (const fragment of composedFragments) {
-        const publishedRelative = GENERATION_3_PUBLISHED_RELATIVE_BY_FRAGMENT_KEY[fragment.fragmentKey];
         copyFileSync(
-          path.join(repoRoot, publishedRelative),
+          path.join(fragmentsRoot, 'fragments', `${fragment.fragmentId}.json`),
           path.join(candidateRoot, 'domain-fragments', `${fragment.fragmentId}.json`),
         );
       }

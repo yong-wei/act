@@ -987,7 +987,7 @@ ctkg:v3e-object-5c7e75fb7bc3c6a2e80d8bb4,ctkg_v3e-object-5c7e75fb7bc3c6a2e80d8bb
 ctkg:v3e-object-5ed5fc7d05f77452e100406b,ctkg_v3e-object-5ed5fc7d05f77452e100406b,双极限环,,4,gold,,2,,C,False,blocked,accepted
 ctkg:v3e-object-60dc281db22fe43eefe4ae57,ctkg_v3e-object-60dc281db22fe43eefe4ae57,Finite word length,Finite word length,18,silver,,2,,C,False,blocked,accepted
 ctkg:v3e-object-60e97b106df3b47840a4b6fd,ctkg_v3e-object-60e97b106df3b47840a4b6fd,衰减比,,3,gold,,2,,C,False,blocked,accepted
-ctkg:v3e-object-69aaaef625010f7755f253e8,ctkg_v3e-object-69aaaef625010f7755f253e8,死区,,2,gold,,2,,C,False,blocked,accepted
+ctkg:v3e-object-69aaaef625010f7755f253e8,ctkg_v3e-object-69aaaef625010f7755f253e8,死区,,2,gold,,2,,C,False,ok,accepted
 ctkg:v3e-object-6cac20a7c9621cb54a42d57d,ctkg_v3e-object-6cac20a7c9621cb54a42d57d,采样开关,,4,gold,,2,,C,False,blocked,accepted
 ctkg:v3e-object-8064c799039f6d83a3cf4f29,ctkg_v3e-object-8064c799039f6d83a3cf4f29,Continuous signal,Continuous signal,17,silver,,2,,C,False,blocked,accepted
 ctkg:v3e-object-828de2183a73570e15acd937,ctkg_v3e-object-828de2183a73570e15acd937,PWM放大器,,6,gold,,2,,C,False,blocked,accepted
@@ -1006,14 +1006,14 @@ ctkg:domainconcept:9b5b7d8e1adf2c35463467a8,ctkg_domainconcept_9b5b7d8e1adf2c354
 ctkg:domainconcept:9bec0d6aa9ae6cf731207e85,ctkg_domainconcept_9bec0d6aa9ae6cf731207e85,Root locus z-plane method,Root locus z-plane method,0,gold,,1,,C,False,blocked,accepted
 ctkg:v3e-canonical-0e5d22ed0afee37f65584d36,ctkg_v3e-canonical-0e5d22ed0afee37f65584d36,正弦函数,,4,silver,theoretical_construct,1,,C,False,blocked,accepted
 ctkg:v3e-canonical-115de5ef0289a778cf5b69c6,ctkg_v3e-canonical-115de5ef0289a778cf5b69c6,Final Value Theorem,Final Value Theorem,19,silver,theoretical_construct,1,,C,False,ok,accepted
-ctkg:v3e-canonical-23c4127cb1ffab795d290351,ctkg_v3e-canonical-23c4127cb1ffab795d290351,Modes of the system,Modes of the system,19,silver,theoretical_construct,1,,C,False,blocked,accepted
+ctkg:v3e-canonical-23c4127cb1ffab795d290351,ctkg_v3e-canonical-23c4127cb1ffab795d290351,Modes of the system,Modes of the system,19,silver,theoretical_construct,1,,C,False,ok,accepted
 ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253,ctkg_v3e-canonical-312d1dfa7e96b9cc6f46e253,单位阶跃响应,,6,silver,theoretical_construct,1,,C,False,blocked,accepted
 ctkg:v3e-canonical-37b4b074acb6cd0044127737,ctkg_v3e-canonical-37b4b074acb6cd0044127737,Cover-up method,Cover-up method,15,silver,theoretical_construct,1,,C,False,blocked,accepted
 ctkg:v3e-canonical-471a0b49b030d7d76e7e7159,ctkg_v3e-canonical-471a0b49b030d7d76e7e7159,Band center,Band center,11,silver,theoretical_construct,1,,C,False,blocked,accepted
-ctkg:v3e-canonical-62bea9217008b56901615d9a,ctkg_v3e-canonical-62bea9217008b56901615d9a,单位斜坡函数,,6,silver,theoretical_construct,1,,C,False,blocked,accepted
-ctkg:v3e-canonical-cd25e47d10ddfec280e82fde,ctkg_v3e-canonical-cd25e47d10ddfec280e82fde,单位加速度函数,,7,silver,theoretical_construct,1,,C,False,blocked,accepted
+ctkg:v3e-canonical-62bea9217008b56901615d9a,ctkg_v3e-canonical-62bea9217008b56901615d9a,单位斜坡函数,,6,silver,theoretical_construct,1,,C,False,ok,accepted
+ctkg:v3e-canonical-cd25e47d10ddfec280e82fde,ctkg_v3e-canonical-cd25e47d10ddfec280e82fde,单位加速度函数,,7,silver,theoretical_construct,1,,C,False,ok,accepted
 ctkg:v3e-canonical-df3167f36376f526f6ec5562,ctkg_v3e-canonical-df3167f36376f526f6ec5562,超调量,,17,silver,theoretical_construct,1,,C,False,blocked,accepted
-ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3,ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3,单位脉冲函数,,6,silver,theoretical_construct,1,,C,False,blocked,accepted
+ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3,ctkg_v3e-canonical-f8bf6b65acbd8dc67f1032e3,单位脉冲函数,,6,silver,theoretical_construct,1,,C,False,ok,accepted
 ctkg:v3e-object-1a1e0cd76a6ae24441079e22,ctkg_v3e-object-1a1e0cd76a6ae24441079e22,数字控制器,,5,gold,,1,,C,False,blocked,accepted
 ctkg:v3e-object-239fecfdb347e1a48fb9d7cc,ctkg_v3e-object-239fecfdb347e1a48fb9d7cc,完全可达,,4,silver,,1,,C,False,blocked,accepted
 ctkg:v3e-object-2c7489771bec99ead56be2ef,ctkg_v3e-object-2c7489771bec99ead56be2ef,gain with dead zone,gain with dead zone,19,gold,,1,,C,False,blocked,accepted
@@ -1043,7 +1043,7 @@ ctkg:v3e-object-af604268b1e07a0ddba886f3,ctkg_v3e-object-af604268b1e07a0ddba886f
 ctkg:v3e-object-b202af6c06c27c558d00e9f4,ctkg_v3e-object-b202af6c06c27c558d00e9f4,拉普拉斯变换法求解非齐次状态方程,,16,silver,,1,,C,False,blocked,accepted
 ctkg:v3e-object-bbde87998fe5c58705383e29,ctkg_v3e-object-bbde87998fe5c58705383e29,可控性判别阵,,6,gold,,1,,C,False,blocked,accepted
 ctkg:v3e-object-bf9e8241330bdf92c90e15f7,ctkg_v3e-object-bf9e8241330bdf92c90e15f7,积分时间常数,,6,gold,,1,,C,False,blocked,accepted
-ctkg:v3e-object-c3d7e85e2b60c3320db8a44a,ctkg_v3e-object-c3d7e85e2b60c3320db8a44a,Quantization error,Quantization error,18,gold,,1,,C,False,blocked,accepted
+ctkg:v3e-object-c3d7e85e2b60c3320db8a44a,ctkg_v3e-object-c3d7e85e2b60c3320db8a44a,Quantization error,Quantization error,18,gold,,1,,C,False,ok,accepted
 ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0,ctkg_v3e-object-cc99ebc4a8c2b5b89c7f02d0,饱和特性,,4,gold,,1,,C,False,blocked,accepted
 ctkg:v3e-object-d7425132087d7b73ba04acb6,ctkg_v3e-object-d7425132087d7b73ba04acb6,flash memory,flash memory,12,gold,,1,,C,False,blocked,accepted
 ctkg:v3e-object-da8cedbf0ebbeecfe0b184b6,ctkg_v3e-object-da8cedbf0ebbeecfe0b184b6,拉普拉斯变换法求解齐次状态方程,,15,silver,,1,,C,False,blocked,accepted
@@ -1054,7 +1054,7 @@ ctc:modeling-42c9620057d98bfd31df8233,ctc_modeling-42c9620057d98bfd31df8233,输�
 ctc:modeling-4650485d80a606436bc37cc2,ctc_modeling-4650485d80a606436bc37cc2,系统的输入和输出变量,modeling_4650485d80a606436bc37cc2,11,silver,theoretical_construct,0,excluded_with_rationale,C,False,blocked,accepted
 ctc:modeling-6280f0cd5c8f281d399cb327,ctc_modeling-6280f0cd5c8f281d399cb327,系统在时间域中的行为或运动信息…,modeling_6280f0cd5c8f281d399cb327,19,silver,theoretical_construct,0,excluded_with_rationale,C,False,blocked,accepted
 ctc:modeling-71f0e8d834291c2c7d5e25b9,ctc_modeling-71f0e8d834291c2c7d5e25b9,输出方程中D≡0的系统,modeling_71f0e8d834291c2c7d5e25b9,12,silver,theoretical_construct,0,excluded_with_rationale,C,False,ok,accepted
-ctc:modeling-c26fddc50074ec84707d5950,ctc_modeling-c26fddc50074ec84707d5950,系数矩阵各元素都是常数的线性系统,modeling_c26fddc50074ec84707d5950,17,silver,theoretical_construct,0,excluded_with_rationale,C,False,blocked,accepted
+ctc:modeling-c26fddc50074ec84707d5950,ctc_modeling-c26fddc50074ec84707d5950,系数矩阵各元素都是常数的线性系统,modeling_c26fddc50074ec84707d5950,17,silver,theoretical_construct,0,excluded_with_rationale,C,False,ok,accepted
 ctc:modeling-ce9bffbe8ce00d29cf2c0738,ctc_modeling-ce9bffbe8ce00d29cf2c0738,既有输入支路又有输出支路的节点,modeling_ce9bffbe8ce00d29cf2c0738,16,silver,theoretical_construct,0,excluded_with_rationale,C,False,blocked,accepted
 ctc:modeling-f6940765c7e8e5b74be204e0,ctc_modeling-f6940765c7e8e5b74be204e0,领域概念,modeling_f6940765c7e8e5b74be204e0,0,silver,analysis_method,0,excluded_with_rationale,C,False,blocked,accepted
 ctkg:domainconcept:00c33c72030aa254c651c5ad,ctkg_domainconcept_00c33c72030aa254c651c5ad,正定性（标量函数）,,0,gold,,0,,C,False,blocked,accepted
@@ -1209,7 +1209,7 @@ ctkg:v3e-canonical-2624e6b30f6178715ae3b198,ctkg_v3e-canonical-2624e6b30f6178715
 ctkg:v3e-canonical-262c2f2661df3c6d1086a95e,ctkg_v3e-canonical-262c2f2661df3c6d1086a95e,二次扰动,,17,silver,theoretical_construct,0,,C,False,blocked,accepted
 ctkg:v3e-canonical-299c52f97e423f68b4ac6093,ctkg_v3e-canonical-299c52f97e423f68b4ac6093,稳态性能,,4,silver,theoretical_construct,0,,C,False,ok,accepted
 ctkg:v3e-canonical-3484a3239128bda292d300f9,ctkg_v3e-canonical-3484a3239128bda292d300f9,利用解析法求解高阶系统单位阶跃…,,17,silver,analysis_method,0,,C,False,blocked,accepted
-ctkg:v3e-canonical-55743366373a5197b074831b,ctkg_v3e-canonical-55743366373a5197b074831b,Unit step function,Unit step function,18,silver,theoretical_construct,0,,C,False,blocked,accepted
+ctkg:v3e-canonical-55743366373a5197b074831b,ctkg_v3e-canonical-55743366373a5197b074831b,Unit step function,Unit step function,18,silver,theoretical_construct,0,,C,False,ok,accepted
 ctkg:v3e-canonical-813c3692771aa00de2a18d93,ctkg_v3e-canonical-813c3692771aa00de2a18d93,动态性能,,4,silver,theoretical_construct,0,,C,False,ok,accepted
 ctkg:v3e-canonical-a9b5aa38cf8c93e8dc4533da,ctkg_v3e-canonical-a9b5aa38cf8c93e8dc4533da,Quality factor Q,Quality factor Q,16,silver,theoretical_construct,0,,C,False,blocked,accepted
 ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef,ctkg_v3e-canonical-af52bd97e7b277a781f1e7ef,DC gain,DC gain,7,silver,theoretical_construct,0,,C,False,ok,accepted

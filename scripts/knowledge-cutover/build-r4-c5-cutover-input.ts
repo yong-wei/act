@@ -428,7 +428,10 @@ function main(): void {
     || teachingReclosure.successorSnapshotHash !== successorManifest.snapshotHash
     || teachingReclosure.semanticCacheHash !== semanticCache.cacheHash
     || teachingReclosure.dispositionHash !== teaching.dispositionHash
-    || JSON.stringify(teachingReclosure.changedFields) !== JSON.stringify(['scopeHash'])
+    || ![
+      JSON.stringify(['scopeHash']),
+      JSON.stringify(['scopeHash', 'retiredMembers', 'prerequisiteDispositions']),
+    ].includes(JSON.stringify(teachingReclosure.changedFields))
     || teachingReclosure.receiptHash !== projectionDigest(teachingReclosureHashInput)
   ) {
     fail('r4 c6 teaching governance reclosure receipt is invalid');

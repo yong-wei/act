@@ -16,6 +16,7 @@ import {
   TYPE055_V2_BASIS_YAW_RAD,
   propulsorSceneAnchors,
   shipLodCandidatesForQualityTier,
+  shipLodMountPlan,
   shipLodUrlForQualityTier,
 } from '../model-packages/type055-nanchang-101-v2';
 import { cloneSkinnedScene, skinnedBindingsIntact } from '../model-packages/clone-skinned-scene';
@@ -294,12 +295,15 @@ describe('type055-nanchang-101 v2.2.1 hero activation', () => {
     ]);
   });
 
-  it('verifies on-disk hashes and prefers the same-origin copy for runtime-only packages', () => {
+  it('verifies on-disk hashes and prefers the OSS package path for runtime-only packages', () => {
     const receipt = validateReceivedModelPackage(TYPE055_NANCHANG_101_V2, realIo());
     expect(receipt.manifestSha256).toBe(TYPE055_NANCHANG_101_V2.releaseManifestSha256);
-    const [local, oss] = shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2, 'high');
-    expect(local).toBe(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2, 'high'));
-    expect(oss).toBe(`https://static.adapt-learn.online/assets/${TYPE055_NANCHANG_101_V2.roles['ship-lod0'].sha256}/type055-nanchang-101-ship-lod0.glb`);
+    const plan = shipLodMountPlan(TYPE055_NANCHANG_101_V2, 'high');
+    const [oss, local] = shipLodCandidatesForQualityTier(TYPE055_NANCHANG_101_V2, 'high');
+    expect(plan.local).toBe(shipLodUrlForQualityTier(TYPE055_NANCHANG_101_V2, 'high'));
+    expect(plan.preferred).toBe('https://static.adapt-learn.online/model-releases/type055-nanchang-101/v2.2.1/models/type055-nanchang-101-ship-lod0.glb');
+    expect(local).toBe(plan.local);
+    expect(oss).toBe(plan.preferred);
   });
 });
 

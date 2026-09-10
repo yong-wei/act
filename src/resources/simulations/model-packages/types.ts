@@ -5,7 +5,7 @@
  * ACT 不修补上游模型字节。
  */
 
-import { esaObjectUrl } from '@/lib/browser-delivery/keys';
+import { STATIC_HOSTNAME } from '@/lib/browser-delivery/types';
 
 export type VersionedShipLodRole = 'ship-lod0' | 'ship-lod1' | 'ship-lod2';
 export type VersionedOptionalRole = 'collision' | 'payload' | 'demo' | 'interactive-systems';
@@ -167,32 +167,47 @@ export function shipLodUrlForQualityTier(
   return item.url;
 }
 
+export const FLEET_DELIVERY_BUCKET = 'act-course-models';
+
 export function artifactBasename(file: string): string {
   const base = file.split('/').pop();
   if (!base) throw new Error(`invalid-artifact-file:${file}`);
   return base;
 }
 
+/** 公开桶对象键：去掉同源 `/assets` 前缀，保留 `model-releases/<id>/v<ver>/...`。 */
+export function ossObjectKey(item: VersionedModelArtifact): string {
+  if (!item.url.startsWith('/assets/model-releases/')) {
+    throw new Error(`unexpected-artifact-url:${item.url}`);
+  }
+  return item.url.slice('/assets/'.length);
+}
+
 export function ossArtifactUrl(item: VersionedModelArtifact): string {
-  return esaObjectUrl(item.sha256, artifactBasename(item.file));
+  return `https://${STATIC_HOSTNAME}/${ossObjectKey(item)}`;
 }
 
 export function artifactCandidateUrls(item: VersionedModelArtifact): readonly [string, string] {
-  const oss = ossArtifactUrl(item);
-  // Runtime-only 包把 GLB 放在 models/，贴图走 ../textures/。ESA 单文件对象无法解析相对贴图，故同源目录优先。
-  if (item.file.includes('/')) return [item.url, oss];
-  return [oss, item.url];
+  return [ossArtifactUrl(item), item.url];
+}
+
+export function shipLodMountPlan(
+  descriptor: VersionedModelPackageDescriptor,
+  tier: 'high' | 'medium' | 'low',
+): { readonly preferred: string; readonly local: string; readonly candidates: readonly [string, string] } {
+  const item = descriptor.roles[shipLodRoleForQualityTier(tier)];
+  if (!item) {
+    throw new Error(`missing-ship-lod:${descriptor.packageId}:${tier}`);
+  }
+  const preferred = ossArtifactUrl(item);
+  return { preferred, local: item.url, candidates: [preferred, item.url] };
 }
 
 export function shipLodCandidatesForQualityTier(
   descriptor: VersionedModelPackageDescriptor,
   tier: 'high' | 'medium' | 'low',
 ): readonly [string, string] {
-  const item = descriptor.roles[shipLodRoleForQualityTier(tier)];
-  if (!item) {
-    throw new Error(`missing-ship-lod:${descriptor.packageId}:${tier}`);
-  }
-  return artifactCandidateUrls(item);
+  return shipLodMountPlan(descriptor, tier).candidates;
 }
 
 export function isDescriptorArtifactUrl(

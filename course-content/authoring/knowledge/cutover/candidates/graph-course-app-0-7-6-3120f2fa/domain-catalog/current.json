@@ -1,0 +1,9 @@
+{
+  "contract": "act-authority-domain-display-catalog-current/v1",
+  "catalogId": "adc-570b38da268fd125ddbdd3f74c0eb50bc77052133b463ddc15156e41db270a52",
+  "catalogHash": "570b38da268fd125ddbdd3f74c0eb50bc77052133b463ddc15156e41db270a52",
+  "snapshotId": "snap-0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+  "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+  "releaseId": "ctr:release:control-theory-engineering-v0.37",
+  "activatedAt": "2026-09-09T15:04:11.000Z"
+}

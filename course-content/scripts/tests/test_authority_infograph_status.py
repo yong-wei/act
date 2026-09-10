@@ -144,12 +144,12 @@ def test_inventory_status_matches_cards_infographs_and_status_report():
     assert len(nodes) == 1236
     card_counts = Counter(row["card_status"] for row in nodes)
     image_counts = Counter(row["infograph_status"] for row in nodes)
-    assert card_counts == Counter({"ok": 962, "blocked": 274})
+    assert card_counts == Counter({"ok": 970, "blocked": 266})
     assert image_counts == Counter({"accepted": 1236})
-    assert inventory["counts"]["cards_ok"] == 962
-    assert inventory["counts"]["cards_blocked"] == 274
+    assert inventory["counts"]["cards_ok"] == 970
+    assert inventory["counts"]["cards_blocked"] == 266
     assert inventory["counts"]["infographs_accepted"] == 1236
-    assert status["cards"] == {"ok": 962, "blocked": 274}
+    assert status["cards"] == {"ok": 970, "blocked": 266}
     assert status["infographs"] == {"accepted": 1236}
     assert status["identity_check"]["equals_total"] is True
 
@@ -171,7 +171,7 @@ def test_default_export_gate_skips_draft_blocked_cards_without_runtime_writes(tm
         card_export_status(AUTHORING_CARDS / f"{path.stem}.md")
         for path in AUTHORING_CARDS.glob("*.md")
     )
-    assert card_counts == Counter({"ok": 962, "blocked": 274})
+    assert card_counts == Counter({"ok": 970, "blocked": 266})
 
     script = AUTHORITY_SCRIPTS / "export_authority_cards_and_infographs.py"
     result = subprocess.run(
@@ -189,9 +189,9 @@ def test_default_export_gate_skips_draft_blocked_cards_without_runtime_writes(tm
     )
     assert "cards_exported=952" in result.stdout
     assert "cards_skipped=284" in result.stdout
-    # Ten enriched cards now name v0.37; the historical v0.12 export cannot relabel them.
-    assert "images_exported=1226" in result.stdout
-    assert "images_skipped=10" in result.stdout
+    # Eighteen enriched cards now name v0.37; the historical v0.12 export cannot relabel them.
+    assert "images_exported=1218" in result.stdout
+    assert "images_skipped=18" in result.stdout
 
 
 def test_selective_export_keeps_the_runtime_scope_on_requested_authority_nodes(tmp_path: Path):

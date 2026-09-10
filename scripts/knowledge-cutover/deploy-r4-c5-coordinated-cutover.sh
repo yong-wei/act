@@ -92,6 +92,9 @@ remote "test ! -e '$remote_dir' && mkdir -p '$remote_dir/domain-fragments'"
 for file in candidate-receipt.json authority-current.json runtime-stage.json predecessor-observation.json lifecycle-predecessor.json prepare-input.json allocation.json formal-resource-envelope.json derivation-receipt.json reuse-receipt.json continuity-receipt.json teaching-closure-receipt.json teaching-reclosure-receipt.json projection-adjustments.json projection-scope-binding.json successor-runtime-manifest-extension.json successor-manifest.json denominator.json outer-artifacts.json presentation-label-qualification.json verification-policy.json composed-domain-fragment-manifest.json; do
   copy_immutable "$candidate_dir/$file" "$remote_dir/$file"
 done
+if [[ -f "$candidate_dir/resource-qualification.json" && ! -L "$candidate_dir/resource-qualification.json" ]]; then
+  copy_immutable "$candidate_dir/resource-qualification.json" "$remote_dir/resource-qualification.json"
+fi
 while IFS= read -r rel; do
   [[ -n "$rel" ]] || continue
   copy_immutable "$candidate_dir/$rel" "$remote_dir/$rel"

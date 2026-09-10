@@ -1,7 +1,7 @@
 {
   "contract": "act-teaching-prerequisite-current/v1",
-  "publicationId": "proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53",
-  "publicationHash": "02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53",
+  "publicationId": "proj-d8a57f75263fbbab68a07ea2c386716c233030aa77a77add51103db5e3775bf0",
+  "publicationHash": "d8a57f75263fbbab68a07ea2c386716c233030aa77a77add51103db5e3775bf0",
   "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
-  "activatedAt": "2026-09-08T04:00:00.000Z"
+  "activatedAt": "1970-01-01T00:00:00.000Z"
 }

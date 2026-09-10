@@ -10,7 +10,8 @@
  * - 首次候选加载失败沿 legacy 候选链回退（FallbackGltfModel 语义）。
  * 实验自有场景代码不得另建第二套重试状态机。
  *
- * 激活 LOD 默认顺序：OSS → 同源镜像 → legacy。
+ * 激活 LOD 的首选仍是公开存储，但首帧只挂同源镜像；
+ * 短超时 HEAD 探测成功后再切到公开地址，避免对未接通域名 useGLTF。
  */
 
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
@@ -18,7 +19,7 @@ import { useGLTF } from '@react-three/drei';
 
 import { FallbackGltfModel, ModelAssetErrorBoundary } from './fallback-gltf-model';
 import {
-  shipLodCandidatesForQualityTier,
+  shipLodMountPlan,
   type VersionedModelPackageDescriptor,
 } from '../model-packages/type055-nanchang-101-v2';
 
@@ -67,17 +68,42 @@ export function VersionedShipModel({
   legacyCandidates: readonly string[];
   renderScene: (url: string) => ReactNode;
 }) {
-  const lodCandidates = shipLodCandidatesForQualityTier(descriptor, tier);
-  const [committedUrl, setCommittedUrl] = useState(lodCandidates[0]);
+  const { preferred, local } = shipLodMountPlan(descriptor, tier);
+  const [committedUrl, setCommittedUrl] = useState(local);
+  const publicReady = committedUrl === preferred;
+
+  useEffect(() => {
+    setCommittedUrl(local);
+  }, [local]);
+
+  useEffect(() => {
+    if (preferred === local || !preferred.startsWith('https://')) return undefined;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 1500);
+    fetch(preferred, { method: 'HEAD', mode: 'cors', signal: controller.signal })
+      .then((response) => {
+        if (response.ok) setCommittedUrl(preferred);
+      })
+      .catch(() => undefined)
+      .finally(() => window.clearTimeout(timer));
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [preferred, local]);
+
+  const mountCandidates = publicReady
+    ? uniqueUrls([preferred, local, ...legacyCandidates])
+    : uniqueUrls([local, ...legacyCandidates]);
 
   return (
     <>
       <FallbackGltfModel
-        candidates={uniqueUrls([committedUrl, ...lodCandidates, ...legacyCandidates])}
+        candidates={mountCandidates}
         render={renderScene}
       />
-      {lodCandidates.includes(committedUrl) ? null : (
-        <LodPrefetchChain urls={lodCandidates} onReady={setCommittedUrl} />
+      {publicReady || mountCandidates.includes(committedUrl) ? null : (
+        <LodPrefetchChain urls={[local]} onReady={setCommittedUrl} />
       )}
     </>
   );

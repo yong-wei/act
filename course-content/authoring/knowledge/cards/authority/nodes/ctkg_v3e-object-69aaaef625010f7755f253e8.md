@@ -1,31 +1,30 @@
 ---
 node_id: ctkg_v3e-object-69aaaef625010f7755f253e8
 authority_entity_id: "ctkg:v3e-object-69aaaef625010f7755f253e8"
-name: 死区
+name: "死区"
+name_en: "Dead zone"
 category: 概念性
-batch: C
-release_tier: gold
-tags:
-  - gold
-  - 死区
-card_version: 1
+knowledge_type: C
+bloom_level: 理解
+lesson_units:
+  - "5-1"
+card_version: 2
+content_origin: act-course-enrichment
+authority_release_id: ctr:release:control-theory-engineering-v0.37
+status: ready
 source_docs:
-  - course-content/authoring/knowledge/releases/control-theory-engineering-v0.12/domain-projection.json
-authority_release_id: control-theory-engineering-v0.12
-status: draft-blocked
-blocked_reason: description_too_short
+  - course-content/authoring/knowledge/cards/nodes/死区特性_8_9ed850fc.md
+  - course-content/authoring/lessons/5-1/design/5-1-handout.md
 asset_refs: []
 ---
 
-<!-- authority_source_sha256: 7f3b40609639749a2961938539b95917e24b61471d4cc0fb124ec7c0aae8491f -->
-
 ## 首页
 
-# 死区
+# 死区 | Dead zone
 
-**一句话定义**：死区。
+**一句话定义**：输入在某一阈值范围内变化时，输出保持为零或不发生有效变化的非线性现象。
 
-**关联**：后续 → 间隙特性、死区特性
+**核心直觉**：控制器发出的小修正可能没有传递到执行机构。
 
 ---
 
@@ -33,19 +32,25 @@ asset_refs: []
 
 ### 完整解释
 
-死区
+设死区半宽为 $d>0$，阈值外斜率为 $k>0$，常用模型为
 
-### 关联节点
+$$
+y=
+\begin{cases}
+k(u-d),&u>d,\\
+0,&|u|\le d,\\
+k(u+d),&u<-d.
+\end{cases}
+$$
 
-| 方向 | 节点 | 关系说明 |
-|------|------|---------|
-| 后续 | 间隙特性 | 关联 |
-| 后续 | 死区特性 | 关联 |
+这里整个死区的宽度为 $2d$。在阈值附近，单一线性增益不能描述输入输出关系，因此叠加原理通常失效。
 
-### 边界与使用说明
+### 小指令示例
 
-本卡内容严格来自权威发布 `control-theory-engineering-v0.12` 的 DomainConcept 描述与邻接关系（concept_kind=`unknown`，release_tier=`gold`）。未在权威源中出现的工程实例与常见误区不在此编造；后续可按证据补全。
+取 $d=0.2$、$k=1$。输入 $u=0.1$ 时输出为零；输入 $u=0.5$ 时输出为 $0.3$；输入 $u=-0.5$ 时输出为 $-0.3$。
 
-### 关键词
+执行机构的起动摩擦、阀门的不灵敏区等都可能表现为小指令不起作用。闭环系统可能因此出现小误差难以消除、间歇修正或低幅振荡，具体行为还取决于控制器与对象动态。
 
-gold、死区
+### 使用条件
+
+建模时应说明阈值、正负方向是否对称，以及阈值外的斜率。利用实验输入跨越阈值，可以区分正常的小增益响应与真正的无响应区。

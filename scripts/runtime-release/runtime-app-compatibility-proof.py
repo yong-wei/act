@@ -119,6 +119,8 @@ def run(*args: str) -> str:
 
 def container_image(container: str) -> str:
     value = run("podman", "inspect", "--format", "{{.Image}}", container)
+    if SHA256.fullmatch(value):
+        value = "sha256:" + value
     return image_digest(value, f"{container} image")
 
 
