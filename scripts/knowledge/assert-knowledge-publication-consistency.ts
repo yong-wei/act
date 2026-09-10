@@ -36,13 +36,37 @@ export function assertKnowledgePublicationConsistency(read: (relative: string) =
   const rows = (bytes: string): Array<Record<string, unknown>> => bytes.split('\n').filter((line) => line.trim()).map((line) => JSON.parse(line));
   const tuple = (row: Record<string, unknown>, fields: readonly string[]) => JSON.stringify(fields.map((field) => row[field] ?? null));
   const baseline = JSON.parse(readBaseline(root + '/projection/current.json')) as { projectionId: string };
+  const baselineBindings = rows(readBaseline(root + '/projection/releases/' + baseline.projectionId + '/bindings.jsonl'));
+  const candidateBindings = rows(read(root + '/projection/releases/' + course.projectionId + '/bindings.jsonl'));
+  const candidateResourceIds = new Set(rows(read(root + '/projection/releases/' + course.projectionId + '/resources.jsonl')).map((row) => row.resourceId));
+  const retiredUnboundInfographic = (row: Record<string, unknown>): boolean => {
+    if (row.resourceType !== 'infographic' || row.projectionStatus !== 'EXPLICIT_NONE' || row.bindingCount !== 0
+      || candidateResourceIds.has(row.resourceId)
+      || [...baselineBindings, ...candidateBindings].some((binding) => binding.resourceId === row.resourceId)) return false;
+    try {
+      // This ruling is part of the frozen application input, not a publisher-provided exemption.
+      const ruling = JSON.parse(readBaseline('course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r6/domain-catalog/retirement-ruling.json')) as {
+        contract: string; snapshotId: string; retiredMembers: string[];
+      };
+      const baselineManifest = JSON.parse(readBaseline(root + '/projection/releases/' + baseline.projectionId + '/projection-manifest.json')) as {
+        authoritySnapshotId: string; authorityReleaseId: string;
+      };
+      return ruling.contract === 'act-authority-domain-catalog-retirement-ruling/v1'
+        && ruling.snapshotId === baselineManifest.authoritySnapshotId
+        && baselineManifest.authorityReleaseId === courseManifest.authorityReleaseId
+        && ruling.retiredMembers.some((id) => row.resourceId === 'act:infographic:' + id.replaceAll(':', '_'));
+    } catch {
+      return false;
+    }
+  };
   for (const [file, fields] of [
     ['resources.jsonl', ['resourceId', 'resourceType', 'sourcePath']],
     ['bindings.jsonl', ['resourceId', 'canonicalId', 'role', 'scopeId', 'primary', 'sourcePath']],
   ] as const) {
     const before = rows(readBaseline(root + '/projection/releases/' + baseline.projectionId + '/' + file));
     const after = new Set(rows(read(root + '/projection/releases/' + course.projectionId + '/' + file)).map((row) => tuple(row, fields)));
-    check(before.every((row) => after.has(tuple(row, fields))), 'retained resource continuity: ' + file);
+    check(before.every((row) => after.has(tuple(row, fields))
+      || file === 'resources.jsonl' && retiredUnboundInfographic(row)), 'retained resource continuity: ' + file);
   }
   const prereqFields = ['sourceCanonicalId', 'targetCanonicalId', 'strength', 'scopeId'];
   const publishedPrerequisites = json<Array<Record<string, unknown>>>('prerequisites/releases/' + prereq.publicationId + '/projection-prerequisites.json');

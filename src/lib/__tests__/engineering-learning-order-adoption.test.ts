@@ -476,13 +476,15 @@ describe('engineering learning-order adoption (#2059)', () => {
     const adopted = artifacts.edges.filter((edge) => (
       edge.status === 'PUBLISHED' && edge.candidateOrigin === 'ENGINEERING_RELATION'
     ));
-    expect(adopted).toHaveLength(1);
-    expect(artifacts.receipts?.some((receipt) => (
-      receipt.disposition === 'adopted'
-      && adopted[0]?.evidenceRefs.includes(`engineering-relation:${receipt.relationId}`)
-      && receipt.sourceId === adopted[0]?.sourceNodeId
-      && receipt.targetId === adopted[0]?.targetNodeId
-    ))).toBe(true);
+    expect(adopted.length).toBeGreaterThan(0);
+    for (const edge of adopted) {
+      expect(artifacts.receipts?.some((receipt) => (
+        receipt.disposition === 'adopted'
+        && edge.evidenceRefs.includes(`engineering-relation:${receipt.relationId}`)
+        && receipt.sourceId === edge.sourceNodeId
+        && receipt.targetId === edge.targetNodeId
+      ))).toBe(true);
+    }
 
     const teachingOnly = loadPrerequisitePublication(
       resolvePrerequisiteStorePaths(root),

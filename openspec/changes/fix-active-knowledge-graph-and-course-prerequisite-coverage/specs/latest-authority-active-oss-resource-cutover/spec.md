@@ -14,3 +14,8 @@ The release process SHALL capture all accepted local Authority, teaching-order, 
 #### Scenario: Activate a complete candidate
 - **WHEN** the candidate passes identity, continuity and application compatibility checks
 - **THEN** the coordinated publication SHALL verify the same combination in production, including English, teaching prerequisites and real resource launches
+
+#### Scenario: Retain binding continuity while retiring an unbound infographic
+- **WHEN** an infographic has an EXPLICIT_NONE disposition, zero declared and actual bindings, and its retirement ruling is frozen in the application input and matches that input's Authority snapshot
+- **THEN** candidate assembly MAY remove that resource entry while preserving its source bytes in the rollback archive
+- **AND** no existing resource binding or unrelated resource loss SHALL be exempted by that ruling

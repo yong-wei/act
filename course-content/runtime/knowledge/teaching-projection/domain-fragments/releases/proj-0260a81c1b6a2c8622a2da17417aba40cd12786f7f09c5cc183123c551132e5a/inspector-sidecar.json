@@ -1,0 +1,11 @@
+{
+  "contract": "act-inspector-teaching-sidecar/v1",
+  "envelopeProjectionId": "proj-0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "envelopeProjectionHash": "0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "courseProjectionId": "proj-228afa648be61f4824a694c546a5c801f16db1e925d9de0546e08c7569381333",
+  "courseProjectionHash": "228afa648be61f4824a694c546a5c801f16db1e925d9de0546e08c7569381333",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+  "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+  "authoritySnapshotId": "snap-0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+  "authoritySnapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a"
+}

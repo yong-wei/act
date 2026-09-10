@@ -1,0 +1,19 @@
+{
+  "authority": {
+    "snapshotId": "snap-0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
+    "releaseId": "ctr:release:control-theory-engineering-v0.37",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.37-r6",
+    "activationId": "activation-de00f0690b74e1933b60848f",
+    "activationHash": "a12af13e0c8d89619b87a0acc35d4b4d6f96d4b93459795dbad9aa0acfcc73e7",
+    "projectionId": null,
+    "projectionHash": null
+  },
+  "catalog": {
+    "catalogId": "adc-570b38da268fd125ddbdd3f74c0eb50bc77052133b463ddc15156e41db270a52",
+    "catalogHash": "570b38da268fd125ddbdd3f74c0eb50bc77052133b463ddc15156e41db270a52",
+    "catalogVersion": "v0.37-r6-course-0.7.6-3120f2fa"
+  },
+  "shardSetId": "ads-14138b6c85e83b7259c64cebcde3f95baa96828002ea18db31ec738d610a0e63",
+  "shardSetHash": "14138b6c85e83b7259c64cebcde3f95baa96828002ea18db31ec738d610a0e63"
+}

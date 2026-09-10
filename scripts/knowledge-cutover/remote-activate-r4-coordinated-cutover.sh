@@ -47,6 +47,7 @@ previous_active_receipt="$candidate_dir/previous-active-receipt.json"
 previous_selection="$candidate_dir/previous-runtime-selection.json"
 final_receipt="$STATE_DIR/coordinated-active-receipt.json"
 previous_final_receipt="$candidate_dir/previous-coordinated-active-receipt.json"
+previous_candidate_mount="$candidate_dir/previous-candidate-mount.json"
 transaction_id=""
 opened_at=""
 authority_mutated=0
@@ -110,9 +111,54 @@ predecessor_consumers_running() {
   return 0
 }
 
+capture_candidate_mount_predecessor() {
+  python3 - "$PROJECT_DIR/data/runtime/act-obe.env" "$previous_candidate_mount" "$candidate_dir/candidate-receipt.json" "$PROJECT_DIR/course-content/authoring/knowledge/cutover/candidates/control-theory-engineering-v0.37-r4-c5" <<'PY'
+import hashlib, json, os, shlex, sys
+env_path, output, candidate_path, fallback = sys.argv[1:]
+wire = open(env_path, 'rb').read()
+directory = fallback
+for line in wire.decode().splitlines():
+    if line.startswith('LATEST_CUTOVER_CANDIDATE_DIR='):
+        parts = shlex.split(line.split('=', 1)[1])
+        if len(parts) != 1: raise SystemExit('invalid previous candidate mount')
+        directory = parts[0]
+if not os.path.isabs(directory): raise SystemExit('previous candidate mount must be absolute')
+candidate_hash = json.load(open(candidate_path))['receiptHash']
+body = {'contract':'coordinated-candidate-mount-predecessor/v1','candidateReceiptHash':candidate_hash,'directory':directory,'sourceEnvSha256':hashlib.sha256(wire).hexdigest()}
+if os.path.lexists(output):
+    if os.path.islink(output) or not os.path.isfile(output): raise SystemExit('invalid candidate mount backup')
+    prior = json.load(open(output))
+    if prior.get('contract') != body['contract'] or prior.get('candidateReceiptHash') != candidate_hash or prior.get('directory') != directory:
+        raise SystemExit('candidate mount predecessor drift')
+else:
+    with open(output, 'x') as handle: json.dump(body, handle, sort_keys=True); handle.write('\n'); handle.flush(); os.fsync(handle.fileno())
+    os.chmod(output, 0o600)
+PY
+}
+
+candidate_mount_for_deploy() {
+  if [[ "$1" == "successor" ]]; then
+    printf '%s\n' "$candidate_dir"
+  else
+    python3 - "$previous_candidate_mount" "$candidate_dir/candidate-receipt.json" <<'PY'
+import json, os, sys
+backup, candidate = sys.argv[1:]
+if os.path.islink(backup) or not os.path.isfile(backup): raise SystemExit('candidate mount backup is missing')
+value = json.load(open(backup))
+if value.get('contract') != 'coordinated-candidate-mount-predecessor/v1' or value.get('candidateReceiptHash') != json.load(open(candidate))['receiptHash'] or not os.path.isabs(value.get('directory','')):
+    raise SystemExit('candidate mount backup identity mismatch')
+print(value['directory'])
+PY
+  fi
+}
+
 deploy_runtime_cutover_app() {
   local required="$1"
   local quiet="${2:-0}"
+  local selection="${3:-predecessor}"
+  local mount_dir
+  [[ "$selection" == "predecessor" || "$selection" == "successor" ]] || return 1
+  mount_dir="$(candidate_mount_for_deploy "$selection")" || return 1
   local attempt
   [[ "$required" == "true" || "$required" == "false" ]] || return 1
   for attempt in 1 2 3 4 5 6; do
@@ -121,6 +167,7 @@ deploy_runtime_cutover_app() {
         ACT_COORDINATED_CUTOVER_REQUIRED="$required" \
         ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+        LATEST_CUTOVER_CANDIDATE_DIR="$mount_dir" \
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" \
         "$DEPLOY" --runtime-cutover-app-only >/dev/null 2>&1; then
         return 0
@@ -130,6 +177,7 @@ deploy_runtime_cutover_app() {
         ACT_COORDINATED_CUTOVER_REQUIRED="$required" \
         ACT_COORDINATED_ACTIVE_RECEIPT_PATH="$final_receipt" \
         ACT_RUNTIME_ACTIVE_RECEIPT_PATH="$STATE_DIR/act-runtime-active-receipt.json" \
+        LATEST_CUTOVER_CANDIDATE_DIR="$mount_dir" \
         RUNTIME_CONTENT_DIR="$VIEW_ROOT/current" APP_IMAGE="$rollback_image" \
         "$DEPLOY" --runtime-cutover-app-only; then
         return 0
@@ -212,6 +260,27 @@ if labels.get('contract') != 'r4-presentation-label-qualification/v1' or labels.
 if policy.get('contract') != 'r4-c5-coordinated-production-verification/v1': raise SystemExit('presentation label verification policy is invalid')
 policy_hash=policy.get('verificationPolicyHash')
 if not isinstance(policy_hash,str) or policy_hash != candidate['verificationPolicyHash']: raise SystemExit('presentation label verification policy differs from candidate')
+formal_path=os.path.join(os.path.dirname(candidate_path),'formal-resource-envelope.json')
+formal=json.load(open(formal_path,encoding='utf-8'))
+if formal.get('contract') != 'coordinated-formal-resource-envelope-incremental-reuse/v1' or formal.get('envelopeHash') != candidate['formalResourceEnvelopeHash'] or sha(canonical({key:value for key,value in formal.items() if key != 'envelopeHash'})) != candidate['formalResourceEnvelopeHash']:
+  raise SystemExit('formal resource envelope does not reopen')
+if formal.get('allocationHash') != candidate['allocationHash'] or formal.get('scopeHash') != policy.get('projectionScopeHash'):
+  raise SystemExit('formal resource envelope scope differs from candidate')
+if formal.get('resourceQualificationHash'):
+  qualification=json.load(open(os.path.join(os.path.dirname(candidate_path),'resource-qualification.json'),encoding='utf-8'))
+  if qualification.get('contract') != 'published-resource-cutover-qualification/v1' or qualification.get('qualificationHash') != formal['resourceQualificationHash'] or sha(canonical({key:value for key,value in qualification.items() if key != 'qualificationHash'})) != formal['resourceQualificationHash']:
+    raise SystemExit('published resource qualification does not reopen')
+  if qualification.get('projectionHash') != candidate['teachingProjectionHash']:
+    raise SystemExit('published resource qualification selects a different projection')
+  successor_identity=json.load(open(successor_path,encoding='utf-8'))
+  if qualification.get('projectionId') != 'proj-'+candidate['teachingProjectionHash'] or any(qualification.get(key) != successor_identity.get(key) for key in ('snapshotId','snapshotHash')):
+    raise SystemExit('published resource qualification selects a different Authority')
+  resources=qualification.get('resources')
+  if not isinstance(resources,list) or len({row.get('resourceId') for row in resources}) != len(resources):
+    raise SystemExit('published resource qualification contains duplicate identities')
+  for row in resources:
+    if row.get('bindingCount') != len(row.get('bindingIds',[])) or (row.get('bindingCount',0)>0 and row.get('readable') is not True):
+      raise SystemExit('bound published resource is not readable')
 reclosure_hash=teaching_reclosure.get('receiptHash')
 reclosure_input={key:value for key,value in teaching_reclosure.items() if key != 'receiptHash'}
 if teaching_reclosure.get('contract') != 'r4-c6-teaching-governance-reclosure/v1' or teaching_reclosure.get('status') != 'COMPLETE' or not isinstance(reclosure_hash,str) or sha(canonical(reclosure_input)) != reclosure_hash:
@@ -301,7 +370,7 @@ if not isinstance(authority_labels,dict) or any(authority_labels.get(key) != suc
 installed_manifest=json.load(open(manifest, encoding='utf-8'))
 if any(installed_manifest.get(key) != successor.get(key) for key in ('snapshotId','snapshotHash','releaseId','releaseSetId')):
   raise SystemExit('installed Authority snapshot manifest differs from successor')
-if teaching_reclosure.get('successorSnapshotHash') != successor.get('snapshotHash') or teaching_reclosure.get('changedFields') != ['scopeHash']:
+if teaching_reclosure.get('successorSnapshotHash') != successor.get('snapshotHash') or teaching_reclosure.get('changedFields') not in (['scopeHash'], ['scopeHash','retiredMembers','prerequisiteDispositions']):
   raise SystemExit('teaching governance reclosure does not bind the successor Authority')
 if projection_adjustment.get('authoritySnapshotHash') != successor.get('snapshotHash'):
   raise SystemExit('Teaching Projection scope binding does not bind the successor Authority')
@@ -678,6 +747,29 @@ block_incomplete_recovery() {
   exit 1
 }
 
+new_candidate_follows_committed() {
+  python3 - "$journal_path" "$candidate_dir/candidate-receipt.json" "$final_receipt" "$AUTHORITY_ROOT/current.json" "$candidate_dir/lifecycle-predecessor.json" "$LIFECYCLE" "$STATE_DIR" <<'PY'
+import hashlib, json, subprocess, sys
+journal_path, candidate_path, receipt_path, authority_path, predecessor_path, lifecycle, state_dir = sys.argv[1:]
+journal=json.load(open(journal_path)); candidate=json.load(open(candidate_path)); receipt=json.load(open(receipt_path)); predecessor=json.load(open(predecessor_path))
+if receipt.get('contract') != 'coordinated-active-receipt/v1': raise SystemExit('unsupported committed predecessor receipt')
+if candidate.get('receiptHash') == journal.get('candidateReceiptHash'): raise SystemExit(1)
+for key in ('transactionId','journalHash','candidateReceiptHash'):
+    if receipt.get(key) != journal.get(key): raise SystemExit('committed predecessor receipt differs from journal')
+keys=('transactionId','journalHash','candidateReceiptHash','committedSelectors','mutationReceiptHashes','runtimeActiveReceiptHash','runtimeActiveIdentity')
+body={key:receipt.get(key) for key in keys}
+if hashlib.sha256(json.dumps(body,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest() != receipt.get('receiptHash'):
+    raise SystemExit('committed predecessor receipt hash mismatch')
+authority_hash=hashlib.sha256(open(authority_path,'rb').read()).hexdigest()
+expected=next((row.get('identity') for row in candidate.get('predecessor',[]) if row.get('selectorId')=='authority:current'),None)
+prior=next((row.get('successorIdentity') for row in journal.get('orderedMutations',[]) if row.get('selectorId')=='authority:current'),None)
+if expected != authority_hash or prior != authority_hash: raise SystemExit('new candidate does not follow committed Authority')
+current=json.loads(subprocess.check_output(['python3',lifecycle,'inspect','--state-dir',state_dir]))
+if current.get('active') != predecessor.get('active') or current.get('active') != receipt.get('runtimeActiveIdentity'):
+    raise SystemExit('new candidate does not follow committed Runtime')
+PY
+}
+
 recover_incomplete_transaction() {
   local stale prior_context transaction_journal prior_status authority_state final_state previous_final_state
   if ! prior_context="$(load_prior_transaction_context)"; then
@@ -687,6 +779,12 @@ recover_incomplete_transaction() {
   IFS=$'\t' read -r transaction_id transaction_journal opened_at prior_status <<<"$prior_context"
   journal_path="$journal_dir/$transaction_journal"
   if [[ "$prior_status" == "COMMITTED" ]]; then
+    if new_candidate_follows_committed; then
+      transaction_id=""
+      journal_path=""
+      opened_at=""
+      return 0
+    fi
     # A terminal committed transaction remains the current durable production
     # record.  A replay must not enter the ERR trap and overwrite it as a
     # rollback merely because the successor is no longer the predecessor.
@@ -850,6 +948,7 @@ trap recover ERR INT TERM
 recover_incomplete_transaction
 rollback_image="$(active_image)"
 preflight_and_prepare
+capture_candidate_mount_predecessor
 if [[ -e "$final_receipt" ]]; then
   [[ -f "$final_receipt" && ! -L "$final_receipt" ]] || { echo "ERROR: prior coordinated active receipt is not a regular file" >&2; exit 1; }
   cp -- "$final_receipt" "$previous_final_receipt"
@@ -886,7 +985,7 @@ seal_final_receipt
 final_receipt_hash="$(sha256sum "$final_receipt" | awk '{print $1}')"
 final_receipt_written=1
 write_journal FINAL_RECEIPT_WRITTEN
-deploy_runtime_cutover_app true
+deploy_runtime_cutover_app true 0 successor
 "$ACTIVATOR" --release-id "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtimeRelease"]["releaseId"])' "$candidate_dir/runtime-stage.json")" \
   --expected-active-release "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["runtime"]["releaseId"])' "$candidate_dir/predecessor-observation.json")" \
   --manifest "$candidate_dir/manifest.json" --release-receipt "$candidate_dir/release-receipt.json" --verification-receipt "$candidate_dir/publisher-verification.json" \

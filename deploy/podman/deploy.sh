@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The coordinator retains its fd 9 lock; Podman/conmon must not inherit it.
+exec 9>&-
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -f "${SCRIPT_DIR}/../.env.server" ] || [ -d "${SCRIPT_DIR}/../data" ]; then
   PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -27,6 +30,12 @@ operator_app_image=""
 if [ "${APP_IMAGE+x}" = "x" ]; then
   operator_app_image_was_set=1
   operator_app_image="$APP_IMAGE"
+fi
+operator_latest_candidate_was_set=0
+operator_latest_candidate=""
+if [ "${LATEST_CUTOVER_CANDIDATE_DIR+x}" = "x" ]; then
+  operator_latest_candidate_was_set=1
+  operator_latest_candidate="$LATEST_CUTOVER_CANDIDATE_DIR"
 fi
 operator_knowledge_mode_was_set=0
 operator_knowledge_mode=""
@@ -138,6 +147,9 @@ elif [ "$file_app_image_was_set" = "1" ]; then
   APP_IMAGE="$file_app_image"
 else
   unset APP_IMAGE
+fi
+if [ "$operator_latest_candidate_was_set" = "1" ]; then
+  LATEST_CUTOVER_CANDIDATE_DIR="$operator_latest_candidate"
 fi
 if [ "$operator_runtime_content_dir_was_set" = "1" ]; then
   RUNTIME_CONTENT_DIR="$operator_runtime_content_dir"

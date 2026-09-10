@@ -1,0 +1,134 @@
+{
+  "contract": "act-course-prerequisite-coverage/v1",
+  "sourceDigest": "5c2be9d00fd8fe87d5c461a630cd9041fb32d986405fbaadf14bf9a9853c4d19",
+  "decisionDigest": "30711aeef2223a806b951aeba2714b1adb6d2d1612ddb6411029c911ff02519d",
+  "coverageScope": "available-authority",
+  "fullCourseCoverage": false,
+  "unitCount": 31,
+  "topicCount": 143,
+  "mappedTopicCount": 133,
+  "mappedCanonicalCount": 193,
+  "authorityGaps": [
+    {
+      "key": "mpc",
+      "label": "模型预测控制",
+      "units": [
+        "5-4",
+        "5-6"
+      ],
+      "rationale": "当前 r6 Authority 无相应语义对象，用户已同意保留缺口；不映射为一般最优控制。"
+    },
+    {
+      "key": "data-driven",
+      "label": "数据驱动控制与在线辨识",
+      "units": [
+        "5-4",
+        "5-5",
+        "5-6"
+      ],
+      "rationale": "当前 r6 未提供这一课程方法的对象，保留课程项而不推断 canonical 等价。"
+    },
+    {
+      "key": "rl",
+      "label": "强化学习与策略学习",
+      "units": [
+        "5-5",
+        "5-6"
+      ],
+      "rationale": "当前 r6 不包含强化学习控制对象，保留收益、样本成本及安全验证课程要求。"
+    },
+    {
+      "key": "mass",
+      "label": "自主船舶感知估计规划控制链",
+      "units": [
+        "5-3"
+      ],
+      "rationale": "当前 Authority 无 MASS 协同链路对象，不用单回路反馈对象冒充。"
+    },
+    {
+      "key": "constrained-optimization",
+      "label": "约束参数优化与罚函数",
+      "units": [
+        "4-1",
+        "4-4",
+        "4-5",
+        "4-6",
+        "4-7",
+        "5-4"
+      ],
+      "rationale": "当前 Authority 无课程所用的罚函数或 fmincon 优化对象，保留设计方法缺口。"
+    },
+    {
+      "key": "pareto",
+      "label": "多目标权重与Pareto取舍",
+      "units": [
+        "4-1",
+        "4-4",
+        "4-5",
+        "4-6"
+      ],
+      "rationale": "当前 Authority 无对应多目标取舍对象，不能等同线性二次型最优控制。"
+    },
+    {
+      "key": "structure-search",
+      "label": "结构编码与GA/PSO搜索",
+      "units": [
+        "4-6",
+        "4-7"
+      ],
+      "rationale": "当前 Authority 无课程结构搜索对象，保留映射缺口。"
+    },
+    {
+      "key": "imc",
+      "label": "IMC/SIMC整定",
+      "units": [
+        "4-2"
+      ],
+      "rationale": "当前 Authority 无课程模型匹配整定的对应对象，不以一般PID整定替代。"
+    },
+    {
+      "key": "fourier-transform",
+      "label": "傅里叶级数与傅里叶变换",
+      "units": [
+        "2-3"
+      ],
+      "rationale": "当前公开语义对象仅匹配傅里叶系数和频谱，完整变换概念尚未匹配，不以系数冒充变换。"
+    },
+    {
+      "key": "rate-limit",
+      "label": "执行器速率限制",
+      "units": [
+        "5-1"
+      ],
+      "rationale": "讲义5-1明确讲授速率限制，但未匹配现行 Authority 对象；不以幅值饱和替代。"
+    }
+  ],
+  "deferredDecisions": [
+    "course-prerequisite-169",
+    "course-prerequisite-170",
+    "course-prerequisite-171",
+    "course-prerequisite-172",
+    "course-prerequisite-173",
+    "course-prerequisite-174",
+    "course-prerequisite-175",
+    "course-prerequisite-176",
+    "course-prerequisite-177",
+    "course-prerequisite-178",
+    "course-prerequisite-202"
+  ],
+  "isolatedCanonicalIds": [],
+  "requiredCycles": [],
+  "retainedRelationCount": 286,
+  "retainedResourceCoreCount": 376,
+  "engineeringDispositions": {
+    "already-teaching": 5,
+    "adopted": 23,
+    "rejected-not-core": 46,
+    "exception-teaching-conflict": 5
+  },
+  "publishedCanonicalCount": 466,
+  "publishedRelationCount": 571,
+  "projectionId": "proj-0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "projectionHash": "0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "authoringRevision": "3120f2fabafed823e6cccd9219539f20b419f61f"
+}

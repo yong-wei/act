@@ -1,0 +1,10 @@
+{
+  "sourceRevision": "425ebc3bf00fa39f7da623d994f24eb091c35247",
+  "envelopeHash": "a6425000cddd6e8b68b9273376f5d3b2445e53938a38abfdb4a762e07edafae7",
+  "state": "SEALED",
+  "resources": 1058,
+  "privateObservationHashes": {
+    "runtime": "dec9352e05a02afa3a7b463983995b14022db884cf696cdcf49f3d08087df17c",
+    "database": "8f8a6bc63dee126e6d49281309fe7c068c26f66ef3de27f405a3c5250d0a8787"
+  }
+}

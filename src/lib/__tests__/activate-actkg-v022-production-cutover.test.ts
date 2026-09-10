@@ -200,10 +200,10 @@ describe('v0.22 runtime release', () => {
       requireReleaseGates: false,
       readGitStatus: () => '',
     });
-    // Git authority/current.json matches production v0.37. Binding this sealed
-    // v0.22 publisher to the v0.9 envelope therefore remains a mixed composite.
+    // Git authority/current.json resolves the current sealed envelope. Binding
+    // this publisher to v0.9 therefore remains an explicitly stale envelope.
     expect(result.status).toBe('BLOCKED');
-    expect(result.blockers).toContain('envelope-mix');
+    expect(result.blockers).toContain('bound-envelope-not-current');
     const receipt = JSON.parse(readFileSync(path.join(outputRoot, 'runtime-release-receipt.json'), 'utf8')) as {
       productionCutoverAuthorized: boolean;
       boundEnvelopeName: string;
