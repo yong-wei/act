@@ -262,6 +262,7 @@ class ActivateRuntimeTests(unittest.TestCase):
             switched = self.activate(store, state, first["releaseId"], "--smoke", "true")
             self.assertEqual(switched["current"], first["releaseId"])
             self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+            self.assertTrue((state.parent / ".act-runtime-selection.lock").is_file())
 
     def test_require_smoke_flag_rejects_missing_command(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -292,6 +293,81 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertIn("invalid runtime path", result.stderr)
             self.assertFalse((root / "escape.txt").exists())
             self.assertFalse((state / "current").exists())
+
+    def test_reload_failure_restores_previous_current(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            result = self.activate(
+                store,
+                state,
+                second["releaseId"],
+                "--reload-consumers",
+                "exit 9",
+                expect_ok=False,
+            )
+            self.assertIn("consumer reload failed after current pointer commit", result.stderr)
+            pointers = json.loads((state / "pointers.json").read_text(encoding="utf-8"))
+            self.assertEqual(pointers["current"], first["releaseId"])
+            self.assertIsNone(pointers["previous"])
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+
+    def test_activate_uses_explicit_manifest_and_ossfs_blob_root(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            blob_root = root / "ossfs" / "blobs"
+            cas_store = root / "cas-store"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            blob_root.mkdir(parents=True)
+            for blob in (store / "runtime" / "blobs" / "sha256").iterdir():
+                (blob_root / blob.name).write_bytes(blob.read_bytes())
+            manifest = store / "runtime" / "blob-releases" / first["releaseId"] / "manifest.json"
+            cas_store.mkdir()
+            switched = self.activate(
+                cas_store,
+                state,
+                first["releaseId"],
+                "--manifest",
+                str(manifest),
+                "--blob-root",
+                str(blob_root),
+            )
+            self.assertEqual(switched["current"], first["releaseId"])
+            self.assertEqual((state / "current" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
+
+    def test_host_scripts_use_python36_syntax(self):
+        forbidden = (
+            "from __future__ import annotations",
+            " | None",
+            "list[",
+            "dict[",
+            "tuple[",
+            "text=True",
+        )
+        paths = [
+            ACTIVATE,
+            ROOT / "scripts/runtime-release/materialize-runtime.py",
+            ROOT / "scripts/runtime-release/runtime-gc.py",
+            ROOT / "scripts/runtime-release/runtime-doctor.py",
+        ]
+        for path in paths:
+            text = path.read_text(encoding="utf-8")
+            for token in forbidden:
+                self.assertNotIn(token, text, f"{path.name} must not use {token}")
 
 
 if __name__ == "__main__":

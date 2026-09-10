@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Independent runtime GC. Default dry-run retains every blob."""
 
-from __future__ import annotations
-
 import argparse
 import json
 import os
@@ -10,7 +8,6 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
 
 
 SESSION_SQL = 'SELECT DISTINCT "runtimeReleaseId" FROM "CourseBundleRevision" WHERE "runtimeReleaseId" <> \'\''
@@ -21,12 +18,12 @@ SESSION_DISCOVERY_UNAVAILABLE = (
 
 
 class GcError(RuntimeError):
-    def __init__(self, message: str, *, code: int = 2) -> None:
-        super().__init__(message)
+    def __init__(self, message, code=2):
+        super(GcError, self).__init__(message)
         self.code = code
 
 
-def read_pointers(state_dir: Path) -> dict[str, str | None]:
+def read_pointers(state_dir):
     path = state_dir / "pointers.json"
     if not path.is_file():
         return {"current": None, "previous": None}
@@ -34,8 +31,8 @@ def read_pointers(state_dir: Path) -> dict[str, str | None]:
     return {"current": raw.get("current"), "previous": raw.get("previous")}
 
 
-def list_release_ids(store: Path, state_dir: Path) -> list[str]:
-    found: set[str] = set()
+def list_release_ids(store, state_dir):
+    found = set()
     releases = store / "runtime" / "blob-releases"
     if releases.is_dir():
         found.update(path.name for path in releases.iterdir() if path.is_dir())
@@ -45,20 +42,21 @@ def list_release_ids(store: Path, state_dir: Path) -> list[str]:
     return sorted(found)
 
 
-def query_session_releases(database_url: str) -> set[str]:
+def query_session_releases(database_url):
     process = subprocess.run(
         ["psql", database_url, "-v", "ON_ERROR_STOP=1", "-Atc", SESSION_SQL],
         check=False,
-        capture_output=True,
-        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
     )
     if process.returncode != 0:
         raise GcError("session release discovery failed")
-    return {line.strip() for line in process.stdout.splitlines() if line.strip()}
+    return set(line.strip() for line in process.stdout.splitlines() if line.strip())
 
 
-def resolve_session_releases(args: argparse.Namespace) -> set[str]:
-    explicit = {item for item in args.session_release if item}
+def resolve_session_releases(args):
+    explicit = set(item for item in args.session_release if item)
     if args.no_session_refs:
         return explicit
     if explicit:
@@ -71,12 +69,12 @@ def resolve_session_releases(args: argparse.Namespace) -> set[str]:
     return set()
 
 
-def plan(args: argparse.Namespace) -> dict[str, Any]:
+def plan(args):
     store = Path(args.store_dir)
     state_dir = Path(args.state_dir)
     pointers = read_pointers(state_dir)
     session_releases = resolve_session_releases(args)
-    retained = {item for item in (pointers["current"], pointers["previous"], *args.pin, *session_releases) if item}
+    retained = set(item for item in (pointers["current"], pointers["previous"]) + tuple(args.pin) + tuple(session_releases) if item)
     releases = list_release_ids(store, state_dir)
     removable = [release_id for release_id in releases if release_id not in retained]
     return {
@@ -91,17 +89,17 @@ def plan(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def execute(store: Path, state_dir: Path, removable: list[str]) -> None:
+def execute(store, state_dir, removable):
     for release_id in removable:
         view = state_dir / "views" / release_id
         if view.exists():
-            shutil.rmtree(view)
+            shutil.rmtree(str(view))
         release_dir = store / "runtime" / "blob-releases" / release_id
         if release_dir.exists():
-            shutil.rmtree(release_dir)
+            shutil.rmtree(str(release_dir))
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser():
     parser = argparse.ArgumentParser(description="Report or remove unreferenced runtime releases. Never deletes blobs.")
     parser.add_argument("--store-dir", required=True)
     parser.add_argument("--state-dir", required=True)
@@ -113,7 +111,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv=None):
     args = build_parser().parse_args(argv)
     if args.dry_run and args.execute:
         sys.stderr.write("--dry-run cannot be combined with --execute\n")
@@ -124,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
             execute(Path(args.store_dir), Path(args.state_dir), result["removableReleases"])
             result["dryRun"] = False
     except GcError as error:
-        sys.stderr.write(f"{error}\n")
+        sys.stderr.write("%s\n" % error)
         return error.code
     sys.stdout.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     return 0

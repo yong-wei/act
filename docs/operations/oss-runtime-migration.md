@@ -61,7 +61,9 @@ npm run runtime:publish -- --oss-bucket act-course-assets
 npm run runtime:publish -- --oss-bucket act-course-assets --bootstrap
 
 npm run runtime:activate -- \
-  --store-dir <store> \
+  --store-dir /home/projects/act/data/runtime/cas-store \
+  --blob-root /home/projects/act/data/runtime/ossfs/blobs \
+  --manifest /home/projects/act/data/runtime/cas-store/runtime/blob-releases/<release-id>/manifest.json \
   --state-dir /home/projects/act/data/runtime/blob-views \
   --release-id <release-id> \
   --smoke '<candidate-view readiness command>' \
@@ -72,7 +74,7 @@ npm run runtime:doctor -- --store-dir <store> --state-dir /home/projects/act/dat
 npm run runtime:gc -- --store-dir <store> --state-dir /home/projects/act/data/runtime/blob-views
 ```
 
-`runtime:publish` 不激活。激活只比较 current manifest 的 Δ 路径、确认这些 Blob 可见、检查固定 sentinel，对候选视图跑 runtime smoke，然后原子切换 `blob-views/current`（以及 `live` 别名）与 `previous`。生产 `--state-dir` 必须是 `data/runtime/blob-views`：Podman 绑定的是该目录下的 `current` 符号链接，不是 `live`。物化视图必须写出 `.act-runtime-release.v2.json`、`.act-runtime-release-materialization.v1.json` 和真实目录 `.act-runtime-blobs`（供 helper bind，不得假冒 FUSE）。`blob-views` 上激活若未提供 `--smoke` / `ACT_RUNTIME_SMOKE` 会失败关闭。Bind mount 在挂载时解析，指针切换后若消费者仍在运行，必须用 `--reload-consumers` 重建容器挂载。回滚交换两个指针，不重新上传。`runtime:doctor` 与 `runtime:gc` 不得由 publish、activate 或 `deploy:app` 隐式调用。`runtime:gc --execute` 必须能发现 `CourseBundleRevision.runtimeReleaseId`（`DATABASE_URL` + `psql`）、显式 `--session-release`，或仅在夹具中使用 `--no-session-refs`。对象键保持 `runtime/blobs/sha256/<sha256>` 与 `runtime/blob-releases/<releaseId>/manifest.json`。
+`runtime:publish` 不激活。本机 publish 只把 Blob 与 manifest 写入 OSS；生产 ossfs 只挂 `runtime/blobs/sha256/` 到 `data/runtime/ossfs/blobs`。激活在 ECS 上用系统 `python3`（3.6）读取该 blob 根，并用事先 GetObject 下来的单份 v2 manifest（`--manifest` 或 `cas-store/runtime/blob-releases/<id>/manifest.json`）。激活只比较 current manifest 的 Δ 路径、确认这些 Blob 可见、检查固定 sentinel，对候选视图跑 runtime smoke，然后在 `.act-runtime-selection.lock` 下原子切换 `blob-views/current`（以及 `live` 别名）与 `previous`。生产 `--state-dir` 必须是 `data/runtime/blob-views`。物化视图必须写出 `.act-runtime-release.v2.json`、`.act-runtime-release-materialization.v1.json` 和真实目录 `.act-runtime-blobs`。`blob-views` 上激活若未提供 `--smoke` / `ACT_RUNTIME_SMOKE` 会失败关闭。`--reload-consumers` 失败时必须把指针恢复到切换前的 `current`/`previous`。`runtime:doctor` 与 `runtime:gc` 不得由 publish、activate 或 `deploy:app` 隐式调用。`runtime:gc --execute` 必须能发现 `CourseBundleRevision.runtimeReleaseId`（`DATABASE_URL` + `psql`）、显式 `--session-release`，或仅在夹具中使用 `--no-session-refs`。对象键保持 `runtime/blobs/sha256/<sha256>` 与 `runtime/blob-releases/<releaseId>/manifest.json`。
 
 ## 2026-08-11 实际候选证据
 
@@ -98,7 +100,7 @@ npm run deploy:app -- --skip-build
 
 # runtime 内容
 npm run runtime:publish -- --oss-bucket act-course-assets
-npm run runtime:activate -- --store-dir <store> --state-dir /home/projects/act/data/runtime/blob-views --release-id <release-id> --smoke '<candidate-view readiness command>'
+npm run runtime:activate -- --store-dir /home/projects/act/data/runtime/cas-store --blob-root /home/projects/act/data/runtime/ossfs/blobs --manifest /home/projects/act/data/runtime/cas-store/runtime/blob-releases/<release-id>/manifest.json --state-dir /home/projects/act/data/runtime/blob-views --release-id <release-id> --smoke '<candidate-view readiness command>'
 ```
 
 宿主机只保留 `current` 与 `previous`。OSS 不使用可变 `current.json`：OSS PutObject 不提供可依赖的 CAS 语义。

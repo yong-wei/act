@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Build a host view from an immutable v2 manifest without rehashing blobs."""
 
-from __future__ import annotations
-
 import argparse
 import hashlib
 import json
@@ -11,7 +9,6 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from typing import Any
 
 
 SCHEMA_VERSION = "act-runtime-release.v2"
@@ -33,12 +30,12 @@ RESERVED_VIEW_NAMES = {
 
 
 class MaterializeError(RuntimeError):
-    def __init__(self, message: str, *, code: int = 2) -> None:
-        super().__init__(message)
+    def __init__(self, message, code=2):
+        super(MaterializeError, self).__init__(message)
         self.code = code
 
 
-def stable_stringify(value: object) -> str:
+def stable_stringify(value):
     if value is None:
         return "null"
     if isinstance(value, bool):
@@ -52,52 +49,52 @@ def stable_stringify(value: object) -> str:
     if isinstance(value, dict):
         keys = sorted(value.keys())
         return "{" + ",".join(f"{json.dumps(key, ensure_ascii=False)}:{stable_stringify(value[key])}" for key in keys) + "}"
-    raise MaterializeError(f"cannot canonicalize {type(value).__name__}")
+    raise MaterializeError("cannot canonicalize %s" % type(value).__name__)
 
 
-def sha256_text(value: str) -> str:
+def sha256_text(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def normalized_relative_path(value: object) -> str:
+def normalized_relative_path(value):
     if not isinstance(value, str) or "\\" in value or value.startswith("/") or not value:
-        raise MaterializeError(f"invalid runtime path: {value}")
+        raise MaterializeError("invalid runtime path: %s" % value)
     parts = value.split("/")
     if any(part in {"", ".", ".."} for part in parts):
-        raise MaterializeError(f"invalid runtime path: {value}")
+        raise MaterializeError("invalid runtime path: %s" % value)
     if any(ord(char) < 32 or ord(char) == 127 for char in value):
-        raise MaterializeError(f"invalid runtime path: {value}")
+        raise MaterializeError("invalid runtime path: %s" % value)
     if parts[0] in RESERVED_VIEW_NAMES:
-        raise MaterializeError(f"reserved materialized path: {value}")
+        raise MaterializeError("reserved materialized path: %s" % value)
     return value
 
 
-def require_int(value: object, label: str) -> int:
+def require_int(value, label):
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-        raise MaterializeError(f"{label} must be a non-negative integer")
+        raise MaterializeError("%s must be a non-negative integer" % label)
     return value
 
 
-def require_sha256(value: object, label: str) -> str:
+def require_sha256(value, label):
     if not isinstance(value, str) or not SHA256_PATTERN.fullmatch(value):
-        raise MaterializeError(f"{label} must be a SHA-256 digest")
+        raise MaterializeError("%s must be a SHA-256 digest" % label)
     return value
 
 
-def canonical_file_entry(item: object) -> dict[str, Any]:
+def canonical_file_entry(item):
     if not isinstance(item, dict):
         raise MaterializeError("manifest.files entries must be objects")
     relative = normalized_relative_path(item.get("path"))
-    digest = require_sha256(item.get("sha256"), f"{relative}.sha256")
-    size = require_int(item.get("sizeBytes"), f"{relative}.sizeBytes")
+    digest = require_sha256(item.get("sha256"), "%s.sha256" % relative)
+    size = require_int(item.get("sizeBytes"), "%s.sizeBytes" % relative)
     object_key = item.get("objectKey")
-    expected_key = f"runtime/blobs/sha256/{digest}"
+    expected_key = "runtime/blobs/sha256/%s" % digest
     if object_key != expected_key:
-        raise MaterializeError(f"blob key is not derived from file SHA-256: {relative}")
+        raise MaterializeError("blob key is not derived from file SHA-256: %s" % relative)
     return {"path": relative, "objectKey": expected_key, "sizeBytes": size, "sha256": digest}
 
 
-def validate_manifest(raw: object) -> dict[str, Any]:
+def validate_manifest(raw):
     if not isinstance(raw, dict):
         raise MaterializeError("manifest must be a JSON object")
     if raw.get("schemaVersion") != SCHEMA_VERSION:
@@ -113,7 +110,7 @@ def validate_manifest(raw: object) -> dict[str, Any]:
     if not isinstance(source_revision, str) or not GIT_REVISION_PATTERN.fullmatch(source_revision):
         raise MaterializeError("sourceRevision must be a 40-character Git SHA")
     tree_sha256 = sha256_text(stable_stringify([{"path": item["path"], "sizeBytes": item["sizeBytes"], "sha256": item["sha256"]} for item in entries]))
-    release_id = f"runtime-{sha256_text(stable_stringify({'sourceRevision': source_revision, 'treeSha256': tree_sha256}))[:55]}"
+    release_id = "runtime-%s" % sha256_text(stable_stringify({"sourceRevision": source_revision, "treeSha256": tree_sha256}))[:55]
     if not RELEASE_ID_PATTERN.fullmatch(release_id):
         raise MaterializeError("derived release id is invalid")
     file_count = require_int(raw.get("fileCount"), "fileCount")
@@ -140,25 +137,25 @@ def validate_manifest(raw: object) -> dict[str, Any]:
     return raw
 
 
-def load_manifest(path: Path) -> dict[str, Any]:
+def load_manifest(path):
     manifest, _wire = parse_manifest(path)
     return manifest
 
 
-def parse_manifest(path: Path) -> tuple[dict[str, Any], bytes]:
+def parse_manifest(path):
     try:
         wire = path.read_bytes()
         raw = json.loads(wire)
     except (OSError, json.JSONDecodeError) as error:
-        raise MaterializeError(f"manifest is not readable: {path}") from error
+        raise MaterializeError("manifest is not readable: %s" % path)
     return validate_manifest(raw), wire
 
 
-def parse_receipt(path: Path, manifest: dict[str, Any], wire: bytes) -> dict[str, Any]:
+def parse_receipt(path, manifest, wire):
     try:
         receipt = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
-        raise MaterializeError(f"receipt is not readable: {path}") from error
+        raise MaterializeError("receipt is not readable: %s" % path)
     if receipt.get("schemaVersion") != RECEIPT_SCHEMA_VERSION:
         raise MaterializeError("unsupported runtime blob release receipt version")
     if receipt.get("manifestSha256") != manifest.get("manifestSha256"):
@@ -168,7 +165,7 @@ def parse_receipt(path: Path, manifest: dict[str, Any], wire: bytes) -> dict[str
     return receipt
 
 
-def report_active(view_root: Path) -> dict[str, str]:
+def report_active(view_root):
     current = view_root / "current"
     if not current.is_symlink():
         raise MaterializeError("no materialized runtime is selected")
@@ -182,22 +179,30 @@ def report_active(view_root: Path) -> dict[str, str]:
     return {"activeReleaseId": release_id, "viewPath": str(view)}
 
 
-def blob_path(store: Path, digest: str) -> Path:
-    return store / "runtime" / "blobs" / "sha256" / digest
+def blob_path(store, digest, blob_root=None):
+    if blob_root is not None:
+        return Path(blob_root) / digest
+    prefixed = store / "runtime" / "blobs" / "sha256" / digest
+    if prefixed.is_file():
+        return prefixed
+    direct = store / digest
+    if direct.is_file():
+        return direct
+    return prefixed
 
 
-def manifest_path(store: Path, release_id: str) -> Path:
+def manifest_path(store, release_id):
     return store / "runtime" / "blob-releases" / release_id / "manifest.json"
 
 
-def file_bindings(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    bindings: dict[str, dict[str, Any]] = {}
+def file_bindings(manifest):
+    bindings = {}
     for item in manifest["files"]:
         bindings[item["path"]] = item
     return bindings
 
 
-def changed_paths(current: dict[str, Any] | None, candidate: dict[str, Any]) -> list[str]:
+def changed_paths(current, candidate):
     if current is None:
         return [item["path"] for item in candidate["files"]]
     before = file_bindings(current)
@@ -210,30 +215,30 @@ def changed_paths(current: dict[str, Any] | None, candidate: dict[str, Any]) -> 
     return changed
 
 
-def assert_blobs_visible(store: Path, manifest: dict[str, Any], paths: list[str]) -> None:
+def assert_blobs_visible(store, manifest, paths, blob_root=None):
     bindings = file_bindings(manifest)
     for relative in paths:
         item = bindings[relative]
-        blob = blob_path(store, item["sha256"])
+        blob = blob_path(store, item["sha256"], blob_root=blob_root)
         try:
             size = blob.stat().st_size
-        except OSError as error:
-            raise MaterializeError(f"delta blob is not visible: {item['objectKey']}") from error
+        except OSError:
+            raise MaterializeError("delta blob is not visible: %s" % item["objectKey"])
         if size != item["sizeBytes"]:
-            raise MaterializeError(f"delta blob size mismatch: {item['objectKey']}")
+            raise MaterializeError("delta blob size mismatch: %s" % item["objectKey"])
 
 
-def resolve_view_destination(view: Path, relative: str) -> Path:
+def resolve_view_destination(view, relative):
     view_root = view.resolve()
     destination = (view / relative).resolve()
     try:
         destination.relative_to(view_root)
-    except ValueError as error:
-        raise MaterializeError(f"unsafe materialized path: {relative}") from error
+    except ValueError:
+        raise MaterializeError("unsafe materialized path: %s" % relative)
     return destination
 
 
-def link_or_copy(source: Path, destination: Path) -> None:
+def link_or_copy(source, destination):
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists() or destination.is_symlink():
         destination.unlink()
@@ -243,7 +248,7 @@ def link_or_copy(source: Path, destination: Path) -> None:
         shutil.copyfile(source, destination, follow_symlinks=False)
 
 
-def write_materialization_artifacts(view: Path, manifest: dict[str, Any]) -> None:
+def write_materialization_artifacts(view, manifest):
     (view / MATERIALIZED_MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     receipt = {
         "schemaVersion": MATERIALIZATION_SCHEMA,
@@ -260,7 +265,7 @@ def write_materialization_artifacts(view: Path, manifest: dict[str, Any]) -> Non
     helper.mkdir(parents=True, exist_ok=True)
 
 
-def view_matches_manifest(view: Path, manifest: dict[str, Any]) -> bool:
+def view_matches_manifest(view, manifest):
     marker = view / MATERIALIZED_MANIFEST
     receipt = view / MATERIALIZATION_RECEIPT
     helper = view / HELPER_NAME
@@ -272,29 +277,31 @@ def view_matches_manifest(view: Path, manifest: dict[str, Any]) -> bool:
     return existing.get("releaseId") == manifest["releaseId"] and existing.get("manifestSha256") == manifest["manifestSha256"]
 
 
-def materialize_view(store: Path, manifest: dict[str, Any], view: Path) -> Path:
+def materialize_view(store, manifest, view, blob_root=None):
     validate_manifest(manifest)
     if view_matches_manifest(view, manifest):
         return view
     view.mkdir(parents=True, exist_ok=True)
     for item in manifest["files"]:
-        source = blob_path(store, item["sha256"])
+        source = blob_path(store, item["sha256"], blob_root=blob_root)
         if not source.is_file():
-            raise MaterializeError(f"blob is not visible: {item['objectKey']}")
+            raise MaterializeError("blob is not visible: %s" % item["objectKey"])
         link_or_copy(source, resolve_view_destination(view, item["path"]))
     write_materialization_artifacts(view, manifest)
     return view
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser():
     parser = argparse.ArgumentParser(description="Materialize a runtime view from a v2 blob manifest.")
     parser.add_argument("--store-dir", required=True)
     parser.add_argument("--release-id", required=True)
     parser.add_argument("--view", required=True)
+    parser.add_argument("--blob-root")
+    parser.add_argument("--manifest")
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "active":
         parser = argparse.ArgumentParser(description="Report the selected view pointer.")
@@ -303,18 +310,19 @@ def main(argv: list[str] | None = None) -> int:
         try:
             sys.stdout.write(json.dumps(report_active(Path(args.view_root)), separators=(",", ":")) + "\n")
         except MaterializeError as error:
-            sys.stderr.write(f"{error}\n")
+            sys.stderr.write("%s\n" % error)
             return error.code
         return 0
     args = build_parser().parse_args(argv)
     store = Path(args.store_dir)
     try:
-        manifest = load_manifest(manifest_path(store, args.release_id))
+        source = Path(args.manifest) if args.manifest else manifest_path(store, args.release_id)
+        manifest = load_manifest(source)
         if manifest["releaseId"] != args.release_id:
             raise MaterializeError("manifest releaseId does not match --release-id")
-        materialize_view(store, manifest, Path(args.view))
+        materialize_view(store, manifest, Path(args.view), blob_root=args.blob_root)
     except MaterializeError as error:
-        sys.stderr.write(f"{error}\n")
+        sys.stderr.write("%s\n" % error)
         return error.code
     return 0
 

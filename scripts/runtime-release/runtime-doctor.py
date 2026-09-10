@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
 """Independent runtime auditor. Publish and activate never call this tool."""
 
-from __future__ import annotations
-
 import argparse
 import hashlib
+import importlib.util
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 def load_materializer():
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location("materialize_runtime", SCRIPT_DIR / "materialize-runtime.py")
+    spec = importlib.util.spec_from_file_location("materialize_runtime", str(SCRIPT_DIR / "materialize-runtime.py"))
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -28,12 +24,12 @@ MATERIALIZE = load_materializer()
 
 
 class DoctorError(RuntimeError):
-    def __init__(self, message: str, *, code: int = 2) -> None:
-        super().__init__(message)
+    def __init__(self, message, code=2):
+        super(DoctorError, self).__init__(message)
         self.code = code
 
 
-def read_pointers(state_dir: Path) -> dict[str, str | None]:
+def read_pointers(state_dir):
     path = state_dir / "pointers.json"
     if not path.is_file():
         return {"current": None, "previous": None}
@@ -41,7 +37,7 @@ def read_pointers(state_dir: Path) -> dict[str, str | None]:
     return {"current": raw.get("current"), "previous": raw.get("previous")}
 
 
-def hash_file(path: Path) -> str:
+def hash_file(path):
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         while True:
@@ -52,7 +48,7 @@ def hash_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def audit(args: argparse.Namespace) -> dict[str, Any]:
+def audit(args):
     store = Path(args.store_dir)
     release_id = args.release_id
     if not release_id:
@@ -72,16 +68,16 @@ def audit(args: argparse.Namespace) -> dict[str, Any]:
         blob = MATERIALIZE.blob_path(store, item["sha256"])
         try:
             size = blob.stat().st_size
-        except OSError as error:
-            raise DoctorError(f"blob is not visible: {item['objectKey']}") from error
+        except OSError:
+            raise DoctorError("blob is not visible: %s" % item["objectKey"])
         if size != item["sizeBytes"]:
-            raise DoctorError(f"blob size mismatch: {item['objectKey']}")
+            raise DoctorError("blob size mismatch: %s" % item["objectKey"])
         checked += 1
         if args.full:
             digest = hash_file(blob)
             hashed += 1
             if digest != item["sha256"]:
-                raise DoctorError(f"blob hash mismatch: {item['objectKey']}")
+                raise DoctorError("blob hash mismatch: %s" % item["objectKey"])
     return {
         "action": "doctor",
         "releaseId": release_id,
@@ -93,7 +89,7 @@ def audit(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser():
     parser = argparse.ArgumentParser(description="Audit a published runtime release without changing pointers.")
     parser.add_argument("--store-dir", required=True)
     parser.add_argument("--state-dir")
@@ -102,7 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv=None):
     args = build_parser().parse_args(argv)
     before = read_pointers(Path(args.state_dir)) if args.state_dir else None
     try:
@@ -112,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
             if after != before:
                 raise DoctorError("doctor must not change pointers")
     except (DoctorError, MATERIALIZE.MaterializeError) as error:
-        sys.stderr.write(f"{error}\n")
+        sys.stderr.write("%s\n" % error)
         return getattr(error, "code", 2)
     sys.stdout.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     return 0
