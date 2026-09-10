@@ -5,8 +5,11 @@ import { interfaceCatalogDigest } from '@/lib/authority-locale-readiness/qualifi
 import { qualifyReleaseLocales } from '@/lib/authority-locale-readiness/qualify';
 import { shardDigest, shardSha256 } from '@/lib/authority-domain-shards/hash';
 
-/** Read only the frozen candidate revision, never the publisher's dirty workspace. */
-export function assertKnowledgePublicationConsistency(read: (relative: string) => string, appRevision: string, readBaseline: (relative: string) => string = read): void {
+/** Read only frozen revisions, never the publisher's dirty workspace. */
+export function assertKnowledgePublicationConsistency(
+  read: (relative: string) => string,
+  readBaseline: (relative: string) => string = read,
+): void {
   const root = 'course-content/runtime/knowledge';
   const json = <T>(relative: string): T => JSON.parse(read(root + '/' + relative)) as T;
   const check = (condition: unknown, reason: string): void => {
@@ -15,12 +18,11 @@ export function assertKnowledgePublicationConsistency(read: (relative: string) =
   const course = json<{ projectionId: string; projectionHash: string }>('projection/current.json');
   const courseManifest = json<{ authoringRevision: string; authorityReleaseId: string; authoritySnapshotId: string; authoritySnapshotHash: string; projectionHash: string; gatePassed: boolean }>(
     'projection/releases/' + course.projectionId + '/projection-manifest.json');
-  check(courseManifest.authoringRevision === appRevision && courseManifest.gatePassed
-    && courseManifest.projectionHash === course.projectionHash, 'course projection capture or gate');
+  check(courseManifest.gatePassed && courseManifest.projectionHash === course.projectionHash, 'course projection gate');
   const overlay = json<{ projectionId: string; projectionHash: string }>('teaching-projection/domain-fragments/current.json');
   const overlayRoot = 'teaching-projection/domain-fragments/releases/' + overlay.projectionId;
   const composed = json<{ projectionHash: string; authoringRevision: string; authorityBinding: { snapshotHash: string } }>(overlayRoot + '/composed-manifest.json');
-  check(composed.projectionHash === overlay.projectionHash && composed.authoringRevision === appRevision
+  check(composed.projectionHash === overlay.projectionHash
     && composed.authorityBinding.snapshotHash === courseManifest.authoritySnapshotHash, 'domain teaching projection');
   const sidecar = json<{ envelopeProjectionId: string; envelopeProjectionHash: string; courseProjectionId: string; courseProjectionHash: string }>(overlayRoot + '/inspector-sidecar.json');
   check(sidecar.envelopeProjectionId === overlay.projectionId && sidecar.envelopeProjectionHash === overlay.projectionHash
@@ -100,6 +102,6 @@ export function assertKnowledgePublicationConsistency(read: (relative: string) =
     const familyPath = relative.replace(/default.json$/, 'families/prerequisite-order.json');
     check(Boolean(shards.files[familyPath]), 'published engineering prerequisite family');
   }
-  const coverage = json<{ projectionHash: string; authoringRevision: string; fullCourseCoverage: boolean }>('course-order/coverage.json');
-  check(coverage.projectionHash === overlay.projectionHash && coverage.authoringRevision === appRevision, 'course coverage proof');
+  const coverage = json<{ projectionHash: string; fullCourseCoverage: boolean }>('course-order/coverage.json');
+  check(coverage.projectionHash === overlay.projectionHash, 'course coverage proof');
 }

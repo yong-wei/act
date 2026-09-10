@@ -152,7 +152,7 @@ describe('active runtime release manifest', () => {
     });
   });
 
-  it('accepts only the canonical compatibility projection for a blob-backed receipt', async () => {
+  it('ignores a historical compatibility projection for a blob-backed receipt', async () => {
     const { root, manifest } = await blobFixture();
     const compatibility = {
       schemaVersion: 'runtime-app-compatibility.v1',
@@ -167,8 +167,6 @@ describe('active runtime release manifest', () => {
     await expect(readActiveRuntimeReleaseManifest(root)).resolves.toEqual(manifest);
 
     await writeActiveReceipt(root, manifest, root, { ...compatibility, unexpected: 'field' });
-    await expect(readActiveRuntimeReleaseManifest(root)).rejects.toMatchObject({
-      code: 'runtime-active-release-receipt-invalid',
-    });
+    await expect(readActiveRuntimeReleaseManifest(root)).resolves.toEqual(manifest);
   });
 });

@@ -14,7 +14,6 @@ HOST_STATE_SCRIPT="${ACT_RUNTIME_HOST_STATE_SCRIPT:-/home/projects/act/scripts/r
 MATERIALIZER="${ACT_RUNTIME_BLOB_MATERIALIZER:-/home/projects/act/scripts/materialize-runtime-blob-release.py}"
 LIFECYCLE_SCRIPT="${ACT_RUNTIME_BLOB_LIFECYCLE_SCRIPT:-/home/projects/act/scripts/runtime-release/runtime-blob-release-lifecycle.py}"
 ACTIVATION_TRANSACTION="${ACT_RUNTIME_BLOB_ACTIVATION_TRANSACTION:-/home/projects/act/scripts/runtime-release/runtime-blob-activation-transaction.py}"
-COMPATIBILITY_PROOF_SCRIPT="${ACT_RUNTIME_COMPATIBILITY_PROOF_SCRIPT:-/home/projects/act/scripts/runtime-release/runtime-app-compatibility-proof.py}"
 DEPLOY_SCRIPT="${ACT_RUNTIME_DEPLOY_SCRIPT:-/home/projects/act/scripts/4-deploy.sh}"
 ENV_FILE="${ACT_RUNTIME_ENV_FILE:-/home/projects/act/data/runtime/act-obe.env}"
 LEGACY_RUNTIME_ROOT="${ACT_RUNTIME_LEGACY_ROOT:-/home/projects/act/course-content/runtime}"
@@ -56,8 +55,6 @@ activation_generation=""
 candidate_receipt_dir=""
 candidate_receipt_path=""
 candidate_receipt_rebound=0
-compatibility_proof=""
-compatibility_proof_sha256=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -99,7 +96,7 @@ fi
 for command in flock podman python3 findmnt mount umount curl mktemp; do
   command -v "$command" >/dev/null 2>&1 || { echo "ERROR: missing command: $command" >&2; exit 1; }
 done
-for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$ACTIVATION_TRANSACTION" "$COMPATIBILITY_PROOF_SCRIPT" "$DEPLOY_SCRIPT"; do
+for file in "$HOST_STATE_SCRIPT" "$MATERIALIZER" "$LIFECYCLE_SCRIPT" "$ACTIVATION_TRANSACTION" "$DEPLOY_SCRIPT"; do
   [[ -f "$file" && ! -L "$file" ]] || { echo "ERROR: required runtime tool is missing: $file" >&2; exit 1; }
 done
 
@@ -295,22 +292,6 @@ run_active_media_resolver_smoke() {
       echo "ERROR: active media signed redirect smoke failed" >&2
       return 1
     }
-}
-
-verify_qualification_environment() {
-  local before="$1"
-  local captured="$2"
-  python3 - "$before" "$captured" <<'PY'
-import json
-import sys
-
-before = json.loads(sys.argv[1])
-captured = json.loads(sys.argv[2])
-expected = {"application": before.get("application"), "migrationSet": before.get("migrationSet")}
-actual = {"application": captured.get("application"), "migrationSet": captured.get("migrationSet")}
-if expected != actual:
-    raise SystemExit("ERROR: application identity or migration set changed while candidate consumers were qualified")
-PY
 }
 
 capture_rollback_image() {
@@ -813,51 +794,13 @@ RUNTIME_DELIVERY_MODE=ossfs-blob-view \
   "$DEPLOY_SCRIPT" --runtime-cutover-app-only 9>&-
 source "$ENV_FILE"
 wait_for_readyz
-qualification_environment="$(python3 "$COMPATIBILITY_PROOF_SCRIPT" inspect-application \
-  --app-container "$APP_CONTAINER" \
-  --worker-container "$WORKER_CONTAINER")"
 run_candidate_consumer_smoke
-compatibility_capture="$(python3 "$COMPATIBILITY_PROOF_SCRIPT" capture \
-  --release-id "$release_id" \
-  --manifest "$manifest" \
-  --candidate-view "$candidate_view" \
-  --app-container "$APP_CONTAINER" \
-  --worker-container "$WORKER_CONTAINER" \
-  --output-dir "$STATE_DIR/runtime-app-compatibility")"
-verify_qualification_environment "$qualification_environment" "$compatibility_capture"
-compatibility_proof_sha256="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["proofSha256"])' <<<"$compatibility_capture")"
-[[ "$compatibility_proof_sha256" =~ ^[a-f0-9]{64}$ ]] || {
-  echo "ERROR: compatibility proof capture returned an invalid digest" >&2
-  exit 1
-}
-compatibility_proof="$STATE_DIR/runtime-app-compatibility/${compatibility_proof_sha256}.json"
-python3 "$COMPATIBILITY_PROOF_SCRIPT" verify \
-  --release-id "$release_id" \
-  --manifest "$manifest" \
-  --candidate-view "$candidate_view" \
-  --app-container "$APP_CONTAINER" \
-  --worker-container "$WORKER_CONTAINER" \
-  --proof "$compatibility_proof" >/dev/null
 stage_lifecycle_desired
 python3 "$HOST_STATE_SCRIPT" select \
   --state-dir "$STATE_DIR" \
   --expected-active-release "$expected_active_release" \
   --verification-receipt "$verification_receipt" >/dev/null
 if [[ "$release_id" == "$old_active" ]]; then
-  python3 "$COMPATIBILITY_PROOF_SCRIPT" verify \
-    --release-id "$release_id" \
-    --manifest "$manifest" \
-    --candidate-view "$candidate_view" \
-    --app-container "$APP_CONTAINER" \
-    --worker-container "$WORKER_CONTAINER" \
-    --proof "$compatibility_proof" >/dev/null
-  python3 "$ACTIVATION_TRANSACTION" requalify \
-    --state-dir "$STATE_DIR" \
-    --lifecycle-script "$LIFECYCLE_SCRIPT" \
-    --host-state-script "$HOST_STATE_SCRIPT" \
-    --expected-generation "$lifecycle_generation" \
-    --identity "$lifecycle_identity" \
-    --compatibility-proof-sha256 "$compatibility_proof_sha256" >/dev/null
   activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
   activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"
   activation_release="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["active"]["releaseId"])' <<<"$activation_state")"
@@ -867,13 +810,6 @@ if [[ "$release_id" == "$old_active" ]]; then
   }
 else
   activation_attempted=1
-  python3 "$COMPATIBILITY_PROOF_SCRIPT" verify \
-    --release-id "$release_id" \
-    --manifest "$manifest" \
-    --candidate-view "$candidate_view" \
-    --app-container "$APP_CONTAINER" \
-    --worker-container "$WORKER_CONTAINER" \
-    --proof "$compatibility_proof" >/dev/null
   coordinated_activation_args=()
   if [[ -n "$COORDINATED_RUNTIME_AUTHORIZATION" ]]; then
     coordinated_activation_args+=(--coordinated-runtime-authorization "$COORDINATED_RUNTIME_AUTHORIZATION")
@@ -887,7 +823,6 @@ else
     --host-state-script "$HOST_STATE_SCRIPT" \
     --expected-generation "$lifecycle_generation" \
     --identity "$lifecycle_identity" \
-    --compatibility-proof-sha256 "$compatibility_proof_sha256" \
     "${coordinated_activation_args[@]}" >/dev/null
   activation_state="$(python3 "$LIFECYCLE_SCRIPT" inspect --state-dir "$STATE_DIR")"
   activation_generation="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["generation"])' <<<"$activation_state")"

@@ -46,8 +46,10 @@ const out = join(root, 'course-content/runtime/knowledge/composite-envelopes');
 mkdirSync(join(out, 'locale-manifests'), { recursive: true });
 writeFileSync(join(out, 'actkg-composite-envelope-registry.json'), JSON.stringify(registry, null, 2) + '\n');
 writeFileSync(join(out, 'locale-manifests', selected.name + '.json'), JSON.stringify(pkg, null, 2) + '\n');
-assertKnowledgePublicationConsistency((relative) => readFileSync(join(root, relative), 'utf8'), courseManifest.authoringRevision,
-  (relative) => execFileSync('git', ['show', courseManifest.authoringRevision + ':' + relative], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+assertKnowledgePublicationConsistency(
+  (relative) => readFileSync(join(root, relative), 'utf8'),
+  (relative) => execFileSync('git', ['show', courseManifest.authoringRevision + ':' + relative], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }),
+);
 console.log(JSON.stringify({ composite: selected.name, authoringRevision: courseManifest.authoringRevision,
   snapshotId: selected.authoritySnapshotId, projectionId: selected.projectionId, publicationId: selected.publicationId,
   shardSetId: selected.shardSetId, activationId: selected.activationId, bilingualReady: true, resourceContinuity: 'passed' }));

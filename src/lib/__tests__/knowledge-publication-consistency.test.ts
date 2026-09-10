@@ -32,13 +32,13 @@ function fixture() {
 describe('frozen knowledge publication consistency', () => {
   it('accepts one coherent candidate with explicitly incomplete full-course coverage', () => {
     const f = fixture();
-    expect(() => assertKnowledgePublicationConsistency(f.read, 'app')).not.toThrow();
+    expect(() => assertKnowledgePublicationConsistency(f.read)).not.toThrow();
   });
   it('rejects loss of an existing resource binding even when counts could be similar', () => {
     const baseline = fixture();
     const candidate = fixture();
     candidate.put('projection/releases/course/bindings.jsonl', { resourceId: 'other', canonicalId: 'local', role: 'EXPLAINS', scopeId: 'course', primary: false });
-    expect(() => assertKnowledgePublicationConsistency(candidate.read, 'app', baseline.read)).toThrow('retained resource continuity');
+    expect(() => assertKnowledgePublicationConsistency(candidate.read, baseline.read)).toThrow('retained resource continuity');
   });
   it.each(['approved', 'missing-ruling', 'wrong-snapshot', 'bound-count', 'bound-row', 'wrong-type'])('checks frozen retirement evidence for an absent infographic (%s)', (variant) => {
     const baseline = fixture();
@@ -59,32 +59,36 @@ describe('frozen knowledge publication consistency', () => {
       baseline.files.set(bindingPath, bytes);
       candidate.files.set(bindingPath, bytes);
     }
-    const verify = () => assertKnowledgePublicationConsistency(candidate.read, 'app', baseline.read);
+    const verify = () => assertKnowledgePublicationConsistency(candidate.read, baseline.read);
     if (variant === 'approved') expect(verify).not.toThrow();
     else expect(verify).toThrow('retained resource continuity');
   });
   it('rejects different prerequisite sets in course and path consumers', () => {
     const f = fixture();
     f.put('prerequisites/releases/prereq/projection-prerequisites.json', []);
-    expect(() => assertKnowledgePublicationConsistency(f.read, 'app')).toThrow('course and path prerequisite publication');
+    expect(() => assertKnowledgePublicationConsistency(f.read)).toThrow('course and path prerequisite publication');
   });
-  it('rejects an app capture mismatch', () => {
-    const f = fixture();
-    expect(() => assertKnowledgePublicationConsistency(f.read, 'other')).toThrow('course projection capture');
+  it('keeps runtime provenance independent from the application baseline', () => {
+    const baseline = fixture();
+    const candidate = fixture();
+    candidate.put('projection/releases/course/projection-manifest.json', { authoringRevision: 'earlier', gatePassed: true, projectionHash: 'course-hash', authoritySnapshotHash: 'snapshot', authoritySnapshotId: 'snapshot-id', authorityReleaseId: 'release' });
+    candidate.put('teaching-projection/domain-fragments/releases/overlay/composed-manifest.json', { projectionHash: 'overlay-hash', authoringRevision: 'earlier', authorityBinding: { snapshotHash: 'snapshot' } });
+    candidate.put('course-order/coverage.json', { projectionHash: 'overlay-hash', authoringRevision: 'earlier', fullCourseCoverage: false });
+    expect(() => assertKnowledgePublicationConsistency(candidate.read, baseline.read)).not.toThrow();
   });
   it('rejects a stale resource sidecar before release', () => {
     const f = fixture();
     f.put('teaching-projection/domain-fragments/releases/overlay/inspector-sidecar.json', { courseProjectionId: 'previous' });
-    expect(() => assertKnowledgePublicationConsistency(f.read, 'app')).toThrow('inspector resource sidecar');
+    expect(() => assertKnowledgePublicationConsistency(f.read)).toThrow('inspector resource sidecar');
   });
   it('rejects a language package qualified against an older interface', () => {
     const f = fixture();
     f.put('composite-envelopes/locale-manifests/qualified.json', { shardSet: {}, authority: {} });
-    expect(() => assertKnowledgePublicationConsistency(f.read, 'app')).toThrow('locale package');
+    expect(() => assertKnowledgePublicationConsistency(f.read)).toThrow('locale package');
   });
   it('rejects a missing candidate registry instead of accepting app metadata', () => {
     const f = fixture();
     f.put('composite-envelopes/actkg-composite-envelope-registry.json', { envelopes: [] });
-    expect(() => assertKnowledgePublicationConsistency(f.read, 'app')).toThrow('qualified composite registry');
+    expect(() => assertKnowledgePublicationConsistency(f.read)).toThrow('qualified composite registry');
   });
 });
