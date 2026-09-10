@@ -270,11 +270,16 @@ def legacy_selection_release_id(state_dir):
     return None
 
 
-def read_host_pointers(state_dir):
+def read_recorded_pointers(state_dir):
     path = state_dir / "pointers.json"
-    if path.is_file():
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        return {"current": raw.get("current"), "previous": raw.get("previous")}
+    if not path.is_file():
+        return None
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return {"current": raw.get("current"), "previous": raw.get("previous")}
+
+
+def read_host_pointers(state_dir):
+    recorded = read_recorded_pointers(state_dir)
     current = release_id_from_symlink(state_dir, "current")
     previous = release_id_from_symlink(state_dir, "previous")
     selected = legacy_selection_release_id(state_dir)
@@ -284,6 +289,10 @@ def read_host_pointers(state_dir):
         if existing_view(state_dir, selected) is None:
             raise MaterializeError("legacy runtime selection does not name a materialized current view")
         current = selected
+    if current is None and recorded:
+        return recorded
+    if current and previous is None and recorded and recorded.get("current") == current:
+        previous = recorded.get("previous")
     return {"current": current, "previous": previous}
 
 
@@ -367,6 +376,24 @@ def link_or_copy(source, destination):
         shutil.copyfile(source, destination, follow_symlinks=False)
 
 
+def place_logical_file(store, view, item, blob_root=None):
+    digest = item["sha256"]
+    destination = resolve_view_destination(view, item["path"])
+    helper_leaf = view / HELPER_NAME / digest
+    if helper_leaf.is_file() and not helper_leaf.is_symlink():
+        if helper_leaf.stat().st_size != item["sizeBytes"]:
+            raise MaterializeError("helper blob size mismatch: %s" % digest)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.exists() or destination.is_symlink():
+            destination.unlink()
+        os.symlink(os.path.relpath(str(helper_leaf), str(destination.parent)), str(destination))
+        return
+    source = blob_path(store, digest, blob_root=blob_root)
+    if not source.is_file():
+        raise MaterializeError("blob is not visible: %s" % item["objectKey"])
+    link_or_copy(source, destination)
+
+
 def write_materialization_artifacts(view, manifest):
     (view / MATERIALIZED_MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     receipt = {
@@ -396,17 +423,25 @@ def view_matches_manifest(view, manifest):
     return existing.get("releaseId") == manifest["releaseId"] and existing.get("manifestSha256") == manifest["manifestSha256"]
 
 
+def prepare_view(view, manifest):
+    validate_manifest(manifest)
+    view.mkdir(parents=True, exist_ok=True)
+    write_materialization_artifacts(view, manifest)
+    return view
+
+
+def populate_view(store, manifest, view, blob_root=None):
+    for item in manifest["files"]:
+        place_logical_file(store, view, item, blob_root=blob_root)
+    return view
+
+
 def materialize_view(store, manifest, view, blob_root=None):
     validate_manifest(manifest)
     if view_matches_manifest(view, manifest):
         return view
-    view.mkdir(parents=True, exist_ok=True)
-    for item in manifest["files"]:
-        source = blob_path(store, item["sha256"], blob_root=blob_root)
-        if not source.is_file():
-            raise MaterializeError("blob is not visible: %s" % item["objectKey"])
-        link_or_copy(source, resolve_view_destination(view, item["path"]))
-    write_materialization_artifacts(view, manifest)
+    prepare_view(view, manifest)
+    populate_view(store, manifest, view, blob_root=blob_root)
     return view
 
 

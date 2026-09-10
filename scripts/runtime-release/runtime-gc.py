@@ -82,14 +82,12 @@ def resolve_session_releases(args):
     explicit = set(item for item in args.session_release if item)
     if args.no_session_refs:
         return explicit
-    if explicit:
-        return explicit
     database_url = os.environ.get("DATABASE_URL")
     if database_url:
-        return query_session_releases(database_url)
+        return explicit | query_session_releases(database_url)
     if args.execute:
         raise GcError(SESSION_DISCOVERY_UNAVAILABLE)
-    return set()
+    return explicit
 
 
 def plan(args):

@@ -143,6 +143,7 @@ class RuntimeDoctorGcTests(unittest.TestCase):
                     "--state-dir",
                     str(state),
                     "--execute",
+                    "--no-session-refs",
                     "--session-release",
                     first["releaseId"],
                 ],
@@ -173,6 +174,34 @@ class RuntimeDoctorGcTests(unittest.TestCase):
                 sorted(path.name for path in (store / "runtime" / "blobs" / "sha256").iterdir()),
                 blobs_before,
             )
+
+    def test_gc_execute_session_release_without_database_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            result = self.run_json(
+                [
+                    "python3",
+                    str(GC),
+                    "--store-dir",
+                    str(store),
+                    "--state-dir",
+                    str(state),
+                    "--execute",
+                    "--session-release",
+                    first["releaseId"],
+                ],
+                expect_ok=False,
+                env=self.gc_env(),
+            )
+            self.assertIn("session release discovery unavailable", result.stderr)
+            self.assertTrue((store / "runtime" / "blob-releases" / first["releaseId"]).is_dir())
 
     def test_gc_execute_fails_closed_without_session_discovery(self):
         with tempfile.TemporaryDirectory() as directory:

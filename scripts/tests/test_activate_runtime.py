@@ -109,6 +109,9 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertEqual(os.readlink(state / "live"), f"views/{first['releaseId']}")
             self.assertEqual((state / "current" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
             self.assertEqual((state / "live" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
+            first_receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(first_receipt["selection"]["releaseId"], first["releaseId"])
+            self.assertEqual(first_receipt["selection"]["generation"], 1)
             first_view = state / "views" / first["releaseId"]
             self.assertTrue((first_view / ".act-runtime-blobs").is_dir())
             self.assertFalse((first_view / ".act-runtime-blobs").is_symlink())
@@ -128,6 +131,9 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertEqual(os.readlink(state / "previous"), f"views/{first['releaseId']}")
             self.assertEqual((state / "current" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"two"}\n')
             self.assertEqual((state / "live" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"two"}\n')
+            second_receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(second_receipt["selection"]["releaseId"], second["releaseId"])
+            self.assertEqual(second_receipt["selection"]["generation"], 2)
 
             rolled = self.run_json(
                 [
@@ -147,6 +153,9 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertEqual((state / "live" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
             pointers = json.loads((state / "pointers.json").read_text(encoding="utf-8"))
             self.assertEqual(pointers, {"current": first["releaseId"], "previous": second["releaseId"]})
+            rolled_receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(rolled_receipt["selection"]["releaseId"], first["releaseId"])
+            self.assertEqual(rolled_receipt["selection"]["generation"], 3)
 
     def test_missing_delta_blob_leaves_current_unchanged(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -513,6 +522,95 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertIn("candidate helper bind failed", result.stderr)
             self.assertFalse((state / "current").exists())
             self.assertFalse((state / "pointers.json").exists())
+
+    def test_active_receipt_tracks_current_and_restores_on_reload_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            receipt = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            first_manifest = json.loads(
+                (store / "runtime" / "blob-releases" / first["releaseId"] / "manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(receipt["schemaVersion"], "runtime-release-active-receipt.v1")
+            self.assertEqual(receipt["healthCheck"], "readyz")
+            self.assertEqual(receipt["selection"]["releaseId"], first["releaseId"])
+            self.assertEqual(receipt["selection"]["manifestSha256"], first_manifest["manifestSha256"])
+            self.assertEqual(receipt["selection"]["treeSha256"], first_manifest["treeSha256"])
+            self.assertEqual(receipt["selection"]["generation"], 1)
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            failed = self.activate(
+                store,
+                state,
+                second["releaseId"],
+                "--reload-consumers",
+                "exit 9",
+                expect_ok=False,
+            )
+            self.assertIn("consumer reload failed after current pointer commit", failed.stderr)
+            restored = json.loads((state / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(restored["selection"]["releaseId"], first["releaseId"])
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+
+    def test_stale_pointers_json_does_not_override_current_symlink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            (state / "pointers.json").write_text(
+                json.dumps({"current": "runtime-not-actually-current-xxxxxxxxxxxxxxxxxxxx", "previous": None}, indent=2)
+                + "\n",
+                encoding="utf-8",
+            )
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            switched = self.activate(store, state, second["releaseId"])
+            self.assertEqual(switched["previous"], first["releaseId"])
+            self.assertEqual(os.readlink(state / "previous"), f"views/{first['releaseId']}")
+
+    def test_helper_leaves_are_used_instead_of_copying_blobs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "data" / "runtime" / "blob-views"
+            blob_root = root / "ossfs" / "blobs"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            blob_root.mkdir(parents=True)
+            for blob in (store / "runtime" / "blobs" / "sha256").iterdir():
+                (blob_root / blob.name).write_bytes(blob.read_bytes())
+            switched = self.activate(
+                store,
+                state,
+                first["releaseId"],
+                "--smoke",
+                "true",
+                "--blob-root",
+                str(blob_root),
+                "--bind-helper",
+                'for item in "$ACT_RUNTIME_BLOB_ROOT"/*; do cp "$item" "$ACT_RUNTIME_BLOB_VIEW/.act-runtime-blobs/"; done',
+            )
+            self.assertEqual(switched["current"], first["releaseId"])
+            lesson = state / "current" / "lessons" / "1-1" / "lesson.json"
+            self.assertTrue(lesson.is_symlink())
+            self.assertEqual(lesson.read_text(encoding="utf-8"), '{"id":"one"}\n')
+            receipt = json.loads((state.parent / "act-runtime-active-receipt.json").read_text(encoding="utf-8"))
+            self.assertEqual(receipt["selection"]["releaseId"], first["releaseId"])
 
     def test_host_scripts_use_python36_syntax(self):
         forbidden = (

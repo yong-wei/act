@@ -107,20 +107,17 @@ def retarget_pointer(state_dir, name, view):
     os.replace(str(temporary), str(link))
 
 
-def retarget_selection(state_dir, current_view, previous_release_id):
-    retarget_pointer(state_dir, "current", current_view)
-    retarget_pointer(state_dir, "live", current_view)
-    retarget_pointer(state_dir, "previous", MATERIALIZE.existing_view(state_dir, previous_release_id))
-
-
 def commit_selection(state_dir, pointers, current_view):
-    write_pointers_atomic(state_dir, pointers)
     if current_view is None:
+        retarget_pointer(state_dir, "previous", None)
         retarget_pointer(state_dir, "current", None)
         retarget_pointer(state_dir, "live", None)
-        retarget_pointer(state_dir, "previous", None)
+        write_pointers_atomic(state_dir, pointers)
         return
-    retarget_selection(state_dir, current_view, pointers.get("previous"))
+    retarget_pointer(state_dir, "previous", MATERIALIZE.existing_view(state_dir, pointers.get("previous")))
+    retarget_pointer(state_dir, "current", current_view)
+    retarget_pointer(state_dir, "live", current_view)
+    write_pointers_atomic(state_dir, pointers)
 
 
 def restore_selection(state_dir, pointers):
@@ -132,6 +129,76 @@ def restore_selection(state_dir, pointers):
     if current_view is None:
         raise ActivateError("unable to restore previous current view after consumer reload failure")
     commit_selection(state_dir, pointers, current_view)
+
+
+ACTIVE_RECEIPT_NAME = "act-runtime-active-receipt.json"
+
+
+def default_active_receipt_path(state_dir):
+    if state_dir.name == "blob-views":
+        return state_dir.parent / ACTIVE_RECEIPT_NAME
+    return state_dir / ACTIVE_RECEIPT_NAME
+
+
+def resolve_active_receipt_path(args, state_dir):
+    override = optional_command(getattr(args, "active_receipt", None), os.environ.get("ACT_RUNTIME_ACTIVE_RECEIPT_PATH"))
+    if override:
+        return Path(override)
+    return default_active_receipt_path(state_dir)
+
+
+def snapshot_bytes(path):
+    if path.is_file() and not path.is_symlink():
+        return path.read_bytes()
+    return None
+
+
+def restore_bytes(path, payload):
+    if payload is None:
+        if path.exists() or path.is_symlink():
+            path.unlink()
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_bytes(payload)
+    os.replace(str(temporary), str(path))
+
+
+def receipt_generation(path):
+    raw = snapshot_bytes(path)
+    if raw is None:
+        return 0
+    try:
+        document = json.loads(raw.decode("utf-8"))
+    except ValueError:
+        return 0
+    if not isinstance(document, dict):
+        return 0
+    selection = document.get("selection")
+    if not isinstance(selection, dict):
+        return 0
+    generation = selection.get("generation")
+    if isinstance(generation, int) and not isinstance(generation, bool) and generation >= 1:
+        return generation
+    return 0
+
+
+def write_active_receipt(path, manifest, generation):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "healthCheck": "readyz",
+        "schemaVersion": "runtime-release-active-receipt.v1",
+        "selection": {
+            "generation": generation,
+            "manifestSha256": manifest["manifestSha256"],
+            "releaseId": manifest["releaseId"],
+            "schemaVersion": "runtime-release-selection.v1",
+            "treeSha256": manifest["treeSha256"],
+        },
+    }
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    os.replace(str(temporary), str(path))
 
 
 def open_sentinels(view, manifest, requested):
@@ -226,19 +293,26 @@ def activate(args):
         current_manifest = load_release_manifest(store, state_dir, pointers["current"], None)
     delta = MATERIALIZE.changed_paths(current_manifest, candidate)
     MATERIALIZE.assert_blobs_visible(store, candidate, delta, blob_root=blob_root)
-    view = MATERIALIZE.materialize_view(store, candidate, state_dir / "views" / candidate["releaseId"], blob_root=blob_root)
+    view = state_dir / "views" / candidate["releaseId"]
+    if not MATERIALIZE.view_matches_manifest(view, candidate):
+        MATERIALIZE.prepare_view(view, candidate)
     run_bind_helper(resolve_bind_helper(args, state_dir, blob_root), view, blob_root)
+    MATERIALIZE.populate_view(store, candidate, view, blob_root=blob_root)
     opened = open_sentinels(view, candidate, args.sentinel)
     smoke = optional_command(args.smoke, os.environ.get("ACT_RUNTIME_SMOKE"))
     run_smoke(smoke, view, smoke_required(args, state_dir))
     next_pointers = {"current": candidate["releaseId"], "previous": pointers["current"]}
+    receipt_path = resolve_active_receipt_path(args, state_dir)
+    previous_receipt = snapshot_bytes(receipt_path)
     commit_selection(state_dir, next_pointers, view)
+    write_active_receipt(receipt_path, candidate, receipt_generation(receipt_path) + 1)
     reload = optional_command(args.reload_consumers, os.environ.get("ACT_RUNTIME_RELOAD_CONSUMERS"))
     if reload:
         try:
             run_shell(reload, None, "consumer reload failed after current pointer commit")
         except ActivateError:
             restore_selection(state_dir, pointers)
+            restore_bytes(receipt_path, previous_receipt)
             raise
     return {
         "action": "activate",
@@ -259,7 +333,11 @@ def rollback(args):
     if previous_view is None:
         raise ActivateError("previous view is not materialized; rollback will not rebuild it")
     next_pointers = {"current": pointers["previous"], "previous": pointers["current"]}
+    previous_manifest = load_release_manifest(Path(args.store_dir), state_dir, pointers["previous"], None)
+    receipt_path = resolve_active_receipt_path(args, state_dir)
+    previous_receipt = snapshot_bytes(receipt_path)
     commit_selection(state_dir, next_pointers, previous_view)
+    write_active_receipt(receipt_path, previous_manifest, receipt_generation(receipt_path) + 1)
     reload = optional_command(args.reload_consumers, os.environ.get("ACT_RUNTIME_RELOAD_CONSUMERS"))
     if reload:
         try:
@@ -269,6 +347,7 @@ def rollback(args):
             if current_view is None:
                 raise
             commit_selection(state_dir, pointers, current_view)
+            restore_bytes(receipt_path, previous_receipt)
             raise
     return {
         "action": "rollback",
@@ -293,6 +372,7 @@ def build_parser():
     parser.add_argument("--require-smoke", action="store_true")
     parser.add_argument("--reload-consumers")
     parser.add_argument("--bind-helper")
+    parser.add_argument("--active-receipt")
     return parser
 
 
