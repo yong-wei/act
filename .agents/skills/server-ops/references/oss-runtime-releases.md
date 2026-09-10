@@ -45,11 +45,11 @@
 
 ## v2 日常增量发布
 
-- `runtime:publish` 只处理工作树扫描、Δ 哈希、条件 PUT 与不可变 manifest；`runtime:activate` 只核对 Δ Blob 与 sentinel，物化后原子切换 `current`/`previous`。二者都不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
+- `runtime:publish` 只处理工作树扫描、Δ 哈希、条件 PUT 与不可变 manifest；`runtime:activate` 核对 Δ Blob 与 sentinel，物化出生产收据与 `.act-runtime-blobs` helper 目录，对候选视图跑 smoke，再原子切换 `data/runtime/blob-views/current`（以及 `live` 别名）与 `previous`。生产 `--state-dir` 必须是 `blob-views` 根，因为 Podman 绑定的是 `current`，不是 `live`。指针切换后若消费者仍在运行，用 `--reload-consumers` 走 `--runtime-cutover-app-only` 重建 bind。二者都不得构建镜像、传输 image tar、处理数据库、Prisma、Nginx、systemd 或完整 runtime `rsync`。
 - `deploy:app` / `remote-deploy.sh --app-only` 只处理应用镜像与应用部署，默认 `RUNTIME_DELIVERY_MODE=ossfs-blob-view`，绑定远端已物化 view；`4-deploy.sh` 只做只读 bind，不复制 runtime。
 - `remote-deploy.sh` 不再默认 rsync。`legacy-rsync` 已退役；更新 runtime 只能使用 `npm run runtime:publish` 与 `npm run runtime:activate`。已删除 `deploy:runtime` 与 `deploy:all`。不要让 runtime-only 修改进入 image/database 发布链路。
 - `runtime:publish` 读取 `course-content/runtime` 工作树，`sourceRevision` 默认写入 `git rev-parse HEAD`，只作 provenance；它不要求与生产应用的 `origin/main` revision 相同，也不再核验兼容性收据。索引在 `var/cache/runtime-release/index.sqlite`；缺失时必须显式 `--bootstrap`。未改文件且同一 sourceRevision 再发布应为 `hashed=0`、`uploaded=0`，且无 OSS HEAD/GET。
-- `runtime:doctor --full` 与 `runtime:gc` 是独立只读/回收命令。日常 publish/activate 与应用部署不得调用它们。`runtime:gc` 默认 dry-run，且永不删除 Blob。
+- `runtime:doctor --full` 与 `runtime:gc` 是独立只读/回收命令。日常 publish/activate 与应用部署不得调用它们。`runtime:gc` 默认 dry-run，且永不删除 Blob。`--execute` 必须保留 current、previous、课堂引用的 `CourseBundleRevision.runtimeReleaseId` 与 pin；发现不到课堂引用时失败关闭，夹具才允许 `--no-session-refs`。
 
 ## 发布与删除顺序
 

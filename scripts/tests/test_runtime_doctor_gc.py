@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import tempfile
 import time
@@ -24,13 +25,18 @@ class RuntimeDoctorGcTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(body, encoding="utf-8")
 
-    def run_json(self, command: list[str], expect_ok: bool = True):
-        result = subprocess.run(command, text=True, capture_output=True)
+    def run_json(self, command: list[str], expect_ok: bool = True, env: dict[str, str] | None = None):
+        result = subprocess.run(command, text=True, capture_output=True, env=env)
         if expect_ok:
             self.assertEqual(result.returncode, 0, result.stderr)
             return json.loads(result.stdout)
         self.assertNotEqual(result.returncode, 0)
         return result
+
+    def gc_env(self) -> dict[str, str]:
+        env = os.environ.copy()
+        env.pop("DATABASE_URL", None)
+        return env
 
     def publish(self, runtime: Path, index: Path, store: Path, bootstrap: bool) -> dict:
         args = [
@@ -119,7 +125,8 @@ class RuntimeDoctorGcTests(unittest.TestCase):
                     "--state-dir",
                     str(state),
                     "--dry-run",
-                ]
+                ],
+                env=self.gc_env(),
             )
             self.assertTrue(dry["dryRun"])
             self.assertEqual(dry["blobsDeleted"], 0)
@@ -138,7 +145,8 @@ class RuntimeDoctorGcTests(unittest.TestCase):
                     "--execute",
                     "--session-release",
                     first["releaseId"],
-                ]
+                ],
+                env=self.gc_env(),
             )
             self.assertEqual(pinned["removableReleases"], [])
             self.assertTrue((store / "runtime" / "blob-releases" / first["releaseId"]).is_dir())
@@ -151,7 +159,9 @@ class RuntimeDoctorGcTests(unittest.TestCase):
                     "--state-dir",
                     str(state),
                     "--execute",
-                ]
+                    "--no-session-refs",
+                ],
+                env=self.gc_env(),
             )
             self.assertFalse(executed["dryRun"])
             self.assertEqual(executed["blobsDeleted"], 0)
@@ -163,6 +173,32 @@ class RuntimeDoctorGcTests(unittest.TestCase):
                 sorted(path.name for path in (store / "runtime" / "blobs" / "sha256").iterdir()),
                 blobs_before,
             )
+
+    def test_gc_execute_fails_closed_without_session_discovery(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            result = self.run_json(
+                [
+                    "python3",
+                    str(GC),
+                    "--store-dir",
+                    str(store),
+                    "--state-dir",
+                    str(state),
+                    "--execute",
+                ],
+                expect_ok=False,
+                env=self.gc_env(),
+            )
+            self.assertIn("session release discovery unavailable", result.stderr)
+            self.assertTrue((store / "runtime" / "blob-releases" / first["releaseId"]).is_dir())
 
 
     def test_hot_path_scripts_do_not_invoke_doctor_or_gc(self):

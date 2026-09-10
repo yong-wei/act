@@ -285,7 +285,7 @@ rtk npm run deploy:app -- --skip-build
 
 ```bash
 rtk npm run runtime:publish
-rtk npm run runtime:activate -- --store-dir <store> --state-dir <state> --release-id <release-id>
+rtk npm run runtime:activate -- --store-dir <store> --state-dir /home/projects/act/data/runtime/blob-views --release-id <release-id> --smoke '<candidate-view readiness command>'
 ```
 
 回滚交换 `current`/`previous`：`rtk npm run runtime:rollback -- --store-dir <store> --state-dir <state>`。全量校验与回收只走显式 `runtime:doctor` / `runtime:gc`。

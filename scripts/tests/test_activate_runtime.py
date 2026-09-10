@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import tempfile
 import time
@@ -94,7 +95,16 @@ class ActivateRuntimeTests(unittest.TestCase):
             first_switch = self.activate(store, state, first["releaseId"])
             self.assertEqual(first_switch["current"], first["releaseId"])
             self.assertIsNone(first_switch["previous"])
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+            self.assertEqual(os.readlink(state / "live"), f"views/{first['releaseId']}")
+            self.assertEqual((state / "current" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
             self.assertEqual((state / "live" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
+            first_view = state / "views" / first["releaseId"]
+            self.assertTrue((first_view / ".act-runtime-blobs").is_dir())
+            self.assertFalse((first_view / ".act-runtime-blobs").is_symlink())
+            receipt = json.loads((first_view / ".act-runtime-release-materialization.v1.json").read_text(encoding="utf-8"))
+            self.assertEqual(receipt["schemaVersion"], "runtime-blob-materialization.v1")
+            self.assertEqual(receipt["releaseId"], first["releaseId"])
 
             time.sleep(0.02)
             (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
@@ -104,6 +114,9 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertEqual(second_switch["current"], second["releaseId"])
             self.assertEqual(second_switch["previous"], first["releaseId"])
             self.assertEqual(second_switch["deltaCount"], 1)
+            self.assertEqual(os.readlink(state / "current"), f"views/{second['releaseId']}")
+            self.assertEqual(os.readlink(state / "previous"), f"views/{first['releaseId']}")
+            self.assertEqual((state / "current" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"two"}\n')
             self.assertEqual((state / "live" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"two"}\n')
 
             rolled = self.run_json(
@@ -119,6 +132,8 @@ class ActivateRuntimeTests(unittest.TestCase):
             )
             self.assertEqual(rolled["current"], first["releaseId"])
             self.assertEqual(rolled["previous"], second["releaseId"])
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+            self.assertEqual((state / "current" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
             self.assertEqual((state / "live" / "lessons/1-1/lesson.json").read_text(encoding="utf-8"), '{"id":"one"}\n')
             pointers = json.loads((state / "pointers.json").read_text(encoding="utf-8"))
             self.assertEqual(pointers, {"current": first["releaseId"], "previous": second["releaseId"]})
@@ -175,6 +190,108 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertIn("application runtime smoke failed", result.stderr)
             pointers = json.loads((state / "pointers.json").read_text(encoding="utf-8"))
             self.assertEqual(pointers["current"], first["releaseId"])
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+
+    def test_smoke_binds_candidate_view_and_reload_runs_after_commit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            reloaded = root / "reloaded"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            view = (state / "views" / second["releaseId"]).resolve()
+            switched = self.activate(
+                store,
+                state,
+                second["releaseId"],
+                "--smoke",
+                f'test "$RUNTIME_CONTENT_DIR" = "{view}" && test "$ACT_RUNTIME_CANDIDATE_VIEW" = "{view}"',
+                "--reload-consumers",
+                f"printf ok > '{reloaded}'",
+            )
+            self.assertEqual(switched["current"], second["releaseId"])
+            self.assertEqual(reloaded.read_text(encoding="utf-8"), "ok")
+
+    def test_failed_smoke_does_not_reload_consumers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            reloaded = root / "reloaded"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            time.sleep(0.02)
+            (runtime / "lessons/1-1/lesson.json").write_text('{"id":"two"}\n', encoding="utf-8")
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            result = self.activate(
+                store,
+                state,
+                second["releaseId"],
+                "--smoke",
+                "exit 7",
+                "--reload-consumers",
+                f"printf ok > '{reloaded}'",
+                expect_ok=False,
+            )
+            self.assertIn("application runtime smoke failed", result.stderr)
+            self.assertFalse(reloaded.exists())
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+
+    def test_production_view_root_requires_smoke(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "data" / "runtime" / "blob-views"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            missing = self.activate(store, state, first["releaseId"], expect_ok=False)
+            self.assertIn("runtime smoke is required before selecting current", missing.stderr)
+            self.assertFalse((state / "current").exists())
+            switched = self.activate(store, state, first["releaseId"], "--smoke", "true")
+            self.assertEqual(switched["current"], first["releaseId"])
+            self.assertEqual(os.readlink(state / "current"), f"views/{first['releaseId']}")
+
+    def test_require_smoke_flag_rejects_missing_command(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            result = self.activate(store, state, first["releaseId"], "--require-smoke", expect_ok=False)
+            self.assertIn("runtime smoke is required before selecting current", result.stderr)
+
+    def test_tampered_manifest_path_is_rejected_before_materialize(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(runtime, {"lessons/1-1/lesson.json": '{"id":"one"}\n'})
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            manifest_file = store / "runtime" / "blob-releases" / first["releaseId"] / "manifest.json"
+            manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+            manifest["files"][0]["path"] = "../escape.txt"
+            manifest_file.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            result = self.activate(store, state, first["releaseId"], expect_ok=False)
+            self.assertIn("invalid runtime path", result.stderr)
+            self.assertFalse((root / "escape.txt").exists())
+            self.assertFalse((state / "current").exists())
 
 
 if __name__ == "__main__":

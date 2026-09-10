@@ -60,13 +60,38 @@ def write_pointers_atomic(state_dir: Path, pointers: dict[str, str | None]) -> N
     os.replace(temporary, pointers_path(state_dir))
 
 
-def retarget_live(state_dir: Path, view: Path) -> None:
-    live = state_dir / "live"
-    temporary = state_dir / "live.tmp"
+def is_production_view_root(state_dir: Path) -> bool:
+    resolved = state_dir.as_posix().rstrip("/")
+    return state_dir.name == "blob-views" or resolved.endswith("/data/runtime/blob-views")
+
+
+def optional_command(*values: str | None) -> str | None:
+    for value in values:
+        if value:
+            return value
+    return None
+
+
+def retarget_pointer(state_dir: Path, name: str, view: Path | None) -> None:
+    link = state_dir / name
+    if view is None:
+        if link.exists() or link.is_symlink():
+            link.unlink()
+        return
+    temporary = state_dir / f"{name}.tmp"
     if temporary.exists() or temporary.is_symlink():
         temporary.unlink()
-    os.symlink(view, temporary)
-    os.replace(temporary, live)
+    os.symlink(os.path.relpath(view, state_dir), temporary)
+    os.replace(temporary, link)
+
+
+def retarget_selection(state_dir: Path, current_view: Path, previous_release_id: str | None) -> None:
+    retarget_pointer(state_dir, "current", current_view)
+    retarget_pointer(state_dir, "live", current_view)
+    previous_view = state_dir / "views" / previous_release_id if previous_release_id else None
+    if previous_view is not None and not previous_view.is_dir():
+        previous_view = None
+    retarget_pointer(state_dir, "previous", previous_view)
 
 
 def open_sentinels(view: Path, manifest: dict[str, Any], requested: list[str]) -> list[str]:
@@ -89,12 +114,26 @@ def open_sentinels(view: Path, manifest: dict[str, Any], requested: list[str]) -
     return opened
 
 
-def run_smoke(command: str | None) -> None:
-    if not command:
-        return
-    process = subprocess.run(command, shell=True, check=False)
+def run_shell(command: str, *, env: dict[str, str] | None, error: str) -> None:
+    process = subprocess.run(command, shell=True, check=False, env=env)
     if process.returncode != 0:
-        raise ActivateError("application runtime smoke failed")
+        raise ActivateError(error)
+
+
+def run_smoke(command: str | None, view: Path, *, required: bool) -> None:
+    if not command:
+        if required:
+            raise ActivateError("runtime smoke is required before selecting current")
+        return
+    env = os.environ.copy()
+    candidate = str(view.resolve())
+    env["RUNTIME_CONTENT_DIR"] = candidate
+    env["ACT_RUNTIME_CANDIDATE_VIEW"] = candidate
+    run_shell(command, env=env, error="application runtime smoke failed")
+
+
+def smoke_required(args: argparse.Namespace, state_dir: Path) -> bool:
+    return bool(args.require_smoke) or os.environ.get("ACT_RUNTIME_REQUIRE_SMOKE") == "1" or is_production_view_root(state_dir)
 
 
 def activate(args: argparse.Namespace) -> dict[str, Any]:
@@ -111,19 +150,21 @@ def activate(args: argparse.Namespace) -> dict[str, Any]:
     MATERIALIZE.assert_blobs_visible(store, candidate, delta)
     view = MATERIALIZE.materialize_view(store, candidate, state_dir / "views" / candidate["releaseId"])
     opened = open_sentinels(view, candidate, args.sentinel)
-    try:
-        run_smoke(args.smoke)
-    except ActivateError:
-        raise
+    smoke = optional_command(args.smoke, os.environ.get("ACT_RUNTIME_SMOKE"))
+    run_smoke(smoke, view, required=smoke_required(args, state_dir))
     next_pointers = {"current": candidate["releaseId"], "previous": pointers["current"]}
     write_pointers_atomic(state_dir, next_pointers)
-    retarget_live(state_dir, view)
+    retarget_selection(state_dir, view, next_pointers["previous"])
+    reload = optional_command(args.reload_consumers, os.environ.get("ACT_RUNTIME_RELOAD_CONSUMERS"))
+    if reload:
+        run_shell(reload, env=None, error="consumer reload failed after current pointer commit")
     return {
         "action": "activate",
         "current": next_pointers["current"],
         "previous": next_pointers["previous"],
         "deltaCount": len(delta),
         "sentinels": opened,
+        "viewPath": str(view.resolve()),
     }
 
 
@@ -137,13 +178,17 @@ def rollback(args: argparse.Namespace) -> dict[str, Any]:
         raise ActivateError("previous view is not materialized; rollback will not rebuild it")
     next_pointers = {"current": pointers["previous"], "previous": pointers["current"]}
     write_pointers_atomic(state_dir, next_pointers)
-    retarget_live(state_dir, previous_view)
+    retarget_selection(state_dir, previous_view, next_pointers["previous"])
+    reload = optional_command(args.reload_consumers, os.environ.get("ACT_RUNTIME_RELOAD_CONSUMERS"))
+    if reload:
+        run_shell(reload, env=None, error="consumer reload failed after current pointer commit")
     return {
         "action": "rollback",
         "current": next_pointers["current"],
         "previous": next_pointers["previous"],
         "deltaCount": 0,
         "sentinels": [],
+        "viewPath": str(previous_view.resolve()),
     }
 
 
@@ -155,6 +200,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rollback", action="store_true")
     parser.add_argument("--sentinel", action="append", default=[])
     parser.add_argument("--smoke")
+    parser.add_argument("--require-smoke", action="store_true")
+    parser.add_argument("--reload-consumers")
     return parser
 
 

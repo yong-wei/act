@@ -5,10 +5,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+
+
+SESSION_SQL = 'SELECT DISTINCT "runtimeReleaseId" FROM "CourseBundleRevision" WHERE "runtimeReleaseId" <> \'\''
+SESSION_DISCOVERY_UNAVAILABLE = (
+    "session release discovery unavailable\n"
+    "set DATABASE_URL or pass --session-release / --no-session-refs"
+)
 
 
 class GcError(RuntimeError):
@@ -36,11 +45,38 @@ def list_release_ids(store: Path, state_dir: Path) -> list[str]:
     return sorted(found)
 
 
+def query_session_releases(database_url: str) -> set[str]:
+    process = subprocess.run(
+        ["psql", database_url, "-v", "ON_ERROR_STOP=1", "-Atc", SESSION_SQL],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if process.returncode != 0:
+        raise GcError("session release discovery failed")
+    return {line.strip() for line in process.stdout.splitlines() if line.strip()}
+
+
+def resolve_session_releases(args: argparse.Namespace) -> set[str]:
+    explicit = {item for item in args.session_release if item}
+    if args.no_session_refs:
+        return explicit
+    if explicit:
+        return explicit
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        return query_session_releases(database_url)
+    if args.execute:
+        raise GcError(SESSION_DISCOVERY_UNAVAILABLE)
+    return set()
+
+
 def plan(args: argparse.Namespace) -> dict[str, Any]:
     store = Path(args.store_dir)
     state_dir = Path(args.state_dir)
     pointers = read_pointers(state_dir)
-    retained = {item for item in (pointers["current"], pointers["previous"], *args.pin, *args.session_release) if item}
+    session_releases = resolve_session_releases(args)
+    retained = {item for item in (pointers["current"], pointers["previous"], *args.pin, *session_releases) if item}
     releases = list_release_ids(store, state_dir)
     removable = [release_id for release_id in releases if release_id not in retained]
     return {
@@ -48,6 +84,7 @@ def plan(args: argparse.Namespace) -> dict[str, Any]:
         "dryRun": not args.execute,
         "current": pointers["current"],
         "previous": pointers["previous"],
+        "sessionReleases": sorted(session_releases),
         "retained": sorted(retained),
         "removableReleases": removable,
         "blobsDeleted": 0,
@@ -70,6 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--state-dir", required=True)
     parser.add_argument("--pin", action="append", default=[])
     parser.add_argument("--session-release", action="append", default=[])
+    parser.add_argument("--no-session-refs", action="store_true")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     return parser
