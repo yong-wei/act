@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   persistControlWorkbenchSimulationRun: vi.fn(),
+  persistPathCourseDemoSimulationRun: vi.fn(),
   persistSceneTraceSimulationRun: vi.fn(),
   computeControlAnalysisServer: vi.fn(),
   classSessionFindUnique: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/data-governance/simulation-scene-run-persistence', () => ({
   persistControlWorkbenchSimulationRun: mocks.persistControlWorkbenchSimulationRun,
+  persistPathCourseDemoSimulationRun: mocks.persistPathCourseDemoSimulationRun,
   persistSceneTraceSimulationRun: mocks.persistSceneTraceSimulationRun,
 }));
 
@@ -76,6 +78,9 @@ describe('POST /api/simulation/runs', () => {
     });
     mocks.persistSceneTraceSimulationRun.mockResolvedValue({
       simulationRunId: 'scene-run-1',
+    });
+    mocks.persistPathCourseDemoSimulationRun.mockResolvedValue({
+      simulationRunId: 'course-demo-run-1',
     });
     mocks.classSessionFindUnique.mockResolvedValue({
       id: 'cmoxloe52000uq5bcojma7r78',
@@ -358,6 +363,98 @@ describe('POST /api/simulation/runs', () => {
       }),
       expect.any(Function),
     );
+  });
+
+  it('persists a path-launched course demo step under the owned simulation node', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const response = await POST(request({
+      kind: 'path-course-demo',
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+      },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.persistPathCourseDemoSimulationRun).toHaveBeenCalledWith(
+      expect.anything(),
+      'student-1',
+      {
+        launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'simulation:control-correction-step-response-lab',
+          resourceId: 'simulation:control-correction-step-response-lab',
+          stepId: 'step-11',
+        },
+      },
+    );
+  });
+
+  it('rejects a path-launched course demo when the submitted step is not the bound destination', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const response = await POST(request({
+      kind: 'path-course-demo',
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-10',
+      },
+    }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.persistPathCourseDemoSimulationRun).not.toHaveBeenCalled();
+  });
+
+  it('rejects a path-launched course demo for a cruise simulation node', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      nodeIds: ['simulation:cruise'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:cruise',
+          type: 'simulation',
+          target: '/simulations/cruise',
+        }],
+      },
+    });
+
+    const response = await POST(request({
+      kind: 'path-course-demo',
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:cruise',
+        stepId: 'step-11',
+      },
+    }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.persistPathCourseDemoSimulationRun).not.toHaveBeenCalled();
   });
 
   it('rejects scene traces outside the server allowlist', async () => {

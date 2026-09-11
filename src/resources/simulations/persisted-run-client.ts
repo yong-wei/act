@@ -109,3 +109,46 @@ export function persistSceneTraceRun(input: {
     ...input,
   });
 }
+
+export function shouldPersistPathLaunchedCourseDemo(input: {
+  launchContext: ReturnType<typeof resolveAdaptivePathLaunchReturnContext>;
+  currentStepId: string;
+  targetStepId: string | null;
+}) {
+  return input.launchContext?.resourceType === 'simulation'
+    && Boolean(input.targetStepId)
+    && input.currentStepId === input.targetStepId;
+}
+
+export function persistPathLaunchedCourseDemoIfCurrentStep(stepId: string) {
+  if (typeof window === 'undefined') return;
+  const params = new URLSearchParams(window.location.search);
+  const launchContext = resolveAdaptivePathLaunchReturnContext(params);
+  if (!launchContext || !shouldPersistPathLaunchedCourseDemo({
+    launchContext,
+    currentStepId: stepId,
+    targetStepId: params.get('step'),
+  })) {
+    return;
+  }
+  return persistPathLaunchedCourseDemoRun({
+    pathId: launchContext.pathId,
+    nodeId: launchContext.nodeId,
+    stepId,
+  }).catch(() => undefined);
+}
+
+export function persistPathLaunchedCourseDemoRun(input: {
+  pathId: string;
+  nodeId: string;
+  stepId: string;
+}) {
+  return persistRun({
+    kind: 'path-course-demo',
+    launchContext: {
+      pathId: input.pathId,
+      nodeId: input.nodeId,
+      stepId: input.stepId,
+    },
+  });
+}

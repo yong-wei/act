@@ -7,6 +7,7 @@ import type {
   InteractiveRuntimeManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import { persistPathLaunchedCourseDemoIfCurrentStep } from '@/resources/simulations/persisted-run-client';
 import { buildManifestSubmissionTelemetry } from './submission-telemetry';
 
 interface ManifestSubmissionResponse {
@@ -126,6 +127,7 @@ export function useManifestSubmissionController({ trackCourseEvent }: ManifestSu
           dataOverrides,
         }),
       );
+      void persistPathLaunchedCourseDemoIfCurrentStep(stepId);
       return submittedAt;
     },
     [trackCourseEvent],

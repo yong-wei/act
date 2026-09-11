@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/lib/auth';
 import { canAccessClassroomSession } from '@/features/classroom/session';
+import { readGovernedCourseStudentDemoStep } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
+import { authOptions } from '@/lib/auth';
 import { resolveTrustedControlWorkbenchContext } from '@/lib/data-governance/control-workbench-run-context';
 import {
   persistControlWorkbenchSimulationRun,
+  persistPathCourseDemoSimulationRun,
   persistSceneTraceSimulationRun,
   type SimulationRunLaunchContext,
 } from '@/lib/data-governance/simulation-scene-run-persistence';
@@ -114,6 +116,33 @@ async function resolvePathLaunchedNodeContext(
     pathId,
     pathNodeId: nodeId,
     resourceId: nodeId,
+  };
+}
+
+async function resolvePathLaunchedCourseDemoContext(
+  userId: string,
+  pathId: string,
+  nodeId: string,
+  stepId: string,
+): Promise<SimulationRunLaunchContext | null> {
+  const path = await prisma.learningPath.findFirst({
+    where: { id: pathId, userId },
+    select: { id: true, pathPayload: true, nodeIds: true },
+  });
+  if (!path) return null;
+  const nodeIds = Array.isArray(path.nodeIds) ? path.nodeIds.filter((value): value is string => typeof value === 'string') : [];
+  if (nodeIds.length > 0 && !nodeIds.includes(nodeId)) return null;
+  const payload = record(path.pathPayload);
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const node = planNodes.map(record).find((entry) => entry.nodeId === nodeId);
+  if (!node || String(node.type) !== 'simulation') return null;
+  const boundStep = readGovernedCourseStudentDemoStep(String(node.target ?? ''));
+  if (!boundStep || boundStep !== stepId) return null;
+  return {
+    pathId,
+    pathNodeId: nodeId,
+    resourceId: nodeId,
+    stepId,
   };
 }
 
@@ -281,6 +310,30 @@ export async function POST(request: NextRequest) {
           launchContext,
         },
         (controller) => evaluatePIDParams(controller, { shipSpeed: 15 }, LEGACY_SCENE_TRACE_TARGET),
+      );
+      return NextResponse.json(result);
+    }
+    if (kind === 'path-course-demo') {
+      const untrustedLaunchContext = record(body.launchContext);
+      const pathId = text(untrustedLaunchContext.pathId);
+      const pathNodeId = text(untrustedLaunchContext.nodeId);
+      const stepId = text(untrustedLaunchContext.stepId);
+      if (!pathId || !pathNodeId || !stepId) {
+        return NextResponse.json({ error: 'Invalid path course demo run' }, { status: 400 });
+      }
+      const launchContext = await resolvePathLaunchedCourseDemoContext(
+        session.user.id,
+        pathId,
+        pathNodeId,
+        stepId,
+      );
+      if (!launchContext) {
+        return NextResponse.json({ error: 'Untrusted path course demo context' }, { status: 403 });
+      }
+      const result = await persistPathCourseDemoSimulationRun(
+        prisma,
+        session.user.id,
+        { launchContext },
       );
       return NextResponse.json(result);
     }

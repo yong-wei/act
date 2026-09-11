@@ -55,6 +55,10 @@ export interface PersistSceneTraceRunInput {
   launchContext: SimulationRunLaunchContext;
 }
 
+export interface PersistPathCourseDemoRunInput {
+  launchContext: SimulationRunLaunchContext;
+}
+
 export type CruiseServerEvaluation = Pick<OptimizationResult, 'score' | 'metrics'>;
 
 function canonicalize(value: unknown): unknown {
@@ -385,6 +389,93 @@ export async function persistSceneTraceSimulationRun(
       sampleCount: 241,
       sampleCadence: 0.5,
       sampleStorageUri: null,
+    },
+    update: {},
+    select: { id: true },
+  });
+  return { simulationRunId: run.id };
+}
+
+export async function persistPathCourseDemoSimulationRun(
+  db: SimulationRunPersistenceDb,
+  ownerUserId: string,
+  input: PersistPathCourseDemoRunInput,
+) {
+  const launchContext = compactContext(input.launchContext);
+  const sceneId = 'path-course-demo';
+  const scenarioId = launchContext.pathNodeId ?? launchContext.resourceId ?? sceneId;
+  const taskSpec = await upsertTaskSpec(db, {
+    schemaVersion: 'simulation-task-spec-v1',
+    sceneId,
+    scenarioId,
+    plantRef: sha256Ref(launchContext),
+    objectives: [`complete:${sceneId}`],
+    constraints: [],
+    disturbancePolicy: {},
+    evaluationSpecRef: {
+      id: 'path-course-demo-step-complete-v1',
+      visibility: 'both',
+    },
+    allowedControllers: [],
+    launchContext,
+  });
+  const sourceRefId = `path-course-demo:${hashValue({
+    ownerUserId,
+    pathId: launchContext.pathId,
+    pathNodeId: launchContext.pathNodeId,
+  })}`;
+  const controllerSnapshotRef = sha256Ref(launchContext);
+  const checksum = sha256Ref({ sceneId, launchContext });
+  const runContractIdentity = projectPracticeOutcomeIdentity({
+    sourceId: sourceRefId,
+    ownerUserId,
+    taskId: sceneId,
+    specHash: taskSpec.specHash,
+    artifactHash: controllerSnapshotRef,
+    controllerSnapshotRef,
+    protocolVersion: '1.0',
+    runtimeVersion: 'path-course-demo-v1',
+    modelVersion: 'path-course-demo-v1',
+    executor: 'server',
+    authoritySource: 'path-course-demo',
+    seed: null,
+    checksum,
+  });
+  const summary = {
+    metrics: { valid: true },
+    evaluation: { passed: true, meetsQualityTarget: true },
+    qualityTargetMet: true,
+    runContract: practiceRunContractProjection(runContractIdentity),
+  };
+  const now = new Date();
+  const run = await db.simulationRun.upsert({
+    where: {
+      sourceDomain_sourceRefId: {
+        sourceDomain: 'simulation_scene',
+        sourceRefId,
+      },
+    },
+    create: {
+      ownerUserId,
+      classId: input.launchContext.classId ?? null,
+      courseId: input.launchContext.courseId ?? null,
+      sessionId: input.launchContext.sessionId ?? null,
+      resourceId: resourceIdFromContext(input.launchContext),
+      publicationId: input.launchContext.publicationId ?? null,
+      runKind: 'scene_simulation',
+      sourceDomain: 'simulation_scene',
+      sourceRefId,
+      taskSpecId: taskSpec.id,
+      taskSpecSnapshot: taskSpec.payload as Prisma.InputJsonValue,
+      controllerSnapshotRef,
+      status: 'completed',
+      summary: summary as Prisma.InputJsonValue,
+      protocolVersion: '1.0',
+      runtimeVersion: 'path-course-demo-v1',
+      modelVersion: 'path-course-demo-v1',
+      sceneSpecVersion: sceneId,
+      startedAt: now,
+      completedAt: now,
     },
     update: {},
     select: { id: true },

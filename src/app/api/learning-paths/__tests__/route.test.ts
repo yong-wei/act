@@ -2472,6 +2472,48 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('unlocks the production course-demo simulation node from a path-bound course demo run', async () => {
+    useStructuredSimulationPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'course-demo-run-1',
+      ownerUserId: 'student-1',
+      runKind: 'scene_simulation',
+      sourceDomain: 'simulation_scene',
+      sourceRefId: 'path-course-demo:bound',
+      resourceId: 'simulation:control-correction-step-response-lab',
+      taskSpecId: null,
+      taskSpecSnapshot: {
+        launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'simulation:control-correction-step-response-lab',
+          resourceId: 'simulation:control-correction-step-response-lab',
+          stepId: 'step-11',
+        },
+      },
+      status: 'completed',
+      summary: { metrics: { valid: true } },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'unit-3-6-course-demo-outcome',
+      simulationRef: { id: 'course-demo-run-1' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'course-demo-run-1',
+        provenance: 'official',
+        status: 'completed',
+      }),
+    }));
+  });
+
   it('unlocks simulation outcome gates from server-owned simulation runs', async () => {
     useStructuredSimulationPath();
     mocks.prisma.simulationRun.findFirst.mockResolvedValue({

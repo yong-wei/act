@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   canonicalizeAdaptivePathInternalHref,
+  readGovernedCourseStudentDemoStep,
   resolveAdaptivePathDestinationContract,
 } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 
@@ -81,6 +82,10 @@ describe('adaptive path destination contract', () => {
       disposition: 'destination-control',
       reason: null,
     });
+    expect(readGovernedCourseStudentDemoStep(
+      '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+    )).toBe('step-11');
+    expect(readGovernedCourseStudentDemoStep('/simulations/cruise')).toBeNull();
   });
 
   it('permits reviewed video, audio, and exercise destinations on student courses', () => {
