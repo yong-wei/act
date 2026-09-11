@@ -1573,6 +1573,8 @@ function TelemetryBridge({
         registryId: query.get('registryId') ?? undefined,
         resourceId: query.get('resourceId') ?? undefined,
         sessionId: query.get('sessionId') ?? undefined,
+        pathId: query.get('pathId') ?? undefined,
+        nodeId: query.get('nodeId') ?? undefined,
       },
     }).then(({ simulationRunId }) => {
       const completionChannelId = query.get('completionChannelId');

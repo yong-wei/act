@@ -2139,6 +2139,17 @@ describe('adaptive learning center UI contracts', () => {
       launchContext: { ...launchContext, resourceType: 'simulation' },
       completedAt: '2026-06-18T11:40:00.000Z',
     })).toBeNull();
+    expect(buildAdaptivePathCompletionRequest({
+      launchContext: { ...launchContext, resourceType: 'simulation' },
+      completedAt: '2026-06-18T11:40:00.000Z',
+      simulationRef: { id: 'sim-run-1' },
+    })).toMatchObject({
+      href: '/api/learning-paths/path-1/execute',
+      body: {
+        resourceType: 'simulation',
+        simulationRef: { id: 'sim-run-1' },
+      },
+    });
   });
 
   it('launches external resource path nodes through governed access recording', () => {

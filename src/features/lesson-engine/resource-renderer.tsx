@@ -48,6 +48,12 @@ interface ResourceRendererProps {
   teacherPreview?: boolean;
   /** 仅学生课堂运行态可以写入课堂作答。 */
   classroomActorRole?: 'student' | 'teacher';
+  pathLaunch?: {
+    pathId: string;
+    goalId: string;
+    nodeId: string;
+    resourceType: string;
+  } | null;
   /** 粗粒度媒体状态变化（播放/暂停），供陪伴信号采集；仅学生布点页面传入。 */
   onMediaStateChange?: (playing: boolean) => void;
 }
@@ -105,6 +111,7 @@ export function ResourceRenderer({
   teacherPreview,
   classroomActorRole,
   onMediaStateChange,
+  pathLaunch,
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
@@ -123,6 +130,10 @@ export function ResourceRenderer({
     resourceId: resource?.id ?? null,
     registryId: resource?.registryId ?? null,
     provider: 'resource-renderer',
+    resourceType: pathLaunch?.resourceType ?? null,
+    pathId: pathLaunch?.pathId,
+    goalId: pathLaunch?.goalId,
+    nodeId: pathLaunch?.nodeId,
   });
 
   // Handle state changes from widgets
@@ -133,10 +144,32 @@ export function ResourceRenderer({
   }, [onStateChange]);
 
   // Handle widget completion
-  const handleComplete = useCallback((result?: WidgetResult) => {
+  const handleComplete = useCallback(async (result?: WidgetResult) => {
     console.log('[ResourceRenderer] Widget complete:', result);
-    return onComplete?.(result);
-  }, [onComplete]);
+    const completionData = result?.data && typeof result.data === 'object' && !Array.isArray(result.data)
+      ? result.data
+      : {};
+    const answers = {
+      ...completionData,
+      ...(typeof result?.score === 'number' && Number.isFinite(result.score) ? { score: result.score } : {}),
+      ...(typeof result?.success === 'boolean' ? { success: result.success } : {}),
+    };
+    const clientEventId = await knowledgeTracker.trackResourceComplete({
+      score: result?.score,
+      success: result?.success,
+      ...completionData,
+      ...(Object.keys(answers).length > 0 ? { answers } : {}),
+    });
+    return onComplete?.({
+      success: result?.success ?? true,
+      score: result?.score,
+      clientEventId,
+      data: {
+        ...(result?.data ?? {}),
+        clientEventId,
+      },
+    });
+  }, [knowledgeTracker, onComplete]);
 
   useEffect(() => {
     if (!knowledgeNode) {

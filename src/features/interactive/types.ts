@@ -109,6 +109,7 @@ export interface InteractiveTrackingContextValue {
   emit: (type: InteractiveEventType, data?: Record<string, unknown>) => void;
   getHistory: () => InteractiveEvent[];
   clearHistory: () => void;
+  flush?: () => Promise<void>;
 }
 
 /** 进度上下文值 */

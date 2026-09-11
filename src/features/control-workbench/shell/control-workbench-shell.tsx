@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
@@ -15,6 +15,7 @@ import {
   formatArenaMetric,
 } from '@/features/arena/display-labels';
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
+import type { AdaptivePathLaunchContext } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '../types';
 import type { WorkbenchDesignFlow, WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import {
@@ -37,6 +38,8 @@ import {
   type WorkbenchObjectOption,
 } from '../object-selection';
 import { getControlWorkbenchLaunchKind, getControlWorkbenchReturnHref } from '../routing';
+import { persistPathLaunchedControlWorkbenchRun } from '@/resources/simulations/persisted-run-client';
+import type { ControlAnalysisRequest } from '@/resources/control-system/analysis/types';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -301,9 +304,11 @@ function WorkbenchObjectSelector({
 function ResolvedControlWorkbenchShell({
   session: initialSession,
   accountHref,
+  pathLaunchContext,
 }: {
   session: WorkbenchSessionContext;
   accountHref?: string;
+  pathLaunchContext?: AdaptivePathLaunchContext | null;
 }) {
   const [session, setSession] = useState<WorkbenchSessionContext>(initialSession);
   const [objectSelectorExpanded, setObjectSelectorExpanded] = useState(false);
@@ -344,7 +349,17 @@ function ResolvedControlWorkbenchShell({
   const showObjectSelector = session.mode === 'explore';
   const launchKind = getControlWorkbenchLaunchKind(session);
   const launchDescription = describeExperienceLaunch(launchKind);
-  const returnHref = getControlWorkbenchReturnHref(session);
+  const persistedPathRun = useRef(false);
+  const persistPathLaunchedAnalysis = useCallback((input: { request: ControlAnalysisRequest }) => {
+    if (!pathLaunchContext || persistedPathRun.current) return;
+    persistedPathRun.current = true;
+    void persistPathLaunchedControlWorkbenchRun({
+      pathId: pathLaunchContext.pathId,
+      nodeId: pathLaunchContext.nodeId,
+      request: input.request,
+    });
+  }, [pathLaunchContext]);
+  const returnHref = pathLaunchContext?.returnHref ?? getControlWorkbenchReturnHref(session);
   const missionDataState = 'taskId' in session ? 'available' : 'missing-task-context';
   const evidenceStatus = session.submissionPolicy.officialEvaluationEnabled
     ? '可提交到官方评价，合格证据将回流学习记录'
@@ -554,6 +569,7 @@ function ResolvedControlWorkbenchShell({
               viewConfigs={viewConfigs}
               panelInstances={panels}
               onPanelSelectedOptionsChange={updatePanelSelectedOptions}
+              onGovernedAnalysisReady={pathLaunchContext ? persistPathLaunchedAnalysis : undefined}
             />
           ) : null}
           {showBlackBoxPreset ? (
@@ -688,9 +704,11 @@ function ResolvedControlWorkbenchShell({
 export function ControlWorkbenchShell({
   result,
   accountHref,
+  pathLaunchContext,
 }: {
   result: ControlWorkbenchResolutionResult;
   accountHref?: string;
+  pathLaunchContext?: AdaptivePathLaunchContext | null;
 }) {
   if (!result.ok) {
     return (
@@ -707,5 +725,12 @@ export function ControlWorkbenchShell({
     );
   }
 
-  return <ResolvedControlWorkbenchShell key={getPanelStorageKey(result.session)} session={result.session} accountHref={accountHref} />;
+  return (
+    <ResolvedControlWorkbenchShell
+      key={getPanelStorageKey(result.session)}
+      session={result.session}
+      accountHref={accountHref}
+      pathLaunchContext={pathLaunchContext}
+    />
+  );
 }

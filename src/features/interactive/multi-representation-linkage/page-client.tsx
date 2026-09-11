@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -310,9 +310,11 @@ function WorkbenchViewUnavailableNotice({ title }: { title: string }) {
 export function MultiRepresentationLinkageClient({
   initialParams,
   onPanelSelectedOptionsChange,
+  onGovernedAnalysisReady,
 }: {
   initialParams: MultiRepresentationInitialParams;
   onPanelSelectedOptionsChange?: MultiRepresentationPanelOptionsChangeHandler;
+  onGovernedAnalysisReady?: (input: { request: ControlAnalysisRequest }) => void;
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
   const snapshotStorageKey = useMemo(() => {
@@ -377,6 +379,23 @@ export function MultiRepresentationLinkageClient({
   });
   const [panelSourceSelections, setPanelSourceSelections] = useState<Record<string, ClassicPanelSourceId>>({});
   const result = model.analysisResult;
+  const publishedGovernedAnalysis = useRef(false);
+  useEffect(() => {
+    if (
+      !onGovernedAnalysisReady
+      || publishedGovernedAnalysis.current
+      || !result
+      || model.analysisState.isFallback
+      || model.analysisState.isLoading
+      || model.analysisState.error
+    ) {
+      return;
+    }
+    publishedGovernedAnalysis.current = true;
+    onGovernedAnalysisReady({
+      request: model.buildSnapshotAnalysisRequest(model.exportDesignState()),
+    });
+  }, [model, onGovernedAnalysisReady, result]);
   const frequencyResult = (model.frequencyAnalysisResult ?? result)!;
   const showCorrectionComparison = Boolean(
     model.correctionEnabled

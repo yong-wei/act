@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { MultiRepresentationLinkageClient } from '@/features/interactive/multi-representation-linkage/page-client';
+import type { ControlAnalysisRequest } from '@/resources/control-system/analysis/types';
 import type { WorkbenchSessionContext } from '../types';
 import type { WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import type { WorkbenchPanelInstance } from '../views';
@@ -67,11 +68,13 @@ export function ClassicFourViewPreset({
   viewConfigs,
   panelInstances,
   onPanelSelectedOptionsChange,
+  onGovernedAnalysisReady,
 }: {
   session: WorkbenchSessionContext;
   viewConfigs?: ClassicPresetViewConfigs;
   panelInstances?: WorkbenchPanelInstance[];
   onPanelSelectedOptionsChange?: MultiRepresentationPanelOptionsChangeHandler;
+  onGovernedAnalysisReady?: (input: { request: ControlAnalysisRequest }) => void;
 }) {
   if (!hasClassicModel(session)) {
     return (
@@ -102,6 +105,7 @@ export function ClassicFourViewPreset({
       <MultiRepresentationLinkageClient
         key={plantModel?.objectId ?? plantModel?.id ?? 'classic-whitebox'}
         onPanelSelectedOptionsChange={onPanelSelectedOptionsChange}
+        onGovernedAnalysisReady={onGovernedAnalysisReady}
         initialParams={{
           arenaTaskId: 'taskId' in session ? session.taskId : undefined,
           embed: true,
