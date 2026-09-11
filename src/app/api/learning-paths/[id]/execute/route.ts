@@ -894,6 +894,24 @@ function rejectUngovernedGradableCompletion(message: string) {
   return NextResponse.json({ error: message }, { status: 409 });
 }
 
+function asUngradedPathResourceCompletion<T extends { evidenceRefs?: unknown[] }>(
+  input: T,
+  isQuiz: boolean,
+): T {
+  return isQuiz ? { ...input, evidenceRefs: [] } : input;
+}
+
+function interactionLogMatchesPathNode(
+  eventData: Record<string, unknown>,
+  input: { pathId: string; nodeId: string; goalId?: string | null },
+): boolean {
+  if (firstString(eventData.pathId) !== input.pathId || firstString(eventData.nodeId) !== input.nodeId) {
+    return false;
+  }
+  const declaredGoalId = firstString(eventData.goalId);
+  return !(declaredGoalId && input.goalId && declaredGoalId !== input.goalId);
+}
+
 async function resolveGovernedQuizOutcomeEvidence<T extends {
   pathId: string;
   userId: string;
@@ -914,47 +932,52 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
   const sourceLogId = firstString(completionResult.sourceLogId);
   const clientEventId = firstString(completionResult.clientEventId, completionData.clientEventId);
   const claimedScore = readFinite(completionResult.score);
-  const isGradableAttempt = Boolean(sourceLogId || clientEventId || claimedScore !== undefined);
+  const hasEventRef = Boolean(sourceLogId || clientEventId);
 
-  if (!isGradableAttempt) {
-    // Quiz browse/video completions stay completed with empty refs.
-    // Ungraded lesson_step must keep instrumented simulation refs.
-    return isQuiz ? { ...input, evidenceRefs: [] } : input;
-  }
-  if (!sourceLogId && !clientEventId) {
-    return rejectUngovernedGradableCompletion('可评分完成缺少已持久化的互动事件引用');
+  // Event ids are always minted by ResourceRenderer; only a score makes the attempt gradable.
+  if (claimedScore === undefined && !hasEventRef) {
+    return asUngradedPathResourceCompletion(input, isQuiz);
   }
 
-  const log = await db.interactionLog?.findFirst?.({
-    where: {
-      userId: input.userId,
-      ...(sourceLogId ? { id: sourceLogId } : { clientEventId }),
-    },
-    select: {
-      id: true,
-      clientEventId: true,
-      eventType: true,
-      eventData: true,
-    },
-  });
-  if (!log) {
-    return rejectUngovernedGradableCompletion('测验证据尚未持久化，无法完成节点');
-  }
+  const log = hasEventRef
+    ? await db.interactionLog?.findFirst?.({
+        where: {
+          userId: input.userId,
+          ...(sourceLogId ? { id: sourceLogId } : { clientEventId }),
+        },
+        select: {
+          id: true,
+          clientEventId: true,
+          eventType: true,
+          eventData: true,
+        },
+      })
+    : null;
+  const eventData = toRecord(log?.eventData);
+  const persistedScore = log ? readFinite(eventData.score) : undefined;
 
-  const eventData = toRecord(log.eventData);
-  if (firstString(eventData.pathId) !== input.pathId || firstString(eventData.nodeId) !== input.nodeId) {
+  if (claimedScore !== undefined) {
+    if (!hasEventRef || !log) {
+      return rejectUngovernedGradableCompletion(
+        hasEventRef ? '测验证据尚未持久化，无法完成节点' : '可评分完成缺少已持久化的互动事件引用',
+      );
+    }
+    if (!interactionLogMatchesPathNode(eventData, input) || persistedScore === undefined) {
+      return rejectUngovernedGradableCompletion(
+        persistedScore === undefined ? '测验证据缺少可核验分数' : '测验证据不属于当前路径节点',
+      );
+    }
+  } else if (!log || persistedScore === undefined) {
+    return asUngradedPathResourceCompletion(input, isQuiz);
+  } else if (!interactionLogMatchesPathNode(eventData, input)) {
     return rejectUngovernedGradableCompletion('测验证据不属于当前路径节点');
   }
-  const declaredGoalId = firstString(eventData.goalId);
-  if (declaredGoalId && input.goalId && declaredGoalId !== input.goalId) {
-    return rejectUngovernedGradableCompletion('测验证据不属于当前路径节点');
+
+  if (!log || persistedScore === undefined) {
+    return asUngradedPathResourceCompletion(input, isQuiz);
   }
 
-  const score = readFinite(eventData.score);
-  if (score === undefined) {
-    return rejectUngovernedGradableCompletion('测验证据缺少可核验分数');
-  }
-
+  const score = persistedScore;
   return {
     ...input,
     evidenceRefs: [{

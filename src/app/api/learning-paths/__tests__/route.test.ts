@@ -2524,6 +2524,16 @@ describe('learning path round API routes', () => {
       }
     );
 
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-time-domain',
+      clientEventId: 'evt-time-domain',
+      eventType: 'complete',
+      eventData: {
+        pathId: 'path-1',
+        nodeId: 'registry:lesson09-time-domain-synthesis',
+      },
+    });
+
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'registry:lesson09-time-domain-synthesis',
       resourceType: 'lesson_step',
@@ -2532,6 +2542,7 @@ describe('learning path round API routes', () => {
       liftMetadata: {
         pathActivityKind: 'initial-completion',
         completionSource: 'interactive-resource',
+        completionResult: { success: true, clientEventId: 'evt-time-domain' },
       },
     }), params);
 
@@ -5248,6 +5259,93 @@ describe('learning path round API routes', () => {
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
       })],
+    }));
+  });
+
+  it('completes an ungraded lesson-step that only carries a client event id', async () => {
+    configureSingleNodePath(
+      'registry:physics-modeling-intro-v1',
+      'lesson_step',
+      '/interactive-learning/resources/physics-modeling-intro-v1',
+    );
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-ungraded-step',
+      clientEventId: 'evt-ungraded-step',
+      eventType: 'complete',
+      eventData: {
+        pathId: 'path-1',
+        nodeId: 'registry:physics-modeling-intro-v1',
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:physics-modeling-intro-v1',
+      resourceType: 'lesson_step',
+      status: 'completed',
+      idempotencyKey: 'exec-ungraded-lesson-step-event',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { success: true, clientEventId: 'evt-ungraded-step' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'completed',
+      nodeId: 'registry:physics-modeling-intro-v1',
+      evidenceRefs: [],
+    }));
+  });
+
+  it('completes an ungraded lesson-step when the client event id has not persisted', async () => {
+    configureSingleNodePath(
+      'registry:physics-modeling-mechanical-v1',
+      'lesson_step',
+      '/interactive-learning/resources/physics-modeling-mechanical-v1',
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:physics-modeling-mechanical-v1',
+      resourceType: 'lesson_step',
+      status: 'completed',
+      idempotencyKey: 'exec-ungraded-lesson-step-missing-log',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { success: true, clientEventId: 'evt-missing-ungraded' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      status: 'completed',
+      nodeId: 'registry:physics-modeling-mechanical-v1',
+    }));
+  });
+
+  it('completes an ungraded quiz that only carries a client event id', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-ungraded-quiz',
+      clientEventId: 'evt-ungraded-quiz',
+      eventType: 'complete',
+      eventData: { pathId: 'path-1', nodeId: 'registry:bode-quiz' },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-ungraded-quiz-event',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { success: true, clientEventId: 'evt-ungraded-quiz' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      idempotencyKey: 'exec-ungraded-quiz-event',
+      evidenceRefs: [],
     }));
   });
 
