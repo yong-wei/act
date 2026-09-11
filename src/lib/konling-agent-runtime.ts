@@ -39,6 +39,8 @@ import { parseAnyRuntimeReleaseManifest } from '@/lib/runtime-release';
 import {
   buildAdaptivePathBatchComparisonView,
   buildAdaptivePathStrategyView,
+  resolveAdaptivePathToolGenerationStatus,
+  studentVisibleCandidateLimitation,
 } from '@/features/personalization/path-planning/public-api';
 import {
   deriveAdaptivePathRuntimeBindingLimitationCodes,
@@ -51,7 +53,7 @@ import {
 
 import type { PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
 import { loadPublishedResourceFeatureIndex } from '@/lib/published-resource-index';
-import { attachPublishedResourcesToRegistry } from '@/lib/published-resource-planning';
+import { attachPublishedResourcesToRegistry, buildPlanningResourceSnapshot } from '@/lib/published-resource-planning';
 import { applyResourceInteractionFeatures } from '@/lib/resource-feature-history';
 import {
   resolveActiveTeachingProjection,
@@ -5139,6 +5141,9 @@ async function buildAdaptivePathToolOutput(
     objectKeyReadRecords,
     runtimeResourceBindings,
     runtimeBindingLimitationCodes,
+    planningResourceSnapshot: registry.featureIndex
+      ? buildPlanningResourceSnapshot(registry.featureIndex)
+      : null,
     generationRequestId: args.idempotencyKey,
     plan: persistedPlan,
     classId: input.scope.classId ?? null,
@@ -5217,7 +5222,9 @@ async function buildAdaptivePathToolOutput(
     && !candidateBatch
     && differenceSummary?.material === false;
   const hasPersistedOutput = hasMaterialPath || Boolean(candidateBatch);
-  const pathOptions = noMaterialDifference
+  const diversityFailed = Array.isArray(candidateBatch?.metadata?.diversityLimitations)
+    && candidateBatch.metadata.diversityLimitations.includes('insufficient-candidate-diversity');
+  const pathOptions = noMaterialDifference || diversityFailed
     ? []
     : candidateBatch
     ? candidateBatch.candidates.map((candidate) => ({
@@ -5233,15 +5240,18 @@ async function buildAdaptivePathToolOutput(
   const fallbackReasons = uniqueStringList([
     ...plan.explanations.fallbackReasons,
     ...(plan.policyBundle?.fallbackReasons ?? []),
+    ...(diversityFailed ? ['insufficient-candidate-diversity'] : []),
   ]);
   const singleOptionDiversityUnavailable = pathOptions.length === 1
     && fallbackReasons.includes('policy-option-diversity-unavailable');
   return {
     operation,
     scope: toolScope,
-    generationStatus: noMaterialDifference
-      ? 'no_material_difference'
-      : hasPersistedOutput ? 'persisted' : 'blocked',
+    generationStatus: resolveAdaptivePathToolGenerationStatus({
+      noMaterialDifference,
+      insufficientCandidateDiversity: diversityFailed,
+      hasPersistedOutput,
+    }),
     request: {
       requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
       effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
@@ -5274,11 +5284,11 @@ async function buildAdaptivePathToolOutput(
       optionCount: pathOptions.length,
       message: noMaterialDifference
         ? '调整后的方案与原候选没有实质差异，请修改调整条件后重试。'
-        : hasPersistablePath
-        ? singleOptionDiversityUnavailable
+        : diversityFailed || !hasPersistablePath
+        ? buildBlockedAdaptivePathGenerationMessage(fallbackReasons)
+        : singleOptionDiversityUnavailable
           ? '当前资源只能形成单一推荐方案。'
-          : '已根据你的学习证据生成可比较的路径方案。'
-        : buildBlockedAdaptivePathGenerationMessage(fallbackReasons),
+          : '已根据你的学习证据生成可比较的路径方案。',
     },
     limitations: uniqueStringList([
       ...fallbackReasons,
@@ -5368,6 +5378,9 @@ function toStudentConfigurationFulfillment(
 }
 
 function buildBlockedAdaptivePathGenerationMessage(fallbackReasons: readonly string[]): string {
+  if (fallbackReasons.includes('insufficient-candidate-diversity')) {
+    return studentVisibleCandidateLimitation('insufficient-candidate-diversity');
+  }
   if (fallbackReasons.includes('learning-goal-baseline-incomplete')) {
     return '当前目标缺少已审核的基线资源，暂不能生成可执行学习路径。';
   }

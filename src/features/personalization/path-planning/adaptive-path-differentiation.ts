@@ -54,6 +54,118 @@ export const ADAPTIVE_PATH_DIFFERENTIATION_THRESHOLDS: AdaptivePathDifferentiati
   minSatisfiedCount: 3,
 };
 
+/** #2077：相似度 ≤ 30% 即现有 Jaccard 距离 ≥ 0.70。 */
+export const ADAPTIVE_PATH_HARD_DIVERSITY = {
+  maxJaccardSimilarity: 0.3,
+  minUniquePublished: 2,
+  minUniqueShare: 0.5,
+} as const;
+
+const COMPREHENSIVE_PUBLISHED_TYPES = new Set(['simulation', 'arena_task', 'project', 'control_workbench']);
+
+export interface AdaptivePathHardDiversityIdentity {
+  id: string;
+  type?: string;
+  preferred?: boolean;
+  /** 缺省视为已发布身份，便于纯函数单测。 */
+  published?: boolean;
+  coversWeakness?: boolean;
+  comprehensive?: boolean;
+}
+
+export interface AdaptivePathHardDiversityPath {
+  styleId: string;
+  policyFamily?: string;
+  identities: AdaptivePathHardDiversityIdentity[];
+  strategy?: {
+    generic?: boolean;
+    preferenceQuotaUnmet?: boolean;
+    weaknessResourceCount?: number;
+    comprehensiveTaskCount?: number;
+  };
+}
+
+export interface AdaptivePathHardDiversityResult {
+  passed: boolean;
+  reasons: string[];
+}
+
+export function evaluateAdaptivePathHardDiversity(
+  paths: AdaptivePathHardDiversityPath[],
+): AdaptivePathHardDiversityResult {
+  const reasons: string[] = [];
+  if (paths.length !== 3) reasons.push('option-count-not-three');
+  for (const path of paths) {
+    const othersPublished = new Set(
+      paths.filter((item) => item.styleId !== path.styleId).flatMap((item) =>
+        item.identities.filter((entry) => entry.published !== false).map((entry) => entry.id)),
+    );
+    const uniquePublished = [...new Set(
+      path.identities.filter((entry) => entry.published !== false && !othersPublished.has(entry.id)).map((entry) => entry.id),
+    )];
+    if (uniquePublished.length < ADAPTIVE_PATH_HARD_DIVERSITY.minUniquePublished) {
+      reasons.push(`${path.styleId}:unique-published-below-2`);
+    }
+    const share = path.identities.length === 0 ? 0 : uniquePublished.length / path.identities.length;
+    if (share < ADAPTIVE_PATH_HARD_DIVERSITY.minUniqueShare) {
+      reasons.push(`${path.styleId}:unique-share-below-50`);
+    }
+    const midpoint = Math.ceil(path.identities.length / 2);
+    if (!path.identities.slice(0, midpoint).some((entry) =>
+      entry.published !== false && uniquePublished.includes(entry.id))) {
+      reasons.push(`${path.styleId}:no-unique-in-first-half`);
+    }
+    const strategy = path.strategy;
+    const family = path.policyFamily;
+    if (strategy && strategy.generic !== true) {
+      const publishedWeakness = path.identities.filter((entry) =>
+        entry.published !== false && entry.coversWeakness === true).length;
+      const publishedComprehensive = path.identities.filter((entry) =>
+        entry.published !== false && (
+          entry.comprehensive === true
+          || (entry.comprehensive !== false && entry.type != null && COMPREHENSIVE_PUBLISHED_TYPES.has(entry.type))
+        )).length;
+      if (family === 'foundation-remediation' && publishedWeakness < 2) {
+        reasons.push(`${path.styleId}:weakness-published-below-2`);
+      }
+      if (family === 'simulation-driven' && publishedComprehensive < 2) {
+        reasons.push(`${path.styleId}:strength-published-below-2`);
+      }
+      if (family === 'preference-matched') {
+        const preferredShare = path.identities.length === 0
+          ? 0
+          : path.identities.filter((entry) => entry.preferred === true).length / path.identities.length;
+        if (preferredShare < 0.6) reasons.push(`${path.styleId}:preference-quota-unmet`);
+        const uniquePreferred = [...new Set(
+          path.identities
+            .filter((entry) => entry.preferred && entry.published !== false && !othersPublished.has(entry.id))
+            .map((entry) => entry.id),
+        )];
+        if (uniquePreferred.length < ADAPTIVE_PATH_HARD_DIVERSITY.minUniquePublished) {
+          reasons.push(`${path.styleId}:unique-preference-below-2`);
+        }
+      }
+    }
+  }
+  for (let left = 0; left < paths.length; left += 1) {
+    for (let right = left + 1; right < paths.length; right += 1) {
+      const similarity = 1 - jaccardDistance(
+        new Set(paths[left].identities.map((entry) => entry.id)),
+        new Set(paths[right].identities.map((entry) => entry.id)),
+      );
+      if (similarity > ADAPTIVE_PATH_HARD_DIVERSITY.maxJaccardSimilarity) {
+        reasons.push(`${paths[left].styleId}/${paths[right].styleId}:jaccard-similarity-above-30`);
+      }
+      const leftLead = paths[left].identities.slice(0, 2).map((entry) => entry.id).join('\0');
+      const rightLead = paths[right].identities.slice(0, 2).map((entry) => entry.id).join('\0');
+      if (leftLead && leftLead === rightLead) {
+        reasons.push(`${paths[left].styleId}/${paths[right].styleId}:leading-nonrequired-identical`);
+      }
+    }
+  }
+  return { passed: reasons.length === 0, reasons: [...new Set(reasons)] };
+}
+
 function jaccardDistance(left: Set<string>, right: Set<string>): number {
   if (left.size === 0 && right.size === 0) return 0;
   let intersection = 0;

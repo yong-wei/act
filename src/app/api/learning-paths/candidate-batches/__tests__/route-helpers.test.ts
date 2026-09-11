@@ -138,4 +138,15 @@ describe('sanitizeCandidateBatchForStudentResponse (#2055 student surface)', () 
       '这条路径有 1 个资源未包含在当前课程资源发布中。',
     ]);
   });
+
+  it('hides persisted candidates when hard diversity failed', () => {
+    const batch = batchFixture();
+    batch.metadata = {
+      ...batch.metadata,
+      diversityLimitations: ['insufficient-candidate-diversity'],
+    };
+    const sanitized = sanitizeCandidateBatchForStudentResponse(batch);
+    expect(sanitized.candidates).toEqual([]);
+    expect(sanitized.comparison.insufficientCandidateDiversity).toBe(true);
+  });
 });

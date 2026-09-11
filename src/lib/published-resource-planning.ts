@@ -41,6 +41,21 @@ function createPublishedNode(feature: PublishedResourceFeature, indexId: string,
   };
 }
 
+export function buildPlanningResourceSnapshot(index: PublishedResourceFeatureIndex) {
+  return {
+    indexId: index.indexId,
+    projectionId: index.projectionId,
+    projectionHash: index.projectionHash,
+    runtimeReleaseId: index.runtimeReleaseId,
+    recommendable: index.resources.filter((resource) => resource.recommendable).map((resource) => ({
+      resourceId: resource.identity.resourceId,
+      resourceVersion: resource.identity.resourceVersion ?? resource.version,
+      sourcePath: resource.sourcePath,
+      type: resource.type,
+    })),
+  };
+}
+
 /** Keep native graded task contracts; replace exact duplicate reading resources by their published identity. */
 export function attachPublishedResourcesToRegistry(
   registry: ResourceNodeRegistry,

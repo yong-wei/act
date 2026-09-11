@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_PATH_DIFFERENTIATION_THRESHOLDS,
   computeAdaptivePathPairDifferentiation,
+  evaluateAdaptivePathHardDiversity,
   type AdaptivePathDifferentiationCandidate,
 } from '../adaptive-path-differentiation';
 
@@ -103,5 +104,165 @@ describe('adaptive path pair differentiation metrics', () => {
       candidate({ styleId: 'strategy-b', resourceTypeShares: { simulation: 0.9, video: 0.1 } }),
     );
     expect(metrics.resourceTypeTotalVariation).toBeCloseTo(0.8);
+  });
+});
+
+describe('adaptive path hard diversity (#2077)', () => {
+  it('passes three disjoint published paths', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'a1' }, { id: 'a2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'b1' }, { id: 'b2' }], strategy: { generic: true } },
+      { styleId: 'c', identities: [{ id: 'c1' }, { id: 'c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(true);
+    expect(result.reasons).toEqual([]);
+  });
+
+  it('rejects two near-identical paths even when labels differ', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'shared-1' }, { id: 'shared-2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'shared-1' }, { id: 'shared-2' }], strategy: { generic: true } },
+      { styleId: 'c', identities: [{ id: 'shared-1' }, { id: 'c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons.some((reason) => reason.includes('jaccard-similarity-above-30'))).toBe(true);
+  });
+
+  it('uses all non-required resources as the unique-share denominator', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      {
+        styleId: 'a',
+        identities: [
+          { id: 'local-a1', published: false },
+          { id: 'local-a2', published: false },
+          { id: 'local-a3', published: false },
+          { id: 'pub-a1', published: true },
+          { id: 'pub-a2', published: true },
+        ],
+        strategy: { generic: true },
+      },
+      {
+        styleId: 'b',
+        identities: [
+          { id: 'local-b1', published: false },
+          { id: 'pub-b1', published: true },
+          { id: 'pub-b2', published: true },
+        ],
+        strategy: { generic: true },
+      },
+      {
+        styleId: 'c',
+        identities: [
+          { id: 'local-c1', published: false },
+          { id: 'pub-c1', published: true },
+          { id: 'pub-c2', published: true },
+        ],
+        strategy: { generic: true },
+      },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('a:unique-share-below-50');
+  });
+
+  it('counts only published weakness resources toward the foundation quota', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      {
+        styleId: 'a',
+        policyFamily: 'foundation-remediation',
+        identities: [
+          { id: 'local-w1', published: false, coversWeakness: true },
+          { id: 'local-w2', published: false, coversWeakness: true },
+          { id: 'pub-a1', published: true },
+          { id: 'pub-a2', published: true },
+        ],
+        strategy: { generic: false, weaknessResourceCount: 2 },
+      },
+      { styleId: 'b', identities: [{ id: 'pub-b1' }, { id: 'pub-b2' }], strategy: { generic: true } },
+      { styleId: 'c', identities: [{ id: 'pub-c1' }, { id: 'pub-c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('a:weakness-published-below-2');
+  });
+
+  it('counts only published comprehensive resources toward the simulation quota', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'pub-a1' }, { id: 'pub-a2' }], strategy: { generic: true } },
+      {
+        styleId: 'b',
+        policyFamily: 'simulation-driven',
+        identities: [
+          { id: 'local-sim-1', published: false, type: 'simulation', comprehensive: true },
+          { id: 'local-sim-2', published: false, type: 'simulation', comprehensive: true },
+          { id: 'pub-b1', published: true },
+          { id: 'pub-b2', published: true },
+        ],
+        strategy: { generic: false, comprehensiveTaskCount: 2 },
+      },
+      { styleId: 'c', identities: [{ id: 'pub-c1' }, { id: 'pub-c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('b:strength-published-below-2');
+  });
+
+  it('passes when strategy quotas are met by published identities', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      {
+        styleId: 'a',
+        policyFamily: 'foundation-remediation',
+        identities: [
+          { id: 'pub-a1', published: true, coversWeakness: true },
+          { id: 'pub-a2', published: true, coversWeakness: true },
+        ],
+        strategy: { generic: false, weaknessResourceCount: 0 },
+      },
+      {
+        styleId: 'b',
+        policyFamily: 'simulation-driven',
+        identities: [
+          { id: 'pub-b1', published: true, comprehensive: true, type: 'simulation' },
+          { id: 'pub-b2', published: true, comprehensive: true, type: 'control_workbench' },
+        ],
+        strategy: { generic: false, comprehensiveTaskCount: 0 },
+      },
+      { styleId: 'c', identities: [{ id: 'pub-c1' }, { id: 'pub-c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(true);
+  });
+
+  it('ignores a stale preferenceQuotaUnmet flag when filtered identities already meet the share', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'pub-a1' }, { id: 'pub-a2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'pub-b1' }, { id: 'pub-b2' }], strategy: { generic: true } },
+      {
+        styleId: 'c',
+        policyFamily: 'preference-matched',
+        identities: [
+          { id: 'pub-c1', published: true, preferred: true, type: 'video' },
+          { id: 'pub-c2', published: true, preferred: true, type: 'simulation' },
+        ],
+        strategy: { generic: false, preferenceQuotaUnmet: true },
+      },
+    ]);
+    expect(result.passed).toBe(true);
+  });
+
+  it('recomputes the preference share from filtered identities', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'pub-a1' }, { id: 'pub-a2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'pub-b1' }, { id: 'pub-b2' }], strategy: { generic: true } },
+      {
+        styleId: 'c',
+        policyFamily: 'preference-matched',
+        identities: [
+          { id: 'pub-c1', published: true, preferred: true },
+          { id: 'pub-c2', published: true, preferred: true },
+          { id: 'local-c1', published: false },
+          { id: 'local-c2', published: false },
+        ],
+        strategy: { generic: false, preferenceQuotaUnmet: false },
+      },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('c:preference-quota-unmet');
   });
 });
