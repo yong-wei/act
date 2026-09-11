@@ -455,13 +455,15 @@ def _manifest_source_revision(checkout: Path) -> str | None:
 
 def export_resource_index_revision(checkout: Path) -> dict[str, str]:
     captured = _git_capture(checkout)
-    if captured:
+    source = _manifest_source_revision(checkout)
+    if captured and source and captured[0] != source:
+        fail(f"resource-index revision drifted: git HEAD {captured[0]} != pinned sourceRevision {source}")
+    if source:
+        revision, dirty = source, bool(captured[1]) if captured else False
+    elif captured:
         revision, dirty = captured
     else:
-        source = _manifest_source_revision(checkout)
-        if not source:
-            fail("resource-index revision is unavailable without git capture or a pinned sourceRevision")
-        revision, dirty = source, False
+        fail("resource-index revision is unavailable without git capture or a pinned sourceRevision")
     state = checkout_state(checkout)
     revision_file = state / "app-revision"
     write_private_bytes(revision_file, (revision + "\n").encode("utf-8"))

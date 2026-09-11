@@ -238,6 +238,48 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             self.assertTrue(readiness["dirty"])
             self.assertEqual(readiness["revision"], sha)
 
+    def test_export_resource_index_revision_rejects_head_pin_drift(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            subprocess.run(["git", "init"], cwd=checkout, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "dev@example.com"], cwd=checkout, check=True)
+            subprocess.run(["git", "config", "user.name", "dev"], cwd=checkout, check=True)
+            (checkout / "tracked.txt").write_text("ok\n", encoding="utf-8")
+            subprocess.run(["git", "add", "tracked.txt"], cwd=checkout, check=True, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init"], cwd=checkout, check=True, capture_output=True)
+            manifest, _, _ = write_release(Path(raw) / "release")
+            runtime = checkout / "course-content" / "runtime"
+            runtime.mkdir(parents=True)
+            (runtime / ".act-runtime-release.v2.json").write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaises(DeveloperRuntimeError):
+                export_resource_index_revision(checkout)
+
+    def test_export_resource_index_revision_accepts_matching_dirty_pin(self):
+        with tempfile.TemporaryDirectory() as raw:
+            checkout = Path(raw) / "repo"
+            checkout.mkdir()
+            os.environ["ACT_RUNTIME_DEV_STATE_HOME"] = str(Path(raw) / "xdg-state")
+            subprocess.run(["git", "init"], cwd=checkout, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "dev@example.com"], cwd=checkout, check=True)
+            subprocess.run(["git", "config", "user.name", "dev"], cwd=checkout, check=True)
+            (checkout / "tracked.txt").write_text("ok\n", encoding="utf-8")
+            subprocess.run(["git", "add", "tracked.txt"], cwd=checkout, check=True, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "init"], cwd=checkout, check=True, capture_output=True)
+            sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=checkout, text=True).strip().lower()
+            manifest, _, _ = write_release(Path(raw) / "release")
+            manifest["sourceRevision"] = sha
+            runtime = checkout / "course-content" / "runtime"
+            runtime.mkdir(parents=True)
+            (runtime / ".act-runtime-release.v2.json").write_text(json.dumps(manifest), encoding="utf-8")
+            (checkout / "tracked.txt").write_text("dirty\n", encoding="utf-8")
+            pin = export_resource_index_revision(checkout)
+            self.assertEqual(pin["APP_REVISION"], sha)
+            readiness = json.loads((checkout_state(checkout) / "resource-index-revision.json").read_text(encoding="utf-8"))
+            self.assertTrue(readiness["dirty"])
+            self.assertEqual(readiness["revision"], sha)
+
     def test_readyz_unknown_fields_and_http_fail_closed(self):
         manifest, _, _ = write_release(Path(tempfile.mkdtemp()))
         payload = readyz_payload(manifest)
