@@ -467,6 +467,10 @@ describe('adaptive path candidate batches', () => {
     expect(resolveAdaptivePathCandidateSelection(batch, { candidateId: 'missing' })).toEqual({
       status: 'unresolved', batchId: 'batch-1',
     });
+    expect(resolveAdaptivePathCandidateSelection({
+      ...batch,
+      metadata: { diversityLimitations: ['insufficient-candidate-diversity'] },
+    }, { candidateId: candidates[0].id })).toEqual({ status: 'unavailable' });
   });
 
   it('persists adjustment lineage and detects governed material differences', async () => {

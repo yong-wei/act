@@ -353,15 +353,16 @@ export function computeAdaptivePathBatchDifferentiation(
     return {
       styleId: candidate.styleId,
       policyFamily: candidate.policyFamily,
-      identities: countedNodes.flatMap((node) => {
-        const id = node.resourceFeatureRef?.resourceId
+      identities: countedNodes.map((node) => {
+        const publishedId = node.resourceFeatureRef?.resourceId
           ?? node.runtimeResourceBinding?.objectKey
           ?? (node.sourceKind === 'teaching_projection' ? node.sourceRef : null);
-        return id ? [{
-          id,
+        return {
+          id: publishedId ?? node.nodeId,
+          published: Boolean(publishedId),
           type: node.type,
           preferred: preferredTypes.has(node.type),
-        }] : [];
+        };
       }),
       strategy,
     };
@@ -578,6 +579,10 @@ export function resolveAdaptivePathCandidateSelection(
   input: { candidateId?: string | null; naturalLanguageIntent?: string | null },
 ): AdaptivePathCandidateSelectionResolution {
   if (!batch) return { status: 'unavailable' };
+  const limitations = batch.metadata?.diversityLimitations;
+  if (Array.isArray(limitations) && limitations.includes('insufficient-candidate-diversity')) {
+    return { status: 'unavailable' };
+  }
   if (input.candidateId) {
     const candidate = batch.candidates.find((item) => item.id === input.candidateId);
     return candidate

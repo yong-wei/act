@@ -127,4 +127,40 @@ describe('adaptive path hard diversity (#2077)', () => {
     expect(result.passed).toBe(false);
     expect(result.reasons.some((reason) => reason.includes('jaccard-similarity-above-30'))).toBe(true);
   });
+
+  it('uses all non-required resources as the unique-share denominator', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      {
+        styleId: 'a',
+        identities: [
+          { id: 'local-a1', published: false },
+          { id: 'local-a2', published: false },
+          { id: 'local-a3', published: false },
+          { id: 'pub-a1', published: true },
+          { id: 'pub-a2', published: true },
+        ],
+        strategy: { generic: true },
+      },
+      {
+        styleId: 'b',
+        identities: [
+          { id: 'local-b1', published: false },
+          { id: 'pub-b1', published: true },
+          { id: 'pub-b2', published: true },
+        ],
+        strategy: { generic: true },
+      },
+      {
+        styleId: 'c',
+        identities: [
+          { id: 'local-c1', published: false },
+          { id: 'pub-c1', published: true },
+          { id: 'pub-c2', published: true },
+        ],
+        strategy: { generic: true },
+      },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('a:unique-share-below-50');
+  });
 });

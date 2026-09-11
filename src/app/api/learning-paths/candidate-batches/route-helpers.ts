@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { AdaptivePathCandidateBatchView } from '@/features/personalization/path-planning/public-api';
 import {
+  batchHasInsufficientCandidateDiversity,
   buildAdaptivePathBatchComparisonView,
   stripInternalBatchMetadata,
 } from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
@@ -20,11 +21,14 @@ export type VersionedAdaptivePathCandidateBatch = AdaptivePathCandidateBatchView
 export function sanitizeCandidateBatchForStudentResponse<T extends VersionedAdaptivePathCandidateBatch>(
   batch: T,
 ): T {
+  const comparison = buildAdaptivePathBatchComparisonView(batch.metadata);
   return {
     ...batch,
     metadata: stripInternalBatchMetadata(batch.metadata),
-    comparison: buildAdaptivePathBatchComparisonView(batch.metadata),
-    candidates: batch.candidates.map(redactCandidateSnapshotRuntimeBinding),
+    comparison,
+    candidates: batchHasInsufficientCandidateDiversity({ metadata: batch.metadata, comparison })
+      ? []
+      : batch.candidates.map(redactCandidateSnapshotRuntimeBinding),
   };
 }
 
