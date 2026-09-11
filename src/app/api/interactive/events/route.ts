@@ -91,17 +91,41 @@ function toDateTime(value: number | string | null | undefined): Date | null {
  * - 合法的resourceId必须是cuid格式（25个字符，以c开头）或null/undefined
  * - 返回null表示不合法，应该丢弃或降级处理
  */
-function isAuthoritativePathSubmission(eventData: Record<string, unknown>): boolean {
+function hasFiniteScore(eventData: Record<string, unknown>): boolean {
+  return typeof eventData.score === 'number' && Number.isFinite(eventData.score);
+}
+
+function hasAuthoritativeSubmissionPayload(eventData: Record<string, unknown>): boolean {
   const answers = readRecord(eventData.answers);
   const digest = readRecord(eventData.answerDigest);
   const hasAnswers = Object.keys(answers).length > 0 || Object.keys(digest).length > 0;
   const summaries = Array.isArray(eventData.questionSummaries) ? eventData.questionSummaries : [];
   const schemaVersion = typeof eventData.schemaVersion === 'string' ? eventData.schemaVersion : '';
-  const score = typeof eventData.score === 'number' && Number.isFinite(eventData.score);
   if (schemaVersion === 'manifest-submission-v2' && (hasAnswers || summaries.length > 0)) {
     return true;
   }
-  return score && (hasAnswers || summaries.length > 0);
+  if (hasFiniteScore(eventData) && (hasAnswers || summaries.length > 0)) {
+    return true;
+  }
+  return hasFiniteScore(eventData);
+}
+
+function isAuthoritativePathSubmission(
+  eventData: Record<string, unknown>,
+  ownedTeachingResource: { id: string } | null,
+): boolean {
+  const answers = readRecord(eventData.answers);
+  const digest = readRecord(eventData.answerDigest);
+  const hasAnswers = Object.keys(answers).length > 0 || Object.keys(digest).length > 0;
+  const summaries = Array.isArray(eventData.questionSummaries) ? eventData.questionSummaries : [];
+  const schemaVersion = typeof eventData.schemaVersion === 'string' ? eventData.schemaVersion : '';
+  if (schemaVersion === 'manifest-submission-v2' && (hasAnswers || summaries.length > 0)) {
+    return true;
+  }
+  if (!hasFiniteScore(eventData)) {
+    return false;
+  }
+  return hasAnswers || summaries.length > 0 || ownedTeachingResource !== null;
 }
 
 function claimedPathLaunchFields(eventData: Record<string, unknown>): boolean {
@@ -185,7 +209,7 @@ async function bindOwnedPathLaunchEvent(
   if (courseDemoStep && claimedStep && claimedStep !== courseDemoStep) {
     return { eventData: rest, resourceId, outcome: 'unbound' };
   }
-  if (!isAuthoritativePathSubmission(rest)) {
+  if (!isAuthoritativePathSubmission(rest, owned)) {
     return { eventData: rest, resourceId, outcome: 'unbound' };
   }
   return {
@@ -445,7 +469,7 @@ function partitionClassifiedSubmissionEvents(events: NormalizedInteractionEvent[
       legacy.push(item);
     } else if (isClassifiedSubmissionEvent(item, userId)) {
       submissions.push(item);
-    } else if (claimedPathLaunchFields(payload) && isAuthoritativePathSubmission(payload)) {
+    } else if (claimedPathLaunchFields(payload) && hasAuthoritativeSubmissionPayload(payload)) {
       legacy.push(item);
     } else {
       identityLessSubmissions.push(item);

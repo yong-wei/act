@@ -1693,6 +1693,88 @@ describe('POST /api/interactive/events', () => {
       pathExecutionBound: true,
     });
   });
+
+  it('stamps a teaching-resource completion that only carries a server-owned score', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-score-only', clientEventId: 'client-score-only', eventData: { clientEventId: 'client-score-only' } },
+    ]);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      goalId: 'control-correction',
+      nodeIds: ['teaching-resource:cmoxloe52000uq5bcojma7r79'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+          type: 'lesson_step',
+          sourceKind: 'teaching_resource',
+          sourceRef: 'cmoxloe52000uq5bcojma7r79',
+        }],
+      },
+    });
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue({ id: 'cmoxloe52000uq5bcojma7r79' });
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-score-only',
+        type: 'complete',
+        timestamp: Date.parse('2026-09-11T01:00:00.000Z'),
+        resourceKey: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+        data: {
+          pathId: 'path-1',
+          nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+          resourceType: 'lesson_step',
+          score: 100,
+          success: true,
+        },
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).toMatchObject({
+      pathId: 'path-1',
+      pathExecutionBound: true,
+    });
+  });
+
+  it('does not stamp a score-only course-demo event without answers', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-score-demo', clientEventId: 'client-score-demo', eventData: { clientEventId: 'client-score-demo' } },
+    ]);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      goalId: 'control-correction',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-score-demo',
+        type: 'complete',
+        timestamp: Date.parse('2026-09-11T01:00:00.000Z'),
+        resourceKey: 'simulation:control-correction-step-response-lab',
+        data: {
+          pathId: 'path-1',
+          nodeId: 'simulation:control-correction-step-response-lab',
+          stepId: 'step-11',
+          score: 100,
+        },
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).not.toMatchObject({
+      pathExecutionBound: true,
+    });
+  });
 });
 
 function createGetRequest(query: string): NextRequest {
