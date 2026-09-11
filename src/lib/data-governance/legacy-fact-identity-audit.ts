@@ -55,6 +55,12 @@ export interface IdentityAuditReport {
   countsBefore?: IdentityAuditReport['counts'];
 }
 
+export function parseIdentityAuditMode(value: string | null): IdentityAuditReport['mode'] {
+  const mode = value ?? 'audit';
+  if (mode === 'audit' || mode === 'isolate' || mode === 'restore') return mode;
+  throw new Error(`identity-audit-invalid-mode:${mode}`);
+}
+
 export function resolveAuditExecutionRevision(options: {
   requireCapture?: boolean;
   gitHead?: string | null;

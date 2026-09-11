@@ -6,7 +6,9 @@ import { appendLearnerFactTransition } from '../../src/lib/data-governance/cumul
 import { refreshStudentEvidenceFeatureCache } from '../../src/lib/data-governance/student-evidence-feature-cache';
 import {
   buildIdentityAuditReport,
+  isIdentityIsolated,
   isolationSourceReference,
+  parseIdentityAuditMode,
   planIdentityIsolation,
   planIdentityIsolationRestore,
   previousGovernanceFromIsolatedContext,
@@ -70,7 +72,7 @@ async function main() {
   if (!userId) {
     throw new Error('Usage: tsx scripts/db/audit-legacy-fact-identity.ts --user-id <id> [--mode audit|isolate|restore] [--apply] [--out report.json]');
   }
-  const mode = (readOption('--mode') ?? 'audit') as 'audit' | 'isolate' | 'restore';
+  const mode = parseIdentityAuditMode(readOption('--mode'));
   const apply = hasFlag('--apply');
   const git = captureGitWorkspace();
   const executionRevision = resolveAuditExecutionRevision({
@@ -134,6 +136,27 @@ async function main() {
   if (apply && (mode === 'isolate' || mode === 'restore')) {
     for (const write of writes) {
       await prisma.$transaction(async (tx) => {
+        if (typeof tx.$queryRawUnsafe === 'function') {
+          await tx.$queryRawUnsafe(
+            'SELECT "id" FROM "LearningFact" WHERE "id" = $1 FOR UPDATE',
+            write.factId,
+          );
+        }
+        const current = await tx.learningFact.findUnique({
+          where: { id: write.factId },
+          select: { contextJson: true },
+        });
+        if (!current) return;
+        const isolated = isIdentityIsolated(current.contextJson);
+        if (mode === 'isolate' && isolated) return;
+        if (mode === 'restore' && !isolated) return;
+        const existing = write.transition.sourceReference
+          ? await tx.learnerFactTransition.findFirst({
+            where: { sourceReference: write.transition.sourceReference },
+            select: { id: true },
+          })
+          : null;
+        if (existing) return;
         await tx.learningFact.update({
           where: { id: write.factId },
           data: { contextJson: write.nextContext },

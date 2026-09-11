@@ -6,6 +6,7 @@ import {
   classifyLearningFactIdentity,
   identityColumnsUnchanged,
   isolationSourceReference,
+  parseIdentityAuditMode,
   planIdentityIsolation,
   planIdentityIsolationRestore,
   resolveAuditExecutionRevision,
@@ -204,6 +205,9 @@ describe('legacy fact identity audit', () => {
         gitHead: 'a2377a630b1006979b896516011888735b1fc510',
       })).toBe('a2377a630b1006979b896516011888735b1fc510');
       expect(resolveAuditExecutionRevision()).toBe('unspecified-local');
+      expect(parseIdentityAuditMode(null)).toBe('audit');
+      expect(parseIdentityAuditMode('restore')).toBe('restore');
+      expect(() => parseIdentityAuditMode('isolatee')).toThrow('identity-audit-invalid-mode:isolatee');
     } finally {
       if (previousApp === undefined) delete process.env.APP_REVISION;
       else process.env.APP_REVISION = previousApp;
