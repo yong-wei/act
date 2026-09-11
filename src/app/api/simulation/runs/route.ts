@@ -93,10 +93,11 @@ async function trustedSceneLaunchContext(
   };
 }
 
-async function resolvePathLaunchedWorkbenchContext(
+async function resolvePathLaunchedNodeContext(
   userId: string,
   pathId: string,
   nodeId: string,
+  allowedTypes: readonly string[],
 ): Promise<SimulationRunLaunchContext | null> {
   const path = await prisma.learningPath.findFirst({
     where: { id: pathId, userId },
@@ -108,7 +109,7 @@ async function resolvePathLaunchedWorkbenchContext(
   const payload = record(path.pathPayload);
   const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
   const node = planNodes.map(record).find((entry) => entry.nodeId === nodeId);
-  if (!node || node.type !== 'control_workbench') return null;
+  if (!node || !allowedTypes.includes(String(node.type))) return null;
   return {
     pathId,
     pathNodeId: nodeId,
@@ -195,10 +196,11 @@ export async function POST(request: NextRequest) {
         if (!clientRunId || !capabilityId || !isControlAnalysisRequest(body.request)) {
           return NextResponse.json({ error: 'Invalid control workbench run' }, { status: 400 });
         }
-        const trustedPathContext = await resolvePathLaunchedWorkbenchContext(
+        const trustedPathContext = await resolvePathLaunchedNodeContext(
           session.user.id,
           pathId,
           pathNodeId,
+          ['control_workbench'],
         );
         if (!trustedPathContext) {
           return NextResponse.json({ error: 'Untrusted control workbench context' }, { status: 403 });
@@ -259,15 +261,24 @@ export async function POST(request: NextRequest) {
       if (!isCruiseTraceSummary(body.traceSummary)) {
         return NextResponse.json({ error: 'Invalid scene trace' }, { status: 400 });
       }
+      const untrustedLaunchContext = record(body.launchContext);
+      const pathId = text(untrustedLaunchContext.pathId);
+      const pathNodeId = text(untrustedLaunchContext.nodeId);
+      const launchContext = pathId && pathNodeId
+        ? await resolvePathLaunchedNodeContext(session.user.id, pathId, pathNodeId, ['simulation'])
+        : {
+          ...await trustedSceneLaunchContext(body.launchContext, session.user),
+          registryId: 'sim-scene-cruise',
+        };
+      if (!launchContext) {
+        return NextResponse.json({ error: 'Untrusted simulation context' }, { status: 403 });
+      }
       const result = await persistSceneTraceSimulationRun(
         prisma,
         session.user.id,
         {
           traceSummary: body.traceSummary,
-          launchContext: {
-            ...await trustedSceneLaunchContext(body.launchContext, session.user),
-            registryId: 'sim-scene-cruise',
-          },
+          launchContext,
         },
         (controller) => evaluatePIDParams(controller, { shipSpeed: 15 }, LEGACY_SCENE_TRACE_TARGET),
       );

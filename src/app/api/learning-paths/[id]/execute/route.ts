@@ -949,6 +949,9 @@ async function interactionLogMatchesPathNode(
   input: { pathId: string; nodeId: string; goalId?: string | null },
   pathNode: Record<string, unknown> | null,
 ): Promise<boolean> {
+  if (eventData.pathExecutionBound !== true) {
+    return false;
+  }
   if (firstString(eventData.pathId) !== input.pathId || firstString(eventData.nodeId) !== input.nodeId) {
     return false;
   }
@@ -1074,7 +1077,10 @@ async function resolveGovernedSimulationOutcomeEvidence<T extends {
 ): Promise<T | NextResponse> {
   if (input.resourceType !== 'simulation' || input.status !== 'completed') return input;
   const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
-  const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
+  const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope, {
+    pathId: typeof path?.id === 'string' ? path.id : '',
+    nodeId: input.nodeId,
+  });
   if (!isTrustedSimulationOutcomeRef(simulationRef)) {
     return rejectUngovernedGradableCompletion('仿真完成缺少本路径已核验的仿真运行');
   }

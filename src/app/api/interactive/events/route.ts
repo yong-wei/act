@@ -90,6 +90,72 @@ function toDateTime(value: number | string | null | undefined): Date | null {
  * - 合法的resourceId必须是cuid格式（25个字符，以c开头）或null/undefined
  * - 返回null表示不合法，应该丢弃或降级处理
  */
+async function bindOwnedPathLaunchEvent(
+  userId: string,
+  eventData: Record<string, unknown>,
+  resourceId: string | null,
+): Promise<{ eventData: Record<string, unknown>; resourceId: string | null }> {
+  const {
+    pathExecutionBound: _forgedBound,
+    pathId: claimedPathId,
+    nodeId: claimedNodeId,
+    ...rest
+  } = eventData;
+  const pathId = typeof claimedPathId === 'string' ? claimedPathId.trim() : '';
+  const nodeId = typeof claimedNodeId === 'string' ? claimedNodeId.trim() : '';
+  if (!pathId || !nodeId) {
+    return { eventData: rest, resourceId };
+  }
+  const path = await prisma.learningPath.findFirst({
+    where: { id: pathId, userId },
+    select: { id: true, goalId: true, nodeIds: true, pathPayload: true },
+  });
+  if (!path) {
+    return { eventData: rest, resourceId };
+  }
+  const nodeIds = Array.isArray(path.nodeIds)
+    ? path.nodeIds.filter((value): value is string => typeof value === 'string')
+    : [];
+  const payload = path.pathPayload && typeof path.pathPayload === 'object' && !Array.isArray(path.pathPayload)
+    ? path.pathPayload as Record<string, unknown>
+    : {};
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const node = planNodes.find((entry) => (
+    entry
+    && typeof entry === 'object'
+    && !Array.isArray(entry)
+    && (entry as { nodeId?: unknown }).nodeId === nodeId
+  )) as Record<string, unknown> | undefined;
+  if ((nodeIds.length > 0 && !nodeIds.includes(nodeId)) || !node) {
+    return { eventData: rest, resourceId };
+  }
+  const registryCandidates = [
+    node.registryId,
+    node.sourceRef,
+    nodeId.startsWith('registry:') ? nodeId.slice('registry:'.length) : null,
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    .map((value) => value.trim());
+  const owned = registryCandidates.length > 0
+    ? await prisma.teachingResource.findFirst({
+      where: { registryId: { in: registryCandidates } },
+      select: { id: true },
+    })
+    : null;
+  if (!owned) {
+    return { eventData: rest, resourceId };
+  }
+  return {
+    resourceId: owned.id,
+    eventData: {
+      ...rest,
+      pathId: path.id,
+      nodeId,
+      ...(typeof path.goalId === 'string' && path.goalId ? { goalId: path.goalId } : {}),
+      pathExecutionBound: true,
+    },
+  };
+}
+
 function validateResourceId(resourceId: string | null | undefined): string | null {
   if (!resourceId) return null;
 
@@ -924,11 +990,13 @@ export async function POST(request: NextRequest) {
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = legacyEvidenceEvents.map((item) => {
+    const interactionLogEvents = [];
+    for (const item of legacyEvidenceEvents) {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
-      return {
+      const bound = await bindOwnedPathLaunchEvent(session.user.id, eventData, item.resourceId);
+      interactionLogEvents.push({
         userId: session.user.id,
-        resourceId: item.resourceId,
+        resourceId: bound.resourceId,
         resourceKey: item.event.resourceKey,
         sessionId: item.sessionId,
         lessonKey: item.event.lessonKey ?? null,
@@ -939,10 +1007,10 @@ export async function POST(request: NextRequest) {
         clientEventId: item.clientEventId,
         learningContext: item.learningContext,
         invalidContextReason: item.invalidContextReason,
-        eventData,
+        eventData: bound.eventData,
         clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
-      };
-    });
+      });
+    }
 
     const persistedLogs = interactionLogEvents.length > 0
       ? await prisma.interactionLog.createManyAndReturn({

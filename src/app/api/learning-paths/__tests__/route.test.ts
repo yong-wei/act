@@ -607,7 +607,7 @@ describe('learning path round API routes', () => {
     });
   }
 
-  function trustedCruiseSimulationRun(id = 'sim-run-1') {
+  function trustedCruiseSimulationRun(id = 'sim-run-1', nodeId = 'node-1', pathId = 'path-1') {
     return {
       id,
       ownerUserId: 'student-1',
@@ -616,6 +616,9 @@ describe('learning path round API routes', () => {
       sourceRefId: 'cruise',
       resourceId: 'cruise',
       taskSpecId: null,
+      taskSpecSnapshot: {
+        launchContext: { pathId, pathNodeId: nodeId, resourceId: nodeId },
+      },
       status: 'completed',
       summary: { replayConfidence: 0.9 },
       protocolVersion: '1.0',
@@ -1202,6 +1205,7 @@ describe('learning path round API routes', () => {
         pathId: 'path-1',
         nodeId: 'registry:lesson09-correction-precheck',
         goalId: 'control-correction',
+        pathExecutionBound: true,
       },
     });
     mocks.prisma.teachingResource.findUnique.mockResolvedValue({
@@ -2478,6 +2482,13 @@ describe('learning path round API routes', () => {
       sourceRefId: 'control-correction-step-response-lab',
       resourceId: 'control-correction-step-response-lab',
       taskSpecId: null,
+      taskSpecSnapshot: {
+        launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'simulation:control-correction-step-response-lab',
+          resourceId: 'control-correction-step-response-lab',
+        },
+      },
       status: 'completed',
       summary: { replayConfidence: 0.84 },
       protocolVersion: '1.0',
@@ -5218,6 +5229,7 @@ describe('learning path round API routes', () => {
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
         goalId: 'frequency-response-foundations',
+        pathExecutionBound: true,
       },
     });
     mocks.prisma.teachingResource.findUnique.mockResolvedValue({
@@ -5419,6 +5431,40 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
+  it('rejects a scored quiz log that was not bound by the server path launch', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-unbound',
+      clientEventId: 'evt-unbound',
+      eventType: 'complete',
+      resourceId: 'cbodequiz0000000000000001',
+      eventData: {
+        score: 100,
+        pathId: 'path-1',
+        nodeId: 'registry:bode-quiz',
+        goalId: 'frequency-response-foundations',
+      },
+    });
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue({
+      id: 'cbodequiz0000000000000001',
+      registryId: 'bode-quiz',
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-unbound',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, clientEventId: 'evt-unbound' },
+      },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('rejects a scored quiz log whose resource identity does not match the path node', async () => {
     configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
     mocks.prisma.interactionLog.findFirst.mockResolvedValue({
@@ -5432,6 +5478,7 @@ describe('learning path round API routes', () => {
         nodeId: 'registry:bode-quiz',
         goalId: 'frequency-response-foundations',
         registryId: 'bode-quiz',
+        pathExecutionBound: true,
       },
     });
     mocks.prisma.teachingResource.findUnique.mockResolvedValue({
@@ -5508,6 +5555,7 @@ describe('learning path round API routes', () => {
         pathId: 'path-1',
         nodeId: 'registry:lesson13-physics-builder-simple',
         goalId: 'frequency-response-foundations',
+        pathExecutionBound: true,
       },
     });
     mocks.prisma.teachingResource.findUnique.mockResolvedValue({
@@ -5550,6 +5598,7 @@ describe('learning path round API routes', () => {
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
         goalId: 'frequency-response-foundations',
+        pathExecutionBound: true,
       },
     });
     mocks.prisma.teachingResource.findUnique.mockResolvedValue({
@@ -5725,6 +5774,24 @@ describe('learning path round API routes', () => {
       status: 'completed',
       idempotencyKey: 'exec-workbench-classroom-run',
       simulationRef: { id: 'wb-run-classroom' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects a trusted simulation run that belongs to another path', async () => {
+    configureSingleNodePath('simulation:cruise', 'simulation', '/simulations/cruise');
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(
+      trustedCruiseSimulationRun('wb-run-path-2', 'simulation:cruise', 'path-2'),
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:cruise',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'exec-simulation-foreign-path',
+      simulationRef: { id: 'wb-run-path-2' },
     }), params);
 
     expect(response.status).toBe(409);
@@ -6370,6 +6437,13 @@ describe('learning path round API routes', () => {
       sourceRefId: 'control-correction-step-response-lab',
       resourceId: 'control-correction-step-response-lab',
       taskSpecId: null,
+      taskSpecSnapshot: {
+        launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'simulation:control-correction-step-response-lab',
+          resourceId: 'control-correction-step-response-lab',
+        },
+      },
       status: 'completed',
       summary: { replayConfidence: 0.84 },
       protocolVersion: '1.0',
@@ -6796,6 +6870,13 @@ describe('learning path round API routes', () => {
       sourceRefId: 'control-correction-step-response-lab',
       resourceId: 'control-correction-step-response-lab',
       taskSpecId: null,
+      taskSpecSnapshot: {
+        launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'simulation:control-correction-step-response-lab',
+          resourceId: 'control-correction-step-response-lab',
+        },
+      },
       status: 'completed',
       summary: { replayConfidence: 0.84 },
       protocolVersion: '1.0',

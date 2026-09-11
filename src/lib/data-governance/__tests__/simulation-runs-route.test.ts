@@ -254,6 +254,65 @@ describe('POST /api/simulation/runs', () => {
     expect(mocks.persistControlWorkbenchSimulationRun).not.toHaveBeenCalled();
   });
 
+  it('persists a path-launched scene trace under the owned simulation node', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      nodeIds: ['simulation:cruise'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:cruise',
+          type: 'simulation',
+          target: '/simulations/cruise',
+        }],
+      },
+    });
+
+    const response = await POST(request({
+      kind: 'scene-trace',
+      traceSummary: {
+        trace: {
+          envelope: {
+            sceneId: 'sim/cruise',
+            runId: 'cruise-run-1',
+            checksum: 'browser-fnv1a32:00000000',
+            seed: 42,
+            startedAt: '2026-07-25T01:00:00.000Z',
+            completedAt: '2026-07-25T01:10:00.000Z',
+            sampleCadence: 0.5,
+          },
+          samples: { frameCount: 1200 },
+          summary: {
+            passed: true,
+            metrics: {
+              controller_kp: 0.6,
+              controller_ki: 0.008,
+              controller_kd: 1.5,
+            },
+          },
+        },
+      },
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:cruise',
+      },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.persistSceneTraceSimulationRun).toHaveBeenCalledWith(
+      expect.anything(),
+      'student-1',
+      expect.objectContaining({
+        launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'simulation:cruise',
+          resourceId: 'simulation:cruise',
+        },
+      }),
+      expect.any(Function),
+    );
+  });
+
   it('binds a server-evaluated Cruise run to the authenticated classroom context', async () => {
     const response = await POST(request({
       kind: 'scene-trace',
