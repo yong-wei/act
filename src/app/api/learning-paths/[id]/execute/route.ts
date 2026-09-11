@@ -183,6 +183,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           if (governedQuizInput instanceof NextResponse) return governedQuizInput;
           const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
+          if (governedSimulationInput instanceof NextResponse) return governedSimulationInput;
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
           if (governedWorkbenchInput instanceof NextResponse) return governedWorkbenchInput;
           const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
@@ -250,6 +251,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (governedQuizInput instanceof NextResponse) return governedQuizInput;
     const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
+    if (governedSimulationInput instanceof NextResponse) return governedSimulationInput;
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
     if (governedWorkbenchInput instanceof NextResponse) return governedWorkbenchInput;
     const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
@@ -1069,10 +1071,13 @@ async function resolveGovernedSimulationOutcomeEvidence<T extends {
   db: any,
   path: any,
   input: T,
-): Promise<T> {
+): Promise<T | NextResponse> {
   if (input.resourceType !== 'simulation' || input.status !== 'completed') return input;
   const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
   const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
+  if (!isTrustedSimulationOutcomeRef(simulationRef)) {
+    return rejectUngovernedGradableCompletion('仿真完成缺少本路径已核验的仿真运行');
+  }
   return {
     ...input,
     simulationRef,

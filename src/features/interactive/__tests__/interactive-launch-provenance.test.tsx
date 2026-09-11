@@ -276,7 +276,9 @@ describe('useResourceInteractionTracking classroom session propagation (Issue #1
       await trackerRef.current?.trackResourceComplete({ score: 100 });
     });
     const pathBody = JSON.parse(String(vi.mocked(fetch).mock.calls.at(-1)?.[1]?.body));
-    expect(pathBody.events.at(-1)?.data).toMatchObject({
+    const pathEvent = pathBody.events.at(-1);
+    expect(pathEvent?.id).toBe(pathEvent?.data.clientEventId);
+    expect(pathEvent?.data).toMatchObject({
       pathId: 'path-1',
       goalId: 'control-correction',
       nodeId: 'node-1',

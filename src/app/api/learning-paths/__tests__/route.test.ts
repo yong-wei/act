@@ -607,6 +607,22 @@ describe('learning path round API routes', () => {
     });
   }
 
+  function trustedCruiseSimulationRun(id = 'sim-run-1') {
+    return {
+      id,
+      ownerUserId: 'student-1',
+      runKind: 'scene_simulation',
+      sourceDomain: 'simulation_scene',
+      sourceRefId: 'cruise',
+      resourceId: 'cruise',
+      taskSpecId: null,
+      status: 'completed',
+      summary: { replayConfidence: 0.9 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    };
+  }
+
   function legacyRegistryDependentPath(registryId: string, taskId: string) {
     const legacyNodeId = `registry:${registryId}`;
     const canonicalNodeId = `arena-task:${taskId}`;
@@ -1065,11 +1081,13 @@ describe('learning path round API routes', () => {
   });
 
   it('records execution and deviation writes for the student owner with idempotency keys', async () => {
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(trustedCruiseSimulationRun());
     const executionResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'node-1',
       resourceType: 'simulation',
       status: 'completed',
       idempotencyKey: 'exec-key',
+      simulationRef: { id: 'sim-run-1' },
     }), params);
     const deviationResponse = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
       deviationType: 'skip',
@@ -1099,7 +1117,6 @@ describe('learning path round API routes', () => {
           state: 'low-confidence',
           lowConfidenceMarkers: expect.arrayContaining([
             'arena-terminal-evidence-missing',
-            'simulation-evidence-missing',
           ]),
         }),
       }),
@@ -1238,24 +1255,9 @@ describe('learning path round API routes', () => {
       simulationRef: { id: 'sim-run-forged' },
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      simulationRef: expect.objectContaining({
-        id: 'sim-run-forged',
-        provenance: 'unknown',
-        official: false,
-        status: 'unverified',
-      }),
-      evidenceRefs: [],
-    }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        currentNodeId: 'simulation:control-correction-step-response-lab',
-        lastExecutionMetadata: expect.objectContaining({
-          availableOutcomeRefs: [],
-        }),
-      }),
-    }));
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('does not unlock simulation outcome gates from forged structured evidence refs', async () => {
@@ -1275,19 +1277,9 @@ describe('learning path round API routes', () => {
       }],
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      simulationRef: null,
-      evidenceRefs: [],
-    }));
-    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        currentNodeId: 'simulation:control-correction-step-response-lab',
-        lastExecutionMetadata: expect.objectContaining({
-          availableOutcomeRefs: [],
-        }),
-      }),
-    }));
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('normalizes adaptive assessment refs through server-owned answers before unlocking outcome gates', async () => {
@@ -2769,16 +2761,8 @@ describe('learning path round API routes', () => {
       simulationRef: { id: 'sim-run-b' },
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      simulationRef: expect.objectContaining({
-        id: 'sim-run-b',
-        provenance: 'unknown',
-        official: false,
-        mismatchReason: 'simulation-scope-mismatch',
-      }),
-      evidenceRefs: [],
-    }));
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
   it('records completed-node continue and return-to-skipped as governed path activity without opening arbitrary nodes', async () => {
@@ -5747,6 +5731,21 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
+  it('rejects a self-reported simulation completion without a trusted run', async () => {
+    configureSingleNodePath('simulation:cruise', 'simulation', '/simulations/cruise');
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:cruise',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'exec-simulation-self-report',
+      simulationRef: { id: 'forged-run' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('rejects a self-reported control-workbench completion without a persisted run', async () => {
     configureSingleNodePath(
       'control-workbench:lead-design',
@@ -6912,12 +6911,14 @@ describe('learning path round API routes', () => {
 
   it('returns pending cache refresh instead of failing a successful path write', async () => {
     mocks.refreshStudentEvidenceFeatureCache.mockRejectedValue(new Error('cache unavailable'));
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(trustedCruiseSimulationRun());
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'node-1',
       resourceType: 'simulation',
       status: 'completed',
       idempotencyKey: 'exec-key',
+      simulationRef: { id: 'sim-run-1' },
     }), params);
     const payload = await response.json();
 
@@ -7011,8 +7012,10 @@ describe('learning path round API routes', () => {
       resourceType: 'simulation',
       status: 'completed',
       completedAt: new Date('2026-06-04T10:00:00.000Z'),
+      simulationRef: { id: 'sim-run-1' },
     };
     mocks.prisma.learningPathExecution.findFirst.mockResolvedValue(existingExecution);
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(trustedCruiseSimulationRun());
     mocks.recordPathNodeExecution.mockResolvedValueOnce(existingExecution);
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
@@ -7020,6 +7023,7 @@ describe('learning path round API routes', () => {
       resourceType: 'simulation',
       status: 'completed',
       idempotencyKey: 'exec-key',
+      simulationRef: { id: 'sim-run-1' },
     }), params);
     const payload = await response.json();
 

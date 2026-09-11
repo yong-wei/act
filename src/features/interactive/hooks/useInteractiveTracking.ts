@@ -204,15 +204,22 @@ export function useInteractiveTracking(
       eventResourceKey: data.resourceKey,
     });
 
+    const providedClientEventId = typeof data.clientEventId === 'string' && data.clientEventId.trim()
+      ? data.clientEventId.trim()
+      : null;
+    const eventId = providedClientEventId ?? `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const event: TrackingEvent = {
-      id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: eventId,
       type,
       resourceId: resourceIdentity.resourceId,
       resourceKey: resourceIdentity.resourceKey,
       userId,
       sessionId,
       timestamp: Date.now(),
-      data,
+      data: {
+        ...data,
+        clientEventId: eventId,
+      },
       lessonKey: typeof data.lessonKey === 'string' ? data.lessonKey : null,
       stepId: typeof data.stepId === 'string' ? data.stepId : null,
       actorRole: typeof data.actorRole === 'string' ? data.actorRole : null,
