@@ -38,6 +38,10 @@ async function main() {
     if (missing.state !== 'missing') fail(`expected missing, got ${missing.state}`);
     const mismatch = await verifyBoundRuntimeObject(root, 'lessons/1-1/media/intro.mp4', 'c'.repeat(64));
     if (mismatch.state !== 'checksum-mismatch') fail(`expected checksum-mismatch, got ${mismatch.state}`);
+    writeFileSync(path.join(root, '.act-runtime-blobs', sha256), Buffer.from('stale-helper\n'));
+    const stale = await verifyBoundRuntimeObject(root, 'lessons/1-1/media/intro.mp4', sha256);
+    if (stale.state !== 'checksum-mismatch') fail(`expected stale helper checksum-mismatch, got ${stale.state}`);
+    writeFileSync(path.join(root, '.act-runtime-blobs', sha256), body);
 
     const records = await promoteIndexedObjectKeyReads([
       {

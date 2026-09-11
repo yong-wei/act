@@ -1,4 +1,5 @@
 import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { NextResponse } from 'next/server';
@@ -11,6 +12,7 @@ import {
 import {
   boundRuntimeObjectPath,
   defaultRuntimeRoot,
+  resolveBoundMediaByteRange,
   verifyBoundRuntimeObject,
 } from '@/lib/runtime-bound-object-read';
 import {
@@ -63,7 +65,11 @@ function classifiedFailure(
   return NextResponse.json({ error, code }, { status, headers: { 'Cache-Control': 'no-store' } });
 }
 
-async function serveBoundReleaseMedia(runtimePath: string, expectedSha256?: string | null) {
+async function serveBoundReleaseMedia(
+  request: Request,
+  runtimePath: string,
+  expectedSha256?: string | null,
+) {
   const runtimeRoot = defaultRuntimeRoot();
   const verified = await verifyBoundRuntimeObject(runtimeRoot, runtimePath, expectedSha256);
   if (verified.state !== 'verified') {
@@ -72,14 +78,30 @@ async function serveBoundReleaseMedia(runtimePath: string, expectedSha256?: stri
   }
   const abs = boundRuntimeObjectPath(runtimeRoot, runtimePath);
   if (!abs) return classifiedFailure('missing', 404);
-  return new NextResponse(Readable.toWeb(createReadStream(abs)) as ReadableStream, {
-    status: 200,
-    headers: {
-      'Content-Type': MEDIA_TYPES[path.extname(runtimePath).toLowerCase()] || 'application/octet-stream',
-      'Cache-Control': 'no-store',
-      'X-Act-Runtime-Read': 'bound-release',
-    },
-  });
+  const { size } = await stat(abs);
+  const range = resolveBoundMediaByteRange(request.headers.get('Range'), size);
+  const headers: Record<string, string> = {
+    'Content-Type': MEDIA_TYPES[path.extname(runtimePath).toLowerCase()] || 'application/octet-stream',
+    'Cache-Control': 'no-store',
+    'Accept-Ranges': 'bytes',
+    'X-Act-Runtime-Read': 'bound-release',
+  };
+  if (range.kind === 'unsatisfiable') {
+    return new NextResponse(null, {
+      status: 416,
+      headers: { ...headers, 'Content-Range': `bytes */${size}` },
+    });
+  }
+  const start = range.kind === 'partial' ? range.start : 0;
+  const end = range.kind === 'partial' ? range.end : Math.max(size - 1, 0);
+  if (range.kind === 'partial') {
+    headers['Content-Range'] = `bytes ${start}-${end}/${size}`;
+  }
+  headers['Content-Length'] = String(size === 0 ? 0 : end - start + 1);
+  return new NextResponse(
+    Readable.toWeb(createReadStream(abs, size === 0 ? undefined : { start, end })) as ReadableStream,
+    { status: range.kind === 'partial' ? 206 : 200, headers },
+  );
 }
 
 /**
@@ -126,7 +148,7 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
     if (!releaseObject) {
       return classifiedFailure('missing', 404);
     }
-    return serveBoundReleaseMedia(runtimePath, releaseObject.sha256);
+    return serveBoundReleaseMedia(request, runtimePath, releaseObject.sha256);
   }
 
   try {

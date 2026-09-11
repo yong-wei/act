@@ -9,6 +9,7 @@ import { promoteIndexedObjectKeyReads } from '@/features/personalization/path-pl
 import {
   boundRuntimeObjectPath,
   createBoundRuntimeObjectKeyVerifier,
+  resolveBoundMediaByteRange,
   verifyBoundRuntimeObject,
 } from '@/lib/runtime-bound-object-read';
 
@@ -43,6 +44,41 @@ describe('bound runtime object reads', () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it('hashes helper-linked bytes before verified and rejects a named digest that does not match the file', async () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'bound-runtime-corrupt-'));
+    const claimed = 'a'.repeat(64);
+    const body = Buffer.from('corrupt-cache\n');
+    mkdirSync(path.join(root, '.act-runtime-blobs'));
+    mkdirSync(path.join(root, 'lessons/1-1/media'), { recursive: true });
+    writeFileSync(path.join(root, '.act-runtime-blobs', claimed), body);
+    symlinkSync(
+      path.join('..', '..', '..', '.act-runtime-blobs', claimed),
+      path.join(root, 'lessons/1-1/media/intro.mp4'),
+    );
+    const digest = createHash('sha256').update(body).digest('hex');
+    try {
+      await expect(verifyBoundRuntimeObject(root, 'lessons/1-1/media/intro.mp4', claimed)).resolves.toEqual({
+        state: 'checksum-mismatch',
+        contentSha256: digest,
+      });
+      await expect(verifyBoundRuntimeObject(root, `blob:${claimed}`)).resolves.toEqual({
+        state: 'checksum-mismatch',
+        contentSha256: digest,
+      });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('resolves a single byte range for bound media', () => {
+    expect(resolveBoundMediaByteRange(null, 100)).toEqual({ kind: 'all' });
+    expect(resolveBoundMediaByteRange('bytes=0-9', 100)).toEqual({ kind: 'partial', start: 0, end: 9 });
+    expect(resolveBoundMediaByteRange('bytes=50-', 100)).toEqual({ kind: 'partial', start: 50, end: 99 });
+    expect(resolveBoundMediaByteRange('bytes=0-999', 100)).toEqual({ kind: 'partial', start: 0, end: 99 });
+    expect(resolveBoundMediaByteRange('bytes=100-101', 100)).toEqual({ kind: 'unsatisfiable' });
+    expect(resolveBoundMediaByteRange('bytes=0-1,2-3', 100)).toEqual({ kind: 'unsatisfiable' });
   });
 
   it('promotes a generated path record to verified and keeps failed reads out of differentiation', async () => {

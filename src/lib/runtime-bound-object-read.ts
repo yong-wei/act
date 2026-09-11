@@ -42,6 +42,21 @@ function hashFile(abs: string): Promise<string> {
   });
 }
 
+export function resolveBoundMediaByteRange(
+  header: string | null | undefined,
+  size: number,
+): { kind: 'all' } | { kind: 'partial'; start: number; end: number } | { kind: 'unsatisfiable' } {
+  if (!header?.trim()) return { kind: 'all' };
+  const match = /^bytes=(\d+)-(\d+)?$/u.exec(header.trim());
+  if (!match || size < 1) return { kind: 'unsatisfiable' };
+  const start = Number(match[1]);
+  const end = match[2] === undefined ? size - 1 : Number(match[2]);
+  if (![start, end].every((value) => Number.isSafeInteger(value)) || start >= size || end < start) {
+    return { kind: 'unsatisfiable' };
+  }
+  return { kind: 'partial', start, end: Math.min(end, size - 1) };
+}
+
 export async function verifyBoundRuntimeObject(
   runtimeRoot: string,
   objectKey: string,
@@ -51,23 +66,25 @@ export async function verifyBoundRuntimeObject(
   if (!abs) return { state: 'missing', contentSha256: null };
   try {
     const info = await lstat(abs);
+    let named: string | null = null;
     if (info.isSymbolicLink()) {
       const target = path.resolve(path.dirname(abs), await readlink(abs));
       const helperRoot = path.resolve(runtimeRoot, HELPER);
       if (target !== helperRoot && !target.startsWith(`${helperRoot}${path.sep}`)) {
         return { state: 'forbidden', contentSha256: null };
       }
-      const named = path.basename(target).toLowerCase();
-      if (SHA256.test(named)) {
-        if (expectedSha256 && named !== expectedSha256.toLowerCase()) {
-          return { state: 'checksum-mismatch', contentSha256: named };
-        }
-        await lstat(target);
-        return { state: 'verified', contentSha256: named };
-      }
+      const base = path.basename(target).toLowerCase();
+      if (SHA256.test(base)) named = base;
+    } else if (objectKey.startsWith('blob:')) {
+      named = objectKey.slice('blob:'.length).toLowerCase();
+    }
+    const expected = expectedSha256?.toLowerCase() || null;
+    if (expected && named && expected !== named) {
+      return { state: 'checksum-mismatch', contentSha256: named };
     }
     const digest = await hashFile(abs);
-    if (expectedSha256 && digest !== expectedSha256.toLowerCase()) {
+    const required = expected ?? named;
+    if (required && digest !== required) {
       return { state: 'checksum-mismatch', contentSha256: digest };
     }
     return { state: 'verified', contentSha256: digest };
