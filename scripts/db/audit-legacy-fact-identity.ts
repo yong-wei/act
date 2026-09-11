@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createPrismaClient } from '../../src/lib/prisma-client';
@@ -7,6 +8,7 @@ import {
   isolationSourceReference,
   planIdentityIsolation,
   planIdentityIsolationRestore,
+  previousGovernanceFromIsolatedContext,
   resolveAuditExecutionRevision,
   type IdentityAuditFact,
 } from '../../src/lib/data-governance/legacy-fact-identity-audit';
@@ -22,6 +24,18 @@ function readOption(name: string): string | null {
   const index = process.argv.indexOf(name);
   if (index === -1) return null;
   return process.argv[index + 1] ?? null;
+}
+
+function captureGitHead(): string | null {
+  try {
+    const sha = execFileSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return /^[0-9a-f]{7,40}$/i.test(sha) ? sha : null;
+  } catch {
+    return null;
+  }
 }
 
 async function loadFacts(userId: string): Promise<IdentityAuditFact[]> {
@@ -50,7 +64,10 @@ async function main() {
   }
   const mode = (readOption('--mode') ?? 'audit') as 'audit' | 'isolate' | 'restore';
   const apply = hasFlag('--apply');
-  const executionRevision = resolveAuditExecutionRevision();
+  const executionRevision = resolveAuditExecutionRevision({
+    requireCapture: true,
+    gitHead: captureGitHead(),
+  });
   const crosswalk = loadLegacyCrosswalk(
     defaultLegacyCrosswalkPath(path.join(process.cwd(), 'course-content/authoring/knowledge/teaching-projection')),
   ).entries;
@@ -88,6 +105,10 @@ async function main() {
         : null;
       previousGovernanceByFactId.set(row.factId, previous);
     }
+    for (const fact of facts) {
+      if (previousGovernanceByFactId.has(fact.id)) continue;
+      previousGovernanceByFactId.set(fact.id, previousGovernanceFromIsolatedContext(fact.contextJson));
+    }
     const planned = planIdentityIsolationRestore({
       userId,
       facts,
@@ -102,11 +123,13 @@ async function main() {
 
   if (apply && writes.length > 0) {
     for (const write of writes) {
-      await prisma.learningFact.update({
-        where: { id: write.factId },
-        data: { contextJson: write.nextContext },
+      await prisma.$transaction(async (tx) => {
+        await tx.learningFact.update({
+          where: { id: write.factId },
+          data: { contextJson: write.nextContext },
+        });
+        await appendLearnerFactTransition(tx, write.transition);
       });
-      await appendLearnerFactTransition(prisma, write.transition);
     }
   }
 

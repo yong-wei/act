@@ -8,6 +8,7 @@ import {
   isolationSourceReference,
   planIdentityIsolation,
   planIdentityIsolationRestore,
+  resolveAuditExecutionRevision,
   summarizeIdentityAuditForProfile,
   UNRECOVERABLE_IDENTITY_POLICY,
 } from '../legacy-fact-identity-audit';
@@ -93,7 +94,20 @@ describe('legacy fact identity audit', () => {
       profileWeight: 0,
       skipProfileContribution: true,
       policyReason: UNRECOVERABLE_IDENTITY_POLICY,
+      identityIsolation: {
+        isolated: true,
+        executionRevision: 'rev-test',
+        previousGovernance: {},
+      },
     });
+    expect(first.report.countsBefore).toEqual({
+      mappable: 0,
+      legacy_only: 1,
+      undetermined: 1,
+      isolated: 0,
+      anomalies: 0,
+    });
+    expect(first.report.counts.isolated).toBe(1);
     expect(identityColumnsUnchanged(undetermined, {
       ...undetermined,
       contextJson: first.writes[0].nextContext,
@@ -123,6 +137,38 @@ describe('legacy fact identity audit', () => {
     expect(restore.writes).toHaveLength(1);
     expect(restore.writes[0].nextContext).toEqual(source.contextJson);
     expect(isLearningFactEligibleForPersonalization(restore.writes[0].nextContext)).toBe(false);
+
+    const fromFact = planIdentityIsolationRestore({
+      userId,
+      facts: [{ ...source, contextJson: isolated.nextContext }],
+      previousGovernanceByFactId: new Map(),
+      existingSourceReferences: [isolationSourceReference('c')],
+      executionRevision: 'rev-test',
+    });
+    expect(fromFact.writes[0].nextContext).toEqual(source.contextJson);
+    expect(fromFact.report.countsBefore?.isolated).toBe(1);
+    expect(fromFact.report.counts.isolated).toBe(0);
+  });
+
+  it('refuses captured audit execution without a real revision', () => {
+    const previousApp = process.env.APP_REVISION;
+    const previousGit = process.env.GIT_SHA;
+    delete process.env.APP_REVISION;
+    delete process.env.GIT_SHA;
+    try {
+      expect(() => resolveAuditExecutionRevision({ requireCapture: true }))
+        .toThrow('identity-audit-missing-execution-revision');
+      expect(resolveAuditExecutionRevision({
+        requireCapture: true,
+        gitHead: 'a2377a630b1006979b896516011888735b1fc510',
+      })).toBe('a2377a630b1006979b896516011888735b1fc510');
+      expect(resolveAuditExecutionRevision()).toBe('unspecified-local');
+    } finally {
+      if (previousApp === undefined) delete process.env.APP_REVISION;
+      else process.env.APP_REVISION = previousApp;
+      if (previousGit === undefined) delete process.env.GIT_SHA;
+      else process.env.GIT_SHA = previousGit;
+    }
   });
 
   it('surfaces mixed-version limits and isolated counts for the profile', () => {

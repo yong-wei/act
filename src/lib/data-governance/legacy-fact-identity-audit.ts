@@ -52,12 +52,22 @@ export interface IdentityAuditReport {
   };
   anomalies: Array<{ factId: string; message: string }>;
   writes: number;
+  countsBefore?: IdentityAuditReport['counts'];
 }
 
-export function resolveAuditExecutionRevision(): string {
-  return process.env.APP_REVISION?.trim()
+export function resolveAuditExecutionRevision(options: {
+  requireCapture?: boolean;
+  gitHead?: string | null;
+} = {}): string {
+  const captured = process.env.APP_REVISION?.trim()
     || process.env.GIT_SHA?.trim()
-    || 'unspecified-local';
+    || options.gitHead?.trim()
+    || '';
+  if (captured) return captured;
+  if (options.requireCapture) {
+    throw new Error('identity-audit-missing-execution-revision');
+  }
+  return 'unspecified-local';
 }
 
 function toCrosswalkIndex(
@@ -166,10 +176,16 @@ export function applyIdentityIsolationGovernance(
         identityIsolation: {
           isolated: true,
           executionRevision,
+          previousGovernance,
         },
       },
     },
   };
+}
+
+export function previousGovernanceFromIsolatedContext(contextJson: unknown): Record<string, unknown> | null {
+  const stored = asRecord(asRecord(evidenceGovernance(contextJson).identityIsolation).previousGovernance);
+  return Object.keys(stored).length > 0 ? stored : null;
 }
 
 export function restoreIdentityIsolationGovernance(
@@ -180,9 +196,12 @@ export function restoreIdentityIsolationGovernance(
   if (!isIdentityIsolated(current)) {
     return { nextContext: current, changed: false };
   }
+  const recovered = previousGovernance && Object.keys(previousGovernance).length > 0
+    ? previousGovernance
+    : previousGovernanceFromIsolatedContext(current);
   const next = { ...current };
-  if (previousGovernance && Object.keys(previousGovernance).length > 0) {
-    next.evidenceGovernance = previousGovernance;
+  if (recovered && Object.keys(recovered).length > 0) {
+    next.evidenceGovernance = recovered;
   } else {
     delete next.evidenceGovernance;
   }
@@ -196,6 +215,7 @@ export function buildIdentityAuditReport(input: {
   executionRevision?: string;
   mode?: IdentityAuditReport['mode'];
   writes?: number;
+  countsBefore?: IdentityAuditReport['counts'];
 }): IdentityAuditReport {
   const index = toCrosswalkIndex(input.crosswalk);
   const rows = input.facts.map((fact) => classifyLearningFactIdentity(fact, index));
@@ -224,6 +244,7 @@ export function buildIdentityAuditReport(input: {
     },
     anomalies,
     writes: input.writes ?? 0,
+    ...(input.countsBefore ? { countsBefore: input.countsBefore } : {}),
   };
 }
 
@@ -322,6 +343,12 @@ export function planIdentityIsolation(input: {
       executionRevision: input.executionRevision,
       mode: 'isolate',
       writes: writes.length,
+      countsBefore: buildIdentityAuditReport({
+        userId: input.userId,
+        facts: input.facts,
+        crosswalk: input.crosswalk,
+        executionRevision: input.executionRevision,
+      }).counts,
     }),
   };
 }
@@ -349,7 +376,8 @@ export function planIdentityIsolationRestore(input: {
     if (existing.has(sourceReference)) continue;
     const restored = restoreIdentityIsolationGovernance(
       fact.contextJson,
-      input.previousGovernanceByFactId.get(fact.id) ?? null,
+      input.previousGovernanceByFactId.get(fact.id)
+        ?? previousGovernanceFromIsolatedContext(fact.contextJson),
     );
     if (!restored.changed) continue;
     writes.push({
@@ -382,6 +410,12 @@ export function planIdentityIsolationRestore(input: {
       executionRevision: input.executionRevision,
       mode: 'restore',
       writes: writes.length,
+      countsBefore: buildIdentityAuditReport({
+        userId: input.userId,
+        facts: input.facts,
+        crosswalk: input.crosswalk,
+        executionRevision: input.executionRevision,
+      }).counts,
     }),
   };
 }
