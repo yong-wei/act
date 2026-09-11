@@ -28,7 +28,7 @@ export default async function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        <script id="theme-init">{buildThemeInitScript()}</script>
+        <script id="theme-init" dangerouslySetInnerHTML={{ __html: buildThemeInitScript() }} />
       </head>
       <body>
         <ThemeProvider>

@@ -28,11 +28,19 @@ assert.equal(resolveInitialTheme(null, undefined), 'dark');
 
 const layoutSource = readFileSync(path.resolve('src/app/layout.tsx'), 'utf8');
 assert.ok(
+  layoutSource.includes('id="theme-init"'),
+  'root layout must keep the audited theme-init script id',
+);
+assert.ok(
+  layoutSource.includes('dangerouslySetInnerHTML={{ __html: buildThemeInitScript() }}'),
+  'root layout must emit the audited inline theme script for React 19',
+);
+assert.equal(
   layoutSource.includes('<script id="theme-init">{buildThemeInitScript()}</script>'),
-  'root layout must keep the audited theme-init script',
+  false,
+  'root layout must not pass the theme script as React children',
 );
 assert.equal(layoutSource.includes("from 'next/script'"), false);
-assert.equal(layoutSource.includes('dangerouslySetInnerHTML'), false);
 assert.equal(layoutSource.includes('className="dark"'), false);
 assert.equal(/hidden|loading mask|opacity-0/.test(layoutSource), false);
 
