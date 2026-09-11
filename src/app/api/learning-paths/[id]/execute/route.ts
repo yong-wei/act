@@ -180,6 +180,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
           const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(existingPathNode, governedExternalInput);
           const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, governedInstrumentedInput);
+          if (governedQuizInput instanceof NextResponse) return governedQuizInput;
           const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
@@ -245,6 +246,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
     const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(pathNode, governedExternalInput);
     const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, governedInstrumentedInput);
+    if (governedQuizInput instanceof NextResponse) return governedQuizInput;
     const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
@@ -888,6 +890,10 @@ function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {
   };
 }
 
+function rejectUngovernedGradableCompletion(message: string) {
+  return NextResponse.json({ error: message }, { status: 409 });
+}
+
 async function resolveGovernedQuizOutcomeEvidence<T extends {
   pathId: string;
   userId: string;
@@ -897,14 +903,26 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
   status: string;
   evidenceRefs?: unknown[];
   liftMetadata?: Record<string, unknown>;
-}>(db: any, input: T): Promise<T> {
-  if (input.status !== 'completed' || input.resourceType !== 'quiz') return input;
+}>(db: any, input: T): Promise<T | NextResponse> {
+  if (input.status !== 'completed') return input;
+  const isQuiz = input.resourceType === 'quiz';
+  const isLessonStep = input.resourceType === 'lesson_step';
+  if (!isQuiz && !isLessonStep) return input;
+
   const completionResult = toRecord(toRecord(input.liftMetadata).completionResult);
   const completionData = toRecord(completionResult.data);
   const sourceLogId = firstString(completionResult.sourceLogId);
   const clientEventId = firstString(completionResult.clientEventId, completionData.clientEventId);
+  const claimedScore = readFinite(completionResult.score);
+  const isGradableAttempt = Boolean(sourceLogId || clientEventId || claimedScore !== undefined);
+
+  if (!isGradableAttempt) {
+    // Quiz browse/video completions stay completed with empty refs.
+    // Ungraded lesson_step must keep instrumented simulation refs.
+    return isQuiz ? { ...input, evidenceRefs: [] } : input;
+  }
   if (!sourceLogId && !clientEventId) {
-    return { ...input, evidenceRefs: [] };
+    return rejectUngovernedGradableCompletion('可评分完成缺少已持久化的互动事件引用');
   }
 
   const log = await db.interactionLog?.findFirst?.({
@@ -920,29 +938,28 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
     },
   });
   if (!log) {
-    return { ...input, evidenceRefs: [] };
+    return rejectUngovernedGradableCompletion('测验证据尚未持久化，无法完成节点');
   }
 
   const eventData = toRecord(log.eventData);
-  const declaredPathId = firstString(eventData.pathId);
-  const declaredNodeId = firstString(eventData.nodeId);
-  if (declaredPathId && declaredPathId !== input.pathId) {
-    return { ...input, evidenceRefs: [] };
+  if (firstString(eventData.pathId) !== input.pathId || firstString(eventData.nodeId) !== input.nodeId) {
+    return rejectUngovernedGradableCompletion('测验证据不属于当前路径节点');
   }
-  if (declaredNodeId && declaredNodeId !== input.nodeId) {
-    return { ...input, evidenceRefs: [] };
+  const declaredGoalId = firstString(eventData.goalId);
+  if (declaredGoalId && input.goalId && declaredGoalId !== input.goalId) {
+    return rejectUngovernedGradableCompletion('测验证据不属于当前路径节点');
   }
 
   const score = readFinite(eventData.score);
   if (score === undefined) {
-    return { ...input, evidenceRefs: [] };
+    return rejectUngovernedGradableCompletion('测验证据缺少可核验分数');
   }
 
   return {
     ...input,
     evidenceRefs: [{
       kind: 'ResourceEvent',
-      eventType: 'quiz_complete',
+      eventType: isQuiz ? 'quiz_complete' : 'assessment_complete',
       provenance: 'platform-instrumented',
       status: 'completed',
       ref: log.id,
@@ -954,7 +971,7 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
       pathId: input.pathId,
       goalId: input.goalId ?? null,
       nodeId: input.nodeId,
-      resourceType: 'quiz',
+      resourceType: input.resourceType,
       privacyLevel: 'student-visible',
     }],
   };

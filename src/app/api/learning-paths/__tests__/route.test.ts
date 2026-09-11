@@ -1171,6 +1171,16 @@ describe('learning path round API routes', () => {
       terminalValidation: { nodeId: null, state: 'not-required' },
       lastExecutionMetadata: { completedNodeIds: [] },
     });
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-precheck',
+      clientEventId: 'evt-precheck',
+      eventType: 'complete',
+      eventData: {
+        score: 100,
+        pathId: 'path-1',
+        nodeId: 'registry:lesson09-correction-precheck',
+      },
+    });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'registry:lesson09-correction-precheck',
@@ -1184,6 +1194,7 @@ describe('learning path round API routes', () => {
         completionResult: {
           success: true,
           score: 100,
+          clientEventId: 'evt-precheck',
           data: { correct: 5, total: 5, rawAnswer: 'discard-me' },
           privateTrace: 'discard-me',
         },
@@ -1197,6 +1208,7 @@ describe('learning path round API routes', () => {
         completionResult: {
           success: true,
           score: 100,
+          clientEventId: 'evt-precheck',
           data: { correct: 5, total: 5 },
         },
       },
@@ -5239,6 +5251,24 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('rejects a scored quiz completion that has no persisted event reference', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-score-only',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, success: true },
+      },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('does not mint governed quiz refs from a self-reported score without a persisted log', async () => {
     configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
 
@@ -5258,10 +5288,86 @@ describe('learning path round API routes', () => {
       },
     }), params);
 
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects a standalone quiz log that does not carry exact path membership', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-standalone',
+      clientEventId: 'evt-standalone',
+      eventType: 'complete',
+      eventData: { score: 100 },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-standalone-log',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, clientEventId: 'evt-standalone' },
+      },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects a scored lesson-step completion that has no persisted event reference', async () => {
+    configureSingleNodePath('registry:lesson13-physics-builder-simple', 'lesson_step', '/interactive-learning/resources/lesson13-physics-builder-simple');
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:lesson13-physics-builder-simple',
+      resourceType: 'lesson_step',
+      status: 'completed',
+      idempotencyKey: 'exec-lesson-step-score-only',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, success: true },
+      },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('writes governed lesson-step evidence refs from a persisted scored completion', async () => {
+    configureSingleNodePath('registry:lesson13-physics-builder-simple', 'lesson_step', '/interactive-learning/resources/lesson13-physics-builder-simple');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-lesson-step-1',
+      clientEventId: 'evt-lesson-step-1',
+      eventType: 'complete',
+      eventData: {
+        score: 100,
+        pathId: 'path-1',
+        nodeId: 'registry:lesson13-physics-builder-simple',
+        goalId: 'frequency-response-foundations',
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:lesson13-physics-builder-simple',
+      resourceType: 'lesson_step',
+      status: 'completed',
+      idempotencyKey: 'exec-lesson-step-scored',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, clientEventId: 'evt-lesson-step-1' },
+      },
+    }), params);
+
     expect(response.status).toBe(200);
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      idempotencyKey: 'exec-bode-quiz-forged-score',
-      evidenceRefs: [],
+      evidenceRefs: [expect.objectContaining({
+        eventType: 'assessment_complete',
+        sourceLogId: 'log-lesson-step-1',
+        completionResult: { score: 100 },
+        nodeId: 'registry:lesson13-physics-builder-simple',
+        resourceType: 'lesson_step',
+      })],
     }));
   });
 
