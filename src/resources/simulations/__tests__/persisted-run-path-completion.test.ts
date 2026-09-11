@@ -110,13 +110,22 @@ describe('completeAdaptivePathAfterPersistedRun', () => {
       },
     });
 
-    await persistPathLaunchedCourseDemoIfCurrentStep('step-11');
+    await persistPathLaunchedCourseDemoIfCurrentStep({
+      stepId: 'step-11',
+      clientEventId: 'client-course-demo-1',
+      attemptKey: 'step-11:response:1',
+      submittedAt: Date.parse('2026-09-11T01:00:00.000Z'),
+      eventData: {
+        schemaVersion: 'manifest-submission-v2',
+        answers: { plant: '1/(s+1)' },
+      },
+    });
 
     expect(fetch).toHaveBeenCalledWith(
       '/api/interactive/events',
       expect.objectContaining({
         method: 'POST',
-        body: expect.stringContaining('"client-course-demo-1"'),
+        body: expect.stringContaining('"schemaVersion":"manifest-submission-v2"'),
       }),
     );
     expect(fetch).toHaveBeenCalledWith(

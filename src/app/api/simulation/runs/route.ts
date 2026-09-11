@@ -378,9 +378,13 @@ export async function POST(request: NextRequest) {
         select: { eventType: true, eventData: true, stepId: true },
       });
       const eventData = record(log?.eventData);
+      const answers = record(eventData.answers);
+      const digest = record(eventData.answerDigest);
       if (
         !log
         || eventData.pathExecutionBound !== true
+        || text(eventData.schemaVersion) !== 'manifest-submission-v2'
+        || (Object.keys(answers).length === 0 && Object.keys(digest).length === 0)
         || text(eventData.pathId) !== pathId
         || text(eventData.nodeId) !== pathNodeId
         || (text(eventData.stepId) ?? text(log.stepId)) !== stepId

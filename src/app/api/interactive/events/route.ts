@@ -91,11 +91,34 @@ function toDateTime(value: number | string | null | undefined): Date | null {
  * - 合法的resourceId必须是cuid格式（25个字符，以c开头）或null/undefined
  * - 返回null表示不合法，应该丢弃或降级处理
  */
+function isAuthoritativePathSubmission(eventData: Record<string, unknown>): boolean {
+  const answers = readRecord(eventData.answers);
+  const digest = readRecord(eventData.answerDigest);
+  const hasAnswers = Object.keys(answers).length > 0 || Object.keys(digest).length > 0;
+  const summaries = Array.isArray(eventData.questionSummaries) ? eventData.questionSummaries : [];
+  const schemaVersion = typeof eventData.schemaVersion === 'string' ? eventData.schemaVersion : '';
+  const score = typeof eventData.score === 'number' && Number.isFinite(eventData.score);
+  if (schemaVersion === 'manifest-submission-v2' && (hasAnswers || summaries.length > 0)) {
+    return true;
+  }
+  return score && (hasAnswers || summaries.length > 0);
+}
+
+function claimedPathLaunchFields(eventData: Record<string, unknown>): boolean {
+  const pathId = typeof eventData.pathId === 'string' ? eventData.pathId.trim() : '';
+  const nodeId = typeof eventData.nodeId === 'string' ? eventData.nodeId.trim() : '';
+  return Boolean(pathId && nodeId);
+}
+
 async function bindOwnedPathLaunchEvent(
   userId: string,
   eventData: Record<string, unknown>,
   resourceId: string | null,
-): Promise<{ eventData: Record<string, unknown>; resourceId: string | null }> {
+): Promise<{
+  eventData: Record<string, unknown>;
+  resourceId: string | null;
+  outcome: 'unclaimed' | 'forged' | 'unbound' | 'bound';
+}> {
   const {
     pathExecutionBound: _forgedBound,
     pathId: claimedPathId,
@@ -105,14 +128,14 @@ async function bindOwnedPathLaunchEvent(
   const pathId = typeof claimedPathId === 'string' ? claimedPathId.trim() : '';
   const nodeId = typeof claimedNodeId === 'string' ? claimedNodeId.trim() : '';
   if (!pathId || !nodeId) {
-    return { eventData: rest, resourceId };
+    return { eventData: rest, resourceId, outcome: 'unclaimed' };
   }
   const path = await prisma.learningPath.findFirst({
     where: { id: pathId, userId },
     select: { id: true, goalId: true, nodeIds: true, pathPayload: true },
   });
   if (!path) {
-    return { eventData: rest, resourceId };
+    return { eventData: rest, resourceId, outcome: 'forged' };
   }
   const nodeIds = Array.isArray(path.nodeIds)
     ? path.nodeIds.filter((value): value is string => typeof value === 'string')
@@ -128,7 +151,7 @@ async function bindOwnedPathLaunchEvent(
     && (entry as { nodeId?: unknown }).nodeId === nodeId
   )) as Record<string, unknown> | undefined;
   if ((nodeIds.length > 0 && !nodeIds.includes(nodeId)) || !node) {
-    return { eventData: rest, resourceId };
+    return { eventData: rest, resourceId, outcome: 'forged' };
   }
   const teachingResourceIds = [...new Set([
     node.sourceKind === 'teaching_resource' && typeof node.sourceRef === 'string' ? node.sourceRef : null,
@@ -156,14 +179,18 @@ async function bindOwnedPathLaunchEvent(
     ? readGovernedCourseStudentDemoStep(String(node.target ?? ''))
     : null;
   if (!owned && !courseDemoStep) {
-    return { eventData: rest, resourceId };
+    return { eventData: rest, resourceId, outcome: 'unbound' };
   }
   const claimedStep = typeof rest.stepId === 'string' ? rest.stepId.trim() : '';
   if (courseDemoStep && claimedStep && claimedStep !== courseDemoStep) {
-    return { eventData: rest, resourceId };
+    return { eventData: rest, resourceId, outcome: 'unbound' };
+  }
+  if (!isAuthoritativePathSubmission(rest)) {
+    return { eventData: rest, resourceId, outcome: 'unbound' };
   }
   return {
     resourceId: owned?.id ?? resourceId,
+    outcome: 'bound',
     eventData: {
       ...rest,
       pathId: path.id,
@@ -418,6 +445,8 @@ function partitionClassifiedSubmissionEvents(events: NormalizedInteractionEvent[
       legacy.push(item);
     } else if (isClassifiedSubmissionEvent(item, userId)) {
       submissions.push(item);
+    } else if (claimedPathLaunchFields(payload) && isAuthoritativePathSubmission(payload)) {
+      legacy.push(item);
     } else {
       identityLessSubmissions.push(item);
     }
@@ -1013,6 +1042,10 @@ export async function POST(request: NextRequest) {
     for (const item of legacyEvidenceEvents) {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
       const bound = await bindOwnedPathLaunchEvent(session.user.id, eventData, item.resourceId);
+      if (bound.outcome === 'forged') {
+        logDegradedEvent(session.user.id, item.event, 'forged_path_launch_context');
+        continue;
+      }
       interactionLogEvents.push({
         userId: session.user.id,
         resourceId: bound.resourceId,

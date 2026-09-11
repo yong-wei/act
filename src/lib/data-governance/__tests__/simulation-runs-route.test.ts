@@ -386,6 +386,8 @@ describe('POST /api/simulation/runs', () => {
       stepId: 'step-11',
       eventData: {
         pathExecutionBound: true,
+        schemaVersion: 'manifest-submission-v2',
+        answers: { plant: '1/(s+1)' },
         pathId: 'path-1',
         nodeId: 'simulation:control-correction-step-response-lab',
         stepId: 'step-11',
@@ -508,6 +510,28 @@ describe('POST /api/simulation/runs', () => {
       },
     }));
     expect(forgedEvent.status).toBe(403);
+    expect(mocks.persistPathCourseDemoSimulationRun).not.toHaveBeenCalled();
+
+    mocks.interactionLogFindFirst.mockResolvedValue({
+      eventType: 'submit',
+      stepId: 'step-11',
+      eventData: {
+        pathExecutionBound: true,
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+      },
+    });
+    const emptyAnswers = await POST(request({
+      kind: 'path-course-demo',
+      clientEventId: 'client-empty-answers',
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+      },
+    }));
+    expect(emptyAnswers.status).toBe(403);
     expect(mocks.persistPathCourseDemoSimulationRun).not.toHaveBeenCalled();
   });
 

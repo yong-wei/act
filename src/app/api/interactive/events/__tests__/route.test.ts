@@ -1542,6 +1542,8 @@ describe('POST /api/interactive/events', () => {
           pathId: 'path-1',
           nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
           resourceType: 'quiz',
+          score: 100,
+          answers: { q1: 'A' },
         },
       }],
     }));
@@ -1590,6 +1592,8 @@ describe('POST /api/interactive/events', () => {
         resourceKey: 'simulation:control-correction-step-response-lab',
         stepId: 'step-11',
         data: {
+          schemaVersion: 'manifest-submission-v2',
+          answers: { plant: '1/(s+1)' },
           pathId: 'path-1',
           nodeId: 'simulation:control-correction-step-response-lab',
           stepId: 'step-11',
@@ -1634,6 +1638,8 @@ describe('POST /api/interactive/events', () => {
         resourceKey: 'simulation:control-correction-step-response-lab',
         stepId: 'step-10',
         data: {
+          schemaVersion: 'manifest-submission-v2',
+          answers: { plant: '1/(s+1)' },
           pathId: 'path-1',
           nodeId: 'simulation:control-correction-step-response-lab',
           stepId: 'step-10',
@@ -1647,6 +1653,45 @@ describe('POST /api/interactive/events', () => {
       pathExecutionBound: true,
     });
     expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).not.toHaveProperty('pathId');
+  });
+
+  it('does not stamp a self-reported path event that has no authoritative answers', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-empty-submit', clientEventId: 'client-empty-submit', eventData: { clientEventId: 'client-empty-submit' } },
+    ]);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      goalId: 'control-correction',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-empty-submit',
+        type: 'submit',
+        timestamp: Date.parse('2026-09-11T01:00:00.000Z'),
+        resourceKey: 'simulation:control-correction-step-response-lab',
+        data: {
+          pathId: 'path-1',
+          nodeId: 'simulation:control-correction-step-response-lab',
+          stepId: 'step-11',
+          resourceType: 'simulation',
+        },
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).not.toMatchObject({
+      pathExecutionBound: true,
+    });
   });
 });
 

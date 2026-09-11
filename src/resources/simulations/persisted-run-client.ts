@@ -120,25 +120,31 @@ export function shouldPersistPathLaunchedCourseDemo(input: {
     && input.currentStepId === input.targetStepId;
 }
 
-export function persistPathLaunchedCourseDemoIfCurrentStep(stepId: string) {
+export function persistPathLaunchedCourseDemoIfCurrentStep(input: {
+  stepId: string;
+  clientEventId: string;
+  attemptKey: string;
+  submittedAt: number;
+  eventData: Record<string, unknown>;
+}) {
   if (typeof window === 'undefined') return;
   const params = new URLSearchParams(window.location.search);
   const launchContext = resolveAdaptivePathLaunchReturnContext(params);
   if (!launchContext || !shouldPersistPathLaunchedCourseDemo({
     launchContext,
-    currentStepId: stepId,
+    currentStepId: input.stepId,
     targetStepId: params.get('step'),
   })) {
     return;
   }
-  const clientEventId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `path-course-demo:${Date.now()}`;
   return persistPathLaunchedCourseDemoRun({
     pathId: launchContext.pathId,
     nodeId: launchContext.nodeId,
-    stepId,
-    clientEventId,
+    stepId: input.stepId,
+    clientEventId: input.clientEventId,
+    attemptKey: input.attemptKey,
+    submittedAt: input.submittedAt,
+    eventData: input.eventData,
   }).catch(() => undefined);
 }
 
@@ -147,6 +153,9 @@ export async function persistPathLaunchedCourseDemoRun(input: {
   nodeId: string;
   stepId: string;
   clientEventId: string;
+  attemptKey: string;
+  submittedAt: number;
+  eventData: Record<string, unknown>;
 }) {
   const eventResponse = await fetch('/api/interactive/events', {
     method: 'POST',
@@ -155,10 +164,12 @@ export async function persistPathLaunchedCourseDemoRun(input: {
       events: [{
         id: input.clientEventId,
         type: 'submit',
-        timestamp: Date.now(),
+        timestamp: input.submittedAt,
         resourceKey: input.nodeId,
         stepId: input.stepId,
+        attemptKey: input.attemptKey,
         data: {
+          ...input.eventData,
           clientEventId: input.clientEventId,
           pathId: input.pathId,
           nodeId: input.nodeId,
