@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   computeControlAnalysisServer: vi.fn(),
   classSessionFindUnique: vi.fn(),
   studentProfileFindUnique: vi.fn(),
+  learningPathFindFirst: vi.fn(),
   resolveTrustedControlWorkbenchContext: vi.fn(),
 }));
 
@@ -23,6 +24,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     classSession: { findUnique: mocks.classSessionFindUnique },
     studentProfile: { findUnique: mocks.studentProfileFindUnique },
+    learningPath: { findFirst: mocks.learningPathFindFirst },
   },
 }));
 
@@ -81,6 +83,7 @@ describe('POST /api/simulation/runs', () => {
       teacherId: 'teacher-1',
     });
     mocks.studentProfileFindUnique.mockResolvedValue({ classId: 'class-1' });
+    mocks.learningPathFindFirst.mockResolvedValue(null);
     mocks.resolveTrustedControlWorkbenchContext.mockResolvedValue({
       sessionId: 'cmoxloe52000uq5bcojma7r78',
       classId: 'class-1',
@@ -137,6 +140,81 @@ describe('POST /api/simulation/runs', () => {
       }),
       mocks.computeControlAnalysisServer,
     );
+  });
+
+  it('persists a path-launched control workbench run without classroom session fields', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      nodeIds: ['control-workbench:lead-design'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'control-workbench:lead-design',
+          type: 'control_workbench',
+          target: '/interactive-learning/control-workbench',
+          sourceRef: 'control-workbench',
+        }],
+      },
+    });
+
+    const response = await POST(request({
+      kind: 'control-workbench',
+      clientRunId: 'path-workbench:path-1:control-workbench:lead-design',
+      capabilityId: 'control-workbench:lead-design',
+      request: {
+        runtimeMode: 'analysis',
+        plant: { numerator: [1], denominator: [1, 1] },
+        structures: [],
+        outputs: ['step_response'],
+        timeRange: { start: 0, end: 10, samples: 10 },
+        frequencyRange: { min: 0.1, max: 10, samples: 10 },
+        rootLocus: { minGain: 0, maxGain: 10, samples: 10, currentGain: 1 },
+      },
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'control-workbench:lead-design',
+        resourceId: 'control-workbench:lead-design',
+      },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.resolveTrustedControlWorkbenchContext).not.toHaveBeenCalled();
+    expect(mocks.persistControlWorkbenchSimulationRun).toHaveBeenCalledWith(
+      expect.anything(),
+      'student-1',
+      expect.objectContaining({
+        launchContext: {
+          resourceId: 'control-workbench:lead-design',
+          registryId: 'control-workbench',
+        },
+      }),
+      mocks.computeControlAnalysisServer,
+    );
+  });
+
+  it('rejects a path-launched control workbench run that does not belong to the student path', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue(null);
+    const response = await POST(request({
+      kind: 'control-workbench',
+      clientRunId: 'path-workbench:path-1:forged',
+      capabilityId: 'forged',
+      request: {
+        runtimeMode: 'analysis',
+        plant: { numerator: [1], denominator: [1, 1] },
+        structures: [],
+        outputs: ['step_response'],
+        timeRange: { start: 0, end: 10, samples: 10 },
+        frequencyRange: { min: 0.1, max: 10, samples: 10 },
+        rootLocus: { minGain: 0, maxGain: 10, samples: 10, currentGain: 1 },
+      },
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'control-workbench:lead-design',
+      },
+    }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.persistControlWorkbenchSimulationRun).not.toHaveBeenCalled();
   });
 
   it('rejects a control workbench run when the server cannot resolve its classroom task', async () => {

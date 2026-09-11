@@ -73,7 +73,11 @@ export function persistPathLaunchedControlWorkbenchRun(input: {
     clientRunId: `path-workbench:${input.pathId}:${input.nodeId}`,
     capabilityId: input.nodeId,
     request: input.request,
-    launchContext: { resourceId: input.nodeId },
+    launchContext: {
+      pathId: input.pathId,
+      nodeId: input.nodeId,
+      resourceId: input.nodeId,
+    },
   });
 }
 

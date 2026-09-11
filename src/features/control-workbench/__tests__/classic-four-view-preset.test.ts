@@ -48,6 +48,7 @@ describe('classic four-view control workbench preset', () => {
     expect(presetSource).toContain('onGovernedAnalysisReady={onGovernedAnalysisReady}');
     expect(shellSource).toContain('persistPathLaunchedControlWorkbenchRun');
     expect(shellSource).toContain('onGovernedAnalysisReady={pathLaunchContext ? persistPathLaunchedAnalysis : undefined}');
+    expect(readRepoFile('src/resources/simulations/persisted-run-client.ts')).toContain('pathId: input.pathId');
   });
 
   it('remounts the embedded chart client when the selected plant model changes', () => {

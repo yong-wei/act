@@ -929,12 +929,22 @@ const GRADED_COMPLETION_EVENT_TYPES = new Set([
   'resource_complete',
 ]);
 
-function interactionLogMatchesPathNode(
+async function resolveOwnedTeachingResource(db: any, resourceId: unknown) {
+  const id = firstString(resourceId);
+  if (!id) return null;
+  return await db.teachingResource?.findUnique?.({
+    where: { id },
+    select: { id: true, registryId: true },
+  }) ?? null;
+}
+
+async function interactionLogMatchesPathNode(
+  db: any,
   log: { resourceId?: unknown; eventType?: unknown } | null,
   eventData: Record<string, unknown>,
   input: { pathId: string; nodeId: string; goalId?: string | null },
   pathNode: Record<string, unknown> | null,
-): boolean {
+): Promise<boolean> {
   if (firstString(eventData.pathId) !== input.pathId || firstString(eventData.nodeId) !== input.nodeId) {
     return false;
   }
@@ -945,6 +955,8 @@ function interactionLogMatchesPathNode(
   if (!eventType || !GRADED_COMPLETION_EVENT_TYPES.has(eventType)) {
     return false;
   }
+  const ownedResource = await resolveOwnedTeachingResource(db, log?.resourceId);
+  if (!ownedResource) return false;
   const nodeTokens = new Set(identityTokens(
     input.nodeId,
     pathNode?.resourceId,
@@ -952,14 +964,7 @@ function interactionLogMatchesPathNode(
     pathNode?.sourceRef,
     pathNode?.target,
   ));
-  const logTokens = identityTokens(
-    log?.resourceId,
-    eventData.resourceId,
-    eventData.resourceKey,
-    eventData.registryId,
-    eventData.targetId,
-  );
-  return logTokens.length > 0 && logTokens.some((token) => nodeTokens.has(token));
+  return identityTokens(ownedResource.registryId).some((token) => nodeTokens.has(token));
 }
 
 async function resolveGovernedQuizOutcomeEvidence<T extends {
@@ -1013,14 +1018,14 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
         hasEventRef ? '测验证据尚未持久化，无法完成节点' : '可评分完成缺少已持久化的互动事件引用',
       );
     }
-    if (!interactionLogMatchesPathNode(log, eventData, input, pathNode) || persistedScore === undefined) {
+    if (!(await interactionLogMatchesPathNode(db, log, eventData, input, pathNode)) || persistedScore === undefined) {
       return rejectUngovernedGradableCompletion(
         persistedScore === undefined ? '测验证据缺少可核验分数' : '测验证据不属于当前路径节点',
       );
     }
   } else if (!log || persistedScore === undefined) {
     return asUngradedPathResourceCompletion(input, isQuiz);
-  } else if (!interactionLogMatchesPathNode(log, eventData, input, pathNode)) {
+  } else if (!(await interactionLogMatchesPathNode(db, log, eventData, input, pathNode))) {
     return rejectUngovernedGradableCompletion('测验证据不属于当前路径节点');
   }
 

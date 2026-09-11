@@ -93,6 +93,28 @@ async function trustedSceneLaunchContext(
   };
 }
 
+async function resolvePathLaunchedWorkbenchContext(
+  userId: string,
+  pathId: string,
+  nodeId: string,
+): Promise<SimulationRunLaunchContext | null> {
+  const path = await prisma.learningPath.findFirst({
+    where: { id: pathId, userId },
+    select: { id: true, pathPayload: true, nodeIds: true },
+  });
+  if (!path) return null;
+  const nodeIds = Array.isArray(path.nodeIds) ? path.nodeIds.filter((value): value is string => typeof value === 'string') : [];
+  if (nodeIds.length > 0 && !nodeIds.includes(nodeId)) return null;
+  const payload = record(path.pathPayload);
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const node = planNodes.map(record).find((entry) => entry.nodeId === nodeId);
+  if (!node || node.type !== 'control_workbench') return null;
+  return {
+    resourceId: nodeId,
+    registryId: text(node.sourceRef) ?? nodeId,
+  };
+}
+
 function isControlAnalysisRequest(value: unknown): value is ControlAnalysisRequest {
   const request = record(value);
   return request.runtimeMode === 'analysis'
@@ -166,6 +188,33 @@ export async function POST(request: NextRequest) {
       const clientRunId = text(body.clientRunId);
       const capabilityId = text(body.capabilityId);
       const untrustedLaunchContext = record(body.launchContext);
+      const pathId = text(untrustedLaunchContext.pathId);
+      const pathNodeId = text(untrustedLaunchContext.nodeId);
+      if (pathId && pathNodeId) {
+        if (!clientRunId || !capabilityId || !isControlAnalysisRequest(body.request)) {
+          return NextResponse.json({ error: 'Invalid control workbench run' }, { status: 400 });
+        }
+        const trustedPathContext = await resolvePathLaunchedWorkbenchContext(
+          session.user.id,
+          pathId,
+          pathNodeId,
+        );
+        if (!trustedPathContext) {
+          return NextResponse.json({ error: 'Untrusted control workbench context' }, { status: 403 });
+        }
+        const result = await persistControlWorkbenchSimulationRun(
+          prisma,
+          session.user.id,
+          {
+            clientRunId,
+            capabilityId,
+            request: body.request,
+            launchContext: trustedPathContext,
+          },
+          computeControlAnalysisServer,
+        );
+        return NextResponse.json(result);
+      }
       const sessionId = text(untrustedLaunchContext.sessionId);
       const lessonId = text(untrustedLaunchContext.lessonId);
       const stepId = text(untrustedLaunchContext.stepId);

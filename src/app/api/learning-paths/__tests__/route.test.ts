@@ -35,6 +35,9 @@ const mocks = vi.hoisted(() => ({
     interactionLog: {
       findFirst: vi.fn(),
     },
+    teachingResource: {
+      findUnique: vi.fn(),
+    },
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn(),
     },
@@ -516,6 +519,7 @@ describe('learning path round API routes', () => {
     mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
     mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue(null);
     mocks.prisma.interactionLog.findFirst.mockResolvedValue(null);
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue(null);
     mocks.persistControlCorrectionPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.persistLearningPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.readControlCorrectionPathRound.mockResolvedValue({
@@ -1175,13 +1179,17 @@ describe('learning path round API routes', () => {
       id: 'log-precheck',
       clientEventId: 'evt-precheck',
       eventType: 'complete',
+      resourceId: 'cprecheck0000000000000001',
       eventData: {
         score: 100,
         pathId: 'path-1',
         nodeId: 'registry:lesson09-correction-precheck',
         goalId: 'control-correction',
-        registryId: 'lesson09-correction-precheck',
       },
+    });
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue({
+      id: 'cprecheck0000000000000001',
+      registryId: 'lesson09-correction-precheck',
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
@@ -5220,13 +5228,17 @@ describe('learning path round API routes', () => {
       id: 'log-quiz-1',
       clientEventId: 'evt-quiz-1',
       eventType: 'complete',
+      resourceId: 'cbodequiz0000000000000001',
       eventData: {
         score: 100,
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
         goalId: 'frequency-response-foundations',
-        registryId: 'bode-quiz',
       },
+    });
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue({
+      id: 'cbodequiz0000000000000001',
+      registryId: 'bode-quiz',
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
@@ -5429,13 +5441,18 @@ describe('learning path round API routes', () => {
       id: 'log-wrong-resource',
       clientEventId: 'evt-wrong-resource',
       eventType: 'complete',
+      resourceId: 'cotherquiz000000000000001',
       eventData: {
         score: 100,
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
         goalId: 'frequency-response-foundations',
-        registryId: 'other-quiz',
+        registryId: 'bode-quiz',
       },
+    });
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue({
+      id: 'cotherquiz000000000000001',
+      registryId: 'other-quiz',
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
@@ -5501,13 +5518,17 @@ describe('learning path round API routes', () => {
       id: 'log-lesson-step-1',
       clientEventId: 'evt-lesson-step-1',
       eventType: 'complete',
+      resourceId: 'clesson13builder0000000001',
       eventData: {
         score: 100,
         pathId: 'path-1',
         nodeId: 'registry:lesson13-physics-builder-simple',
         goalId: 'frequency-response-foundations',
-        registryId: 'lesson13-physics-builder-simple',
       },
+    });
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue({
+      id: 'clesson13builder0000000001',
+      registryId: 'lesson13-physics-builder-simple',
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
@@ -5539,13 +5560,17 @@ describe('learning path round API routes', () => {
       id: 'log-quiz-owned',
       clientEventId: 'evt-quiz-owned',
       eventType: 'complete',
+      resourceId: 'cbodequiz0000000000000001',
       eventData: {
         score: 70,
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
         goalId: 'frequency-response-foundations',
-        registryId: 'bode-quiz',
       },
+    });
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue({
+      id: 'cbodequiz0000000000000001',
+      registryId: 'bode-quiz',
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
