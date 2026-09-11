@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  promoteIndexedObjectKeyReads,
   verifyAdaptivePathObjectKeys,
+  type AdaptivePathObjectKeyReadRecord,
   type AdaptivePathObjectKeyVerifier,
 } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
 
@@ -53,5 +55,38 @@ describe('adaptive path object key read verification (#2033 fault injection)', (
     expect(verifyCalls).toBe(1);
     expect(records).toHaveLength(2);
     expect(records.every((record) => record.state === 'verified')).toBe(true);
+  });
+
+  it('promotes index-verified runtime keys with a body read and leaves published entries indexed', async () => {
+    const verifier: AdaptivePathObjectKeyVerifier = {
+      verify: async () => ({ state: 'verified', contentSha256: 'sha-body' }),
+    };
+    const indexed: AdaptivePathObjectKeyReadRecord[] = [
+      {
+        objectKey: 'lessons/ok.mp4',
+        resourceId: 'act:video:ok',
+        candidateStyleId: 'foundation-remediation',
+        nodeNodeId: 'n1',
+        state: 'index-verified',
+        contentSha256: 'sha-index',
+        verifiedAt,
+        runtimeReleaseId: 'runtime-1',
+      },
+      {
+        objectKey: 'published:v1',
+        resourceId: 'act:card:ok',
+        candidateStyleId: 'foundation-remediation',
+        nodeNodeId: 'n2',
+        state: 'index-verified',
+        contentSha256: 'sha-card',
+        verifiedAt,
+        runtimeReleaseId: 'runtime-1',
+      },
+    ];
+    const records = await promoteIndexedObjectKeyReads(indexed, verifier, verifiedAt);
+    expect(records).toEqual([
+      expect.objectContaining({ objectKey: 'lessons/ok.mp4', state: 'verified', contentSha256: 'sha-body' }),
+      expect.objectContaining({ objectKey: 'published:v1', state: 'index-verified', contentSha256: 'sha-card' }),
+    ]);
   });
 });

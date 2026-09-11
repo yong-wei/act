@@ -6,7 +6,7 @@
  * 反解；对象键形态为 release 资产路径或 `blob:<sha256>` 内容键。
  */
 
-export type AdaptivePathObjectKeyReadState = 'verified' | 'index-verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
+export type AdaptivePathObjectKeyReadState = 'verified' | 'index-verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'release-mismatch' | 'unverified';
 
 export interface AdaptivePathObjectKeyReadRecord {
   objectKey: string;
@@ -59,4 +59,21 @@ export async function verifyAdaptivePathObjectKeys(
     });
   }
   return records;
+}
+
+export async function promoteIndexedObjectKeyReads(
+  records: AdaptivePathObjectKeyReadRecord[],
+  verifier: AdaptivePathObjectKeyVerifier,
+  verifiedAt = new Date().toISOString(),
+): Promise<AdaptivePathObjectKeyReadRecord[]> {
+  const entries = records.filter((record) => record.state === 'index-verified' && !record.objectKey.startsWith('published:'));
+  if (entries.length === 0) return records;
+  const verified = await verifyAdaptivePathObjectKeys(verifier, entries, verifiedAt, entries[0]?.runtimeReleaseId ?? null);
+  const byKey = new Map(verified.map((record) => [
+    `${record.candidateStyleId}\0${record.nodeNodeId}\0${record.objectKey}`,
+    record,
+  ]));
+  return records.map((record) => (
+    byKey.get(`${record.candidateStyleId}\0${record.nodeNodeId}\0${record.objectKey}`) ?? record
+  ));
 }

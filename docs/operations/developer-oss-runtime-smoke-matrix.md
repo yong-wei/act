@@ -4,7 +4,7 @@
 
 | 环境 | FUSE `/dev/fuse` | 数据面 | `startup:oss-runtime` | 重启跟到新 active | `shutdown:oss-runtime` | 课程/媒体/教材可读 | runtime 写入拒绝 | 共享二次读取无额外体传输 | 结果 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 仓库假工具契约 | 夹具 | ECS 网关契约 | 复用匹配状态 / 失败关闭 | 下次启动解析新 identity；存活租约可续期传输凭证 | 只停本 checkout 的 bind/lease；末个 lease 才卸共享适配器 | 物化视图文件可读；无 RAM role 时媒体走本地 `/course-runtime` | 由只读 bind 合同覆盖 | `prove-read` / `operations.jsonl` 证明同一 SHA 第二次为 cache-hit | 已用 `npm run test:developer-oss-runtime` 覆盖契约 |
+| 仓库假工具契约 | 夹具 | ECS 网关契约 | 复用匹配状态 / 失败关闭 | 下次启动解析新 identity；存活租约可续期传输凭证 | 只停本 checkout 的 bind/lease；末个 lease 才卸共享适配器 | 已 pin 时媒体走绑定视图真读并分类失败；无 pin 才声明 `local-unpinned` | 由只读 bind 合同覆盖 | `prove-read` / `operations.jsonl` 证明同一 SHA 第二次为 cache-hit | 已用 `npm run test:developer-oss-runtime` 覆盖契约。#2083 读取验收：`npx tsx scripts/tests/test-developer-oss-runtime-read-smoke.ts`（生成候选记录 → 打开绑定资源 → verified；缺 blob / sha 不符故障注入）。活环境端到端须在 `runtime:activate` 完成后执行，避开发布/激活窗口。 |
 | 原生 Linux | 待合作者本机 FUSE | ECS 网关 HTTPS 已冒烟 | 待合作者 `startup:oss-runtime` | 待 | 待 | 待 | 待 | 待真实网关二次读取缓存 | 2026-08-31：`https://runtime-dev.adapt-learn.online` 已签发证书并反代 `127.0.0.1:8787`。公网 HTTPS 签发/manifest/receipt/允许集 GET/Range/额外 digest 拒绝/无令牌拒绝已通过。学生站媒体仍 307 到杭州 OSS 签名 URL。三平台本机 FUSE 启动仍待合作者安装凭据后冒烟。 |
 | Windows WSL2 | 待合作者本机 FUSE | 公网 HTTPS 已通 | 待 | 待 | 待 | 待 | 待 | 待 | 阻塞：合作者按文档安装网关凭据并跑 `startup:oss-runtime` |
 | macOS Lima/Colima | 待合作者本机 FUSE | 公网 HTTPS 已通 | 待 | 待 | 待 | 待 | 待 | 待 | 阻塞：同上 |

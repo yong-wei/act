@@ -61,6 +61,8 @@ import {
 } from '@/lib/teaching-projection/store';
 import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
 import { buildIndexedCandidateResourceRecords, buildSerializablePathOptions } from '@/features/personalization/path-planning/public-api';
+import { promoteIndexedObjectKeyReads } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
+import { createBoundRuntimeObjectKeyVerifier } from '@/lib/runtime-bound-object-read';
 import {
   projectGovernedCopilotProfile,
   toServerOwnedUserProfile,
@@ -4847,12 +4849,15 @@ export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPa
 // 输入来自节点绑定字段（不再从导航 target 反解）；绑定状态随批次元数据持久化。
 // release 索引由绑定阶段一次性捕获并传入：同批次绑定与验证来自同一 release 快照，
 // 定稿中途 release 切换不会把 A 的绑定与 B 的验证混入同一持久化批次。
-function verifyCandidateObjectKeyReadRecords(
+async function verifyCandidateObjectKeyReadRecords(
   plan: AdaptiveLearningPathPlan,
   release: RuntimeReleaseFileIndex | null,
   index?: PublishedResourceFeatureIndex,
 ) {
-  return buildIndexedCandidateResourceRecords(buildSerializablePathOptions(plan), release, index);
+  return promoteIndexedObjectKeyReads(
+    buildIndexedCandidateResourceRecords(buildSerializablePathOptions(plan), release, index),
+    createBoundRuntimeObjectKeyVerifier(),
+  );
 }
 
 async function buildAdaptivePathToolOutput(

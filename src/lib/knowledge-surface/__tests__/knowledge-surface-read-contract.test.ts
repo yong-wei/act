@@ -530,6 +530,40 @@ describe('RegistryIndex resource closure', () => {
     });
   });
 
+  it('accepts a dirty capture only when it matches the pinned APP_REVISION', () => {
+    const previousRevision = process.env.APP_REVISION;
+    const previousFile = process.env.APP_REVISION_FILE;
+    process.env.APP_REVISION = capture;
+    process.env.APP_REVISION_FILE = '/tmp/act-app-revision';
+    try {
+      const accepted = closeResourceBlockWithRegistryIndex({
+        bindings: availableBindings,
+        index: indexAt(`${capture}-dirty`),
+        expectedCaptureRevision: capture,
+      });
+      expect(accepted.bindings.state).toBe('available');
+      expect(accepted.registryIndex?.captureRevision).toBe(capture);
+      expect(accepted.registryIndex?.dirty).toBe(true);
+    } finally {
+      if (previousRevision === undefined) delete process.env.APP_REVISION;
+      else process.env.APP_REVISION = previousRevision;
+      if (previousFile === undefined) delete process.env.APP_REVISION_FILE;
+      else process.env.APP_REVISION_FILE = previousFile;
+    }
+    const rejected = closeResourceBlockWithRegistryIndex({
+      bindings: availableBindings,
+      index: indexAt(`${capture}-dirty`),
+      expectedCaptureRevision: capture,
+    });
+    expect(rejected.bindings.state).toBe('unavailable');
+    const drifted = closeResourceBlockWithRegistryIndex({
+      bindings: availableBindings,
+      index: indexAt(`${'b'.repeat(40)}-dirty`),
+      expectedCaptureRevision: capture,
+    });
+    expect(drifted.bindings.state).toBe('unavailable');
+  });
+
   it('does not keep a viewer-shell binding available after the public launch sanitizer drops a missing href', () => {
     const sanitized = sanitizePublicResourceBindingLaunches({
       state: 'available',

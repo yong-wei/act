@@ -1,3 +1,7 @@
+import { createHash } from 'node:crypto';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -149,16 +153,44 @@ describe('runtime media signed redirect route', () => {
     expect((await invoke(['lessons', '1-1', 'media', 'missing.mp4'])).status).toBe(404);
   });
 
-  it('serves local materialized media when the workstation has no RAM role', async () => {
+  it('serves bound release bytes when the workstation has no RAM role', async () => {
+    const body = Buffer.from('bound-media');
+    const sha256 = createHash('sha256').update(body).digest('hex');
+    const runtimeRoot = mkdtempSync(path.join(tmpdir(), 'runtime-media-bound-'));
+    mkdirSync(path.join(runtimeRoot, 'lessons/1-1/media'), { recursive: true });
+    writeFileSync(path.join(runtimeRoot, 'lessons/1-1/media/intro.mp4'), body);
+    process.env.ACT_RUNTIME_ROOT = runtimeRoot;
     mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-1' });
-    mocks.findRuntimeMediaReleaseObject.mockReturnValue({ objectKey: 'runtime/releases/runtime-1/lessons/1-1/media/intro.mp4' });
+    mocks.findRuntimeMediaReleaseObject.mockReturnValue({
+      objectKey: `runtime/blobs/sha256/${sha256}`,
+      sha256,
+    });
     delete process.env.ACT_RUNTIME_OSS_RAM_ROLE;
-    const local = await invoke(['lessons', '1-1', 'media', 'intro.mp4']);
-    expect(local.status).toBe(307);
-    expect(local.headers.get('location')).toBe('https://act.example/course-runtime/lessons/1-1/media/intro.mp4');
-    expect(local.headers.get('location')).not.toMatch(/oss-cn-hangzhou/);
-    expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
-    expect(mocks.asyncSignatureUrl).not.toHaveBeenCalled();
+    try {
+      const local = await invoke(['lessons', '1-1', 'media', 'intro.mp4']);
+      expect(local.status).toBe(200);
+      expect(local.headers.get('x-act-runtime-read')).toBe('bound-release');
+      expect(Buffer.from(await local.arrayBuffer()).toString()).toBe('bound-media');
+      expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
+    } finally {
+      rmSync(runtimeRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies pinned-release read failures instead of falling back to local fixtures', async () => {
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue({ releaseId: 'runtime-1' });
+    mocks.findRuntimeMediaReleaseObject.mockReturnValue({
+      objectKey: `runtime/blobs/sha256/${'a'.repeat(64)}`,
+      sha256: 'a'.repeat(64),
+    });
+    delete process.env.ACT_RUNTIME_OSS_RAM_ROLE;
+    const missing = await invoke(['lessons', '1-1', 'media', 'intro.mp4']);
+    expect(missing.status).toBe(404);
+    expect(await missing.json()).toEqual({
+      error: 'Runtime media asset was not found.',
+      code: 'missing',
+    });
+    expect(missing.headers.get('location')).toBeNull();
   });
 
   it('does not serve a mismatched pinned release from the local view', async () => {
@@ -166,9 +198,19 @@ describe('runtime media signed redirect route', () => {
     delete process.env.ACT_RUNTIME_OSS_RAM_ROLE;
     const mismatched = await invoke(['lessons', '1-1', 'media', 'intro.mp4'], '?releaseId=runtime-old');
     expect(mismatched.status).toBe(404);
-    const matched = await invoke(['lessons', '1-1', 'media', 'intro.mp4'], '?releaseId=runtime-1');
-    expect(matched.status).toBe(307);
-    expect(matched.headers.get('location')).toBe('https://act.example/course-runtime/lessons/1-1/media/intro.mp4');
+    expect(await mismatched.json()).toEqual({
+      error: 'Runtime media asset does not match the pinned release.',
+      code: 'release-mismatch',
+    });
     expect(mocks.createEcsRamRoleOssClient).not.toHaveBeenCalled();
+  });
+
+  it('declares unpinned local fallback when no release is mounted', async () => {
+    mocks.readActiveRuntimeReleaseManifest.mockResolvedValue(null);
+    delete process.env.ACT_RUNTIME_OSS_RAM_ROLE;
+    const local = await invoke(['lessons', '1-1', 'media', 'intro.mp4']);
+    expect(local.status).toBe(307);
+    expect(local.headers.get('x-act-runtime-fallback')).toBe('local-unpinned');
+    expect(local.headers.get('location')).toBe('https://act.example/course-runtime/lessons/1-1/media/intro.mp4');
   });
 });

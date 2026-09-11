@@ -1,3 +1,6 @@
+import { createReadStream } from 'node:fs';
+import path from 'node:path';
+import { Readable } from 'node:stream';
 import { NextResponse } from 'next/server';
 
 import {
@@ -5,6 +8,11 @@ import {
   isRuntimeMediaPath,
   readActiveRuntimeReleaseManifest,
 } from '@/lib/runtime-active-release';
+import {
+  boundRuntimeObjectPath,
+  defaultRuntimeRoot,
+  verifyBoundRuntimeObject,
+} from '@/lib/runtime-bound-object-read';
 import {
   parseAnyRuntimeReleaseManifest,
   runtimeReleaseManifestObjectKey,
@@ -22,7 +30,56 @@ function runtimeMediaFallbackPath(assetPath: string[]) {
 }
 
 function localMediaRedirect(request: Request, assetPath: string[]) {
-  return NextResponse.redirect(new URL(runtimeMediaFallbackPath(assetPath), request.url), 307);
+  const response = NextResponse.redirect(new URL(runtimeMediaFallbackPath(assetPath), request.url), 307);
+  response.headers.set('X-Act-Runtime-Fallback', 'local-unpinned');
+  return response;
+}
+
+const MEDIA_TYPES: Record<string, string> = {
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.m4a': 'audio/mp4',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.gif': 'image/gif',
+};
+
+function classifiedFailure(
+  code: 'missing' | 'forbidden' | 'checksum-mismatch' | 'release-mismatch',
+  status: number,
+) {
+  const error = {
+    missing: 'Runtime media asset was not found.',
+    forbidden: 'Runtime media asset is not readable.',
+    'checksum-mismatch': 'Runtime media asset failed checksum verification.',
+    'release-mismatch': 'Runtime media asset does not match the pinned release.',
+  }[code];
+  return NextResponse.json({ error, code }, { status, headers: { 'Cache-Control': 'no-store' } });
+}
+
+async function serveBoundReleaseMedia(runtimePath: string, expectedSha256?: string | null) {
+  const runtimeRoot = defaultRuntimeRoot();
+  const verified = await verifyBoundRuntimeObject(runtimeRoot, runtimePath, expectedSha256);
+  if (verified.state !== 'verified') {
+    const status = verified.state === 'forbidden' ? 403 : verified.state === 'checksum-mismatch' ? 409 : 404;
+    return classifiedFailure(verified.state, status);
+  }
+  const abs = boundRuntimeObjectPath(runtimeRoot, runtimePath);
+  if (!abs) return classifiedFailure('missing', 404);
+  return new NextResponse(Readable.toWeb(createReadStream(abs)) as ReadableStream, {
+    status: 200,
+    headers: {
+      'Content-Type': MEDIA_TYPES[path.extname(runtimePath).toLowerCase()] || 'application/octet-stream',
+      'Cache-Control': 'no-store',
+      'X-Act-Runtime-Read': 'bound-release',
+    },
+  });
 }
 
 /**
@@ -55,13 +112,21 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
   const pinnedReleaseId = new URL(request.url).searchParams.get('releaseId')?.trim() || '';
   const ramRole = process.env.ACT_RUNTIME_OSS_RAM_ROLE?.trim();
   if (!ramRole) {
-    if (pinnedReleaseId && pinnedReleaseId !== 'unreleased-worktree') {
-      const manifest = await readActiveRuntimeReleaseManifest();
-      if (!manifest || manifest.releaseId !== pinnedReleaseId) {
-        return NextResponse.json({ error: 'Runtime media asset was not found.' }, { status: 404 });
-      }
+    if (pinnedReleaseId === 'unreleased-worktree') {
+      return localMediaRedirect(request, assetPath);
     }
-    return localMediaRedirect(request, assetPath);
+    const manifest = await readActiveRuntimeReleaseManifest();
+    if (!manifest) {
+      return localMediaRedirect(request, assetPath);
+    }
+    if (pinnedReleaseId && pinnedReleaseId !== manifest.releaseId) {
+      return classifiedFailure('release-mismatch', 404);
+    }
+    const releaseObject = findRuntimeMediaReleaseObject(manifest, runtimePath);
+    if (!releaseObject) {
+      return classifiedFailure('missing', 404);
+    }
+    return serveBoundReleaseMedia(runtimePath, releaseObject.sha256);
   }
 
   try {
