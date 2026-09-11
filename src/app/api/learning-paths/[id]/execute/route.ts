@@ -971,7 +971,7 @@ async function interactionLogMatchesPathNode(
     pathNode?.sourceRef,
     pathNode?.target,
   ));
-  return identityTokens(ownedResource.registryId).some((token) => nodeTokens.has(token));
+  return identityTokens(ownedResource.id, ownedResource.registryId).some((token) => nodeTokens.has(token));
 }
 
 async function resolveGovernedQuizOutcomeEvidence<T extends {

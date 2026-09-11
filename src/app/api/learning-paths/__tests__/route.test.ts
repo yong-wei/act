@@ -5316,6 +5316,60 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('matches a teaching-resource quiz node by TeachingResource primary key', async () => {
+    configureSingleNodePath(
+      'teaching-resource:cmoxloe52000uq5bcojma7r79',
+      'quiz',
+      '/interactive-learning/resources/cmoxloe52000uq5bcojma7r79',
+      {
+        planNode: {
+          sourceKind: 'teaching_resource',
+          sourceRef: 'cmoxloe52000uq5bcojma7r79',
+        },
+      },
+    );
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-tr-quiz',
+      clientEventId: 'evt-tr-quiz',
+      eventType: 'complete',
+      resourceId: 'cmoxloe52000uq5bcojma7r79',
+      eventData: {
+        score: 92,
+        pathId: 'path-1',
+        nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+        goalId: 'frequency-response-foundations',
+        pathExecutionBound: true,
+      },
+    });
+    mocks.prisma.teachingResource.findUnique.mockResolvedValue({
+      id: 'cmoxloe52000uq5bcojma7r79',
+      registryId: 'some-registry-id',
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-tr-quiz',
+      liftMetadata: {
+        completionResult: {
+          score: 92,
+          sourceLogId: 'log-tr-quiz',
+          clientEventId: 'evt-tr-quiz',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      evidenceRefs: [expect.objectContaining({
+        sourceLogId: 'log-tr-quiz',
+        nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+        completionResult: { score: 92 },
+      })],
+    }));
+  });
+
   it('completes an ungraded lesson-step that only carries a client event id', async () => {
     configureSingleNodePath(
       'registry:physics-modeling-intro-v1',
