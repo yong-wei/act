@@ -342,7 +342,7 @@ export function planIdentityIsolationRestore(input: {
   }>;
 } {
   const existing = new Set(input.existingSourceReferences);
-  const writes = [];
+  const writes: IsolationWrite[] = [];
   for (const fact of input.facts) {
     if (!isIdentityIsolated(fact.contextJson)) continue;
     const sourceReference = restoreSourceReference(fact.id);
