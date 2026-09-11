@@ -2428,7 +2428,8 @@ function hasStatusMarkersSchema(value: unknown): boolean {
     item === 'stale' ||
     item === 'partial' ||
     item === 'low-confidence' ||
-    item === 'missing-source'
+    item === 'missing-source' ||
+    item === 'mixed-knowledge-identity'
   );
 }
 

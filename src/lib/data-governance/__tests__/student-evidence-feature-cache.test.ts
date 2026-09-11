@@ -9,6 +9,7 @@ import {
   derivePortraitV2Compatibility,
   PORTRAIT_V2_CALCULATION_VERSION,
 } from '../portrait-v2-model';
+import { buildStudentProfileEvidenceStatus } from '../profile-center';
 import {
   buildKnowledgeIdentityCoverage,
   buildKnowledgeIdentityLayers,
@@ -2260,6 +2261,152 @@ describe('student evidence feature cache service', () => {
           missing: 1,
         },
       },
+    });
+  });
+});
+
+function memoryFeatureCacheDb(facts: LearningFact[]) {
+  let stored: Record<string, unknown> | null = null;
+  return {
+    stored: () => stored,
+    learningFact: {
+      findMany: vi.fn().mockResolvedValue(facts),
+    },
+    studentCompetencySnapshot: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
+    studentProfileSummary: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
+    studentEvidenceFeatureCache: {
+      upsert: vi.fn().mockImplementation(async ({ create }: { create: Record<string, unknown> }) => {
+        stored = create;
+        return create;
+      }),
+      findUnique: vi.fn().mockImplementation(async () => stored),
+    },
+  };
+}
+
+function canonicalFact(id: string, startedAt: string): LearningFact {
+  return fact({
+    id,
+    sourceEventId: `event-${id}`,
+    knowledgeIdentityNamespace: 'CANONICAL',
+    knowledgeRevisionRef: 'a'.repeat(64),
+    canonicalObjectId: 'ctr:object:feedback-loop',
+    aggregateReleaseSetId: 'rs',
+    aggregateReleaseId: 'rel',
+    knowledgeProjectionId: 'proj',
+    startedAt: new Date(startedAt),
+    finishedAt: new Date(startedAt),
+  });
+}
+
+describe('mixed-knowledge-identity cache round-trip', () => {
+  const now = new Date('2026-07-30T00:00:00.000Z');
+
+  it('reads a single-version cache as ready', async () => {
+    const facts = [
+      canonicalFact('canon-1', '2026-07-28T00:00:00.000Z'),
+      canonicalFact('canon-2', '2026-07-29T00:00:00.000Z'),
+      canonicalFact('canon-3', '2026-07-30T00:00:00.000Z'),
+    ];
+    const db = memoryFeatureCacheDb(facts);
+    await refreshStudentEvidenceFeatureCache(db, 'student-1', { now });
+
+    await expect(readStudentEvidenceFeatures(db, 'student-1', { now })).resolves.toMatchObject({
+      state: 'ready',
+      cache: expect.objectContaining({
+        statusMarkers: expect.not.arrayContaining(['mixed-knowledge-identity']),
+      }),
+    });
+  });
+
+  it('reads a mixed-identity cache as ready and keeps comparability risk', async () => {
+    const facts = [
+      fact({
+        id: 'unversioned',
+        sourceEventId: 'event-unversioned',
+        knowledgeIdentityNamespace: null,
+        knowledgeRevisionRef: null,
+        startedAt: new Date('2026-01-01T00:00:00.000Z'),
+        finishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      }),
+      canonicalFact('canon-1', '2026-07-30T00:00:00.000Z'),
+    ];
+    const db = memoryFeatureCacheDb(facts);
+    const written = await refreshStudentEvidenceFeatureCache(db, 'student-1', { now });
+    expect(written.statusMarkers).toEqual(
+      expect.arrayContaining(['mixed-knowledge-identity', 'partial']),
+    );
+
+    const read = await readStudentEvidenceFeatures(db, 'student-1', { now });
+    const adaptive = (read.cache?.features as {
+      adaptiveLearnerState?: { confidence?: { markers?: string[] } };
+      mergedAggregateComparability?: { singleVersionComparable?: boolean };
+    } | undefined);
+
+    expect(read.state).toBe('ready');
+    expect(read.cache?.statusMarkers).toEqual(
+      expect.arrayContaining(['mixed-knowledge-identity']),
+    );
+    expect(adaptive?.adaptiveLearnerState?.confidence?.markers).toEqual(
+      expect.arrayContaining(['mixed-knowledge-identity']),
+    );
+    expect(adaptive?.mergedAggregateComparability?.singleVersionComparable).toBe(false);
+    expect(read.cache?.sourceCounts).toMatchObject({ LearningFact: 2 });
+
+    const portrait = buildStudentProfileEvidenceStatus({
+      featureRead: read,
+      learningFacts: facts,
+      hasLatestSnapshot: false,
+    });
+    expect(portrait.statusMarkers).toEqual(
+      expect.arrayContaining(['mixed-knowledge-identity']),
+    );
+    expect(portrait.state).toBe('ready');
+    expect(portrait.confidence.state).not.toBe('stale');
+  });
+
+  it('fails closed when a marker value is unknown', async () => {
+    const db = memoryFeatureCacheDb([canonicalFact('canon-1', '2026-07-30T00:00:00.000Z')]);
+    await refreshStudentEvidenceFeatureCache(db, 'student-1', { now });
+    const stored = db.stored() as {
+      features: { adaptiveLearnerState: { confidence: { markers: string[] } } };
+    };
+    stored.features.adaptiveLearnerState.confidence.markers.push('not-a-known-marker');
+
+    await expect(readStudentEvidenceFeatures(db, 'student-1', { now })).resolves.toMatchObject({
+      state: 'stale',
+    });
+  });
+
+  it('keeps genuine expiry and structural damage stale', async () => {
+    const db = memoryFeatureCacheDb([
+      fact({
+        id: 'unversioned',
+        sourceEventId: 'event-unversioned',
+        knowledgeIdentityNamespace: null,
+        startedAt: new Date('2026-01-01T00:00:00.000Z'),
+        finishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      }),
+      canonicalFact('canon-1', '2026-07-30T00:00:00.000Z'),
+    ]);
+    await refreshStudentEvidenceFeatureCache(db, 'student-1', { now });
+
+    const expired = await readStudentEvidenceFeatures(db, 'student-1', {
+      now: new Date('2026-09-30T00:00:00.000Z'),
+    });
+    expect(expired.state).toBe('stale');
+    expect(expired.cache?.statusMarkers).toEqual(
+      expect.arrayContaining(['mixed-knowledge-identity']),
+    );
+
+    const stored = db.stored() as { features: Record<string, unknown> };
+    delete stored.features.adaptiveLearnerState;
+    await expect(readStudentEvidenceFeatures(db, 'student-1', { now })).resolves.toMatchObject({
+      state: 'stale',
     });
   });
 });
