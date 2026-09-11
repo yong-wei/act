@@ -179,7 +179,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
           const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(existingPathNode, governedExternalInput);
-          const governedQuizInput = resolveGovernedQuizOutcomeEvidence(governedInstrumentedInput);
+          const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, governedInstrumentedInput);
           const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
@@ -244,7 +244,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
     const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(pathNode, governedExternalInput);
-    const governedQuizInput = resolveGovernedQuizOutcomeEvidence(governedInstrumentedInput);
+    const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, governedInstrumentedInput);
     const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
@@ -395,8 +395,8 @@ function sanitizeCompletionResult(value: unknown): Record<string, unknown> {
   const completionResult = compactObject({
     success: typeof result.success === 'boolean' ? result.success : undefined,
     score: readFinite(result.score),
-    sourceLogId: firstString(result.sourceLogId),
-    clientEventId: firstString(result.clientEventId),
+    sourceLogId: firstString(result.sourceLogId) ?? undefined,
+    clientEventId: firstString(result.clientEventId) ?? undefined,
     data: Object.keys(completionData).length > 0 ? completionData : undefined,
   });
   return Object.keys(completionResult).length > 0 ? { completionResult } : {};
@@ -888,24 +888,56 @@ function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {
   };
 }
 
-function resolveGovernedQuizOutcomeEvidence<T extends {
+async function resolveGovernedQuizOutcomeEvidence<T extends {
   pathId: string;
+  userId: string;
   goalId?: string | null;
   nodeId: string;
   resourceType: string;
   status: string;
   evidenceRefs?: unknown[];
   liftMetadata?: Record<string, unknown>;
-}>(input: T): T {
+}>(db: any, input: T): Promise<T> {
   if (input.status !== 'completed' || input.resourceType !== 'quiz') return input;
   const completionResult = toRecord(toRecord(input.liftMetadata).completionResult);
-  const score = readFinite(completionResult.score);
+  const completionData = toRecord(completionResult.data);
+  const sourceLogId = firstString(completionResult.sourceLogId);
+  const clientEventId = firstString(completionResult.clientEventId, completionData.clientEventId);
+  if (!sourceLogId && !clientEventId) {
+    return { ...input, evidenceRefs: [] };
+  }
+
+  const log = await db.interactionLog?.findFirst?.({
+    where: {
+      userId: input.userId,
+      ...(sourceLogId ? { id: sourceLogId } : { clientEventId }),
+    },
+    select: {
+      id: true,
+      clientEventId: true,
+      eventType: true,
+      eventData: true,
+    },
+  });
+  if (!log) {
+    return { ...input, evidenceRefs: [] };
+  }
+
+  const eventData = toRecord(log.eventData);
+  const declaredPathId = firstString(eventData.pathId);
+  const declaredNodeId = firstString(eventData.nodeId);
+  if (declaredPathId && declaredPathId !== input.pathId) {
+    return { ...input, evidenceRefs: [] };
+  }
+  if (declaredNodeId && declaredNodeId !== input.nodeId) {
+    return { ...input, evidenceRefs: [] };
+  }
+
+  const score = readFinite(eventData.score);
   if (score === undefined) {
     return { ...input, evidenceRefs: [] };
   }
-  const sourceLogId = firstString(completionResult.sourceLogId, completionResult.clientEventId)
-    ?? `quiz_complete:${input.pathId}:${input.nodeId}`;
-  const clientEventId = firstString(completionResult.clientEventId);
+
   return {
     ...input,
     evidenceRefs: [{
@@ -913,9 +945,11 @@ function resolveGovernedQuizOutcomeEvidence<T extends {
       eventType: 'quiz_complete',
       provenance: 'platform-instrumented',
       status: 'completed',
-      ref: sourceLogId,
-      sourceLogId,
-      ...(clientEventId ? { clientEventId } : {}),
+      ref: log.id,
+      sourceLogId: log.id,
+      ...(firstString(log.clientEventId, clientEventId)
+        ? { clientEventId: firstString(log.clientEventId, clientEventId) }
+        : {}),
       completionResult: { score },
       pathId: input.pathId,
       goalId: input.goalId ?? null,

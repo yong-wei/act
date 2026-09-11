@@ -32,6 +32,9 @@ const mocks = vi.hoisted(() => ({
     arenaVirtualSimulationRun: {
       findFirst: vi.fn(),
     },
+    interactionLog: {
+      findFirst: vi.fn(),
+    },
     adaptiveAssessmentAnswer: {
       findFirst: vi.fn(),
     },
@@ -512,6 +515,7 @@ describe('learning path round API routes', () => {
     mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
     mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
     mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue(null);
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue(null);
     mocks.persistControlCorrectionPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.persistLearningPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.readControlCorrectionPathRound.mockResolvedValue({
@@ -3833,7 +3837,7 @@ describe('learning path round API routes', () => {
               nodeId: 'simulation:control-correction-step-response-lab',
               type: 'simulation',
               decisionExplanation: {
-                selectionBasis: {
+                selectionBasis: expect.objectContaining({
                   summary: '依据仿真实验与终点检查证据安排本路径。',
                   confidence: 'medium',
                   supportingFacts: [
@@ -3841,7 +3845,7 @@ describe('learning path round API routes', () => {
                     '先复核仿真，再进入终点检查。',
                   ],
                   limitations: ['终点检查仍需补充结果。'],
-                },
+                }),
               },
             }),
             expect.objectContaining({
@@ -5187,6 +5191,16 @@ describe('learning path round API routes', () => {
 
   it('writes governed quiz evidence refs with path membership on scored completion', async () => {
     configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-quiz-1',
+      clientEventId: 'evt-quiz-1',
+      eventType: 'complete',
+      eventData: {
+        score: 100,
+        pathId: 'path-1',
+        nodeId: 'registry:bode-quiz',
+      },
+    });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'registry:bode-quiz',
@@ -5206,6 +5220,12 @@ describe('learning path round API routes', () => {
     }), params);
 
     expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        id: 'log-quiz-1',
+      }),
+    }));
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       evidenceRefs: [expect.objectContaining({
         kind: 'ResourceEvent',
@@ -5215,6 +5235,61 @@ describe('learning path round API routes', () => {
         completionResult: { score: 100 },
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
+      })],
+    }));
+  });
+
+  it('does not mint governed quiz refs from a self-reported score without a persisted log', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-forged-score',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: {
+          score: 100,
+          success: true,
+          sourceLogId: 'missing-log',
+          clientEventId: 'missing-event',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      idempotencyKey: 'exec-bode-quiz-forged-score',
+      evidenceRefs: [],
+    }));
+  });
+
+  it('uses the persisted interaction log score instead of the client-reported score', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-quiz-owned',
+      clientEventId: 'evt-quiz-owned',
+      eventType: 'complete',
+      eventData: { score: 70, pathId: 'path-1', nodeId: 'registry:bode-quiz' },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-owned-score',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, clientEventId: 'evt-quiz-owned' },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      evidenceRefs: [expect.objectContaining({
+        sourceLogId: 'log-quiz-owned',
+        completionResult: { score: 70 },
       })],
     }));
   });

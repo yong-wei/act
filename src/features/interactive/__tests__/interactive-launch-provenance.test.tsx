@@ -272,18 +272,25 @@ describe('useResourceInteractionTracking classroom session propagation (Issue #1
     const container = document.createElement('div');
     const root = createRoot(container);
     await act(async () => root.render(<Probe withPath={true} />));
-    act(() => trackerRef.current?.trackResourceComplete({ score: 100 }));
-    expect(trackerRef.current?.getHistory().at(-1)?.data).toMatchObject({
+    await act(async () => {
+      await trackerRef.current?.trackResourceComplete({ score: 100 });
+    });
+    const pathBody = JSON.parse(String(vi.mocked(fetch).mock.calls.at(-1)?.[1]?.body));
+    expect(pathBody.events.at(-1)?.data).toMatchObject({
       pathId: 'path-1',
       goalId: 'control-correction',
       nodeId: 'node-1',
       score: 100,
+      clientEventId: expect.any(String),
     });
 
     await act(async () => root.render(<Probe withPath={false} />));
     act(() => trackerRef.current?.clearHistory());
-    act(() => trackerRef.current?.trackResourceComplete({}));
-    expect(trackerRef.current?.getHistory().at(-1)?.data).not.toMatchObject({
+    await act(async () => {
+      await trackerRef.current?.trackResourceComplete({});
+    });
+    const standaloneBody = JSON.parse(String(vi.mocked(fetch).mock.calls.at(-1)?.[1]?.body));
+    expect(standaloneBody.events.at(-1)?.data).not.toMatchObject({
       pathId: 'path-1',
     });
     await act(async () => root.unmount());

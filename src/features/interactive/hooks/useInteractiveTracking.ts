@@ -252,5 +252,6 @@ export function useInteractiveTracking(
     emit,
     getHistory,
     clearHistory,
+    flush: syncEvents,
   };
 }

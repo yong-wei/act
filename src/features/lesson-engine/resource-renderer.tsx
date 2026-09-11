@@ -144,13 +144,21 @@ export function ResourceRenderer({
   }, [onStateChange]);
 
   // Handle widget completion
-  const handleComplete = useCallback((result?: WidgetResult) => {
+  const handleComplete = useCallback(async (result?: WidgetResult) => {
     console.log('[ResourceRenderer] Widget complete:', result);
-    knowledgeTracker.trackResourceComplete({
+    const clientEventId = await knowledgeTracker.trackResourceComplete({
       score: result?.score,
       success: result?.success,
     });
-    return onComplete?.(result);
+    return onComplete?.({
+      success: result?.success ?? true,
+      score: result?.score,
+      clientEventId,
+      data: {
+        ...(result?.data ?? {}),
+        clientEventId,
+      },
+    });
   }, [knowledgeTracker, onComplete]);
 
   useEffect(() => {

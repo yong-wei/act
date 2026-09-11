@@ -103,12 +103,18 @@ export function useResourceInteractionTracking({
     emitWithEventType('knowledge_card_open', 'interact', data), [emitWithEventType]);
   const trackExternalModuleOpen = useCallback((data: Record<string, unknown> = {}) =>
     emitWithEventType('external_module_open', 'interact', data), [emitWithEventType]);
-  const trackResourceComplete = useCallback((data: Record<string, unknown> = {}) =>
+  const trackResourceComplete = useCallback(async (data: Record<string, unknown> = {}) => {
+    const clientEventId = typeof data.clientEventId === 'string' && data.clientEventId.trim()
+      ? data.clientEventId.trim()
+      : `quiz-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     emitWithEventType(
-        inferStandaloneCompletionEventType({ registryId, resourceType, surface }),
-        'complete',
-        data,
-      ), [emitWithEventType, registryId, resourceType, surface]);
+      inferStandaloneCompletionEventType({ registryId, resourceType, surface }),
+      'complete',
+      { ...data, clientEventId },
+    );
+    await tracking.flush?.();
+    return clientEventId;
+  }, [emitWithEventType, registryId, resourceType, surface, tracking]);
 
   return useMemo(() => ({
     emitWithEventType,
