@@ -54,6 +54,20 @@ describe('legacy fact identity audit', () => {
       canonicalId: 'new-1',
       stale: false,
     }]).classification).toBe('mappable');
+
+    const partial = classifyLearningFactIdentity(fact({
+      id: 'partial',
+      knowledgeIdentityNamespace: 'LEGACY',
+      knowledgeRevisionRef: 'rev-legacy',
+      contextJson: { knowledgeNodeIds: ['old-1', 'old-missing'] },
+    }), [{
+      legacyId: 'old-1',
+      canonicalId: 'new-1',
+      stale: false,
+    }]);
+    expect(partial.classification).toBe('undetermined');
+    expect(partial.reason).toBe('legacy_crosswalk_partial');
+    expect(partial.unresolvedLegacyIds).toEqual(['old-missing']);
   });
 
   it('is read-only and repeatable', () => {
@@ -122,6 +136,28 @@ describe('legacy fact identity audit', () => {
     });
     expect(second.writes).toHaveLength(0);
     expect(second.report.counts.isolated).toBe(1);
+
+    const partial = planIdentityIsolation({
+      userId,
+      facts: [fact({
+        id: 'partial',
+        knowledgeIdentityNamespace: 'LEGACY',
+        knowledgeRevisionRef: 'rev-legacy',
+        contextJson: { knowledgeNodeIds: ['old-1', 'old-missing'] },
+      })],
+      existingSourceReferences: [],
+      executionRevision: 'rev-test',
+      crosswalk: [{
+        legacyId: 'old-1',
+        canonicalId: 'new-1',
+        stale: false,
+      }],
+    });
+    expect(partial.writes).toHaveLength(1);
+    expect(partial.report.counts.undetermined).toBe(1);
+    expect(partial.report.anomalies).toEqual([
+      { factId: 'partial', message: 'legacy_crosswalk_partial' },
+    ]);
   });
 
   it('restores isolation from the recorded previous governance', () => {
@@ -158,6 +194,11 @@ describe('legacy fact identity audit', () => {
     try {
       expect(() => resolveAuditExecutionRevision({ requireCapture: true }))
         .toThrow('identity-audit-missing-execution-revision');
+      expect(() => resolveAuditExecutionRevision({
+        requireCapture: true,
+        gitHead: 'a2377a630b1006979b896516011888735b1fc510',
+        dirty: true,
+      })).toThrow('identity-audit-dirty-worktree');
       expect(resolveAuditExecutionRevision({
         requireCapture: true,
         gitHead: 'a2377a630b1006979b896516011888735b1fc510',

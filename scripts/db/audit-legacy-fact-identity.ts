@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createPrismaClient } from '../../src/lib/prisma-client';
 import { appendLearnerFactTransition } from '../../src/lib/data-governance/cumulative-learner-state';
+import { refreshStudentEvidenceFeatureCache } from '../../src/lib/data-governance/student-evidence-feature-cache';
 import {
   buildIdentityAuditReport,
   isolationSourceReference,
@@ -26,15 +27,22 @@ function readOption(name: string): string | null {
   return process.argv[index + 1] ?? null;
 }
 
-function captureGitHead(): string | null {
+function captureGitWorkspace(): { sha: string | null; dirty: boolean } {
   try {
     const sha = execFileSync('git', ['rev-parse', 'HEAD'], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
-    return /^[0-9a-f]{7,40}$/i.test(sha) ? sha : null;
+    const dirty = execFileSync('git', ['status', '--porcelain'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim() !== '';
+    return {
+      sha: /^[0-9a-f]{7,40}$/i.test(sha) ? sha : null,
+      dirty,
+    };
   } catch {
-    return null;
+    return { sha: null, dirty: false };
   }
 }
 
@@ -64,9 +72,11 @@ async function main() {
   }
   const mode = (readOption('--mode') ?? 'audit') as 'audit' | 'isolate' | 'restore';
   const apply = hasFlag('--apply');
+  const git = captureGitWorkspace();
   const executionRevision = resolveAuditExecutionRevision({
     requireCapture: true,
-    gitHead: captureGitHead(),
+    gitHead: git.sha,
+    dirty: git.dirty,
   });
   const crosswalk = loadLegacyCrosswalk(
     defaultLegacyCrosswalkPath(path.join(process.cwd(), 'course-content/authoring/knowledge/teaching-projection')),
@@ -121,7 +131,7 @@ async function main() {
     writes = planned.writes;
   }
 
-  if (apply && writes.length > 0) {
+  if (apply && (mode === 'isolate' || mode === 'restore')) {
     for (const write of writes) {
       await prisma.$transaction(async (tx) => {
         await tx.learningFact.update({
@@ -131,6 +141,7 @@ async function main() {
         await appendLearnerFactTransition(tx, write.transition);
       });
     }
+    await refreshStudentEvidenceFeatureCache(prisma, userId);
   }
 
   const rendered = JSON.stringify(report, null, 2);

@@ -58,7 +58,11 @@ export interface IdentityAuditReport {
 export function resolveAuditExecutionRevision(options: {
   requireCapture?: boolean;
   gitHead?: string | null;
+  dirty?: boolean;
 } = {}): string {
+  if (options.requireCapture && options.dirty) {
+    throw new Error('identity-audit-dirty-worktree');
+  }
   const captured = process.env.APP_REVISION?.trim()
     || process.env.GIT_SHA?.trim()
     || options.gitHead?.trim()
@@ -128,9 +132,12 @@ export function classifyLearningFactIdentity(
   if (serving.identityNamespace === 'CANONICAL') {
     classification = 'mappable';
     reason = 'canonical_identity_present';
-  } else if (display.crosswalkApplied) {
+  } else if (display.crosswalkApplied && display.unresolvedLegacyIds.length === 0) {
     classification = 'mappable';
     reason = 'legacy_crosswalk_resolved';
+  } else if (display.crosswalkApplied) {
+    classification = 'undetermined';
+    reason = 'legacy_crosswalk_partial';
   } else if (serving.identityNamespace === 'LEGACY') {
     classification = 'legacy_only';
     reason = 'legacy_revision_without_crosswalk';
@@ -220,10 +227,14 @@ export function buildIdentityAuditReport(input: {
   const index = toCrosswalkIndex(input.crosswalk);
   const rows = input.facts.map((fact) => classifyLearningFactIdentity(fact, index));
   const anomalies = rows.flatMap((row) => {
+    const messages: string[] = [];
     if (row.identityNamespace === 'CANONICAL' && !row.knowledgeRevisionRef) {
-      return [{ factId: row.factId, message: 'canonical_missing_revision' }];
+      messages.push('canonical_missing_revision');
     }
-    return [];
+    if (row.reason === 'legacy_crosswalk_partial') {
+      messages.push('legacy_crosswalk_partial');
+    }
+    return messages.map((message) => ({ factId: row.factId, message }));
   });
   return {
     userId: input.userId,
