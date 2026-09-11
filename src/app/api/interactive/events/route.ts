@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { readGovernedCourseStudentDemoStep } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 import { prisma } from '@/lib/prisma';
 import { eventRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -129,27 +130,45 @@ async function bindOwnedPathLaunchEvent(
   if ((nodeIds.length > 0 && !nodeIds.includes(nodeId)) || !node) {
     return { eventData: rest, resourceId };
   }
-  const registryCandidates = [
+  const teachingResourceIds = [...new Set([
+    node.sourceKind === 'teaching_resource' && typeof node.sourceRef === 'string' ? node.sourceRef : null,
+    nodeId.startsWith('teaching-resource:') ? nodeId.slice('teaching-resource:'.length) : null,
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    .map((value) => value.trim()))];
+  const registryCandidates = [...new Set([
     node.registryId,
-    node.sourceRef,
+    node.sourceKind === 'teaching_resource' ? null : node.sourceRef,
     nodeId.startsWith('registry:') ? nodeId.slice('registry:'.length) : null,
   ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
-    .map((value) => value.trim());
-  const owned = registryCandidates.length > 0
+    .map((value) => value.trim()))];
+  const owned = (teachingResourceIds.length > 0 || registryCandidates.length > 0)
     ? await prisma.teachingResource.findFirst({
-      where: { registryId: { in: registryCandidates } },
+      where: {
+        OR: [
+          ...(teachingResourceIds.length > 0 ? [{ id: { in: teachingResourceIds } }] : []),
+          ...(registryCandidates.length > 0 ? [{ registryId: { in: registryCandidates } }] : []),
+        ],
+      },
       select: { id: true },
     })
     : null;
-  if (!owned) {
+  const courseDemoStep = String(node.type) === 'simulation'
+    ? readGovernedCourseStudentDemoStep(String(node.target ?? ''))
+    : null;
+  if (!owned && !courseDemoStep) {
+    return { eventData: rest, resourceId };
+  }
+  const claimedStep = typeof rest.stepId === 'string' ? rest.stepId.trim() : '';
+  if (courseDemoStep && claimedStep && claimedStep !== courseDemoStep) {
     return { eventData: rest, resourceId };
   }
   return {
-    resourceId: owned.id,
+    resourceId: owned?.id ?? resourceId,
     eventData: {
       ...rest,
       pathId: path.id,
       nodeId,
+      ...(courseDemoStep ? { stepId: courseDemoStep } : {}),
       ...(typeof path.goalId === 'string' && path.goalId ? { goalId: path.goalId } : {}),
       pathExecutionBound: true,
     },

@@ -92,7 +92,13 @@ describe('completeAdaptivePathAfterPersistedRun', () => {
       targetStepId: 'step-11',
     })).toBe(false);
 
+    vi.stubGlobal('crypto', {
+      randomUUID: () => 'client-course-demo-1',
+    });
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('/api/interactive/events')) {
+        return new Response(JSON.stringify({ count: 1 }), { status: 200 });
+      }
       if (String(url).includes('/api/simulation/runs')) {
         return new Response(JSON.stringify({ simulationRunId: 'course-demo-run-1' }), { status: 200 });
       }
@@ -107,10 +113,23 @@ describe('completeAdaptivePathAfterPersistedRun', () => {
     await persistPathLaunchedCourseDemoIfCurrentStep('step-11');
 
     expect(fetch).toHaveBeenCalledWith(
+      '/api/interactive/events',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"client-course-demo-1"'),
+      }),
+    );
+    expect(fetch).toHaveBeenCalledWith(
       '/api/simulation/runs',
       expect.objectContaining({
         method: 'POST',
         body: expect.stringContaining('"kind":"path-course-demo"'),
+      }),
+    );
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/simulation/runs',
+      expect.objectContaining({
+        body: expect.stringContaining('"clientEventId":"client-course-demo-1"'),
       }),
     );
   });

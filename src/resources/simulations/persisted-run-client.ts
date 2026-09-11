@@ -131,20 +131,56 @@ export function persistPathLaunchedCourseDemoIfCurrentStep(stepId: string) {
   })) {
     return;
   }
+  const clientEventId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `path-course-demo:${Date.now()}`;
   return persistPathLaunchedCourseDemoRun({
     pathId: launchContext.pathId,
     nodeId: launchContext.nodeId,
     stepId,
+    clientEventId,
   }).catch(() => undefined);
 }
 
-export function persistPathLaunchedCourseDemoRun(input: {
+export async function persistPathLaunchedCourseDemoRun(input: {
   pathId: string;
   nodeId: string;
   stepId: string;
+  clientEventId: string;
 }) {
+  const eventResponse = await fetch('/api/interactive/events', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      events: [{
+        id: input.clientEventId,
+        type: 'submit',
+        timestamp: Date.now(),
+        resourceKey: input.nodeId,
+        stepId: input.stepId,
+        data: {
+          clientEventId: input.clientEventId,
+          pathId: input.pathId,
+          nodeId: input.nodeId,
+          stepId: input.stepId,
+          resourceType: 'simulation',
+        },
+      }],
+    }),
+  });
+  let persistedCount = 0;
+  try {
+    const payload = await eventResponse.json() as { count?: unknown };
+    persistedCount = typeof payload.count === 'number' ? payload.count : 0;
+  } catch {
+    persistedCount = 0;
+  }
+  if (!eventResponse.ok || persistedCount < 1) {
+    throw new Error('路径实验提交未持久化，无法完成节点。');
+  }
   return persistRun({
     kind: 'path-course-demo',
+    clientEventId: input.clientEventId,
     launchContext: {
       pathId: input.pathId,
       nodeId: input.nodeId,

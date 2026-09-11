@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   classSessionFindUnique: vi.fn(),
   studentProfileFindUnique: vi.fn(),
   learningPathFindFirst: vi.fn(),
+  interactionLogFindFirst: vi.fn(),
   resolveTrustedControlWorkbenchContext: vi.fn(),
 }));
 
@@ -26,6 +27,7 @@ vi.mock('@/lib/prisma', () => ({
     classSession: { findUnique: mocks.classSessionFindUnique },
     studentProfile: { findUnique: mocks.studentProfileFindUnique },
     learningPath: { findFirst: mocks.learningPathFindFirst },
+    interactionLog: { findFirst: mocks.interactionLogFindFirst },
   },
 }));
 
@@ -89,6 +91,7 @@ describe('POST /api/simulation/runs', () => {
     });
     mocks.studentProfileFindUnique.mockResolvedValue({ classId: 'class-1' });
     mocks.learningPathFindFirst.mockResolvedValue(null);
+    mocks.interactionLogFindFirst.mockResolvedValue(null);
     mocks.resolveTrustedControlWorkbenchContext.mockResolvedValue({
       sessionId: 'cmoxloe52000uq5bcojma7r78',
       classId: 'class-1',
@@ -378,9 +381,20 @@ describe('POST /api/simulation/runs', () => {
         }],
       },
     });
+    mocks.interactionLogFindFirst.mockResolvedValue({
+      eventType: 'submit',
+      stepId: 'step-11',
+      eventData: {
+        pathExecutionBound: true,
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+      },
+    });
 
     const response = await POST(request({
       kind: 'path-course-demo',
+      clientEventId: 'client-course-demo-1',
       launchContext: {
         pathId: 'path-1',
         nodeId: 'simulation:control-correction-step-response-lab',
@@ -419,6 +433,7 @@ describe('POST /api/simulation/runs', () => {
 
     const response = await POST(request({
       kind: 'path-course-demo',
+      clientEventId: 'client-course-demo-wrong-step',
       launchContext: {
         pathId: 'path-1',
         nodeId: 'simulation:control-correction-step-response-lab',
@@ -446,6 +461,7 @@ describe('POST /api/simulation/runs', () => {
 
     const response = await POST(request({
       kind: 'path-course-demo',
+      clientEventId: 'client-course-demo-cruise',
       launchContext: {
         pathId: 'path-1',
         nodeId: 'simulation:cruise',
@@ -455,6 +471,92 @@ describe('POST /api/simulation/runs', () => {
 
     expect(response.status).toBe(403);
     expect(mocks.persistPathCourseDemoSimulationRun).not.toHaveBeenCalled();
+  });
+
+  it('rejects a path-launched course demo without a bound submission log', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const missingEvent = await POST(request({
+      kind: 'path-course-demo',
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+      },
+    }));
+    expect(missingEvent.status).toBe(400);
+    expect(mocks.persistPathCourseDemoSimulationRun).not.toHaveBeenCalled();
+
+    const forgedEvent = await POST(request({
+      kind: 'path-course-demo',
+      clientEventId: 'client-forged',
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+      },
+    }));
+    expect(forgedEvent.status).toBe(403);
+    expect(mocks.persistPathCourseDemoSimulationRun).not.toHaveBeenCalled();
+  });
+
+  it('rejects a path-launched scene trace that is not the bound cruise node', async () => {
+    mocks.learningPathFindFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const response = await POST(request({
+      kind: 'scene-trace',
+      traceSummary: {
+        trace: {
+          envelope: {
+            sceneId: 'sim/cruise',
+            runId: 'cruise-run-1',
+            checksum: 'browser-fnv1a32:00000000',
+            seed: 42,
+            startedAt: '2026-07-25T01:00:00.000Z',
+            completedAt: '2026-07-25T01:10:00.000Z',
+            sampleCadence: 0.5,
+          },
+          samples: { frameCount: 1200 },
+          summary: {
+            passed: true,
+            metrics: {
+              controller_kp: 0.6,
+              controller_ki: 0.008,
+              controller_kd: 1.5,
+            },
+          },
+        },
+      },
+      launchContext: {
+        pathId: 'path-1',
+        nodeId: 'simulation:control-correction-step-response-lab',
+      },
+    }));
+
+    expect(response.status).toBe(403);
+    expect(mocks.persistSceneTraceSimulationRun).not.toHaveBeenCalled();
   });
 
   it('rejects scene traces outside the server allowlist', async () => {

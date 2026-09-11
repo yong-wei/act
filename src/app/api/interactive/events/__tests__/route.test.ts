@@ -29,6 +29,12 @@ const mocks = vi.hoisted(() => ({
     learningFact: {
       createMany: vi.fn(),
     },
+    learningPath: {
+      findFirst: vi.fn(),
+    },
+    teachingResource: {
+      findFirst: vi.fn(),
+    },
   },
   // 分类提交共享写入器在路由测试中打桩；写入器本体由专属单测与真 PG 集成测试覆盖
   submissionEvidenceRuntime: {
@@ -150,6 +156,8 @@ describe('POST /api/interactive/events', () => {
       evidenceStatus: 'ACCEPTED',
     });
     mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue(null);
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue(null);
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.requestRealtimeSimulationTaskReconciliation.mockResolvedValue(1);
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
@@ -1502,6 +1510,143 @@ describe('POST /api/interactive/events', () => {
     expect(persistedDraft.actorRole).toBe('student');
     expect(routedDraft.actorRole).toBe('student');
     vi.useRealTimers();
+  });
+
+  it('binds a teaching-resource path node by primary key, not registryId', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-teaching-resource', clientEventId: 'client-teaching-resource', eventData: { clientEventId: 'client-teaching-resource' } },
+    ]);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      goalId: 'control-correction',
+      nodeIds: ['teaching-resource:cmoxloe52000uq5bcojma7r79'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+          type: 'quiz',
+          sourceKind: 'teaching_resource',
+          sourceRef: 'cmoxloe52000uq5bcojma7r79',
+        }],
+      },
+    });
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue({ id: 'cmoxloe52000uq5bcojma7r79' });
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-teaching-resource',
+        type: 'submit',
+        timestamp: Date.parse('2026-09-11T01:00:00.000Z'),
+        resourceKey: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+        data: {
+          pathId: 'path-1',
+          nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+          resourceType: 'quiz',
+        },
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.teachingResource.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        OR: [
+          { id: { in: ['cmoxloe52000uq5bcojma7r79'] } },
+        ],
+      },
+    }));
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0]).toMatchObject({
+      resourceId: 'cmoxloe52000uq5bcojma7r79',
+      eventData: expect.objectContaining({
+        pathId: 'path-1',
+        nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+        pathExecutionBound: true,
+      }),
+    });
+  });
+
+  it('binds a governed course-demo simulation node without a TeachingResource', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-course-demo', clientEventId: 'client-course-demo', eventData: { clientEventId: 'client-course-demo' } },
+    ]);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      goalId: 'control-correction',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-course-demo',
+        type: 'submit',
+        timestamp: Date.parse('2026-09-11T01:00:00.000Z'),
+        resourceKey: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+        data: {
+          pathId: 'path-1',
+          nodeId: 'simulation:control-correction-step-response-lab',
+          stepId: 'step-11',
+          resourceType: 'simulation',
+        },
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.teachingResource.findFirst).not.toHaveBeenCalled();
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).toMatchObject({
+      pathId: 'path-1',
+      nodeId: 'simulation:control-correction-step-response-lab',
+      stepId: 'step-11',
+      pathExecutionBound: true,
+    });
+  });
+
+  it('does not bind a course-demo event when the submitted step is not the destination', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-wrong-step', clientEventId: 'client-wrong-step', eventData: { clientEventId: 'client-wrong-step' } },
+    ]);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      goalId: 'control-correction',
+      nodeIds: ['simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        planNodes: [{
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+        }],
+      },
+    });
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-wrong-step',
+        type: 'submit',
+        timestamp: Date.parse('2026-09-11T01:00:00.000Z'),
+        resourceKey: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-10',
+        data: {
+          pathId: 'path-1',
+          nodeId: 'simulation:control-correction-step-response-lab',
+          stepId: 'step-10',
+          resourceType: 'simulation',
+        },
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).not.toMatchObject({
+      pathExecutionBound: true,
+    });
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).not.toHaveProperty('pathId');
   });
 });
 

@@ -119,6 +119,45 @@ async function resolvePathLaunchedNodeContext(
   };
 }
 
+function isCruisePathSimulationNode(node: Record<string, unknown>): boolean {
+  const target = String(node.target ?? '');
+  try {
+    const pathname = new URL(target, 'https://act.local').pathname;
+    if (pathname === '/simulations/cruise' || pathname.startsWith('/simulations/cruise/')) {
+      return true;
+    }
+  } catch {
+    // Fall through to identity tokens.
+  }
+  return [node.sourceRef, node.registryId, node.nodeId].some((value) => (
+    typeof value === 'string'
+    && (value === 'sim-scene-cruise' || value.endsWith(':sim-scene-cruise') || value === 'cruise' || value.endsWith(':cruise'))
+  ));
+}
+
+async function resolvePathLaunchedSceneTraceContext(
+  userId: string,
+  pathId: string,
+  nodeId: string,
+): Promise<SimulationRunLaunchContext | null> {
+  const path = await prisma.learningPath.findFirst({
+    where: { id: pathId, userId },
+    select: { id: true, pathPayload: true, nodeIds: true },
+  });
+  if (!path) return null;
+  const nodeIds = Array.isArray(path.nodeIds) ? path.nodeIds.filter((value): value is string => typeof value === 'string') : [];
+  if (nodeIds.length > 0 && !nodeIds.includes(nodeId)) return null;
+  const payload = record(path.pathPayload);
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const node = planNodes.map(record).find((entry) => entry.nodeId === nodeId);
+  if (!node || String(node.type) !== 'simulation' || !isCruisePathSimulationNode(node)) return null;
+  return {
+    pathId,
+    pathNodeId: nodeId,
+    resourceId: nodeId,
+  };
+}
+
 async function resolvePathLaunchedCourseDemoContext(
   userId: string,
   pathId: string,
@@ -294,7 +333,7 @@ export async function POST(request: NextRequest) {
       const pathId = text(untrustedLaunchContext.pathId);
       const pathNodeId = text(untrustedLaunchContext.nodeId);
       const launchContext = pathId && pathNodeId
-        ? await resolvePathLaunchedNodeContext(session.user.id, pathId, pathNodeId, ['simulation'])
+        ? await resolvePathLaunchedSceneTraceContext(session.user.id, pathId, pathNodeId)
         : {
           ...await trustedSceneLaunchContext(body.launchContext, session.user),
           registryId: 'sim-scene-cruise',
@@ -318,7 +357,8 @@ export async function POST(request: NextRequest) {
       const pathId = text(untrustedLaunchContext.pathId);
       const pathNodeId = text(untrustedLaunchContext.nodeId);
       const stepId = text(untrustedLaunchContext.stepId);
-      if (!pathId || !pathNodeId || !stepId) {
+      const clientEventId = text(body.clientEventId);
+      if (!pathId || !pathNodeId || !stepId || !clientEventId) {
         return NextResponse.json({ error: 'Invalid path course demo run' }, { status: 400 });
       }
       const launchContext = await resolvePathLaunchedCourseDemoContext(
@@ -329,6 +369,24 @@ export async function POST(request: NextRequest) {
       );
       if (!launchContext) {
         return NextResponse.json({ error: 'Untrusted path course demo context' }, { status: 403 });
+      }
+      const log = await prisma.interactionLog.findFirst({
+        where: {
+          userId: session.user.id,
+          clientEventId,
+        },
+        select: { eventType: true, eventData: true, stepId: true },
+      });
+      const eventData = record(log?.eventData);
+      if (
+        !log
+        || eventData.pathExecutionBound !== true
+        || text(eventData.pathId) !== pathId
+        || text(eventData.nodeId) !== pathNodeId
+        || (text(eventData.stepId) ?? text(log.stepId)) !== stepId
+        || !['submit', 'complete'].includes(String(log.eventType))
+      ) {
+        return NextResponse.json({ error: 'Untrusted path course demo submission' }, { status: 403 });
       }
       const result = await persistPathCourseDemoSimulationRun(
         prisma,
