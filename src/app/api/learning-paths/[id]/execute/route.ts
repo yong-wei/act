@@ -184,6 +184,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
+          if (governedWorkbenchInput instanceof NextResponse) return governedWorkbenchInput;
           const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
             prisma as any,
             path,
@@ -250,6 +251,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
+    if (governedWorkbenchInput instanceof NextResponse) return governedWorkbenchInput;
     const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
       prisma as any,
       path,
@@ -1143,30 +1145,36 @@ async function resolveGovernedControlWorkbenchOutcomeEvidence<T extends {
   db: any,
   path: any,
   input: T,
-): Promise<T> {
+): Promise<T | NextResponse> {
   if (input.resourceType !== 'control_workbench' || input.status !== 'completed') return input;
   const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
   const clientRef = toRecord(input.liftMetadata?.controlWorkbenchRef);
   const fallbackSimulationRef = Object.keys(clientRef).length > 0 ? clientRef : input.simulationRef;
-  const simulationRef = await resolveServerSimulationRef(db, input.userId, fallbackSimulationRef, scope);
-  const controlWorkbenchRef = isTrustedSimulationOutcomeRef(simulationRef)
-    ? compactObject({
-        kind: 'ControlWorkbenchOutcome',
-        id: simulationRef?.id,
-        simulationRunId: simulationRef?.id,
-        sourceRefId: simulationRef?.sourceRefId,
-        resourceId: simulationRef?.resourceId,
-        taskSpecId: simulationRef?.taskSpecId,
-        provenance: simulationRef?.provenance,
-        status: simulationRef?.status,
-        replayConfidence: simulationRef?.replayConfidence,
-        protocolVersion: simulationRef?.protocolVersion,
-        completedAt: simulationRef?.completedAt,
-        summaryMetrics: simulationRef?.summaryMetrics,
-      })
-    : simulationRef
-      ? unknownEvidenceRef('ControlWorkbenchOutcome', readRefId(simulationRef, ['id', 'runId', 'ref', 'sourceId']) ?? 'unknown', firstString(simulationRef.mismatchReason) ?? 'control-workbench-outcome-unverified')
-      : pendingOutcomeRef('ControlWorkbenchOutcome');
+  const simulationRef = await resolveServerSimulationRef(db, input.userId, fallbackSimulationRef, scope, {
+    pathId: typeof path?.id === 'string' ? path.id : '',
+    nodeId: input.nodeId,
+  });
+  if (!isTrustedSimulationOutcomeRef(simulationRef)) {
+    return rejectUngovernedGradableCompletion(
+      firstString(simulationRef?.mismatchReason) === 'path-execution-mismatch'
+        ? '工作台运行不属于当前路径节点'
+        : '工作台完成缺少本路径已持久化的仿真运行',
+    );
+  }
+  const controlWorkbenchRef = compactObject({
+    kind: 'ControlWorkbenchOutcome',
+    id: simulationRef?.id,
+    simulationRunId: simulationRef?.id,
+    sourceRefId: simulationRef?.sourceRefId,
+    resourceId: simulationRef?.resourceId,
+    taskSpecId: simulationRef?.taskSpecId,
+    provenance: simulationRef?.provenance,
+    status: simulationRef?.status,
+    replayConfidence: simulationRef?.replayConfidence,
+    protocolVersion: simulationRef?.protocolVersion,
+    completedAt: simulationRef?.completedAt,
+    summaryMetrics: simulationRef?.summaryMetrics,
+  });
   return {
     ...input,
     simulationRef,
@@ -1216,6 +1224,7 @@ async function resolveServerSimulationRef(
   userId: string,
   clientRef: Record<string, unknown> | null | undefined,
   scope: TerminalEvidenceScope,
+  pathBinding?: { pathId: string; nodeId: string },
 ): Promise<Record<string, unknown> | null> {
   const id = readRefId(clientRef, ['id', 'runId', 'simulationRunId', 'ref']);
   if (!id) return null;
@@ -1232,6 +1241,7 @@ async function resolveServerSimulationRef(
       sourceRefId: true,
       taskSpecId: true,
       resourceId: true,
+      taskSpecSnapshot: true,
       summary: true,
       replayToken: true,
       protocolVersion: true,
@@ -1243,6 +1253,15 @@ async function resolveServerSimulationRef(
   }
   if (!matchesExpectedSimulationEvidence(run, scope)) {
     return unknownEvidenceRef('SimulationRun', id, 'simulation-scope-mismatch');
+  }
+  if (pathBinding) {
+    const launchContext = toRecord(toRecord(run.taskSpecSnapshot).launchContext);
+    if (
+      firstString(launchContext.pathId) !== firstString(pathBinding.pathId)
+      || firstString(launchContext.pathNodeId) !== firstString(pathBinding.nodeId)
+    ) {
+      return unknownEvidenceRef('SimulationRun', id, 'path-execution-mismatch');
+    }
   }
   const summary = toRecord(run.summary);
   return compactObject({

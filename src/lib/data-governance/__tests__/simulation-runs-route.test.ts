@@ -184,8 +184,9 @@ describe('POST /api/simulation/runs', () => {
       'student-1',
       expect.objectContaining({
         launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'control-workbench:lead-design',
           resourceId: 'control-workbench:lead-design',
-          registryId: 'control-workbench',
         },
       }),
       mocks.computeControlAnalysisServer,

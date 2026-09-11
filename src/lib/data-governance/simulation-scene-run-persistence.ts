@@ -39,6 +39,8 @@ export interface SimulationRunLaunchContext {
   resourceId?: string;
   sessionId?: string;
   stepId?: string;
+  pathId?: string;
+  pathNodeId?: string;
 }
 
 export interface PersistControlWorkbenchRunInput {

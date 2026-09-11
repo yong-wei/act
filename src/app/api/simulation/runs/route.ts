@@ -110,8 +110,9 @@ async function resolvePathLaunchedWorkbenchContext(
   const node = planNodes.map(record).find((entry) => entry.nodeId === nodeId);
   if (!node || node.type !== 'control_workbench') return null;
   return {
+    pathId,
+    pathNodeId: nodeId,
     resourceId: nodeId,
-    registryId: text(node.sourceRef) ?? nodeId,
   };
 }
 

@@ -5622,6 +5622,149 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('binds a control-workbench completion to the persisted path-owned simulation run', async () => {
+    configureSingleNodePath(
+      'control-workbench:lead-design',
+      'control_workbench',
+      '/interactive-learning/control-workbench',
+    );
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'wb-run-path-1',
+      ownerUserId: 'student-1',
+      runKind: 'scene_simulation',
+      sourceDomain: 'simulation_scene',
+      sourceRefId: 'control-workbench:path-1',
+      resourceId: 'control-workbench:lead-design',
+      taskSpecId: 'spec-1',
+      taskSpecSnapshot: {
+        launchContext: {
+          pathId: 'path-1',
+          pathNodeId: 'control-workbench:lead-design',
+          resourceId: 'control-workbench:lead-design',
+        },
+      },
+      status: 'completed',
+      summary: { replayConfidence: 0.9, metrics: { overshoot: 0.1 } },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-09-11T01:00:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'control-workbench:lead-design',
+      resourceType: 'control_workbench',
+      status: 'completed',
+      idempotencyKey: 'exec-workbench-path-bound',
+      simulationRef: { id: 'wb-run-path-1' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'wb-run-path-1',
+        provenance: 'official',
+        status: 'completed',
+      }),
+    }));
+  });
+
+  it('rejects a control-workbench run that belongs to another path even when the node id matches', async () => {
+    configureSingleNodePath(
+      'control-workbench:lead-design',
+      'control_workbench',
+      '/interactive-learning/control-workbench',
+    );
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'wb-run-path-2',
+      ownerUserId: 'student-1',
+      runKind: 'scene_simulation',
+      sourceDomain: 'simulation_scene',
+      sourceRefId: 'control-workbench:path-2',
+      resourceId: 'control-workbench:lead-design',
+      taskSpecId: 'spec-2',
+      taskSpecSnapshot: {
+        launchContext: {
+          pathId: 'path-2',
+          pathNodeId: 'control-workbench:lead-design',
+          resourceId: 'control-workbench:lead-design',
+        },
+      },
+      status: 'completed',
+      summary: { replayConfidence: 0.9 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-09-11T01:00:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'control-workbench:lead-design',
+      resourceType: 'control_workbench',
+      status: 'completed',
+      idempotencyKey: 'exec-workbench-foreign-path',
+      simulationRef: { id: 'wb-run-path-2' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: '工作台运行不属于当前路径节点',
+    });
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects a classroom-only control-workbench run as path completion evidence', async () => {
+    configureSingleNodePath(
+      'control-workbench:lead-design',
+      'control_workbench',
+      '/interactive-learning/control-workbench',
+    );
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'wb-run-classroom',
+      ownerUserId: 'student-1',
+      runKind: 'scene_simulation',
+      sourceDomain: 'simulation_scene',
+      sourceRefId: 'control-workbench:classroom',
+      resourceId: 'control-workbench:lead-design',
+      taskSpecId: 'spec-classroom',
+      taskSpecSnapshot: {
+        launchContext: {
+          sessionId: 'session-1',
+          resourceId: 'control-workbench:lead-design',
+        },
+      },
+      status: 'completed',
+      summary: { replayConfidence: 0.9 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-09-11T01:00:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'control-workbench:lead-design',
+      resourceType: 'control_workbench',
+      status: 'completed',
+      idempotencyKey: 'exec-workbench-classroom-run',
+      simulationRef: { id: 'wb-run-classroom' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects a self-reported control-workbench completion without a persisted run', async () => {
+    configureSingleNodePath(
+      'control-workbench:lead-design',
+      'control_workbench',
+      '/interactive-learning/control-workbench',
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'control-workbench:lead-design',
+      resourceType: 'control_workbench',
+      status: 'completed',
+      idempotencyKey: 'exec-workbench-self-report',
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('rejects execution when resource type does not match the persisted path node', async () => {
     configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
 
