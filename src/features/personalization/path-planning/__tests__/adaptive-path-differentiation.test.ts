@@ -228,4 +228,41 @@ describe('adaptive path hard diversity (#2077)', () => {
     ]);
     expect(result.passed).toBe(true);
   });
+
+  it('ignores a stale preferenceQuotaUnmet flag when filtered identities already meet the share', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'pub-a1' }, { id: 'pub-a2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'pub-b1' }, { id: 'pub-b2' }], strategy: { generic: true } },
+      {
+        styleId: 'c',
+        policyFamily: 'preference-matched',
+        identities: [
+          { id: 'pub-c1', published: true, preferred: true, type: 'video' },
+          { id: 'pub-c2', published: true, preferred: true, type: 'simulation' },
+        ],
+        strategy: { generic: false, preferenceQuotaUnmet: true },
+      },
+    ]);
+    expect(result.passed).toBe(true);
+  });
+
+  it('recomputes the preference share from filtered identities', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'pub-a1' }, { id: 'pub-a2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'pub-b1' }, { id: 'pub-b2' }], strategy: { generic: true } },
+      {
+        styleId: 'c',
+        policyFamily: 'preference-matched',
+        identities: [
+          { id: 'pub-c1', published: true, preferred: true },
+          { id: 'pub-c2', published: true, preferred: true },
+          { id: 'local-c1', published: false },
+          { id: 'local-c2', published: false },
+        ],
+        strategy: { generic: false, preferenceQuotaUnmet: false },
+      },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('c:preference-quota-unmet');
+  });
 });

@@ -132,7 +132,10 @@ export function evaluateAdaptivePathHardDiversity(
         reasons.push(`${path.styleId}:strength-published-below-2`);
       }
       if (family === 'preference-matched') {
-        if (strategy.preferenceQuotaUnmet === true) reasons.push(`${path.styleId}:preference-quota-unmet`);
+        const preferredShare = path.identities.length === 0
+          ? 0
+          : path.identities.filter((entry) => entry.preferred === true).length / path.identities.length;
+        if (preferredShare < 0.6) reasons.push(`${path.styleId}:preference-quota-unmet`);
         const uniquePreferred = [...new Set(
           path.identities
             .filter((entry) => entry.preferred && entry.published !== false && !othersPublished.has(entry.id))

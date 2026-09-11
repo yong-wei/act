@@ -789,6 +789,116 @@ describe('adaptive path batch differentiation metrics', () => {
     expect(differentiation!.hardDiversity.reasons).toContain('foundation-remediation:weakness-published-below-2');
   });
 
+  it('counts a third preferred type as unique preference after read filtering', () => {
+    const published = (nodeId: string, objectKey: string, type: 'knowledge_card' | 'textbook_section' | 'simulation' = 'knowledge_card') => ({
+      ...node(nodeId),
+      type,
+      pathNodeType: type,
+      runtimeResourceBinding: boundBinding(nodeId, objectKey),
+    });
+    const left = [published('node-1', 'oss/a1'), published('node-1b', 'oss/a2')];
+    const middle = [published('node-2', 'oss/b1'), published('node-2b', 'oss/b2')];
+    const right = [published('node-3', 'oss/c1', 'simulation'), published('node-3b', 'oss/c2', 'simulation')];
+    const extended: AdaptiveLearningPathPlan = {
+      ...plan(),
+      mainPath: [...left, ...middle, ...right],
+      policyBundle: {
+        ...plan().policyBundle!,
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+        paths: [
+          { ...candidate('foundation-remediation', 'foundation-remediation', '补救', ['node-1', 'node-1b']), planNodes: left, strategy: { family: 'foundation-remediation', strategyId: 'weakness-repair', name: '薄弱点补强', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          { ...candidate('arena-simulation-sprint', 'simulation-driven', '迁移', ['node-2', 'node-2b']), planNodes: middle, strategy: { family: 'simulation-driven', strategyId: 'strength-transfer', name: '优势迁移应用', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          {
+            ...candidate('preference-matched-route', 'preference-matched', '偏好', ['node-3', 'node-3b']),
+            planNodes: right,
+            strategy: {
+              family: 'preference-matched',
+              strategyId: 'preference-reinforce',
+              name: '偏好资源强化',
+              portraitBasis: ['knowledge_card', 'textbook_section', 'simulation'],
+              generic: false,
+              preferredTypeShare: 1,
+              preferenceQuotaUnmet: false,
+              weaknessResourceCount: 0,
+              comprehensiveTaskCount: 0,
+            },
+          },
+        ],
+      },
+    };
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation!.hardDiversity.reasons).not.toEqual(
+      expect.arrayContaining([
+        'preference-matched-route:unique-preference-below-2',
+        'preference-matched-route:preference-quota-unmet',
+      ]),
+    );
+    expect(differentiation!.hardDiversity.passed).toBe(true);
+  });
+
+  it('recomputes preference share after unreadables are removed', () => {
+    const published = (
+      nodeId: string,
+      objectKey: string,
+      type: 'video' | 'knowledge_card' = 'knowledge_card',
+    ) => ({
+      ...node(nodeId),
+      type,
+      pathNodeType: type,
+      runtimeResourceBinding: boundBinding(nodeId, objectKey),
+    });
+    const left = [published('node-1', 'oss/a1'), published('node-1b', 'oss/a2')];
+    const middle = [published('node-2', 'oss/b1'), published('node-2b', 'oss/b2')];
+    const right = [
+      published('pref-1', 'oss/c1', 'video'),
+      published('pref-2', 'oss/c2', 'video'),
+      published('pref-3', 'oss/c3', 'video'),
+      published('other-1', 'oss/c4'),
+      published('other-2', 'oss/c5'),
+    ];
+    const extended: AdaptiveLearningPathPlan = {
+      ...plan(),
+      mainPath: [...left, ...middle, ...right],
+      policyBundle: {
+        ...plan().policyBundle!,
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+        paths: [
+          { ...candidate('foundation-remediation', 'foundation-remediation', '补救', ['node-1', 'node-1b']), planNodes: left, strategy: { family: 'foundation-remediation', strategyId: 'weakness-repair', name: '薄弱点补强', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          { ...candidate('arena-simulation-sprint', 'simulation-driven', '迁移', ['node-2', 'node-2b']), planNodes: middle, strategy: { family: 'simulation-driven', strategyId: 'strength-transfer', name: '优势迁移应用', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          {
+            ...candidate('preference-matched-route', 'preference-matched', '偏好', ['pref-1', 'pref-2', 'pref-3', 'other-1', 'other-2']),
+            planNodes: right,
+            strategy: {
+              family: 'preference-matched',
+              strategyId: 'preference-reinforce',
+              name: '偏好资源强化',
+              portraitBasis: ['video'],
+              generic: false,
+              preferredTypeShare: 0.6,
+              preferenceQuotaUnmet: false,
+              weaknessResourceCount: 0,
+              comprehensiveTaskCount: 0,
+            },
+          },
+        ],
+      },
+    };
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended, {
+      objectKeyReadRecords: [{
+        objectKey: 'oss/c3',
+        resourceId: 'act:resource:pref-3',
+        candidateStyleId: 'preference-matched-route',
+        nodeNodeId: 'pref-3',
+        state: 'missing',
+        contentSha256: null,
+        verifiedAt: '2026-09-11T00:00:00.000Z',
+        runtimeReleaseId: 'release-fixture',
+      }],
+    });
+    expect(differentiation!.hardDiversity.passed).toBe(false);
+    expect(differentiation!.hardDiversity.reasons).toContain('preference-matched-route:preference-quota-unmet');
+  });
+
   it('does not count unbound binding resourceIds as unique published identities', () => {
     const base = plan();
     const unbound = (nodeId: string) => ({

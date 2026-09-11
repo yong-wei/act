@@ -5628,7 +5628,7 @@ function buildFamilyStrategyObservation(
   const portraitBasis = policyFamily === 'foundation-remediation'
     ? deficits
     : policyFamily === 'preference-matched'
-      ? preferredTypes.slice(0, 2)
+      ? preferredTypes
       : competencies;
   const generic = portraitUnavailable
     || (policyFamily === 'foundation-remediation' && portraitBasis.length === 0)
