@@ -61,12 +61,16 @@ export const ADAPTIVE_PATH_HARD_DIVERSITY = {
   minUniqueShare: 0.5,
 } as const;
 
+const COMPREHENSIVE_PUBLISHED_TYPES = new Set(['simulation', 'arena_task', 'project', 'control_workbench']);
+
 export interface AdaptivePathHardDiversityIdentity {
   id: string;
   type?: string;
   preferred?: boolean;
   /** 缺省视为已发布身份，便于纯函数单测。 */
   published?: boolean;
+  coversWeakness?: boolean;
+  comprehensive?: boolean;
 }
 
 export interface AdaptivePathHardDiversityPath {
@@ -114,10 +118,17 @@ export function evaluateAdaptivePathHardDiversity(
     const strategy = path.strategy;
     const family = path.policyFamily;
     if (strategy && strategy.generic !== true) {
-      if (family === 'foundation-remediation' && (strategy.weaknessResourceCount ?? 0) < 2) {
+      const publishedWeakness = path.identities.filter((entry) =>
+        entry.published !== false && entry.coversWeakness === true).length;
+      const publishedComprehensive = path.identities.filter((entry) =>
+        entry.published !== false && (
+          entry.comprehensive === true
+          || (entry.comprehensive !== false && entry.type != null && COMPREHENSIVE_PUBLISHED_TYPES.has(entry.type))
+        )).length;
+      if (family === 'foundation-remediation' && publishedWeakness < 2) {
         reasons.push(`${path.styleId}:weakness-published-below-2`);
       }
-      if (family === 'simulation-driven' && (strategy.comprehensiveTaskCount ?? 0) < 2) {
+      if (family === 'simulation-driven' && publishedComprehensive < 2) {
         reasons.push(`${path.styleId}:strength-published-below-2`);
       }
       if (family === 'preference-matched') {

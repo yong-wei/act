@@ -11,6 +11,7 @@ import {
 } from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionLearningCenterView, ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import {
+  resolveAdaptivePathToolGenerationStatus,
   selectVisibleAdaptivePathOptions,
 } from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
 import {
@@ -267,5 +268,23 @@ describe('student-safe strategy projection (#2033)', () => {
       fallback,
     )).toEqual([]);
     expect(selectVisibleAdaptivePathOptions(null, [], fallback)).toEqual(fallback);
+  });
+
+  it('treats hard-diversity failure as a blocked generation, not a persisted success', () => {
+    expect(resolveAdaptivePathToolGenerationStatus({
+      noMaterialDifference: false,
+      insufficientCandidateDiversity: true,
+      hasPersistedOutput: true,
+    })).toBe('blocked');
+    expect(resolveAdaptivePathToolGenerationStatus({
+      noMaterialDifference: false,
+      insufficientCandidateDiversity: false,
+      hasPersistedOutput: true,
+    })).toBe('persisted');
+    expect(resolveAdaptivePathToolGenerationStatus({
+      noMaterialDifference: true,
+      insufficientCandidateDiversity: true,
+      hasPersistedOutput: true,
+    })).toBe('no_material_difference');
   });
 });

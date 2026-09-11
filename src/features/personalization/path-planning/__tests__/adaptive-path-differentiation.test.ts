@@ -163,4 +163,69 @@ describe('adaptive path hard diversity (#2077)', () => {
     expect(result.passed).toBe(false);
     expect(result.reasons).toContain('a:unique-share-below-50');
   });
+
+  it('counts only published weakness resources toward the foundation quota', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      {
+        styleId: 'a',
+        policyFamily: 'foundation-remediation',
+        identities: [
+          { id: 'local-w1', published: false, coversWeakness: true },
+          { id: 'local-w2', published: false, coversWeakness: true },
+          { id: 'pub-a1', published: true },
+          { id: 'pub-a2', published: true },
+        ],
+        strategy: { generic: false, weaknessResourceCount: 2 },
+      },
+      { styleId: 'b', identities: [{ id: 'pub-b1' }, { id: 'pub-b2' }], strategy: { generic: true } },
+      { styleId: 'c', identities: [{ id: 'pub-c1' }, { id: 'pub-c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('a:weakness-published-below-2');
+  });
+
+  it('counts only published comprehensive resources toward the simulation quota', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'pub-a1' }, { id: 'pub-a2' }], strategy: { generic: true } },
+      {
+        styleId: 'b',
+        policyFamily: 'simulation-driven',
+        identities: [
+          { id: 'local-sim-1', published: false, type: 'simulation', comprehensive: true },
+          { id: 'local-sim-2', published: false, type: 'simulation', comprehensive: true },
+          { id: 'pub-b1', published: true },
+          { id: 'pub-b2', published: true },
+        ],
+        strategy: { generic: false, comprehensiveTaskCount: 2 },
+      },
+      { styleId: 'c', identities: [{ id: 'pub-c1' }, { id: 'pub-c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons).toContain('b:strength-published-below-2');
+  });
+
+  it('passes when strategy quotas are met by published identities', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      {
+        styleId: 'a',
+        policyFamily: 'foundation-remediation',
+        identities: [
+          { id: 'pub-a1', published: true, coversWeakness: true },
+          { id: 'pub-a2', published: true, coversWeakness: true },
+        ],
+        strategy: { generic: false, weaknessResourceCount: 0 },
+      },
+      {
+        styleId: 'b',
+        policyFamily: 'simulation-driven',
+        identities: [
+          { id: 'pub-b1', published: true, comprehensive: true, type: 'simulation' },
+          { id: 'pub-b2', published: true, comprehensive: true, type: 'control_workbench' },
+        ],
+        strategy: { generic: false, comprehensiveTaskCount: 0 },
+      },
+      { styleId: 'c', identities: [{ id: 'pub-c1' }, { id: 'pub-c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(true);
+  });
 });

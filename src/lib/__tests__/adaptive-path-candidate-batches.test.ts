@@ -708,6 +708,51 @@ describe('adaptive path batch differentiation metrics', () => {
     });
   });
 
+  it('does not let local deficit nodes satisfy the published foundation quota', () => {
+    const base = plan();
+    const published = (nodeId: string, objectKey: string, coverage = ['k1']) => ({
+      ...node(nodeId),
+      knowledgeCoverage: coverage,
+      runtimeResourceBinding: boundBinding(nodeId, objectKey),
+    });
+    const localWeakness = (nodeId: string) => ({
+      ...node(nodeId),
+      knowledgeCoverage: ['gap-1'],
+    });
+    const left = [localWeakness('local-w1'), localWeakness('local-w2'), published('node-1', 'oss/a1', ['other']), published('node-1b', 'oss/a2', ['other'])];
+    const middle = [published('node-2', 'oss/b1'), published('node-2b', 'oss/b2')];
+    const right = [published('node-3', 'oss/c1'), published('node-3b', 'oss/c2')];
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [...left, ...middle, ...right],
+      policyBundle: {
+        ...base.policyBundle!,
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+        paths: [
+          {
+            ...candidate('foundation-remediation', 'foundation-remediation', '补救', ['local-w1', 'local-w2', 'node-1', 'node-1b']),
+            planNodes: left,
+            strategy: {
+              family: 'foundation-remediation',
+              strategyId: 'weakness-repair',
+              name: '薄弱点补强',
+              portraitBasis: ['gap-1'],
+              generic: false,
+              preferredTypeShare: 0,
+              weaknessResourceCount: 2,
+              comprehensiveTaskCount: 0,
+            },
+          },
+          { ...candidate('arena-simulation-sprint', 'simulation-driven', '迁移', ['node-2', 'node-2b']), planNodes: middle, strategy: { family: 'simulation-driven', strategyId: 'strength-transfer', name: '优势迁移应用', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          { ...candidate('preference-matched-route', 'preference-matched', '偏好', ['node-3', 'node-3b']), planNodes: right, strategy: { family: 'preference-matched', strategyId: 'preference-reinforce', name: '偏好资源强化', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+        ],
+      },
+    };
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation!.hardDiversity.passed).toBe(false);
+    expect(differentiation!.hardDiversity.reasons).toContain('foundation-remediation:weakness-published-below-2');
+  });
+
   it('does not count unbound binding resourceIds as unique published identities', () => {
     const base = plan();
     const unbound = (nodeId: string) => ({

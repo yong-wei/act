@@ -357,11 +357,17 @@ export function computeAdaptivePathBatchDifferentiation(
         const publishedId = node.resourceFeatureRef?.resourceId
           ?? node.runtimeResourceBinding?.objectKey
           ?? (node.sourceKind === 'teaching_projection' ? node.sourceRef : null);
+        const coverage: string[] = Array.isArray(node.knowledgeCoverage)
+          ? node.knowledgeCoverage.filter((tag: unknown): tag is string => typeof tag === 'string')
+          : [];
+        const deficitIds = new Set(strategy?.portraitBasis ?? []);
         return {
           id: publishedId ?? node.nodeId,
           published: Boolean(publishedId),
           type: node.type,
           preferred: preferredTypes.has(node.type),
+          coversWeakness: coverage.some((tag) => deficitIds.has(tag)),
+          comprehensive: ['simulation', 'arena_task', 'project', 'control_workbench'].includes(node.type),
         };
       }),
       strategy,

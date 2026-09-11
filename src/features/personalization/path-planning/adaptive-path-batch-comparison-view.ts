@@ -137,6 +137,16 @@ export function selectVisibleAdaptivePathOptions<T>(
   return batchOptions.length > 0 ? batchOptions : fallbackOptions;
 }
 
+export function resolveAdaptivePathToolGenerationStatus(input: {
+  noMaterialDifference: boolean;
+  insufficientCandidateDiversity: boolean;
+  hasPersistedOutput: boolean;
+}): 'no_material_difference' | 'persisted' | 'blocked' {
+  if (input.noMaterialDifference) return 'no_material_difference';
+  if (input.insufficientCandidateDiversity || !input.hasPersistedOutput) return 'blocked';
+  return 'persisted';
+}
+
 export function buildAdaptivePathBatchComparisonView(metadata: unknown): AdaptivePathBatchComparisonView {
   const source = record(metadata);
   const differentiation = record(source.differentiation);
