@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import {
   buildSerializablePathOptions,
+  getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathPlan,
 } from '@/features/personalization/path-planning/public-api';
 import {
@@ -133,6 +134,10 @@ export interface AdaptivePathCandidateBatchDb {
 export class AdaptivePathCandidateBatchConflictError extends Error {}
 export class AdaptivePathCandidateBatchValidationError extends Error {}
 
+function planRequestsThreePathHardGate(plan: AdaptiveLearningPathPlan): boolean {
+  return getRegisteredAdaptiveLearningPathGoal(plan.goal.id)?.starterPathPolicy.targetOptionCount !== 2;
+}
+
 export async function persistAdaptivePathCandidateBatch(
   db: AdaptivePathCandidateBatchDb,
   input: AdaptivePathCandidateBatchPersistenceInput,
@@ -156,7 +161,8 @@ export async function persistAdaptivePathCandidateBatch(
       ...(differentiation?.insufficientVerifiedResources
         ? [...gated.limitations, 'insufficient-verified-resources']
         : gated.limitations),
-      ...(!(differentiation?.hardDiversity.passed) || candidates.length !== 3
+      ...(planRequestsThreePathHardGate(input.plan)
+        && (!(differentiation?.hardDiversity.passed) || candidates.length !== 3)
         ? ['insufficient-candidate-diversity']
         : []),
       ...(input.runtimeBindingLimitationCodes ?? []),
@@ -340,7 +346,8 @@ export function computeAdaptivePathBatchDifferentiation(
       pairs.push({ leftStyleId: inputs[left].styleId, rightStyleId: inputs[right].styleId, metrics });
     }
   }
-  const hardDiversity = evaluateAdaptivePathHardDiversity(serialized.map((candidate, index) => {
+  const hardDiversity = planRequestsThreePathHardGate(plan)
+    ? evaluateAdaptivePathHardDiversity(serialized.map((candidate, index) => {
     const strategy = candidate.strategy;
     const preferredTypes = new Set(
       strategy?.generic === true ? [] : strategy?.portraitBasis ?? [],
@@ -372,10 +379,13 @@ export function computeAdaptivePathBatchDifferentiation(
       }),
       strategy,
     };
-  }));
+  }))
+    : { passed: true, reasons: [] };
   return {
     pairs,
-    highDifferentiation: !insufficientVerifiedResources && hardDiversity.passed,
+    highDifferentiation: planRequestsThreePathHardGate(plan)
+      && !insufficientVerifiedResources
+      && hardDiversity.passed,
     hardDiversity,
     unreadableObjectKeys: [...unreadableObjectKeys].sort(),
     insufficientVerifiedResources,

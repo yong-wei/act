@@ -708,6 +708,42 @@ describe('adaptive path batch differentiation metrics', () => {
     });
   });
 
+  it('does not apply the three-path hard gate to two-option registered goals', async () => {
+    const base = plan();
+    const published = (nodeId: string, objectKey: string) => ({
+      ...node(nodeId),
+      runtimeResourceBinding: boundBinding(nodeId, objectKey),
+    });
+    const left = [published('node-1', 'oss/a1'), published('node-1b', 'oss/a2')];
+    const right = [published('node-2', 'oss/b1'), published('node-2b', 'oss/b2')];
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      goal: { ...base.goal, id: 'transfer-function-modeling-foundations' },
+      mainPath: [...left, ...right],
+      policyBundle: {
+        ...base.policyBundle!,
+        families: ['foundation-remediation', 'preference-matched'],
+        paths: [
+          { ...candidate('foundation-remediation', 'foundation-remediation', '补救', ['node-1', 'node-1b']), planNodes: left },
+          { ...candidate('preference-matched-route', 'preference-matched', '偏好', ['node-2', 'node-2b']), planNodes: right },
+        ],
+      },
+    };
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation!.hardDiversity.passed).toBe(true);
+    expect(differentiation!.highDifferentiation).toBe(false);
+
+    const { db } = dbFixture();
+    const view = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'gen-two-option-1',
+      plan: extended,
+    });
+    expect(view.candidates).toHaveLength(2);
+    expect((view.metadata as Record<string, unknown>).diversityLimitations).not.toEqual(
+      expect.arrayContaining(['insufficient-candidate-diversity']),
+    );
+  });
+
   it('does not let local deficit nodes satisfy the published foundation quota', () => {
     const base = plan();
     const published = (nodeId: string, objectKey: string, coverage = ['k1']) => ({
