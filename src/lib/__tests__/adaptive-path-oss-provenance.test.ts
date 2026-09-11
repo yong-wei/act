@@ -59,7 +59,10 @@ describe('adaptive path object key read verification (#2033 fault injection)', (
 
   it('promotes index-verified runtime keys with a body read and leaves published entries indexed', async () => {
     const verifier: AdaptivePathObjectKeyVerifier = {
-      verify: async () => ({ state: 'verified', contentSha256: 'sha-body' }),
+      verify: async (_objectKey, expectedSha256) => ({
+        state: expectedSha256 === 'sha-index' ? 'verified' : 'checksum-mismatch',
+        contentSha256: expectedSha256 ?? 'sha-body',
+      }),
     };
     const indexed: AdaptivePathObjectKeyReadRecord[] = [
       {
@@ -85,8 +88,36 @@ describe('adaptive path object key read verification (#2033 fault injection)', (
     ];
     const records = await promoteIndexedObjectKeyReads(indexed, verifier, verifiedAt);
     expect(records).toEqual([
-      expect.objectContaining({ objectKey: 'lessons/ok.mp4', state: 'verified', contentSha256: 'sha-body' }),
+      expect.objectContaining({ objectKey: 'lessons/ok.mp4', state: 'verified', contentSha256: 'sha-index' }),
       expect.objectContaining({ objectKey: 'published:v1', state: 'index-verified', contentSha256: 'sha-card' }),
     ]);
+  });
+
+  it('does not reuse a verifier result across different frozen digests for the same object key', async () => {
+    const seen: Array<string | null | undefined> = [];
+    const verifier: AdaptivePathObjectKeyVerifier = {
+      verify: async (_objectKey, expectedSha256) => {
+        seen.push(expectedSha256);
+        return expectedSha256 === 'sha-a'
+          ? { state: 'verified', contentSha256: 'sha-a' }
+          : { state: 'checksum-mismatch', contentSha256: 'sha-b' };
+      },
+    };
+    const records = await verifyAdaptivePathObjectKeys(verifier, [
+      {
+        candidateStyleId: 'foundation-remediation',
+        nodeNodeId: 'n1',
+        objectKey: 'lessons/shared.mp4',
+        contentSha256: 'sha-a',
+      },
+      {
+        candidateStyleId: 'arena-simulation-sprint',
+        nodeNodeId: 'n9',
+        objectKey: 'lessons/shared.mp4',
+        contentSha256: 'sha-b',
+      },
+    ], verifiedAt);
+    expect(seen).toEqual(['sha-a', 'sha-b']);
+    expect(records.map((record) => record.state)).toEqual(['verified', 'checksum-mismatch']);
   });
 });

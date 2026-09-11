@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { promoteIndexedObjectKeyReads } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
 import {
+  allowLocalUnpinnedMediaFallback,
   boundRuntimeObjectPath,
   createBoundRuntimeObjectKeyVerifier,
   resolveBoundMediaByteRange,
@@ -67,6 +68,46 @@ describe('bound runtime object reads', () => {
         state: 'checksum-mismatch',
         contentSha256: digest,
       });
+      await expect(verifyBoundRuntimeObject(root, 'lessons/1-1/media/intro.mp4', digest)).resolves.toEqual({
+        state: 'checksum-mismatch',
+        contentSha256: claimed,
+      });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('promotes an index digest through the verifier so a swapped helper blob stays mismatched', async () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'bound-runtime-swap-'));
+    const bodyA = Buffer.from('release-a\n');
+    const bodyB = Buffer.from('release-b\n');
+    const shaA = createHash('sha256').update(bodyA).digest('hex');
+    const shaB = createHash('sha256').update(bodyB).digest('hex');
+    mkdirSync(path.join(root, '.act-runtime-blobs'));
+    mkdirSync(path.join(root, 'lessons/1-1/media'), { recursive: true });
+    writeFileSync(path.join(root, '.act-runtime-blobs', shaA), bodyA);
+    writeFileSync(path.join(root, '.act-runtime-blobs', shaB), bodyB);
+    symlinkSync(
+      path.join('..', '..', '..', '.act-runtime-blobs', shaB),
+      path.join(root, 'lessons/1-1/media/intro.mp4'),
+    );
+    try {
+      const records = await promoteIndexedObjectKeyReads([
+        {
+          objectKey: 'lessons/1-1/media/intro.mp4',
+          resourceId: 'act:video:1-1',
+          candidateStyleId: 'foundation-remediation',
+          nodeNodeId: 'n1',
+          state: 'index-verified',
+          contentSha256: shaA,
+          verifiedAt: '2026-09-11T00:00:00.000Z',
+          runtimeReleaseId: 'runtime-a',
+        },
+      ], createBoundRuntimeObjectKeyVerifier(root), '2026-09-11T00:00:00.000Z');
+      expect(records[0]).toEqual(expect.objectContaining({
+        state: 'checksum-mismatch',
+        contentSha256: shaB,
+      }));
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -79,6 +120,10 @@ describe('bound runtime object reads', () => {
     expect(resolveBoundMediaByteRange('bytes=0-999', 100)).toEqual({ kind: 'partial', start: 0, end: 99 });
     expect(resolveBoundMediaByteRange('bytes=100-101', 100)).toEqual({ kind: 'unsatisfiable' });
     expect(resolveBoundMediaByteRange('bytes=0-1,2-3', 100)).toEqual({ kind: 'unsatisfiable' });
+    expect(allowLocalUnpinnedMediaFallback('', false)).toBe(true);
+    expect(allowLocalUnpinnedMediaFallback('unreleased-worktree', false)).toBe(true);
+    expect(allowLocalUnpinnedMediaFallback('runtime-1', false)).toBe(false);
+    expect(allowLocalUnpinnedMediaFallback('runtime-1', true)).toBe(false);
   });
 
   it('promotes a generated path record to verified and keeps failed reads out of differentiation', async () => {

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { lstat, readlink } from 'node:fs/promises';
+import { lstat, readlink, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { AdaptivePathObjectKeyVerifier } from '@/features/personalization/path-planning/adaptive-path-oss-provenance';
@@ -40,6 +40,21 @@ function hashFile(abs: string): Promise<string> {
     stream.on('error', reject);
     stream.on('end', () => resolve(hash.digest('hex')));
   });
+}
+
+const digestCache = new Map<string, { mtimeMs: number; size: number; digest: string }>();
+
+async function hashFileOnce(abs: string): Promise<string> {
+  const info = await stat(abs);
+  const hit = digestCache.get(abs);
+  if (hit && hit.mtimeMs === info.mtimeMs && hit.size === info.size) return hit.digest;
+  const digest = await hashFile(abs);
+  digestCache.set(abs, { mtimeMs: info.mtimeMs, size: info.size, digest });
+  return digest;
+}
+
+export function allowLocalUnpinnedMediaFallback(releaseId: string, hasActiveManifest: boolean): boolean {
+  return releaseId === 'unreleased-worktree' || (!hasActiveManifest && releaseId === '');
 }
 
 export function resolveBoundMediaByteRange(
@@ -82,7 +97,7 @@ export async function verifyBoundRuntimeObject(
     if (expected && named && expected !== named) {
       return { state: 'checksum-mismatch', contentSha256: named };
     }
-    const digest = await hashFile(abs);
+    const digest = await hashFileOnce(abs);
     const required = expected ?? named;
     if (required && digest !== required) {
       return { state: 'checksum-mismatch', contentSha256: digest };
@@ -99,8 +114,8 @@ export function createBoundRuntimeObjectKeyVerifier(
   runtimeRoot = defaultRuntimeRoot(),
 ): AdaptivePathObjectKeyVerifier {
   return {
-    verify(objectKey) {
-      return verifyBoundRuntimeObject(runtimeRoot, objectKey);
+    verify(objectKey, expectedSha256) {
+      return verifyBoundRuntimeObject(runtimeRoot, objectKey, expectedSha256);
     },
   };
 }

@@ -23,12 +23,21 @@ export interface AdaptivePathObjectKeyReadRecord {
 
 /** 读取验证端口：由 runtime release store 在批次定稿时实现。 */
 export interface AdaptivePathObjectKeyVerifier {
-  verify(objectKey: string): Promise<{ state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }>;
+  verify(
+    objectKey: string,
+    expectedSha256?: string | null,
+  ): Promise<{ state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }>;
 }
 
 export async function verifyAdaptivePathObjectKeys(
   verifier: AdaptivePathObjectKeyVerifier,
-  entries: Array<{ objectKey: string; resourceId: string; candidateStyleId: string; nodeNodeId: string }>,
+  entries: Array<{
+    objectKey: string;
+    resourceId: string;
+    candidateStyleId: string;
+    nodeNodeId: string;
+    contentSha256?: string | null;
+  }>,
   verifiedAt: string,
   runtimeReleaseId: string | null = null,
 ): Promise<AdaptivePathObjectKeyReadRecord[]> {
@@ -36,13 +45,14 @@ export async function verifyAdaptivePathObjectKeys(
   const verifiedByKey = new Map<string, { state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null }>();
   for (const entry of entries) {
     let result: { state: 'verified' | 'missing' | 'forbidden' | 'checksum-mismatch'; contentSha256: string | null };
+    const cacheKey = `${entry.objectKey}\0${entry.contentSha256 ?? ''}`;
     try {
-      const cached = verifiedByKey.get(entry.objectKey);
+      const cached = verifiedByKey.get(cacheKey);
       if (cached) {
         result = cached;
       } else {
-        result = await verifier.verify(entry.objectKey);
-        verifiedByKey.set(entry.objectKey, result);
+        result = await verifier.verify(entry.objectKey, entry.contentSha256);
+        verifiedByKey.set(cacheKey, result);
       }
     } catch {
       result = { state: 'missing', contentSha256: null };

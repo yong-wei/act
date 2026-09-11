@@ -10,6 +10,7 @@ import {
   readActiveRuntimeReleaseManifest,
 } from '@/lib/runtime-active-release';
 import {
+  allowLocalUnpinnedMediaFallback,
   boundRuntimeObjectPath,
   defaultRuntimeRoot,
   resolveBoundMediaByteRange,
@@ -138,8 +139,11 @@ export async function GET(request: Request, props: { params: Promise<{ assetPath
       return localMediaRedirect(request, assetPath);
     }
     const manifest = await readActiveRuntimeReleaseManifest();
-    if (!manifest) {
+    if (allowLocalUnpinnedMediaFallback(pinnedReleaseId, Boolean(manifest))) {
       return localMediaRedirect(request, assetPath);
+    }
+    if (!manifest) {
+      return classifiedFailure('release-mismatch', 404);
     }
     if (pinnedReleaseId && pinnedReleaseId !== manifest.releaseId) {
       return classifiedFailure('release-mismatch', 404);
