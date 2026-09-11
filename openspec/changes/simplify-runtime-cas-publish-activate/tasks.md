@@ -4,6 +4,9 @@
 - [x] 1.2 索引放到 `var/cache/runtime-release/index.sqlite` 并加入 gitignore；缺失或损坏时普通发布 fail-closed，只有 `--bootstrap` 重建。
 - [x] 1.3 暴露 `npm run runtime:publish` 与 `npm run runtime:publish -- --bootstrap`。
 - [x] 1.4 用本地目录模拟 CAS 写合同测试：无变化再发布 `hashed=0, uploaded=0`；改 1 个文件只哈希/上传该 Δ；无索引不加 `--bootstrap` 失败。
+- [x] 1.5 发布器热路径增加节流 `--progress`、hashed/blobs 增量落盘与断点续传；`--bootstrap` 不抹有效索引，全量重建走 `--rebuild-index`。
+- [x] 1.6 OSS 发布先列举 `runtime/blobs/sha256/` 并即时写入/退役本地索引，PUT 前必查本地记录，避免对已有对象逐个条件碰撞。
+- [x] 1.7 有凭据时同一 HTTP(S) 连接批量条件 PUT / ListObjectsV2；`--progress` 心跳每 60 秒一行。
 
 ## 2. R2 压平激活状态机
 

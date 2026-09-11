@@ -95,7 +95,7 @@
 
 ## 🚀 Next phase
 
-- 2026-09-11：生产应用已是 `v0.7.8-60a6e28`。不要无授权 `runtime:activate`。不要再跑已删的 `deploy:runtime` / `deploy:all`。OpenSpec `simplify-runtime-cas-publish-activate` 待 archive（会改 HEAD，须单独变更）。既有失败：`test-r4-c5-cutover-contract.mjs`（密封选择器漂移）、overlay installer 对密封 domain-teaching 重算哈希（与本次发布无关）。
+- 2026-09-11：Runtime 发布器改为桶列举同步本地索引 + 单连接 HTTPS 批量条件 PUT；`--progress` 每 60 秒一行。已发布 `runtime-8672b3f8…`（source `cf2b5fc39`，tree `cceff44f…`，uploadedBlobs=4643）。用户已授权生产激活该 release。不要 `deploy:app` / `deploy:runtime` / `deploy:all`。不要改 overlay A / `activation-0b72f577`。OpenSpec `simplify-runtime-cas-publish-activate` 待 archive。既有失败：`test-r4-c5-cutover-contract.mjs`（密封选择器漂移）、overlay installer 对密封 domain-teaching 重算哈希（与本次发布无关）。
 
 - 2026-09-10：CORS 方案 1 已确认（只放行 `https://act.adapt-learn.online`）。船模公开存储加载已合入 `origin/integration@2f715f022`（功能提交 `1bf80e002`）。未 `deploy:app`。不要加 A 记录。不要改课程运行态 desired。CORS `Access-Control-Expose-Headers` 里 `ontent-Range` 少了首字母 C，可后修。
 

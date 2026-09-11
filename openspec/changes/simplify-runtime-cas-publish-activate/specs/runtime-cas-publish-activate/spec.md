@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Daily publisher hashes only metadata-changed files
-The daily Runtime publisher SHALL scan `course-content/runtime` file metadata and consult a local SQLite index of `path`, `size`, `mtime_ns`, and `sha256`. It SHALL compute SHA-256 only for files whose metadata differs from the index, or for every file when `--bootstrap` is explicit. It SHALL NOT read file bodies for unchanged metadata. A missing or unreadable index during an ordinary publish SHALL fail closed with `local publish index unavailable` and `run with --bootstrap to rebuild`; it SHALL NOT silently rebuild or fully hash.
+The daily Runtime publisher SHALL scan `course-content/runtime` file metadata and consult a local SQLite index of `path`, `size`, `mtime_ns`, and `sha256`. It SHALL compute SHA-256 only for files whose metadata differs from the published `files` rows or the in-progress `hashed` rows. `--bootstrap` SHALL create or repair a missing or unreadable index and SHALL NOT wipe a valid index. `--rebuild-index` SHALL wipe the index and hash every file. It SHALL persist hashes and successful blob PUTs incrementally so the same command can resume after an interrupted publish. It SHALL NOT read file bodies for unchanged metadata. A missing or unreadable index during an ordinary publish SHALL fail closed with `local publish index unavailable` and `run with --bootstrap to rebuild`; it SHALL NOT silently rebuild or fully hash. Default stdout SHALL remain a single machine-readable JSON object. `--progress` MAY write human-readable heartbeats to stderr at most once per minute, plus immediate lines for phase events. When OSS credentials are present, the publisher SHALL reuse one HTTP(S) connection for conditional PUTs and blob listing instead of spawning ossutil per object.
 
 #### Scenario: Unchanged runtime is published again
 - **WHEN** the operator runs ordinary `runtime:publish` against a runtime tree whose path/size/mtime_ns all match the local index and the same `sourceRevision`
@@ -18,8 +18,28 @@ The daily Runtime publisher SHALL scan `course-content/runtime` file metadata an
 - **THEN** the publisher SHALL exit non-zero before hashing or uploading
 - **AND** the error text SHALL tell the operator to rebuild with `--bootstrap`
 
+#### Scenario: Bootstrap resumes a valid index
+- **WHEN** the operator re-runs `runtime:publish -- --bootstrap` against a valid index whose path/size/mtime_ns already match
+- **THEN** the publisher SHALL NOT wipe the index
+- **AND** it SHALL report `hashed=0` for unchanged files
+
+#### Scenario: Interrupted publish resumes
+- **WHEN** a previous `--bootstrap` run hashed files and successfully PUT some unique blobs, then failed
+- **THEN** a later identical publish SHALL reuse stored hashes and skip blobs already recorded as PUT
+- **AND** it SHALL only conditionally PUT the remaining unique blobs
+
 ### Requirement: Blob writes are conditional CAS puts without preflight
-The publisher SHALL upload a blob only by a no-overwrite PUT to `runtime/blobs/sha256/<sha256>`. A successful create SHALL count as an upload. An already-existing object SHALL count as a CAS hit and SHALL NOT be treated as failure. The publisher SHALL NOT HEAD or GET blobs to decide reuse. It SHALL write the current `act-runtime-release.v2` manifest last under `runtime/blob-releases/<releaseId>/manifest.json` and SHALL NOT invent a new manifest schema.
+The publisher SHALL upload a blob only by a no-overwrite PUT to `runtime/blobs/sha256/<sha256>`. A successful create SHALL count as an upload. An already-existing object SHALL count as a CAS hit and SHALL NOT be treated as failure. Before any blob PUT, the publisher SHALL consult the local index. On an OSS store it SHALL first list `runtime/blobs/sha256/` and write each listed digest into the local `blobs` table immediately; after a non-empty listing it SHALL delete local `blobs`/`files` rows whose objects are no longer present. The publisher SHALL NOT HEAD or GET blob bodies to decide reuse. It SHALL write the current `act-runtime-release.v2` manifest last under `runtime/blob-releases/<releaseId>/manifest.json` and SHALL NOT invent a new manifest schema.
+
+#### Scenario: Local index skips blobs already listed in the bucket
+- **WHEN** `list-objects-v2` under `runtime/blobs/sha256/` returns a digest that the current tree still needs
+- **THEN** the publisher SHALL record that digest in the local index immediately
+- **AND** it SHALL NOT issue a PUT for that blob
+
+#### Scenario: Retired remote blob is dropped from the local index
+- **WHEN** a non-empty remote listing no longer contains a digest that the local index recorded
+- **THEN** the publisher SHALL delete that digest from local `blobs` and `files` immediately
+- **AND** a later PUT for that digest SHALL run only if the current tree still needs it
 
 #### Scenario: Second put of an existing blob is a hit
 - **WHEN** a changed file hashes to a SHA-256 whose blob key already exists
