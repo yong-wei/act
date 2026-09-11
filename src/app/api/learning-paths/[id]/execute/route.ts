@@ -179,7 +179,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
           const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(existingPathNode, governedExternalInput);
-          const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
+          const governedQuizInput = resolveGovernedQuizOutcomeEvidence(governedInstrumentedInput);
+          const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
           const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
@@ -243,7 +244,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
     const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(pathNode, governedExternalInput);
-    const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
+    const governedQuizInput = resolveGovernedQuizOutcomeEvidence(governedInstrumentedInput);
+    const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
     const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
@@ -393,6 +395,8 @@ function sanitizeCompletionResult(value: unknown): Record<string, unknown> {
   const completionResult = compactObject({
     success: typeof result.success === 'boolean' ? result.success : undefined,
     score: readFinite(result.score),
+    sourceLogId: firstString(result.sourceLogId),
+    clientEventId: firstString(result.clientEventId),
     data: Object.keys(completionData).length > 0 ? completionData : undefined,
   });
   return Object.keys(completionResult).length > 0 ? { completionResult } : {};
@@ -881,6 +885,44 @@ function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {
         resourceId: 'lesson09-time-domain-synthesis',
       },
     ],
+  };
+}
+
+function resolveGovernedQuizOutcomeEvidence<T extends {
+  pathId: string;
+  goalId?: string | null;
+  nodeId: string;
+  resourceType: string;
+  status: string;
+  evidenceRefs?: unknown[];
+  liftMetadata?: Record<string, unknown>;
+}>(input: T): T {
+  if (input.status !== 'completed' || input.resourceType !== 'quiz') return input;
+  const completionResult = toRecord(toRecord(input.liftMetadata).completionResult);
+  const score = readFinite(completionResult.score);
+  if (score === undefined) {
+    return { ...input, evidenceRefs: [] };
+  }
+  const sourceLogId = firstString(completionResult.sourceLogId, completionResult.clientEventId)
+    ?? `quiz_complete:${input.pathId}:${input.nodeId}`;
+  const clientEventId = firstString(completionResult.clientEventId);
+  return {
+    ...input,
+    evidenceRefs: [{
+      kind: 'ResourceEvent',
+      eventType: 'quiz_complete',
+      provenance: 'platform-instrumented',
+      status: 'completed',
+      ref: sourceLogId,
+      sourceLogId,
+      ...(clientEventId ? { clientEventId } : {}),
+      completionResult: { score },
+      pathId: input.pathId,
+      goalId: input.goalId ?? null,
+      nodeId: input.nodeId,
+      resourceType: 'quiz',
+      privacyLevel: 'student-visible',
+    }],
   };
 }
 

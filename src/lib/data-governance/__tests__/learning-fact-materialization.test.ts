@@ -118,6 +118,8 @@ describe('eventToLearningFactInput', () => {
         lessonKey: 'unit-3-6-zero-design-workshop-v1',
         score: 67,
         goalId: 'mapped-goal',
+        pathId: 'path-1',
+        nodeId: 'node-1',
         adapter: {
           adapterId: 'example-adapter',
           adapterVersion: 'example-adapter.v1',
@@ -131,6 +133,8 @@ describe('eventToLearningFactInput', () => {
     expect(fact?.lessonId).toBe('canonical-lesson-1');
     expect(fact?.contextJson).toMatchObject({
       goalId: 'mapped-goal',
+      pathId: 'path-1',
+      nodeId: 'node-1',
       adapter: {
         adapterId: 'example-adapter',
         adapterVersion: 'example-adapter.v1',

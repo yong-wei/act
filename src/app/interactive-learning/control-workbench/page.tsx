@@ -1,6 +1,7 @@
 import { ControlWorkbenchShell } from '@/features/control-workbench/shell/control-workbench-shell';
 import { resolveControlWorkbenchSession } from '@/features/control-workbench/session-resolver';
 import type { ControlWorkbenchRouteParams } from '@/features/control-workbench/types';
+import { resolveAdaptivePathLaunchReturnContext } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import { getServerAuthSession } from '@/lib/auth';
 import { getPlatformCockpitHref } from '@/lib/platform-role-navigation';
 
@@ -29,6 +30,22 @@ export default async function ControlWorkbenchRoute(
 ) {
   const searchParams = await props.searchParams;
   const session = await getServerAuthSession();
+  const pathLaunchContext = resolveAdaptivePathLaunchReturnContext(toSearchParams(searchParams));
   const result = resolveControlWorkbenchSession(parseRouteParams(searchParams));
-  return <ControlWorkbenchShell result={result} accountHref={getPlatformCockpitHref(session?.user?.role)} />;
+  return (
+    <ControlWorkbenchShell
+      result={result}
+      accountHref={getPlatformCockpitHref(session?.user?.role)}
+      pathLaunchContext={pathLaunchContext}
+    />
+  );
+}
+
+function toSearchParams(searchParams: SearchParams | undefined): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams ?? {})) {
+    const item = firstValue(value);
+    if (item) params.set(key, item);
+  }
+  return params;
 }

@@ -536,6 +536,8 @@ export function eventToLearningFactInput(event: LearningEvent): Prisma.LearningF
     ...(interactiveQuizContext ? { interactiveQuiz: interactiveQuizContext.context } : {}),
     ...(evidenceGovernance ? { evidenceGovernance } : {}),
     goalId: readString(payload.goalId),
+    pathId: readString(payload.pathId),
+    nodeId: readString(payload.nodeId),
     adapter: readRecord(payload.adapter),
   });
   if (Object.keys(contextJson).length > 0) {

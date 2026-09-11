@@ -293,6 +293,7 @@ export interface AdaptivePathCompletionRequestInput {
   completedAt: string;
   evidenceRefs?: readonly Record<string, unknown>[];
   completionResult?: Record<string, unknown>;
+  simulationRef?: Record<string, unknown>;
 }
 
 export interface AdaptivePathCompletionRequest {
@@ -305,6 +306,7 @@ export interface AdaptivePathCompletionRequest {
     completedAt: string;
     idempotencyKey: string;
     evidenceRefs?: readonly Record<string, unknown>[];
+    simulationRef?: Record<string, unknown>;
     liftMetadata: Record<string, unknown>;
   };
 }
@@ -634,11 +636,39 @@ export function isSimpleAdaptivePathCompletionResource(resourceType: string): bo
   ].includes(resourceType);
 }
 
+export function isGovernedAdaptivePathCompletionResource(resourceType: string): boolean {
+  return isSimpleAdaptivePathCompletionResource(resourceType)
+    || resourceType === 'simulation'
+    || resourceType === 'control_workbench';
+}
+
+function readSimulationRefFromCompletion(
+  completionResult: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  const data = completionResult?.data && typeof completionResult.data === 'object' && !Array.isArray(completionResult.data)
+    ? completionResult.data as Record<string, unknown>
+    : completionResult;
+  if (!data) return undefined;
+  const nested = data.simulationRef;
+  if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+    return nested as Record<string, unknown>;
+  }
+  const id = [data.simulationRunId, data.runId].find((value) => typeof value === 'string' && value.trim().length > 0);
+  return typeof id === 'string' ? { id } : undefined;
+}
+
 export function buildAdaptivePathCompletionRequest(
   input: AdaptivePathCompletionRequestInput,
 ): AdaptivePathCompletionRequest | null {
   const { launchContext } = input;
-  if (!isSimpleAdaptivePathCompletionResource(launchContext.resourceType)) return null;
+  if (!isGovernedAdaptivePathCompletionResource(launchContext.resourceType)) return null;
+  const simulationRef = input.simulationRef ?? readSimulationRefFromCompletion(input.completionResult);
+  if (
+    (launchContext.resourceType === 'simulation' || launchContext.resourceType === 'control_workbench')
+    && !simulationRef
+  ) {
+    return null;
+  }
 
   return {
     href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
@@ -650,6 +680,7 @@ export function buildAdaptivePathCompletionRequest(
       completedAt: input.completedAt,
       idempotencyKey: `path-resource-completion:${launchContext.pathId}:${launchContext.nodeId}:${launchContext.resourceType}`,
       ...(input.evidenceRefs?.length ? { evidenceRefs: input.evidenceRefs } : {}),
+      ...(simulationRef ? { simulationRef } : {}),
       liftMetadata: {
         pathActivityKind: 'initial-completion',
         completionSource: 'interactive-resource',

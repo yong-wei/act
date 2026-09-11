@@ -22,6 +22,9 @@ interface UseResourceInteractionTrackingOptions {
   registryId?: string | null;
   provider?: string | null;
   resourceType?: string | null;
+  pathId?: string | null;
+  goalId?: string | null;
+  nodeId?: string | null;
 }
 
 export function useResourceInteractionTracking({
@@ -38,6 +41,9 @@ export function useResourceInteractionTracking({
   registryId,
   provider,
   resourceType,
+  pathId,
+  goalId,
+  nodeId,
 }: UseResourceInteractionTrackingOptions) {
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -62,8 +68,11 @@ export function useResourceInteractionTracking({
       provider: provider ?? null,
       resourceType: resourceType ?? null,
       originPath: pathname ?? '/',
+      ...(pathId ? { pathId } : {}),
+      ...(goalId ? { goalId } : {}),
+      ...(nodeId ? { nodeId } : {}),
     }),
-    [lessonKey, moduleId, pageType, pathname, provider, registryId, resourceType, surface, targetId, targetLabel, targetType],
+    [goalId, lessonKey, moduleId, nodeId, pageType, pathId, pathname, provider, registryId, resourceType, surface, targetId, targetLabel, targetType],
   );
 
   const emitWithEventType = useCallback((

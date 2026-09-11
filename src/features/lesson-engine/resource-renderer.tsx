@@ -48,6 +48,12 @@ interface ResourceRendererProps {
   teacherPreview?: boolean;
   /** 仅学生课堂运行态可以写入课堂作答。 */
   classroomActorRole?: 'student' | 'teacher';
+  pathLaunch?: {
+    pathId: string;
+    goalId: string;
+    nodeId: string;
+    resourceType: string;
+  } | null;
   /** 粗粒度媒体状态变化（播放/暂停），供陪伴信号采集；仅学生布点页面传入。 */
   onMediaStateChange?: (playing: boolean) => void;
 }
@@ -105,6 +111,7 @@ export function ResourceRenderer({
   teacherPreview,
   classroomActorRole,
   onMediaStateChange,
+  pathLaunch,
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
@@ -123,6 +130,10 @@ export function ResourceRenderer({
     resourceId: resource?.id ?? null,
     registryId: resource?.registryId ?? null,
     provider: 'resource-renderer',
+    resourceType: pathLaunch?.resourceType ?? null,
+    pathId: pathLaunch?.pathId,
+    goalId: pathLaunch?.goalId,
+    nodeId: pathLaunch?.nodeId,
   });
 
   // Handle state changes from widgets
@@ -135,8 +146,12 @@ export function ResourceRenderer({
   // Handle widget completion
   const handleComplete = useCallback((result?: WidgetResult) => {
     console.log('[ResourceRenderer] Widget complete:', result);
+    knowledgeTracker.trackResourceComplete({
+      score: result?.score,
+      success: result?.success,
+    });
     return onComplete?.(result);
-  }, [onComplete]);
+  }, [knowledgeTracker, onComplete]);
 
   useEffect(() => {
     if (!knowledgeNode) {

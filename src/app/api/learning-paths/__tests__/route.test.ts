@@ -5185,6 +5185,69 @@ describe('learning path round API routes', () => {
     }
   });
 
+  it('writes governed quiz evidence refs with path membership on scored completion', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-scored',
+      evidenceRefs: [{ kind: 'client', rawPayload: 'forged' }],
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: {
+          score: 100,
+          success: true,
+          sourceLogId: 'log-quiz-1',
+          clientEventId: 'evt-quiz-1',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      evidenceRefs: [expect.objectContaining({
+        kind: 'ResourceEvent',
+        eventType: 'quiz_complete',
+        sourceLogId: 'log-quiz-1',
+        clientEventId: 'evt-quiz-1',
+        completionResult: { score: 100 },
+        pathId: 'path-1',
+        nodeId: 'registry:bode-quiz',
+      })],
+    }));
+  });
+
+  it('does not elevate ungraded quiz, video, or browse completions into evidence refs', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    const ungraded = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-ungraded',
+      liftMetadata: { pathActivityKind: 'initial-completion', completionResult: { success: true } },
+    }), params);
+    expect(ungraded.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      idempotencyKey: 'exec-bode-quiz-ungraded',
+      evidenceRefs: [],
+    }));
+
+    configureSingleNodePath('registry:bode-video', 'video', '/interactive-learning/resources/bode-video');
+    const video = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-video',
+      resourceType: 'video',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-video',
+    }), params);
+    expect(video.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      idempotencyKey: 'exec-bode-video',
+      evidenceRefs: [],
+    }));
+  });
+
   it('rejects execution when resource type does not match the persisted path node', async () => {
     configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
 

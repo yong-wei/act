@@ -15,6 +15,7 @@ import {
   formatArenaMetric,
 } from '@/features/arena/display-labels';
 import { ArenaWorkbenchSubmissionMount } from '@/features/arena/workbench/arena-workbench-submission-mount';
+import type { AdaptivePathLaunchContext } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import type { ControlWorkbenchResolutionResult, WorkbenchSessionContext } from '../types';
 import type { WorkbenchDesignFlow, WorkbenchViewConfig, WorkbenchViewId } from '../contracts';
 import {
@@ -301,9 +302,11 @@ function WorkbenchObjectSelector({
 function ResolvedControlWorkbenchShell({
   session: initialSession,
   accountHref,
+  pathLaunchContext,
 }: {
   session: WorkbenchSessionContext;
   accountHref?: string;
+  pathLaunchContext?: AdaptivePathLaunchContext | null;
 }) {
   const [session, setSession] = useState<WorkbenchSessionContext>(initialSession);
   const [objectSelectorExpanded, setObjectSelectorExpanded] = useState(false);
@@ -344,7 +347,7 @@ function ResolvedControlWorkbenchShell({
   const showObjectSelector = session.mode === 'explore';
   const launchKind = getControlWorkbenchLaunchKind(session);
   const launchDescription = describeExperienceLaunch(launchKind);
-  const returnHref = getControlWorkbenchReturnHref(session);
+  const returnHref = pathLaunchContext?.returnHref ?? getControlWorkbenchReturnHref(session);
   const missionDataState = 'taskId' in session ? 'available' : 'missing-task-context';
   const evidenceStatus = session.submissionPolicy.officialEvaluationEnabled
     ? '可提交到官方评价，合格证据将回流学习记录'
@@ -688,9 +691,11 @@ function ResolvedControlWorkbenchShell({
 export function ControlWorkbenchShell({
   result,
   accountHref,
+  pathLaunchContext,
 }: {
   result: ControlWorkbenchResolutionResult;
   accountHref?: string;
+  pathLaunchContext?: AdaptivePathLaunchContext | null;
 }) {
   if (!result.ok) {
     return (
@@ -707,5 +712,12 @@ export function ControlWorkbenchShell({
     );
   }
 
-  return <ResolvedControlWorkbenchShell key={getPanelStorageKey(result.session)} session={result.session} accountHref={accountHref} />;
+  return (
+    <ResolvedControlWorkbenchShell
+      key={getPanelStorageKey(result.session)}
+      session={result.session}
+      accountHref={accountHref}
+      pathLaunchContext={pathLaunchContext}
+    />
+  );
 }
