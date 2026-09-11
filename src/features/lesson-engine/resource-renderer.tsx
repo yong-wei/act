@@ -146,9 +146,19 @@ export function ResourceRenderer({
   // Handle widget completion
   const handleComplete = useCallback(async (result?: WidgetResult) => {
     console.log('[ResourceRenderer] Widget complete:', result);
+    const completionData = result?.data && typeof result.data === 'object' && !Array.isArray(result.data)
+      ? result.data
+      : {};
+    const answers = {
+      ...completionData,
+      ...(typeof result?.score === 'number' && Number.isFinite(result.score) ? { score: result.score } : {}),
+      ...(typeof result?.success === 'boolean' ? { success: result.success } : {}),
+    };
     const clientEventId = await knowledgeTracker.trackResourceComplete({
       score: result?.score,
       success: result?.success,
+      ...completionData,
+      ...(Object.keys(answers).length > 0 ? { answers } : {}),
     });
     return onComplete?.({
       success: result?.success ?? true,

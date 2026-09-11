@@ -1694,7 +1694,7 @@ describe('POST /api/interactive/events', () => {
     });
   });
 
-  it('stamps a teaching-resource completion that only carries a server-owned score', async () => {
+  it('does not stamp a teaching-resource event that only carries a client score', async () => {
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
     mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
       { id: 'log-score-only', clientEventId: 'client-score-only', eventData: { clientEventId: 'client-score-only' } },
@@ -1731,10 +1731,33 @@ describe('POST /api/interactive/events', () => {
     }));
 
     expect(response.status).toBe(200);
-    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).toMatchObject({
-      pathId: 'path-1',
+    expect(mocks.prisma.interactionLog.createManyAndReturn.mock.calls[0][0].data[0].eventData).not.toMatchObject({
       pathExecutionBound: true,
     });
+  });
+
+  it('does not persist or materialize forged path launch fields', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.learningPath.findFirst.mockResolvedValue(null);
+
+    const response = await POST(createPostRequest({
+      events: [{
+        id: 'client-forged-path',
+        type: 'complete',
+        timestamp: Date.parse('2026-09-11T01:00:00.000Z'),
+        resourceKey: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+        data: {
+          pathId: 'path-forged',
+          nodeId: 'teaching-resource:cmoxloe52000uq5bcojma7r79',
+          score: 100,
+          answers: { score: 100 },
+        },
+      }],
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.ingestLearningFact).not.toHaveBeenCalled();
   });
 
   it('does not stamp a score-only course-demo event without answers', async () => {

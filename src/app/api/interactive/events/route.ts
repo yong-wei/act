@@ -95,7 +95,7 @@ function hasFiniteScore(eventData: Record<string, unknown>): boolean {
   return typeof eventData.score === 'number' && Number.isFinite(eventData.score);
 }
 
-function hasAuthoritativeSubmissionPayload(eventData: Record<string, unknown>): boolean {
+function isAuthoritativePathSubmission(eventData: Record<string, unknown>): boolean {
   const answers = readRecord(eventData.answers);
   const digest = readRecord(eventData.answerDigest);
   const hasAnswers = Object.keys(answers).length > 0 || Object.keys(digest).length > 0;
@@ -104,28 +104,7 @@ function hasAuthoritativeSubmissionPayload(eventData: Record<string, unknown>): 
   if (schemaVersion === 'manifest-submission-v2' && (hasAnswers || summaries.length > 0)) {
     return true;
   }
-  if (hasFiniteScore(eventData) && (hasAnswers || summaries.length > 0)) {
-    return true;
-  }
-  return hasFiniteScore(eventData);
-}
-
-function isAuthoritativePathSubmission(
-  eventData: Record<string, unknown>,
-  ownedTeachingResource: { id: string } | null,
-): boolean {
-  const answers = readRecord(eventData.answers);
-  const digest = readRecord(eventData.answerDigest);
-  const hasAnswers = Object.keys(answers).length > 0 || Object.keys(digest).length > 0;
-  const summaries = Array.isArray(eventData.questionSummaries) ? eventData.questionSummaries : [];
-  const schemaVersion = typeof eventData.schemaVersion === 'string' ? eventData.schemaVersion : '';
-  if (schemaVersion === 'manifest-submission-v2' && (hasAnswers || summaries.length > 0)) {
-    return true;
-  }
-  if (!hasFiniteScore(eventData)) {
-    return false;
-  }
-  return hasAnswers || summaries.length > 0 || ownedTeachingResource !== null;
+  return hasFiniteScore(eventData) && (hasAnswers || summaries.length > 0);
 }
 
 function claimedPathLaunchFields(eventData: Record<string, unknown>): boolean {
@@ -209,7 +188,7 @@ async function bindOwnedPathLaunchEvent(
   if (courseDemoStep && claimedStep && claimedStep !== courseDemoStep) {
     return { eventData: rest, resourceId, outcome: 'unbound' };
   }
-  if (!isAuthoritativePathSubmission(rest, owned)) {
+  if (!isAuthoritativePathSubmission(rest)) {
     return { eventData: rest, resourceId, outcome: 'unbound' };
   }
   return {
@@ -469,7 +448,7 @@ function partitionClassifiedSubmissionEvents(events: NormalizedInteractionEvent[
       legacy.push(item);
     } else if (isClassifiedSubmissionEvent(item, userId)) {
       submissions.push(item);
-    } else if (claimedPathLaunchFields(payload) && hasAuthoritativeSubmissionPayload(payload)) {
+    } else if (claimedPathLaunchFields(payload) && isAuthoritativePathSubmission(payload)) {
       legacy.push(item);
     } else {
       identityLessSubmissions.push(item);
@@ -1063,6 +1042,7 @@ export async function POST(request: NextRequest) {
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
     const interactionLogEvents = [];
+    const sanitizedLegacyEvents = [];
     for (const item of legacyEvidenceEvents) {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
       const bound = await bindOwnedPathLaunchEvent(session.user.id, eventData, item.resourceId);
@@ -1070,6 +1050,14 @@ export async function POST(request: NextRequest) {
         logDegradedEvent(session.user.id, item.event, 'forged_path_launch_context');
         continue;
       }
+      sanitizedLegacyEvents.push({
+        ...item,
+        resourceId: bound.resourceId,
+        event: {
+          ...item.event,
+          data: bound.eventData,
+        },
+      });
       interactionLogEvents.push({
         userId: session.user.id,
         resourceId: bound.resourceId,
@@ -1116,7 +1104,7 @@ export async function POST(request: NextRequest) {
       : [];
 
     const sourceLinkedEvents = attachSourceLogIds(
-      legacyEvidenceEvents,
+      sanitizedLegacyEvents,
       persistedLogs.map((log) => ({
         id: log.id,
         clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),
