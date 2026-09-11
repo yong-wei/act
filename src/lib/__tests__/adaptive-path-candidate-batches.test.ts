@@ -704,6 +704,37 @@ describe('adaptive path batch differentiation metrics', () => {
     });
   });
 
+  it('does not count unbound binding resourceIds as unique published identities', () => {
+    const base = plan();
+    const unbound = (nodeId: string) => ({
+      ...node(nodeId),
+      runtimeResourceBinding: {
+        ...boundBinding(nodeId, 'unused'),
+        objectKey: null,
+        state: 'unresolved' as const,
+      },
+    });
+    const left = [unbound('node-1'), unbound('node-1b')];
+    const middle = [unbound('node-2'), unbound('node-2b')];
+    const right = [unbound('node-3'), unbound('node-3b')];
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [...left, ...middle, ...right],
+      policyBundle: {
+        ...base.policyBundle!,
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+        paths: [
+          { ...candidate('foundation-remediation', 'foundation-remediation', '补救', ['node-1', 'node-1b']), planNodes: left, strategy: { family: 'foundation-remediation', strategyId: 'weakness-repair', name: '薄弱点补强', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          { ...candidate('arena-simulation-sprint', 'simulation-driven', '迁移', ['node-2', 'node-2b']), planNodes: middle, strategy: { family: 'simulation-driven', strategyId: 'strength-transfer', name: '优势迁移应用', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          { ...candidate('preference-matched-route', 'preference-matched', '偏好', ['node-3', 'node-3b']), planNodes: right, strategy: { family: 'preference-matched', strategyId: 'preference-reinforce', name: '偏好资源强化', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+        ],
+      },
+    };
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation!.hardDiversity.passed).toBe(false);
+    expect(differentiation!.highDifferentiation).toBe(false);
+  });
+
   it('excludes shared prerequisite nodes from core differentiation inputs', () => {
     const base = plan();
     const shared = node('shared-prereq');

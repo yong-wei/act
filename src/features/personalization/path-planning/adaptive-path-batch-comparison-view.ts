@@ -117,6 +117,26 @@ export function buildAdaptivePathStrategyView(value: unknown): AdaptivePathStrat
   };
 }
 
+export function batchHasInsufficientCandidateDiversity(batch: {
+  comparison?: { insufficientCandidateDiversity?: boolean } | null;
+  metadata?: unknown;
+} | null): boolean {
+  if (!batch) return false;
+  if (batch.comparison?.insufficientCandidateDiversity === true) return true;
+  const limitations = record(batch.metadata).diversityLimitations;
+  return Array.isArray(limitations)
+    && limitations.some((item) => item === 'insufficient-candidate-diversity');
+}
+
+export function selectVisibleAdaptivePathOptions<T>(
+  batch: Parameters<typeof batchHasInsufficientCandidateDiversity>[0],
+  batchOptions: T[],
+  fallbackOptions: T[],
+): T[] {
+  if (batchHasInsufficientCandidateDiversity(batch)) return [];
+  return batchOptions.length > 0 ? batchOptions : fallbackOptions;
+}
+
 export function buildAdaptivePathBatchComparisonView(metadata: unknown): AdaptivePathBatchComparisonView {
   const source = record(metadata);
   const differentiation = record(source.differentiation);

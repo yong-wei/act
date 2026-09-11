@@ -355,7 +355,6 @@ export function computeAdaptivePathBatchDifferentiation(
       policyFamily: candidate.policyFamily,
       identities: countedNodes.flatMap((node) => {
         const id = node.resourceFeatureRef?.resourceId
-          ?? node.runtimeResourceBinding?.resourceId
           ?? node.runtimeResourceBinding?.objectKey
           ?? (node.sourceKind === 'teaching_projection' ? node.sourceRef : null);
         return id ? [{

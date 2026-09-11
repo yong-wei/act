@@ -27,7 +27,9 @@ import {
 import { AppShell } from '@/components/platform/app-shell';
 import { useKonlingCompanionReporter } from '@/features/ai/companion/use-konling-companion-reporter';
 import {
+  batchHasInsufficientCandidateDiversity,
   buildAdaptivePathBatchComparisonView,
+  selectVisibleAdaptivePathOptions,
   type AdaptivePathBatchComparisonView,
 } from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
 import {
@@ -1925,17 +1927,8 @@ function getAdaptivePathUnlockReadiness(
   };
 }
 
-function hasInsufficientCandidateDiversity(batch: AdaptivePathCandidateBatchView | null): boolean {
-  if (!batch) return false;
-  if (batch.comparison?.insufficientCandidateDiversity === true) return true;
-  const limitations = Array.isArray(batch.metadata?.diversityLimitations)
-    ? batch.metadata.diversityLimitations.filter((item): item is string => typeof item === 'string')
-    : [];
-  return limitations.includes('insufficient-candidate-diversity');
-}
-
 function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | null): PathOptionView[] {
-  if (!batch || hasInsufficientCandidateDiversity(batch)) return [];
+  if (!batch || batchHasInsufficientCandidateDiversity(batch)) return [];
   return batch.candidates.flatMap((candidate) => {
     const projected = getPathOptions({
       panels: [{ region: 'current-path', payload: { pathOptions: [candidate.snapshot] } }],
@@ -3337,7 +3330,11 @@ export default function AdaptivePracticePage() {
       ?? (activeCandidateBatch ? buildAdaptivePathBatchComparisonView(activeCandidateBatch.metadata) : null),
     [activeCandidateBatch],
   );
-  const pathOptions = candidatePathOptions.length > 0 ? candidatePathOptions : currentPathOptions;
+  const pathOptions = selectVisibleAdaptivePathOptions(
+    activeCandidateBatch,
+    candidatePathOptions,
+    currentPathOptions,
+  );
   const pathOptionVersionKey = useMemo(() => [
     activePathRound?.id ?? activePathPlan?.id ?? 'no-path',
     ...pathOptions.map((option) => `${option.optionId}:${option.nodeIds?.join(',') ?? ''}`),
@@ -3395,7 +3392,7 @@ export default function AdaptivePracticePage() {
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
     () => hasPathComparisonDiversityLimitation(pathOptionFallback)
-      || hasInsufficientCandidateDiversity(activeCandidateBatch),
+      || batchHasInsufficientCandidateDiversity(activeCandidateBatch),
     [activeCandidateBatch, pathOptionFallback],
   );
   const visiblePathOptions = useMemo(() => {
@@ -6191,7 +6188,7 @@ export default function AdaptivePracticePage() {
                 className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm leading-6 text-foreground"
                 data-learning-path-diversity-notice="limited"
               >
-                {hasInsufficientCandidateDiversity(activeCandidateBatch)
+                {batchHasInsufficientCandidateDiversity(activeCandidateBatch)
                   ? '当前已发布教学资源不足以形成三条可区分路径。'
                   : '当前可用资源有限，推荐方案差异较小。'}
               </p>
