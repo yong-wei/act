@@ -142,7 +142,7 @@
     "runtime:doctor": "python3 ./scripts/runtime-release/runtime-doctor.py",
     "runtime:gc": "python3 ./scripts/runtime-release/runtime-gc.py",
     "test:runtime-cas-doctor": "python3 ./scripts/tests/test_runtime_doctor_gc.py",
-    "test:developer-oss-runtime": "python3 scripts/tests/test_developer_oss_runtime.py && python3 scripts/tests/test_developer_runtime_gateway.py",
+    "test:developer-oss-runtime": "python3 scripts/tests/test_developer_oss_runtime.py && python3 scripts/tests/test_developer_runtime_gateway.py && npx tsx scripts/tests/test-developer-oss-runtime-read-smoke.ts",
     "logs": "tail -f .logs/frontend.log",
     "logs:error": "tail -f .logs/frontend-error.log",
     "logs:background-error": "tail -f .logs/error.log",

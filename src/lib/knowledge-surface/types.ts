@@ -55,6 +55,7 @@ export interface KnowledgeSurfaceRegistryIndexIdentity {
   identity: string;
   digest: string;
   captureRevision?: string | null;
+  dirty?: boolean;
   publication?: {
     projectionId: string;
     projectionHash: string;

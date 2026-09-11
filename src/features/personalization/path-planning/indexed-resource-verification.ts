@@ -39,12 +39,13 @@ export function buildIndexedCandidateResourceRecords(
       const hash = binding.objectKey.startsWith('blob:')
         ? binding.objectKey.slice('blob:'.length)
         : release?.filesByPath.get(binding.objectKey)?.sha256;
-      const valid = Boolean(release && release.releaseId === binding.runtimeReleaseId && hash
-        && release.filesBySha256.has(hash) && binding.contentSha256 === hash);
+      const releaseMatch = Boolean(release && release.releaseId === binding.runtimeReleaseId);
+      const valid = Boolean(releaseMatch && hash && release!.filesBySha256.has(hash) && binding.contentSha256 === hash);
       records.push({
         objectKey: binding.objectKey, resourceId: binding.resourceId ?? node.nodeId,
         candidateStyleId: option.styleId, nodeNodeId: node.nodeId,
-        state: valid ? 'index-verified' : 'unverified', contentSha256: valid ? hash! : null,
+        state: valid ? 'index-verified' : release && binding.runtimeReleaseId && !releaseMatch ? 'release-mismatch' : 'unverified',
+        contentSha256: valid ? hash! : null,
         verifiedAt: checkedAt, runtimeReleaseId: valid ? release!.releaseId : null,
       });
     }

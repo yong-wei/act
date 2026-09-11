@@ -59,7 +59,7 @@ export interface AdaptivePathCandidateBatchPersistenceInput {
     resourceId: string;
     candidateStyleId: string;
     nodeNodeId: string;
-    state: 'verified' | 'index-verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'unverified';
+    state: 'verified' | 'index-verified' | 'missing' | 'forbidden' | 'checksum-mismatch' | 'release-mismatch' | 'unverified';
     contentSha256: string | null;
     verifiedAt: string;
   }>;
