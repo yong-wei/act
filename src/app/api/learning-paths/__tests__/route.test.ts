@@ -1179,6 +1179,8 @@ describe('learning path round API routes', () => {
         score: 100,
         pathId: 'path-1',
         nodeId: 'registry:lesson09-correction-precheck',
+        goalId: 'control-correction',
+        registryId: 'lesson09-correction-precheck',
       },
     });
 
@@ -5222,6 +5224,8 @@ describe('learning path round API routes', () => {
         score: 100,
         pathId: 'path-1',
         nodeId: 'registry:bode-quiz',
+        goalId: 'frequency-response-foundations',
+        registryId: 'bode-quiz',
       },
     });
 
@@ -5390,6 +5394,65 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
+  it('rejects a scored quiz log that omits goalId when the path has a goal', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-missing-goal',
+      clientEventId: 'evt-missing-goal',
+      eventType: 'complete',
+      eventData: {
+        score: 100,
+        pathId: 'path-1',
+        nodeId: 'registry:bode-quiz',
+        registryId: 'bode-quiz',
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-missing-goal',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, clientEventId: 'evt-missing-goal' },
+      },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects a scored quiz log whose resource identity does not match the path node', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+    mocks.prisma.interactionLog.findFirst.mockResolvedValue({
+      id: 'log-wrong-resource',
+      clientEventId: 'evt-wrong-resource',
+      eventType: 'complete',
+      eventData: {
+        score: 100,
+        pathId: 'path-1',
+        nodeId: 'registry:bode-quiz',
+        goalId: 'frequency-response-foundations',
+        registryId: 'other-quiz',
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz-wrong-resource',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: { score: 100, clientEventId: 'evt-wrong-resource' },
+      },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('rejects a standalone quiz log that does not carry exact path membership', async () => {
     configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
     mocks.prisma.interactionLog.findFirst.mockResolvedValue({
@@ -5443,6 +5506,7 @@ describe('learning path round API routes', () => {
         pathId: 'path-1',
         nodeId: 'registry:lesson13-physics-builder-simple',
         goalId: 'frequency-response-foundations',
+        registryId: 'lesson13-physics-builder-simple',
       },
     });
 
@@ -5475,7 +5539,13 @@ describe('learning path round API routes', () => {
       id: 'log-quiz-owned',
       clientEventId: 'evt-quiz-owned',
       eventType: 'complete',
-      eventData: { score: 70, pathId: 'path-1', nodeId: 'registry:bode-quiz' },
+      eventData: {
+        score: 70,
+        pathId: 'path-1',
+        nodeId: 'registry:bode-quiz',
+        goalId: 'frequency-response-foundations',
+        registryId: 'bode-quiz',
+      },
     });
 
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {

@@ -45,6 +45,9 @@ describe('classic four-view control workbench preset', () => {
     expect(presetSource).toContain('embed: true');
     expect(presetSource).toContain("publicationId: 'publicationId' in session ? session.publicationId : undefined");
     expect(presetSource).toContain('viewConfigs: mapClassicViewConfigs(viewConfigs)');
+    expect(presetSource).toContain('onGovernedAnalysisReady={onGovernedAnalysisReady}');
+    expect(shellSource).toContain('persistPathLaunchedControlWorkbenchRun');
+    expect(shellSource).toContain('onGovernedAnalysisReady={pathLaunchContext ? persistPathLaunchedAnalysis : undefined}');
   });
 
   it('remounts the embedded chart client when the selected plant model changes', () => {

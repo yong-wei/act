@@ -64,6 +64,19 @@ export async function completeAdaptivePathAfterPersistedRun(input: {
   }
 }
 
+export function persistPathLaunchedControlWorkbenchRun(input: {
+  pathId: string;
+  nodeId: string;
+  request: ControlAnalysisRequest;
+}) {
+  return persistControlWorkbenchRun({
+    clientRunId: `path-workbench:${input.pathId}:${input.nodeId}`,
+    capabilityId: input.nodeId,
+    request: input.request,
+    launchContext: { resourceId: input.nodeId },
+  });
+}
+
 export function persistControlWorkbenchRun(input: {
   clientRunId: string;
   capabilityId: string;

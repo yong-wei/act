@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
@@ -38,6 +38,8 @@ import {
   type WorkbenchObjectOption,
 } from '../object-selection';
 import { getControlWorkbenchLaunchKind, getControlWorkbenchReturnHref } from '../routing';
+import { persistPathLaunchedControlWorkbenchRun } from '@/resources/simulations/persisted-run-client';
+import type { ControlAnalysisRequest } from '@/resources/control-system/analysis/types';
 
 function methodText(methods: string[]) {
   return methods.map((method) => arenaMethodLabels[method as keyof typeof arenaMethodLabels] ?? method).join('、');
@@ -347,6 +349,16 @@ function ResolvedControlWorkbenchShell({
   const showObjectSelector = session.mode === 'explore';
   const launchKind = getControlWorkbenchLaunchKind(session);
   const launchDescription = describeExperienceLaunch(launchKind);
+  const persistedPathRun = useRef(false);
+  const persistPathLaunchedAnalysis = useCallback((input: { request: ControlAnalysisRequest }) => {
+    if (!pathLaunchContext || persistedPathRun.current) return;
+    persistedPathRun.current = true;
+    void persistPathLaunchedControlWorkbenchRun({
+      pathId: pathLaunchContext.pathId,
+      nodeId: pathLaunchContext.nodeId,
+      request: input.request,
+    });
+  }, [pathLaunchContext]);
   const returnHref = pathLaunchContext?.returnHref ?? getControlWorkbenchReturnHref(session);
   const missionDataState = 'taskId' in session ? 'available' : 'missing-task-context';
   const evidenceStatus = session.submissionPolicy.officialEvaluationEnabled
@@ -557,6 +569,7 @@ function ResolvedControlWorkbenchShell({
               viewConfigs={viewConfigs}
               panelInstances={panels}
               onPanelSelectedOptionsChange={updatePanelSelectedOptions}
+              onGovernedAnalysisReady={pathLaunchContext ? persistPathLaunchedAnalysis : undefined}
             />
           ) : null}
           {showBlackBoxPreset ? (

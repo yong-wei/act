@@ -34,6 +34,27 @@ describe('completeAdaptivePathAfterPersistedRun', () => {
     );
   });
 
+  it('writes a governed path completion after a persisted control-workbench run', async () => {
+    vi.stubGlobal('window', {
+      location: {
+        search: '?source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=path-1&nodeId=node-workbench&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dpath-1%26nodeId%3Dnode-workbench&resourceType=control_workbench',
+      },
+    });
+
+    await completeAdaptivePathAfterPersistedRun({
+      simulationRunId: 'wb-run-1',
+      resourceType: 'control_workbench',
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/learning-paths/path-1/execute',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"resourceType":"control_workbench"'),
+      }),
+    );
+  });
+
   it('does not write path completion for standalone launches', async () => {
     vi.stubGlobal('window', { location: { search: '' } });
     await completeAdaptivePathAfterPersistedRun({

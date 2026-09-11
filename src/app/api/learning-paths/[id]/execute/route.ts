@@ -179,7 +179,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
           const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(existingPathNode, governedExternalInput);
-          const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, governedInstrumentedInput);
+          const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, existingPathNode, governedInstrumentedInput);
           if (governedQuizInput instanceof NextResponse) return governedQuizInput;
           const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
@@ -245,7 +245,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
     const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(pathNode, governedExternalInput);
-    const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, governedInstrumentedInput);
+    const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, pathNode, governedInstrumentedInput);
     if (governedQuizInput instanceof NextResponse) return governedQuizInput;
     const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
@@ -901,15 +901,65 @@ function asUngradedPathResourceCompletion<T extends { evidenceRefs?: unknown[] }
   return isQuiz ? { ...input, evidenceRefs: [] } : input;
 }
 
+function identityTokens(...values: unknown[]): string[] {
+  const tokens = new Set<string>();
+  for (const value of values) {
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    tokens.add(trimmed);
+    tokens.add(trimmed.toLowerCase());
+    if (trimmed.startsWith('registry:')) {
+      tokens.add(trimmed.slice('registry:'.length));
+      tokens.add(trimmed.slice('registry:'.length).toLowerCase());
+    }
+    const leaf = trimmed.split('/').filter(Boolean).pop();
+    if (leaf) {
+      tokens.add(leaf);
+      tokens.add(leaf.toLowerCase());
+    }
+  }
+  return [...tokens];
+}
+
+const GRADED_COMPLETION_EVENT_TYPES = new Set([
+  'complete',
+  'assessment_complete',
+  'quiz_complete',
+  'resource_complete',
+]);
+
 function interactionLogMatchesPathNode(
+  log: { resourceId?: unknown; eventType?: unknown } | null,
   eventData: Record<string, unknown>,
   input: { pathId: string; nodeId: string; goalId?: string | null },
+  pathNode: Record<string, unknown> | null,
 ): boolean {
   if (firstString(eventData.pathId) !== input.pathId || firstString(eventData.nodeId) !== input.nodeId) {
     return false;
   }
-  const declaredGoalId = firstString(eventData.goalId);
-  return !(declaredGoalId && input.goalId && declaredGoalId !== input.goalId);
+  if (input.goalId && firstString(eventData.goalId) !== input.goalId) {
+    return false;
+  }
+  const eventType = firstString(log?.eventType, eventData.eventType);
+  if (!eventType || !GRADED_COMPLETION_EVENT_TYPES.has(eventType)) {
+    return false;
+  }
+  const nodeTokens = new Set(identityTokens(
+    input.nodeId,
+    pathNode?.resourceId,
+    pathNode?.registryId,
+    pathNode?.sourceRef,
+    pathNode?.target,
+  ));
+  const logTokens = identityTokens(
+    log?.resourceId,
+    eventData.resourceId,
+    eventData.resourceKey,
+    eventData.registryId,
+    eventData.targetId,
+  );
+  return logTokens.length > 0 && logTokens.some((token) => nodeTokens.has(token));
 }
 
 async function resolveGovernedQuizOutcomeEvidence<T extends {
@@ -921,7 +971,7 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
   status: string;
   evidenceRefs?: unknown[];
   liftMetadata?: Record<string, unknown>;
-}>(db: any, input: T): Promise<T | NextResponse> {
+}>(db: any, pathNode: Record<string, unknown> | null, input: T): Promise<T | NextResponse> {
   if (input.status !== 'completed') return input;
   const isQuiz = input.resourceType === 'quiz';
   const isLessonStep = input.resourceType === 'lesson_step';
@@ -949,6 +999,7 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
           id: true,
           clientEventId: true,
           eventType: true,
+          resourceId: true,
           eventData: true,
         },
       })
@@ -962,14 +1013,14 @@ async function resolveGovernedQuizOutcomeEvidence<T extends {
         hasEventRef ? '测验证据尚未持久化，无法完成节点' : '可评分完成缺少已持久化的互动事件引用',
       );
     }
-    if (!interactionLogMatchesPathNode(eventData, input) || persistedScore === undefined) {
+    if (!interactionLogMatchesPathNode(log, eventData, input, pathNode) || persistedScore === undefined) {
       return rejectUngovernedGradableCompletion(
         persistedScore === undefined ? '测验证据缺少可核验分数' : '测验证据不属于当前路径节点',
       );
     }
   } else if (!log || persistedScore === undefined) {
     return asUngradedPathResourceCompletion(input, isQuiz);
-  } else if (!interactionLogMatchesPathNode(eventData, input)) {
+  } else if (!interactionLogMatchesPathNode(log, eventData, input, pathNode)) {
     return rejectUngovernedGradableCompletion('测验证据不属于当前路径节点');
   }
 
