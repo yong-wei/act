@@ -54,6 +54,10 @@ import {
   readProfileSimulationEvidence,
   type ProfileSimulationEvidenceProjection,
 } from '@/lib/data-governance/profile-simulation-evidence';
+import {
+  buildIdentityAuditReport,
+  summarizeIdentityAuditForProfile,
+} from '@/lib/data-governance/legacy-fact-identity-audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,8 +98,9 @@ export interface UserProfileResponse {
     confidence: number | null;
     lastTrend: CumulativePortraitReadModel['lastTrend'];
     lastRisk: CumulativePortraitReadModel['lastRisk'];
-    evidenceAsOf: string | null;
+        evidenceAsOf: string | null;
     generatedAt: string | null;
+    knowledgeIdentity: ReturnType<typeof summarizeIdentityAuditForProfile>;
     strengths: string[];
     improvementAreas: string[];
     dimensions: Array<{
@@ -456,6 +461,7 @@ export async function GET() {
       missionProgress,
       interactionLogs,
       learningFacts,
+      identityFacts,
       studentStates,
       userArenaSubmissions,
       userArenaVirtualSimulationSnapshot,
@@ -522,6 +528,25 @@ export async function GET() {
           score: true,
           timeSpent: true,
           contextJson: true,
+          knowledgeIdentityNamespace: true,
+          canonicalObjectId: true,
+          aggregateReleaseSetId: true,
+          aggregateReleaseId: true,
+          knowledgeProjectionId: true,
+          knowledgeRevisionRef: true,
+        },
+      }),
+      prisma.learningFact.findMany({
+        where: { userId },
+        select: {
+          id: true,
+          contextJson: true,
+          knowledgeIdentityNamespace: true,
+          canonicalObjectId: true,
+          aggregateReleaseSetId: true,
+          aggregateReleaseId: true,
+          knowledgeProjectionId: true,
+          knowledgeRevisionRef: true,
         },
       }),
       prisma.studentState.findMany({
@@ -677,6 +702,11 @@ export async function GET() {
       ...assessmentActivities,
     ]);
 
+    const knowledgeIdentity = summarizeIdentityAuditForProfile(buildIdentityAuditReport({
+      userId,
+      facts: identityFacts,
+    }));
+
     const [adaptiveReport, adaptiveDiagnostic, reinforcementResources] = await Promise.all([
       readAbilityReport(userId),
       readDiagnostic(userId),
@@ -722,7 +752,10 @@ export async function GET() {
         limitations: [
           ...(portraitSummary?.limitations ?? []),
           ...(!labeledCurrent && evidencePort.status === 'stale' ? ['stale-projection'] : []),
+          ...(knowledgeIdentity.mixedVersionLimitation ? ['mixed-knowledge-identity'] : []),
+          ...(knowledgeIdentity.isolatedCount > 0 ? ['unrecoverable-identity-isolated'] : []),
         ],
+        knowledgeIdentity,
         overallScore,
         level,
         confidence: cumulativePortrait.confidence,

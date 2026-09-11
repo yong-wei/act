@@ -245,6 +245,7 @@
     "db:apply-simulation-task-evidence-plan": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/apply-simulation-task-evidence-plan.ts",
     "db:refresh-simulation-task-catalog-portraits": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/refresh-simulation-task-catalog-portraits.ts",
     "db:data-completeness-audit": "tsx ./scripts/db/report-data-completeness-audit.ts",
+    "db:audit-legacy-fact-identity": "tsx ./scripts/db/audit-legacy-fact-identity.ts",
     "db:repair-resource-identity-bindings": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/repair-resource-identity-bindings.ts",
     "db:kaq-quiz-foundation": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-kaq-quiz-foundation.ts",
     "db:adaptive-assessment-item-catalog": "tsx ./tools/migration-backfill/cli.ts apply -- scripts/db/generate-adaptive-assessment-item-catalog.ts",
