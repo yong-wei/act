@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_PATH_DIFFERENTIATION_THRESHOLDS,
   computeAdaptivePathPairDifferentiation,
+  evaluateAdaptivePathHardDiversity,
   type AdaptivePathDifferentiationCandidate,
 } from '../adaptive-path-differentiation';
 
@@ -103,5 +104,27 @@ describe('adaptive path pair differentiation metrics', () => {
       candidate({ styleId: 'strategy-b', resourceTypeShares: { simulation: 0.9, video: 0.1 } }),
     );
     expect(metrics.resourceTypeTotalVariation).toBeCloseTo(0.8);
+  });
+});
+
+describe('adaptive path hard diversity (#2077)', () => {
+  it('passes three disjoint published paths', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'a1' }, { id: 'a2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'b1' }, { id: 'b2' }], strategy: { generic: true } },
+      { styleId: 'c', identities: [{ id: 'c1' }, { id: 'c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(true);
+    expect(result.reasons).toEqual([]);
+  });
+
+  it('rejects two near-identical paths even when labels differ', () => {
+    const result = evaluateAdaptivePathHardDiversity([
+      { styleId: 'a', identities: [{ id: 'shared-1' }, { id: 'shared-2' }], strategy: { generic: true } },
+      { styleId: 'b', identities: [{ id: 'shared-1' }, { id: 'shared-2' }], strategy: { generic: true } },
+      { styleId: 'c', identities: [{ id: 'shared-1' }, { id: 'c2' }], strategy: { generic: true } },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.reasons.some((reason) => reason.includes('jaccard-similarity-above-30'))).toBe(true);
   });
 });

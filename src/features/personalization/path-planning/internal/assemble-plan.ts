@@ -3871,8 +3871,6 @@ function buildFeasiblePath(
   }
   if (allPlanningRequirementsSatisfied(state, allGoalTargets, constraints)) {
     for (const option of candidateOptions) {
-      if (option.entry.node.publishedResource && [...state.selected.values()].some((entry) =>
-        entry.node.publishedResource && entry.node.type === option.entry.node.type)) continue;
       tryAddOption(option, false);
     }
   }
@@ -5648,7 +5646,7 @@ function buildFamilyStrategyObservation(
     ? teachingNodes.filter((node) => node.knowledgeCoverage.some((tag) => deficits.includes(tag))).length
     : 0;
   const comprehensiveTaskCount = policyFamily === 'simulation-driven'
-    ? teachingNodes.filter((node) => ['simulation', 'arena_task', 'project'].includes(node.type)).length
+    ? teachingNodes.filter((node) => ['simulation', 'arena_task', 'project', 'control_workbench'].includes(node.type)).length
     : 0;
   return {
     family: policyFamily,

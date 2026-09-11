@@ -1925,8 +1925,17 @@ function getAdaptivePathUnlockReadiness(
   };
 }
 
+function hasInsufficientCandidateDiversity(batch: AdaptivePathCandidateBatchView | null): boolean {
+  if (!batch) return false;
+  if (batch.comparison?.insufficientCandidateDiversity === true) return true;
+  const limitations = Array.isArray(batch.metadata?.diversityLimitations)
+    ? batch.metadata.diversityLimitations.filter((item): item is string => typeof item === 'string')
+    : [];
+  return limitations.includes('insufficient-candidate-diversity');
+}
+
 function getCandidateBatchPathOptions(batch: AdaptivePathCandidateBatchView | null): PathOptionView[] {
-  if (!batch) return [];
+  if (!batch || hasInsufficientCandidateDiversity(batch)) return [];
   return batch.candidates.flatMap((candidate) => {
     const projected = getPathOptions({
       panels: [{ region: 'current-path', payload: { pathOptions: [candidate.snapshot] } }],
@@ -3385,8 +3394,9 @@ export default function AdaptivePracticePage() {
   const activeComparisonRequestKeyRef = useRef<string | null>(null);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(adaptivePathCenter), [adaptivePathCenter]);
   const pathComparisonDiversityLimited = useMemo(
-    () => hasPathComparisonDiversityLimitation(pathOptionFallback),
-    [pathOptionFallback],
+    () => hasPathComparisonDiversityLimitation(pathOptionFallback)
+      || hasInsufficientCandidateDiversity(activeCandidateBatch),
+    [activeCandidateBatch, pathOptionFallback],
   );
   const visiblePathOptions = useMemo(() => {
     const displays = buildAdaptivePathOptionDisplays(pathOptions, { diversityLimited: pathComparisonDiversityLimited });
@@ -6176,12 +6186,14 @@ export default function AdaptivePracticePage() {
                 </div>
               </section>
             ) : null}
-            {hasGeneratedPathOptions && pathComparisonDiversityLimited ? (
+            {pathComparisonDiversityLimited ? (
               <p
                 className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm leading-6 text-foreground"
                 data-learning-path-diversity-notice="limited"
               >
-                当前可用资源有限，推荐方案差异较小。
+                {hasInsufficientCandidateDiversity(activeCandidateBatch)
+                  ? '当前已发布教学资源不足以形成三条可区分路径。'
+                  : '当前可用资源有限，推荐方案差异较小。'}
               </p>
             ) : null}
             {visiblePathOptions.some((option) =>

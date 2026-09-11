@@ -1637,6 +1637,7 @@ function toStudentPathReason(reason: string): string {
     'policy-option-diversity-unavailable': '当前资源只能形成单一推荐方案',
     'title-or-score-only-duplicates-removed': studentVisibleCandidateLimitation('title-or-score-only-duplicates-removed'),
     'insufficient-distinct-resources': studentVisibleCandidateLimitation('insufficient-distinct-resources'),
+    'insufficient-candidate-diversity': studentVisibleCandidateLimitation('insufficient-candidate-diversity'),
     'cold-start-mastery-insufficient': studentVisibleColdStartLimitation('cold-start-mastery-insufficient') ?? '目前还不能判断你的知识掌握情况，先按入门路径补概念。',
     'cold-start-ability-insufficient': studentVisibleColdStartLimitation('cold-start-ability-insufficient') ?? '目前还不能判断你的学习节奏和完成稳定性。',
     'cold-start-preference-insufficient': studentVisibleColdStartLimitation('cold-start-preference-insufficient') ?? '目前还不能判断你更适合视频、讲义还是仿真。',

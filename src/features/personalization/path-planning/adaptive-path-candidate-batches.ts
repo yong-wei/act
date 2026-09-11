@@ -6,7 +6,9 @@ import {
 } from '@/features/personalization/path-planning/public-api';
 import {
   computeAdaptivePathPairDifferentiation,
+  evaluateAdaptivePathHardDiversity,
   type AdaptivePathDifferentiationCandidate,
+  type AdaptivePathHardDiversityResult,
   type AdaptivePathPairDifferentiationMetrics,
 } from '@/features/personalization/path-planning/adaptive-path-differentiation';
 import type { AdaptivePathNodeRuntimeBinding } from '@/features/personalization/path-planning/adaptive-path-runtime-binding';
@@ -64,6 +66,21 @@ export interface AdaptivePathCandidateBatchPersistenceInput {
   runtimeResourceBindings?: AdaptivePathNodeRuntimeBinding[];
   /** 绑定层限制码（#2055）：零绑定时显式受限，不静默空记录。 */
   runtimeBindingLimitationCodes?: string[];
+  /** 规划开始前已加载的活发布索引快照（#2077）。 */
+  planningResourceSnapshot?: AdaptivePathPlanningResourceSnapshot | null;
+}
+
+export interface AdaptivePathPlanningResourceSnapshot {
+  indexId: string;
+  projectionId: string;
+  projectionHash: string;
+  runtimeReleaseId: string | null;
+  recommendable: Array<{
+    resourceId: string;
+    resourceVersion: string;
+    sourcePath: string | null;
+    type: string;
+  }>;
 }
 
 export interface AdaptivePathCandidateDifferenceSummary {
@@ -139,6 +156,9 @@ export async function persistAdaptivePathCandidateBatch(
       ...(differentiation?.insufficientVerifiedResources
         ? [...gated.limitations, 'insufficient-verified-resources']
         : gated.limitations),
+      ...(!(differentiation?.hardDiversity.passed) || candidates.length !== 3
+        ? ['insufficient-candidate-diversity']
+        : []),
       ...(input.runtimeBindingLimitationCodes ?? []),
     ]);
     const record = await tx.adaptivePathCandidateBatch.create({
@@ -167,6 +187,7 @@ export async function persistAdaptivePathCandidateBatch(
           runtimeResourceBindings: input.runtimeResourceBindings ?? [],
           runtimeBindingLimited: (input.runtimeBindingLimitationCodes ?? []).length > 0,
           runtimeBindingLimitationCodes: input.runtimeBindingLimitationCodes ?? [],
+          planningResourceSnapshot: input.planningResourceSnapshot ?? null,
           ...(input.derivation ? {
             derivation: {
               ...input.derivation,
@@ -206,8 +227,9 @@ export interface AdaptivePathBatchDifferentiation {
     rightStyleId: string;
     metrics: AdaptivePathPairDifferentiationMetrics;
   }>;
-  /** 每对候选都达到最少达标数（7 项中 3 项）且无空资源候选才允许标记高区分度。 */
+  /** 仅当恰好 3 条且 #2077 硬门禁通过、且无空资源候选时允许标记高区分度。 */
   highDifferentiation: boolean;
+  hardDiversity: AdaptivePathHardDiversityResult;
   /** 读验证失败而被剔除出统计的对象键（去重排序），供审计对照读取记录。 */
   unreadableObjectKeys: string[];
   /** 存在核心资源被全部剔除（空资源）的候选：资源不足或验证失败，不得声称高区分度。 */
@@ -277,7 +299,9 @@ export function computeAdaptivePathBatchDifferentiation(
     // 复审修复：候选核心资源中必须存在可验证的 Runtime 对象键资源；
     // 无 OSS 来源面（未绑定）的候选无法提供读取证明，视为资源不足。
     const hasVerifiableRuntimeResource = countedNodes.some((node) =>
-      node.runtimeResourceBinding?.objectKey != null || (node.resourceFeatureRef && indexedNodeIds.has(node.nodeId)));
+      node.runtimeResourceBinding?.objectKey != null
+      || Boolean(node.resourceFeatureRef)
+      || (node.sourceKind === 'teaching_projection' && indexedNodeIds.has(node.nodeId)));
     const objectKeys = new Set<string>();
     const typeCounts: Record<string, number> = {};
     const checkpointSignature: string[] = [];
@@ -308,22 +332,45 @@ export function computeAdaptivePathBatchDifferentiation(
   });
 
   const pairs: AdaptivePathBatchDifferentiation['pairs'] = [];
-  let highDifferentiation = true;
-  // 空资源候选（核心资源被读验证失败等剔除殆尽）与无可验证 OSS 核心资源的候选
-  // 不得参与高区分度声称：空集 vs 非空集会虚增指标，纯站内资源无读取证明。
   const insufficientVerifiedResources = inputs.some((input) =>
     input.coreNodeIds.length === 0 || input.hasVerifiableRuntimeResource === false);
-  if (insufficientVerifiedResources) highDifferentiation = false;
   for (let left = 0; left < inputs.length; left += 1) {
     for (let right = left + 1; right < inputs.length; right += 1) {
       const metrics = computeAdaptivePathPairDifferentiation(inputs[left], inputs[right]);
       pairs.push({ leftStyleId: inputs[left].styleId, rightStyleId: inputs[right].styleId, metrics });
-      if (metrics.satisfiedCount < 3) highDifferentiation = false;
     }
   }
+  const hardDiversity = evaluateAdaptivePathHardDiversity(serialized.map((candidate, index) => {
+    const strategy = candidate.strategy;
+    const preferredTypes = new Set(
+      strategy?.generic === true ? [] : strategy?.portraitBasis ?? [],
+    );
+    const countedNodes = (nodesByCandidate[index] ?? []).filter((node) => {
+      if (sharedExcludedNodeIds.has(node.nodeId) || unreadableNodeIds.has(node.nodeId)) return false;
+      const objectKey = node.runtimeResourceBinding?.objectKey ?? null;
+      return !(objectKey && unreadableObjectKeys.has(objectKey));
+    });
+    return {
+      styleId: candidate.styleId,
+      policyFamily: candidate.policyFamily,
+      identities: countedNodes.flatMap((node) => {
+        const id = node.resourceFeatureRef?.resourceId
+          ?? node.runtimeResourceBinding?.resourceId
+          ?? node.runtimeResourceBinding?.objectKey
+          ?? (node.sourceKind === 'teaching_projection' ? node.sourceRef : null);
+        return id ? [{
+          id,
+          type: node.type,
+          preferred: preferredTypes.has(node.type),
+        }] : [];
+      }),
+      strategy,
+    };
+  }));
   return {
     pairs,
-    highDifferentiation,
+    highDifferentiation: !insufficientVerifiedResources && hardDiversity.passed,
+    hardDiversity,
     unreadableObjectKeys: [...unreadableObjectKeys].sort(),
     insufficientVerifiedResources,
   };

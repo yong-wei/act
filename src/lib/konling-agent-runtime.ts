@@ -51,7 +51,7 @@ import {
 
 import type { PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
 import { loadPublishedResourceFeatureIndex } from '@/lib/published-resource-index';
-import { attachPublishedResourcesToRegistry } from '@/lib/published-resource-planning';
+import { attachPublishedResourcesToRegistry, buildPlanningResourceSnapshot } from '@/lib/published-resource-planning';
 import { applyResourceInteractionFeatures } from '@/lib/resource-feature-history';
 import {
   resolveActiveTeachingProjection,
@@ -5139,6 +5139,9 @@ async function buildAdaptivePathToolOutput(
     objectKeyReadRecords,
     runtimeResourceBindings,
     runtimeBindingLimitationCodes,
+    planningResourceSnapshot: registry.featureIndex
+      ? buildPlanningResourceSnapshot(registry.featureIndex)
+      : null,
     generationRequestId: args.idempotencyKey,
     plan: persistedPlan,
     classId: input.scope.classId ?? null,
@@ -5217,7 +5220,9 @@ async function buildAdaptivePathToolOutput(
     && !candidateBatch
     && differenceSummary?.material === false;
   const hasPersistedOutput = hasMaterialPath || Boolean(candidateBatch);
-  const pathOptions = noMaterialDifference
+  const diversityFailed = Array.isArray(candidateBatch?.metadata?.diversityLimitations)
+    && candidateBatch.metadata.diversityLimitations.includes('insufficient-candidate-diversity');
+  const pathOptions = noMaterialDifference || diversityFailed
     ? []
     : candidateBatch
     ? candidateBatch.candidates.map((candidate) => ({
@@ -5233,6 +5238,7 @@ async function buildAdaptivePathToolOutput(
   const fallbackReasons = uniqueStringList([
     ...plan.explanations.fallbackReasons,
     ...(plan.policyBundle?.fallbackReasons ?? []),
+    ...(diversityFailed ? ['insufficient-candidate-diversity'] : []),
   ]);
   const singleOptionDiversityUnavailable = pathOptions.length === 1
     && fallbackReasons.includes('policy-option-diversity-unavailable');

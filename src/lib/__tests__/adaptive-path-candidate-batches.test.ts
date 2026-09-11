@@ -638,7 +638,8 @@ describe('adaptive path batch differentiation metrics', () => {
     expect(differentiation!.pairs[0].metrics.coreNodeJaccard).toBe(1);
     expect(differentiation!.pairs[0].metrics.objectKeyJaccard).toBe(1);
     expect(differentiation!.pairs[0].metrics.resourceTypeTotalVariation).toBeCloseTo(1);
-    expect(differentiation!.highDifferentiation).toBe(true);
+    expect(differentiation!.highDifferentiation).toBe(false);
+    expect(differentiation!.hardDiversity.passed).toBe(false);
 
     const { db } = dbFixture();
     const view = await persistAdaptivePathCandidateBatch(db, {
@@ -646,8 +647,60 @@ describe('adaptive path batch differentiation metrics', () => {
       plan: extended,
     });
     expect((view.metadata as Record<string, unknown>).differentiation).toMatchObject({
-      highDifferentiation: true,
+      highDifferentiation: false,
       pairs: [{ leftStyleId: 'foundation-remediation', rightStyleId: 'arena-simulation-sprint' }],
+    });
+    expect((view.metadata as Record<string, unknown>).diversityLimitations).toEqual(
+      expect.arrayContaining(['insufficient-candidate-diversity']),
+    );
+  });
+
+  it('marks three disjoint published paths as hard-diverse and stores the planning snapshot', async () => {
+    const base = plan();
+    const published = (nodeId: string, objectKey: string) => ({
+      ...node(nodeId),
+      runtimeResourceBinding: boundBinding(nodeId, objectKey),
+    });
+    const left = [published('node-1', 'oss/a1'), published('node-1b', 'oss/a2')];
+    const middle = [published('node-2', 'oss/b1'), published('node-2b', 'oss/b2')];
+    const right = [published('node-3', 'oss/c1'), published('node-3b', 'oss/c2')];
+    const extended: AdaptiveLearningPathPlan = {
+      ...base,
+      mainPath: [...left, ...middle, ...right],
+      policyBundle: {
+        ...base.policyBundle!,
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+        paths: [
+          { ...candidate('foundation-remediation', 'foundation-remediation', '补救', ['node-1', 'node-1b']), planNodes: left, strategy: { family: 'foundation-remediation', strategyId: 'weakness-repair', name: '薄弱点补强', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          { ...candidate('arena-simulation-sprint', 'simulation-driven', '迁移', ['node-2', 'node-2b']), planNodes: middle, strategy: { family: 'simulation-driven', strategyId: 'strength-transfer', name: '优势迁移应用', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+          { ...candidate('preference-matched-route', 'preference-matched', '偏好', ['node-3', 'node-3b']), planNodes: right, strategy: { family: 'preference-matched', strategyId: 'preference-reinforce', name: '偏好资源强化', portraitBasis: [], generic: true, preferredTypeShare: 0, weaknessResourceCount: 0, comprehensiveTaskCount: 0 } },
+        ],
+      },
+    };
+    const snapshot = {
+      indexId: 'index-1',
+      projectionId: 'proj-1',
+      projectionHash: 'a'.repeat(64),
+      runtimeReleaseId: 'runtime-test',
+      recommendable: [
+        { resourceId: 'act:resource:node-1', resourceVersion: 'b'.repeat(64), sourcePath: 'oss/a1', type: 'card' },
+      ],
+    };
+    const differentiation = computeAdaptivePathBatchDifferentiation(extended);
+    expect(differentiation!.hardDiversity.passed).toBe(true);
+    expect(differentiation!.highDifferentiation).toBe(true);
+
+    const { db } = dbFixture();
+    const view = await persistAdaptivePathCandidateBatch(db, {
+      generationRequestId: 'gen-diff-hard-1',
+      plan: extended,
+      planningResourceSnapshot: snapshot,
+    });
+    expect(view.candidates).toHaveLength(3);
+    expect(view.metadata).toMatchObject({
+      planningResourceSnapshot: snapshot,
+      diversityLimitations: [],
+      differentiation: { highDifferentiation: true },
     });
   });
 
