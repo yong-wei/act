@@ -9,6 +9,7 @@ import {
   derivePortraitV2Compatibility,
   PORTRAIT_V2_CALCULATION_VERSION,
 } from '../portrait-v2-model';
+import { buildEvidenceSummary } from '@/features/personalization/learner-state/internal';
 import { buildStudentProfileEvidenceStatus } from '../profile-center';
 import {
   buildKnowledgeIdentityCoverage,
@@ -2408,5 +2409,42 @@ describe('mixed-knowledge-identity cache round-trip', () => {
     await expect(readStudentEvidenceFeatures(db, 'student-1', { now })).resolves.toMatchObject({
       state: 'stale',
     });
+  });
+
+  it('fails closed when a top-level status marker is unknown', async () => {
+    const db = memoryFeatureCacheDb([canonicalFact('canon-1', '2026-07-30T00:00:00.000Z')]);
+    await refreshStudentEvidenceFeatureCache(db, 'student-1', { now });
+    const stored = db.stored() as { statusMarkers: string[] };
+    stored.statusMarkers.push('not-a-known-marker');
+
+    await expect(readStudentEvidenceFeatures(db, 'student-1', { now })).resolves.toMatchObject({
+      state: 'stale',
+    });
+  });
+
+  it('keeps mixed-knowledge-identity on learner-state evidence when the cache is ready', () => {
+    const summary = buildEvidenceSummary(
+      {
+        state: 'ready',
+        cache: { statusMarkers: ['mixed-knowledge-identity', 'partial'] },
+        rawReadExceptions: [],
+      },
+      {
+        statusMarkers: ['mixed-knowledge-identity', 'partial'],
+        sourceCounts: {},
+        sourceCoverage: {},
+        confidenceMarkers: { level: 'high', score: 0.9, evidenceCount: 2, sourceCompleteness: 1 },
+        evidenceWindow: {
+          firstStartedAt: '2026-07-01T00:00:00.000Z',
+          lastStartedAt: '2026-07-30T00:00:00.000Z',
+          daysCovered: 29,
+        },
+      },
+    );
+
+    expect(summary.readState).toBe('ready');
+    expect(summary.statusMarkers).toEqual(
+      expect.arrayContaining(['mixed-knowledge-identity']),
+    );
   });
 });
