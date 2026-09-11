@@ -841,6 +841,11 @@ describe('GET /api/user/profile', () => {
       },
     });
     expect(body.profile.studentNumber).toBe('2023001001');
+    expect(body.competency.knowledgeIdentity).toMatchObject({
+      totalFacts: 3,
+      isolatedCount: 0,
+      isolatedStatus: 'none',
+    });
     expect(body.statistics).toMatchObject({
       // 统一投影口径（Issue #1991）：canonical run 与 legacy log 合并计数；
       // canonical 无 duration、无 score 时只贡献计数，不伪造时长或得分。
