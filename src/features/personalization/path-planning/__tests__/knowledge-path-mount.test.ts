@@ -14,20 +14,22 @@ function feature(
   canonicalIds: string[],
   type: PublishedResourceFeature['type'] = 'card',
   recommendable = true,
+  title = resourceKey,
+  extras: { resourceId?: string; version?: string } = {},
 ): PublishedResourceFeature {
   return {
     identity: {
-      resourceId: `act:${type}:${resourceKey}`,
+      resourceId: extras.resourceId ?? `act:${type}:${resourceKey}`,
       projectionId: `proj-${PROJECTION_HASH}`,
       projectionHash: PROJECTION_HASH,
       snapshotId: `snap-${SNAPSHOT_HASH}`,
       snapshotHash: SNAPSHOT_HASH,
       runtimeReleaseId: null,
     },
-    version: resourceKey.replace(/[^a-f0-9]/g, 'a').padEnd(64, '0').slice(0, 64),
+    version: extras.version ?? resourceKey.replace(/[^a-f0-9]/g, 'a').padEnd(64, '0').slice(0, 64),
     type,
-    title: resourceKey,
-    summary: resourceKey,
+    title,
+    summary: title,
     canonicalIds,
     bindingIds: [`bind-${resourceKey}`],
     bindingRoles: ['COVERS'],
@@ -105,13 +107,13 @@ describe('knowledge path mount', () => {
     expect(records.every((record) => record.state === 'index-verified')).toBe(true);
   });
 
-  it('keeps unbound goals empty instead of mixing the old resource pool', () => {
+  it('keeps unregistered goals empty instead of mixing the old resource pool', () => {
     const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
       feature('unrelated', ['ctc:other'], 'card'),
     ]));
     const plan = assembleKnowledgePathPlan({
       studentId: 'student-1',
-      goal: { id: 'simulation-validation-practice', title: '仿真验证实践', knowledgeTargets: ['跨模型验证比较_4_47006'] },
+      goal: { id: 'unregistered-empty-goal', title: '未登记目标', knowledgeTargets: ['跨模型验证比较_4_47006'] },
       learnerState: null,
       registry,
       constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
@@ -120,6 +122,74 @@ describe('knowledge path mount', () => {
     expect(plan.status).toBe('fallback');
     expect(plan.mainPath).toEqual([]);
     expect(plan.explanations.fallbackReasons).toContain('goal-knowledge-unbound');
+  });
+
+  it('uses foundation remediation as the cold-start main path and skips mastered prefix nodes', () => {
+    const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
+    const prior = 'ctc:prior-root-locus';
+    const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
+      feature('card-prior', [prior], 'card'),
+      feature('card-locus', [rootLocus], 'card'),
+      feature('sim-locus', [rootLocus], 'simulation'),
+    ]));
+    const cold = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: null,
+      registry,
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, {
+      prerequisiteEdges: [{
+        id: 'edge-1',
+        sourceCanonicalId: prior,
+        targetCanonicalId: rootLocus,
+        strength: 'REQUIRED',
+      }],
+    });
+    expect(cold.policyFamily).toBe('foundation-remediation');
+    expect(cold.mainPath[0]?.resourceFeatureRef?.resourceId).toBe('act:card:card-prior');
+
+    const advanced = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: {
+        knowledgeMastery: { tags: { [prior]: { posteriorMastery: 0.9 } } },
+      },
+      registry,
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, {
+      prerequisiteEdges: [{
+        id: 'edge-1',
+        sourceCanonicalId: prior,
+        targetCanonicalId: rootLocus,
+        strength: 'REQUIRED',
+      }],
+    });
+    expect(advanced.explanations.fallbackReasons).toContain('mastered-knowledge-skipped');
+    expect(advanced.mainPath.map((node) => node.resourceFeatureRef?.resourceId)).toEqual([
+      'act:card:card-locus',
+    ]);
+  });
+
+  it('resolves internal step titles from authoritative labels', () => {
+    const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
+    const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
+      feature(
+        'ctc-modeling-865eb1c8824e157c2f05a903',
+        [rootLocus],
+        'card',
+        true,
+        'ctc modeling-865eb1c8824e157c2f05a903',
+      ),
+    ]));
+    const plan = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: null,
+      registry,
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, { prerequisiteEdges: [] });
+    expect(plan.mainPath[0]?.title).toBe('传递函数');
   });
 
   it('ignores resources outside the goal knowledge closure even if the registry is fat', () => {
@@ -181,4 +251,46 @@ describe('knowledge path mount', () => {
     expect(plan.mainPath.length).toBeGreaterThan(0);
     expect(plan.mainPath.every((node) => node.knowledgeCoverage.includes(rootLocus))).toBe(true);
   });
+
+  it('skips assertion-like skeleton nodes and does not remount the same resource', () => {
+    const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
+    const statement = 'ctkg:knowledgestatement:deadbeefdeadbeef';
+    const next = 'ctc:root-locus-drawing';
+    const shared = 'act:simulation:shared-zero-effect';
+    const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
+      feature('shared-a', [statement], 'simulation', true, '传输零点', { resourceId: shared, version: '1'.repeat(64) }),
+      feature('shared-b', [rootLocus], 'simulation', true, '传输零点', { resourceId: shared, version: '2'.repeat(64) }),
+      feature('card-locus', [rootLocus], 'card', true, '根轨迹'),
+      feature('card-next', [next], 'card', true, '根轨迹画法'),
+    ]));
+
+    const plan = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: null,
+      registry,
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, {
+      prerequisiteEdges: [
+        { id: 'e1', sourceCanonicalId: statement, targetCanonicalId: rootLocus, strength: 'REQUIRED' },
+        { id: 'e2', sourceCanonicalId: rootLocus, targetCanonicalId: next, strength: 'REQUIRED' },
+      ],
+    });
+
+    expect(plan.explanations.fallbackReasons).toContain('assertion-knowledge-skipped');
+    expect(plan.mainPath.flatMap((node) => node.reasonCodes ?? []).join(' ')).not.toContain(`knowledge:${statement}`);
+    const allNodes = [
+      ...plan.mainPath,
+      ...(plan.policyBundle?.paths.flatMap((path) => path.planNodes ?? []) ?? []),
+    ];
+    expect(allNodes.flatMap((node) => node.reasonCodes ?? []).join(' ')).not.toContain(`knowledge:${statement}`);
+    const simulation = plan.policyBundle?.paths.find((path) => path.policyFamily === 'simulation-driven');
+    const simIds = simulation?.planNodes?.map((node) => node.resourceFeatureRef?.resourceId) ?? [];
+    expect(simIds.filter((id) => id === shared)).toHaveLength(1);
+    expect(adjacentSame(simulation?.planNodes?.map((node) => node.title) ?? [])).toEqual([]);
+  });
 });
+
+function adjacentSame(values: string[]): string[] {
+  return values.filter((value, index) => index > 0 && value === values[index - 1]);
+}

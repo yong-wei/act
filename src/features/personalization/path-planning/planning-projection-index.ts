@@ -17,6 +17,7 @@ import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projecti
 import { goalCanonicalIds } from './goal-canonical-knowledge';
 import { expandFeasibleKnowledgeIds } from './knowledge-scope';
 import type { TeachingPrerequisiteEdge } from './live-teaching-prerequisites';
+import { resolvePlanningResourceTitle } from './planning-resource-titles';
 
 const ESTIMATED_MINUTES: Record<string, number> = {
   card: 8,
@@ -197,7 +198,10 @@ function toPlanningFeature(
     identity: featureIdentity,
     version,
     type,
-    title: row.title,
+    title: resolvePlanningResourceTitle(row.title, {
+      canonicalIds,
+      resourceId: row.resourceId,
+    }),
     summary: row.title,
     canonicalIds,
     bindingIds: unique(bound.bindingIds),

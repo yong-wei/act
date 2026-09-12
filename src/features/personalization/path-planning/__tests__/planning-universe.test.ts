@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { KNOWLEDGE_PATH_MAX_STEPS } from '@/features/personalization/path-planning/knowledge-path-assembly';
 import { assembleKnowledgePathPlan } from '@/features/personalization/path-planning/internal/knowledge-path-mount';
+import { isInternalPlanningTitle } from '@/features/personalization/path-planning/planning-resource-titles';
 import {
   loadGoalPlanningRegistry,
   sliceGoalPlanningUniverse,
@@ -68,9 +69,9 @@ describe('goal planning universe', () => {
     }]);
   });
 
-  it('leaves unbound goals as an empty search space', () => {
+  it('leaves unregistered goals as an empty search space', () => {
     const universe = sliceGoalPlanningUniverse({
-      goalId: 'simulation-validation-practice',
+      goalId: 'unregistered-empty-goal',
       projectionId: `proj-${HASH}`,
       projectionHash: HASH,
       snapshotId: `snap-${HASH}`,
@@ -126,7 +127,7 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     expect(mounted.every((node) => node.knowledgeCoverage.every((id) => knowledge.has(id)))).toBe(true);
   });
 
-  it('keeps every style path at or under the step cap and still reaches the goal targets', () => {
+  it('clips the live skeleton from the default head and keeps style as a tendency', () => {
     const loaded = loadGoalPlanningRegistry('root-locus-analysis-foundations');
     const plan = assembleKnowledgePathPlan({
       studentId: 'student-live',
@@ -145,11 +146,36 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     const paths = plan.policyBundle?.paths ?? [];
     expect(paths.every((path) => (path.planNodes?.length ?? 0) <= KNOWLEDGE_PATH_MAX_STEPS)).toBe(true);
     expect(plan.mainPath.length).toBeLessThanOrEqual(KNOWLEDGE_PATH_MAX_STEPS);
-    expect(plan.explanations.fallbackReasons).toContain('path-length-capped');
+    expect(plan.policyFamily).toBe('foundation-remediation');
+    if (loaded.universe.knowledgeIds.length > KNOWLEDGE_PATH_MAX_STEPS) {
+      expect(plan.explanations.fallbackReasons).toContain('path-length-capped');
+    }
     const simulation = paths.find((path) => path.policyFamily === 'simulation-driven');
-    expect(simulation?.planNodes?.some((node) => node.knowledgeCoverage.includes('ctc:v11g-5845390ded447e37f06ea222'))).toBe(true);
+    const foundation = paths.find((path) => path.policyFamily === 'foundation-remediation');
+    const simShare = shareOf(simulation?.planNodes ?? [], ['simulation', 'control_workbench', 'arena_task']);
+    const foundationSimShare = shareOf(foundation?.planNodes ?? [], ['simulation', 'control_workbench', 'arena_task']);
+    expect(simShare).toBeGreaterThan(foundationSimShare);
+    expect(simShare).toBeLessThan(1);
+    expect(simulation?.planNodes?.every((node) => node.type === 'simulation')).toBe(false);
+    expect(plan.mainPath.every((node) => !isInternalPlanningTitle(node.title))).toBe(true);
+  });
+
+  it('maps the previously empty goals onto a non-empty live universe', () => {
+    for (const goalId of ['simulation-validation-practice', 'ship-ocean-transfer-application'] as const) {
+      const loaded = loadGoalPlanningRegistry(goalId);
+      expect(loaded.universe.knowledgeIds.length).toBeGreaterThan(0);
+      expect(loaded.universe.resources.length).toBeGreaterThan(0);
+    }
   });
 });
+
+function shareOf(
+  nodes: Array<{ type: string }>,
+  kinds: readonly string[],
+): number {
+  if (nodes.length === 0) return 0;
+  return nodes.filter((node) => kinds.includes(node.type)).length / nodes.length;
+}
 
 function row(resourceId: string, resourceType: string) {
   return {

@@ -10,8 +10,12 @@ import {
   clipKnowledgeSkeleton,
   fillKnowledgeSkeleton,
   indexResourcesByKnowledge,
+  isAssertionLikeKnowledge,
+  isCourseLikeResource,
+  planningResourceIdentity,
   rankBoundResources,
   scoreFilledPath,
+  selectPriorityKnowledgeSkeleton,
 } from '@/features/personalization/path-planning/knowledge-path-assembly';
 
 const HASH = 'd'.repeat(64);
@@ -90,13 +94,21 @@ describe('knowledge path assembly', () => {
     })).toBeGreaterThan(0);
   });
 
-  it('clips a long skeleton from the target end and stops filling when the time budget is gone', () => {
+  it('clips a long skeleton from the default head and skips mastered prefix nodes', () => {
     const ancestors = Array.from({ length: 20 }, (_, index) => `ctc:ancestor-${String(index).padStart(2, '0')}`);
     const ids = [...ancestors, TARGET];
     const clipped = clipKnowledgeSkeleton(ids, [TARGET]);
     expect(clipped).toHaveLength(KNOWLEDGE_PATH_MAX_STEPS);
-    expect(clipped.at(-1)).toBe(TARGET);
-    expect(clipped).not.toContain('ctc:ancestor-00');
+    expect(clipped[0]).toBe('ctc:ancestor-00');
+    expect(clipped).not.toContain(TARGET);
+
+    const remaining = selectPriorityKnowledgeSkeleton(ids, {
+      'ctc:ancestor-00': 0.9,
+      'ctc:ancestor-01': 0.8,
+    });
+    expect(remaining[0]).toBe('ctc:ancestor-02');
+    expect(remaining).toHaveLength(KNOWLEDGE_PATH_MAX_STEPS);
+    expect(remaining).not.toContain('ctc:ancestor-00');
 
     const nodes = nodesFor(clipped.map((id, index) =>
       feature(`card-${index}`, [id], 'card', 20),
@@ -111,9 +123,105 @@ describe('knowledge path assembly', () => {
       deadline: Date.now() + 80,
     });
     expect(fill.mounted.length).toBeLessThanOrEqual(KNOWLEDGE_PATH_MAX_STEPS);
-    expect(fill.mounted.at(-1)?.canonicalId).toBe(TARGET);
-    expect(fill.mounted.slice(0, -1).reduce((sum, entry) =>
+    expect(fill.mounted[0]?.canonicalId).toBe('ctc:ancestor-00');
+    expect(fill.mounted.reduce((sum, entry) =>
       sum + (entry.node.planningMetadata.estimatedTimeMinutes ?? 0), 0)).toBeLessThanOrEqual(50);
+  });
+
+  it('keeps style as a tendency and lowers an early wide course', () => {
+    const early = feature('lesson-early', [PRIOR], 'step', 10);
+    const late = feature('lesson-late', [TARGET], 'step', 10);
+    const card = feature('card-prior', [PRIOR], 'card', 10);
+    const targetCard = feature('card-target', [TARGET], 'card', 10);
+    const nodes = nodesFor([early, late, card, targetCard]);
+    const priorNodes = nodes.filter((node) => canonicalIds(node).includes(PRIOR));
+    const earlyRank = rankBoundResources(priorNodes, {
+      knowledgeIds: [PRIOR, TARGET],
+      styleKinds: ['simulation'],
+      preferredTypes: [],
+      timeBudgetMinutes: 60,
+      fillIndex: 0,
+      currentCanonicalId: PRIOR,
+    });
+    const lateRank = rankBoundResources(
+      nodes.filter((node) => canonicalIds(node).includes(TARGET)),
+      {
+        knowledgeIds: [PRIOR, TARGET],
+        styleKinds: ['simulation'],
+        preferredTypes: [],
+        timeBudgetMinutes: 60,
+        fillIndex: 1,
+        currentCanonicalId: TARGET,
+      },
+    );
+    expect(earlyRank[0]?.type).toBe('knowledge_card');
+    expect(isCourseLikeResource(lateRank[0]!)).toBe(true);
+  });
+
+  it('drops assertion-like knowledge from the default skeleton and keeps explicit targets', () => {
+    const statement = 'ctkg:knowledgestatement:deadbeefdeadbeef';
+    const concept = 'ctc:root-locus-drawing';
+    const labels = new Map([
+      [PRIOR, '系统'],
+      [statement, '属性断言：The zeros correspond to the signal transmission-blocking properties of the system.'],
+      [concept, '根轨迹画法'],
+      [TARGET, '根轨迹'],
+    ]);
+    const assertionIds = new Set([statement]);
+    expect(isAssertionLikeKnowledge(statement, { label: labels.get(statement), assertionIds })).toBe(true);
+    expect(isAssertionLikeKnowledge(concept, { label: labels.get(concept), assertionIds })).toBe(false);
+
+    const remaining = selectPriorityKnowledgeSkeleton(
+      [PRIOR, statement, concept, TARGET],
+      {},
+      { labels, assertionIds },
+    );
+    expect(remaining).toEqual([PRIOR, concept, TARGET]);
+
+    const kept = selectPriorityKnowledgeSkeleton(
+      [PRIOR, statement, concept],
+      {},
+      { labels, assertionIds, keepIds: [statement] },
+    );
+    expect(kept).toEqual([PRIOR, statement, concept]);
+  });
+
+  it('does not remount the same resource identity or consecutive identical title', () => {
+    const mid = 'ctc:root-locus-zero';
+    const late = 'ctc:root-locus-rule';
+    const shared = 'act:simulation:shared-zero-effect';
+    const nodes = nodesFor([
+      feature('shared-a', [PRIOR], 'simulation', 15, { title: '传输零点', resourceId: shared, version: '1'.repeat(64) }),
+      feature('shared-b', [mid], 'simulation', 15, { title: '传输零点', resourceId: shared, version: '2'.repeat(64) }),
+      feature('same-title', [late], 'simulation', 15, { title: '传输零点' }),
+      feature('card-mid', [mid], 'card', 10, { title: '零点位置' }),
+      feature('card-late', [late], 'card', 10, { title: '根轨迹规则' }),
+    ]);
+    const consecutive = fillKnowledgeSkeleton({
+      knowledgeIds: [PRIOR, late],
+      byKnowledge: indexResourcesByKnowledge([PRIOR, late], nodes, canonicalIds),
+      styleKinds: ['simulation'],
+      preferredTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      deadline: Date.now() + 80,
+    });
+    expect(consecutive.mounted.map((entry) => entry.node.type)).toEqual(['simulation', 'knowledge_card']);
+    expect(consecutive.mounted.map((entry) => entry.node.publishedResource?.title)).toEqual(['传输零点', '根轨迹规则']);
+    const fill = fillKnowledgeSkeleton({
+      knowledgeIds: [PRIOR, mid, late],
+      byKnowledge: indexResourcesByKnowledge([PRIOR, mid, late], nodes, canonicalIds),
+      styleKinds: ['simulation'],
+      preferredTypes: ['simulation'],
+      timeBudgetMinutes: 90,
+      deadline: Date.now() + 80,
+    });
+    const identities = fill.mounted.map((entry) => planningResourceIdentity(entry.node));
+    const titles = fill.mounted.map((entry) => entry.node.publishedResource?.title ?? entry.node.title);
+    expect(identities.filter((id) => id === shared)).toHaveLength(1);
+    expect(adjacentDuplicates(identities)).toEqual([]);
+    expect(adjacentDuplicates(titles)).toEqual([]);
+    expect(fill.mounted.map((entry) => entry.canonicalId)).toEqual([PRIOR, mid, late]);
+    expect(fill.mounted[1]?.node.type).toBe('knowledge_card');
   });
 });
 
@@ -122,20 +230,21 @@ function feature(
   canonicalIds: string[],
   type: PublishedResourceFeature['type'],
   minutes: number,
+  extras: { title?: string; resourceId?: string; version?: string } = {},
 ): PublishedResourceFeature {
   return {
     identity: {
-      resourceId: `act:${type}:${resourceKey}`,
+      resourceId: extras.resourceId ?? `act:${type}:${resourceKey}`,
       projectionId: `proj-${HASH}`,
       projectionHash: HASH,
       snapshotId: `snap-${HASH}`,
       snapshotHash: HASH,
       runtimeReleaseId: null,
     },
-    version: resourceKey.replace(/[^a-f0-9]/g, 'a').padEnd(64, '0').slice(0, 64),
+    version: extras.version ?? resourceKey.replace(/[^a-f0-9]/g, 'a').padEnd(64, '0').slice(0, 64),
     type,
-    title: resourceKey,
-    summary: resourceKey,
+    title: extras.title ?? resourceKey,
+    summary: extras.title ?? resourceKey,
     canonicalIds,
     bindingIds: [`bind-${resourceKey}`],
     bindingRoles: ['COVERS'],
@@ -169,4 +278,8 @@ function nodesFor(resources: PublishedResourceFeature[]): ResourceNode[] {
 
 function canonicalIds(node: ResourceNode): string[] {
   return node.publishedResource?.canonicalIds ?? node.planningMetadata.knowledgeCoverage;
+}
+
+function adjacentDuplicates(values: string[]): string[] {
+  return values.filter((value, index) => index > 0 && value === values[index - 1]);
 }
