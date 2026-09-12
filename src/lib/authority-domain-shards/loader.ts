@@ -278,6 +278,22 @@ export function loadDomainDefaultShard(
   );
 }
 
+function emptyRelationFamilyShard(
+  context: LoadedAuthorityShardContext,
+  domainId: RegisteredPeerDomainId,
+  family: EngineeringRelationFamily,
+): AuthorityRelationFamilyShard {
+  return reconcileTeachingEnvelope(context, {
+    shardClass: 'relation-family',
+    envelope: context.identity.envelope,
+    domainId,
+    family,
+    objects: [],
+    relations: [],
+    boundaries: [],
+  });
+}
+
 export function loadRelationFamilyShard(
   domainKey: string,
   familyKey: string,
@@ -288,9 +304,13 @@ export function loadRelationFamilyShard(
   }
   const context = loadContext(options);
   const domainId = resolveShardDomainKey(domainKey, context.identity.catalog.domains);
+  const relative = shardRelativePaths({ domainId, family: familyKey }).family!;
+  if (!context.manifest.files[relative]) {
+    return emptyRelationFamilyShard(context, domainId, familyKey);
+  }
   return readVerifiedShard<AuthorityRelationFamilyShard>(
     context,
-    shardRelativePaths({ domainId, family: familyKey }).family!,
+    relative,
     'relation-family',
   );
 }

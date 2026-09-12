@@ -157,6 +157,34 @@ class ActivateRuntimeTests(unittest.TestCase):
             self.assertEqual(rolled_receipt["selection"]["releaseId"], first["releaseId"])
             self.assertEqual(rolled_receipt["selection"]["generation"], 3)
 
+    def test_activate_admits_candidate_knowledge_selectors(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            index = root / "index.sqlite"
+            store = root / "store"
+            state = root / "state"
+            self.write_tree(
+                runtime,
+                {
+                    "lessons/1-1/lesson.json": '{"id":"one"}\n',
+                    "knowledge/consumer-activation/current.json": '{"activationId":"activation-old"}\n',
+                },
+            )
+            first = self.publish_args(runtime, index, store, bootstrap=True)
+            self.activate(store, state, first["releaseId"])
+            time.sleep(0.02)
+            (runtime / "knowledge/consumer-activation/current.json").write_text(
+                '{"activationId":"activation-new"}\n',
+                encoding="utf-8",
+            )
+            second = self.publish_args(runtime, index, store, bootstrap=False)
+            self.activate(store, state, second["releaseId"])
+            admitted = json.loads(
+                (state / "current" / "knowledge/consumer-activation/current.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(admitted["activationId"], "activation-new")
+
     def test_missing_delta_blob_leaves_current_unchanged(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

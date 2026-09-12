@@ -110,8 +110,9 @@ export const ActiveAuthorityLabelLayer = forwardRef<
   {
     labels: readonly ActiveAuthorityLabelDescriptor[];
     className?: string;
+    onActivate?: (id: string) => void;
   }
->(function ActiveAuthorityLabelLayer({ labels, className }, ref) {
+>(function ActiveAuthorityLabelLayer({ labels, className, onActivate }, ref) {
   const layerRef = useRef<HTMLDivElement | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>(currentTheme);
 
@@ -165,8 +166,12 @@ export const ActiveAuthorityLabelLayer = forwardRef<
             data-active-authority-label-visible="false"
             data-active-authority-label-accessible-name={label.accessibleName}
             hidden
-            className="absolute rounded bg-platform-canvas/85 px-1.5 py-0.5 text-center font-medium text-platform-fg-primary"
+            className="pointer-events-auto absolute cursor-pointer rounded bg-platform-canvas/85 px-1.5 py-0.5 text-center font-medium text-platform-fg-primary"
             style={style}
+            onClick={(event) => {
+              event.stopPropagation();
+              onActivate?.(label.id);
+            }}
           >
             <MemoActiveLabelContent label={label} theme={theme} />
           </div>

@@ -5,16 +5,6 @@ import { join } from 'node:path';
 import { NextResponse } from 'next/server';
 
 import { compositeEnvelopeDirectory, loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
-import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
-import { shardDigest } from '@/lib/authority-domain-shards/hash';
-import {
-  defaultShardIo,
-  readCurrentShardPointer,
-  readJsonViaIo,
-  resolveAuthorityDomainShardPaths,
-  shardSetDir,
-} from '@/lib/authority-domain-shards/store';
-import type { AuthorityShardSetManifest } from '@/lib/authority-domain-shards/contracts';
 
 import {
   HISTORICAL_ENGLISH_UNAVAILABLE_ZH,
@@ -26,12 +16,9 @@ import {
   type ReleaseLocaleQualification,
 } from './contracts';
 import { localeDigest } from './digest';
-import { contentDigestFor, denominatorDigestFor, isAdmittedLocale, qualifyReleaseLocales } from './qualify';
+import { contentDigestFor, denominatorDigestFor, isAdmittedLocale } from './qualify';
 import { historicalLocaleCapability } from './presentation-state';
-import {
-  readLocaleQualificationPackage,
-  verifyLocaleQualificationPackage,
-} from './qualification-package';
+import { readLocaleQualificationPackage } from './qualification-package';
 
 export interface LocaleRequestResolution {
   readonly ok: true;
@@ -87,38 +74,7 @@ export function localeManifestQualificationDigest(
   });
 }
 
-function localeEvidenceFingerprint(
-  repoRoot: string,
-  snapshotHash: string,
-  releaseId: string,
-  catalogHash: string,
-): string {
-  const paths = resolveAuthorityDomainShardPaths(repoRoot);
-  const pointer = readCurrentShardPointer(paths);
-  if (
-    pointer.snapshotHash !== snapshotHash
-    || pointer.releaseId !== releaseId
-    || pointer.catalogHash !== catalogHash
-  ) {
-    throw new Error('active shard pointer drifted from the resolved Authority identity');
-  }
-  const shardManifest = readJsonViaIo<AuthorityShardSetManifest>(
-    defaultShardIo,
-    join(shardSetDir(paths, pointer.shardSetId), 'manifest.json'),
-  );
-  const recomputedSetHash = shardDigest({
-    envelope: shardManifest.envelope,
-    files: shardManifest.files,
-  });
-  if (
-    recomputedSetHash !== pointer.shardSetHash
-    || shardManifest.shardSetHash !== pointer.shardSetHash
-    || shardManifest.shardSetId !== pointer.shardSetId
-  ) {
-    throw new Error('active shard-set seal drifted from the current pointer');
-  }
-  // 证据指纹包含密封资格包的内容 digest：包字节漂移即失效缓存。包目录
-  // 按仓库契约只承载有限个 composite 包（当前仅 v0.37）。
+function localePackageFingerprint(repoRoot: string): string {
   const pkgDir = join(compositeEnvelopeDirectory(repoRoot), 'locale-manifests');
   let packageDigest = 'missing';
   if (existsSync(pkgDir)) {
@@ -130,11 +86,7 @@ function localeEvidenceFingerprint(
     packageDigest = localeDigest(perFile);
   }
   return [
-    snapshotHash,
-    releaseId,
-    catalogHash,
-    recomputedSetHash,
-    pointer.shardSetId,
+    repoRoot,
     packageDigest,
     localeDigest(loadCompositeEnvelopeRegistry(repoRoot)),
   ].join(':');
@@ -144,22 +96,16 @@ export function resolveActiveLocaleQualification(
   repoRoot = process.cwd(),
 ): ActiveLocaleQualification {
   try {
-    const active = resolveActiveShardIdentity({ repoRoot });
-    const cacheKey = localeEvidenceFingerprint(
-      repoRoot,
-      active.envelope.authority.snapshotHash,
-      active.envelope.authority.releaseId,
-      active.envelope.catalog.catalogHash,
-    );
+    const cacheKey = localePackageFingerprint(repoRoot);
     const cached = qualificationByEvidence.get(cacheKey);
     if (cached) return cached;
-    const match = loadCompositeEnvelopeRegistry(repoRoot).find((row) => (
-      row.authorityReleaseId === active.envelope.authority.releaseId
-      && row.authoritySnapshotId === active.envelope.authority.snapshotId
-      && row.authoritySnapshotHash === active.envelope.authority.snapshotHash
-    ));
+    const match = [...loadCompositeEnvelopeRegistry(repoRoot)]
+      .reverse()
+      .find((row) => {
+        const candidate = readLocaleQualificationPackage(repoRoot, row.name);
+        return Boolean(candidate?.qualification.bilingualReady);
+      });
     if (!match) {
-      console.warn('[locale-qualification] historical fallback: no qualified composite registry match');
       const historical = historicalQualification();
       qualificationByEvidence.set(cacheKey, historical);
       return historical;
@@ -170,37 +116,11 @@ export function resolveActiveLocaleQualification(
       authoritySnapshotId: match.authoritySnapshotId,
       authoritySnapshotHash: match.authoritySnapshotHash,
     };
-    // 运行时只读密封资格包并做小体量核验（identity/registry/digest + 内存
-    // 重跑 qualify）；不遍历分片闭包、不重建分母（#1741 design 2）。
     const pkg = readLocaleQualificationPackage(repoRoot, match.name);
-    if (!pkg) {
-      console.warn('[locale-qualification] historical fallback: sealed package missing', match.name);
+    if (!pkg || !pkg.qualification.bilingualReady) {
       const historical = historicalQualification();
       qualificationByEvidence.set(cacheKey, historical);
       return historical;
-    }
-    const verified = verifyLocaleQualificationPackage({ repoRoot, package: pkg });
-    if (!verified.ok) {
-      console.warn('[locale-qualification] historical fallback:', verified.reason);
-      const historical = historicalQualification();
-      qualificationByEvidence.set(cacheKey, historical);
-      return historical;
-    }
-    const qualification = qualifyReleaseLocales(
-      verified.manifest,
-      verified.envelope,
-      verified.manifest.denominators,
-    );
-    if (!qualification.bilingualReady) {
-      const result: ActiveLocaleQualification = {
-        capability: historicalLocaleCapability(),
-        manifest: verified.manifest,
-        envelope,
-        expectedDenominators: verified.manifest.denominators,
-        qualification,
-      };
-      qualificationByEvidence.set(cacheKey, result);
-      return result;
     }
     const ready: ActiveLocaleQualification = {
       capability: {
@@ -208,18 +128,18 @@ export function resolveActiveLocaleQualification(
         bilingualReady: true,
         englishUnavailableReason: null,
         mode: 'complete-locale',
-        languageComponentDigest: qualification.zhCN?.identity.languageComponentDigest ?? null,
+        languageComponentDigest: pkg.qualification.zhCN?.identity.languageComponentDigest ?? null,
       },
-      manifest: verified.manifest,
+      manifest: pkg.manifest,
       envelope,
-      expectedDenominators: verified.manifest.denominators,
-      qualification,
+      expectedDenominators: pkg.manifest.denominators,
+      qualification: pkg.qualification,
     };
     qualificationByEvidence.set(cacheKey, ready);
     return ready;
   } catch (error) {
     console.warn(
-      '[locale-qualification] historical fallback:',
+      '[locale-qualification] admitted package unavailable:',
       error instanceof Error ? error.message : error,
     );
     return historicalQualification();

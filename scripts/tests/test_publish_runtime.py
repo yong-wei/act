@@ -254,6 +254,23 @@ class PublishRuntimeTests(unittest.TestCase):
             self.assertIn("put-object", log_text)
             self.assertIn("--forbid-overwrite", log_text)
 
+    def test_ossutil_prose_conflict_is_cas_hit(self):
+        import importlib.util
+        import sys
+
+        spec = importlib.util.spec_from_file_location("publish_runtime", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        prose = (
+            b"Error: operation error PutObject: Error returned by Service. \n"
+            b"Http Status Code: 409. \n"
+            b"Error Code: FileAlreadyExists. \n"
+        )
+        self.assertTrue(module.is_structured_cas_hit(b"", prose))
+        self.assertFalse(module.is_structured_cas_hit(b"", b"Error Code: AccessDenied\n"))
+
     def test_ossutil_unknown_forbid_overwrite_flag_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

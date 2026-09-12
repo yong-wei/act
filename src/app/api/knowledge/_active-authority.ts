@@ -62,7 +62,7 @@ import {
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
 } from '@/lib/authority-domain-shards';
-import { attachActiveAuthorityResourceBindings, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
+import { attachActiveAuthorityResourceBindings, matchActiveTeachingProjection, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
 import {
   applyLocaleToLearnerShard,
@@ -77,7 +77,6 @@ import {
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 import { attachGovernedMathToLearnerShard, attachGovernedMathToSearchHits, governedFormulaSearchTerms } from '@/lib/governed-math/attach';
 import {
-  closeResourceBlockWithLiveRegistryIndex,
   knowledgeSurfaceFromActiveProvenance,
   knowledgeSurfaceFromLearnerShard,
   knowledgeSurfaceSelectorRejection,
@@ -87,8 +86,7 @@ import {
 import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-cutover-live';
 import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
-import { publishedNodeResourceFailure, publishedResourceEnvelopeKey, readPublishedNodeResources, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
-import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
+import { publishedResourceEnvelopeKey, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -556,41 +554,25 @@ export async function activePublishedDetailResponse(
 ): Promise<NextResponse> {
   const rejected = knowledgeSurfaceSelectorRejection(request);
   if (rejected) return rejected;
-  try {
-    const shard = read();
-    const resources = await readPublishedNodeResources(shard).catch((error) => {
-      if (error instanceof PublishedResourceSelectionChangedError) throw error;
-      return publishedNodeResourceFailure(shard);
-    });
-    return activeShardResponseForRole(() => shard, role, request, resources);
-  } catch (error) {
-    const failure = shardFailureCode(error);
-    return NextResponse.json({ error: failure.message, code: failure.code }, { status: failure.status });
-  }
+  // Sidebar launch uses the cached teaching projection. The full published
+  // feature index stays on path-planning routes, not every node click.
+  return activeShardResponseForRole(read, role, request);
 }
 
 function sanitizeResourceBindings(
   bindings: ActiveNodeResourceBindings,
   nodeId: string,
-  expectedCaptureRevision: string | null,
 ): {
   bindings: ActiveNodeResourceBindings;
   registryIndex: KnowledgeSurfaceRegistryIndexIdentity | null;
 } {
-  const closed = closeResourceBlockWithLiveRegistryIndex({
-    bindings,
-    expectedCaptureRevision,
-  });
-  if (closed.bindings.state !== 'available') {
-    return { bindings: closed.bindings, registryIndex: null };
+  // Launch-map sidebar routes are not RegistryIndex launcher refs. Closing
+  // them against the live index empties every student resource list.
+  if (bindings.state !== 'available') {
+    return { bindings, registryIndex: null };
   }
-  const sanitized = sanitizePublicResourceBindingLaunches(closed.bindings, nodeId);
-  const stillAvailable = sanitized.state === 'available'
-    && sanitized.items.some((item) => item.availability === 'available');
-  return {
-    bindings: sanitized,
-    registryIndex: stillAvailable ? closed.registryIndex : null,
-  };
+  const sanitized = sanitizePublicResourceBindingLaunches(bindings, nodeId);
+  return { bindings: sanitized, registryIndex: null };
 }
 
 /**
@@ -598,6 +580,29 @@ function sanitizeResourceBindings(
  * Student node-detail responses must not carry the teaching-only field even
  * though the sealed immutable artifact retains it for teacher/admin readers.
  */
+const warmingTeachingKeys = new Set<string>();
+const warmedTeachingKeys = new Set<string>();
+
+function scheduleActiveTeachingWarm(envelope: AuthorityLearnerShard['envelope']): void {
+  const key = `${envelope.teaching.projectionId ?? ''}:${envelope.teaching.projectionHash ?? ''}`;
+  if (!envelope.teaching.projectionId || !envelope.teaching.projectionHash) return;
+  if (warmedTeachingKeys.has(key) || warmingTeachingKeys.has(key)) return;
+  warmingTeachingKeys.add(key);
+  setImmediate(() => {
+    try {
+      matchActiveTeachingProjection({ envelope });
+      warmedTeachingKeys.add(key);
+      if (warmedTeachingKeys.size > 4) {
+        warmedTeachingKeys.delete(warmedTeachingKeys.keys().next().value!);
+      }
+    } catch {
+      // Keep the next root/domain request eligible to retry.
+    } finally {
+      warmingTeachingKeys.delete(key);
+    }
+  });
+}
+
 export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   read: () => T,
   role: KnowledgeRole | undefined,
@@ -616,6 +621,9 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       : { ok: true as const, locale: 'zh-CN' as const, capability };
     if (!resolved.ok) return resolved.response;
     const raw = attachActiveAuthorityResourcePresence(read(), role);
+    if (raw.shardClass === 'root' || raw.shardClass === 'domain-default') {
+      scheduleActiveTeachingWarm(raw.envelope);
+    }
     const activeIdentity = resolveActiveShardIdentity();
     if (publishedResources && (raw.shardClass !== 'node-detail'
       || raw.node.id !== publishedResources.nodeId
@@ -653,7 +661,6 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       const closedResources = publishedResources ?? sanitizeResourceBindings(
         attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard, role),
         (raw as AuthorityNodeDetailShard).node.id,
-        teachingCaptureRevision,
       );
       const resourceBindings = closedResources.bindings;
       const { teachingFields: _teachingFields, ...studentNode } = detail.node;

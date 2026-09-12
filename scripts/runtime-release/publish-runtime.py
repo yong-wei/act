@@ -34,6 +34,8 @@ IGNORED_NAMES = {".DS_Store", ".act-runtime-release.v1.json", ".act-runtime-rele
 OSS_CONFLICT_CODES = {"filealreadyexists", "preconditionfailed"}
 OSS_CONFLICT_STATUS = {409, 412}
 OSS_XML_CODE = re.compile(r"<Code>\s*([^<]+)\s*</Code>", re.IGNORECASE)
+OSS_TEXT_CODE = re.compile(r"Error Code:\s*([A-Za-z]+)", re.IGNORECASE)
+OSS_TEXT_STATUS = re.compile(r"Http Status Code:\s*(\d+)", re.IGNORECASE)
 
 
 class PublishError(RuntimeError):
@@ -210,7 +212,13 @@ def is_structured_cas_hit(stdout: bytes, stderr: bytes) -> bool:
     if any(_payload_is_conflict(value) for value in _json_objects(text)):
         return True
     match = OSS_XML_CODE.search(text)
-    return bool(match and match.group(1).strip().lower() in OSS_CONFLICT_CODES)
+    if match and match.group(1).strip().lower() in OSS_CONFLICT_CODES:
+        return True
+    status_match = OSS_TEXT_STATUS.search(text)
+    code_match = OSS_TEXT_CODE.search(text)
+    status = _conflict_status(status_match.group(1)) if status_match else None
+    code = code_match.group(1).strip().lower() if code_match else ""
+    return status in OSS_CONFLICT_STATUS or code in OSS_CONFLICT_CODES
 
 
 def open_index(path: Path, *, bootstrap: bool) -> sqlite3.Connection:

@@ -796,8 +796,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('重试当前图谱');
   });
 
-  it('projects a shard-absent root failure as content-not-ready with a legacy entry instead of a bare retry', async () => {
-    // 320px 视口失败态：错误卡片与 legacy 入口不依赖宽度条件渲染。
+  it('projects a shard-absent root failure as a graph error with retry, not unpublished content', async () => {
+    // 320px 视口失败态：错误卡片不依赖宽度条件渲染。
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -816,20 +816,13 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => Promise.resolve());
 
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
-    expect(container.textContent).toContain('知识数据尚未发布完成');
-    expect(container.textContent).not.toContain('当前知识图谱暂时无法加载');
-    expect(container.textContent).not.toContain('重试当前图谱');
-    const legacyAction = container.querySelector<HTMLButtonElement>('[data-error-action="legacy"]');
-    expect(legacyAction).not.toBeNull();
-    expect(legacyAction!.textContent).toContain('查看旧版图谱');
-    expect(container.querySelector('[data-legacy-marker="true"]')?.closest('[hidden]')).not.toBeNull();
-
-    await act(async () => legacyAction!.click());
-    expect(container.querySelector('[data-knowledge-graph-mode="legacy"]')).not.toBeNull();
-    expect(container.querySelector('[data-legacy-marker="true"]')?.closest('[hidden]')).toBeNull();
+    expect(container.textContent).toContain('当前知识图谱暂时无法加载');
+    expect(container.textContent).toContain('重试当前图谱');
+    expect(container.textContent).not.toContain('知识数据尚未发布完成');
+    expect(container.querySelector('[data-error-action="legacy"]')).toBeNull();
   });
 
-  it('projects an activation-absent root failure as content-not-ready', async () => {
+  it('projects an activation-absent root failure as a graph error with retry', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith('/api/knowledge/shards/active')) {
@@ -843,11 +836,12 @@ describe('active Authority knowledge workspace client boundary', () => {
     })));
     await act(async () => Promise.resolve());
 
-    expect(container.textContent).toContain('知识数据尚未发布完成');
-    expect(container.textContent).not.toContain('重试当前图谱');
+    expect(container.textContent).toContain('当前知识图谱暂时无法加载');
+    expect(container.textContent).toContain('重试当前图谱');
+    expect(container.textContent).not.toContain('知识数据尚未发布完成');
   });
 
-  it('projects a relation-family shard-absent failure as content-not-ready', async () => {
+  it('projects a relation-family shard-absent failure as a retryable family error', async () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
@@ -870,9 +864,9 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const failure = container.querySelector('[data-authority-family-failure="association"]');
     expect(failure).not.toBeNull();
-    expect(failure!.textContent).toContain('知识数据尚未发布完成');
-    expect(failure!.textContent).not.toContain('暂时无法加载');
-    expect(container.querySelector('[data-authority-family-retry="association"]')).toBeNull();
+    expect(failure!.textContent).toContain('暂时无法加载');
+    expect(failure!.textContent).not.toContain('知识数据尚未发布完成');
+    expect(container.querySelector('[data-authority-family-retry="association"]')).not.toBeNull();
   });
 
   it('keeps the retry guidance for transient root failures without a failure code', async () => {

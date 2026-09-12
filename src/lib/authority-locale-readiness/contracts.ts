@@ -152,7 +152,7 @@ export interface PublicLocaleCapability {
 }
 
 export const HISTORICAL_ENGLISH_UNAVAILABLE_ZH =
-  '当前发布尚未通过完整英文资格，暂不能切换到 English。' as const;
+  '这份图谱没有英文语言组件，不能切换到 English。' as const;
 
 export const FUTURE_TRANSLATION_RELEASE_REQUIRES_EXACT_OPENSPEC =
   'Adopting and activating a future graph-project translation release requires a separate exact-version OpenSpec after its immutable locale manifest and coverage evidence exist.' as const;

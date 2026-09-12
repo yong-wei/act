@@ -150,7 +150,7 @@ export function projectAuthorityNodeResourceBindings(input: {
   return { state: 'available', items };
 }
 
-export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailShard, 'envelope'>): {
+type TeachingProjectionMatch = {
   status: 'unavailable' | 'mismatch' | 'available';
   authoringRevision: string | null;
   projectionId?: string;
@@ -158,7 +158,11 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
   scopeId?: string;
   bindings?: readonly TeachingBindingRuntime[];
   resources?: readonly TeachingResourceRuntime[];
-} {
+};
+
+const availableTeachingProjectionMatch = new Map<string, TeachingProjectionMatch>();
+
+export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailShard, 'envelope'>): TeachingProjectionMatch {
   const teaching = shard.envelope.teaching;
   if (
     shard.envelope.match.teaching !== true
@@ -168,6 +172,8 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
   ) {
     return { status: 'unavailable', authoringRevision: null };
   }
+  const cached = availableTeachingProjectionMatch.get(`${teaching.projectionId}:${teaching.projectionHash}`);
+  if (cached) return cached;
   const overlay = resolveDomainTeachingRuntimePaths(process.cwd(), DEFAULT_DOMAIN_TEACHING_RUNTIME_RELATIVE);
   const sidecarPath = join(overlay.releasesDir, teaching.projectionId, 'inspector-sidecar.json');
   if (!existsSync(sidecarPath)) {
@@ -210,6 +216,7 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
     staged = loadStagedTeachingProjection(
       resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
       sidecar.courseProjectionId,
+      { verify: false },
     );
   } catch {
     return { status: 'unavailable', authoringRevision: null };
@@ -222,7 +229,7 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
     return { status: 'mismatch', authoringRevision: null };
   }
   const boundIds = new Set(staged.artifacts.bindings.map((binding) => binding.resourceId));
-  return {
+  const matched: TeachingProjectionMatch = {
     status: 'available',
     projectionId: staged.projectionId,
     projectionHash: staged.projectionHash,
@@ -231,6 +238,8 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
     bindings: staged.artifacts.bindings,
     resources: staged.artifacts.resources.filter((resource) => boundIds.has(resource.resourceId)),
   };
+  availableTeachingProjectionMatch.set(`${teaching.projectionId}:${teaching.projectionHash}`, matched);
+  return matched;
 }
 
 export function readActiveTeachingCaptureRevision(

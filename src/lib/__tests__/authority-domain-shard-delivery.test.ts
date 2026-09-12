@@ -49,6 +49,7 @@ import {
   writeDomainTeachingRuntime,
   type AuthorityShardEnvelope,
 } from '@/lib/authority-domain-shards';
+import { shardDigest, shardSha256 } from '@/lib/authority-domain-shards/hash';
 import {
   createEmptyAuthorityShardWorkspace,
   mergeAuthorityShard,
@@ -1321,6 +1322,58 @@ describe('authority domain shard delivery', () => {
     expect(mergedFamily.rejectedShardKeys).not.toContain('relation-family:system-modeling:association');
     expect(mergedFamily.boundaryRefsByCanonicalId[NEIGHBOR]?.aliases).toEqual(['邻域别名']);
     expect(materialized.details[MODELING]?.node.aliases).toEqual(['建模']);
+  });
+
+  it('treats an undeclared engineering family as an empty set', () => {
+    const written = writeShards();
+    const relative = 'domains/system-modeling/families/prerequisite-order.json';
+    const files = { ...written.materialized.files };
+    delete files[relative];
+    delete files['manifest.json'];
+    const fileHashes = Object.fromEntries(
+      Object.entries(files)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, value]) => [key, shardSha256(`${JSON.stringify(value, null, 2)}\n`)]),
+    );
+    const shardSetHash = shardDigest({
+      envelope: written.materialized.manifest.envelope,
+      files: fileHashes,
+    });
+    const shardSetId = `ads-${shardSetHash}`;
+    const manifest = {
+      ...written.materialized.manifest,
+      shardSetId,
+      shardSetHash,
+      files: fileHashes,
+      counts: {
+        ...written.materialized.manifest.counts,
+        relationFamily: written.materialized.manifest.counts.relationFamily - 1,
+      },
+    };
+    files['manifest.json'] = manifest;
+    writeAuthorityDomainShards(written.shardPaths, {
+      ...written.materialized,
+      manifest,
+      pointer: {
+        ...written.materialized.pointer,
+        shardSetId,
+        shardSetHash,
+      },
+      files,
+    });
+    const family = loadRelationFamilyShard('system-modeling', 'prerequisite-order', {
+      shardPaths: written.shardPaths,
+      identity: {
+        envelope: written.envelope,
+        catalog: written.catalog,
+        teachingPointer: null,
+      },
+    });
+    expect(family.family).toBe('prerequisite-order');
+    expect(family.domainId).toBe('system-modeling');
+    expect(family.relations).toEqual([]);
+    expect(family.objects).toEqual([]);
+    expect(family.boundaries).toEqual([]);
   });
 
   it('loads root and domain-default without opening engineering.json', () => {

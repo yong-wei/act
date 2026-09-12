@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   canvas: vi.fn(),
   nodeDetail: vi.fn(),
   publishedResources: vi.fn(),
+  attachBindings: vi.fn(),
   catalogHash: 'c'.repeat(64),
 }));
 
@@ -39,6 +40,22 @@ vi.mock('@/lib/authority-domain-shards/published-resource-bindings', async (orig
   ...await original<typeof import('@/lib/authority-domain-shards/published-resource-bindings')>(),
   readPublishedNodeResources: mocks.publishedResources,
 }));
+vi.mock('@/lib/authority-domain-shards/resource-bindings', async (original) => {
+  const mod = await original<typeof import('@/lib/authority-domain-shards/resource-bindings')>();
+  mocks.attachBindings.mockImplementation(mod.attachActiveAuthorityResourceBindings);
+  return {
+    ...mod,
+    attachActiveAuthorityResourceBindings: (
+      ...args: Parameters<typeof mod.attachActiveAuthorityResourceBindings>
+    ) => mocks.attachBindings(...args),
+  };
+});
+vi.mock('@/features/knowledge/resource-index/public-api', async (original) => ({
+  ...await original<typeof import('@/features/knowledge/resource-index/public-api')>(),
+  getLiveResourceRegistryIndex: () => {
+    throw new Error('registry must not close launch-map sidebar');
+  },
+}));
 
 import {
   activeShardResponse,
@@ -50,8 +67,6 @@ import {
   AuthorityShardIdentityError,
   AuthorityShardStoreError,
 } from '@/lib/authority-domain-shards';
-import { publishedNodeResourceFailure } from '@/lib/authority-domain-shards/published-resource-bindings';
-import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
 
 const resolved = {
   status: 'ready' as const,
@@ -181,38 +196,42 @@ describe('active Authority role-safe projections', () => {
     },
   };
 
-  it('keeps valid student detail when the optional published resource index fails', async () => {
+  it('keeps valid student detail without waiting for the published resource index', async () => {
     const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
     const body = await response.json();
     expect(response.status).toBe(200);
     expect(body.node.id).toBe('node-1');
     expect(body.node.resourceBindings.state).toBe('unavailable');
     expect(body.node).not.toHaveProperty('teachingFields');
+    expect(mocks.publishedResources).not.toHaveBeenCalled();
     expect(JSON.stringify(body)).not.toContain('optional resource index unavailable');
   });
 
-  it('rejects a selector change during the asynchronous resource lookup', async () => {
-    mocks.publishedResources.mockImplementationOnce(async () => {
-      mocks.catalogHash = 'f'.repeat(64);
-      return publishedNodeResourceFailure(nodeShard);
+  it('keeps launch-map resource hrefs without closing against the live registry index', async () => {
+    mocks.attachBindings.mockReturnValueOnce({
+      state: 'available',
+      items: [{
+        title: '根轨迹课程',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/interactive-learning/root-locus' },
+      }],
     });
     const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
-    expect(response.status).toBe(503);
-  });
-
-  it('does not downgrade publication drift during indexing to an optional resource failure', async () => {
-    mocks.publishedResources.mockRejectedValueOnce(new PublishedResourceSelectionChangedError('private selection drift'));
-    const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
-    expect(response.status).toBe(503);
-    expect(JSON.stringify(await response.json())).not.toContain('private selection drift');
-  });
-
-  it('rejects changed resource publication at the final response boundary', async () => {
-    const assertCurrent = vi.fn(() => { throw new PublishedResourceSelectionChangedError('resource index or runtime changed'); });
-    mocks.publishedResources.mockResolvedValueOnce({ ...publishedNodeResourceFailure(nodeShard), assertCurrent });
-    const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
-    expect(response.status).toBe(503);
-    expect(assertCurrent).toHaveBeenCalledOnce();
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.node.resourceBindings).toEqual({
+      state: 'available',
+      items: [{
+        title: '根轨迹课程',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/interactive-learning/root-locus' },
+      }],
+    });
+    expect(mocks.publishedResources).not.toHaveBeenCalled();
   });
 
   it.each([
