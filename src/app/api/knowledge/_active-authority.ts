@@ -87,8 +87,7 @@ import {
 import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-cutover-live';
 import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
-import { publishedNodeResourceFailure, publishedResourceEnvelopeKey, readPublishedNodeResources, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
-import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
+import { publishedResourceEnvelopeKey, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -556,17 +555,9 @@ export async function activePublishedDetailResponse(
 ): Promise<NextResponse> {
   const rejected = knowledgeSurfaceSelectorRejection(request);
   if (rejected) return rejected;
-  try {
-    const shard = read();
-    const resources = await readPublishedNodeResources(shard).catch((error) => {
-      if (error instanceof PublishedResourceSelectionChangedError) throw error;
-      return publishedNodeResourceFailure(shard);
-    });
-    return activeShardResponseForRole(() => shard, role, request, resources);
-  } catch (error) {
-    const failure = shardFailureCode(error);
-    return NextResponse.json({ error: failure.message, code: failure.code }, { status: failure.status });
-  }
+  // Sidebar launch uses the cached teaching projection. The full published
+  // feature index stays on path-planning routes, not every node click.
+  return activeShardResponseForRole(read, role, request);
 }
 
 function sanitizeResourceBindings(
