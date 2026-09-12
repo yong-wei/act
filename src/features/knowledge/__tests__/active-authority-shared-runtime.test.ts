@@ -68,7 +68,9 @@ describe('active authority shared force runtime', () => {
     expect(workspace).not.toContain('overflow-y-auto');
     expect(workspace).toContain('data-knowledge-workspace-chrome-slot');
     expect(workspace).toContain('data-knowledge-toolbar-gutter="language"');
-    expect(workspace).toContain('left-[16.5rem]');
+    expect(workspace).toContain('right-3 top-3');
+    expect(workspace).toContain('max-w-[min(28rem,calc(50%-1.25rem))]');
+    expect(workspace).toContain('data-knowledge-workspace-overlay="true"');
     expect(graph).toContain('data-graph-language-switch="true"');
     expect(graph).toContain('useKnowledgeGraphRuntimeLayout({ dimension, scopeKey: graphScopeKey, fixedLayout: true })');
     expect(workspace).toContain('data-knowledge-layout-control="fit-view"');

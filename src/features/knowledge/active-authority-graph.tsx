@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MutableR
 import Image from 'next/image';
 import {
   AlertTriangle,
-  ChevronDown,
   CircleHelp,
   Loader2,
   Network,
@@ -118,6 +117,7 @@ interface ActiveAuthorityGraphProps {
   onShowLegacy?: () => void;
   returnToRootRef?: MutableRefObject<(() => void) | null>;
   chromeHostRef?: { current: HTMLElement | null };
+  languageHostRef?: { current: HTMLElement | null };
   runtimeControlsRef?: { current: {
     requestFitView: (target?: 'current' | 'root' | 'teaching-layout') => void;
     requestRelayout: () => void;
@@ -1261,6 +1261,7 @@ export function ActiveAuthorityGraph({
   onShowLegacy,
   returnToRootRef,
   chromeHostRef,
+  languageHostRef,
   runtimeControlsRef,
 }: ActiveAuthorityGraphProps) {
   const dimension = dimensionProp ?? '2d';
@@ -1316,15 +1317,12 @@ export function ActiveAuthorityGraph({
   const [hiddenNodeTypes, setHiddenNodeTypes] = useState<ReadonlySet<string>>(defaultHiddenActiveTypes);
   const [selectedResourceTypes, setSelectedResourceTypes] = useState<ReadonlySet<TeachingResourceType>>(() => new Set());
   const teachingRelationsVisible = workspace.enabledFamilies.includes('prerequisite-order');
-  const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const graphMainRef = useRef<HTMLElement | null>(null);
-  const mobileToolsRef = useRef<HTMLDivElement | null>(null);
   const selectionIntentRef = useRef(0);
   const pendingTypeSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const isCompactViewport = viewportWidth !== null
     && viewportWidth <= KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH;
-  const graphControlsVisible = !isCompactViewport || mobileGraphControlsExpanded;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
 
   useEffect(() => {
@@ -1337,20 +1335,6 @@ export function ActiveAuthorityGraph({
     window.addEventListener('resize', updateViewportWidth);
     return () => window.removeEventListener('resize', updateViewportWidth);
   }, []);
-
-  useEffect(() => {
-    setMobileGraphControlsExpanded(false);
-  }, [workspace.activeDomainId]);
-
-  // Mobile 折叠抽屉（mobileTools）卸载后，焦点可能残留在已移除的筛选
-  // 控件上而丢到 body；还原到折叠开关，键盘会话不中断（#1742）。
-  useEffect(() => {
-    if (graphControlsVisible) return;
-    if (document.activeElement && document.activeElement !== document.body) return;
-    document
-      .querySelector<HTMLElement>('[data-active-authority-mobile-tools-toggle="true"]')
-      ?.focus();
-  }, [graphControlsVisible]);
 
   const model = useMemo(() => {
     if (state.status !== 'ready' || !workspace.activeDomainId) return null;
@@ -1947,18 +1931,13 @@ export function ActiveAuthorityGraph({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale} data-workspace-locale={workspace.selectedLocale}>
-      <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
-      <div
-        className="flex justify-end pt-1"
-        data-active-authority-header="true"
-      >
+      <KnowledgeWorkspaceChromePortal hostRef={languageHostRef}>
         <div className="flex flex-col items-start gap-1">
-          <span className="sr-only" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</span>
           <div
             role="group"
             aria-label={graphCopy(locale, 'language.group')}
             data-graph-language-switch="true"
-            className="pointer-events-auto flex rounded-md border border-platform-border bg-platform-surface/95 p-0.5 shadow-lg backdrop-blur"
+            className="pointer-events-auto flex rounded-md border border-platform-border bg-platform-surface/95 p-0.5"
           >
             <button
               type="button"
@@ -1992,27 +1971,52 @@ export function ActiveAuthorityGraph({
             </p>
           ) : null}
         </div>
-      </div>
-
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 py-2" data-active-authority-context>
-          <h2 className="min-w-0 text-sm font-semibold text-platform-fg-primary">
-            {workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName
-              ?? graphCopy(locale, 'scope.allDomains')}
-            <span className="ml-2 font-normal text-platform-fg-secondary">
-              {selectedNode ? `${selectedNode.label} · ${graphCopy(locale, 'scope.neighborhood')}`
-                : workspace.activeDomainId ? graphCopy(locale, [...visibleKeys].some((key) => !workspace.domainOverviewIds.includes(key)) ? 'scope.currentRange' : 'scope.domainOverview') : graphCopy(locale, 'scope.domainDirectory')}
-            </span>
-          </h2>
-          {selectedNodeKey ? (
-            <button type="button" onClick={leaveSelectedNeighborhood} data-active-authority-return-overview
-              className="rounded-md px-2 py-1 text-xs text-platform-action-primary hover:bg-platform-action-subtle">
-              {graphCopy(locale, 'scope.returnOverview')}
-            </button>
-          ) : null}
-          {!languageState.englishAvailable ? (
-            <p data-graph-language-unavailable="en" className="w-full text-[11px] text-platform-fg-muted">
-              {languageState.englishUnavailableReason}
-            </p>
+      </KnowledgeWorkspaceChromePortal>
+      <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
+        <div
+          className="pointer-events-auto absolute left-3 top-3 z-10 flex w-[min(16rem,calc(50%-1.25rem))] flex-col items-start gap-1 max-[639px]:w-28"
+          data-active-authority-header="true"
+        >
+          <div className="min-w-0" data-active-authority-context>
+            <h2
+              className="min-w-0 text-sm font-semibold text-platform-fg-primary"
+              data-active-authority-title="true"
+            >
+              {workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName
+                ?? graphCopy(locale, 'scope.allDomains')}
+            </h2>
+            {selectedNodeKey ? (
+              <button type="button" onClick={leaveSelectedNeighborhood} data-active-authority-return-overview
+                className="rounded-md px-2 py-1 text-xs text-platform-action-primary hover:bg-platform-action-subtle">
+                {graphCopy(locale, 'scope.returnOverview')}
+              </button>
+            ) : null}
+            {!languageState.englishAvailable ? (
+              <p data-graph-language-unavailable="en" className="w-full text-[11px] text-platform-fg-muted">
+                {languageState.englishUnavailableReason}
+              </p>
+            ) : null}
+          </div>
+          {model ? (
+            <div className="w-full" data-active-authority-toolbar="true">
+              <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
+              <div className="relative w-full">
+                <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
+                <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder={graphCopy(locale, 'search.placeholder')} className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
+              </div>
+              {query ? <SearchResults key={searchQueryKey} state={domainSearch} onSelect={focusSearchResult} onLoadMore={loadMoreSearchResults} locale={locale} /> : null}
+              {workspace.activeDomainId && runtimeLayout.pinnedNodeIds.size > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => runtimeLayout.unpinNode()}
+                  data-active-authority-unpin-all="true"
+                  aria-label={formatUnpinAllAria(locale, runtimeLayout.pinnedNodeIds.size)}
+                  className="mt-1 shrink-0 whitespace-nowrap rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+                >
+                  {graphCopy(locale, 'controls.unpinAll')}（{runtimeLayout.pinnedNodeIds.size}）
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </KnowledgeWorkspaceChromePortal>
@@ -2085,67 +2089,7 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden max-[639px]:overflow-y-auto max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
-            <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
-            <div className="mb-3 max-[639px]:mb-1 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto" data-active-authority-toolbar="true">
-              <button
-                type="button"
-                data-active-authority-mobile-tools-toggle="true"
-                aria-expanded={mobileGraphControlsExpanded}
-                aria-controls="active-authority-mobile-tools"
-                onClick={() => setMobileGraphControlsExpanded((expanded) => !expanded)}
-                className="hidden w-full items-center justify-between rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2 text-sm text-platform-fg-primary max-[639px]:inline-flex"
-              >
-                <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'search.label')}</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${mobileGraphControlsExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
-              </button>
-              {graphControlsVisible ? (
-              <div
-                id="active-authority-mobile-tools"
-                ref={mobileToolsRef}
-                data-active-authority-mobile-drawer={isCompactViewport ? 'true' : undefined}
-                onKeyDown={(event) => {
-                  if (!isCompactViewport) return;
-                  // compact 折叠抽屉：Escape 关闭并把焦点还给折叠开关；Tab
-                  // 在抽屉内循环。桌面常驻面板保持自然 Tab 序（#1742）。
-                  if (event.key === 'Escape') {
-                    // 抽屉内 Escape 只关抽屉，不再冒泡触发全局的退出邻域。
-                    event.stopPropagation();
-                    setMobileGraphControlsExpanded(false);
-                    document
-                      .querySelector<HTMLElement>('[data-active-authority-mobile-tools-toggle="true"]')
-                      ?.focus();
-                    return;
-                  }
-                  trapInspectorFocus(event, mobileToolsRef.current);
-                }}
-                className="mt-2 flex flex-wrap items-end justify-between gap-3"
-              >
-              <div className="min-w-[15rem] flex-1">
-                <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
-                <div className="relative max-[639px]:shrink-0">
-                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
-                  <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder={graphCopy(locale, 'search.placeholder')} className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
-                </div>
-                {query ? <SearchResults key={searchQueryKey} state={domainSearch} onSelect={focusSearchResult} onLoadMore={loadMoreSearchResults} locale={locale} /> : null}
-              </div>
-              <div className="flex flex-wrap items-center gap-2 max-[639px]:w-full max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
-                {workspace.activeDomainId && runtimeLayout.pinnedNodeIds.size > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => runtimeLayout.unpinNode()}
-                    data-active-authority-unpin-all="true"
-                    aria-label={formatUnpinAllAria(locale, runtimeLayout.pinnedNodeIds.size)}
-                    className="shrink-0 whitespace-nowrap rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"
-                  >
-                    {graphCopy(locale, 'controls.unpinAll')}（{runtimeLayout.pinnedNodeIds.size}）
-                  </button>
-                ) : null}
-              </div>
-              </div>
-              ) : null}
-            </div>
-            </KnowledgeWorkspaceChromePortal>
+          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
               <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
                 <span>{neighborhoodFailures[selectedNodeKey].message}</span>
@@ -2160,36 +2104,33 @@ export function ActiveAuthorityGraph({
               </div>
             ) : null}
             {authorityView ? (
-              <div className="relative flex min-h-0 flex-1 flex-col max-[639px]:flex-none" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
-                <div className="relative min-h-0 flex-1 max-[639px]:h-[26rem] max-[639px]:flex-none">
-                  <ActiveAuthorityRuntimeView
-                    kind="domain"
-                    view={authorityView}
-                    dimension={dimension}
-                    selectedNodeId={selectedNodeKey}
-                    onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
-                    onClearSelection={clearSelection}
-                    onHoverNode={setHoveredNodeId}
-                    onEnterDomain={(visualRole) => {
-                      void enterDomain(visualRole);
-                    }}
-                    hoverPreview={hoverPreview}
-                    canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
-                    overviewCount={workspace.domainOverviewIds.length}
-                    overviewEntries={overviewDirectoryEntries}
-                    layout={runtimeLayout}
-                    layoutSessions={layoutSessionsRef.current}
-                    camera={runtimeCamera}
-                    sessionKey={graphScopeKey}
-                    entryGateActive={!domainEntrySettled}
-                    onEngineSettled={handleDomainEngineSettled}
-                    crossDomainClusters={crossDomainClusters}
-                    onCrossDomainNodeClick={followBoundary}
-                  />
-                </div>
+              <div className="relative min-h-0 flex-1" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
+                <ActiveAuthorityRuntimeView
+                  kind="domain"
+                  view={authorityView}
+                  dimension={dimension}
+                  selectedNodeId={selectedNodeKey}
+                  onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
+                  onClearSelection={clearSelection}
+                  onHoverNode={setHoveredNodeId}
+                  onEnterDomain={(visualRole) => {
+                    void enterDomain(visualRole);
+                  }}
+                  hoverPreview={hoverPreview}
+                  canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+                  overviewCount={workspace.domainOverviewIds.length}
+                  overviewEntries={overviewDirectoryEntries}
+                  layout={runtimeLayout}
+                  layoutSessions={layoutSessionsRef.current}
+                  camera={runtimeCamera}
+                  sessionKey={graphScopeKey}
+                  entryGateActive={!domainEntrySettled}
+                  onEngineSettled={handleDomainEngineSettled}
+                  crossDomainClusters={crossDomainClusters}
+                  onCrossDomainNodeClick={followBoundary}
+                />
                 {materializedNodeTypes.length > 0 ? (
                   <ActiveAuthorityFilterPanel
-                    inFlow
                     locale={locale}
                     materializedTypes={materializedNodeTypes}
                     hiddenNodeTypes={hiddenNodeTypes}
@@ -2207,14 +2148,14 @@ export function ActiveAuthorityGraph({
                 ) : null}
               </div>
             ) : null}
-            <div className="pointer-events-none mt-2 flex shrink-0 flex-wrap items-center justify-start gap-x-4 gap-y-1 text-xs text-platform-fg-muted" data-active-authority-coverage>
+            <div className="pointer-events-none absolute bottom-12 left-3 z-30 flex flex-wrap items-center justify-start gap-x-4 gap-y-1 text-xs text-platform-fg-muted" data-active-authority-coverage>
               <span>{visibleCoverageCopy(locale, (authorityView?.nodes.length ?? scopedGraph.nodes.length) + crossDomainClusters.reduce((count, cluster) => count + cluster.nodes.length, 0), (authorityView?.edges.length ?? 0) + crossDomainClusters.reduce((count, cluster) => count + cluster.links.length, 0))}</span>
               <span>{totalCoverageCopy(locale, model.totalNodeCount + crossDomainClusters.reduce((count, cluster) => count + cluster.nodes.length, 0), model.totalRelationCount + crossDomainClusters.reduce((count, cluster) => count + cluster.links.length, 0))}</span>
             </div>
-            {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
-            {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
+            {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none absolute inset-x-3 top-1/2 z-20 -translate-y-1/2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
+            {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="pointer-events-none absolute bottom-20 left-3 z-20 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
             {query && (domainSearch.status === 'ready' && domainSearch.hits.length === 0
-              || domainSearch.status === 'error') ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, domainSearch.status === 'error' ? 'search.failed' : 'search.empty')}</p> : null}
+              || domainSearch.status === 'error') ? <p className="pointer-events-none absolute left-3 top-28 z-20 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, domainSearch.status === 'error' ? 'search.failed' : 'search.empty')}</p> : null}
           </main>
           {selectedNodeKey && inspectorOpen ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} pinned={runtimeLayout.pinnedNodeIds.has(selectedNodeKey)} onUnpin={() => runtimeLayout.unpinNode(selectedNodeKey)} /> : null}
         </div>

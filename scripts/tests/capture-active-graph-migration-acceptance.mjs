@@ -143,17 +143,13 @@ async function behaviorMatrix(page, rootShard, localeCap) {
       false, `bilingualReady=false reason=${localeCap?.englishUnavailableReason ?? 'unknown'}`);
   }
 
-  // mobile：drawer + 概览 + 无可见目录
+  // mobile：叠层筛选常显 + 概览 + 无可见目录
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(1200);
   await enterGraphAndDomain(page, 'root-locus');
-  const drawerToggle = page.locator('[data-active-authority-mobile-tools-toggle="true"]');
-  const collapsed = await drawerToggle.getAttribute('aria-expanded') === 'false';
-  await drawerToggle.dispatchEvent('click');
-  await page.waitForTimeout(600);
-  const drawerPanel = await page.locator('[data-active-authority-mobile-drawer="true"] [data-active-authority-filter-panel="true"]').count();
-  await shot(page, '05-mobile-drawer');
-  row('controls', 'mobile.drawer', 'mobile 折叠抽屉承载同一筛选面板', collapsed && drawerPanel === 1);
+  const overlayPanel = await page.locator('[data-active-authority-filter-panel="true"][data-active-authority-filter-placement="compact-bottom-left"]').count();
+  await shot(page, '05-mobile-overlay-filters');
+  row('controls', 'mobile.overlay', 'mobile 叠层筛选栏常显且不占文档流', overlayPanel === 1);
   // #1739 spec：mobile 大域（超 compact 阈值 48）的可浏览目录合法保留；
   // #1742 spec：小域/普通状态无可见目录。
   const largeDirectory = await page.locator('[data-active-authority-node-directory="visible"]').count();

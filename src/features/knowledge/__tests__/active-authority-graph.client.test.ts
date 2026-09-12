@@ -1430,8 +1430,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     await enterModelingDomain({ families: false });
     expect(container.querySelector('[data-authority-relation-family="prerequisite-order"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-filter-placement="below-canvas"]')).not.toBeNull();
-    expect(container.querySelector('[data-active-authority-filter-panel="true"]')?.classList.contains('absolute')).toBe(false);
+    expect(container.querySelector('[data-active-authority-filter-placement="compact-bottom-left"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-filter-panel="true"]')?.classList.contains('absolute')).toBe(true);
     expect(container.querySelector('[data-active-authority-toolbar="true"] [data-active-authority-filter-panel="true"]')).toBeNull();
     expect(container.querySelector('[data-authority-relation-legend="true"]')).toBeNull();
     expect(container.querySelector('[data-active-authority-relation="teaching-primary"]')).not.toBeNull();
@@ -1751,9 +1751,6 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(directory).not.toBeNull();
     expect(directory?.querySelector('[data-active-authority-node="large-concept-1"]')).not.toBeNull();
 
-    // 面板在 compact 折叠抽屉内，先展开再切换类型。
-    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
-    await act(async () => mobileToolsToggle!.click());
     await openTypeMenu();
     const conceptToggle = document.querySelector<HTMLButtonElement>('[data-active-authority-type-filter="DomainConcept"]');
     await act(async () => conceptToggle!.click());
@@ -1762,7 +1759,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(filteredDirectory?.querySelector('[data-active-authority-node="large-formula"]')).not.toBeNull();
   });
 
-  it('keeps the compact tools drawer focus-trapped and restores focus on close', async () => {
+  it('keeps compact search and filters visible without a disclosure drawer', async () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 320 });
     await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
       viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
@@ -1770,26 +1767,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 10)));
     await enterModelingDomain({ families: false });
 
-    const toggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
-    await act(async () => toggle!.click());
-    const drawer = container.querySelector<HTMLElement>('[data-active-authority-mobile-drawer="true"]');
-    expect(drawer).not.toBeNull();
-
-    // Tab 循环被限制在抽屉内（trap）。
-    const search = container.querySelector<HTMLInputElement>('#active-authority-search')!;
-    search.focus();
-    await act(async () => {
-      search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
-    });
-    expect(drawer?.contains(document.activeElement)).toBe(true);
-
-    // Escape 关闭抽屉并把焦点还给折叠开关，不退出已选邻域（restore）。
-    await act(async () => {
-      document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-      await Promise.resolve();
-    });
-    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
-    expect(document.activeElement).toBe(toggle);
+    expect(container.querySelector('[data-active-authority-mobile-tools-toggle="true"]')).toBeNull();
+    expect(container.querySelector('#active-authority-search')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-filter-panel="true"]')).not.toBeNull();
+    expect(container.querySelector('[data-authority-relation-family="association"]')).not.toBeNull();
   });
 
   it('enters a boundary node owning domain before selecting it and loading its neighborhood', async () => {
@@ -2296,13 +2277,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelector('[data-active-authority-header="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-title="true"]')).not.toBeNull();
     expect(container.querySelector('[data-active-authority-toolbar="true"]')).not.toBeNull();
-    const mobileToolsToggle = container.querySelector<HTMLButtonElement>('[data-active-authority-mobile-tools-toggle="true"]');
-    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('false');
-    expect(container.querySelector('#active-authority-mobile-tools')).toBeNull();
-
-    await act(async () => mobileToolsToggle!.click());
-    expect(mobileToolsToggle?.getAttribute('aria-expanded')).toBe('true');
-    expect(container.querySelector('#active-authority-mobile-tools')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-mobile-tools-toggle="true"]')).toBeNull();
+    expect(container.querySelector('#active-authority-search')).not.toBeNull();
 
     const association = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
     expect(association).not.toBeNull();
@@ -2313,10 +2289,11 @@ describe('active Authority knowledge workspace client boundary', () => {
 
     const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
-    // #1742 review：工具栏避让（pt-12/pt-14）由 workspace chrome 行统一承担。
-    expect(workspaceSource).toContain('pt-12 max-[639px]:pt-14');
-    expect(graphSource).toContain('max-[639px]:flex-nowrap');
-    expect(graphSource).toContain('max-[639px]:overflow-x-auto');
+    expect(workspaceSource).toContain('pointer-events-none absolute inset-0 z-40');
+    expect(workspaceSource).toContain('max-w-[min(28rem,calc(50%-1.25rem))]');
+    expect(workspaceSource).toContain('max-[639px]:max-w-[calc(100%-8rem)]');
+    expect(graphSource).toContain('w-[min(16rem,calc(50%-1.25rem))]');
+    expect(graphSource).toContain('max-[639px]:w-28');
     expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
     expect(graphSource).toContain('expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)');
     expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
@@ -2355,8 +2332,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.textContent).toContain('受控候选诊断');
     const modeSwitch = container.querySelector<HTMLElement>('[data-knowledge-mode-switch="true"]');
     expect(modeSwitch).not.toBeNull();
-    expect(modeSwitch?.className).toContain('max-[639px]:flex-nowrap');
-    expect(modeSwitch?.className).toContain('max-[639px]:overflow-x-auto');
+    expect(modeSwitch?.className).toContain('flex-wrap');
+    expect(modeSwitch?.className).toContain('max-w-[min(28rem,calc(50%-1.25rem))]');
     const modeButtons = [...container.querySelectorAll<HTMLButtonElement>('[data-knowledge-mode]')];
     expect(modeButtons).toHaveLength(3);
     expect(modeButtons.every((button) => button.className.includes('shrink-0') && button.className.includes('whitespace-nowrap'))).toBe(true);
@@ -2448,7 +2425,7 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(captureSource).toContain('firstViewport: {');
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
     expect(workspaceSource).toContain('data-knowledge-mode-switch="true"');
-    expect(workspaceSource).toContain('max-[639px]:overflow-x-auto');
+    expect(workspaceSource).toContain('flex-wrap');
     expect(workspaceSource).toContain('shrink-0 whitespace-nowrap');
     expect(workspaceSource).not.toMatch(/selector|learning.?state|current\.json/iu);
     const activeGraphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
@@ -2456,8 +2433,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(activeGraphSource).toContain('onCrossDomainNodeClick={followBoundary}');
     expect(activeGraphSource).not.toContain('data-active-authority-boundary-toggle');
     expect(activeGraphSource).not.toContain('boundaryDirectoryExpanded');
-    expect(activeGraphSource).toContain('data-active-authority-mobile-tools-toggle="true"');
-    expect(activeGraphSource).toContain('mobileGraphControlsExpanded');
+    expect(activeGraphSource).not.toContain('data-active-authority-mobile-tools-toggle="true"');
+    expect(activeGraphSource).not.toContain('mobileGraphControlsExpanded');
     expect(governanceSource).toContain('initial-controls-not-collapsed');
   });
 
