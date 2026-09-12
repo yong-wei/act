@@ -13,6 +13,15 @@ import {
 } from './assemble-plan';
 import { goalCanonicalIds, isPresetAdaptiveLearningGoal } from '../goal-canonical-knowledge';
 import {
+  KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS,
+  buildKnowledgeSkeleton,
+  clipKnowledgeSkeleton,
+  fillKnowledgeSkeleton,
+  indexResourcesByKnowledge,
+  scoreFilledPath,
+} from '../knowledge-path-assembly';
+import { expandFeasibleKnowledgeIds } from '../knowledge-scope';
+import {
   loadLiveTeachingPrerequisiteEdges,
   type TeachingPrerequisiteEdge,
 } from '../live-teaching-prerequisites';
@@ -59,6 +68,7 @@ const STYLE_META: Array<{
 
 export interface KnowledgePathMountOptions {
   prerequisiteEdges?: TeachingPrerequisiteEdge[];
+  heuristicTimeoutMs?: number;
   now?: Date;
 }
 
@@ -72,27 +82,70 @@ export function assembleKnowledgePathPlan(
 ): AdaptiveLearningPathPlan {
   const now = (options.now ?? input.now ?? new Date()).toISOString();
   const targets = goalCanonicalIds(input.goal.id);
-  const edges = options.prerequisiteEdges ?? loadLiveTeachingPrerequisiteEdges();
+  const edges = options.prerequisiteEdges
+    ?? input.planningScope?.edges
+    ?? loadLiveTeachingPrerequisiteEdges();
   const excluded = new Set(input.excludedNodeIds ?? []);
   const completed = input.constraints.completedNodeIds ?? [];
-  const candidates = input.registry.nodes.filter((node) => isBoundCandidate(node, input, excluded));
+  const feasibleKnowledge = new Set(
+    input.planningScope
+      ? input.planningScope.knowledgeIds
+      : expandFeasibleKnowledgeIds(targets, edges),
+  );
+  const scopedIds = (node: ResourceNode) =>
+    nodeCanonicalIds(node, input).filter((id) => feasibleKnowledge.has(id));
+  const candidates = input.registry.nodes.filter((node) =>
+    isBoundCandidate(node, input, excluded) && scopedIds(node).length > 0,
+  );
   const preferredTypes = preferredResourceTypes(input);
-  const styles = STYLE_META.map((style, index) => {
+  const deadline = Date.now() + (options.heuristicTimeoutMs ?? KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS);
+  const byKnowledge = indexResourcesByKnowledge([...feasibleKnowledge], candidates, scopedIds);
+  const styles = STYLE_META.map((style) => {
     const kinds = style.family === 'preference-matched' && preferredTypes.length
       ? preferredTypes
       : style.kinds;
-    const knowledgeIds = expandKnowledgeOrder(targets, edges, style.knowledgeMode);
-    const mounted = mountResources(knowledgeIds, candidates, kinds, index, input);
-    return { style, knowledgeIds, mounted };
+    const expandedIds = buildKnowledgeSkeleton(targets, edges, style.knowledgeMode)
+      .knowledgeIds
+      .filter((id) => feasibleKnowledge.has(id));
+    const knowledgeIds = clipKnowledgeSkeleton(expandedIds, targets);
+    const fill = fillKnowledgeSkeleton({
+      knowledgeIds,
+      targetIds: targets,
+      byKnowledge,
+      styleKinds: kinds,
+      preferredTypes,
+      timeBudgetMinutes: input.constraints.timeBudgetMinutes,
+      difficultyRhythm: input.difficultyRhythm,
+      deadline,
+    });
+    return {
+      style,
+      knowledgeIds,
+      clipped: expandedIds.length > knowledgeIds.length,
+      mounted: fill.mounted,
+      fill,
+      pathScore: scoreFilledPath(fill.mounted, {
+        knowledgeIds,
+        styleKinds: kinds,
+        preferredTypes,
+        timeBudgetMinutes: input.constraints.timeBudgetMinutes,
+      }) + (input.preferredStyleId === style.styleId ? 10 : 0),
+    };
   });
 
-  const nonEmpty = styles.find((entry) => entry.mounted.length > 0) ?? styles[0]!;
-  const mainPath = toPlanNodes(nonEmpty.mounted, completed, input.constraints.currentNodeId ?? null);
-  const policyBundle = buildBundle(styles, completed, input, targets, preferredTypes.length > 0);
+  const rankedStyles = [...styles].sort((left, right) =>
+    right.pathScore - left.pathScore
+    || left.style.styleId.localeCompare(right.style.styleId),
+  );
+  const nonEmpty = rankedStyles.find((entry) => entry.mounted.length > 0) ?? styles[0]!;
+  const mainPath = toPlanNodes(nonEmpty.mounted, completed, input.constraints.currentNodeId ?? null, feasibleKnowledge);
+  const policyBundle = buildBundle(styles, completed, input, targets, preferredTypes.length > 0, feasibleKnowledge);
   const fallbackReasons = [
     ...(targets.length === 0 ? ['goal-knowledge-unbound'] : []),
     ...(mainPath.length === 0 ? ['knowledge-path-empty'] : []),
     ...(preferredTypes.length === 0 ? ['trusted-portrait-unavailable'] : []),
+    ...(nonEmpty.fill.method === 'deterministic-timeout' ? ['heuristic-timeout'] : []),
+    ...(styles.some((entry) => entry.clipped) ? ['path-length-capped'] : []),
   ];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
   const policyFamily = nonEmpty.style.family;
@@ -131,7 +184,12 @@ export function assembleKnowledgePathPlan(
       sourceCoverage: targets.length ? 1 : 0,
     },
     explanations: {
-      selectedReasons: ['goal-knowledge-path', 'teaching-projection-prerequisites', 'bound-resource-mount'],
+      selectedReasons: [
+        'goal-knowledge-path',
+        'knowledge-skeleton',
+        'bound-resource-fill',
+        `fill:${nonEmpty.fill.method}`,
+      ],
       rejectedAlternatives: [],
       fallbackReasons,
       configurationFulfillment: [],
@@ -212,99 +270,11 @@ function preferredResourceTypes(input: AdaptiveLearningPathPlannerInput): Resour
   return modalities.filter((item): item is ResourceNodeType => typeof item === 'string');
 }
 
-function expandKnowledgeOrder(
-  targets: string[],
-  edges: TeachingPrerequisiteEdge[],
-  mode: 'required' | 'required-recommended' | 'targets',
-): string[] {
-  if (targets.length === 0) return [];
-  if (mode === 'targets') return [...targets];
-  const allowed = new Set(
-    mode === 'required'
-      ? edges.filter((edge) => edge.strength === 'REQUIRED')
-      : edges,
-  );
-  const selected = ancestors(targets, [...allowed]);
-  return topologicalOrder(selected, [...allowed]);
-}
-
-function ancestors(targets: string[], edges: TeachingPrerequisiteEdge[]): Set<string> {
-  const reverse = new Map<string, string[]>();
-  for (const edge of edges) {
-    const list = reverse.get(edge.targetCanonicalId) ?? [];
-    list.push(edge.sourceCanonicalId);
-    reverse.set(edge.targetCanonicalId, list);
-  }
-  const nodes = new Set(targets);
-  const stack = [...targets];
-  while (stack.length > 0) {
-    const current = stack.pop()!;
-    for (const parent of reverse.get(current) ?? []) {
-      if (!nodes.has(parent)) {
-        nodes.add(parent);
-        stack.push(parent);
-      }
-    }
-  }
-  return nodes;
-}
-
-function topologicalOrder(nodes: Set<string>, edges: TeachingPrerequisiteEdge[]): string[] {
-  const indegree = new Map<string, number>();
-  const adj = new Map<string, string[]>();
-  for (const id of nodes) {
-    indegree.set(id, 0);
-    adj.set(id, []);
-  }
-  for (const edge of edges) {
-    if (!nodes.has(edge.sourceCanonicalId) || !nodes.has(edge.targetCanonicalId)) continue;
-    adj.get(edge.sourceCanonicalId)!.push(edge.targetCanonicalId);
-    indegree.set(edge.targetCanonicalId, (indegree.get(edge.targetCanonicalId) ?? 0) + 1);
-  }
-  const queue = [...nodes].filter((id) => (indegree.get(id) ?? 0) === 0).sort();
-  const order: string[] = [];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    order.push(current);
-    for (const next of (adj.get(current) ?? []).slice().sort()) {
-      const nextDegree = (indegree.get(next) ?? 0) - 1;
-      indegree.set(next, nextDegree);
-      if (nextDegree === 0) queue.push(next);
-    }
-  }
-  for (const id of [...nodes].sort()) {
-    if (!order.includes(id)) order.push(id);
-  }
-  return order;
-}
-
-function mountResources(
-  knowledgeIds: string[],
-  candidates: ResourceNode[],
-  preferredKinds: ResourceNodeType[],
-  styleIndex: number,
-  input: AdaptiveLearningPathPlannerInput,
-): Array<{ node: ResourceNode; canonicalId: string }> {
-  const used = new Set<string>();
-  const mounted: Array<{ node: ResourceNode; canonicalId: string }> = [];
-  for (const canonicalId of knowledgeIds) {
-    const bound = candidates.filter((node) =>
-      !used.has(node.id) && nodeCanonicalIds(node, input).includes(canonicalId),
-    );
-    if (bound.length === 0) continue;
-    const preferred = bound.filter((node) => preferredKinds.includes(node.type));
-    if (preferred.length === 0) continue;
-    const picked = preferred.slice().sort((left, right) => left.id.localeCompare(right.id))[styleIndex % preferred.length]!;
-    used.add(picked.id);
-    mounted.push({ node: picked, canonicalId });
-  }
-  return mounted;
-}
-
 function toPlanNodes(
   mounted: Array<{ node: ResourceNode; canonicalId: string }>,
   completedNodeIds: string[],
   currentNodeId: string | null,
+  feasibleKnowledge: ReadonlySet<string>,
 ): AdaptiveLearningPathPlanNode[] {
   return mounted.map((entry, index) => {
     const node = entry.node;
@@ -346,8 +316,8 @@ function toPlanNodes(
         targetCanonicalId: entry.canonicalId,
       }] : [],
       knowledgeCoverage: unique([
-        ...node.planningMetadata.knowledgeCoverage,
-        ...(published?.canonicalIds ?? []),
+        ...node.planningMetadata.knowledgeCoverage.filter((id) => feasibleKnowledge.has(id)),
+        ...(published?.canonicalIds ?? []).filter((id) => feasibleKnowledge.has(id)),
         entry.canonicalId,
       ]),
       launchBinding: {
@@ -386,9 +356,15 @@ function buildBundle(
   input: AdaptiveLearningPathPlannerInput,
   targets: string[],
   hasPortrait: boolean,
+  feasibleKnowledge: ReadonlySet<string>,
 ): AdaptiveLearningPathPolicyBundle {
   const paths: AdaptiveLearningPathPolicyBundle['paths'] = styles.map((entry) => {
-    const planNodes = toPlanNodes(entry.mounted, completed, input.constraints.currentNodeId ?? null);
+    const planNodes = toPlanNodes(
+      entry.mounted,
+      completed,
+      input.constraints.currentNodeId ?? null,
+      feasibleKnowledge,
+    );
     const minutes = planNodes.reduce((sum, node) => sum + node.estimatedTimeMinutes, 0);
     const resourceMix = countBy(planNodes.map((node) => node.type));
     const limitations = [

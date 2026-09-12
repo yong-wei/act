@@ -91,7 +91,9 @@ describe('knowledge path mount', () => {
     expect(plan.mainPath[0]?.knowledgeCoverage).toContain(prior);
     expect(plan.policyBundle?.paths).toHaveLength(3);
     const simulationPath = plan.policyBundle?.paths.find((path) => path.policyFamily === 'simulation-driven');
-    expect(simulationPath?.planNodes?.map((node) => node.type)).toEqual(['simulation']);
+    expect(simulationPath?.planNodes?.map((node) => node.type)).toEqual(['knowledge_card', 'simulation']);
+    expect(plan.explanations.selectedReasons).toContain('knowledge-skeleton');
+    expect(plan.explanations.selectedReasons).toContain('bound-resource-fill');
     const published = plan.policyBundle?.paths.flatMap((path) => path.planNodes ?? [])
       .filter((node) => node.resourceFeatureRef) ?? [];
     const records = buildIndexedCandidateResourceRecords(
@@ -118,5 +120,65 @@ describe('knowledge path mount', () => {
     expect(plan.status).toBe('fallback');
     expect(plan.mainPath).toEqual([]);
     expect(plan.explanations.fallbackReasons).toContain('goal-knowledge-unbound');
+  });
+
+  it('ignores resources outside the goal knowledge closure even if the registry is fat', () => {
+    const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
+    const prior = 'ctc:prior-root-locus';
+    const unrelated = 'ctc:other-chapter';
+    const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
+      feature('card-prior', [prior], 'card'),
+      feature('card-locus', [rootLocus], 'card'),
+      feature('card-unrelated', [unrelated], 'card'),
+      feature('card-mixed', [rootLocus, unrelated], 'card'),
+    ]));
+    const plan = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: null,
+      registry,
+      planningScope: {
+        knowledgeIds: [prior, rootLocus],
+        edges: [{
+          id: 'edge-1',
+          sourceCanonicalId: prior,
+          targetCanonicalId: rootLocus,
+          strength: 'REQUIRED',
+        }],
+      },
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, { heuristicTimeoutMs: 0 });
+
+    const mountedIds = [
+      ...plan.mainPath.map((node) => node.resourceFeatureRef?.resourceId),
+      ...(plan.policyBundle?.paths.flatMap((path) => path.planNodes ?? [])
+        .map((node) => node.resourceFeatureRef?.resourceId) ?? []),
+    ];
+    expect(mountedIds).not.toContain('act:card:card-unrelated');
+    expect(plan.mainPath.flatMap((node) => node.knowledgeCoverage)).not.toContain(unrelated);
+    expect(plan.explanations.selectedReasons).toContain('fill:deterministic-timeout');
+  });
+
+  it('fills each skeleton node from its bound resources and prefers the portrait type', () => {
+    const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
+    const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
+      feature('card-locus', [rootLocus], 'card'),
+      feature('sim-locus', [rootLocus], 'simulation'),
+    ]));
+    const plan = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: {
+        resourcePreference: { preferredModalities: ['simulation'], confidence: 'medium' },
+      },
+      registry,
+      resourcePreferences: ['simulation'],
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, { prerequisiteEdges: [], heuristicTimeoutMs: 80 });
+
+    const preferencePath = plan.policyBundle?.paths.find((path) => path.policyFamily === 'preference-matched');
+    expect(preferencePath?.planNodes?.map((node) => node.type)).toEqual(['simulation']);
+    expect(plan.mainPath.length).toBeGreaterThan(0);
+    expect(plan.mainPath.every((node) => node.knowledgeCoverage.includes(rootLocus))).toBe(true);
   });
 });

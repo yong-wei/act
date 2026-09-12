@@ -52,9 +52,7 @@ import {
 } from '@/features/personalization/path-planning/public-api';
 
 import type { PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
-import { loadPublishedResourceFeatureIndex } from '@/lib/published-resource-index';
-import { attachPublishedResourcesToRegistry, buildPlanningResourceSnapshot } from '@/lib/published-resource-planning';
-import { applyResourceInteractionFeatures } from '@/lib/resource-feature-history';
+import { buildPlanningResourceSnapshot } from '@/lib/published-resource-planning';
 import {
   resolveActiveTeachingProjection,
   resolveTeachingProjectionStorePaths,
@@ -85,6 +83,7 @@ import {
   planLearningPath,
   buildAdaptiveLearningPathLearnerStateSnapshot,
   getRegisteredAdaptiveLearningPathGoal,
+  tryLoadGoalPlanningRegistry,
   type AdaptiveLearningPathGraphContextInput,
   type AdaptiveLearningPathConfigurationRequest,
   type AdaptiveLearningPathPolicyFamily,
@@ -98,8 +97,6 @@ import {
   buildKonlingCandidateSelectionToolResult,
 } from '@/lib/konling-candidate-selection-tool-run';
 import {
-  loadAllLessonRuntimeResourceCatalogEntries,
-  loadAllTextbookStructureRuntimeCatalogEntries,
   loadAllTextbookStructureUnitProjections,
 } from '@/lib/course-bundle';
 import {
@@ -221,16 +218,9 @@ import {
   type ResourceNode,
   type ResourceNodeRegistry,
 } from '@/lib/resource-node-registry';
-import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import {
-  buildResourceCandidatePoolDiagnostics,
-  buildResourceNodeRegistryFromTeachingResources,
-  loadRuntimeResourceProjectionInputs,
-  toTextbookUnitNodeInputs,
   type ResourceCandidatePoolDiagnostics,
-  type ResourceCandidatePoolSourceStatus,
 } from '@/lib/teacher-resource-node-data';
-import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
 import type { PageContext, UserProfile } from '@/types/ai-context';
 import {
@@ -4885,7 +4875,7 @@ async function buildAdaptivePathToolOutput(
       }
     : null;
   const args = effectiveRevisionArgs ?? generateLearningPathParameters.parse(rawArgs);
-  const { registry, diagnostics: candidatePoolDiagnostics } = await resolveAdaptivePathGenerationRegistry(input, goalId);
+  const { registry, diagnostics: candidatePoolDiagnostics, planningScope } = await resolveAdaptivePathGenerationRegistry(input, goalId);
   // Use the legacy bounded generation cap when the learner omitted one. This
   // cap only controls candidate generation; the minimum executable duration is
   // derived from the repaired plan below and never raises an explicit request.
@@ -5027,6 +5017,7 @@ async function buildAdaptivePathToolOutput(
     learnerState: normalizeAdaptivePathLearnerStateForPlanner(learnerStateForPlanning as any)
       ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
     registry,
+    planningScope,
     graphContext,
     constraints: {
       timeBudgetMinutes: planningTimeBudgetMinutes,
@@ -5403,10 +5394,6 @@ function buildBlockedAdaptivePathGenerationMessage(fallbackReasons: readonly str
 
 function uniqueStringList(values: readonly string[]): string[] {
   return Array.from(new Set(values.filter(Boolean)));
-}
-
-function isMissingFileError(error: unknown): boolean {
-  return Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT');
 }
 
 function buildAdaptivePathPlannerGraphContext(
@@ -6178,190 +6165,33 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
   return goalId;
 }
 
-type AdaptivePathRegistryResult = { registry: ResourceNodeRegistry; diagnostics: ResourceCandidatePoolDiagnostics };
-const adaptivePathBaseIndexCache = new WeakMap<object, Map<string, Promise<AdaptivePathRegistryResult>>>();
-
-async function resolveAdaptivePathGenerationRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<AdaptivePathRegistryResult> {
-  const index = await loadPublishedResourceFeatureIndex();
-  const delegate = (input.db as any).teachingResource;
-  const watermark = typeof delegate?.aggregate === 'function'
-    ? await delegate.aggregate({ _max: { updatedAt: true }, _count: { _all: true } })
-    : null;
-  const key = JSON.stringify([goalId, index.indexId, watermark]);
-  let cache = adaptivePathBaseIndexCache.get(input.db as object);
-  if (!cache) { cache = new Map(); adaptivePathBaseIndexCache.set(input.db as object, cache); }
-  let basePromise = watermark ? cache.get(key) : undefined;
-  if (!basePromise) {
-    basePromise = loadAdaptivePathBaseRegistry(input, goalId);
-    if (watermark) cache.set(key, basePromise);
-    if (cache.size > 6) cache.delete(cache.keys().next().value!);
-  }
-  let base: AdaptivePathRegistryResult;
-  try { base = await basePromise; } catch (error) { cache.delete(key); throw error; }
-  const registry = await applyResourceInteractionFeatures(
-    attachPublishedResourcesToRegistry(base.registry, index), input.db, input.scope.targetUserId,
-  );
-  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
-  if ((await loadPublishedResourceFeatureIndex()).indexId !== index.indexId
-    || (projection && projection.projectionId !== index.projectionId)
-    || (release?.releaseId ?? null) !== index.runtimeReleaseId) {
-    throw new KonlingRuntimeScopeError(409, '资源版本正在更新，请稍后重新生成路径。');
-  }
-  const runtimeResourceBindings = summarizeAdaptivePathRuntimeBindings(
-    resolveAdaptivePathNodeRuntimeBindings({ nodes: registry.nodes.filter(node => !node.publishedResource)
-      .map(node => ({ nodeId: node.id, nodeType: node.type })), projection, release }),
-    new Map(registry.nodes.map(node => [node.id, node.sourceKind])),
-  );
-  return { registry, diagnostics: buildResourceCandidatePoolDiagnostics(registry, [
-    ...base.diagnostics.sourceFamilies,
-    { family: 'published-resource-features', status: 'loaded', count: index.resources.length, reason: null },
-  ], { runtimeResourceBindings }) };
-}
-
-async function loadAdaptivePathBaseRegistry(input: KonlingToolRuntimeInput, goalId: string): Promise<{
+type AdaptivePathRegistryResult = {
   registry: ResourceNodeRegistry;
   diagnostics: ResourceCandidatePoolDiagnostics;
-}> {
-  const [teachingResourcesSource, runtimeLessonsSource, runtimeTextbooksSource, runtimeResourceProjectionsSource] = await Promise.all([
-    loadCandidateSourceFamily('teaching-resources', () => loadAdaptivePathTeachingResources(input.db)),
-    loadCandidateSourceFamily('runtime-lessons', () => loadAllLessonRuntimeResourceCatalogEntries()),
-    loadCandidateSourceFamily('runtime-textbooks', () => loadAllTextbookStructureRuntimeCatalogEntries()),
-    loadCandidateSourceFamily('runtime-resource-projections', () => loadRuntimeResourceProjectionInputs({ allowMissing: false })),
-  ]);
-  const teachingResources = teachingResourcesSource.items;
-  const runtimeLessons = runtimeLessonsSource.items;
-  const runtimeTextbooks = runtimeTextbooksSource.items;
-  const runtimeResourceProjections = runtimeResourceProjectionsSource.items;
-  const sourceFamilies = [
-    teachingResourcesSource.status,
-    runtimeLessonsSource.status,
-    runtimeTextbooksSource.status,
-    runtimeResourceProjectionsSource.status,
-  ];
-  const registeredResources = getAllRegisteredResourceMetadata();
-  const runtimeTextbookInput = {
-    textbooks: runtimeTextbooks.map((entry) => entry.textbook),
-    textbookSections: runtimeTextbooks.flatMap(toTextbookUnitNodeInputs),
+  planningScope: {
+    knowledgeIds: string[];
+    edges: Array<{
+      id: string;
+      sourceCanonicalId: string;
+      targetCanonicalId: string;
+      strength: 'REQUIRED' | 'RECOMMENDED';
+    }>;
   };
-  // #2055：池级 Runtime 绑定摘要（按族可绑定 OSS 资源计数，连接活动 release 后的真实可用数）。
-  const teachingProjectionIndex = loadTeachingProjectionResourceIndex();
-  const runtimeReleaseIndex = await loadRuntimeReleaseFileIndex();
-  const buildRuntimeBindingSummary = (registry: ResourceNodeRegistry) =>
-    summarizeAdaptivePathRuntimeBindings(
-      resolveAdaptivePathNodeRuntimeBindings({
-        nodes: registry.nodes.map((node) => ({ nodeId: node.id, nodeType: node.type })),
-        projection: teachingProjectionIndex,
-        release: runtimeReleaseIndex,
-      }),
-      new Map(registry.nodes.map((node) => [node.id, node.sourceKind])),
-    );
-  const withDiagnostics = (registry: ResourceNodeRegistry) => ({
-    registry,
-    diagnostics: buildResourceCandidatePoolDiagnostics(registry, sourceFamilies, {
-      runtimeResourceBindings: buildRuntimeBindingSummary(registry),
-    }),
-  });
-  const buildGenericRegistry = () => buildResourceNodeRegistryFromTeachingResources(
-    teachingResources,
-    registeredResources,
-    runtimeLessons,
-    runtimeTextbooks,
-    runtimeResourceProjections,
-  );
-  if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
-    return withDiagnostics(buildGenericRegistry());
-  }
-  if (goalId === 'frequency-response-foundations') {
-    return withDiagnostics(buildResourceNodeRegistryFromTeachingResources(
-      teachingResources,
-      registeredResources,
-      runtimeLessons,
-      runtimeTextbooks,
-      runtimeResourceProjections,
-      buildFrequencyResponseFoundationsResourceSeedInput(),
-    ));
-  }
-  if (getRegisteredAdaptiveLearningPathGoal(goalId)) {
-    return withDiagnostics(buildGenericRegistry());
-  }
-  throw new KonlingRuntimeScopeError(404, '当前学习目标未注册。');
-}
+};
 
-async function loadCandidateSourceFamily<T>(
-  family: string,
-  loader: () => Promise<readonly T[]>,
-): Promise<{ items: T[]; status: ResourceCandidatePoolSourceStatus }> {
-  try {
-    const items = [...await loader()];
-    return {
-      items,
-      status: {
-        family,
-        status: items.length > 0 ? 'loaded' : 'empty',
-        count: items.length,
-        reason: null,
-      },
-    };
-  } catch (error) {
-    if (isMissingFileError(error)) {
-      return {
-        items: [],
-        status: {
-          family,
-          status: 'missing',
-          count: 0,
-          reason: `missing-source-family:${family}`,
-        },
-      };
-    }
-    return {
-      items: [],
-      status: {
-        family,
-        status: 'error',
-        count: 0,
-        reason: `loader-error:${family}`,
-      },
-    };
+async function resolveAdaptivePathGenerationRegistry(_input: KonlingToolRuntimeInput, goalId: string): Promise<AdaptivePathRegistryResult> {
+  const planned = tryLoadGoalPlanningRegistry(goalId);
+  if (!planned) {
+    throw new KonlingRuntimeScopeError(503, '活动教学投影索引不可用，无法生成路径。');
   }
-}
-
-async function loadAdaptivePathTeachingResources(db: unknown): Promise<Array<{
-  id: string;
-  title: string;
-  displayName: string | null;
-  description: string | null;
-  type: string;
-  registryId: string | null;
-  content: string | null;
-  category: string | null;
-  teacherOnly: boolean | null;
-  config: unknown;
-  knowledgeNodes: Array<{
-    id: string;
-    name: string;
-    resources: unknown;
-    tags: string[];
-  }>;
-}>> {
-  const teachingResource = readRecord(db).teachingResource;
-  if (!teachingResource || typeof teachingResource !== 'object') return [];
-  const findMany = readRecord(teachingResource).findMany;
-  if (typeof findMany !== 'function') return [];
-  return await findMany({
-    where: { teacherOnly: false },
-    include: {
-      knowledgeNodes: {
-        select: {
-          id: true,
-          name: true,
-          resources: true,
-          tags: true,
-        },
-      },
+  return {
+    registry: planned.registry,
+    diagnostics: planned.diagnostics,
+    planningScope: {
+      knowledgeIds: planned.universe.knowledgeIds,
+      edges: planned.universe.edges,
     },
-    orderBy: [{ category: 'asc' }, { displayOrder: 'asc' }, { title: 'asc' }],
-  });
+  };
 }
 
 async function buildAdaptivePathSourcePackCandidates(
@@ -11366,7 +11196,7 @@ function toIsoOrNull(value: unknown): string | null {
 
 export class KonlingRuntimeScopeError extends Error {
   constructor(
-    readonly status: 400 | 403 | 404 | 409 | 429,
+    readonly status: 400 | 403 | 404 | 409 | 429 | 503,
     message: string,
   ) {
     super(message);

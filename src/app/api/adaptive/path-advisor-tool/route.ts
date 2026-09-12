@@ -283,7 +283,7 @@ export async function POST(request: Request) {
           readiness: adaptiveGenerationReadinessFromHttp({
             status: error.status,
             source: 'path-advisor-tool',
-            fallbackReason: 'advisor-forbidden',
+            ...(error.status === 503 ? {} : { fallbackReason: 'advisor-forbidden' as const }),
           }),
         }),
         ...(generationRequestId && error.status === 409 ? {
