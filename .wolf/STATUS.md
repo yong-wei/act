@@ -8,6 +8,7 @@
 
 ## ✅ Done
 
+- 2026-09-12：关掉路径规划班级准入。学生登录即可签发/生成；班级只作可选归因。`path-advisor-context` / `path-advisor-tool` / layout / token 校验已改。本机 148 项相关测试通过。未提交、未部署。现网仍是 `v0.7.14`。
 - 2026-09-12：生产应用 `v0.7.14-6efb226`（main `6efb22677b…`，app-only，tar SHA256 `3989f8cd…`）。进领域与节点详情热路径约 1.4–1.6s；欠阻尼侧栏 35 项资源，点「2-2 讲义」查看器打开真讲义；课程/仿真/教材路由 200。未改 Runtime。回滚优先 `0.7.12-43ec828` 或 `0.7.13-1e96ffe` / `0.7.10-2fcc445`。0.7.11 会堵事件循环，勿再选。
 - 2026-09-12：生产应用 `v0.7.10-2fcc445`（main `2fcc445c03…`，app-only，tar SHA256 `1205ddad…`）。热修：画布名称可点、进领域加载层、教学投影匹配缓存、请求期接纳 Runtime 语言包。现网验收：English 切到 Root locus；点领域名进入 132 对象概览；点 Type 1 system 打开详情。未改 Runtime。回滚镜像保留 `0.7.9-da1cc51` 与 `0.7.8-60a6e28`。
 - 2026-09-10：`simplify-runtime-cas-publish-activate` R1–R5 已落地；PR #2078。第三轮 Codex P1（`2edc375`）：缺 `pointers.json` 时从现网 `current` 迁移、旧 v2 可选 `source` 计入摘要、候选 helper 在 reload 前 bind。未生产部署。
@@ -96,7 +97,9 @@
 
 ## 🚀 Next phase
 
-- 2026-09-12：本机 consumer-activation 已对齐现网活指针 `activation-de00f069` + 真实收据 `e76b63ba`（从现网容器拷入，未伪造、未回滚）。六消费者本机均为 `use-combination`/`READY`。运行时不再把收据当门禁；路径/RAG/课程页/控灵按锁文件执行，索引有链接就给出，不再因缺文件打成 reference-only。作者态 authority-store 收据门禁未动。现网 `demo` 仍无班级。未 `deploy:app`。
+- 2026-09-12：路径规划整改已在本机跑通。班级准入 `c32e280eda` 已推。生成器改为目标→教学投影知识点路径→按类型挂载绑定资源；空目标不回退混池。`demo` 在 :3003 已落盘：校正 6/3/6，根轨迹 11/12/1（仿真冲刺从 71 收成 12 个仿真），仿真验证保持空。落盘不再要 `recommendable`。现网仍是 `v0.7.14`，未 `deploy:app`。
+
+- 2026-09-12：本机 consumer-activation 已对齐现网活指针 `activation-de00f069` + 真实收据 `e76b63ba`（从现网容器拷入，未伪造、未回滚）。六消费者本机均为 `use-combination`/`READY`。运行时不再把收据当门禁；路径/RAG/课程页/控灵按锁文件执行，索引有链接就给出，不再因缺文件打成 reference-only。作者态 authority-store 收据门禁未动。路径规划班级准入已在本分支关掉，现网 `v0.7.14` 仍会拦无班级学生。未 `deploy:app`。
 
 - 2026-09-12：生产应用已是 `v0.7.14-6efb226`（app-only）。进领域、侧栏、资源链接已在现网验收。未回滚 Runtime。PR #2078 仍未合并。act-dev1 工作树仍有未提交的 runtime 脚本。
 
