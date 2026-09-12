@@ -167,9 +167,13 @@ function runtimeStamp(): string {
     release,
   ].join('|');
   if (runtimeStampMemo?.key === key) return runtimeStampMemo.value;
+  // Request path keys the capture to app revision, live projection, and
+  // runtime receipt. Lesson/card bytes change with a runtime activate.
   const value = digest({
+    app: publishedResourceAppRevision(),
+    projectionId: live?.projectionId ?? '',
+    projectionHash: live?.projectionHash ?? '',
     release,
-    content: runtimeMetadataStamp(),
   });
   runtimeStampMemo = { key, value };
   return value;

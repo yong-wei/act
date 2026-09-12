@@ -88,7 +88,7 @@ import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-c
 import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
 import { publishedNodeResourceFailure, publishedResourceEnvelopeKey, readPublishedNodeResources, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
-import { loadPublishedResourceFeatureIndexCapture, PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
+import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -609,21 +609,15 @@ function scheduleActiveTeachingWarm(envelope: AuthorityLearnerShard['envelope'])
   setImmediate(() => {
     try {
       matchActiveTeachingProjection({ envelope });
+      warmedTeachingKeys.add(key);
+      if (warmedTeachingKeys.size > 4) {
+        warmedTeachingKeys.delete(warmedTeachingKeys.keys().next().value!);
+      }
     } catch {
+      // Keep the next root/domain request eligible to retry.
+    } finally {
       warmingTeachingKeys.delete(key);
-      return;
     }
-    void loadPublishedResourceFeatureIndexCapture()
-      .then(() => {
-        warmedTeachingKeys.add(key);
-        if (warmedTeachingKeys.size > 4) {
-          warmedTeachingKeys.delete(warmedTeachingKeys.keys().next().value!);
-        }
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        warmingTeachingKeys.delete(key);
-      });
   });
 }
 
