@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   canvas: vi.fn(),
   nodeDetail: vi.fn(),
   publishedResources: vi.fn(),
+  attachBindings: vi.fn(),
   catalogHash: 'c'.repeat(64),
 }));
 
@@ -38,6 +39,22 @@ vi.mock('@/lib/authority-domain-shards/identity', async (importOriginal) => {
 vi.mock('@/lib/authority-domain-shards/published-resource-bindings', async (original) => ({
   ...await original<typeof import('@/lib/authority-domain-shards/published-resource-bindings')>(),
   readPublishedNodeResources: mocks.publishedResources,
+}));
+vi.mock('@/lib/authority-domain-shards/resource-bindings', async (original) => {
+  const mod = await original<typeof import('@/lib/authority-domain-shards/resource-bindings')>();
+  mocks.attachBindings.mockImplementation(mod.attachActiveAuthorityResourceBindings);
+  return {
+    ...mod,
+    attachActiveAuthorityResourceBindings: (
+      ...args: Parameters<typeof mod.attachActiveAuthorityResourceBindings>
+    ) => mocks.attachBindings(...args),
+  };
+});
+vi.mock('@/features/knowledge/resource-index/public-api', async (original) => ({
+  ...await original<typeof import('@/features/knowledge/resource-index/public-api')>(),
+  getLiveResourceRegistryIndex: () => {
+    throw new Error('registry must not close launch-map sidebar');
+  },
 }));
 
 import {
@@ -188,6 +205,33 @@ describe('active Authority role-safe projections', () => {
     expect(body.node).not.toHaveProperty('teachingFields');
     expect(mocks.publishedResources).not.toHaveBeenCalled();
     expect(JSON.stringify(body)).not.toContain('optional resource index unavailable');
+  });
+
+  it('keeps launch-map resource hrefs without closing against the live registry index', async () => {
+    mocks.attachBindings.mockReturnValueOnce({
+      state: 'available',
+      items: [{
+        title: '根轨迹课程',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/interactive-learning/root-locus' },
+      }],
+    });
+    const response = await activePublishedDetailResponse(() => nodeShard, 'STUDENT', new Request('http://localhost/api/knowledge/shards/active/nodes/node-1'));
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.node.resourceBindings).toEqual({
+      state: 'available',
+      items: [{
+        title: '根轨迹课程',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/interactive-learning/root-locus' },
+      }],
+    });
+    expect(mocks.publishedResources).not.toHaveBeenCalled();
   });
 
   it.each([

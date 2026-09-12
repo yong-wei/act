@@ -77,7 +77,6 @@ import {
 import { resolveActiveShardIdentity } from '@/lib/authority-domain-shards/identity';
 import { attachGovernedMathToLearnerShard, attachGovernedMathToSearchHits, governedFormulaSearchTerms } from '@/lib/governed-math/attach';
 import {
-  closeResourceBlockWithLiveRegistryIndex,
   knowledgeSurfaceFromActiveProvenance,
   knowledgeSurfaceFromLearnerShard,
   knowledgeSurfaceSelectorRejection,
@@ -563,25 +562,17 @@ export async function activePublishedDetailResponse(
 function sanitizeResourceBindings(
   bindings: ActiveNodeResourceBindings,
   nodeId: string,
-  expectedCaptureRevision: string | null,
 ): {
   bindings: ActiveNodeResourceBindings;
   registryIndex: KnowledgeSurfaceRegistryIndexIdentity | null;
 } {
-  const closed = closeResourceBlockWithLiveRegistryIndex({
-    bindings,
-    expectedCaptureRevision,
-  });
-  if (closed.bindings.state !== 'available') {
-    return { bindings: closed.bindings, registryIndex: null };
+  // Launch-map sidebar routes are not RegistryIndex launcher refs. Closing
+  // them against the live index empties every student resource list.
+  if (bindings.state !== 'available') {
+    return { bindings, registryIndex: null };
   }
-  const sanitized = sanitizePublicResourceBindingLaunches(closed.bindings, nodeId);
-  const stillAvailable = sanitized.state === 'available'
-    && sanitized.items.some((item) => item.availability === 'available');
-  return {
-    bindings: sanitized,
-    registryIndex: stillAvailable ? closed.registryIndex : null,
-  };
+  const sanitized = sanitizePublicResourceBindingLaunches(bindings, nodeId);
+  return { bindings: sanitized, registryIndex: null };
 }
 
 /**
@@ -670,7 +661,6 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       const closedResources = publishedResources ?? sanitizeResourceBindings(
         attachActiveAuthorityResourceBindings(raw as AuthorityNodeDetailShard, role),
         (raw as AuthorityNodeDetailShard).node.id,
-        teachingCaptureRevision,
       );
       const resourceBindings = closedResources.bindings;
       const { teachingFields: _teachingFields, ...studentNode } = detail.node;
