@@ -17,6 +17,7 @@ import {
 import {
   ACTIVE_RESOURCE_BINDING_ROLES,
   type ActiveNodeDetailResponse,
+  type ActiveResourceBinding,
 } from './active-authority-graph-contracts';
 import 'katex/dist/katex.min.css';
 import { GovernedBlockMath, GovernedRichText, GovernedUnavailableMath } from '@/components/shared/governed-rich-text';
@@ -804,6 +805,14 @@ function useActiveNodeDetail(
 
 const ACTIVE_MOBILE_NODE_LIMIT = 6;
 const SEARCH_RESULT_PAGE_SIZE = 12;
+function activeResourceBindingItemKey(
+  role: string,
+  item: Pick<ActiveResourceBinding, 'resourceId' | 'title' | 'launch'>,
+  index: number,
+): string {
+  return `${role}:${index}:${item.resourceId ?? ''}:${item.launch.kind}:${item.launch.href ?? ''}:${item.title}`;
+}
+
 function trapInspectorFocus(event: KeyboardEvent<HTMLElement>, root: HTMLElement | null) {
   if (event.key !== 'Tab' || !root) return;
   const focusable = [...root.querySelectorAll<HTMLElement>(
@@ -894,12 +903,13 @@ function ActiveNodeDetail({
       aria-modal={compact ? true : undefined}
       onKeyDown={compact ? (event) => trapInspectorFocus(event, panelRef.current) : undefined}
       className={compact
-        ? 'absolute inset-x-3 bottom-3 z-20 max-h-[70%] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'
-        : 'absolute inset-y-3 right-3 z-20 w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
+        ? 'absolute inset-x-3 bottom-3 z-[60] max-h-[70%] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'
+        : 'absolute inset-y-3 right-3 z-[60] w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
       aria-label={graphCopy(locale, 'inspector.label')}
       data-active-node-detail={nodeKey}
       data-active-inspector-surface={compact ? 'mobile-drawer' : 'desktop-overlay'}
       data-active-inspector-focus-contract={compact ? 'mobile-contained-drawer' : 'desktop-overlay'}
+      data-active-inspector-layer="above-workspace-chrome"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -933,185 +943,188 @@ function ActiveNodeDetail({
         </div>
       </div>
 
-      {loading ? (
-        <div className="mt-8 flex items-center gap-2 text-sm text-platform-fg-secondary" role="status">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          {graphCopy(locale, 'loading.detail')}
-        </div>
-      ) : failure ? (
-        <div className="mt-6 rounded-lg border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
-          {failure}
-        </div>
-      ) : detail ? (
-        <div className="mt-5 space-y-5">
-          <div>
-            <div className="mt-3 text-sm leading-6 text-platform-fg-secondary">
-              {node?.richDescription && node.richDescription.state !== 'missing'
-                ? <GovernedRichText projection={node.richDescription} density="detail" />
-                : presentActiveHumanText(node?.description ?? fallbackNode?.description, graphCopy(locale, 'inspector.noDescription'))}
-            </div>
-            {node?.aliases && node.aliases.length > 0 ? (
-              <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.aliases')}{node.aliases.join('、')}</p>
-            ) : null}
-            {node?.mathematics?.state === 'available' ? (
-              <div className="mt-3 overflow-x-auto text-platform-fg-primary" data-active-inspector-math="true">
-                {node.mathematics.macroProfileId && node.mathematics.macroProfileHash ? (
-                  <GovernedBlockMath
-                    latex={node.mathematics.expression}
-                    macroProfileId={node.mathematics.macroProfileId}
-                    macroProfileHash={node.mathematics.macroProfileHash}
-                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
-                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
-                    display={node.mathematics.display}
-                  />
-                ) : (
-                  <GovernedBlockMath
-                    latex={node.mathematics.expression}
-                    macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
-                    macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
-                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
-                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
-                    display={node.mathematics.display}
-                  />
-                )}
-              </div>
-            ) : node?.mathematics?.state === 'unavailable' ? (
-              <GovernedUnavailableMath message={node.mathematics.message} />
-            ) : null}
+      <div className="mt-5 space-y-5">
+        <div>
+          <div className="text-sm leading-6 text-platform-fg-secondary">
+            {node?.richDescription && node.richDescription.state !== 'missing'
+              ? <GovernedRichText projection={node.richDescription} density="detail" />
+              : presentActiveHumanText(node?.description ?? fallbackNode?.description, graphCopy(locale, 'inspector.noDescription'))}
           </div>
-          {node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render' ? (
-            <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
-              <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.card')}</h3>
-              <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
-                <p>{node.learningContent.card.summary}</p>
-                {node.learningContent.card.insight ? <p>{node.learningContent.card.insight}</p> : null}
-                {node.learningContent.card.explanation ? <p>{node.learningContent.card.explanation}</p> : null}
-              </div>
-            </section>
-          ) : node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'unavailable' ? (
-            <p data-optional-content-unavailable="card" className="text-sm text-platform-fg-muted">{cardProjection.message}</p>
+          {node?.aliases && node.aliases.length > 0 ? (
+            <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.aliases')}{node.aliases.join('、')}</p>
           ) : null}
-          {node?.learningContent?.infograph.state === 'available' && !infographFailed && infographProjection.visibility === 'render' ? (
-            <section aria-labelledby="active-detail-infograph" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
-              <h3 id="active-detail-infograph" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.infograph')}</h3>
-              <Image
-                src={shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)}
-                alt={node.learningContent.infograph.alternativeText}
-                width={1200}
-                height={675}
-                sizes="(max-width: 640px) 100vw, 30rem"
-                unoptimized
-                onError={() => setInfographFailed(true)}
-                className="mt-3 h-auto w-full rounded-md border border-platform-border bg-platform-surface object-contain"
-              />
-            </section>
-          ) : null}
-          <section aria-labelledby="active-detail-resources" data-active-inspector-resources="true">
-            <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
-            {node?.resourceBindings?.state === 'available' ? (
-              <div className="mt-2 space-y-3">
-                {(() => {
-                  const boundItems = node.resourceBindings.state === 'available'
-                    ? node.resourceBindings.items
-                    : [];
-                  return ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
-                    const items = boundItems.filter((item) => item.bindingRole === role);
-                    if (items.length === 0) return null;
-                    return (
-                    <div key={role} data-active-resource-role={role}>
-                      <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
-                      <div className="mt-1 space-y-1">
-                        {items.map((item) => (
-                          item.availability === 'available'
-                          && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
-                            <button
-                              type="button"
-                              key={`${role}-${item.resourceId ?? item.title}`}
-                              onClick={() => openResourceViewer({
-                                title: item.title,
-                                resourceKind: item.resourceKind,
-                                href: item.launch.href,
-                                node: item.resourceKind === '知识卡' && item.viewer?.summary
-                                  ? {
-                                      name: item.title,
-                                      description: item.viewer.summary,
-                                      nodeType: 'KnowledgeStatement',
-                                      content: {
-                                        insight: item.viewer.insight,
-                                        explanation: item.viewer.explanation,
-                                      },
-                                    }
-                                  : undefined,
-                                imageSrc: item.viewer?.imageSrc,
-                              })}
-                              data-active-resource-launch={item.launch.kind}
-                              data-active-resource-title={item.title}
-                              className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
-                            >
-                              {item.title}
-                              <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
-                            </button>
-                          ) : (
-                            <p
-                              key={`${role}-${item.resourceId ?? item.title}`}
-                              data-active-resource-unavailable="true"
-                              className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
-                            >
-                              {item.title}（暂不可启动）
-                            </p>
-                          )
-                        ))}
-                      </div>
-                    </div>
-                  );
-                });
-                })()}
-              </div>
-            ) : (
-              <p className="mt-2 text-sm text-platform-fg-muted">
-                {node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
-              </p>
-            )}
-          </section>
-          <section aria-labelledby="active-detail-relations">
-            <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.relations')}</h3>
-            <div className="mt-2 space-y-2">
-              {summaries.length === 0 ? (
-                <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? graphCopy(locale, 'inspector.hiddenRelations') : graphCopy(locale, 'empty.noPublishedRelation')}</p>
-              ) : summaries.slice(0, 20).map((relation) => (
-                <button
-                  key={relation.key}
-                  type="button"
-                  data-active-inspector-neighbor={relation.neighborKey}
-                  onClick={() => onActivateNeighbor(relation.neighborKey)}
-                  className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
-                >
-                  <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
-                  <span className="ml-2 text-platform-fg-muted">
-                    {relation.kind === 'undirected'
-                      ? `${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
-                      : `${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.directionLabel} · ${relation.neighborLabel}`}
-                  </span>
-                </button>
-              ))}
-              {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.hiddenRelations')}</p> : null}
+          {node?.mathematics?.state === 'available' ? (
+            <div className="mt-3 overflow-x-auto text-platform-fg-primary" data-active-inspector-math="true">
+              {node.mathematics.macroProfileId && node.mathematics.macroProfileHash ? (
+                <GovernedBlockMath
+                  latex={node.mathematics.expression}
+                  macroProfileId={node.mathematics.macroProfileId}
+                  macroProfileHash={node.mathematics.macroProfileHash}
+                  accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                  copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                  display={node.mathematics.display}
+                />
+              ) : (
+                <GovernedBlockMath
+                  latex={node.mathematics.expression}
+                  macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
+                  macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
+                  accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                  copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                  display={node.mathematics.display}
+                />
+              )}
             </div>
-          </section>
-          <section aria-labelledby="active-detail-sources">
-            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.sources')}</h3>
-            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources, locale)}</p>
-          </section>
-          {node?.governance ? (
-            <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
-              <h3 className="font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.governance')}</h3>
-              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus, locale)}</dd>
-                <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus, locale)}</dd>
-              </dl>
-            </section>
+          ) : node?.mathematics?.state === 'unavailable' ? (
+            <GovernedUnavailableMath message={node.mathematics.message} />
           ) : null}
         </div>
-      ) : null}
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-platform-fg-secondary" role="status" data-active-inspector-loading="true">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            {graphCopy(locale, 'loading.detail')}
+          </div>
+        ) : failure ? (
+          <div className="rounded-lg border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
+            {failure}
+          </div>
+        ) : null}
+        {detail ? (
+          <>
+            {node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render' ? (
+              <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
+                <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.card')}</h3>
+                <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
+                  <p>{node.learningContent.card.summary}</p>
+                  {node.learningContent.card.insight ? <p>{node.learningContent.card.insight}</p> : null}
+                  {node.learningContent.card.explanation ? <p>{node.learningContent.card.explanation}</p> : null}
+                </div>
+              </section>
+            ) : node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'unavailable' ? (
+              <p data-optional-content-unavailable="card" className="text-sm text-platform-fg-muted">{cardProjection.message}</p>
+            ) : null}
+            {node?.learningContent?.infograph.state === 'available' && !infographFailed && infographProjection.visibility === 'render' ? (
+              <section aria-labelledby="active-detail-infograph" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
+                <h3 id="active-detail-infograph" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.infograph')}</h3>
+                <Image
+                  src={shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)}
+                  alt={node.learningContent.infograph.alternativeText}
+                  width={1200}
+                  height={675}
+                  sizes="(max-width: 640px) 100vw, 30rem"
+                  unoptimized
+                  onError={() => setInfographFailed(true)}
+                  className="mt-3 h-auto w-full rounded-md border border-platform-border bg-platform-surface object-contain"
+                />
+              </section>
+            ) : null}
+            <section aria-labelledby="active-detail-resources" data-active-inspector-resources="true">
+              <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
+              {node?.resourceBindings?.state === 'available' ? (
+                <div className="mt-2 space-y-3">
+                  {(() => {
+                    const boundItems = node.resourceBindings.state === 'available'
+                      ? node.resourceBindings.items
+                      : [];
+                    return ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
+                      const items = boundItems.filter((item) => item.bindingRole === role);
+                      if (items.length === 0) return null;
+                      return (
+                      <div key={role} data-active-resource-role={role}>
+                        <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
+                        <div className="mt-1 space-y-1">
+                          {items.map((item, index) => (
+                            item.availability === 'available'
+                            && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
+                              <button
+                                type="button"
+                                key={activeResourceBindingItemKey(role, item, index)}
+                                onClick={() => openResourceViewer({
+                                  title: item.title,
+                                  resourceKind: item.resourceKind,
+                                  href: item.launch.href,
+                                  node: item.resourceKind === '知识卡' && item.viewer?.summary
+                                    ? {
+                                        name: item.title,
+                                        description: item.viewer.summary,
+                                        nodeType: 'KnowledgeStatement',
+                                        content: {
+                                          insight: item.viewer.insight,
+                                          explanation: item.viewer.explanation,
+                                        },
+                                      }
+                                    : undefined,
+                                  imageSrc: item.viewer?.imageSrc,
+                                })}
+                                data-active-resource-launch={item.launch.kind}
+                                data-active-resource-title={item.title}
+                                className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
+                              >
+                                {item.title}
+                                <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
+                              </button>
+                            ) : (
+                              <p
+                                key={activeResourceBindingItemKey(role, item, index)}
+                                data-active-resource-unavailable="true"
+                                className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
+                              >
+                                {item.title}（暂不可启动）
+                              </p>
+                            )
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  });
+                  })()}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-platform-fg-muted">
+                  {node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
+                </p>
+              )}
+            </section>
+            <section aria-labelledby="active-detail-sources">
+              <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.sources')}</h3>
+              <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources, locale)}</p>
+            </section>
+            {node?.governance ? (
+              <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
+                <h3 className="font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.governance')}</h3>
+                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                  <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus, locale)}</dd>
+                  <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus, locale)}</dd>
+                </dl>
+              </section>
+            ) : null}
+          </>
+        ) : null}
+        <section aria-labelledby="active-detail-relations">
+          <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.relations')}</h3>
+          <div className="mt-2 space-y-2">
+            {summaries.length === 0 ? (
+              <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? graphCopy(locale, 'inspector.hiddenRelations') : graphCopy(locale, 'empty.noPublishedRelation')}</p>
+            ) : summaries.slice(0, 20).map((relation) => (
+              <button
+                key={relation.key}
+                type="button"
+                data-active-inspector-neighbor={relation.neighborKey}
+                onClick={() => onActivateNeighbor(relation.neighborKey)}
+                className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
+              >
+                <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
+                <span className="ml-2 text-platform-fg-muted">
+                  {relation.kind === 'undirected'
+                    ? `${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
+                    : `${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.directionLabel} · ${relation.neighborLabel}`}
+                </span>
+              </button>
+            ))}
+            {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.hiddenRelations')}</p> : null}
+          </div>
+        </section>
+      </div>
     </aside>
   );
 }
@@ -1655,6 +1668,13 @@ export function ActiveAuthorityGraph({
       .every((key) => visibleKeys.has(key));
   const domainEntryNodeCount = scopedGraph?.nodes.length ?? 0;
   const domainEntrySettled = settledDomainEntryNodeCount !== null;
+  // 2D/3D 只在图数据引用变化时通知沉降。引擎若在 overview 尚未进
+  // visibleKeys 时先沉降，或 fit 失败一直不回调，门控会永远不关；点选
+  // 也不得把已关闭的门控再打开。
+  useEffect(() => {
+    if (!domainEntryStageComplete || domainEntryNodeCount <= 0) return;
+    setSettledDomainEntryNodeCount((current) => current ?? domainEntryNodeCount);
+  }, [domainEntryNodeCount, domainEntryStageComplete]);
   const handleDomainEngineSettled = useCallback(() => {
     if (domainEntryStageComplete) setSettledDomainEntryNodeCount(domainEntryNodeCount);
   }, [domainEntryNodeCount, domainEntryStageComplete]);
@@ -1701,9 +1721,9 @@ export function ActiveAuthorityGraph({
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
   useEffect(() => {
     const pending = pendingTypeSelectionRef.current;
-    if (!pending || pending.intent !== selectionIntentRef.current || pending.key !== selectedNodeKey || !selectedNode
-      || !workspace.loadedShardKeys.includes('node-neighborhood:' + selectedNodeKey)) return;
-    pendingTypeSelectionRef.current = null;
+    if (!pending || pending.intent !== selectionIntentRef.current || pending.key !== selectedNodeKey || !selectedNode) {
+      return;
+    }
     setHiddenNodeTypes((current) => {
       const next = new Set(current);
       for (const id of activeFocusNodeIds(visibleAuthorityShardRelations(workspace), selectedNodeKey)) {
@@ -1714,7 +1734,13 @@ export function ActiveAuthorityGraph({
       return next.size === current.size ? current : next;
     });
     if (!matchesActiveResourceTypes(selectedNode.sourceNode, selectedResourceTypes)) setSelectedResourceTypes(new Set());
-  }, [selectedNode, selectedNodeKey, selectedResourceTypes, workspace]);
+    if (
+      workspace.loadedShardKeys.includes(`node-neighborhood:${selectedNodeKey}`)
+      || Boolean(neighborhoodFailures[selectedNodeKey])
+    ) {
+      pendingTypeSelectionRef.current = null;
+    }
+  }, [neighborhoodFailures, selectedNode, selectedNodeKey, selectedResourceTypes, workspace]);
   const selectedName = selectedNode?.label;
   const contextDomainName = workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName;
   const contextTypeFilters = knownActiveNodeTypes().filter((type) => !hiddenNodeTypes.has(type.canonicalType)).map((type) => type.canonicalType).join(',');

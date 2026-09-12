@@ -1205,6 +1205,154 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(drawer?.getAttribute('aria-modal')).toBe('true');
     expect(drawer?.getAttribute('data-active-inspector-focus-contract')).toBe('mobile-contained-drawer');
     expect(container.querySelector('[data-active-authority-main]')?.hasAttribute('inert')).toBe(true);
+    expect(drawer?.getAttribute('data-active-inspector-layer')).toBe('above-workspace-chrome');
+    expect(drawer?.className).toContain('z-[60]');
+  });
+
+  it('keeps the tablet inspector above the floating workspace toolbar', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'));
+      await Promise.resolve();
+    });
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(node).not.toBeNull();
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+    const inspector = container.querySelector('[data-active-inspector-surface="desktop-overlay"]');
+    const toolbar = container.querySelector('[data-knowledge-workspace-toolbar="true"]');
+    expect(inspector).not.toBeNull();
+    expect(toolbar).not.toBeNull();
+    expect(inspector?.getAttribute('data-active-inspector-layer')).toBe('above-workspace-chrome');
+    expect(inspector?.className).toContain('z-[60]');
+    expect(toolbar?.className).toContain('z-50');
+  });
+
+  it('renders same-title resource bindings without collapsing them', async () => {
+    const duplicateKeyWarning = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    detailResourceBindingsEnabled = true;
+    detailResourceBindingItems = [
+      {
+        title: '课程目标',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'registry-resource', href: '/interactive-learning/courses/unit-1-1-see-the-full-picture' },
+      },
+      {
+        title: '课程目标',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'registry-resource', href: '/interactive-learning/courses/unit-1-2-modeling-from-object-to-system' },
+      },
+      {
+        title: '闭环极点',
+        bindingRole: '引用',
+        resourceKind: '教材',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/knowledge/published-resource/textbook-a' },
+      },
+      {
+        title: '闭环极点',
+        bindingRole: '引用',
+        resourceKind: '教材',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/knowledge/published-resource/textbook-b' },
+      },
+    ];
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    expect(container.querySelectorAll('[data-active-resource-title="课程目标"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-active-resource-title="闭环极点"]')).toHaveLength(2);
+    expect(duplicateKeyWarning.mock.calls.some((call) => String(call[0]).includes('same key'))).toBe(false);
+    duplicateKeyWarning.mockRestore();
+  });
+
+  it('reveals current one-hop types and model relations before neighborhood and detail return', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    let resolveNeighborhood!: (value: unknown) => void;
+    const neighborhoodGate = new Promise((resolve) => { resolveNeighborhood = resolve; });
+    let resolveDetail!: (value: unknown) => void;
+    const detailGate = new Promise((resolve) => { resolveDetail = resolve; });
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      const nodeId = decodeURIComponent(url.split('/').pop() ?? 'node-concept');
+      if (url.endsWith('/api/knowledge/shards/active')) return mockResponse(rootShard);
+      if (url.includes('/domains/') && url.includes('/families/association')) {
+        return mockResponse(familyShard('association', [canvas.relations[0]]));
+      }
+      if (url.includes('/domains/') && url.includes('/search')) {
+        return mockResponse(domainSearchPayload(
+          canvas.nodes.map((node) => ({ id: node.id, canonicalType: node.canonicalType, label: node.label })),
+          url,
+        ));
+      }
+      if (url.includes('/domains/')) return mockResponse(domainDefaultShard());
+      if (url.includes('/neighborhoods/')) {
+        await neighborhoodGate;
+        return mockResponse(neighborhoodShard(nodeId));
+      }
+      if (url.includes('/shards/active/nodes/')) {
+        await detailGate;
+        return mockResponse({
+          shardClass: 'node-detail',
+          envelope: shardEnvelope,
+          node: {
+            ...nodeDetail(nodeId).node,
+            teachingFields: {},
+            media: { cardAvailable: false, infographAvailable: false },
+            learningContent: {
+              card: { state: 'missing', message: '当前节点暂无已发布学习卡片。' },
+              infograph: { state: 'missing', message: '当前节点暂无可用信息图。' },
+            },
+          },
+        });
+      }
+      throw new Error(`unexpected product request ${url}`);
+    });
+
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'));
+      await Promise.resolve();
+    });
+    const domainButton = container.querySelector<HTMLButtonElement>('[data-authority-domain-entry="modeling"]');
+    expect(domainButton).not.toBeNull();
+    await act(async () => domainButton!.click());
+    await act(async () => Promise.resolve());
+    const association = container.querySelector<HTMLButtonElement>('[data-authority-relation-family="association"]');
+    expect(association).not.toBeNull();
+    await act(async () => association!.click());
+    await act(async () => Promise.resolve());
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).toBeNull();
+
+    const concept = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    expect(concept).not.toBeNull();
+    await act(async () => concept!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => Promise.resolve());
+
+    const inspector = container.querySelector('[data-active-node-detail="node-concept"]');
+    expect(inspector).not.toBeNull();
+    expect(inspector?.querySelector('[data-active-inspector-loading="true"]')).not.toBeNull();
+    expect(inspector?.querySelector('[data-active-inspector-neighbor="node-formula"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-authority-node="node-formula"]')).not.toBeNull();
+
+    resolveNeighborhood(undefined);
+    resolveDetail(undefined);
+    await act(async () => Promise.resolve());
   });
 
   it('opens an inspector resource in the shared viewer and restores focus', async () => {
@@ -2290,15 +2438,22 @@ describe('active Authority knowledge workspace client boundary', () => {
     const graphSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'), 'utf8');
     const workspaceSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-workspace.tsx'), 'utf8');
     expect(workspaceSource).toContain('pointer-events-none absolute inset-0 z-40');
-    expect(workspaceSource).toContain('max-w-[min(28rem,calc(50%-1.25rem))]');
-    expect(workspaceSource).toContain('max-[639px]:max-w-[calc(100%-8rem)]');
+    expect(workspaceSource).toContain('inline-flex w-fit max-w-[calc(100%-8.5rem)]');
+    expect(workspaceSource).not.toContain('max-w-[min(28rem,calc(50%-1.25rem))]');
     expect(graphSource).toContain('w-[min(16rem,calc(50%-1.25rem))]');
     expect(graphSource).toContain('max-[639px]:w-28');
     expect(graphSource).toContain('selectInitialPrimaryDomainScope(model, visibleNodeLimit)');
     expect(graphSource).toContain('expandActiveAuthorityOneHop(model, current, disclosedRelation.sourceKey, visibleNodeLimit)');
     expect(graphSource).toContain('materializeActiveNodeScope(model, selectedNodeKey, visibleNodeLimit)');
+    expect(graphSource).toContain('z-[60]');
+    expect(graphSource).toContain('data-active-inspector-layer="above-workspace-chrome"');
+    expect(graphSource).toContain('activeResourceBindingItemKey');
+    expect(graphSource).not.toContain("loadedShardKeys.includes('node-neighborhood:' + selectedNodeKey)");
+    expect(graphSource).toContain('if (!domainEntryStageComplete || domainEntryNodeCount <= 0) return');
+    expect(graphSource).toContain('setSettledDomainEntryNodeCount((current) => current ?? domainEntryNodeCount)');
     const runtimeViewSource = readFileSync(path.join(process.cwd(), 'src/features/knowledge/active-authority-runtime-view.tsx'), 'utf8');
     expect(runtimeViewSource).toContain('labelPriority: compactLabelPriority');
+    expect(runtimeViewSource).toContain('z-30 flex items-center justify-center bg-platform-surface');
   });
 
   it('keeps a semantic node click selectable after pointerdown on the node', async () => {
@@ -2333,7 +2488,10 @@ describe('active Authority knowledge workspace client boundary', () => {
     const modeSwitch = container.querySelector<HTMLElement>('[data-knowledge-mode-switch="true"]');
     expect(modeSwitch).not.toBeNull();
     expect(modeSwitch?.className).toContain('flex-wrap');
-    expect(modeSwitch?.className).toContain('max-w-[min(28rem,calc(50%-1.25rem))]');
+    expect(modeSwitch?.className).toContain('inline-flex');
+    expect(modeSwitch?.className).toContain('w-fit');
+    expect(modeSwitch?.className).toContain('max-w-[calc(100%-8.5rem)]');
+    expect(modeSwitch?.className).not.toContain('max-w-[min(28rem,calc(50%-1.25rem))]');
     const modeButtons = [...container.querySelectorAll<HTMLButtonElement>('[data-knowledge-mode]')];
     expect(modeButtons).toHaveLength(3);
     expect(modeButtons.every((button) => button.className.includes('shrink-0') && button.className.includes('whitespace-nowrap'))).toBe(true);

@@ -271,7 +271,7 @@ export function ActiveAuthorityRuntimeView({
         />
         {entryGateActive ? (
           <div
-            className="absolute inset-0 z-10 flex items-center justify-center bg-platform-surface"
+            className="absolute inset-0 z-30 flex items-center justify-center bg-platform-surface"
             data-active-authority-entry-gate="true"
             aria-live="polite"
           >
