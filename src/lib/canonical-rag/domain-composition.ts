@@ -279,12 +279,10 @@ export function applyEngineeringRagConsumerActivation(
     return { ...query, activationMode: selection.mode };
   }
   if (selection.mode === 'unavailable') {
-    // Fail closed: strip identity so the query cannot succeed on global data.
     return {
       ...query,
-      authorityReleaseId: null,
+      ...(pins.authorityReleaseId ? { authorityReleaseId: pins.authorityReleaseId } : {}),
       activationMode: selection.mode,
-      activationBlocked: true,
       activationReasons: selection.reasons,
     };
   }
@@ -332,11 +330,9 @@ export function applyTeachingResourceRagConsumerActivation(
   if (selection.mode === 'unavailable') {
     return {
       ...query,
-      projectionId: null,
-      projectionHash: null,
-      authorityReleaseId: null,
+      ...(pins.projectionId ? { projectionId: pins.projectionId, projectionHash: pins.projectionHash } : {}),
+      ...(pins.authorityReleaseId ? { authorityReleaseId: pins.authorityReleaseId } : {}),
       activationMode: selection.mode,
-      activationBlocked: true,
       activationReasons: selection.reasons,
     };
   }

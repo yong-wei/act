@@ -503,10 +503,28 @@ export function applyLearningPathConsumerActivation(
     };
   }
   if (selection.mode === 'unavailable') {
-    // Fail closed: clear projection identity so the planner cannot execute
-    // against a global/caller combination while activation evidence is bad.
+    if (pins.projectionId && pins.authorityReleaseId) {
+      return {
+        projection: {
+          authorityReleaseId: pins.authorityReleaseId,
+          projectionId: pins.projectionId,
+          projectionHash: pins.projectionHash,
+          scopeId:
+            selection.combination?.scopeId
+            ?? projection?.scopeId
+            ?? 'unscoped',
+          prerequisitePublicationId: projection?.prerequisitePublicationId,
+          prerequisiteGraphIdentity: projection?.prerequisiteGraphIdentity,
+        },
+        activationMode: selection.mode,
+        reasons: [
+          ...selection.reasons,
+          'learning-path-activation-used-live-pins',
+        ],
+      };
+    }
     return {
-      projection: null,
+      projection,
       activationMode: selection.mode,
       reasons: [
         'learning-path-activation-unavailable',

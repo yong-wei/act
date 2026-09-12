@@ -301,56 +301,100 @@ export function stageTeachingProjectionArtifacts(
   };
 }
 
+export type LoadStagedTeachingProjectionOptions = {
+  /**
+   * Default true. Publish/qualify keep full artifact digest.
+   * Request-path readers pass false and trust pointer/sidecar identity.
+   */
+  verify?: boolean;
+};
+
+const requestPathStagedCache = new Map<string, StagedTeachingProjectionFiles>();
+
+export function resetStagedTeachingProjectionRequestCache(): void {
+  requestPathStagedCache.clear();
+}
+
 export function loadStagedTeachingProjection(
   paths: TeachingProjectionStorePaths,
   projectionId: string,
+  options?: LoadStagedTeachingProjectionOptions,
 ): StagedTeachingProjectionFiles {
+  const verify = options?.verify !== false;
   const dir = releaseDirFor(paths, projectionId);
   const manifest = readJsonFile<TeachingProjectionManifest>(
     join(dir, 'projection-manifest.json'),
   );
-  const resources = readJsonlFile(join(dir, 'resources.jsonl'));
-  const bindings = readJsonlFile(join(dir, 'bindings.jsonl'));
-  const prerequisites = readJsonlFile(join(dir, 'prerequisites.jsonl'));
-  const coreNodesFile = readJsonFile<{ nodes: TeachingProjectionArtifacts['coreNodes'] }>(
-    join(dir, 'core-nodes.json'),
-  );
-  const cardsIndex = readJsonFile<TeachingProjectionArtifacts['cardsIndex']>(
-    join(dir, 'cards-index.json'),
-  );
-  const impactReport = readJsonFile<TeachingProjectionArtifacts['impactReport']>(
-    join(dir, 'impact-report.json'),
-  );
-  const gate = readJsonFile<TeachingProjectionArtifacts['gate']>(join(dir, 'gate.json'));
-
-  const artifacts: TeachingProjectionArtifacts = {
-    resources: resources as TeachingProjectionArtifacts['resources'],
-    bindings: bindings as TeachingProjectionArtifacts['bindings'],
-    prerequisites: prerequisites as TeachingProjectionArtifacts['prerequisites'],
-    coreNodes: coreNodesFile.nodes,
-    cardsIndex,
-    manifest,
-    impactReport,
-    gate,
-  };
-
-  verifyTeachingProjectionArtifacts(artifacts);
-
-  const fileHashes: Record<string, string> = {};
-  for (const name of [
-    'resources.jsonl',
-    'bindings.jsonl',
-    'prerequisites.jsonl',
-    'core-nodes.json',
-    'cards-index.json',
-    'projection-manifest.json',
-    'impact-report.json',
-    'gate.json',
-  ]) {
-    fileHashes[name] = fileSha256(join(/*turbopackIgnore: true*/ dir, name));
+  const cacheKey = `${dir}:${manifest.projectionId}:${manifest.projectionHash}`;
+  if (!verify) {
+    const cached = requestPathStagedCache.get(cacheKey);
+    if (cached) return cached;
   }
 
-  return {
+  const resources = readJsonlFile(join(dir, 'resources.jsonl'));
+  const bindings = readJsonlFile(join(dir, 'bindings.jsonl'));
+  const gate = readJsonFile<TeachingProjectionArtifacts['gate']>(join(dir, 'gate.json'));
+
+  const artifacts: TeachingProjectionArtifacts = verify
+    ? {
+        resources: resources as TeachingProjectionArtifacts['resources'],
+        bindings: bindings as TeachingProjectionArtifacts['bindings'],
+        prerequisites: readJsonlFile(join(dir, 'prerequisites.jsonl')) as TeachingProjectionArtifacts['prerequisites'],
+        coreNodes: readJsonFile<{ nodes: TeachingProjectionArtifacts['coreNodes'] }>(
+          join(dir, 'core-nodes.json'),
+        ).nodes,
+        cardsIndex: readJsonFile<TeachingProjectionArtifacts['cardsIndex']>(
+          join(dir, 'cards-index.json'),
+        ),
+        manifest,
+        impactReport: readJsonFile<TeachingProjectionArtifacts['impactReport']>(
+          join(dir, 'impact-report.json'),
+        ),
+        gate,
+      }
+    : {
+        resources: resources as TeachingProjectionArtifacts['resources'],
+        bindings: bindings as TeachingProjectionArtifacts['bindings'],
+        prerequisites: [],
+        coreNodes: [],
+        cardsIndex: { contract: 'act-teaching-projection-cards-index/v1', cards: [] },
+        manifest,
+        impactReport: {
+          contract: 'act-teaching-projection-impact/v1',
+          projectionId: manifest.projectionId,
+          projectionHash: manifest.projectionHash,
+          records: [],
+          summary: {
+            includedResourceCount: manifest.resourceCount,
+            includedBindingCount: manifest.bindingCount,
+            notProjectedAuthorityNodeCount: 0,
+            gateErrorCount: 0,
+          },
+        },
+        gate,
+      };
+
+  if (verify) {
+    verifyTeachingProjectionArtifacts(artifacts);
+  }
+
+  const fileHashes: Record<string, string> = {};
+  if (verify) {
+    for (const name of [
+      'resources.jsonl',
+      'bindings.jsonl',
+      'prerequisites.jsonl',
+      'core-nodes.json',
+      'cards-index.json',
+      'projection-manifest.json',
+      'impact-report.json',
+      'gate.json',
+    ]) {
+      fileHashes[name] = fileSha256(join(/*turbopackIgnore: true*/ dir, name));
+    }
+  }
+
+  const loaded = {
     projectionId: manifest.projectionId,
     projectionHash: manifest.projectionHash,
     releaseDir: dir,
@@ -358,6 +402,13 @@ export function loadStagedTeachingProjection(
     reused: true,
     fileHashes,
   };
+  if (!verify) {
+    requestPathStagedCache.set(cacheKey, loaded);
+    if (requestPathStagedCache.size > 4) {
+      requestPathStagedCache.delete(requestPathStagedCache.keys().next().value!);
+    }
+  }
+  return loaded;
 }
 
 /**

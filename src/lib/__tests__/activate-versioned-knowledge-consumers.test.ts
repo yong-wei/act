@@ -1018,6 +1018,36 @@ describe('Staged activation and atomic pointer (#1276)', () => {
     const resolved = resolveActiveConsumerActivation(paths);
     expect(resolved.status).toBe('unavailable');
   });
+
+  it('lets consumers read pointer and release when the activation receipt is absent', () => {
+    const paths = tempActivationRoot();
+    const staged = stageConsumerActivation(paths, {
+      artifacts: completeArtifacts(),
+      stagedAt: '2026-08-04T04:10:00.000Z',
+      activationId: 'activation-no-receipt',
+    });
+    const activation = activateConsumerActivation(paths, {
+      activationId: staged.activationId,
+      activationReceiptId: 'receipt-to-drop',
+    });
+    expect(activation.status).toBe('activated');
+    rmSync(path.join(paths.activationsDir, 'receipt-to-drop.json'));
+
+    const resolved = resolveActiveConsumerActivation(paths);
+    expect(resolved.status).toBe('available');
+    expect(resolved.manifest?.activationId).toBe(staged.activationId);
+    expect(resolved.manifest?.activationHash).toBe(staged.activationHash);
+
+    const prev = process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+    process.env.ACT_CONSUMER_ACTIVATION_ROOT = paths.root;
+    try {
+      expect(resolveEngineeringGraphProductionSelection().mode).toBe('use-combination');
+      expect(resolveLearningPathProductionSelection().mode).toBe('use-combination');
+    } finally {
+      if (prev === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
+      else process.env.ACT_CONSUMER_ACTIVATION_ROOT = prev;
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -2,13 +2,15 @@
 
 > Single source of truth for resuming work. Read this FIRST when starting a session.
 > Update this file at the end of every work phase so the next `/clear` resumes in 1 read.
-> Last updated: 2026-09-10
+> Last updated: 2026-09-12
 
 ---
 
 ## ✅ Done
 
-- 2026-09-10：`simplify-runtime-cas-publish-activate` R1–R5 已落地；PR #2078。Codex 首轮 5 条 P1 已按生产合同修复：激活改 `blob-views/current`、物化写 v1 收据与 helper 目录、清单按 publisher 公式校验、GC execute 课堂引用失败关闭、smoke 绑定候选视图。未生产部署。
+- 2026-09-12：生产应用 `v0.7.14-6efb226`（main `6efb22677b…`，app-only，tar SHA256 `3989f8cd…`）。进领域与节点详情热路径约 1.4–1.6s；欠阻尼侧栏 35 项资源，点「2-2 讲义」查看器打开真讲义；课程/仿真/教材路由 200。未改 Runtime。回滚优先 `0.7.12-43ec828` 或 `0.7.13-1e96ffe` / `0.7.10-2fcc445`。0.7.11 会堵事件循环，勿再选。
+- 2026-09-12：生产应用 `v0.7.10-2fcc445`（main `2fcc445c03…`，app-only，tar SHA256 `1205ddad…`）。热修：画布名称可点、进领域加载层、教学投影匹配缓存、请求期接纳 Runtime 语言包。现网验收：English 切到 Root locus；点领域名进入 132 对象概览；点 Type 1 system 打开详情。未改 Runtime。回滚镜像保留 `0.7.9-da1cc51` 与 `0.7.8-60a6e28`。
+- 2026-09-10：`simplify-runtime-cas-publish-activate` R1–R5 已落地；PR #2078。第三轮 Codex P1（`2edc375`）：缺 `pointers.json` 时从现网 `current` 迁移、旧 v2 可选 `source` 计入摘要、候选 helper 在 reload 前 bind。未生产部署。
 - 2026-09-10：CORS 只放行生产源。船模公开目录回源与首帧同源探测已合入 `origin/integration@2f715f022`（`1bf80e002`）。未部署。
 - 2026-09-09：七船当前激活为雪龙2 1.0.1、爱达 1.0.1、Tessa 1.1.1、长恒 1.1.1、天鲸 1.1.1、055 2.2.1、981 1.1.1。旧版本化目录与描述符已退役。用户建了 `act-course-models` 并授 `model-releases/` 的 List/Get/Put。165 个对象已上传。ESA 已接通：`static.adapt-learn.online` CNAME 为 `static.adapt-learn.online.a1.initww.com`。CORS 只放行 `https://act.adapt-learn.online`。根域与 `act` 仍指向 `121.40.124.135`。本机 3002 继续走镜像。
 
@@ -94,7 +96,13 @@
 
 ## 🚀 Next phase
 
-- 2026-09-10：PR #2078 等待新 HEAD 的 Codex 复审。同一 HEAD 不得再发 `@codex review`。不要生产 `deploy:app` / `runtime:activate`。不要再跑已删的 `deploy:runtime`。既有失败：`test-r4-c5-cutover-contract.mjs`（密封选择器漂移）、overlay installer 对密封 domain-teaching 重算哈希（与本变更无关）。
+- 2026-09-12：本机 consumer-activation 已对齐现网活指针 `activation-de00f069` + 真实收据 `e76b63ba`（从现网容器拷入，未伪造、未回滚）。六消费者本机均为 `use-combination`/`READY`。运行时不再把收据当门禁；路径/RAG/课程页/控灵按锁文件执行，索引有链接就给出，不再因缺文件打成 reference-only。作者态 authority-store 收据门禁未动。现网 `demo` 仍无班级。未 `deploy:app`。
+
+- 2026-09-12：生产应用已是 `v0.7.14-6efb226`（app-only）。进领域、侧栏、资源链接已在现网验收。未回滚 Runtime。PR #2078 仍未合并。act-dev1 工作树仍有未提交的 runtime 脚本。
+
+- 2026-09-12：已把 r6 `snap-0253d66d` 与激活收据拷到宿主机权威仓，`current.json` 已改指。旧 `snap-e2d8b92f` 与 `current.json.bak-20260912-pre-r6` 保留。登录根分片/建模域/先后修均为 200，`bilingualReady=true`。
+
+- 2026-09-11：PR #2078 清场已到。HEAD `d09d3c3650`，Codex：https://github.com/yong-wei/act/pull/2078#issuecomment-5622622539 。未合并。不要再跑已删的 `deploy:runtime`。既有失败：`test-r4-c5-cutover-contract.mjs`（密封选择器漂移）、overlay installer 对密封 domain-teaching 重算哈希（与本变更无关）。语义文案（英文门、空族、ABSENT）要上现网还需另授 `deploy:app`。
 
 - 2026-09-10：CORS 方案 1 已确认（只放行 `https://act.adapt-learn.online`）。船模公开存储加载已合入 `origin/integration@2f715f022`（功能提交 `1bf80e002`）。未 `deploy:app`。不要加 A 记录。不要改课程运行态 desired。CORS `Access-Control-Expose-Headers` 里 `ontent-Range` 少了首字母 C，可后修。
 

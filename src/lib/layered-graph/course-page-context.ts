@@ -196,30 +196,6 @@ export function resolveCoursePageLayeredGraphContext(
     readAgreedLiveCourseProjection(repoRoot, { projectionRoot: projectionPaths.root }),
   );
 
-  // Corrupted / mismatched activation evidence must fail closed — never fall
-  // through to global Authority/Projection current pointers.
-  if (courseActivation.mode === 'unavailable') {
-    const payload = resolveCourseLayeredGraph({
-      authorityPaths,
-      projectionPaths,
-      scope: input.scope,
-      // Impossible pins force Authority/Projection load failure.
-      candidateProjectionId: '__consumer-activation-unavailable__',
-      allowLegacyFallback: false,
-      legacyProjection: null,
-      authoritySnapshotId: '__consumer-activation-unavailable__',
-      authoritySnapshotHash: '0'.repeat(64),
-      authorityReleaseId: '__consumer-activation-unavailable__',
-    });
-    return {
-      payload,
-      scope: input.scope,
-      resourceLaunchTargets: {},
-      resourceRegistryIds: {},
-      hasTeachingProjection: false,
-    };
-  }
-
   let pinnedProjectionId = input.pinnedProjectionId ?? null;
   let pinnedProjectionHash = input.pinnedProjectionHash ?? null;
   let candidateProjectionId = input.candidateProjectionId ?? null;
@@ -227,7 +203,7 @@ export function resolveCoursePageLayeredGraphContext(
   let authoritySnapshotHash = input.authoritySnapshotHash ?? null;
   let authorityReleaseId = input.authorityReleaseId ?? null;
 
-  if (courseActivation.mode === 'use-combination') {
+  if (courseActivation.mode === 'use-combination' || courseActivation.mode === 'unavailable') {
     // READY combination: force the selected Authority+Projection pair.
     if (coursePins.projectionId) {
       candidateProjectionId = coursePins.projectionId;

@@ -52,7 +52,10 @@ describe('reviewed legacy textbook references', () => {
       { structuralPath: ['chapter-chapter-07', 'section-7.3'], chapterId: 'chapter-07', markdown: 'Departure angles' },
     ];
     try {
-      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend.kind).toBe('reference-only');
+      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend).toEqual({
+        kind: 'route',
+        href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-07',
+      });
       writeFileSync(join(book, 'manifest.json'), JSON.stringify({ bookId: 'dorf-modern-control-systems', edition: '14th Global Edition' }));
       writeFileSync(join(book, 'units.jsonl'), units.map((unit) => JSON.stringify(unit)).join('\n'));
       const first = buildVersionIndex([resource], { runtimeRoot: root }).resources[0];
@@ -61,7 +64,10 @@ describe('reviewed legacy textbook references', () => {
       writeFileSync(join(book, 'units.jsonl'), units.map((unit) => JSON.stringify(unit)).join('\n'));
       expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].version).not.toBe(first.version);
       writeFileSync(join(book, 'manifest.json'), JSON.stringify({ bookId: 'dorf-modern-control-systems', edition: 'wrong edition' }));
-      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend.kind).toBe('reference-only');
+      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend).toEqual({
+        kind: 'route',
+        href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-07',
+      });
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 
@@ -86,9 +92,12 @@ describe('reviewed legacy textbook references', () => {
         symlinkSync(join(blobs, name), join(book, name));
       }
       expect(buildVersionIndex([resource], { runtimeRoot: root, runtimeManifest: manifest }).resources[0].backend.kind).toBe('route');
-      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend.kind).toBe('reference-only');
+      expect(buildVersionIndex([resource], { runtimeRoot: root }).resources[0].backend).toEqual({
+        kind: 'route',
+        href: '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-07',
+      });
       writeFileSync(join(blobs, 'units.jsonl'), bytes['units.jsonl'] + '\nchanged');
-      expect(buildVersionIndex([resource], { runtimeRoot: root, runtimeManifest: manifest }).resources[0].backend.kind).toBe('reference-only');
+      expect(buildVersionIndex([resource], { runtimeRoot: root, runtimeManifest: manifest }).resources[0].backend.kind).toBe('route');
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 });
