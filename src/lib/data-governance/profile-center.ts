@@ -461,7 +461,8 @@ function normalizeStatusMarkers(value: unknown): StudentEvidenceStatusMarker[] {
     item === 'stale' ||
     item === 'partial' ||
     item === 'low-confidence' ||
-    item === 'missing-source'
+    item === 'missing-source' ||
+    item === 'mixed-knowledge-identity'
   );
 }
 

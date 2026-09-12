@@ -187,18 +187,22 @@ function validateInteractiveResourceSourceContext(
     : 'resource-source-mismatch';
 }
 
-function isGovernedCourseStudentDemoStep(target: string): boolean {
+export function readGovernedCourseStudentDemoStep(target: string): string | null {
   try {
     const parsed = new URL(target, 'https://act.local');
     const match = /^\/interactive-learning\/courses\/([^/]+)\/student\/demo$/.exec(parsed.pathname);
     if (!match || !isManifestCourseRouteSegment(match[1])) {
-      return false;
+      return null;
     }
-    const step = parsed.searchParams.get('step');
-    return Boolean(step && step.trim());
+    const step = parsed.searchParams.get('step')?.trim();
+    return step || null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+function isGovernedCourseStudentDemoStep(target: string): boolean {
+  return readGovernedCourseStudentDemoStep(target) !== null;
 }
 
 function hasIntegratedJourneyDestination(

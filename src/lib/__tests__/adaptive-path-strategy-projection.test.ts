@@ -11,6 +11,10 @@ import {
 } from '@/features/personalization/path-planning/public-api';
 import { buildControlCorrectionLearningCenterView, ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG } from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import {
+  resolveAdaptivePathToolGenerationStatus,
+  selectVisibleAdaptivePathOptions,
+} from '@/features/personalization/path-planning/adaptive-path-batch-comparison-view';
+import {
   buildStudentSafeBatchComparison,
   buildStudentSafeCandidatePathOption,
   buildStudentSafePathOptions,
@@ -249,5 +253,38 @@ describe('student-safe strategy projection (#2033)', () => {
       strategyId: expect.any(String),
       generic: expect.any(Boolean),
     });
+  });
+
+  it('does not fall back to current-path options when candidate diversity failed', () => {
+    const fallback = [{ optionId: 'plan-a' }, { optionId: 'plan-b' }, { optionId: 'plan-c' }];
+    expect(selectVisibleAdaptivePathOptions(
+      { comparison: { insufficientCandidateDiversity: true } },
+      [],
+      fallback,
+    )).toEqual([]);
+    expect(selectVisibleAdaptivePathOptions(
+      { metadata: { diversityLimitations: ['insufficient-candidate-diversity'] } },
+      [],
+      fallback,
+    )).toEqual([]);
+    expect(selectVisibleAdaptivePathOptions(null, [], fallback)).toEqual(fallback);
+  });
+
+  it('treats hard-diversity failure as a blocked generation, not a persisted success', () => {
+    expect(resolveAdaptivePathToolGenerationStatus({
+      noMaterialDifference: false,
+      insufficientCandidateDiversity: true,
+      hasPersistedOutput: true,
+    })).toBe('blocked');
+    expect(resolveAdaptivePathToolGenerationStatus({
+      noMaterialDifference: false,
+      insufficientCandidateDiversity: false,
+      hasPersistedOutput: true,
+    })).toBe('persisted');
+    expect(resolveAdaptivePathToolGenerationStatus({
+      noMaterialDifference: true,
+      insufficientCandidateDiversity: true,
+      hasPersistedOutput: true,
+    })).toBe('no_material_difference');
   });
 });

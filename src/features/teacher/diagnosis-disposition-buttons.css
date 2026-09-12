@@ -1,0 +1,176 @@
+/* Opaque disposition controls. Keep selectors above leftover globals.css @apply rules. */
+button.btn-disposition,
+a.btn-disposition {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  border-width: 2px;
+  border-style: solid;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 150ms, border-color 150ms, color 150ms, box-shadow 150ms;
+}
+
+button.btn-disposition:focus-visible,
+a.btn-disposition:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px #38bdf8;
+}
+
+button.btn-disposition:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+button.btn-disposition[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+button.btn-disposition[aria-pressed="true"]:focus-visible {
+  box-shadow: inset 0 0 0 1px currentColor, 0 0 0 2px hsl(var(--background)), 0 0 0 4px #38bdf8;
+}
+
+html:not(.light) button.btn-disposition-neutral,
+html:not(.light) a.btn-disposition-neutral {
+  border-color: #94a3b8;
+  background-color: #334155;
+  color: #f8fafc;
+}
+
+html:not(.light) button.btn-disposition-neutral:hover,
+html:not(.light) a.btn-disposition-neutral:hover {
+  background-color: #475569;
+}
+
+html:not(.light) button.btn-disposition-neutral:active,
+html:not(.light) a.btn-disposition-neutral:active {
+  background-color: #1e293b;
+}
+
+html:not(.light) button.btn-disposition-pending,
+html:not(.light) a.btn-disposition-pending {
+  border-color: #fbbf24;
+  background-color: #78350f;
+  color: #fffbeb;
+}
+
+html:not(.light) button.btn-disposition-pending:hover,
+html:not(.light) a.btn-disposition-pending:hover {
+  background-color: #92400e;
+}
+
+html:not(.light) button.btn-disposition-pending:active {
+  background-color: #451a03;
+}
+
+html:not(.light) button.btn-disposition-success,
+html:not(.light) a.btn-disposition-success {
+  border-color: #34d399;
+  background-color: #064e3b;
+  color: #ecfdf5;
+}
+
+html:not(.light) button.btn-disposition-success:hover,
+html:not(.light) a.btn-disposition-success:hover {
+  background-color: #065f46;
+}
+
+html:not(.light) button.btn-disposition-success:active {
+  background-color: #022c22;
+}
+
+html:not(.light) button.btn-disposition-primary,
+html:not(.light) a.btn-disposition-primary {
+  border-color: #7dd3fc;
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+html:not(.light) button.btn-disposition-primary:hover,
+html:not(.light) a.btn-disposition-primary:hover {
+  background-color: #0ea5e9;
+}
+
+html:not(.light) button.btn-disposition-primary:active,
+html:not(.light) a.btn-disposition-primary:active {
+  background-color: #0369a1;
+}
+
+html.light button.btn-disposition:focus-visible,
+html.light a.btn-disposition:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0369a1;
+}
+
+html.light button.btn-disposition[aria-pressed="true"]:focus-visible {
+  box-shadow: inset 0 0 0 1px currentColor, 0 0 0 2px #fff, 0 0 0 4px #0369a1;
+}
+
+html.light button.btn-disposition-neutral,
+html.light a.btn-disposition-neutral {
+  border-color: #475569;
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+html.light button.btn-disposition-neutral:hover,
+html.light a.btn-disposition-neutral:hover {
+  background-color: #cbd5e1;
+}
+
+html.light button.btn-disposition-neutral:active,
+html.light a.btn-disposition-neutral:active {
+  background-color: #94a3b8;
+}
+
+html.light button.btn-disposition-pending,
+html.light a.btn-disposition-pending {
+  border-color: #92400e;
+  background-color: #fde68a;
+  color: #451a03;
+}
+
+html.light button.btn-disposition-pending:hover,
+html.light a.btn-disposition-pending:hover {
+  background-color: #fcd34d;
+}
+
+html.light button.btn-disposition-pending:active {
+  background-color: #fbbf24;
+}
+
+html.light button.btn-disposition-success,
+html.light a.btn-disposition-success {
+  border-color: #065f46;
+  background-color: #a7f3d0;
+  color: #022c22;
+}
+
+html.light button.btn-disposition-success:hover,
+html.light a.btn-disposition-success:hover {
+  background-color: #6ee7b7;
+}
+
+html.light button.btn-disposition-success:active {
+  background-color: #34d399;
+}
+
+html.light button.btn-disposition-primary,
+html.light a.btn-disposition-primary {
+  border-color: #075985;
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+html.light button.btn-disposition-primary:hover,
+html.light a.btn-disposition-primary:hover {
+  background-color: #0ea5e9;
+}
+
+html.light button.btn-disposition-primary:active,
+html.light a.btn-disposition-primary:active {
+  background-color: #075985;
+}

@@ -7,6 +7,8 @@ import type {
   InteractiveRuntimeManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import { resolveAdaptivePathLaunchReturnContext } from '@/features/personalization/experience/adaptive-learning-center-contracts';
+import { persistPathLaunchedCourseDemoIfCurrentStep } from '@/resources/simulations/persisted-run-client';
 import { buildManifestSubmissionTelemetry } from './submission-telemetry';
 
 interface ManifestSubmissionResponse {
@@ -114,18 +116,44 @@ export function useManifestSubmissionController({ trackCourseEvent }: ManifestSu
     ({ stepId, isResubmit, response, stepManifest, extraEvidence, dataOverrides }: SubmitManifestStepResponseInput) => {
       const submittedAt = Date.now();
       const attemptKey = `${stepId}:response:${submittedAt}`;
+      const clientEventId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `manifest-submit:${attemptKey}`;
+      const launchContext = typeof window === 'undefined'
+        ? null
+        : resolveAdaptivePathLaunchReturnContext(new URLSearchParams(window.location.search));
+      const eventPayload = buildManifestSubmissionEventPayload({
+        stepId,
+        response,
+        stepManifest,
+        submittedAt,
+        attemptKey,
+        extraEvidence,
+        dataOverrides,
+      });
+      const eventData = {
+        ...eventPayload.data,
+        clientEventId,
+        ...(launchContext ? {
+          pathId: launchContext.pathId,
+          nodeId: launchContext.nodeId,
+          resourceType: launchContext.resourceType,
+        } : {}),
+      };
       trackCourseEvent(
         isResubmit ? COURSE_EVENT_TYPES.LESSON_RESUBMIT : COURSE_EVENT_TYPES.LESSON_SUBMIT,
-        buildManifestSubmissionEventPayload({
-          stepId,
-          response,
-          stepManifest,
-          submittedAt,
-          attemptKey,
-          extraEvidence,
-          dataOverrides,
-        }),
+        {
+          ...eventPayload,
+          data: eventData,
+        },
       );
+      void persistPathLaunchedCourseDemoIfCurrentStep({
+        stepId,
+        clientEventId,
+        attemptKey,
+        submittedAt,
+        eventData,
+      });
       return submittedAt;
     },
     [trackCourseEvent],

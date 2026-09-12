@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { readGovernedCourseStudentDemoStep } from '@/features/personalization/path-planning/adaptive-path-destination-contract';
 import { prisma } from '@/lib/prisma';
 import { eventRateLimiter } from '@/lib/rate-limiter';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
@@ -90,6 +91,120 @@ function toDateTime(value: number | string | null | undefined): Date | null {
  * - 合法的resourceId必须是cuid格式（25个字符，以c开头）或null/undefined
  * - 返回null表示不合法，应该丢弃或降级处理
  */
+function hasFiniteScore(eventData: Record<string, unknown>): boolean {
+  return typeof eventData.score === 'number' && Number.isFinite(eventData.score);
+}
+
+function isAuthoritativePathSubmission(eventData: Record<string, unknown>): boolean {
+  const answers = readRecord(eventData.answers);
+  const digest = readRecord(eventData.answerDigest);
+  const hasAnswers = Object.keys(answers).length > 0 || Object.keys(digest).length > 0;
+  const summaries = Array.isArray(eventData.questionSummaries) ? eventData.questionSummaries : [];
+  const schemaVersion = typeof eventData.schemaVersion === 'string' ? eventData.schemaVersion : '';
+  if (schemaVersion === 'manifest-submission-v2' && (hasAnswers || summaries.length > 0)) {
+    return true;
+  }
+  return hasFiniteScore(eventData) && (hasAnswers || summaries.length > 0);
+}
+
+function claimedPathLaunchFields(eventData: Record<string, unknown>): boolean {
+  const pathId = typeof eventData.pathId === 'string' ? eventData.pathId.trim() : '';
+  const nodeId = typeof eventData.nodeId === 'string' ? eventData.nodeId.trim() : '';
+  return Boolean(pathId && nodeId);
+}
+
+async function bindOwnedPathLaunchEvent(
+  userId: string,
+  eventData: Record<string, unknown>,
+  resourceId: string | null,
+): Promise<{
+  eventData: Record<string, unknown>;
+  resourceId: string | null;
+  outcome: 'unclaimed' | 'forged' | 'unbound' | 'bound';
+}> {
+  const {
+    pathExecutionBound: _forgedBound,
+    pathId: claimedPathId,
+    nodeId: claimedNodeId,
+    ...rest
+  } = eventData;
+  const pathId = typeof claimedPathId === 'string' ? claimedPathId.trim() : '';
+  const nodeId = typeof claimedNodeId === 'string' ? claimedNodeId.trim() : '';
+  if (!pathId || !nodeId) {
+    return { eventData: rest, resourceId, outcome: 'unclaimed' };
+  }
+  const path = await prisma.learningPath.findFirst({
+    where: { id: pathId, userId },
+    select: { id: true, goalId: true, nodeIds: true, pathPayload: true },
+  });
+  if (!path) {
+    return { eventData: rest, resourceId, outcome: 'forged' };
+  }
+  const nodeIds = Array.isArray(path.nodeIds)
+    ? path.nodeIds.filter((value): value is string => typeof value === 'string')
+    : [];
+  const payload = path.pathPayload && typeof path.pathPayload === 'object' && !Array.isArray(path.pathPayload)
+    ? path.pathPayload as Record<string, unknown>
+    : {};
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const node = planNodes.find((entry) => (
+    entry
+    && typeof entry === 'object'
+    && !Array.isArray(entry)
+    && (entry as { nodeId?: unknown }).nodeId === nodeId
+  )) as Record<string, unknown> | undefined;
+  if ((nodeIds.length > 0 && !nodeIds.includes(nodeId)) || !node) {
+    return { eventData: rest, resourceId, outcome: 'forged' };
+  }
+  const teachingResourceIds = [...new Set([
+    node.sourceKind === 'teaching_resource' && typeof node.sourceRef === 'string' ? node.sourceRef : null,
+    nodeId.startsWith('teaching-resource:') ? nodeId.slice('teaching-resource:'.length) : null,
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    .map((value) => value.trim()))];
+  const registryCandidates = [...new Set([
+    node.registryId,
+    node.sourceKind === 'teaching_resource' ? null : node.sourceRef,
+    nodeId.startsWith('registry:') ? nodeId.slice('registry:'.length) : null,
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    .map((value) => value.trim()))];
+  const owned = (teachingResourceIds.length > 0 || registryCandidates.length > 0)
+    ? await prisma.teachingResource.findFirst({
+      where: {
+        OR: [
+          ...(teachingResourceIds.length > 0 ? [{ id: { in: teachingResourceIds } }] : []),
+          ...(registryCandidates.length > 0 ? [{ registryId: { in: registryCandidates } }] : []),
+        ],
+      },
+      select: { id: true },
+    })
+    : null;
+  const courseDemoStep = String(node.type) === 'simulation'
+    ? readGovernedCourseStudentDemoStep(String(node.target ?? ''))
+    : null;
+  if (!owned && !courseDemoStep) {
+    return { eventData: rest, resourceId, outcome: 'unbound' };
+  }
+  const claimedStep = typeof rest.stepId === 'string' ? rest.stepId.trim() : '';
+  if (courseDemoStep && claimedStep && claimedStep !== courseDemoStep) {
+    return { eventData: rest, resourceId, outcome: 'unbound' };
+  }
+  if (!isAuthoritativePathSubmission(rest)) {
+    return { eventData: rest, resourceId, outcome: 'unbound' };
+  }
+  return {
+    resourceId: owned?.id ?? resourceId,
+    outcome: 'bound',
+    eventData: {
+      ...rest,
+      pathId: path.id,
+      nodeId,
+      ...(courseDemoStep ? { stepId: courseDemoStep } : {}),
+      ...(typeof path.goalId === 'string' && path.goalId ? { goalId: path.goalId } : {}),
+      pathExecutionBound: true,
+    },
+  };
+}
+
 function validateResourceId(resourceId: string | null | undefined): string | null {
   if (!resourceId) return null;
 
@@ -333,6 +448,8 @@ function partitionClassifiedSubmissionEvents(events: NormalizedInteractionEvent[
       legacy.push(item);
     } else if (isClassifiedSubmissionEvent(item, userId)) {
       submissions.push(item);
+    } else if (claimedPathLaunchFields(payload) && isAuthoritativePathSubmission(payload)) {
+      legacy.push(item);
     } else {
       identityLessSubmissions.push(item);
     }
@@ -924,11 +1041,26 @@ export async function POST(request: NextRequest) {
 
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = legacyEvidenceEvents.map((item) => {
+    const interactionLogEvents = [];
+    const sanitizedLegacyEvents = [];
+    for (const item of legacyEvidenceEvents) {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
-      return {
+      const bound = await bindOwnedPathLaunchEvent(session.user.id, eventData, item.resourceId);
+      if (bound.outcome === 'forged') {
+        logDegradedEvent(session.user.id, item.event, 'forged_path_launch_context');
+        continue;
+      }
+      sanitizedLegacyEvents.push({
+        ...item,
+        resourceId: bound.resourceId,
+        event: {
+          ...item.event,
+          data: bound.eventData,
+        },
+      });
+      interactionLogEvents.push({
         userId: session.user.id,
-        resourceId: item.resourceId,
+        resourceId: bound.resourceId,
         resourceKey: item.event.resourceKey,
         sessionId: item.sessionId,
         lessonKey: item.event.lessonKey ?? null,
@@ -939,10 +1071,10 @@ export async function POST(request: NextRequest) {
         clientEventId: item.clientEventId,
         learningContext: item.learningContext,
         invalidContextReason: item.invalidContextReason,
-        eventData,
+        eventData: bound.eventData,
         clientEventAt: toDateTime(item.event.clientEventAt ?? item.event.timestamp),
-      };
-    });
+      });
+    }
 
     const persistedLogs = interactionLogEvents.length > 0
       ? await prisma.interactionLog.createManyAndReturn({
@@ -972,7 +1104,7 @@ export async function POST(request: NextRequest) {
       : [];
 
     const sourceLinkedEvents = attachSourceLogIds(
-      legacyEvidenceEvents,
+      sanitizedLegacyEvents,
       persistedLogs.map((log) => ({
         id: log.id,
         clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),

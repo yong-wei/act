@@ -844,9 +844,11 @@ export async function readStudentEvidenceFeatures(
   const markers = Array.isArray(compatibleCache.statusMarkers) ? compatibleCache.statusMarkers : [];
   const staleByVersion = compatibleCache.payloadVersion !== STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION;
   const staleBySchema = !hasCurrentFeaturePayloadSchema(compatibleCache);
+  const staleByUnknownMarkers = Array.isArray(compatibleCache.statusMarkers)
+    && !hasStatusMarkersSchema(compatibleCache.statusMarkers);
 
   return {
-    state: staleByAge || markers.includes('stale') || staleBySchema ? 'stale' : 'ready',
+    state: staleByAge || markers.includes('stale') || staleBySchema || staleByUnknownMarkers ? 'stale' : 'ready',
     cache: staleByVersion ? null : compatibleCache,
     rawReadExceptions: [...STUDENT_EVIDENCE_FEATURE_RAW_READ_EXCEPTIONS],
   };
@@ -2428,7 +2430,8 @@ function hasStatusMarkersSchema(value: unknown): boolean {
     item === 'stale' ||
     item === 'partial' ||
     item === 'low-confidence' ||
-    item === 'missing-source'
+    item === 'missing-source' ||
+    item === 'mixed-knowledge-identity'
   );
 }
 

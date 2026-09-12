@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -56,6 +57,7 @@ from shared_mount import (
     is_mounted,
     is_readonly_mount,
     write_private_bytes,
+    write_private_json,
     mount_fields,
     mount_helper_path,
     portable_start_payload,
@@ -78,6 +80,7 @@ from shared_mount import (
 )
 
 REQUIRED_ARCH = {"x86_64", "amd64", "aarch64", "arm64"}
+GIT_COMMIT = re.compile(r"^[a-f0-9]{40}$")
 MATERIALIZER_NAME = "materialize-runtime.py"
 HELPER_NAME = ".act-runtime-blobs"
 
@@ -405,9 +408,80 @@ def write_dev_delivery_marker(checkout: Path, readiness: dict[str, str]) -> None
     })
 
 
+def _git_capture(checkout: Path) -> tuple[str, bool] | None:
+    try:
+        inside = subprocess.check_output(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=checkout,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        if inside != "true":
+            return None
+        sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=checkout,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip().lower()
+        if not GIT_COMMIT.fullmatch(sha):
+            return None
+        dirty = subprocess.check_output(
+            ["git", "status", "--porcelain"],
+            cwd=checkout,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ) != ""
+        return sha, dirty
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def _manifest_source_revision(checkout: Path) -> str | None:
+    runtime = checkout / "course-content" / "runtime"
+    for name in (".act-runtime-release.v2.json", ".act-runtime-release.v1.json"):
+        path = runtime / name
+        if not path.is_file() or path.is_symlink():
+            continue
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        source = payload.get("sourceRevision") if isinstance(payload, dict) else None
+        if isinstance(source, str) and GIT_COMMIT.fullmatch(source.lower()):
+            return source.lower()
+    return None
+
+
+def export_resource_index_revision(checkout: Path) -> dict[str, str]:
+    captured = _git_capture(checkout)
+    source = _manifest_source_revision(checkout)
+    if captured and source and captured[0] != source:
+        fail(f"resource-index revision drifted: git HEAD {captured[0]} != pinned sourceRevision {source}")
+    if source:
+        revision, dirty = source, bool(captured[1]) if captured else False
+    elif captured:
+        revision, dirty = captured
+    else:
+        fail("resource-index revision is unavailable without git capture or a pinned sourceRevision")
+    state = checkout_state(checkout)
+    revision_file = state / "app-revision"
+    write_private_bytes(revision_file, (revision + "\n").encode("utf-8"))
+    write_private_json(state / "resource-index-revision.json", {
+        "schemaVersion": "act-runtime-dev-resource-index-revision.v1",
+        "revision": revision,
+        "dirty": dirty,
+    })
+    return {
+        "APP_REVISION": revision,
+        "APP_REVISION_FILE": str(revision_file),
+    }
+
+
 def start_services(checkout: Path) -> None:
-    npm = which("npm")
-    run([npm, "run", "startup"], cwd=checkout)
+    env = os.environ.copy()
+    env.update(export_resource_index_revision(checkout))
+    run([which("npm"), "run", "startup"], cwd=checkout, env=env)
 
 
 def stop_services(checkout: Path) -> None:

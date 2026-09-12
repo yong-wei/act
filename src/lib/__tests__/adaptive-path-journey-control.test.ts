@@ -458,6 +458,8 @@ describe('adaptive path journey control', () => {
     expect(simulationShellSource).toContain('journeyControl={<AdaptivePathJourneyControlFromRoute />}');
     expect(workbenchShellSource).toContain('<AppShell');
     expect(workbenchShellSource).toContain('journeyControl={<AdaptivePathJourneyControlFromRoute />}');
+    expect(readSource('src/app/interactive-learning/control-workbench/page.tsx'))
+      .toContain('resolveAdaptivePathLaunchReturnContext');
     expect(readSource('src/app/knowledge/page.tsx')).toContain(
       'journeyControl={<AdaptivePathJourneyControlFromRoute />}',
     );

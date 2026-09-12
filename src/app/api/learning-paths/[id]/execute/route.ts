@@ -179,9 +179,13 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
           const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(existingPathNode, governedExternalInput);
-          const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
+          const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, existingPathNode, governedInstrumentedInput);
+          if (governedQuizInput instanceof NextResponse) return governedQuizInput;
+          const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
+          if (governedSimulationInput instanceof NextResponse) return governedSimulationInput;
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
+          if (governedWorkbenchInput instanceof NextResponse) return governedWorkbenchInput;
           const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
             prisma as any,
             path,
@@ -243,9 +247,13 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
     const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(pathNode, governedExternalInput);
-    const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
+    const governedQuizInput = await resolveGovernedQuizOutcomeEvidence(prisma as any, pathNode, governedInstrumentedInput);
+    if (governedQuizInput instanceof NextResponse) return governedQuizInput;
+    const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedQuizInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
+    if (governedSimulationInput instanceof NextResponse) return governedSimulationInput;
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
+    if (governedWorkbenchInput instanceof NextResponse) return governedWorkbenchInput;
     const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(
       prisma as any,
       path,
@@ -393,6 +401,8 @@ function sanitizeCompletionResult(value: unknown): Record<string, unknown> {
   const completionResult = compactObject({
     success: typeof result.success === 'boolean' ? result.success : undefined,
     score: readFinite(result.score),
+    sourceLogId: firstString(result.sourceLogId) ?? undefined,
+    clientEventId: firstString(result.clientEventId) ?? undefined,
     data: Object.keys(completionData).length > 0 ? completionData : undefined,
   });
   return Object.keys(completionResult).length > 0 ? { completionResult } : {};
@@ -884,6 +894,175 @@ function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {
   };
 }
 
+function rejectUngovernedGradableCompletion(message: string) {
+  return NextResponse.json({ error: message }, { status: 409 });
+}
+
+function asUngradedPathResourceCompletion<T extends { evidenceRefs?: unknown[] }>(
+  input: T,
+  isQuiz: boolean,
+): T {
+  return isQuiz ? { ...input, evidenceRefs: [] } : input;
+}
+
+function identityTokens(...values: unknown[]): string[] {
+  const tokens = new Set<string>();
+  for (const value of values) {
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (!trimmed) continue;
+    tokens.add(trimmed);
+    tokens.add(trimmed.toLowerCase());
+    if (trimmed.startsWith('registry:')) {
+      tokens.add(trimmed.slice('registry:'.length));
+      tokens.add(trimmed.slice('registry:'.length).toLowerCase());
+    }
+    const leaf = trimmed.split('/').filter(Boolean).pop();
+    if (leaf) {
+      tokens.add(leaf);
+      tokens.add(leaf.toLowerCase());
+    }
+  }
+  return [...tokens];
+}
+
+const GRADED_COMPLETION_EVENT_TYPES = new Set([
+  'complete',
+  'assessment_complete',
+  'quiz_complete',
+  'resource_complete',
+]);
+
+async function resolveOwnedTeachingResource(db: any, resourceId: unknown) {
+  const id = firstString(resourceId);
+  if (!id) return null;
+  return await db.teachingResource?.findUnique?.({
+    where: { id },
+    select: { id: true, registryId: true },
+  }) ?? null;
+}
+
+async function interactionLogMatchesPathNode(
+  db: any,
+  log: { resourceId?: unknown; eventType?: unknown } | null,
+  eventData: Record<string, unknown>,
+  input: { pathId: string; nodeId: string; goalId?: string | null },
+  pathNode: Record<string, unknown> | null,
+): Promise<boolean> {
+  if (eventData.pathExecutionBound !== true) {
+    return false;
+  }
+  if (firstString(eventData.pathId) !== input.pathId || firstString(eventData.nodeId) !== input.nodeId) {
+    return false;
+  }
+  if (input.goalId && firstString(eventData.goalId) !== input.goalId) {
+    return false;
+  }
+  const eventType = firstString(log?.eventType, eventData.eventType);
+  if (!eventType || !GRADED_COMPLETION_EVENT_TYPES.has(eventType)) {
+    return false;
+  }
+  const ownedResource = await resolveOwnedTeachingResource(db, log?.resourceId);
+  if (!ownedResource) return false;
+  const nodeTokens = new Set(identityTokens(
+    input.nodeId,
+    pathNode?.resourceId,
+    pathNode?.registryId,
+    pathNode?.sourceRef,
+    pathNode?.target,
+  ));
+  return identityTokens(ownedResource.id, ownedResource.registryId).some((token) => nodeTokens.has(token));
+}
+
+async function resolveGovernedQuizOutcomeEvidence<T extends {
+  pathId: string;
+  userId: string;
+  goalId?: string | null;
+  nodeId: string;
+  resourceType: string;
+  status: string;
+  evidenceRefs?: unknown[];
+  liftMetadata?: Record<string, unknown>;
+}>(db: any, pathNode: Record<string, unknown> | null, input: T): Promise<T | NextResponse> {
+  if (input.status !== 'completed') return input;
+  const isQuiz = input.resourceType === 'quiz';
+  const isLessonStep = input.resourceType === 'lesson_step';
+  if (!isQuiz && !isLessonStep) return input;
+
+  const completionResult = toRecord(toRecord(input.liftMetadata).completionResult);
+  const completionData = toRecord(completionResult.data);
+  const sourceLogId = firstString(completionResult.sourceLogId);
+  const clientEventId = firstString(completionResult.clientEventId, completionData.clientEventId);
+  const claimedScore = readFinite(completionResult.score);
+  const hasEventRef = Boolean(sourceLogId || clientEventId);
+
+  // Event ids are always minted by ResourceRenderer; only a score makes the attempt gradable.
+  if (claimedScore === undefined && !hasEventRef) {
+    return asUngradedPathResourceCompletion(input, isQuiz);
+  }
+
+  const log = hasEventRef
+    ? await db.interactionLog?.findFirst?.({
+        where: {
+          userId: input.userId,
+          ...(sourceLogId ? { id: sourceLogId } : { clientEventId }),
+        },
+        select: {
+          id: true,
+          clientEventId: true,
+          eventType: true,
+          resourceId: true,
+          eventData: true,
+        },
+      })
+    : null;
+  const eventData = toRecord(log?.eventData);
+  const persistedScore = log ? readFinite(eventData.score) : undefined;
+
+  if (claimedScore !== undefined) {
+    if (!hasEventRef || !log) {
+      return rejectUngovernedGradableCompletion(
+        hasEventRef ? '测验证据尚未持久化，无法完成节点' : '可评分完成缺少已持久化的互动事件引用',
+      );
+    }
+    if (!(await interactionLogMatchesPathNode(db, log, eventData, input, pathNode)) || persistedScore === undefined) {
+      return rejectUngovernedGradableCompletion(
+        persistedScore === undefined ? '测验证据缺少可核验分数' : '测验证据不属于当前路径节点',
+      );
+    }
+  } else if (!log || persistedScore === undefined) {
+    return asUngradedPathResourceCompletion(input, isQuiz);
+  } else if (!(await interactionLogMatchesPathNode(db, log, eventData, input, pathNode))) {
+    return rejectUngovernedGradableCompletion('测验证据不属于当前路径节点');
+  }
+
+  if (!log || persistedScore === undefined) {
+    return asUngradedPathResourceCompletion(input, isQuiz);
+  }
+
+  const score = persistedScore;
+  return {
+    ...input,
+    evidenceRefs: [{
+      kind: 'ResourceEvent',
+      eventType: isQuiz ? 'quiz_complete' : 'assessment_complete',
+      provenance: 'platform-instrumented',
+      status: 'completed',
+      ref: log.id,
+      sourceLogId: log.id,
+      ...(firstString(log.clientEventId, clientEventId)
+        ? { clientEventId: firstString(log.clientEventId, clientEventId) }
+        : {}),
+      completionResult: { score },
+      pathId: input.pathId,
+      goalId: input.goalId ?? null,
+      nodeId: input.nodeId,
+      resourceType: input.resourceType,
+      privacyLevel: 'student-visible',
+    }],
+  };
+}
+
 async function resolveGovernedSimulationOutcomeEvidence<T extends {
   nodeId: string;
   userId: string;
@@ -895,10 +1074,16 @@ async function resolveGovernedSimulationOutcomeEvidence<T extends {
   db: any,
   path: any,
   input: T,
-): Promise<T> {
+): Promise<T | NextResponse> {
   if (input.resourceType !== 'simulation' || input.status !== 'completed') return input;
   const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
-  const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
+  const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope, {
+    pathId: typeof path?.id === 'string' ? path.id : '',
+    nodeId: input.nodeId,
+  });
+  if (!isTrustedSimulationOutcomeRef(simulationRef)) {
+    return rejectUngovernedGradableCompletion('仿真完成缺少本路径已核验的仿真运行');
+  }
   return {
     ...input,
     simulationRef,
@@ -971,30 +1156,36 @@ async function resolveGovernedControlWorkbenchOutcomeEvidence<T extends {
   db: any,
   path: any,
   input: T,
-): Promise<T> {
+): Promise<T | NextResponse> {
   if (input.resourceType !== 'control_workbench' || input.status !== 'completed') return input;
   const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
   const clientRef = toRecord(input.liftMetadata?.controlWorkbenchRef);
   const fallbackSimulationRef = Object.keys(clientRef).length > 0 ? clientRef : input.simulationRef;
-  const simulationRef = await resolveServerSimulationRef(db, input.userId, fallbackSimulationRef, scope);
-  const controlWorkbenchRef = isTrustedSimulationOutcomeRef(simulationRef)
-    ? compactObject({
-        kind: 'ControlWorkbenchOutcome',
-        id: simulationRef?.id,
-        simulationRunId: simulationRef?.id,
-        sourceRefId: simulationRef?.sourceRefId,
-        resourceId: simulationRef?.resourceId,
-        taskSpecId: simulationRef?.taskSpecId,
-        provenance: simulationRef?.provenance,
-        status: simulationRef?.status,
-        replayConfidence: simulationRef?.replayConfidence,
-        protocolVersion: simulationRef?.protocolVersion,
-        completedAt: simulationRef?.completedAt,
-        summaryMetrics: simulationRef?.summaryMetrics,
-      })
-    : simulationRef
-      ? unknownEvidenceRef('ControlWorkbenchOutcome', readRefId(simulationRef, ['id', 'runId', 'ref', 'sourceId']) ?? 'unknown', firstString(simulationRef.mismatchReason) ?? 'control-workbench-outcome-unverified')
-      : pendingOutcomeRef('ControlWorkbenchOutcome');
+  const simulationRef = await resolveServerSimulationRef(db, input.userId, fallbackSimulationRef, scope, {
+    pathId: typeof path?.id === 'string' ? path.id : '',
+    nodeId: input.nodeId,
+  });
+  if (!isTrustedSimulationOutcomeRef(simulationRef)) {
+    return rejectUngovernedGradableCompletion(
+      firstString(simulationRef?.mismatchReason) === 'path-execution-mismatch'
+        ? '工作台运行不属于当前路径节点'
+        : '工作台完成缺少本路径已持久化的仿真运行',
+    );
+  }
+  const controlWorkbenchRef = compactObject({
+    kind: 'ControlWorkbenchOutcome',
+    id: simulationRef?.id,
+    simulationRunId: simulationRef?.id,
+    sourceRefId: simulationRef?.sourceRefId,
+    resourceId: simulationRef?.resourceId,
+    taskSpecId: simulationRef?.taskSpecId,
+    provenance: simulationRef?.provenance,
+    status: simulationRef?.status,
+    replayConfidence: simulationRef?.replayConfidence,
+    protocolVersion: simulationRef?.protocolVersion,
+    completedAt: simulationRef?.completedAt,
+    summaryMetrics: simulationRef?.summaryMetrics,
+  });
   return {
     ...input,
     simulationRef,
@@ -1044,6 +1235,7 @@ async function resolveServerSimulationRef(
   userId: string,
   clientRef: Record<string, unknown> | null | undefined,
   scope: TerminalEvidenceScope,
+  pathBinding?: { pathId: string; nodeId: string },
 ): Promise<Record<string, unknown> | null> {
   const id = readRefId(clientRef, ['id', 'runId', 'simulationRunId', 'ref']);
   if (!id) return null;
@@ -1060,6 +1252,7 @@ async function resolveServerSimulationRef(
       sourceRefId: true,
       taskSpecId: true,
       resourceId: true,
+      taskSpecSnapshot: true,
       summary: true,
       replayToken: true,
       protocolVersion: true,
@@ -1071,6 +1264,15 @@ async function resolveServerSimulationRef(
   }
   if (!matchesExpectedSimulationEvidence(run, scope)) {
     return unknownEvidenceRef('SimulationRun', id, 'simulation-scope-mismatch');
+  }
+  if (pathBinding) {
+    const launchContext = toRecord(toRecord(run.taskSpecSnapshot).launchContext);
+    if (
+      firstString(launchContext.pathId) !== firstString(pathBinding.pathId)
+      || firstString(launchContext.pathNodeId) !== firstString(pathBinding.nodeId)
+    ) {
+      return unknownEvidenceRef('SimulationRun', id, 'path-execution-mismatch');
+    }
   }
   const summary = toRecord(run.summary);
   return compactObject({

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   persistControlWorkbenchSimulationRun,
+  persistPathCourseDemoSimulationRun,
   persistSceneTraceSimulationRun,
 } from '../simulation-scene-run-persistence';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
@@ -271,5 +272,37 @@ describe('simulation scene run persistence', () => {
         sampleStorageUri: null,
       }),
     }));
+  });
+
+  it('persists a path-bound course demo completion without a client-reported trace', async () => {
+    const db = createDb();
+
+    const persisted = await persistPathCourseDemoSimulationRun(db, 'student-1', {
+      launchContext: {
+        pathId: 'path-1',
+        pathNodeId: 'simulation:control-correction-step-response-lab',
+        resourceId: 'simulation:control-correction-step-response-lab',
+        stepId: 'step-11',
+      },
+    });
+
+    expect(persisted).toEqual({ simulationRunId: 'run-1' });
+    expect(db.simulationRun.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        ownerUserId: 'student-1',
+        resourceId: 'simulation:control-correction-step-response-lab',
+        status: 'completed',
+        sceneSpecVersion: 'path-course-demo',
+        taskSpecSnapshot: expect.objectContaining({
+          launchContext: {
+            pathId: 'path-1',
+            pathNodeId: 'simulation:control-correction-step-response-lab',
+            resourceId: 'simulation:control-correction-step-response-lab',
+            stepId: 'step-11',
+          },
+        }),
+      }),
+    }));
+    expect(db.simulationTrace.upsert).not.toHaveBeenCalled();
   });
 });

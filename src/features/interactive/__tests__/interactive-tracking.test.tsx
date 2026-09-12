@@ -58,6 +58,30 @@ describe('useInteractiveTracking', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it('persists the same client event id as the top-level event id', async () => {
+    let tracking: InteractiveTrackingContextValue | null = null;
+    const container = document.createElement('div');
+    const root = createRoot(container);
+
+    function Harness() {
+      tracking = useInteractiveTracking({
+        resourceKey: 'unit-test-resource',
+        sessionId: 'session-1',
+        userId: 'user-1',
+      });
+      return null;
+    }
+
+    await act(async () => root.render(<Harness />));
+    act(() => tracking?.emit('complete', { clientEventId: 'quiz-owned-1', score: 100 }));
+
+    expect(tracking?.getHistory()[0]).toMatchObject({
+      id: 'quiz-owned-1',
+      data: { clientEventId: 'quiz-owned-1', score: 100 },
+    });
+    await act(async () => root.unmount());
+  });
+
   it('persists critical events before starting asynchronous sync', async () => {
     let tracking: InteractiveTrackingContextValue | null = null;
     let releaseSync: (() => void) | undefined;

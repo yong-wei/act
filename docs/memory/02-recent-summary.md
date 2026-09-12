@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-10
-摘要: 生产应用 `v0.7.5-e1c25ff`（main `e1c25fffe…`，app-only，tar SHA256 `fb6dd807…`）已发布并验收通过。应用与课程 Runtime 现为两条独立发布线：应用只走 `deploy:app`；Runtime 只走 `runtime:publish` 再 `runtime:activate`（回滚 `runtime:rollback`，全量校验/回收走显式 `runtime:doctor` / `runtime:gc`）。已删除 `deploy:runtime`、`deploy:all` 与旧 publisher-bridge / lifecycle 控制面。`scripts/build.sh` 只产出 app-only provenance；`remote-deploy.sh` 不再核验或选择 Runtime。生产知识面维持 Authority v0.37；Runtime active 仍为 `runtime-150a505a…`。Wolfram Cloud 仍 503，远端 `.env.server` 保留 `SKIP_WOLFRAM_READY_CHECK=1`。已知残余：demo 学生画像 current state 停留 v2/gen1；远端 `deploy/images/` 残留旧 tar 会被 `2-load-images.sh` 一并装载。
+最后更新: 2026-09-12
+摘要: 生产应用 `v0.7.15-cf73522`（main `cf73522720…`，app-only）已发布。路径规划班级准入与知识路径挂载在 `simplify-runtime-cas-publish-activate`，正合入 `integration`。现网旧生成器一次 generate 会把 Node 堆打到约 2GB 后 OOM。应用与课程 Runtime 仍是两条独立发布线。生产知识面维持 Authority v0.37。OpenSpec `simplify-runtime-cas-publish-activate` 尚未 archive。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -15,6 +15,9 @@
 - [docs/ProjectDescription.md](../ProjectDescription.md)
 
 ## 最近最重要的稳定变化
+
+- 2026-09-12 生产应用 `v0.7.15-cf73522` 已 `deploy:app` 恢复运行。路径生成仍走旧混池，会 OOM。
+- 2026-09-11 生产应用 `v0.7.8-60a6e28` 已 `deploy:app --skip-build`：冻结 `origin/main` `60a6e28a59da6af16e5f244a3783ca123841ae32`，镜像 `localhost/act-obe-platform:0.7.8-60a6e28`，tar SHA256 `178b781df288f0c501271d0e8d9dbddb4cc169f3a040880222909b8d899665a0`。公网 `/`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；`RUNTIME_DELIVERY_MODE=ossfs-blob-view`；Runtime 身份仍为 `runtime-150a505a…`。未执行 `runtime:activate`。
 
 - 2026-09-10 Runtime 发布控制面收束为 CAS 增量发布与 current/previous 激活：`runtime:publish` 用本地 SQLite 索引只哈希 metadata 变化的文件并对新增内容条件 PUT；`runtime:activate` 核对 Δ Blob 与 sentinel 后原子切换指针；`runtime:rollback` 交换两指针。`runtime:doctor` / `runtime:gc` 移出热路径。已删除 `deploy:runtime`、`deploy:all`、`act-runtime-release.ts`、publisher-bridge、lifecycle、host-state 与旧 cutover 编排。数据面仍是 `act-runtime-release.v2` 与 `runtime/blobs/sha256/<sha>`。
 

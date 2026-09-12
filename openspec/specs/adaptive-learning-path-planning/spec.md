@@ -186,6 +186,28 @@ When multiple path styles are shown together, the system SHALL verify that they 
 - **THEN** the bundle SHALL include overlap, modality mix, estimated effort, and terminal validation difference metrics
 - **AND** resource overlap SHALL stay below the configured threshold unless a low-resource fallback is returned.
 
+### Requirement: Path generation snapshots the live published resource index
+路径规划开始前 SHALL 读取当前活 `PublishedResourceFeatureIndex` 与活动 Runtime release，并将本次输入快照随生成结果保存。快照 SHALL 能追溯每个参与规划的已发布资源的 resourceId、内容版本或校验值、对象键或 sourcePath，以及 Runtime release。索引、活投影或活动 release 不可用时，生成 SHALL 失败关闭，SHALL NOT 静默改用未挂接发布索引的本地默认登记表。
+
+#### Scenario: Snapshot is recorded before assembly
+- **WHEN** 一次候选路径生成开始
+- **THEN** 服务端 SHALL 先加载活发布资源索引与活动 Runtime release
+- **AND** 生成结果 SHALL 包含本次 `planningResourceSnapshot`（indexId、projectionId、projectionHash、runtimeReleaseId，以及 recommendable 资源的 resourceId 与内容版本/对象键或 sourcePath）
+- **AND** 装配与排序 SHALL 消费该快照对应的已发布节点，而不是仅在生成后再挂一个公共投影对象。
+
+#### Scenario: Missing published index fails closed
+- **WHEN** 活发布资源索引、约定教学投影或活动 Runtime release 无法读取
+- **THEN** 生成 SHALL 返回明确失败
+- **AND** SHALL NOT 继续用未挂接发布索引的本地候选源产出成功三条路径。
+
+### Requirement: Published resources are not type-capped after requirements
+在规划需求已满足之后，规划器 SHALL 继续接纳尚未入选、且有助于策略区分的 recommendable 已发布资源。SHALL NOT 仅因为路径上已有同类型已发布资源就拒绝后续已发布节点。统一先修、公共终点与 sharedRequired 节点仍可共享，且不计入区分度。
+
+#### Scenario: Second published card can enter a path
+- **WHEN** 一条候选路径已包含一张已发布知识卡，且时间预算与目标覆盖仍允许另一张不同的 recommendable 知识卡
+- **THEN** 规划器 SHALL 允许该第二张卡入选
+- **AND** 优先选择尚未被同批其他策略路径占用的已发布资源。
+
 ### Requirement: Control-correction planner returns three path styles
 The path planner SHALL provide a directly comparable three-style path bundle for control-correction diagnosis when sufficient resources and evidence exist. The number of serialized candidate options SHALL equal the goal's target option count (three) whenever a policy-family request is present, including starter injection and low-confidence fallback paths; the primary planning family SHALL NOT be appended as an additional candidate beyond the requested families.
 
@@ -201,8 +223,8 @@ The path planner SHALL provide a directly comparable three-style path bundle for
 - **AND** the primary `rules-plus-graph-search` route SHALL NOT be appended as an extra candidate option.
 
 #### Scenario: Resources are insufficient
-- **WHEN** the planner cannot produce meaningfully distinct path options
-- **THEN** it SHALL return an explicit low-resource or low-confidence fallback
+- **WHEN** the planner cannot produce meaningfully distinct path options that satisfy the hard OSS diversity gates
+- **THEN** it SHALL return an explicit `insufficient-candidate-diversity` result with reasons
 - **AND** it SHALL NOT show three cosmetic variants with materially identical resources
 - **AND** it SHALL NOT compensate for unavailable diversity by adding a fourth route beyond the requested families.
 
@@ -410,22 +432,34 @@ Adaptive path execution SHALL create and preserve a normalized launch context wh
 - **AND** any path read or write using that context SHALL validate that the authenticated user is authorized for the path.
 
 ### Requirement: Path-launched resources write completion through the path execution contract
-Every path-launched resource category SHALL write governed execution completion before it can advance dependent path state.
+Every path-launched resource category SHALL write governed execution completion before it can advance dependent path state. Path-launched gradable events (gradable quiz, lesson step, governed simulation, control workbench) SHALL bind the completion to the owning LearningPathExecution with minimal governed evidence references carrying path, goal, and node attribution; self-reported completion without governed references SHALL NOT advance dependent path state.
 
 #### Scenario: Simple interactive resource completes
 - **WHEN** a path-launched interactive resource, knowledge card, reflection, or non-complex lesson activity completes
 - **THEN** the system SHALL write a `completed` execution event for the owning path and node
 - **AND** the event SHALL include resource type, completion timestamp, idempotency key, and privacy-safe evidence references where available.
 
+#### Scenario: Gradable quiz or lesson step completes inside a path
+- **WHEN** a path-launched gradable quiz or lesson step is submitted with a verifiable score
+- **THEN** the owning LearningPathExecution SHALL persist minimal governed evidence references (source log or client event id plus governed completion result) carrying path id, goal id, and node id
+- **AND** the references SHALL be traceable from the path center
+- **AND** the score SHALL NOT be retained only as self-reported lift metadata without governed references.
+
 #### Scenario: Complex resource completes
 - **WHEN** a path-launched adaptive assessment, simulation, control workbench, or Arena node completes
-- **THEN** the system SHALL write a `completed` execution event with the typed outcome reference required by that node type
+- **THEN** the system SHALL write a `completed` execution event with the typed outcome reference required by that node type through the server-owned governed resolver
+- **AND** simulation and control workbench pages SHALL parse the path launch context and submit through this write path rather than failing client-side
 - **AND** dependent path nodes SHALL not advance until that reference is bound or the path policy explicitly permits preview or pending evidence.
 
 #### Scenario: Completion is replayed or reviewed
 - **WHEN** a student reviews, continues, or returns to an already completed node
 - **THEN** the system SHALL record a distinct review, continued-interaction, or return activity
 - **AND** it SHALL NOT count the original node completion a second time.
+
+#### Scenario: Client-supplied path attribution is not trusted by itself
+- **WHEN** a completion request carries client-declared path, goal, or node attribution
+- **THEN** the server SHALL validate node membership and resource type against path persistence before binding any evidence reference
+- **AND** forged or mismatched attribution SHALL be rejected without writing evidence.
 
 ### Requirement: Latest path recovery uses path truth before generated defaults
 Adaptive path recovery SHALL restore selected or completed path rounds from path persistence before showing generated defaults.
@@ -1160,18 +1194,22 @@ The adaptive path destination contract SHALL accept a `simulation` node when its
 - **AND** 差异 SHALL 在推荐依据中可解释。
 
 ### Requirement: Candidate batches carry quantified pairwise differentiation metrics
-候选路径批次 SHALL 在装配时对每对候选路径计算量化区分度指标并持久化，"高区分度个性化推荐成功"标记 SHALL 仅在至少一对比较满足阈值组合时给出。
+候选路径批次 SHALL 在装配时对每对候选路径计算量化区分度指标并持久化。"高区分度个性化推荐成功"标记与成功的三条候选 SHALL 仅在硬门禁全部满足时给出。强制先修、公共终点和 sharedRequired 节点 SHALL 不计入区分度。
 
 #### Scenario: Pairwise metrics are computed and persisted
 - **WHEN** 一个候选批次完成装配
-- **THEN** 服务端 SHALL 对每对候选路径计算：核心节点集合 Jaccard 距离、核心 OSS 对象键集合 Jaccard 距离、资源类型分布总变差距离、共有节点归一化顺序差异、预计时长相对差、检查点结构性差异、不同可个性化核心节点数
+- **THEN** 服务端 SHALL 对每对候选路径计算：核心节点集合 Jaccard 距离、核心 OSS/已发布资源集合 Jaccard 距离、资源类型分布总变差距离、共有节点归一化顺序差异、预计时长相对差、检查点结构性差异、不同可个性化核心节点数
 - **AND** 指标 SHALL 随候选批次持久化并在响应中返回
 - **AND** 统一先修节点与统一终结验证节点 SHALL 不计入区分度统计。
 
-#### Scenario: High-differentiation label requires threshold compliance
-- **WHEN** 任一对候选的达标指标少于 7 项中的 3 项
-- **THEN** 该批次 SHALL NOT 被标记为"高区分度个性化推荐成功"
-- **AND** 服务端 SHALL NOT 通过复制路径或替换非核心资源凑足三条。
+#### Scenario: Successful three-path generation requires hard diversity
+- **WHEN** 生成要被标记为成功的三条候选
+- **THEN** 任意两条路径在排除公共强制节点后的 Jaccard 相似度 SHALL ≤ 30%（即现有 Jaccard 距离 ≥ 0.70）
+- **AND** 每条路径 SHALL 至少包含 2 个其他路径没有的已发布/OSS 资源身份
+- **AND** 每条路径独有已发布/OSS 资源占其非强制资源的比例 SHALL ≥ 50%
+- **AND** 每条路径至少有 1 个独有已发布/OSS 资源位于路径前半段
+- **AND** 任意两条路径的前两个非强制资源 SHALL NOT 完全相同
+- **AND** 未满足任一条款时 SHALL NOT 标记高区分度，SHALL NOT 通过复制路径或替换非核心标签凑足三条。
 
 #### Scenario: Refresh and reorder do not drift
 - **WHEN** 学生刷新页面、重新打开候选 URL 或改变候选展示顺序
@@ -1183,7 +1221,9 @@ The adaptive path destination contract SHALL accept a `simulation` node when its
 #### Scenario: Strategies expose portrait basis
 - **WHEN** 候选路径生成完成
 - **THEN** 每条候选 SHALL 标明其策略名、驱动该策略的画像事实与证据状态
-- **AND** 薄弱点补强路径 SHALL 优先覆盖有充分证据的主要缺口，偏好资源强化路径 SHALL 提升画像偏好资源类型占比，优势迁移路径 SHALL 采用画像优势能力支持的综合或仿真任务。
+- **AND** 薄弱点补强路径 SHALL 至少包含 2 个针对画像薄弱知识点的基础/诊断已发布资源
+- **AND** 优势迁移路径 SHALL 至少包含 2 个仿真、工作台、案例或综合应用已发布资源
+- **AND** 偏好匹配路径的非强制资源中至少 60% SHALL 匹配画像偏好，并至少包含 2 个独有偏好已发布资源。
 
 #### Scenario: Portrait unavailable degrades honestly
 - **WHEN** 画像不可用、过期或证据不足
@@ -1192,7 +1232,8 @@ The adaptive path destination contract SHALL accept a `simulation` node when its
 
 #### Scenario: Single-variable portrait changes alter the plan reproducibly
 - **WHEN** 受控画像下仅改变薄弱点、资源偏好或优势能力之一并重新装配
-- **THEN** 对应策略候选的核心节点或 OSS 资源 SHALL 发生可解释变化且其余条件保持一致
+- **THEN** 对应策略候选的核心节点或已发布/OSS 资源 SHALL 发生可解释变化且其余条件保持一致
+- **AND** 参与规划的已发布资源集合 SHALL 发生可观测变化
 - **AND** 同一输入的重复装配 SHALL 产生相同结果。
 
 ### Requirement: Candidate OSS resources carry runtime provenance and read verification
@@ -1218,9 +1259,9 @@ The adaptive path destination contract SHALL accept a `simulation` node when its
 
 #### Scenario: Comparison view presents provenance and differences
 - **WHEN** 学生查看候选比较
-- **THEN** 界面 SHALL 并列呈现各候选的策略、画像依据、核心节点与顺序、OSS 核心资源与类型占比、Runtime 读取状态、时长与检查点安排
+- **THEN** 界面 SHALL 并列呈现各候选的策略、画像依据、核心节点与顺序、OSS 核心资源与类型占比、明确的资源身份与 Runtime 读取状态、时长与检查点安排
 - **AND** 逐节点绑定状态与失败原因 SHALL 随比较投影一并呈现
-- **AND** 呈现与持久化批次 SHALL 一致。
+- **AND** 呈现与持久化批次及规划输入快照 SHALL 一致。
 
 ### Requirement: Path candidate nodes carry explicit runtime resource bindings
 候选路径节点 SHALL 以独立于导航 target 的绑定字段携带 runtime 资源身份，节点导航 target 保持学生可导航站内路由不变。

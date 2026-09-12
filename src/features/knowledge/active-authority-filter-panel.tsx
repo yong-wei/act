@@ -153,8 +153,8 @@ export function ActiveAuthorityFilterPanel({
       className={inFlow
         ? 'pointer-events-auto relative z-20 mt-2 flex w-fit max-w-full min-w-0 shrink-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface p-1 sm:p-1.5'
         : avoidExpandedKonling
-        ? 'pointer-events-auto absolute bottom-0 left-20 z-40 flex max-w-[calc(100%-5rem)] min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
-        : 'pointer-events-auto absolute bottom-0 left-0 z-40 flex max-w-full min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:p-1.5'}
+        ? 'pointer-events-auto absolute bottom-0 left-20 z-40 flex w-fit max-w-[calc(100%-5rem)] min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-md'
+        : 'pointer-events-auto absolute bottom-0 left-0 z-40 flex w-fit max-w-full min-w-0 flex-wrap items-center gap-1 rounded-xl border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-md sm:p-1.5'}
     >
       <div className="flex items-center gap-1" data-active-authority-filter-group="node-types">
         <button ref={typeTriggerRef} type="button" aria-haspopup="dialog" aria-expanded={typesOpen}
@@ -222,13 +222,14 @@ export function ActiveAuthorityFilterPanel({
           className={`inline-flex min-w-0 items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary ${teachingRelationsVisible
             ? 'border-sky-300/50 bg-sky-400/10 text-sky-100'
             : 'border-platform-border text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'}`}
+          title={teachingCoverageNote ?? undefined}
           data-authority-relation-family="prerequisite-order"
           data-authority-family-enabled={teachingRelationsVisible ? 'true' : 'false'}
         >
           <RelationLineSample family="teaching" />
           {graphCopy(locale, 'filter.family.prerequisite-order')}
           {teachingCoverageNote ? (
-            <span data-authority-teaching-coverage="true" className="text-[11px] text-sky-200/80">{teachingCoverageNote}</span>
+            <span data-authority-teaching-coverage="true" className="sr-only">{teachingCoverageNote}</span>
           ) : null}
         </button>
         {familyFailures['prerequisite-order'] ? (

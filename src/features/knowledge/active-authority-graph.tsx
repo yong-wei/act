@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MutableR
 import Image from 'next/image';
 import {
   AlertTriangle,
-  ChevronDown,
   CircleHelp,
   Loader2,
   Network,
@@ -16,9 +15,14 @@ import {
 } from 'lucide-react';
 
 import {
-  ACTIVE_RESOURCE_BINDING_ROLES,
   type ActiveNodeDetailResponse,
+  type ActiveResourceBinding,
 } from './active-authority-graph-contracts';
+import {
+  groupSystemResourceBindingsByKind,
+  systemResourceBindings,
+} from './active-authority-inspector-resources';
+import { InspectorLearnerMarkdown } from './inspector-learner-markdown';
 import 'katex/dist/katex.min.css';
 import { GovernedBlockMath, GovernedRichText, GovernedUnavailableMath } from '@/components/shared/governed-rich-text';
 import {
@@ -118,6 +122,7 @@ interface ActiveAuthorityGraphProps {
   onShowLegacy?: () => void;
   returnToRootRef?: MutableRefObject<(() => void) | null>;
   chromeHostRef?: { current: HTMLElement | null };
+  languageHostRef?: { current: HTMLElement | null };
   runtimeControlsRef?: { current: {
     requestFitView: (target?: 'current' | 'root' | 'teaching-layout') => void;
     requestRelayout: () => void;
@@ -804,6 +809,14 @@ function useActiveNodeDetail(
 
 const ACTIVE_MOBILE_NODE_LIMIT = 6;
 const SEARCH_RESULT_PAGE_SIZE = 12;
+function activeResourceBindingItemKey(
+  role: string,
+  item: Pick<ActiveResourceBinding, 'resourceId' | 'title' | 'launch'>,
+  index: number,
+): string {
+  return `${role}:${index}:${item.resourceId ?? ''}:${item.launch.kind}:${item.launch.href ?? ''}:${item.title}`;
+}
+
 function trapInspectorFocus(event: KeyboardEvent<HTMLElement>, root: HTMLElement | null) {
   if (event.key !== 'Tab' || !root) return;
   const focusable = [...root.querySelectorAll<HTMLElement>(
@@ -886,6 +899,27 @@ function ActiveNodeDetail({
     bodyLocale: 'zh-CN',
     selectedLocale: locale,
   });
+  const descriptionText = presentActiveHumanText(
+    node?.description ?? fallbackNode?.description,
+    '',
+  );
+  const cardPinned = Boolean(
+    node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render',
+  );
+  const infographPinned = Boolean(
+    node?.learningContent?.infograph.state === 'available'
+    && !infographFailed
+    && infographProjection.visibility === 'render',
+  );
+  const systemResourceGroups = node?.resourceBindings?.state === 'available'
+    ? groupSystemResourceBindingsByKind(systemResourceBindings(node.resourceBindings.items, {
+      nodeKey,
+      nodeLabel: node.label,
+      learningContent: node.learningContent,
+      cardPinned,
+      infographPinned,
+    }))
+    : [];
   return (
     <aside
       ref={panelRef}
@@ -894,12 +928,13 @@ function ActiveNodeDetail({
       aria-modal={compact ? true : undefined}
       onKeyDown={compact ? (event) => trapInspectorFocus(event, panelRef.current) : undefined}
       className={compact
-        ? 'absolute inset-x-3 bottom-3 z-20 max-h-[70%] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'
-        : 'absolute inset-y-3 right-3 z-20 w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
+        ? 'absolute inset-x-3 bottom-3 z-[60] max-h-[70%] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'
+        : 'absolute inset-y-3 right-3 z-[60] w-[min(27rem,calc(100%-1.5rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-4 shadow-2xl outline-none'}
       aria-label={graphCopy(locale, 'inspector.label')}
       data-active-node-detail={nodeKey}
       data-active-inspector-surface={compact ? 'mobile-drawer' : 'desktop-overlay'}
       data-active-inspector-focus-contract={compact ? 'mobile-contained-drawer' : 'desktop-overlay'}
+      data-active-inspector-layer="above-workspace-chrome"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -933,100 +968,101 @@ function ActiveNodeDetail({
         </div>
       </div>
 
-      {loading ? (
-        <div className="mt-8 flex items-center gap-2 text-sm text-platform-fg-secondary" role="status">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          {graphCopy(locale, 'loading.detail')}
-        </div>
-      ) : failure ? (
-        <div className="mt-6 rounded-lg border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
-          {failure}
-        </div>
-      ) : detail ? (
-        <div className="mt-5 space-y-5">
-          <div>
-            <div className="mt-3 text-sm leading-6 text-platform-fg-secondary">
-              {node?.richDescription && node.richDescription.state !== 'missing'
-                ? <GovernedRichText projection={node.richDescription} density="detail" />
-                : presentActiveHumanText(node?.description ?? fallbackNode?.description, graphCopy(locale, 'inspector.noDescription'))}
-            </div>
-            {node?.aliases && node.aliases.length > 0 ? (
-              <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.aliases')}{node.aliases.join('、')}</p>
-            ) : null}
-            {node?.mathematics?.state === 'available' ? (
-              <div className="mt-3 overflow-x-auto text-platform-fg-primary" data-active-inspector-math="true">
-                {node.mathematics.macroProfileId && node.mathematics.macroProfileHash ? (
-                  <GovernedBlockMath
-                    latex={node.mathematics.expression}
-                    macroProfileId={node.mathematics.macroProfileId}
-                    macroProfileHash={node.mathematics.macroProfileHash}
-                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
-                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
-                    display={node.mathematics.display}
-                  />
-                ) : (
-                  <GovernedBlockMath
-                    latex={node.mathematics.expression}
-                    macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
-                    macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
-                    accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
-                    copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
-                    display={node.mathematics.display}
-                  />
-                )}
-              </div>
-            ) : node?.mathematics?.state === 'unavailable' ? (
-              <GovernedUnavailableMath message={node.mathematics.message} />
-            ) : null}
+      <div className="mt-5 space-y-5">
+        <div>
+          <div className="text-sm leading-6 text-platform-fg-secondary">
+            {node?.richDescription && node.richDescription.state !== 'missing'
+              ? <GovernedRichText projection={node.richDescription} density="detail" />
+              : descriptionText
+                ? <InspectorLearnerMarkdown>{descriptionText}</InspectorLearnerMarkdown>
+                : graphCopy(locale, 'inspector.noDescription')}
           </div>
-          {node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render' ? (
-            <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
-              <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.card')}</h3>
-              <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
-                <p>{node.learningContent.card.summary}</p>
-                {node.learningContent.card.insight ? <p>{node.learningContent.card.insight}</p> : null}
-                {node.learningContent.card.explanation ? <p>{node.learningContent.card.explanation}</p> : null}
-              </div>
-            </section>
-          ) : node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'unavailable' ? (
-            <p data-optional-content-unavailable="card" className="text-sm text-platform-fg-muted">{cardProjection.message}</p>
+          {node?.aliases && node.aliases.length > 0 ? (
+            <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.aliases')}{node.aliases.join('、')}</p>
           ) : null}
-          {node?.learningContent?.infograph.state === 'available' && !infographFailed && infographProjection.visibility === 'render' ? (
-            <section aria-labelledby="active-detail-infograph" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
-              <h3 id="active-detail-infograph" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.infograph')}</h3>
-              <Image
-                src={shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)}
-                alt={node.learningContent.infograph.alternativeText}
-                width={1200}
-                height={675}
-                sizes="(max-width: 640px) 100vw, 30rem"
-                unoptimized
-                onError={() => setInfographFailed(true)}
-                className="mt-3 h-auto w-full rounded-md border border-platform-border bg-platform-surface object-contain"
-              />
-            </section>
+          {node?.mathematics?.state === 'available' ? (
+            <div className="mt-3 overflow-x-auto text-platform-fg-primary" data-active-inspector-math="true">
+              {node.mathematics.macroProfileId && node.mathematics.macroProfileHash ? (
+                <GovernedBlockMath
+                  latex={node.mathematics.expression}
+                  macroProfileId={node.mathematics.macroProfileId}
+                  macroProfileHash={node.mathematics.macroProfileHash}
+                  accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                  copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                  display={node.mathematics.display}
+                />
+              ) : (
+                <GovernedBlockMath
+                  latex={node.mathematics.expression}
+                  macroProfileId={GOVERNED_KATEX_MACRO_PROFILE_ID}
+                  macroProfileHash={GOVERNED_KATEX_MACRO_PROFILE_HASH}
+                  accessibleLabel={node.mathematics.accessibleLabel ?? node.mathematics.expression}
+                  copyLatex={node.mathematics.copyLatex ?? node.mathematics.expression}
+                  display={node.mathematics.display}
+                />
+              )}
+            </div>
+          ) : node?.mathematics?.state === 'unavailable' ? (
+            <GovernedUnavailableMath message={node.mathematics.message} />
           ) : null}
-          <section aria-labelledby="active-detail-resources" data-active-inspector-resources="true">
-            <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
-            {node?.resourceBindings?.state === 'available' ? (
-              <div className="mt-2 space-y-3">
-                {(() => {
-                  const boundItems = node.resourceBindings.state === 'available'
-                    ? node.resourceBindings.items
-                    : [];
-                  return ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
-                    const items = boundItems.filter((item) => item.bindingRole === role);
-                    if (items.length === 0) return null;
-                    return (
-                    <div key={role} data-active-resource-role={role}>
-                      <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
+        </div>
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-platform-fg-secondary" role="status" data-active-inspector-loading="true">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            {graphCopy(locale, 'loading.detail')}
+          </div>
+        ) : failure ? (
+          <div className="rounded-lg border border-red-400/35 bg-red-400/10 p-3 text-sm text-red-100" role="alert">
+            {failure}
+          </div>
+        ) : null}
+        {detail ? (
+          <>
+            {node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render' ? (
+              <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
+                <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.card')}</h3>
+                <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
+                  <InspectorLearnerMarkdown>{node.learningContent.card.summary}</InspectorLearnerMarkdown>
+                  {node.learningContent.card.insight
+                    ? <InspectorLearnerMarkdown>{node.learningContent.card.insight}</InspectorLearnerMarkdown>
+                    : null}
+                  {node.learningContent.card.explanation
+                    ? <InspectorLearnerMarkdown>{node.learningContent.card.explanation}</InspectorLearnerMarkdown>
+                    : null}
+                </div>
+              </section>
+            ) : node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'unavailable' ? (
+              <p data-optional-content-unavailable="card" className="text-sm text-platform-fg-muted">{cardProjection.message}</p>
+            ) : null}
+            {node?.learningContent?.infograph.state === 'available' && !infographFailed && infographProjection.visibility === 'render' ? (
+              <section aria-labelledby="active-detail-infograph" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
+                <h3 id="active-detail-infograph" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.infograph')}</h3>
+                <Image
+                  src={shardUrl(`/api/knowledge/shards/active/nodes/${encodeURIComponent(nodeKey)}/infograph`, locale)}
+                  alt={node.learningContent.infograph.alternativeText}
+                  width={1200}
+                  height={675}
+                  sizes="(max-width: 640px) 100vw, 30rem"
+                  unoptimized
+                  onError={() => setInfographFailed(true)}
+                  className="mt-3 h-auto w-full rounded-md border border-platform-border bg-platform-surface object-contain"
+                />
+              </section>
+            ) : null}
+            <section aria-labelledby="active-detail-resources" data-active-inspector-resources="true">
+              <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
+              {node?.resourceBindings?.state === 'available' && systemResourceGroups.length > 0 ? (
+                <div className="mt-2 space-y-3">
+                  {systemResourceGroups.map((group) => (
+                    <div key={group.kind} data-active-resource-kind={group.kind}>
+                      <h4 className="text-xs font-medium text-platform-fg-muted">{group.kind}</h4>
                       <div className="mt-1 space-y-1">
-                        {items.map((item) => (
+                        {group.items.map((item, index) => (
                           item.availability === 'available'
                           && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
                             <button
                               type="button"
-                              key={`${role}-${item.resourceId ?? item.title}`}
+                              key={activeResourceBindingItemKey(group.kind, item, index)}
                               onClick={() => openResourceViewer({
                                 title: item.title,
                                 resourceKind: item.resourceKind,
@@ -1049,11 +1085,11 @@ function ActiveNodeDetail({
                               className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
                             >
                               {item.title}
-                              <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
+                              <span className="ml-2 text-platform-fg-muted">{item.bindingRole}</span>
                             </button>
                           ) : (
                             <p
-                              key={`${role}-${item.resourceId ?? item.title}`}
+                              key={activeResourceBindingItemKey(group.kind, item, index)}
                               data-active-resource-unavailable="true"
                               className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
                             >
@@ -1063,55 +1099,56 @@ function ActiveNodeDetail({
                         ))}
                       </div>
                     </div>
-                  );
-                });
-                })()}
-              </div>
-            ) : (
-              <p className="mt-2 text-sm text-platform-fg-muted">
-                {node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
-              </p>
-            )}
-          </section>
-          <section aria-labelledby="active-detail-relations">
-            <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.relations')}</h3>
-            <div className="mt-2 space-y-2">
-              {summaries.length === 0 ? (
-                <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? graphCopy(locale, 'inspector.hiddenRelations') : graphCopy(locale, 'empty.noPublishedRelation')}</p>
-              ) : summaries.slice(0, 20).map((relation) => (
-                <button
-                  key={relation.key}
-                  type="button"
-                  data-active-inspector-neighbor={relation.neighborKey}
-                  onClick={() => onActivateNeighbor(relation.neighborKey)}
-                  className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
-                >
-                  <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
-                  <span className="ml-2 text-platform-fg-muted">
-                    {relation.kind === 'undirected'
-                      ? `${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
-                      : `${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.directionLabel} · ${relation.neighborLabel}`}
-                  </span>
-                </button>
-              ))}
-              {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.hiddenRelations')}</p> : null}
-            </div>
-          </section>
-          <section aria-labelledby="active-detail-sources">
-            <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.sources')}</h3>
-            <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources, locale)}</p>
-          </section>
-          {node?.governance ? (
-            <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
-              <h3 className="font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.governance')}</h3>
-              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus, locale)}</dd>
-                <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus, locale)}</dd>
-              </dl>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-platform-fg-muted">
+                  {node?.resourceBindings?.state === 'available'
+                    ? graphCopy(locale, 'inspector.noAuthorizedResources')
+                    : node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
+                </p>
+              )}
             </section>
-          ) : null}
-        </div>
-      ) : null}
+            <section aria-labelledby="active-detail-sources">
+              <h3 id="active-detail-sources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.sources')}</h3>
+              <p className="mt-2 text-xs text-platform-fg-secondary">{presentSourceCitation(node?.sources, locale)}</p>
+            </section>
+            {node?.governance ? (
+              <section className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3 text-xs text-platform-fg-secondary">
+                <h3 className="font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.governance')}</h3>
+                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                  <dt>{graphCopy(locale, 'inspector.review')}</dt><dd>{presentGovernanceLabel(node.governance.reviewStatus, locale)}</dd>
+                  <dt>{graphCopy(locale, 'inspector.publication')}</dt><dd>{presentGovernanceLabel(node.governance.publicationStatus, locale)}</dd>
+                </dl>
+              </section>
+            ) : null}
+          </>
+        ) : null}
+        <section aria-labelledby="active-detail-relations">
+          <h3 id="active-detail-relations" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.relations')}</h3>
+          <div className="mt-2 space-y-2">
+            {summaries.length === 0 ? (
+              <p className="text-sm text-platform-fg-muted">{node?.adjacency.length ? graphCopy(locale, 'inspector.hiddenRelations') : graphCopy(locale, 'empty.noPublishedRelation')}</p>
+            ) : summaries.slice(0, 20).map((relation) => (
+              <button
+                key={relation.key}
+                type="button"
+                data-active-inspector-neighbor={relation.neighborKey}
+                onClick={() => onActivateNeighbor(relation.neighborKey)}
+                className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted p-2 text-left text-xs hover:bg-platform-action-subtle"
+              >
+                <span className="font-medium text-platform-fg-primary">{relation.relationLabel}</span>
+                <span className="ml-2 text-platform-fg-muted">
+                  {relation.kind === 'undirected'
+                    ? `${graphCopy(locale, 'inspector.undirected')} · ${relation.neighborLabel}`
+                    : `${graphCopy(locale, relation.traversal === 'outgoing' ? 'inspector.outgoing' : 'inspector.incoming')} · ${relation.directionLabel} · ${relation.neighborLabel}`}
+                </span>
+              </button>
+            ))}
+            {node && node.adjacency.length > summaries.length ? <p className="text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.hiddenRelations')}</p> : null}
+          </div>
+        </section>
+      </div>
     </aside>
   );
 }
@@ -1261,6 +1298,7 @@ export function ActiveAuthorityGraph({
   onShowLegacy,
   returnToRootRef,
   chromeHostRef,
+  languageHostRef,
   runtimeControlsRef,
 }: ActiveAuthorityGraphProps) {
   const dimension = dimensionProp ?? '2d';
@@ -1316,15 +1354,12 @@ export function ActiveAuthorityGraph({
   const [hiddenNodeTypes, setHiddenNodeTypes] = useState<ReadonlySet<string>>(defaultHiddenActiveTypes);
   const [selectedResourceTypes, setSelectedResourceTypes] = useState<ReadonlySet<TeachingResourceType>>(() => new Set());
   const teachingRelationsVisible = workspace.enabledFamilies.includes('prerequisite-order');
-  const [mobileGraphControlsExpanded, setMobileGraphControlsExpanded] = useState(false);
   const graphMainRef = useRef<HTMLElement | null>(null);
-  const mobileToolsRef = useRef<HTMLDivElement | null>(null);
   const selectionIntentRef = useRef(0);
   const pendingTypeSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const pendingCrossDomainSelectionRef = useRef<{ key: string; intent: number } | null>(null);
   const isCompactViewport = viewportWidth !== null
     && viewportWidth <= KNOWLEDGE_GRAPH_COMPACT_MAX_WIDTH;
-  const graphControlsVisible = !isCompactViewport || mobileGraphControlsExpanded;
   const visibleNodeLimit = isCompactViewport ? ACTIVE_MOBILE_NODE_LIMIT : ACTIVE_GRAPH_NODE_LIMIT;
 
   useEffect(() => {
@@ -1337,20 +1372,6 @@ export function ActiveAuthorityGraph({
     window.addEventListener('resize', updateViewportWidth);
     return () => window.removeEventListener('resize', updateViewportWidth);
   }, []);
-
-  useEffect(() => {
-    setMobileGraphControlsExpanded(false);
-  }, [workspace.activeDomainId]);
-
-  // Mobile 折叠抽屉（mobileTools）卸载后，焦点可能残留在已移除的筛选
-  // 控件上而丢到 body；还原到折叠开关，键盘会话不中断（#1742）。
-  useEffect(() => {
-    if (graphControlsVisible) return;
-    if (document.activeElement && document.activeElement !== document.body) return;
-    document
-      .querySelector<HTMLElement>('[data-active-authority-mobile-tools-toggle="true"]')
-      ?.focus();
-  }, [graphControlsVisible]);
 
   const model = useMemo(() => {
     if (state.status !== 'ready' || !workspace.activeDomainId) return null;
@@ -1671,6 +1692,13 @@ export function ActiveAuthorityGraph({
       .every((key) => visibleKeys.has(key));
   const domainEntryNodeCount = scopedGraph?.nodes.length ?? 0;
   const domainEntrySettled = settledDomainEntryNodeCount !== null;
+  // 2D/3D 只在图数据引用变化时通知沉降。引擎若在 overview 尚未进
+  // visibleKeys 时先沉降，或 fit 失败一直不回调，门控会永远不关；点选
+  // 也不得把已关闭的门控再打开。
+  useEffect(() => {
+    if (!domainEntryStageComplete || domainEntryNodeCount <= 0) return;
+    setSettledDomainEntryNodeCount((current) => current ?? domainEntryNodeCount);
+  }, [domainEntryNodeCount, domainEntryStageComplete]);
   const handleDomainEngineSettled = useCallback(() => {
     if (domainEntryStageComplete) setSettledDomainEntryNodeCount(domainEntryNodeCount);
   }, [domainEntryNodeCount, domainEntryStageComplete]);
@@ -1717,9 +1745,9 @@ export function ActiveAuthorityGraph({
   const selectedNode = selectedNodeKey && model ? model.nodeByKey.get(selectedNodeKey) : undefined;
   useEffect(() => {
     const pending = pendingTypeSelectionRef.current;
-    if (!pending || pending.intent !== selectionIntentRef.current || pending.key !== selectedNodeKey || !selectedNode
-      || !workspace.loadedShardKeys.includes('node-neighborhood:' + selectedNodeKey)) return;
-    pendingTypeSelectionRef.current = null;
+    if (!pending || pending.intent !== selectionIntentRef.current || pending.key !== selectedNodeKey || !selectedNode) {
+      return;
+    }
     setHiddenNodeTypes((current) => {
       const next = new Set(current);
       for (const id of activeFocusNodeIds(visibleAuthorityShardRelations(workspace), selectedNodeKey)) {
@@ -1730,7 +1758,13 @@ export function ActiveAuthorityGraph({
       return next.size === current.size ? current : next;
     });
     if (!matchesActiveResourceTypes(selectedNode.sourceNode, selectedResourceTypes)) setSelectedResourceTypes(new Set());
-  }, [selectedNode, selectedNodeKey, selectedResourceTypes, workspace]);
+    if (
+      workspace.loadedShardKeys.includes(`node-neighborhood:${selectedNodeKey}`)
+      || Boolean(neighborhoodFailures[selectedNodeKey])
+    ) {
+      pendingTypeSelectionRef.current = null;
+    }
+  }, [neighborhoodFailures, selectedNode, selectedNodeKey, selectedResourceTypes, workspace]);
   const selectedName = selectedNode?.label;
   const contextDomainName = workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName;
   const contextTypeFilters = knownActiveNodeTypes().filter((type) => !hiddenNodeTypes.has(type.canonicalType)).map((type) => type.canonicalType).join(',');
@@ -1947,18 +1981,13 @@ export function ActiveAuthorityGraph({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-platform-page text-platform-fg-primary" data-active-authority-graph="true" data-active-authority-consumer="engineering-graph" data-latest-cutover-ready={latestCutoverReady ? 'true' : 'false'} data-graph-locale={locale} data-workspace-locale={workspace.selectedLocale}>
-      <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
-      <div
-        className="flex justify-end pt-1"
-        data-active-authority-header="true"
-      >
+      <KnowledgeWorkspaceChromePortal hostRef={languageHostRef}>
         <div className="flex flex-col items-start gap-1">
-          <span className="sr-only" data-active-authority-title="true">{graphCopy(locale, 'title.graph')}</span>
           <div
             role="group"
             aria-label={graphCopy(locale, 'language.group')}
             data-graph-language-switch="true"
-            className="pointer-events-auto flex rounded-md border border-platform-border bg-platform-surface/95 p-0.5 shadow-lg backdrop-blur"
+            className="pointer-events-auto flex rounded-md border border-platform-border bg-platform-surface/95 p-0.5"
           >
             <button
               type="button"
@@ -1992,27 +2021,52 @@ export function ActiveAuthorityGraph({
             </p>
           ) : null}
         </div>
-      </div>
-
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 py-2" data-active-authority-context>
-          <h2 className="min-w-0 text-sm font-semibold text-platform-fg-primary">
-            {workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName
-              ?? graphCopy(locale, 'scope.allDomains')}
-            <span className="ml-2 font-normal text-platform-fg-secondary">
-              {selectedNode ? `${selectedNode.label} · ${graphCopy(locale, 'scope.neighborhood')}`
-                : workspace.activeDomainId ? graphCopy(locale, [...visibleKeys].some((key) => !workspace.domainOverviewIds.includes(key)) ? 'scope.currentRange' : 'scope.domainOverview') : graphCopy(locale, 'scope.domainDirectory')}
-            </span>
-          </h2>
-          {selectedNodeKey ? (
-            <button type="button" onClick={leaveSelectedNeighborhood} data-active-authority-return-overview
-              className="rounded-md px-2 py-1 text-xs text-platform-action-primary hover:bg-platform-action-subtle">
-              {graphCopy(locale, 'scope.returnOverview')}
-            </button>
-          ) : null}
-          {!languageState.englishAvailable ? (
-            <p data-graph-language-unavailable="en" className="w-full text-[11px] text-platform-fg-muted">
-              {languageState.englishUnavailableReason}
-            </p>
+      </KnowledgeWorkspaceChromePortal>
+      <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
+        <div
+          className="pointer-events-auto absolute left-3 top-3 z-10 flex w-[min(16rem,calc(50%-1.25rem))] flex-col items-start gap-1 max-[639px]:w-28"
+          data-active-authority-header="true"
+        >
+          <div className="min-w-0" data-active-authority-context>
+            <h2
+              className="min-w-0 text-sm font-semibold text-platform-fg-primary"
+              data-active-authority-title="true"
+            >
+              {workspace.root?.domains.find((domain) => domain.visualRole === workspace.activeVisualRole)?.displayName
+                ?? graphCopy(locale, 'scope.allDomains')}
+            </h2>
+            {selectedNodeKey ? (
+              <button type="button" onClick={leaveSelectedNeighborhood} data-active-authority-return-overview
+                className="rounded-md px-2 py-1 text-xs text-platform-action-primary hover:bg-platform-action-subtle">
+                {graphCopy(locale, 'scope.returnOverview')}
+              </button>
+            ) : null}
+            {!languageState.englishAvailable ? (
+              <p data-graph-language-unavailable="en" className="w-full text-[11px] text-platform-fg-muted">
+                {languageState.englishUnavailableReason}
+              </p>
+            ) : null}
+          </div>
+          {model ? (
+            <div className="w-full" data-active-authority-toolbar="true">
+              <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
+              <div className="relative w-full">
+                <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
+                <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder={graphCopy(locale, 'search.placeholder')} className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
+              </div>
+              {query ? <SearchResults key={searchQueryKey} state={domainSearch} onSelect={focusSearchResult} onLoadMore={loadMoreSearchResults} locale={locale} /> : null}
+              {workspace.activeDomainId && runtimeLayout.pinnedNodeIds.size > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => runtimeLayout.unpinNode()}
+                  data-active-authority-unpin-all="true"
+                  aria-label={formatUnpinAllAria(locale, runtimeLayout.pinnedNodeIds.size)}
+                  className="mt-1 shrink-0 whitespace-nowrap rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle"
+                >
+                  {graphCopy(locale, 'controls.unpinAll')}（{runtimeLayout.pinnedNodeIds.size}）
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </KnowledgeWorkspaceChromePortal>
@@ -2085,67 +2139,7 @@ export function ActiveAuthorityGraph({
         </div>
       ) : (
         <div className="relative min-h-0 flex-1">
-          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden max-[639px]:overflow-y-auto max-[639px]:p-2" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
-            <KnowledgeWorkspaceChromePortal hostRef={chromeHostRef}>
-            <div className="mb-3 max-[639px]:mb-1 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto" data-active-authority-toolbar="true">
-              <button
-                type="button"
-                data-active-authority-mobile-tools-toggle="true"
-                aria-expanded={mobileGraphControlsExpanded}
-                aria-controls="active-authority-mobile-tools"
-                onClick={() => setMobileGraphControlsExpanded((expanded) => !expanded)}
-                className="hidden w-full items-center justify-between rounded-md border border-platform-border bg-platform-canvas-muted px-3 py-2 text-sm text-platform-fg-primary max-[639px]:inline-flex"
-              >
-                <span className="inline-flex items-center gap-2"><Search className="h-4 w-4" aria-hidden="true" />{graphCopy(locale, 'search.label')}</span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${mobileGraphControlsExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
-              </button>
-              {graphControlsVisible ? (
-              <div
-                id="active-authority-mobile-tools"
-                ref={mobileToolsRef}
-                data-active-authority-mobile-drawer={isCompactViewport ? 'true' : undefined}
-                onKeyDown={(event) => {
-                  if (!isCompactViewport) return;
-                  // compact 折叠抽屉：Escape 关闭并把焦点还给折叠开关；Tab
-                  // 在抽屉内循环。桌面常驻面板保持自然 Tab 序（#1742）。
-                  if (event.key === 'Escape') {
-                    // 抽屉内 Escape 只关抽屉，不再冒泡触发全局的退出邻域。
-                    event.stopPropagation();
-                    setMobileGraphControlsExpanded(false);
-                    document
-                      .querySelector<HTMLElement>('[data-active-authority-mobile-tools-toggle="true"]')
-                      ?.focus();
-                    return;
-                  }
-                  trapInspectorFocus(event, mobileToolsRef.current);
-                }}
-                className="mt-2 flex flex-wrap items-end justify-between gap-3"
-              >
-              <div className="min-w-[15rem] flex-1">
-                <label className="sr-only" htmlFor="active-authority-search">{graphCopy(locale, 'search.label')}</label>
-                <div className="relative max-[639px]:shrink-0">
-                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-platform-fg-muted" aria-hidden="true" />
-                  <input id="active-authority-search" value={query} onChange={(event) => setQuery(event.target.value)} onInput={(event) => setQuery(event.currentTarget.value)} placeholder={graphCopy(locale, 'search.placeholder')} className="w-full rounded-md border border-platform-border bg-platform-canvas-muted py-2 pl-9 pr-3 text-sm text-platform-fg-primary outline-none focus:ring-2 focus:ring-platform-action-primary" />
-                </div>
-                {query ? <SearchResults key={searchQueryKey} state={domainSearch} onSelect={focusSearchResult} onLoadMore={loadMoreSearchResults} locale={locale} /> : null}
-              </div>
-              <div className="flex flex-wrap items-center gap-2 max-[639px]:w-full max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:pb-1">
-                {workspace.activeDomainId && runtimeLayout.pinnedNodeIds.size > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => runtimeLayout.unpinNode()}
-                    data-active-authority-unpin-all="true"
-                    aria-label={formatUnpinAllAria(locale, runtimeLayout.pinnedNodeIds.size)}
-                    className="shrink-0 whitespace-nowrap rounded-md border border-platform-border px-2.5 py-2 text-xs text-platform-fg-secondary hover:bg-platform-action-subtle max-[639px]:shrink-0"
-                  >
-                    {graphCopy(locale, 'controls.unpinAll')}（{runtimeLayout.pinnedNodeIds.size}）
-                  </button>
-                ) : null}
-              </div>
-              </div>
-              ) : null}
-            </div>
-            </KnowledgeWorkspaceChromePortal>
+          <main ref={graphMainRef} className="relative flex min-h-0 h-full flex-col overflow-hidden" aria-label={graphCopy(locale, 'a11y.graph')} data-active-authority-main="true">
             {selectedNodeKey && neighborhoodFailures[selectedNodeKey] ? (
               <div role="alert" aria-live="polite" data-authority-neighborhood-failure={selectedNodeKey} className="absolute left-3 right-3 top-14 z-20 mb-2 flex items-center justify-between gap-2 rounded-md border border-red-400/35 bg-red-400/10 px-3 py-2 text-xs text-red-100">
                 <span>{neighborhoodFailures[selectedNodeKey].message}</span>
@@ -2160,36 +2154,33 @@ export function ActiveAuthorityGraph({
               </div>
             ) : null}
             {authorityView ? (
-              <div className="relative flex min-h-0 flex-1 flex-col max-[639px]:flex-none" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
-                <div className="relative min-h-0 flex-1 max-[639px]:h-[26rem] max-[639px]:flex-none">
-                  <ActiveAuthorityRuntimeView
-                    kind="domain"
-                    view={authorityView}
-                    dimension={dimension}
-                    selectedNodeId={selectedNodeKey}
-                    onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
-                    onClearSelection={clearSelection}
-                    onHoverNode={setHoveredNodeId}
-                    onEnterDomain={(visualRole) => {
-                      void enterDomain(visualRole);
-                    }}
-                    hoverPreview={hoverPreview}
-                    canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
-                    overviewCount={workspace.domainOverviewIds.length}
-                    overviewEntries={overviewDirectoryEntries}
-                    layout={runtimeLayout}
-                    layoutSessions={layoutSessionsRef.current}
-                    camera={runtimeCamera}
-                    sessionKey={graphScopeKey}
-                    entryGateActive={!domainEntrySettled}
-                    onEngineSettled={handleDomainEngineSettled}
-                    crossDomainClusters={crossDomainClusters}
-                    onCrossDomainNodeClick={followBoundary}
-                  />
-                </div>
+              <div className="relative min-h-0 flex-1" data-active-authority-viewport={isCompactViewport ? 'compact' : 'default'} data-active-authority-node-limit={visibleNodeLimit}>
+                <ActiveAuthorityRuntimeView
+                  kind="domain"
+                  view={authorityView}
+                  dimension={dimension}
+                  selectedNodeId={selectedNodeKey}
+                  onSelectNode={(key) => resolveNodeSelection(key, 'canvas')}
+                  onClearSelection={clearSelection}
+                  onHoverNode={setHoveredNodeId}
+                  onEnterDomain={(visualRole) => {
+                    void enterDomain(visualRole);
+                  }}
+                  hoverPreview={hoverPreview}
+                  canvasAriaLabel={graphCopy(locale, 'a11y.canvas')}
+                  overviewCount={workspace.domainOverviewIds.length}
+                  overviewEntries={overviewDirectoryEntries}
+                  layout={runtimeLayout}
+                  layoutSessions={layoutSessionsRef.current}
+                  camera={runtimeCamera}
+                  sessionKey={graphScopeKey}
+                  entryGateActive={!domainEntrySettled}
+                  onEngineSettled={handleDomainEngineSettled}
+                  crossDomainClusters={crossDomainClusters}
+                  onCrossDomainNodeClick={followBoundary}
+                />
                 {materializedNodeTypes.length > 0 ? (
                   <ActiveAuthorityFilterPanel
-                    inFlow
                     locale={locale}
                     materializedTypes={materializedNodeTypes}
                     hiddenNodeTypes={hiddenNodeTypes}
@@ -2207,14 +2198,14 @@ export function ActiveAuthorityGraph({
                 ) : null}
               </div>
             ) : null}
-            <div className="pointer-events-none mt-2 flex shrink-0 flex-wrap items-center justify-start gap-x-4 gap-y-1 text-xs text-platform-fg-muted" data-active-authority-coverage>
+            <div className="pointer-events-none absolute bottom-12 left-3 z-30 flex flex-wrap items-center justify-start gap-x-4 gap-y-1 text-xs text-platform-fg-muted" data-active-authority-coverage>
               <span>{visibleCoverageCopy(locale, (authorityView?.nodes.length ?? scopedGraph.nodes.length) + crossDomainClusters.reduce((count, cluster) => count + cluster.nodes.length, 0), (authorityView?.edges.length ?? 0) + crossDomainClusters.reduce((count, cluster) => count + cluster.links.length, 0))}</span>
               <span>{totalCoverageCopy(locale, model.totalNodeCount + crossDomainClusters.reduce((count, cluster) => count + cluster.nodes.length, 0), model.totalRelationCount + crossDomainClusters.reduce((count, cluster) => count + cluster.links.length, 0))}</span>
             </div>
-            {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none mt-2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
-            {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
+            {scopedGraph.nodes.length === 1 && scopedGraph.relations.length === 0 ? <div className="pointer-events-none absolute inset-x-3 top-1/2 z-20 -translate-y-1/2 text-center text-xs text-platform-fg-muted">{graphCopy(locale, 'empty.noPublishedRelation')}</div> : null}
+            {model.omittedNodeCount > 0 || model.omittedRelationCount > 0 ? <p className="pointer-events-none absolute bottom-20 left-3 z-20 text-xs text-platform-fg-muted">{graphCopy(locale, 'a11y.hiddenUnsafe')}</p> : null}
             {query && (domainSearch.status === 'ready' && domainSearch.hits.length === 0
-              || domainSearch.status === 'error') ? <p className="mt-3 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, domainSearch.status === 'error' ? 'search.failed' : 'search.empty')}</p> : null}
+              || domainSearch.status === 'error') ? <p className="pointer-events-none absolute left-3 top-28 z-20 flex items-center gap-1 text-xs text-platform-fg-muted"><CircleHelp className="h-3.5 w-3.5" aria-hidden="true" />{graphCopy(locale, domainSearch.status === 'error' ? 'search.failed' : 'search.empty')}</p> : null}
           </main>
           {selectedNodeKey && inspectorOpen ? <ActiveNodeDetail nodeKey={selectedNodeKey} fallbackNode={selectedNode} model={model} envelope={workspace.envelope} onShard={applyShard} onIdentityFailure={onIdentityFailure} onClose={closeDetail} compact={isCompactViewport} onActivateNeighbor={(key) => resolveNodeSelection(key, 'canvas')} locale={locale} pinned={runtimeLayout.pinnedNodeIds.has(selectedNodeKey)} onUnpin={() => runtimeLayout.unpinNode(selectedNodeKey)} /> : null}
         </div>

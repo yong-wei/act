@@ -31,6 +31,8 @@ export interface WidgetResult {
   success: boolean;
   /** Score if applicable (0-100) */
   score?: number;
+  /** Client event id used to bind a persisted interaction log */
+  clientEventId?: string;
   /** Detailed result data */
   data?: Record<string, unknown>;
 }

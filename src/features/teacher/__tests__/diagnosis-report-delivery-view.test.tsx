@@ -70,6 +70,8 @@ describe('DiagnosisReportDeliveryView', () => {
     expect(html).toContain('btn-disposition-pending');
     expect(html).toContain('btn-disposition-success');
     expect(html).toContain('btn-disposition-neutral');
+    expect(html).toContain('btn-disposition-primary');
+    expect(html).toContain('aria-pressed="false"');
     expect(html).toContain('学习建议');
     expect(html).toContain('完成一次针对性练习');
     expect(html).toContain('处置不会清除风险');
@@ -130,5 +132,7 @@ describe('DiagnosisReportDeliveryView', () => {
       />,
     );
     expect(html).toContain('当前处置：待处理。处置不会清除风险。');
+    expect(html).toContain('aria-pressed="true"');
+    expect(html.match(/aria-pressed="true"/g)?.length).toBe(1);
   });
 });

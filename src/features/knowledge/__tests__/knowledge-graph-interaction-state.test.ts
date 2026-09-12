@@ -467,6 +467,12 @@ describe('knowledge graph interaction state stability', () => {
     );
 
     expect(workspaceSource).toContain('right-3 top-3 z-50');
+    const graphSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/active-authority-graph.tsx'),
+      'utf8',
+    );
+    expect(graphSource).toContain('z-[60]');
+    expect(graphSource).toContain('data-active-inspector-layer="above-workspace-chrome"');
     expect(systemSource).toContain('left-3 right-3 top-16 lg:top-3');
     expect(systemSource).toContain('data-knowledge-mobile-command-toolbar="true"');
     expect(captureSource).toContain(

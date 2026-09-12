@@ -5,6 +5,12 @@ import {
   CONTROL_CORRECTION_GOAL_ID,
 } from './mappings';
 
+export const CONTROL_CORRECTION_NESTED_LEARNING_GOAL_IDS_PATH = [
+  'adaptiveAssessment',
+  'kaqQuizEvidence',
+  'learningGoalIds',
+] as const;
+
 export function explicitAdaptiveGoalValues(fact: Record<string, unknown>): string[] {
   const context = asRecord(fact.contextJson);
   return [
@@ -15,8 +21,17 @@ export function explicitAdaptiveGoalValues(fact: Record<string, unknown>): strin
   ].filter((value): value is string => value !== null);
 }
 
+export function nestedAdaptiveLearningGoalIds(fact: Record<string, unknown>): string[] {
+  const ids = asRecord(asRecord(asRecord(fact.contextJson).adaptiveAssessment).kaqQuizEvidence)
+    .learningGoalIds;
+  return Array.isArray(ids)
+    ? ids.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    : [];
+}
+
 export function hasExplicitAdaptiveGoal(fact: Record<string, unknown>): boolean {
-  return explicitAdaptiveGoalValues(fact).length > 0;
+  return explicitAdaptiveGoalValues(fact).length > 0
+    || nestedAdaptiveLearningGoalIds(fact).length > 0;
 }
 
 export function isControlCorrectionArenaTaskId(
@@ -63,6 +78,10 @@ export function isControlCorrectionFact(fact: Record<string, unknown>): boolean 
   if (explicitGoalValues.length > 0) {
     return explicitGoalValues.every((value) => value === CONTROL_CORRECTION_GOAL_ID);
   }
+  const nestedGoalIds = nestedAdaptiveLearningGoalIds(fact);
+  if (nestedGoalIds.length > 0) {
+    return nestedGoalIds.includes(CONTROL_CORRECTION_GOAL_ID);
+  }
   return isLegacyControlCorrectionFact(fact);
 }
 
@@ -83,6 +102,12 @@ export function buildExplicitControlCorrectionLearningFactWhere(userId: string) 
       { contextJson: { path: ['goal'], equals: CONTROL_CORRECTION_GOAL_ID } },
       { contextJson: { path: ['targetGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
       { contextJson: { path: ['learningGoal'], equals: CONTROL_CORRECTION_GOAL_ID } },
+      {
+        contextJson: {
+          path: [...CONTROL_CORRECTION_NESTED_LEARNING_GOAL_IDS_PATH],
+          array_contains: [CONTROL_CORRECTION_GOAL_ID],
+        },
+      },
     ],
   };
 }

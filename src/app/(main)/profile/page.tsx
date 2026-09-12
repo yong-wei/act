@@ -129,6 +129,15 @@ interface UserProfile {
     }>;
     evidenceAsOf: string | null;
     generatedAt: string | null;
+    knowledgeIdentity?: {
+      totalFacts: number;
+      byNamespace: { LEGACY: number; CANONICAL: number; LEGACY_UNVERSIONED: number };
+      singleVersionComparable: boolean;
+      availability: 'empty' | 'single-version' | 'mixed-version';
+      isolatedCount: number;
+      isolatedStatus: 'none' | 'restricted';
+      mixedVersionLimitation: string | null;
+    };
     strengths: string[];
     improvementAreas: string[];
     dimensions: Array<{
@@ -363,6 +372,23 @@ export default function ProfilePage() {
                   <span className="font-medium">{portraitAvailabilityMeta.label}</span>
                 </div>
                 <p className="mt-1">{formatPortraitAvailabilitySummary(profile.competency)}</p>
+                {profile.competency.knowledgeIdentity && (
+                  <div className="mt-2 border-t border-current/10 pt-2" data-learner-record-knowledge-identity={profile.competency.knowledgeIdentity.availability}>
+                    <p>
+                      知识身份 {profile.competency.knowledgeIdentity.byNamespace.CANONICAL} 现行 /
+                      {' '}{profile.competency.knowledgeIdentity.byNamespace.LEGACY} 旧版 /
+                      {' '}{profile.competency.knowledgeIdentity.byNamespace.LEGACY_UNVERSIONED} 未版本
+                    </p>
+                    {profile.competency.knowledgeIdentity.mixedVersionLimitation && (
+                      <p className="mt-1">{profile.competency.knowledgeIdentity.mixedVersionLimitation}</p>
+                    )}
+                    {profile.competency.knowledgeIdentity.isolatedCount > 0 && (
+                      <p className="mt-1">
+                        {profile.competency.knowledgeIdentity.isolatedCount} 条无法确定身份的事实已隔离，不计入高置信度证据。
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

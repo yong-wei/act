@@ -820,6 +820,7 @@ describe('platform UI contracts', () => {
     expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'surface-page' : undefined");
     expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'grid w-full");
     expect(knowledgeSource).toContain('data-knowledge-data-map-surface="knowledge-graph"');
+    expect(knowledgeSource).toContain('fillViewport');
     expect(knowledgeSource).toContain('data-commercial-student-entry-route="/knowledge"');
     expect(knowledgeSidebarSource).toContain('data-knowledge-local-panel="chapter-directory"');
     expect(knowledgeSidebarSource).not.toContain('w-[240px]');
@@ -1384,6 +1385,20 @@ describe('platform UI contracts', () => {
         navigationCollapsed: true,
       }),
     ).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
+    expect(
+      getAppShellDesktopGridClassName({
+        showSidebar: true,
+        sidebarBreakpoint: 'xl',
+        fillViewport: true,
+      }),
+    ).toContain('h-dvh');
+    expect(
+      getAppShellDesktopGridClassName({
+        showSidebar: true,
+        sidebarBreakpoint: 'xl',
+        fillViewport: true,
+      }),
+    ).not.toContain('min-h-screen');
 
     const collapsedSidebar = asElement(
       AppSidebar({
@@ -1989,6 +2004,19 @@ describe('platform UI contracts', () => {
     expect(shellMarkup).not.toContain('lg:grid-cols-[248px_1fr]');
     expect(shellMarkup).not.toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
     expect(shellMarkup).not.toContain('aria-label="平台导航"');
+  });
+
+  it('lets fillViewport consume the remaining viewport below AppShell chrome', () => {
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: '知识图谱',
+      activeHref: '/knowledge',
+      fillViewport: true,
+      children: createElement('section', { 'data-knowledge-data-map-surface': 'knowledge-graph' }),
+    });
+    expect(shellMarkup).toContain('data-app-shell-fill-viewport="true"');
+    expect(shellMarkup).toContain('h-dvh');
+    expect(shellMarkup).toContain('flex min-h-0 flex-1 flex-col overflow-auto');
   });
 
   it('uses compact fixed page edges instead of centered AppShell and course runtime caps', () => {

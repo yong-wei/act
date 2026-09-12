@@ -69,6 +69,8 @@ export interface AppShellProps {
   dockControls?: readonly AppShellDockControl[];
   children: ReactNode;
   className?: string;
+  /** 页头以下剩余视口由子页面铺满，不再按固定 dvh 余量截短。 */
+  fillViewport?: boolean;
 }
 
 export type AppShellWorkspaceZoneId =
@@ -277,13 +279,16 @@ export function getAppShellDesktopGridClassName({
   showSidebar,
   sidebarBreakpoint,
   navigationCollapsed = false,
+  fillViewport = false,
 }: {
   showSidebar: boolean;
   sidebarBreakpoint: 'lg' | 'xl';
   navigationCollapsed?: boolean;
+  fillViewport?: boolean;
 }) {
   return cn(
-    'grid min-h-screen',
+    'grid',
+    fillViewport ? 'h-dvh min-h-0 overflow-hidden' : 'min-h-screen',
     showSidebar &&
       sidebarBreakpoint === 'lg' &&
       (navigationCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[248px_minmax(0,1fr)]'),
@@ -589,6 +594,7 @@ function AppShellDesktopLayout({
   journeyControl,
   dockControls,
   floatingDockBehavior,
+  fillViewport = false,
   children,
 }: {
   showSidebar: boolean;
@@ -609,6 +615,7 @@ function AppShellDesktopLayout({
   journeyControl?: ReactNode;
   dockControls: readonly AppShellDockControl[];
   floatingDockBehavior: PlatformFloatingDockRouteBehavior;
+  fillViewport?: boolean;
   children: ReactNode;
 }) {
   const [navigationPreference, setNavigationPreference] = useState<AppShellNavigationPreference>('collapsed');
@@ -639,7 +646,7 @@ function AppShellDesktopLayout({
   return (
     <div
       className={cn(
-        getAppShellDesktopGridClassName({ showSidebar, sidebarBreakpoint, navigationCollapsed }),
+        getAppShellDesktopGridClassName({ showSidebar, sidebarBreakpoint, navigationCollapsed, fillViewport }),
         // 打印媒体可能达到桌面断点（如 A4 横向），收起双栏网格避免空侧栏列挤压正文。
         'print:block',
       )}
@@ -666,7 +673,7 @@ function AppShellDesktopLayout({
           />
         )
       ) : null}
-      <div className="min-w-0">
+      <div className={cn('min-w-0', fillViewport && 'flex h-full min-h-0 flex-col')}>
         <AppHeader
           viewerRole={viewerRole}
           title={title}
@@ -700,11 +707,14 @@ function AppShellDesktopLayout({
         ) : null}
         <div
           className={cn(
-            resolvedRouteMetadata?.frame
-              ? contentFrameClassNames[resolvedRouteMetadata.frame]
-              : APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
+            fillViewport
+              ? 'flex min-h-0 flex-1 flex-col overflow-auto'
+              : resolvedRouteMetadata?.frame
+                ? contentFrameClassNames[resolvedRouteMetadata.frame]
+                : APP_SHELL_COMPACT_PAGE_EDGE_CLASS,
           )}
           data-platform-compact-page-edge="true"
+          data-app-shell-fill-viewport={fillViewport ? 'true' : undefined}
         >
           {journeyControl}
           {AppShellWorkspace({ slots: workspaceSlots, children })}
@@ -1059,6 +1069,7 @@ export function AppShell({
   dockControls = [],
   children,
   className,
+  fillViewport = false,
 }: AppShellProps) {
   const role = viewerRole;
   const resolvedRouteMetadata = routeMetadata ?? (activeHref ? resolvePlatformRouteInventory(activeHref) : undefined);
@@ -1106,6 +1117,7 @@ export function AppShell({
       }
       className={cn(
         'min-h-screen bg-platform-canvas text-platform-fg-primary',
+        fillViewport && 'h-dvh overflow-hidden',
         resolvedRouteMetadata?.frame && frameClassNames[resolvedRouteMetadata.frame],
         className,
       )}
@@ -1129,6 +1141,7 @@ export function AppShell({
         journeyControl={journeyControl}
         dockControls={dockControls}
         floatingDockBehavior={floatingDockBehavior}
+        fillViewport={fillViewport}
       >
         {children}
       </AppShellDesktopLayout>

@@ -19,6 +19,12 @@ export interface AdaptivePathBatchComparisonView {
   highDifferentiation: boolean;
   /** 任一候选核心资源被全部剔除（资源不足/验证失败），偏好/区分度不得声称兑现。 */
   insufficientVerifiedResources: boolean;
+  insufficientCandidateDiversity: boolean;
+  planningSnapshot: {
+    indexId: string | null;
+    runtimeReleaseId: string | null;
+    recommendableCount: number;
+  } | null;
   pairs: Array<{
     leftStyleId: string;
     rightStyleId: string;
@@ -56,7 +62,12 @@ export interface AdaptivePathBatchComparisonView {
 }
 
 /** 批次 metadata 中不得下发给学生 API 消费方的内部字段。 */
-const INTERNAL_METADATA_KEYS = new Set(['differentiation', 'objectKeyReadRecords', 'runtimeResourceBindings']);
+const INTERNAL_METADATA_KEYS = new Set([
+  'differentiation',
+  'objectKeyReadRecords',
+  'runtimeResourceBindings',
+  'planningResourceSnapshot',
+]);
 
 /** 返回剥离内部字段后的批次 metadata 副本（学生安全 API 面）。 */
 export function stripInternalBatchMetadata(metadata: unknown): Record<string, unknown> {
@@ -70,6 +81,7 @@ const UNREADABLE_STATE_NOTES: Record<string, string> = {
   missing: '个资源在当前课程资源库中暂时缺失',
   forbidden: '个资源暂无访问权限',
   'checksum-mismatch': '个资源内容校验未通过（可能与缓存不一致）',
+  'release-mismatch': '个资源与当前课程资源发布身份不一致',
   unverified: '个资源未能完成读取验证',
 };
 
@@ -104,6 +116,36 @@ export function buildAdaptivePathStrategyView(value: unknown): AdaptivePathStrat
     generic,
     preferenceQuotaUnmet: strategy.preferenceQuotaUnmet === true,
   };
+}
+
+export function batchHasInsufficientCandidateDiversity(batch: {
+  comparison?: { insufficientCandidateDiversity?: boolean } | null;
+  metadata?: unknown;
+} | null): boolean {
+  if (!batch) return false;
+  if (batch.comparison?.insufficientCandidateDiversity === true) return true;
+  const limitations = record(batch.metadata).diversityLimitations;
+  return Array.isArray(limitations)
+    && limitations.some((item) => item === 'insufficient-candidate-diversity');
+}
+
+export function selectVisibleAdaptivePathOptions<T>(
+  batch: Parameters<typeof batchHasInsufficientCandidateDiversity>[0],
+  batchOptions: T[],
+  fallbackOptions: T[],
+): T[] {
+  if (batchHasInsufficientCandidateDiversity(batch)) return [];
+  return batchOptions.length > 0 ? batchOptions : fallbackOptions;
+}
+
+export function resolveAdaptivePathToolGenerationStatus(input: {
+  noMaterialDifference: boolean;
+  insufficientCandidateDiversity: boolean;
+  hasPersistedOutput: boolean;
+}): 'no_material_difference' | 'persisted' | 'blocked' {
+  if (input.noMaterialDifference) return 'no_material_difference';
+  if (input.insufficientCandidateDiversity || !input.hasPersistedOutput) return 'blocked';
+  return 'persisted';
 }
 
 export function buildAdaptivePathBatchComparisonView(metadata: unknown): AdaptivePathBatchComparisonView {
@@ -155,9 +197,23 @@ export function buildAdaptivePathBatchComparisonView(metadata: unknown): Adaptiv
     resourceReadiness.set(styleId, counts);
   }
   const runtimeBindings = buildRuntimeBindingsView(source);
+  const snapshot = record(source.planningResourceSnapshot);
+  const hardDiversity = record(differentiation.hardDiversity);
+  const limitations = Array.isArray(source.diversityLimitations)
+    ? source.diversityLimitations.filter((item): item is string => typeof item === 'string')
+    : [];
   return {
     highDifferentiation: differentiation.highDifferentiation === true,
     insufficientVerifiedResources: differentiation.insufficientVerifiedResources === true,
+    insufficientCandidateDiversity: limitations.includes('insufficient-candidate-diversity')
+      || (typeof hardDiversity.passed === 'boolean' && hardDiversity.passed === false),
+    planningSnapshot: typeof snapshot.indexId === 'string'
+      ? {
+          indexId: snapshot.indexId,
+          runtimeReleaseId: typeof snapshot.runtimeReleaseId === 'string' ? snapshot.runtimeReleaseId : null,
+          recommendableCount: Array.isArray(snapshot.recommendable) ? snapshot.recommendable.length : 0,
+        }
+      : null,
     pairs,
     resourceReadiness: [...resourceReadiness.entries()].map(([styleId, counts]) => {
       const notes = [...counts.unreadableByState.entries()]

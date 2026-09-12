@@ -138,13 +138,16 @@ export default function InteractiveResourcePage() {
       return null;
     }
     if (!pathLaunchContext) return null;
+    const completionResult = result && typeof result === 'object'
+      ? result as unknown as Record<string, unknown>
+      : undefined;
     const request = buildAdaptivePathCompletionRequest({
       launchContext: pathLaunchContext,
       completedAt: new Date().toISOString(),
-      completionResult: result && typeof result === 'object' ? result as unknown as Record<string, unknown> : undefined,
+      completionResult,
     });
     if (!request) {
-      throw new Error('当前资源不能通过路径完成接口确认进度');
+      return null;
     }
 
     const response = await fetch(request.href, {
@@ -226,6 +229,7 @@ export default function InteractiveResourcePage() {
         ) : resource ? (
           <ResourceRenderer
             resource={resource}
+            pathLaunch={pathLaunchContext}
             onComplete={resourceCompletionHandler}
             onMediaStateChange={isStudent ? reportMediaState : undefined}
           />

@@ -67,7 +67,7 @@ describe('interactive resource completion boundary', () => {
     expect(resourcePageSource).toContain('continuePathAfterResourceComplete');
     expect(resourcePageSource).toContain('resolveAdaptivePathCompletionContinueHref');
     expect(resourcePageSource).toContain('window.location.assign(continueHref)');
-    expect(resourcePageSource).toContain("throw new Error('当前资源不能通过路径完成接口确认进度')");
+    expect(resourcePageSource).toContain('if (!request) {\n      return null;\n    }');
     expect(resourcePageSource).not.toContain('Failed to write path resource completion');
     expect(completionBoundarySource).not.toContain('STRICT_PATH_CONTINUE_IDS');
     expect(completionBoundarySource).not.toContain('STRICT_PATH_COMPLETION_IDS');

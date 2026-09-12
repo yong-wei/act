@@ -251,4 +251,51 @@ describe('useResourceInteractionTracking classroom session propagation (Issue #1
     await act(async () => root.unmount());
     vi.useRealTimers();
   });
+
+  it('carries path launch identity on resource events and omits it for standalone opens', async () => {
+    const trackerRef: { current: ReturnType<typeof useResourceInteractionTracking> | null } = { current: null };
+
+    function Probe({ withPath }: { withPath: boolean }) {
+      trackerRef.current = useResourceInteractionTracking({
+        resourceKey: 'resource-renderer',
+        surface: 'interactive_resource',
+        pageType: 'resource',
+        targetType: 'interactive_resource',
+        targetId: 'res-1',
+        provider: 'resource-renderer',
+        resourceType: 'quiz',
+        ...(withPath ? { pathId: 'path-1', goalId: 'control-correction', nodeId: 'node-1' } : {}),
+      });
+      return null;
+    }
+
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => root.render(<Probe withPath={true} />));
+    await act(async () => {
+      await trackerRef.current?.trackResourceComplete({ score: 100 });
+    });
+    const pathBody = JSON.parse(String(vi.mocked(fetch).mock.calls.at(-1)?.[1]?.body));
+    const pathEvent = pathBody.events.at(-1);
+    expect(pathEvent?.id).toBe(pathEvent?.data.clientEventId);
+    expect(pathEvent?.data).toMatchObject({
+      pathId: 'path-1',
+      goalId: 'control-correction',
+      nodeId: 'node-1',
+      score: 100,
+      clientEventId: expect.any(String),
+    });
+
+    await act(async () => root.render(<Probe withPath={false} />));
+    act(() => trackerRef.current?.clearHistory());
+    await act(async () => {
+      await trackerRef.current?.trackResourceComplete({});
+    });
+    const standaloneBody = JSON.parse(String(vi.mocked(fetch).mock.calls.at(-1)?.[1]?.body));
+    expect(standaloneBody.events.at(-1)?.data).not.toMatchObject({
+      pathId: 'path-1',
+    });
+    await act(async () => root.unmount());
+    vi.useRealTimers();
+  });
 });
