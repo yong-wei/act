@@ -185,7 +185,14 @@ export function ActiveAuthorityRenderer({
           aria-hidden="true"
         />
       )}
-      <ActiveAuthorityLabelLayer ref={labelLayerRef} labels={labels} />
+      <ActiveAuthorityLabelLayer
+        ref={labelLayerRef}
+        labels={labels}
+        onActivate={(id) => {
+          const node = nodes.find((item) => item.id === id);
+          if (node) onNodeClick(node);
+        }}
+      />
     </div>
   );
 }

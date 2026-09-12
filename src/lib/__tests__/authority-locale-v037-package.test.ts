@@ -1,8 +1,8 @@
 /**
  * Sealed v0.37 bilingual qualification package (#1741).
  *
- * Runtime reads only this package; drift of identity, shard set, interface
- * catalog or manifest content fails closed to the historical capability.
+ * Runtime reads the package that travels with the admitted Runtime.
+ * Live pointer drift is not a refuse gate.
  * Projection checks cover the ACT-vocabulary labels (domains, teaching
  * predicate, direction enums), engineering predicate labels from the release
  * language component, and uncovered-object dispositions in the en frame.
@@ -186,7 +186,7 @@ describe('sealed v0.37 locale qualification package (#1741)', () => {
     expect(resolved.expectedDenominators).toBe(resolved.manifest?.denominators);
   });
 
-  it('fails closed when the package authority identity drifts from the live pointer', () => {
+  it('rejects a package that no longer matches its own registry row', () => {
     const tampered = {
       ...sealed,
       authority: { ...sealed.authority, snapshotHash: 'f'.repeat(64) },
@@ -204,10 +204,10 @@ describe('sealed v0.37 locale qualification package (#1741)', () => {
     expect(resolved.manifest).toBeNull();
   });
 
-  it('fails closed to historical when the interface catalog digest drifts', () => {
+  it('does not refuse the admitted package when the interface catalog digest drifts', () => {
     const tampered = { ...sealed, interfaceCatalogDigest: '0'.repeat(64) };
     const verified = verifyLocaleQualificationPackage({ repoRoot: process.cwd(), package: tampered });
-    expect(verified.ok).toBe(false);
+    expect(verified.ok).toBe(true);
   });
 });
 

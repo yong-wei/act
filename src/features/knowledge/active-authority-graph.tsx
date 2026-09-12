@@ -180,9 +180,9 @@ function isUnauthenticatedError(error: unknown): boolean {
   return error instanceof AuthorityShardFetchError && error.status === 401;
 }
 
-// 内容未就绪类失败码（#1942）：分片/分片集/指针/激活缺失或消费者未就绪，
-// 属于「发布未完成」而非暂时故障。身份失配（MISMATCH/TAMPER）不匹配此模式。
-const CONTENT_NOT_READY_CODE = /(?:ABSENT|NOT_READY)/u;
+// 只有消费者明确 NOT_READY 才当内容未就绪。缺文件是这份图的数据缺口或损坏，
+// 不再把 ABSENT 说成「尚未发布完成」。
+const CONTENT_NOT_READY_CODE = /NOT_READY/u;
 
 export function isContentNotReadyFailure(error: unknown): boolean {
   return error instanceof AuthorityShardFetchError
@@ -2051,7 +2051,7 @@ export function ActiveAuthorityGraph({
           </div>
         </div>
       ) : state.status === 'ready' && workspace.root && !workspace.activeDomainId ? (
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="relative flex min-h-0 flex-1 flex-col">
           <p className="sr-only">{graphCopy(locale, 'root.chooseDomain')}</p>
           <ActiveAuthorityRuntimeView
             kind="root"
@@ -2069,6 +2069,15 @@ export function ActiveAuthorityGraph({
             camera={runtimeCamera}
             sessionKey={graphScopeKey}
           />
+          {workspace.activeVisualRole ? (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center bg-platform-surface/85"
+              data-active-authority-domain-pending="true"
+              role="status"
+            >
+              <span className="text-sm text-platform-fg-muted">{graphCopy(locale, 'loading.graph')}</span>
+            </div>
+          ) : null}
         </div>
       ) : !model || !scopedGraph ? (
         <div className="flex flex-1 items-center justify-center p-6 text-center">
