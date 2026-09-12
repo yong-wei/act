@@ -62,7 +62,7 @@ import {
   type AuthorityRelationFamilyShard,
   type AuthorityRootShard,
 } from '@/lib/authority-domain-shards';
-import { attachActiveAuthorityResourceBindings, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
+import { attachActiveAuthorityResourceBindings, matchActiveTeachingProjection, readActiveTeachingCaptureRevision } from '@/lib/authority-domain-shards/resource-bindings';
 import { historicalLocaleCapability } from '@/lib/authority-locale-readiness/presentation-state';
 import {
   applyLocaleToLearnerShard,
@@ -88,7 +88,7 @@ import { readLiveLatestKnowledgeCutover } from '@/lib/knowledge-surface/latest-c
 import type { KnowledgeSurfaceKind, KnowledgeSurfaceRegistryIndexIdentity } from '@/lib/knowledge-surface';
 import type { ActiveNodeResourceBindings } from '@/features/knowledge/active-authority-graph-contracts';
 import { publishedNodeResourceFailure, publishedResourceEnvelopeKey, readPublishedNodeResources, type PublishedNodeResources } from '@/lib/authority-domain-shards/published-resource-bindings';
-import { PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
+import { loadPublishedResourceFeatureIndexCapture, PublishedResourceSelectionChangedError } from '@/lib/published-resource-index';
 
 export const ACTIVE_GRAPH_SUPPORT = {
   consumerId: 'engineering-graph',
@@ -598,6 +598,35 @@ function sanitizeResourceBindings(
  * Student node-detail responses must not carry the teaching-only field even
  * though the sealed immutable artifact retains it for teacher/admin readers.
  */
+const warmingTeachingKeys = new Set<string>();
+const warmedTeachingKeys = new Set<string>();
+
+function scheduleActiveTeachingWarm(envelope: AuthorityLearnerShard['envelope']): void {
+  const key = `${envelope.teaching.projectionId ?? ''}:${envelope.teaching.projectionHash ?? ''}`;
+  if (!envelope.teaching.projectionId || !envelope.teaching.projectionHash) return;
+  if (warmedTeachingKeys.has(key) || warmingTeachingKeys.has(key)) return;
+  warmingTeachingKeys.add(key);
+  setImmediate(() => {
+    try {
+      matchActiveTeachingProjection({ envelope });
+    } catch {
+      warmingTeachingKeys.delete(key);
+      return;
+    }
+    void loadPublishedResourceFeatureIndexCapture()
+      .then(() => {
+        warmedTeachingKeys.add(key);
+        if (warmedTeachingKeys.size > 4) {
+          warmedTeachingKeys.delete(warmedTeachingKeys.keys().next().value!);
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        warmingTeachingKeys.delete(key);
+      });
+  });
+}
+
 export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
   read: () => T,
   role: KnowledgeRole | undefined,
@@ -616,6 +645,9 @@ export function activeShardResponseForRole<T extends AuthorityLearnerShard>(
       : { ok: true as const, locale: 'zh-CN' as const, capability };
     if (!resolved.ok) return resolved.response;
     const raw = attachActiveAuthorityResourcePresence(read(), role);
+    if (raw.shardClass === 'root' || raw.shardClass === 'domain-default') {
+      scheduleActiveTeachingWarm(raw.envelope);
+    }
     const activeIdentity = resolveActiveShardIdentity();
     if (publishedResources && (raw.shardClass !== 'node-detail'
       || raw.node.id !== publishedResources.nodeId
