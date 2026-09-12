@@ -19,11 +19,13 @@ export function registryIndexIdentityOf(
 ): KnowledgeSurfaceRegistryIndexIdentity | null {
   const captureRevision = uniqueCaptureRevision(index);
   if (!captureRevision) return null;
+  const dirty = index.captures.some((capture) => (capture.sharedRevision ?? '').toLowerCase().endsWith('-dirty'));
   return {
     contract: index.contract,
     identity: index.identity,
     digest: index.digest,
     captureRevision,
+    ...(dirty ? { dirty: true } : {}),
   };
 }
 
@@ -40,7 +42,10 @@ export function tryLiveRegistryIndexIdentity(): KnowledgeSurfaceRegistryIndexIde
   return index ? registryIndexIdentityOf(index) : null;
 }
 
-export function uniqueCaptureRevision(index: RegistryIndex): string | null {
+export function uniqueCaptureRevision(
+  index: RegistryIndex,
+  env: NodeJS.ProcessEnv = process.env,
+): string | null {
   const revisions = index.captures
     .map((capture) => capture.sharedRevision?.trim() ?? '')
     .filter((revision) => revision.length > 0);
@@ -48,9 +53,13 @@ export function uniqueCaptureRevision(index: RegistryIndex): string | null {
   const unique = new Set(revisions);
   if (unique.size !== 1) return null;
   const revision = [...unique][0];
-  if (revision.endsWith('-dirty')) return null;
-  const sha = revision.toLowerCase();
-  return GIT_SHA.test(sha) ? sha : null;
+  const sha = revision.toLowerCase().replace(/-dirty$/u, '');
+  if (!GIT_SHA.test(sha)) return null;
+  if (revision.toLowerCase().endsWith('-dirty')) {
+    const pin = env.APP_REVISION?.trim().toLowerCase() ?? '';
+    return pin && pin === sha && env.APP_REVISION_FILE?.trim() ? sha : null;
+  }
+  return sha;
 }
 
 export function capturesMatch(

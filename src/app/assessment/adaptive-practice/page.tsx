@@ -2188,6 +2188,7 @@ function formatResourceReadinessState(state: string): string {
   if (state === 'missing') return '资源缺失';
   if (state === 'forbidden') return '暂无访问权限';
   if (state === 'checksum-mismatch') return '内容校验未通过';
+  if (state === 'release-mismatch') return '资源发布身份不一致';
   if (state === 'unverified') return '未完成读取验证';
   return '暂时无法读取';
 }

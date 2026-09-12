@@ -9,12 +9,18 @@ import type { ActiveAuthorityRendererProps } from '../graph/active-renderer/acti
 const ai = vi.hoisted(() => ({ updatePageContext: vi.fn(), clearDynamicPageContext: vi.fn() }));
 vi.mock('@/components/providers/global-ai-provider', () => ({ useOptionalGlobalAI: () => ai }));
 
-const renderer = vi.hoisted(() => ({ props: null as ActiveAuthorityRendererProps | null }));
+const renderer = vi.hoisted(() => ({
+  props: null as ActiveAuthorityRendererProps | null,
+  settleOnNodeCount: true,
+}));
 vi.mock('../graph/active-renderer/active-authority-renderer', () => ({
   ActiveAuthorityRenderer: (props: ActiveAuthorityRendererProps) => {
     renderer.props = props;
     const { onEngineSettled, nodes } = props;
-    useEffect(() => onEngineSettled?.(), [nodes.length, onEngineSettled]);
+    // 与真实 2D 一致：只在节点集变化时通知，不因回调身份重入。
+    useEffect(() => {
+      if (renderer.settleOnNodeCount) onEngineSettled?.();
+    }, [nodes.length]);
     return createElement('div', { 'data-test-active-renderer': true });
   },
 }));
@@ -97,6 +103,7 @@ describe('production-shaped Active graph regressions', () => {
     detailResponse = null;
     neighborhoodResponse = null;
     renderer.props = null;
+    renderer.settleOnNodeCount = true;
     vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
       const url = new URL(String(input), 'https://act.test');
       if (url.pathname.endsWith('/shards/active')) return response(rootShard);
@@ -137,6 +144,15 @@ describe('production-shaped Active graph regressions', () => {
   async function selectPeak() {
     await act(async () => container.querySelector<HTMLButtonElement>(`[data-active-authority-node="${selectedId}"]`)!.click());
   }
+
+  it('dismisses the entry gate after the domain overview is visible even if the engine never settles', async () => {
+    renderer.settleOnNodeCount = false;
+    await enterDomain();
+    expect(renderer.props!.nodes).toHaveLength(153);
+    expect(container.querySelector('[data-active-authority-entry-gate]')).toBeNull();
+    await selectPeak();
+    expect(container.querySelector('[data-active-authority-entry-gate]')).toBeNull();
+  });
 
   it('keeps the 153-node overview visible when selection discloses a neighbor', async () => {
     const pending = deferred<ReturnType<typeof response>>();

@@ -1,4 +1,5 @@
 .claude/
+# OpenWolf 会话与知识状态按工作树本地保存（或本机软链接同步），不进仓库历史。
 .wolf/
 .serena/
 image/

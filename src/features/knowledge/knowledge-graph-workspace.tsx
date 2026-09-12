@@ -28,6 +28,7 @@ export function KnowledgeGraphWorkspace({
   const [activeDomainId, setActiveDomainId] = useState<string | null>(null);
   const returnToRootRef = useRef<(() => void) | null>(null);
   const chromeHostRef = useRef<HTMLDivElement | null>(null);
+  const languageHostRef = useRef<HTMLDivElement | null>(null);
   const runtimeControlsRef = useRef<{
     requestFitView: (target?: 'current' | 'root' | 'teaching-layout') => void;
     requestRelayout: () => void;
@@ -66,11 +67,17 @@ export function KnowledgeGraphWorkspace({
       data-knowledge-session-store="namespace"
     >
       <div
-        className="absolute left-[16.5rem] right-3 top-3 z-50 flex min-w-0 flex-wrap items-center justify-end gap-1 rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur max-[639px]:left-3 max-[639px]:right-3 max-[639px]:w-auto max-[639px]:flex-nowrap max-[639px]:overflow-x-auto"
+        className="absolute right-3 top-3 z-50 inline-flex w-fit max-w-[calc(100%-8.5rem)] flex-wrap items-center justify-end gap-1 rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur"
         data-knowledge-mode-switch="true"
         data-knowledge-workspace-toolbar="true"
         data-knowledge-toolbar-gutter="language"
       >
+        <div
+          ref={languageHostRef}
+          hidden={mode !== 'active'}
+          data-knowledge-language-slot="true"
+          className="flex items-center"
+        />
         <button
           type="button"
           aria-pressed={mode === 'active'}
@@ -157,14 +164,12 @@ export function KnowledgeGraphWorkspace({
           </>
         ) : null}
       </div>
-      {/* #1742：active 图的搜索与筛选 chrome 挂载在工具栏下方的独立行，
-          全局工具栏只保留版本/维度/适配/重排/返回领域动作。顶部留白与
-          active 画布的 pt-12/pt-14 对齐，避开悬浮工具栏。 */}
       <div
         ref={chromeHostRef}
         id={KNOWLEDGE_WORKSPACE_CHROME_SLOT_ID}
         data-knowledge-workspace-chrome-slot="true"
-        className="mx-3 flex min-w-0 flex-col gap-1 pt-12 max-[639px]:pt-14"
+        data-knowledge-workspace-overlay="true"
+        className="pointer-events-none absolute inset-0 z-40"
         hidden={mode !== 'active'}
       />
 
@@ -183,6 +188,7 @@ export function KnowledgeGraphWorkspace({
           onShowLegacy={() => selectMode('legacy')}
           returnToRootRef={returnToRootRef}
           chromeHostRef={chromeHostRef}
+          languageHostRef={languageHostRef}
           runtimeControlsRef={runtimeControlsRef}
         />
         </KnowledgeAiContextOwnership>

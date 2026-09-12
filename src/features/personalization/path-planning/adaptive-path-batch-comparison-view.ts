@@ -81,6 +81,7 @@ const UNREADABLE_STATE_NOTES: Record<string, string> = {
   missing: '个资源在当前课程资源库中暂时缺失',
   forbidden: '个资源暂无访问权限',
   'checksum-mismatch': '个资源内容校验未通过（可能与缓存不一致）',
+  'release-mismatch': '个资源与当前课程资源发布身份不一致',
   unverified: '个资源未能完成读取验证',
 };
 

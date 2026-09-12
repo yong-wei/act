@@ -29,7 +29,7 @@ function KnowledgeMapSurface({
 }) {
   return (
     <section
-      className="h-[max(18rem,calc(100dvh-8rem-1px))] min-h-72 overflow-auto max-lg:h-[max(18rem,calc(100dvh-18.625rem))] lg:max-xl:h-[max(18rem,calc(100dvh-11.625rem))]"
+      className="flex min-h-72 flex-1 flex-col overflow-auto"
       data-commercial-student-entry-route="/knowledge"
       data-commercial-workspace="knowledge-data-map"
       data-commercial-workspace-zone="instrument-area"
@@ -66,7 +66,8 @@ export default async function KnowledgePage() {
         { label: '首页', href: '/' },
         { label: '知识资源' },
       ]}
-      className="surface-page overflow-auto"
+      fillViewport
+      className="surface-page"
     >
       <KnowledgeMapSurface
         viewerRole={shellRole}

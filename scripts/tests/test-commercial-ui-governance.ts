@@ -2649,7 +2649,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       name === 'active-mobile' && nodeLabelReadability.readable !== true
         ? `${name}:node-label-unreadable`
         : null,
-      name === 'active-mobile' && activeFirstViewport.mobileToolsExpanded !== 'false'
+      name === 'active-mobile' && activeFirstViewport.mobileToolsExpanded === 'true'
         ? `${name}:initial-controls-not-collapsed`
         : null,
       activeMarkers.stage === 'authority' ? null : `${name}:dom-stage`,

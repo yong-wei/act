@@ -181,9 +181,8 @@ test.describe('#1738 three-level authority graph navigation', () => {
       await activateSharedRuntimeControl(page, `[data-authority-domain-entry="${visualRole}"]`);
       const firstNode = page.locator('[data-active-authority-node]').first();
       await expect(firstNode).toBeVisible({ timeout: 60_000 });
-      // Compact viewports collapse graph controls behind the tools drawer.
-      await activateSharedRuntimeControl(page, '[data-active-authority-mobile-tools-toggle="true"]');
-      await expect(page.locator('#active-authority-type-filter')).toBeVisible();
+      await expect(page.locator('[data-active-authority-filter-panel="true"]')).toBeVisible();
+      await expect(page.locator('[data-active-authority-type-menu-trigger]')).toBeVisible();
       await page.click('[data-active-authority-domain-return="true"]');
       await expect(entries.first()).toBeVisible({ timeout: 30_000 });
     }

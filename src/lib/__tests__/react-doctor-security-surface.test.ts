@@ -26,10 +26,11 @@ describe('React Doctor security surface policy', () => {
     const layoutSource = readProjectFile('src/app/layout.tsx');
     const themeScript = buildThemeInitScript('dark');
 
-    expect(layoutSource).not.toContain('dangerouslySetInnerHTML');
+    expect(layoutSource).toContain('id="theme-init"');
+    expect(layoutSource).toContain('dangerouslySetInnerHTML={{ __html: buildThemeInitScript() }}');
+    expect(layoutSource).not.toContain('<script id="theme-init">{buildThemeInitScript()}</script>');
     expect(layoutSource).not.toContain("from 'next/script'");
     expect(layoutSource).not.toContain('<Script');
-    expect(layoutSource).toContain('<script id="theme-init">{buildThemeInitScript()}</script>');
     expect(layoutSource).not.toContain('className="dark"');
     expect(layoutSource).toContain('<ThemeProvider>');
     expect(themeScript).not.toMatch(/<\/script/i);

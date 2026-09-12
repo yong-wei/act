@@ -15,7 +15,7 @@ export function KnowledgeWorkspaceChromePortal({
   const [host, setHost] = useState<HTMLElement | null>(null);
 
   useLayoutEffect(() => {
-    setHost(hostRef?.current ?? document.getElementById(KNOWLEDGE_WORKSPACE_CHROME_SLOT_ID));
+    setHost(hostRef ? hostRef.current : document.getElementById(KNOWLEDGE_WORKSPACE_CHROME_SLOT_ID));
   }, [hostRef]);
 
   if (host) return createPortal(children, host);

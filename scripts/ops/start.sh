@@ -324,6 +324,12 @@ set +a
 
 echo -e "  ${GREEN}✓${NC} .env 已加载到当前启动环境"
 
+if [ -z "${APP_REVISION:-}" ] && [ -n "${APP_REVISION_FILE:-}" ] && [ -f "${APP_REVISION_FILE}" ]; then
+  APP_REVISION="$(tr -d '[:space:]' < "${APP_REVISION_FILE}")"
+  export APP_REVISION
+  echo -e "  ${GREEN}✓${NC} 已从 APP_REVISION_FILE 供给资源索引 revision"
+fi
+
 missing_env=()
 [ -z "${DATABASE_URL:-}" ] && missing_env+=("DATABASE_URL")
 [ -z "${NEXTAUTH_SECRET:-}" ] && missing_env+=("NEXTAUTH_SECRET")
