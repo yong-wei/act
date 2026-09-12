@@ -205,7 +205,7 @@ interface SubmitAnswerResponse {
 
 interface PathAdvisorContextResponse {
   goalId: AdaptivePracticeGoalId;
-  classId: string;
+  classId: string | null;
   graphNodeId?: string | null;
   modeContextToken: string;
   readiness?: AdaptiveGenerationReadiness;
@@ -3810,7 +3810,7 @@ export default function AdaptivePracticePage() {
             requestedBatchId ? `authorized-candidate-batch:${requestedBatchId}` : null,
           ].filter(Boolean).join('\n'),
           serverContext: {
-            classId: payload.classId,
+            ...(payload.classId ? { classId: payload.classId } : {}),
             courseId: payload.goalId,
             goalId: payload.goalId,
             ...(payload.graphNodeId ? { graphNodeId: payload.graphNodeId } : {}),

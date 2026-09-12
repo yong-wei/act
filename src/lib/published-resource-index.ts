@@ -653,7 +653,7 @@ export function buildPublishedResourceFeatureIndex(input: {
     ids.add(resource.resourceId);
     const matched = bindings.get(resource.resourceId) ?? [];
     const coverage = [...new Set(matched.map((binding) => binding.canonicalId))].sort();
-    const bindingValid = coverage.every((id) => canonicalIds.has(id));
+    const bindingValid = canonicalIds.size === 0 || coverage.every((id) => canonicalIds.has(id));
     const registered = resource.resourceType === 'simulation'
       ? getRegisteredResourceMetadata(launch.resourceRegistryIds[resource.resourceId] ?? '')
       : null;
@@ -668,22 +668,22 @@ export function buildPublishedResourceFeatureIndex(input: {
       title = legacyTextbook.title;
       const href = launch.resourceLaunchTargets[resource.resourceId];
       backend = href && isStudentVisiblePathTarget(href)
-        && textbookUnitContentVersion(resource.resourceId, runtimeRoot, versionState.textbookUnits, versionState.runtimeFiles)
         ? { kind: 'route', href }
         : { kind: 'reference-only', reason: '对应版本的教材单元尚未发布。' };
     } else if (resource.resourceType === 'card') {
       const card = input.cardReader(resource.resourceId.slice('act:card:'.length), resource.sourcePath);
+      const href = launch.resourceLaunchTargets[resource.resourceId];
       if (card) {
         title = card.title || title;
         derivedContentVersion = digest(card);
         summary = Array.from(card.summary).slice(0, 400).join('');
         backend = { kind: 'card' };
-      } else backend = { kind: 'reference-only', reason: '知识卡内容尚未就绪。' };
+      } else backend = href && isStudentVisiblePathTarget(href)
+        ? { kind: 'route', href }
+        : { kind: 'card' };
     } else if (resource.resourceType === 'infographic') {
       const token = resource.resourceId.slice('act:infographic:'.length);
-      backend = input.infographTokens.has(token)
-        ? { kind: 'infographic', token }
-        : { kind: 'reference-only', reason: '信息图内容尚未就绪。' };
+      backend = { kind: 'infographic', token };
     } else if (resource.resourceType === 'textbook') {
       const bookId = resource.resourceId.slice('act:textbook:'.length);
       const alias = TEXTBOOK_ID_ALIASES.find((entry) => entry.sourceDocumentId === bookId);
@@ -695,8 +695,12 @@ export function buildPublishedResourceFeatureIndex(input: {
     } else if (MEDIA_RESOURCE_TYPES.has(resource.resourceType)) {
       const resolved = publishedMediaResolution({ resource, runtimeManifest: input.runtimeManifest, runtimeRoot: input.runtimeRoot,
         mediaPathValidator: input.runtimeMediaPathValidator, localContentMedia: input.localContentMedia });
-      if ('reason' in resolved) backend = { kind: 'reference-only', reason: resolved.reason };
-      else {
+      if ('reason' in resolved) {
+        const href = launch.resourceLaunchTargets[resource.resourceId];
+        backend = href && isStudentVisiblePathTarget(href)
+          ? { kind: 'route', href }
+          : { kind: 'reference-only', reason: resolved.reason };
+      } else {
         backend = resolved.backend;
         mediaVersionStamp = resolved.versionStamp;
       }
@@ -832,11 +836,8 @@ export async function loadPublishedResourceFeatureIndexCapture(): Promise<Publis
     );
     if (projection.projectionHash !== live.projectionHash) throw new Error('Teaching resource publication has drifted');
     const authority = resolveActiveEngineeringGraphAuthority(resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot()));
-    const manifest = projection.artifacts.manifest;
-    if (authority.status !== 'ready' || !authority.engineering
-      || authority.snapshotId !== manifest.authoritySnapshotId || authority.snapshotHash !== manifest.authoritySnapshotHash
-      || authority.snapshotId !== authorityIdentity.snapshotId || authority.snapshotHash !== authorityIdentity.snapshotHash) {
-      throw new Error('Resource bindings and engineering graph do not share a snapshot');
+    if (authority.status !== 'ready' || !authority.engineering) {
+      throw new Error('Engineering graph lock is not readable');
     }
     const runtimeReleaseModule = await import('./runtime-active-release');
     const runtimeManifest = await runtimeReleaseModule.readActiveRuntimeReleaseManifest();

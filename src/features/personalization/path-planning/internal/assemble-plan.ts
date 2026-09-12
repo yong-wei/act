@@ -523,6 +523,15 @@ export interface AdaptiveLearningPathPlannerInput {
   goal: AdaptiveLearningPathGoal;
   learnerState: AdaptiveLearningPathLearnerState | null;
   registry: ResourceNodeRegistry;
+  planningScope?: {
+    knowledgeIds: string[];
+    edges: Array<{
+      id: string;
+      sourceCanonicalId: string;
+      targetCanonicalId: string;
+      strength: 'REQUIRED' | 'RECOMMENDED';
+    }>;
+  };
   constraints: AdaptiveLearningPathConstraints;
   graphContext?: AdaptiveLearningPathGraphContextInput;
   policyFamily?: AdaptiveLearningPathPolicyFamily;

@@ -248,22 +248,6 @@ export function resolveKonlingTeachingProjectionBinding(input: {
     readAgreedLiveCourseProjection(repoRoot, { projectionRoot }),
   );
 
-  if (konlingActivation.mode === 'unavailable') {
-    return {
-      payload: null,
-      scope,
-      permittedScopeIds: scope.scopeId ? [scope.scopeId] : [],
-      authorized,
-      source: 'resolve-failed',
-      authorityRoot,
-      projectionRoot,
-      reasons: [
-        'konling-activation-unavailable',
-        ...konlingActivation.reasons,
-      ],
-    };
-  }
-
   let pinnedProjectionId = input.pinnedProjectionId ?? null;
   let pinnedProjectionHash = input.pinnedProjectionHash ?? null;
   let candidateProjectionId = input.candidateProjectionId ?? null;
@@ -271,7 +255,7 @@ export function resolveKonlingTeachingProjectionBinding(input: {
   let authoritySnapshotHash: string | null = null;
   let authorityReleaseId: string | null = null;
 
-  if (konlingActivation.mode === 'use-combination') {
+  if (konlingActivation.mode === 'use-combination' || konlingActivation.mode === 'unavailable') {
     // Force selected combination; do not let caller override READY pins.
     if (konlingPins.projectionId) {
       candidateProjectionId = konlingPins.projectionId;

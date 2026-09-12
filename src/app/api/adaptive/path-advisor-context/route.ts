@@ -11,7 +11,6 @@ import {
   type AdaptiveGenerationReadiness,
 } from '@/features/personalization/path-planning/public-api';
 import { expandLearningGoalSubgraph } from '@/lib/graphs/goal-subgraph-expansion-service';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,32 +36,14 @@ export async function GET(request: Request) {
     }));
   }
 
-  const classId = session.user.profile?.classId ?? null;
-  if (!classId) {
-    return readinessError('当前账号缺少班级信息，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
-      reason: 'missing-class-binding',
-      source: 'session',
-    }));
-  }
-
-  const classBinding = await prisma.class.findUnique({
-    where: { id: classId },
-    select: { teacherId: true },
-  });
-  if (!classBinding?.teacherId) {
-    return readinessError('当前班级缺少任课教师绑定，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
-      reason: 'missing-teacher-binding',
-      source: 'session',
-    }));
-  }
-
+  const classId = readOptionalClassId(session.user.profile?.classId);
   const goalContext = getAdaptivePathAdvisorGoalContext(goalId);
   if (!goalContext) {
     return NextResponse.json({ error: '学习路径目标暂不可用于路径顾问' }, { status: 400 });
   }
   const modeContextToken = createKonlingTeachingAssistantServerContextToken({
     mode: 'path-advisor',
-    classId,
+    ...(classId ? { classId } : {}),
     courseId: goalId,
     pageId: 'adaptive-path-center',
     goalId,
@@ -90,6 +71,10 @@ export async function GET(request: Request) {
     readiness: buildAdaptiveGenerationReadiness({ reason: 'ready', source: 'path-advisor' }),
     ...goalContext,
   });
+}
+
+function readOptionalClassId(value: string | null | undefined): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
 function isGraphNodeInLearningGoalSubgraph(goalId: string, graphNodeId: string): boolean {

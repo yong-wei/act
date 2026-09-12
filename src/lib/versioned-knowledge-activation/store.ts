@@ -325,48 +325,8 @@ export function resolveActiveConsumerActivation(
     };
   }
 
-  // Require matching activation or rollback receipt (same protocol as Authority).
-  const activationPath = join(/*turbopackIgnore: true*/ 
-    paths.activationsDir,
-    `${pointer.activationReceiptId}.json`,
-  );
-  const rollbackPath = join(/*turbopackIgnore: true*/ 
-    paths.rollbacksDir,
-    `${pointer.activationReceiptId}.json`,
-  );
-  let receiptOk = false;
-  if (existsSync(/*turbopackIgnore: true*/ activationPath)) {
-    try {
-      const receipt = readJsonFile<ConsumerActivationReceipt>(activationPath);
-      receiptOk =
-        receipt.receiptId === pointer.activationReceiptId
-        && receipt.status === 'activated'
-        && receipt.activationId === pointer.activationId
-        && receipt.activationHash === pointer.activationHash;
-    } catch {
-      receiptOk = false;
-    }
-  } else if (existsSync(/*turbopackIgnore: true*/ rollbackPath)) {
-    try {
-      const receipt = readJsonFile<ConsumerActivationRollbackReceipt>(rollbackPath);
-      receiptOk =
-        receipt.receiptId === pointer.activationReceiptId
-        && receipt.status === 'rolled-back'
-        && receipt.toActivationId === pointer.activationId
-        && receipt.toActivationHash === pointer.activationHash;
-    } catch {
-      receiptOk = false;
-    }
-  }
-  if (!receiptOk) {
-    return {
-      status: 'unavailable',
-      pointer,
-      manifest: null,
-      detail: 'current pointer has no matching activation/rollback receipt',
-    };
-  }
-
+  // Pointer + release digest are the runtime lock. A receipt is an audit
+  // artifact written at activate time; consumers must not wait for it.
   try {
     const staged = loadStagedConsumerActivation(paths, pointer.activationId);
     if (staged.activationHash !== pointer.activationHash) {

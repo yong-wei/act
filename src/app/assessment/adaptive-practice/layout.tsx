@@ -13,17 +13,20 @@ export default async function AdaptivePracticeLayout({
   children: ReactNode;
 }) {
   const session = await getServerAuthSession();
-  const classId = session?.user?.role === 'STUDENT'
-    ? session.user.profile?.classId ?? null
+  const isStudent = session?.user?.role === 'STUDENT';
+  const classId = isStudent
+    ? (typeof session.user.profile?.classId === 'string' && session.user.profile.classId.trim()
+      ? session.user.profile.classId.trim()
+      : null)
     : null;
   const goalOptions = getAdaptivePracticeGoalOptions();
   const goalContexts = Object.fromEntries(goalOptions.map((goal) => [goal.id, goal.konlingContext]));
-  const modeContextTokens = classId
+  const modeContextTokens = isStudent
     ? Object.fromEntries(goalOptions.map((goal) => [
         goal.id,
         createKonlingTeachingAssistantServerContextToken({
           mode: 'path-advisor',
-          classId,
+          ...(classId ? { classId } : {}),
           courseId: goal.id,
           pageId: 'adaptive-path-center',
           goalId: goal.id,

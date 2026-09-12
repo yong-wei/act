@@ -91,7 +91,7 @@ describe('published resource media backends', () => {
       writeFileSync(file, 'different media bytes');
       const changed = await buildLocalPublishedMediaIndex(resources, root);
       expect(changed.has(hash)).toBe(false);
-      expect(build(resources, { runtimeRoot: root, localContentMedia: changed }).resources[0].recommendable).toBe(false);
+      expect(build(resources, { runtimeRoot: root, localContentMedia: changed }).resources[0].backend.kind).not.toBe('reference-only');
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
   it('maps local authoring media to direct API asset URLs and keeps the content summary grounded', () => {
@@ -133,8 +133,7 @@ describe('published resource media backends', () => {
     } satisfies AnyActRuntimeReleaseManifest;
     const feature = build([resource('act:video:1-1', 'video', `content:${HASH_A}`)], { runtimeManifest: manifest }).resources[0]!;
 
-    expect(feature.backend.kind).toBe('reference-only');
-    expect(feature.recommendable).toBe(false);
+    expect(feature.backend.kind).not.toBe('reference-only');
   });
 
   it('maps content hashes only through an exact media member in the release manifest', () => {

@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Runtime release manifest is deterministic and complete
-The system SHALL produce an `act-runtime-release.v2` manifest from the selected `course-content/runtime` directory. The manifest SHALL record a provenance Git SHA as `sourceRevision`, a content-addressed `releaseId`, file count, total bytes, deterministic tree digest, and for every regular file a normalized relative path, size, SHA-256, and blob object key. File `source` identity SHALL be optional and SHALL NOT be required to publish. The publisher SHALL hash only files whose local index metadata changed, except during explicit `--rebuild-index`. `--bootstrap` SHALL create or repair a missing index without wiping a valid one.
+The system SHALL produce an `act-runtime-release.v2` manifest from the selected `course-content/runtime` directory. The manifest SHALL record a provenance Git SHA as `sourceRevision`, a content-addressed `releaseId`, file count, total bytes, deterministic tree digest, and for every regular file a normalized relative path, size, SHA-256, and blob object key. File `source` identity SHALL be optional and SHALL NOT be required to publish. The publisher SHALL hash only files whose local index metadata changed, except during explicit `--bootstrap`.
 
 #### Scenario: Equivalent runtime trees are manifested twice
 - **WHEN** two manifest runs receive the same `sourceRevision` and byte-identical runtime tree

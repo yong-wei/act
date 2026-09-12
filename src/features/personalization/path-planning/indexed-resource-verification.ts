@@ -18,19 +18,23 @@ export function buildIndexedCandidateResourceRecords(
       const ref = node.resourceFeatureRef;
       if (ref) {
         const feature = features.get(ref.resourceId);
-        const valid = isPublishedResourceIdentity(ref) && feature?.recommendable === true
+        const valid = Boolean(
+          feature
+          && feature.canonicalIds.length > 0
+          && isPublishedResourceIdentity(ref)
           && (node.sourceKind === 'teaching_projection' ? hasPublishedPlanNodeIdentity(node)
             : deriveTeachingProjectionResourceIdentity(node.nodeId)?.resourceId === ref.resourceId)
           && ref.indexId === index?.indexId && ref.resourceVersion === feature.version
           && ref.projectionId === index.projectionId && ref.projectionHash === index.projectionHash
           && ref.snapshotId === index.snapshotId && ref.snapshotHash === index.snapshotHash
-          && (ref.runtimeReleaseId ?? null) === index.runtimeReleaseId;
+          && (ref.runtimeReleaseId ?? null) === index.runtimeReleaseId,
+        );
         records.push({
           objectKey: 'published:' + ref.resourceVersion, resourceId: ref.resourceId,
           candidateStyleId: option.styleId, nodeNodeId: node.nodeId,
           state: valid ? 'index-verified' : 'unverified',
-          contentSha256: valid ? feature.sourcePath?.match(/^content:([a-f0-9]{64})$/)?.[1] ?? null : null,
-          verifiedAt: checkedAt, runtimeReleaseId: valid ? index.runtimeReleaseId : null,
+          contentSha256: valid ? feature?.sourcePath?.match(/^content:([a-f0-9]{64})$/)?.[1] ?? null : null,
+          verifiedAt: checkedAt, runtimeReleaseId: valid ? index?.runtimeReleaseId ?? null : null,
         });
         continue;
       }

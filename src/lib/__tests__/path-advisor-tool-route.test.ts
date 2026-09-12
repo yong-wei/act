@@ -7,7 +7,6 @@ const mocks = vi.hoisted(() => ({
   buildKonlingToolRuntime: vi.fn(),
   getOrCreateKonlingAgentSession: vi.fn(),
   getServerAuthSession: vi.fn(),
-  classFindUnique: vi.fn(),
   learningPathFindFirst: vi.fn(),
   readAdaptivePathCandidateBatch: vi.fn(),
   isRegisteredAdaptiveLearningPathGoal: vi.fn(),
@@ -22,9 +21,6 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    class: {
-      findUnique: mocks.classFindUnique,
-    },
     learningPath: {
       findFirst: mocks.learningPathFindFirst,
     },
@@ -92,7 +88,6 @@ describe('path advisor tool route readiness', () => {
       },
     });
     mocks.isRegisteredAdaptiveLearningPathGoal.mockReturnValue(true);
-    mocks.classFindUnique.mockResolvedValue({ teacherId: 'teacher-1' });
     mocks.learningPathFindFirst.mockResolvedValue(null);
     mocks.readAdaptivePathCandidateBatch.mockResolvedValue(null);
     mocks.verifyKonlingRuntimeScope.mockResolvedValue({
@@ -142,22 +137,40 @@ describe('path advisor tool route readiness', () => {
     });
   });
 
-  it('blocks generation when the class is missing a teacher binding', async () => {
-    mocks.classFindUnique.mockResolvedValueOnce({ teacherId: null });
+  it('generates a path when the student has no class or teacher binding', async () => {
+    mocks.getServerAuthSession.mockResolvedValueOnce({
+      user: {
+        id: 'student-1',
+        name: 'Student',
+        role: 'STUDENT',
+        profile: {},
+      },
+    });
+    mocks.verifyKonlingRuntimeScope.mockResolvedValueOnce({
+      ok: true,
+      scope: {
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        classId: null,
+        role: 'STUDENT',
+      },
+    });
 
     const response = await post({});
 
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
       readiness: {
-        status: 'blocked',
-        reason: 'missing-teacher-binding',
-        studentAction: 'request-teacher-binding',
-        staffAction: 'bind-class',
+        status: 'ready',
+        reason: 'ready',
       },
+      result: { pathId: 'path-1' },
     });
-    expect(mocks.verifyKonlingRuntimeScope).not.toHaveBeenCalled();
-    expect(mocks.buildKonlingToolRuntime).not.toHaveBeenCalled();
+    expect(mocks.verifyKonlingRuntimeScope).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ classId: null }),
+    );
+    expect(mocks.buildKonlingToolRuntime).toHaveBeenCalled();
   });
 
   it('returns service-unavailable readiness when the path advisor mode is unavailable', async () => {

@@ -70,7 +70,7 @@ export function attachPublishedResourcesToRegistry(
   const published: ResourceNode[] = [];
   const nativeUpdates = new Map<string, ResourceNode>();
   for (const feature of index.resources) {
-    if (!feature.recommendable) continue;
+    if (feature.canonicalIds.length === 0) continue;
     const native = byResource.get(feature.identity.resourceId);
     if (native && ['arena_task', 'simulation', 'control_workbench', 'adaptive_quiz', 'checkpoint'].includes(native.type)) {
       nativeUpdates.set(native.id, {

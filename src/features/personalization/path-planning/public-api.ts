@@ -44,6 +44,27 @@ export {
   validateLearningGoalPackageCatalog,
 } from './internal/assemble-plan';
 export * from './internal/prerequisite-planner';
+export {
+  expandFeasibleKnowledgeIds,
+  expandKnowledgeOrder,
+} from './knowledge-scope';
+export {
+  buildGoalPlanningRegistry,
+  loadGoalPlanningRegistry,
+  loadGoalPlanningUniverse,
+  sliceGoalPlanningUniverse,
+  tryLoadGoalPlanningRegistry,
+} from './planning-projection-index';
+export {
+  KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS,
+  KNOWLEDGE_PATH_MAX_STEPS,
+  buildKnowledgeSkeleton,
+  clipKnowledgeSkeleton,
+  fillKnowledgeSkeleton,
+  indexResourcesByKnowledge,
+  rankBoundResources,
+  scoreFilledPath,
+} from './knowledge-path-assembly';
 export * from './adaptive-cold-start-detection';
 export * from './adaptive-generation-readiness';
 export * from './adaptive-learning-optimization-experiments';

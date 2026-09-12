@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Activate or roll back a published runtime release with current/previous pointers."""
+"""Activate or roll back a published runtime release with current/previous pointers.
+
+Activation admits the candidate Runtime as one graph. Knowledge selectors,
+locale packages and teaching projection travel with that tree. Do not copy
+or preserve the outgoing current knowledge locks onto the candidate.
+"""
 
 import argparse
 import importlib.util

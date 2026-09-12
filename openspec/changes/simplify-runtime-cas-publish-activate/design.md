@@ -51,16 +51,14 @@
    - 备选：按用户示意改成分片 `blobs/sha256/ab/…`。否决，那是新协议。
 
 5. **OSS 不做 HEAD 预检；条件 PUT 的已存在即 CAS hit**
-   - 有 AccessKey 时用同一条 HTTPS 连接发 `x-oss-forbid-overwrite: true` 的 PutObject / ListObjectsV2，对象已存在（409/412）视为命中。
-   - 无凭据时才退回 ossutil CLI（测试替身）。禁止先 HEAD 再决定 PUT。
-   - `--progress` 心跳最多每 60 秒一行；阶段事件仍立刻写 stderr。
+   - 使用现有 ossutil `--forbid-overwrite`。对象已存在视为命中，不是失败。
+   - 测试用本地目录模拟同一语义。
+   - 备选：先 HEAD 再决定 PUT。否决，这正是要砍掉的 `O(N_remote-check)`。
 
 6. **索引缺失或损坏必须 fail-closed**
    - 普通 `runtime:publish` 不得静默全量。
    - 明确错误：`local publish index unavailable` / `run with --bootstrap to rebuild`。
-   - `--bootstrap` 只在索引缺失或损坏时建库；有效索引不抹除，同一命令可续跑。
-   - `--rebuild-index` 才是显式全量重建与全量哈希。
-   - 热路径 `--progress` 心跳写 stderr；默认 stdout 仍是收尾 JSON。
+   - `--bootstrap` 才是显式全量哈希。
 
 7. **激活状态只保留 current/previous**
    - 宿主机指针可以是 `runtime/current` → `releases/<id>` 与 `runtime/previous` → `releases/<id>`，或等价 JSON。

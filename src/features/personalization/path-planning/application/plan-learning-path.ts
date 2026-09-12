@@ -13,6 +13,10 @@ import {
   evaluateHardEligibility,
   getRegisteredAdaptiveLearningPathGoal,
 } from '../internal/assemble-plan';
+import {
+  assembleKnowledgePathPlan,
+  shouldAssembleByKnowledgePath,
+} from '../internal/knowledge-path-mount';
 import type {
   EligibilityDecision,
   GoalContext,
@@ -173,6 +177,9 @@ export function planLearningPath(
   input: PlanLearningPathInput,
   ports: PlanLearningPathPorts = createDefaultPlanLearningPathPorts(),
 ): PlanLearningPathResult {
+  if (shouldAssembleByKnowledgePath(input)) {
+    return assembleKnowledgePathPlan(input);
+  }
   const context = ports.goalContext.load(input);
   const candidates = ports.candidates.discover(context);
   const eligibility = ports.eligibility.decide(context, candidates);
