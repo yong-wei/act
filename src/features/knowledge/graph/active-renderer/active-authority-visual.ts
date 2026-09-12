@@ -191,3 +191,17 @@ export function drawActivePolygon(
 export function activeNodeRadius(node: Pick<ActiveAuthorityLayoutNode, 'renderRadius' | 'id' | 'metadata'>): number {
   return Math.max(9, node.renderRadius || (isActiveRootNode(node) ? 42 : 12));
 }
+
+/** Pointer hit must cover the visible name, not only the painted glyph. */
+export function activeNodePointerRadius(
+  node: Pick<ActiveAuthorityLayoutNode, 'renderRadius' | 'id' | 'metadata'>,
+  globalScale = 1,
+): number {
+  const base = activeNodeRadius(node);
+  if (isActiveRootNode(node)) {
+    const presentation = metadataFor(node).presentationRadius;
+    const labelRadius = typeof presentation === 'number' && Number.isFinite(presentation) ? presentation : 42;
+    return Math.max(base, labelRadius);
+  }
+  return base + 18 / Math.max(0.2, globalScale);
+}

@@ -151,6 +151,19 @@ describe('active authority renderer lifecycle', () => {
     expect((graphMocks.twoD.props.graphData as { nodes: Array<{ id: string }>; links: Array<{ id: string }> }).links[0]?.id).toBe('edge-a-b');
   });
 
+  it('activates a node when its visible screen label is clicked', async () => {
+    const input = props();
+    await act(async () => root.render(createElement(ActiveAuthorityRenderer, input)));
+    await act(async () => Promise.resolve());
+    const label = container.querySelector<HTMLElement>('[data-knowledge-2d-node-label="node-a"]');
+    expect(label).not.toBeNull();
+    label!.hidden = false;
+    await act(async () => {
+      label!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    expect(input.onNodeClick).toHaveBeenCalledWith(expect.objectContaining({ id: 'node-a' }));
+  });
+
   it('does not refit when only selection changes, then fits the switched dimension', async () => {
     const input = props();
     await act(async () => root.render(createElement(ActiveAuthorityRenderer, input)));

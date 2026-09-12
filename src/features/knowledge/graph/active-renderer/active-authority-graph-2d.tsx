@@ -10,6 +10,7 @@ import {
   canRestoreActiveCameraPose,
   activeNodeAccessibleName,
   activeNodeColor,
+  activeNodePointerRadius,
   activeNodeRadius,
   activeNodeShape,
   activeRelationColor,
@@ -326,7 +327,7 @@ export function ActiveAuthorityGraph2D({
     ctx.save();
     ctx.beginPath();
     ctx.fillStyle = color;
-    ctx.arc(node.x, node.y, activeNodeRadius(node) + 4 / Math.max(0.2, globalScale), 0, Math.PI * 2);
+    ctx.arc(node.x, node.y, activeNodePointerRadius(node, globalScale), 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }, []);
