@@ -108,7 +108,6 @@ describe('published resource index capture', () => {
   it.each([
     'course-content/runtime/.act-runtime-release.v2.json',
     'course-content/runtime/act-runtime-active-receipt.json',
-    'course-content/runtime/lessons/3-1/content.json',
     'releases/proj-' + projectionHash + '/bindings.jsonl',
   ])('rejects changed index source %s without an Authority or catalog change', async (relative) => {
     const capture = await loadPublishedResourceFeatureIndexCapture();

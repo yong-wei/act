@@ -147,15 +147,32 @@ function receiptPath(): string {
     || join(process.cwd(), 'course-content/runtime/act-runtime-active-receipt.json');
 }
 
+let runtimeStampMemo: { key: string; value: string } | null = null;
+
+function publishedResourceAppRevision(): string {
+  return process.env.APP_REVISION?.trim() || process.env.GIT_SHA?.trim() || '';
+}
+
 function runtimeStamp(): string {
-  return digest({
-    release: sourceStamp([
-      receiptPath(),
-      join(process.cwd(), 'course-content/runtime/.act-runtime-release.v1.json'),
-      join(process.cwd(), 'course-content/runtime/.act-runtime-release.v2.json'),
-    ]),
+  const live = readAgreedLiveCourseProjection();
+  const release = sourceStamp([
+    receiptPath(),
+    join(process.cwd(), 'course-content/runtime/.act-runtime-release.v1.json'),
+    join(process.cwd(), 'course-content/runtime/.act-runtime-release.v2.json'),
+  ]);
+  const key = [
+    publishedResourceAppRevision(),
+    live?.projectionId ?? '',
+    live?.projectionHash ?? '',
+    release,
+  ].join('|');
+  if (runtimeStampMemo?.key === key) return runtimeStampMemo.value;
+  const value = digest({
+    release,
     content: runtimeMetadataStamp(),
   });
+  runtimeStampMemo = { key, value };
+  return value;
 }
 
 function safeTitle(resource: TeachingResourceRuntime): string {
@@ -804,7 +821,11 @@ export async function loadPublishedResourceFeatureIndexCapture(): Promise<Publis
     const file = join(cacheRoot(), key + '.json');
     const cached = readIndex(file);
     if (cached && cached.projectionId === live.projectionId && cached.projectionHash === live.projectionHash) return cached;
-    const projection = loadStagedTeachingProjection(resolveTeachingProjectionStorePaths(root), live.projectionId);
+    const projection = loadStagedTeachingProjection(
+      resolveTeachingProjectionStorePaths(root),
+      live.projectionId,
+      { verify: false },
+    );
     if (projection.projectionHash !== live.projectionHash) throw new Error('Teaching resource publication has drifted');
     const authority = resolveActiveEngineeringGraphAuthority(resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot()));
     const manifest = projection.artifacts.manifest;
@@ -884,4 +905,5 @@ export async function resolvePublishedResourceFeature(ref: PublishedResourceIden
 
 export function clearPublishedResourceFeatureMemoryCache(): void {
   indexPromises.clear();
+  runtimeStampMemo = null;
 }

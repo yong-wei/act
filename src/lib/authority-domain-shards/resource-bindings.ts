@@ -216,6 +216,7 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
     staged = loadStagedTeachingProjection(
       resolveTeachingProjectionStorePaths(resolveConfiguredTeachingProjectionRoot()),
       sidecar.courseProjectionId,
+      { verify: false },
     );
   } catch {
     return { status: 'unavailable', authoringRevision: null };

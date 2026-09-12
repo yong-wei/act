@@ -26,6 +26,7 @@ import {
   deriveResourceId,
   evaluateTeachingProjectionGate,
   loadStagedTeachingProjection,
+  resetStagedTeachingProjectionRequestCache,
   projectionDigest,
   readCurrentTeachingProjectionPointer,
   resolveActiveTeachingProjection,
@@ -43,6 +44,7 @@ const hashA = 'c'.repeat(64);
 const tempRoots: string[] = [];
 
 afterEach(() => {
+  resetStagedTeachingProjectionRequestCache();
   while (tempRoots.length > 0) {
     const root = tempRoots.pop();
     if (root) rmSync(root, { recursive: true, force: true });
@@ -427,6 +429,26 @@ describe('Deterministic builder (#1267)', () => {
     );
     expect(() => loadStagedTeachingProjection(paths, staged.projectionId)).toThrow(
       /impact|does not match/i,
+    );
+  });
+
+  it('request-path load skips digest verification and reuses the same identity', () => {
+    const paths = tempProjectionRoot();
+    const staged = stageTeachingProjection(paths, boundStepAuthoring());
+    const first = loadStagedTeachingProjection(paths, staged.projectionId, { verify: false });
+    expect(first.projectionHash).toBe(staged.projectionHash);
+    expect(first.artifacts.gate.passed).toBe(true);
+    expect(first.artifacts.resources.length).toBeGreaterThan(0);
+    expect(loadStagedTeachingProjection(paths, staged.projectionId, { verify: false })).toBe(first);
+
+    const resourcesPath = path.join(staged.releaseDir, 'resources.jsonl');
+    writeFileSync(
+      resourcesPath,
+      `${readFileSync(resourcesPath, 'utf8')}{"tampered":true}\n`,
+    );
+    expect(loadStagedTeachingProjection(paths, staged.projectionId, { verify: false })).toBe(first);
+    expect(() => loadStagedTeachingProjection(paths, staged.projectionId)).toThrow(
+      /source hash|source-drift|does not match/i,
     );
   });
 
