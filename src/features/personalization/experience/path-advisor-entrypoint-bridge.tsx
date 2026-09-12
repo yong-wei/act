@@ -37,7 +37,7 @@ export function PathAdvisorEntryPointBridge({
       updatePageContext({ assistantEntryPoint: null });
       return;
     }
-    if (!explicitGoal || !classId || !modeContextToken) {
+    if (!explicitGoal || !modeContextToken) {
       updatePageContext({ assistantEntryPoint: null });
       return;
     }
@@ -60,7 +60,7 @@ export function PathAdvisorEntryPointBridge({
           candidateBatchId ? `authorized-candidate-batch:${candidateBatchId}` : null,
         ].filter(Boolean).join('\n'),
         serverContext: {
-          classId,
+          ...(classId ? { classId } : {}),
           courseId: explicitGoal,
           goalId: explicitGoal,
           ...(candidateBatchId ? { candidateBatchId } : {}),

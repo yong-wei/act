@@ -1260,7 +1260,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("const activeGraphNodeId = searchParams.get('graphNodeId')");
     expect(source).toContain('if (activeGraphNodeId) {');
     expect(source).toContain('const modeContextToken = explicitGoal ? modeContextTokens[explicitGoal] ?? null : null;');
-    expect(source).toContain('if (!explicitGoal || !classId || !modeContextToken) {');
+    expect(source).toContain('if (!explicitGoal || !modeContextToken) {');
     expect(source).toContain('goalContexts[explicitGoal]');
     expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
     expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');

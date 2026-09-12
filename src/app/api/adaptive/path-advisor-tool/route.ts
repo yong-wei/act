@@ -57,23 +57,7 @@ export async function POST(request: Request) {
     if (!goalId || !isRegisteredAdaptiveLearningPathGoal(goalId)) {
       return NextResponse.json({ error: '学习路径目标未注册' }, { status: 400 });
     }
-    const classId = session.user.profile?.classId ?? null;
-    if (!classId) {
-      return readinessError('当前账号缺少班级信息，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
-        reason: 'missing-class-binding',
-        source: 'session',
-      }));
-    }
-    const classBinding = await prisma.class.findUnique({
-      where: { id: classId },
-      select: { teacherId: true },
-    });
-    if (!classBinding?.teacherId) {
-      return readinessError('当前班级缺少任课教师绑定，暂不能生成学习路径', 403, buildAdaptiveGenerationReadiness({
-        reason: 'missing-teacher-binding',
-        source: 'session',
-      }));
-    }
+    const classId = readOptionalClassId(session.user.profile?.classId);
 
     const modeContextToken = typeof body.modeContextToken === 'string' ? body.modeContextToken : '';
     if (!modeContextToken) {
@@ -333,6 +317,10 @@ function readPathGenerationRequestStatus(result: unknown): PathGenerationRequest
   return 'succeeded';
 }
 
+function readOptionalClassId(value: string | null | undefined): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
 function readinessError(error: string, status: 403, readiness: AdaptiveGenerationReadiness) {
   return NextResponse.json({ error, readiness }, { status });
 }
@@ -394,7 +382,7 @@ async function buildPathAdvisorToolInput(
   body: Record<string, unknown>,
   goalId: string,
   userId: string,
-  classId: string,
+  classId: string | null,
   operation: PathAdvisorToolOperation,
 ) {
   const pathId = typeof body.pathId === 'string' && body.pathId.length > 0 ? body.pathId : undefined;
@@ -514,7 +502,7 @@ async function readPathAdvisorPlanContext(
   pathId: string,
   goalId: string,
   userId: string,
-  classId: string,
+  classId: string | null,
 ): Promise<KonlingPlanContext | null> {
   const path = await (prisma as any).learningPath?.findFirst?.({
     where: {

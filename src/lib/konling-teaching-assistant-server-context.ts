@@ -44,7 +44,6 @@ interface SignedModeContextPayload {
 }
 
 type VerifiedModeContextPayload = SignedModeContextPayload & {
-  classId: string;
   expiresAt: string;
 };
 
@@ -219,7 +218,7 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   if (mode.id === 'class-summarizer') {
     if (signedPayload) {
       if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};
-      if (input.scope.role === 'teacher' && !await teacherOwnsClass(input.db, signedPayload.classId, input.scope.authenticatedUserId)) {
+      if (input.scope.role === 'teacher' && (!signedPayload.classId || !await teacherOwnsClass(input.db, signedPayload.classId, input.scope.authenticatedUserId))) {
         return {};
       }
       return signedPayload.context;
@@ -787,7 +786,7 @@ function verifySignedModeContext(
   const payload = verifySignedModeContextSignature(hints);
   if (!payload) return null;
   if (payload.mode !== input.modeId) return null;
-  if (!payload.classId || payload.classId !== input.scope.classId) return null;
+  if ((payload.classId ?? null) !== (input.scope.classId ?? null)) return null;
   if (payload.courseId && payload.courseId !== input.scope.courseId) return null;
   if (payload.pageId && payload.pageId !== input.scope.pageId) return null;
   if (payload.resourceId && payload.resourceId !== input.scope.resourceId) return null;

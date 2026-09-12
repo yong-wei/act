@@ -400,6 +400,49 @@ describe('Konling teaching-assistant server context', () => {
     })).resolves.toEqual({});
   });
 
+  it('accepts signed path-advisor context without a class binding', async () => {
+    const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'path-advisor',
+      courseId: 'course-1',
+      pageId: 'adaptive-path-center',
+      context: {
+        'student-path-center': true,
+      },
+    });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        classId: null,
+        pageId: 'adaptive-path-center',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: { modeContextToken },
+    })).resolves.toEqual({
+      'student-path-center': true,
+    });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        classId: 'class-1',
+        pageId: 'adaptive-path-center',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: { modeContextToken },
+    })).resolves.toEqual({});
+  });
+
   it('resolves signed path-advisor graph node ids as canonical server context', () => {
     const modeContextToken = createKonlingTeachingAssistantServerContextToken({
       mode: 'path-advisor',
