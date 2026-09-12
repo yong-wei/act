@@ -15,10 +15,14 @@ import {
 } from 'lucide-react';
 
 import {
-  ACTIVE_RESOURCE_BINDING_ROLES,
   type ActiveNodeDetailResponse,
   type ActiveResourceBinding,
 } from './active-authority-graph-contracts';
+import {
+  groupSystemResourceBindingsByKind,
+  systemResourceBindings,
+} from './active-authority-inspector-resources';
+import { InspectorLearnerMarkdown } from './inspector-learner-markdown';
 import 'katex/dist/katex.min.css';
 import { GovernedBlockMath, GovernedRichText, GovernedUnavailableMath } from '@/components/shared/governed-rich-text';
 import {
@@ -895,6 +899,27 @@ function ActiveNodeDetail({
     bodyLocale: 'zh-CN',
     selectedLocale: locale,
   });
+  const descriptionText = presentActiveHumanText(
+    node?.description ?? fallbackNode?.description,
+    '',
+  );
+  const cardPinned = Boolean(
+    node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'render',
+  );
+  const infographPinned = Boolean(
+    node?.learningContent?.infograph.state === 'available'
+    && !infographFailed
+    && infographProjection.visibility === 'render',
+  );
+  const systemResourceGroups = node?.resourceBindings?.state === 'available'
+    ? groupSystemResourceBindingsByKind(systemResourceBindings(node.resourceBindings.items, {
+      nodeKey,
+      nodeLabel: node.label,
+      learningContent: node.learningContent,
+      cardPinned,
+      infographPinned,
+    }))
+    : [];
   return (
     <aside
       ref={panelRef}
@@ -948,7 +973,9 @@ function ActiveNodeDetail({
           <div className="text-sm leading-6 text-platform-fg-secondary">
             {node?.richDescription && node.richDescription.state !== 'missing'
               ? <GovernedRichText projection={node.richDescription} density="detail" />
-              : presentActiveHumanText(node?.description ?? fallbackNode?.description, graphCopy(locale, 'inspector.noDescription'))}
+              : descriptionText
+                ? <InspectorLearnerMarkdown>{descriptionText}</InspectorLearnerMarkdown>
+                : graphCopy(locale, 'inspector.noDescription')}
           </div>
           {node?.aliases && node.aliases.length > 0 ? (
             <p className="mt-2 text-xs text-platform-fg-muted">{graphCopy(locale, 'inspector.aliases')}{node.aliases.join('、')}</p>
@@ -995,9 +1022,13 @@ function ActiveNodeDetail({
               <section aria-labelledby="active-detail-card" className="rounded-lg border border-platform-border bg-platform-canvas-muted p-3">
                 <h3 id="active-detail-card" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.card')}</h3>
                 <div className="mt-2 space-y-2 text-sm leading-6 text-platform-fg-secondary">
-                  <p>{node.learningContent.card.summary}</p>
-                  {node.learningContent.card.insight ? <p>{node.learningContent.card.insight}</p> : null}
-                  {node.learningContent.card.explanation ? <p>{node.learningContent.card.explanation}</p> : null}
+                  <InspectorLearnerMarkdown>{node.learningContent.card.summary}</InspectorLearnerMarkdown>
+                  {node.learningContent.card.insight
+                    ? <InspectorLearnerMarkdown>{node.learningContent.card.insight}</InspectorLearnerMarkdown>
+                    : null}
+                  {node.learningContent.card.explanation
+                    ? <InspectorLearnerMarkdown>{node.learningContent.card.explanation}</InspectorLearnerMarkdown>
+                    : null}
                 </div>
               </section>
             ) : node?.learningContent?.card.state === 'available' && cardProjection.visibility === 'unavailable' ? (
@@ -1020,68 +1051,61 @@ function ActiveNodeDetail({
             ) : null}
             <section aria-labelledby="active-detail-resources" data-active-inspector-resources="true">
               <h3 id="active-detail-resources" className="text-sm font-semibold text-platform-fg-primary">{graphCopy(locale, 'inspector.resources')}</h3>
-              {node?.resourceBindings?.state === 'available' ? (
+              {node?.resourceBindings?.state === 'available' && systemResourceGroups.length > 0 ? (
                 <div className="mt-2 space-y-3">
-                  {(() => {
-                    const boundItems = node.resourceBindings.state === 'available'
-                      ? node.resourceBindings.items
-                      : [];
-                    return ACTIVE_RESOURCE_BINDING_ROLES.map((role) => {
-                      const items = boundItems.filter((item) => item.bindingRole === role);
-                      if (items.length === 0) return null;
-                      return (
-                      <div key={role} data-active-resource-role={role}>
-                        <h4 className="text-xs font-medium text-platform-fg-muted">{role}</h4>
-                        <div className="mt-1 space-y-1">
-                          {items.map((item, index) => (
-                            item.availability === 'available'
-                            && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
-                              <button
-                                type="button"
-                                key={activeResourceBindingItemKey(role, item, index)}
-                                onClick={() => openResourceViewer({
-                                  title: item.title,
-                                  resourceKind: item.resourceKind,
-                                  href: item.launch.href,
-                                  node: item.resourceKind === '知识卡' && item.viewer?.summary
-                                    ? {
-                                        name: item.title,
-                                        description: item.viewer.summary,
-                                        nodeType: 'KnowledgeStatement',
-                                        content: {
-                                          insight: item.viewer.insight,
-                                          explanation: item.viewer.explanation,
-                                        },
-                                      }
-                                    : undefined,
-                                  imageSrc: item.viewer?.imageSrc,
-                                })}
-                                data-active-resource-launch={item.launch.kind}
-                                data-active-resource-title={item.title}
-                                className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
-                              >
-                                {item.title}
-                                <span className="ml-2 text-platform-fg-muted">{item.resourceKind}</span>
-                              </button>
-                            ) : (
-                              <p
-                                key={activeResourceBindingItemKey(role, item, index)}
-                                data-active-resource-unavailable="true"
-                                className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
-                              >
-                                {item.title}（暂不可启动）
-                              </p>
-                            )
-                          ))}
-                        </div>
+                  {systemResourceGroups.map((group) => (
+                    <div key={group.kind} data-active-resource-kind={group.kind}>
+                      <h4 className="text-xs font-medium text-platform-fg-muted">{group.kind}</h4>
+                      <div className="mt-1 space-y-1">
+                        {group.items.map((item, index) => (
+                          item.availability === 'available'
+                          && (item.launch.href || item.launch.kind === 'viewer-shell') ? (
+                            <button
+                              type="button"
+                              key={activeResourceBindingItemKey(group.kind, item, index)}
+                              onClick={() => openResourceViewer({
+                                title: item.title,
+                                resourceKind: item.resourceKind,
+                                href: item.launch.href,
+                                node: item.resourceKind === '知识卡' && item.viewer?.summary
+                                  ? {
+                                      name: item.title,
+                                      description: item.viewer.summary,
+                                      nodeType: 'KnowledgeStatement',
+                                      content: {
+                                        insight: item.viewer.insight,
+                                        explanation: item.viewer.explanation,
+                                      },
+                                    }
+                                  : undefined,
+                                imageSrc: item.viewer?.imageSrc,
+                              })}
+                              data-active-resource-launch={item.launch.kind}
+                              data-active-resource-title={item.title}
+                              className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
+                            >
+                              {item.title}
+                              <span className="ml-2 text-platform-fg-muted">{item.bindingRole}</span>
+                            </button>
+                          ) : (
+                            <p
+                              key={activeResourceBindingItemKey(group.kind, item, index)}
+                              data-active-resource-unavailable="true"
+                              className="rounded-md border border-platform-border px-2 py-1.5 text-xs text-platform-fg-muted"
+                            >
+                              {item.title}（暂不可启动）
+                            </p>
+                          )
+                        ))}
                       </div>
-                    );
-                  });
-                  })()}
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <p className="mt-2 text-sm text-platform-fg-muted">
-                  {node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
+                  {node?.resourceBindings?.state === 'available'
+                    ? graphCopy(locale, 'inspector.noAuthorizedResources')
+                    : node?.resourceBindings?.message ?? graphCopy(locale, 'inspector.noAuthorizedResources')}
                 </p>
               )}
             </section>

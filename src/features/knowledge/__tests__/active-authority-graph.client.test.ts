@@ -384,6 +384,8 @@ describe('active Authority knowledge workspace client boundary', () => {
   let root: Root;
   let fetchMock: ReturnType<typeof vi.fn>;
   let detailLearningContentMode: 'available' | 'unavailable';
+  let detailDescriptionOverride: string | undefined;
+  let detailCardFieldOverride: { summary: string; insight: string | null; explanation: string } | null;
   let detailResourceBindingsEnabled: boolean;
   let detailResourceBindingItems: Array<{
     title: string;
@@ -401,6 +403,8 @@ describe('active Authority knowledge workspace client boundary', () => {
     document.body.appendChild(container);
     root = createRoot(container);
     detailLearningContentMode = 'available';
+    detailDescriptionOverride = undefined;
+    detailCardFieldOverride = null;
     detailResourceBindingsEnabled = false;
     detailResourceBindingItems = null;
     fetchMock = vi.fn(async (input: RequestInfo | URL) => {
@@ -437,6 +441,7 @@ describe('active Authority knowledge workspace client boundary', () => {
           envelope: shardEnvelope,
           node: {
             ...nodeDetail(nodeId).node,
+            ...(detailDescriptionOverride !== undefined ? { description: detailDescriptionOverride } : {}),
             teachingFields: {},
             media: { cardAvailable: false, infographAvailable: false },
             ...(detailResourceBindingsEnabled ? {
@@ -467,9 +472,11 @@ describe('active Authority knowledge workspace client boundary', () => {
               : {
                 card: {
                   state: 'available',
-                  summary: '稳定性描述用于判断系统响应是否收敛。',
-                  insight: '先观察响应，再判断稳定性。',
-                  explanation: '稳定性反映系统在扰动后的响应趋势。',
+                  ...(detailCardFieldOverride ?? {
+                    summary: '稳定性描述用于判断系统响应是否收敛。',
+                    insight: '先观察响应，再判断稳定性。',
+                    explanation: '稳定性反映系统在扰动后的响应趋势。',
+                  }),
                 },
                 infograph: { state: 'available', alternativeText: '稳定性 信息图' },
               },
@@ -1276,7 +1283,139 @@ describe('active Authority knowledge workspace client boundary', () => {
     expect(container.querySelectorAll('[data-active-resource-title="课程目标"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-active-resource-title="闭环极点"]')).toHaveLength(2);
     expect(duplicateKeyWarning.mock.calls.some((call) => String(call[0]).includes('same key'))).toBe(false);
+    expect(container.querySelector('[data-active-resource-kind="课程"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-resource-kind="教材"]')).not.toBeNull();
+    expect(container.querySelector('[data-active-resource-role]')).toBeNull();
     duplicateKeyWarning.mockRestore();
+  });
+
+  it('groups inspector system resources by resource kind', async () => {
+    detailResourceBindingsEnabled = true;
+    detailResourceBindingItems = [
+      {
+        title: '稳定性课程',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'registry-resource', href: '/interactive-learning/courses/unit-3-2-routh-stability-boundary' },
+      },
+      {
+        title: '劳斯判据练习',
+        bindingRole: '练习',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'registry-resource', href: '/interactive-learning/courses/unit-3-3-routh-practice' },
+      },
+      {
+        title: '闭环极点',
+        bindingRole: '引用',
+        resourceKind: '教材',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/knowledge/published-resource/textbook-a' },
+      },
+      {
+        title: '航向保持',
+        bindingRole: '讲解',
+        resourceKind: '仿真',
+        availability: 'available',
+        launch: { kind: 'direct-route', href: '/simulations/destroyer' },
+      },
+    ];
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const resources = container.querySelector('[data-active-inspector-resources="true"]');
+    const kinds = [...resources!.querySelectorAll('[data-active-resource-kind]')].map((group) => group.getAttribute('data-active-resource-kind'));
+    expect(kinds).toEqual(['课程', '教材', '仿真']);
+    expect(resources?.querySelectorAll('[data-active-resource-kind="课程"] [data-active-resource-title]')).toHaveLength(2);
+    expect(resources?.textContent).toContain('讲解');
+    expect(resources?.textContent).toContain('练习');
+  });
+
+  it('omits the always-visible node card and infograph from system resources', async () => {
+    detailResourceBindingsEnabled = true;
+    detailResourceBindingItems = [
+      {
+        title: '稳定性',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: {
+          summary: '稳定性描述用于判断系统响应是否收敛。',
+          insight: '先观察响应，再判断稳定性。',
+          explanation: '稳定性反映系统在扰动后的响应趋势。',
+        },
+      },
+      {
+        title: '稳定性 信息图',
+        bindingRole: '讲解',
+        resourceKind: '信息图',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { imageSrc: '/api/knowledge/shards/active/nodes/node-concept/infograph' },
+      },
+      {
+        title: '卡片甲',
+        bindingRole: '讲解',
+        resourceKind: '知识卡',
+        availability: 'available',
+        launch: { kind: 'viewer-shell', href: null },
+        viewer: { summary: '甲的摘要', insight: '甲的直觉', explanation: '甲的解释' },
+      },
+      {
+        title: '稳定性课程',
+        bindingRole: '讲解',
+        resourceKind: '课程',
+        availability: 'available',
+        launch: { kind: 'registry-resource', href: '/interactive-learning/courses/unit-3-2-routh-stability-boundary' },
+      },
+    ];
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const resources = container.querySelector('[data-active-inspector-resources="true"]');
+    expect(container.querySelector('[aria-labelledby="active-detail-card"]')).not.toBeNull();
+    expect(container.querySelector('[aria-labelledby="active-detail-infograph"]')).not.toBeNull();
+    expect(resources?.querySelector('[data-active-resource-title="稳定性"]')).toBeNull();
+    expect(resources?.querySelector('[data-active-resource-title="稳定性 信息图"]')).toBeNull();
+    expect(resources?.querySelector('[data-active-resource-title="卡片甲"]')).not.toBeNull();
+    expect(resources?.querySelector('[data-active-resource-title="稳定性课程"]')).not.toBeNull();
+    expect(resources?.querySelector('[data-active-resource-kind="课程"]')).not.toBeNull();
+    expect(resources?.querySelector('[data-active-resource-kind="知识卡"]')).not.toBeNull();
+    expect(resources?.querySelector('[data-active-resource-kind="信息图"]')).toBeNull();
+  });
+
+  it('renders latex in the inspector description and knowledge card', async () => {
+    detailDescriptionOverride = '系统用 $G(s)$ 描述输入到输出的关系。';
+    detailCardFieldOverride = {
+      summary: '传递函数为 $G(s)$。',
+      insight: '增益越大，$K$ 的作用越明显。',
+      explanation: '开环传函 $$G(s)=\\frac{K}{s(s+1)}$$ 决定频带。',
+    };
+    await act(async () => root.render(createElement(KnowledgeGraphWorkspace, {
+      viewerRole: 'student', candidateAllowed: false, controlledVerification: false, legacy: null,
+    })));
+    await act(async () => Promise.resolve());
+    await enterModelingDomain({ families: false });
+    const node = container.querySelector<SVGGElement>('[data-active-authority-node="node-concept"]');
+    await act(async () => node!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    const inspector = container.querySelector('[data-active-node-detail="node-concept"]');
+    expect(inspector?.querySelector('[data-inspector-learner-markdown="true"]')).not.toBeNull();
+    expect(inspector?.querySelector('.katex')).not.toBeNull();
+    expect(inspector?.querySelector('[aria-labelledby="active-detail-card"] .katex')).not.toBeNull();
+    expect(inspector?.textContent).not.toContain('$G(s)$');
   });
 
   it('reveals current one-hop types and model relations before neighborhood and detail return', async () => {
