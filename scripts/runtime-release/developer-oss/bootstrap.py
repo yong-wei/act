@@ -209,7 +209,7 @@ def attach_gateway(credential: dict[str, str], identity: dict[str, str], checkou
     return {"client": client, "lease": issued}
 
 
-def fetch_release_documents(release_id: str, destination: Path, session: dict[str, Any]) -> tuple[Path, Path]:
+def fetch_release_manifest(release_id: str, destination: Path, session: dict[str, Any]) -> Path:
     destination.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(destination, 0o700)
     client: GatewayClient = session["client"]
@@ -219,32 +219,24 @@ def fetch_release_documents(release_id: str, destination: Path, session: dict[st
     if lease.get("releaseId") != release_id:
         fail("gateway lease does not match readiness identity")
     manifest = destination / "manifest.json"
-    receipt = destination / "receipt.json"
     try:
         manifest.write_bytes(client.get_manifest(lease_id, transport))
-        receipt.write_bytes(client.get_receipt(lease_id, transport))
     except GatewayError:
         fail("developer runtime gateway could not serve release documents")
-    for name, target in (("manifest.json", manifest), ("receipt.json", receipt)):
-        if not target.is_file() or target.is_symlink():
-            fail("%s must be a regular file" % name)
-    return manifest, receipt
+    if not manifest.is_file() or manifest.is_symlink():
+        fail("manifest.json must be a regular file")
+    return manifest
 
 
-def verify_release_documents(identity: dict[str, str], manifest_path: Path, receipt_path: Path) -> dict[str, Any]:
+def verify_release_manifest(identity: dict[str, str], manifest_path: Path) -> dict[str, Any]:
     materializer = load_materializer()
-    manifest, wire = materializer.parse_manifest(manifest_path)
+    manifest, _wire = materializer.parse_manifest(manifest_path)
     if (
         manifest["releaseId"] != identity["releaseId"]
         or manifest["manifestSha256"] != identity["manifestSha256"]
         or manifest["treeSha256"] != identity["treeSha256"]
     ):
         fail("fetched manifest does not match readiness identity")
-    if hashlib.sha256(wire).hexdigest() != hashlib.sha256(manifest_path.read_bytes()).hexdigest():
-        fail("manifest wire digest drifted")
-    receipt = materializer.parse_receipt(receipt_path, manifest, wire)
-    if receipt["manifestSha256"] != identity["manifestSha256"] or receipt["treeSha256"] != identity["treeSha256"]:
-        fail("fetched receipt does not match readiness identity")
     return manifest
 
 
@@ -310,10 +302,9 @@ def read_selection_receipt(path: Path) -> dict[str, Any] | None:
     return payload
 
 
-def materialize_view(manifest_path: Path, receipt_path: Path, blob_root: Path, view_root: Path, release_id: str) -> Path:
+def materialize_view(manifest_path: Path, blob_root: Path, view_root: Path, release_id: str) -> Path:
     materializer = load_materializer()
     manifest, wire = materializer.parse_manifest(manifest_path)
-    materializer.parse_receipt(receipt_path, manifest, wire)
     if manifest["releaseId"] != release_id:
         fail("fetched manifest releaseId does not match readiness identity")
     view = view_root / "views" / release_id
@@ -667,8 +658,8 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
             acquired = True
         register_checkout_gateway_lease(checkout, credential, session["lease"], mount_id)
         documents = state / "documents" / readiness["releaseId"]
-        manifest_path, oss_receipt = fetch_release_documents(readiness["releaseId"], documents, session)
-        verify_release_documents(readiness, manifest_path, oss_receipt)
+        manifest_path = fetch_release_manifest(readiness["releaseId"], documents, session)
+        verify_release_manifest(readiness, manifest_path)
         if topology == TOPOLOGY_SHARED:
             shared = ensure_shared_mount(credential)
             blob_root = Path(shared["mountpoint"])
@@ -681,7 +672,7 @@ def _prepare_locked(checkout: Path, readiness: dict[str, str], credential: dict[
             mount_gateway_blobs(blob_root, checkout_gateway_session_path(checkout), cache_dir)
         view_root.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(view_root, 0o700)
-        helper_mount = materialize_view(manifest_path, oss_receipt, blob_root, view_root, readiness["releaseId"])
+        helper_mount = materialize_view(manifest_path, blob_root, view_root, readiness["releaseId"])
         selected = view_root / "current"
         verified = consumer_gate(selected, readiness)
         payload = _selection_payload(

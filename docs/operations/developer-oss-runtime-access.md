@@ -66,7 +66,7 @@ npm run startup:oss-runtime
 npm run shutdown:oss-runtime
 ```
 
-启动顺序是固定的：读取生产 `https://act.adapt-learn.online/api/readyz` 的 active 身份 → 向 ECS 网关申请 pin-time 租约 → 经网关拉取该 Release 的 v2 manifest/receipt → 获取本机共享的只读网关 Blob 适配器与磁盘缓存 → 物化**当前 checkout** 的逻辑视图 → 只读覆盖该 checkout 的 `course-content/runtime` → 再调用现有 `npm run startup`。
+启动顺序是固定的：读取生产 `https://act.adapt-learn.online/api/readyz` 的 active 身份 → 向 ECS 网关申请 pin-time 租约 → 经网关拉取该 Release 的 v2 manifest → 获取本机共享的只读网关 Blob 适配器与磁盘缓存 → 物化**当前 checkout** 的逻辑视图 → 只读覆盖该 checkout 的 `course-content/runtime` → 再调用现有 `npm run startup`。
 
 同一 Linux 运行层上的多个 ACT worktree 共用一个网关 Blob 适配器和一份仓库外缓存；每个 checkout 的 active Release pin、租约、物化 view 和服务进程仍然独立。生产后来切到新 Release，正在跑的开发服务仍可按原租约允许集按需取尚未缓存的 Blob；下次 `startup:oss-runtime` 才会租新的 active。
 
@@ -113,3 +113,9 @@ rm -f ~/.local/state/act-runtime-dev-gateway/checkouts/*/gateway-session.json
 并卸载仍在的 checkout bind。共享 Blob FUSE 只在没有 live lease 时卸载。共享缓存默认保留到审计窗口结束，不要 `rm -rf` 整个 `~/.cache/act-runtime-dev-gateway/`。不要保留令牌备份在仓库或网盘。
 
 回滚到每 checkout 独立挂载时，先停掉所有共享消费者，再设 `ACT_RUNTIME_DEV_MOUNT_TOPOLOGY=checkout`。该回滚不得删除共享缓存，也不得退回公网 ossfs2。
+
+### 当前指针与租约（2026-09-12）
+
+网关从 `blob-views/current/.act-runtime-release.v2.json` 读取当前身份和文件索引，不读取活动审计回执，也不要求视图内存在发布回执。客户端只获取所选 manifest，不再调用旧 receipt 接口；manifest 的排版差异不影响语义身份。升级网关时，开发者需同步更新启动脚本。
+
+传输凭证默认有效 24 小时，租约允许 7 天没有心跳；恢复后自动续签传输凭证。主动停止、共享凭证撤销和同 checkout 重新启动仍使相应旧租约失效。已签发租约继续读取固定版本，新启动按 current 选择版本。

@@ -49,30 +49,17 @@ class MemoryHost:
         return self._blobs.get(digest)
 
 
-def load_active_identity(receipt_path: Path) -> dict[str, str]:
-    raw = json.loads(receipt_path.read_text(encoding="utf-8"))
-    selection = raw.get("selection") if isinstance(raw, dict) else None
-    if not isinstance(selection, dict):
-        raise GatewayError(409, "denied", DENIED_BODY)
-    identity = {
-        "schemaVersion": "act-runtime-release.v2",
-        "releaseId": selection.get("releaseId"),
-        "manifestSha256": selection.get("manifestSha256"),
-        "treeSha256": selection.get("treeSha256"),
-    }
-    return require_identity(identity)
-
-
 class DiskHost:
-    """Reads ECS-local active receipt, materialized v2 manifest, and ossfs Blob files."""
+    """Follow current for new leases; retain pinned manifests for existing leases."""
 
-    def __init__(self, receipt_path: Path, view_root: Path, blob_root: Path) -> None:
-        self.receipt_path = receipt_path
+    def __init__(self, view_root: Path, blob_root: Path) -> None:
         self.view_root = view_root
         self.blob_root = blob_root
 
     def active_identity(self) -> dict[str, str]:
-        return load_active_identity(self.receipt_path)
+        manifest = self.view_root / "current" / ".act-runtime-release.v2.json"
+        raw = json.loads(manifest.read_bytes())
+        return require_identity({key: raw.get(key) for key in ("schemaVersion", "releaseId", "manifestSha256", "treeSha256")})
 
     def _view_dir(self, identity: Mapping[str, str]) -> Path:
         current = self.view_root / "current"
@@ -94,12 +81,6 @@ class DiskHost:
 
     def manifest_bytes(self, identity: Mapping[str, str]) -> bytes | None:
         path = self._view_dir(identity) / ".act-runtime-release.v2.json"
-        if not path.is_file() or path.is_symlink():
-            return None
-        return path.read_bytes()
-
-    def receipt_bytes(self, identity: Mapping[str, str]) -> bytes | None:
-        path = self._view_dir(identity) / ".act-runtime-release-receipt.v2.json"
         if not path.is_file() or path.is_symlink():
             return None
         return path.read_bytes()

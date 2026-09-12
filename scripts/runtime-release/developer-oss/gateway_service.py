@@ -30,11 +30,9 @@ MANIFEST_KEYS = (
 )
 FILE_KEYS = ("path", "objectKey", "sizeBytes", "sha256")
 BLOB_PREFIX = "runtime/blobs/sha256/"
-TRANSPORT_TTL_SECONDS = 900
-# Checkout liveness is heartbeat, not an immortal live flag. Grace is longer than
-# transport TTL so a running checkout that is not fetching bodies stays valid,
-# and shorter than an unbounded window after kill -9 / crash without DELETE.
-HEARTBEAT_GRACE_SECONDS = 3600
+TRANSPORT_TTL_SECONDS = 24 * 60 * 60
+# Allow overnight sleep and weekend downtime; explicit stop/revocation is immediate.
+HEARTBEAT_GRACE_SECONDS = 7 * 24 * 60 * 60
 LEASE_PERSIST_INTERVAL_SECONDS = 30
 DENIED_BODY = b'{"error":"denied"}'
 NOT_FOUND_BODY = b'{"error":"not found"}'
@@ -63,9 +61,6 @@ class HostView(Protocol):
         ...
 
     def manifest_bytes(self, identity: Mapping[str, str]) -> bytes | None:
-        ...
-
-    def receipt_bytes(self, identity: Mapping[str, str]) -> bytes | None:
         ...
 
     def blob_bytes(self, digest: str) -> bytes | None:
@@ -204,69 +199,6 @@ def validate_v2_manifest(payload: bytes, requested: Mapping[str, str]) -> tuple[
     return frozenset(sizes), sizes
 
 
-RECEIPT_REQUIRED_KEYS = (
-    "schemaVersion",
-    "releaseId",
-    "manifestVersion",
-    "manifestObjectKey",
-    "manifestSha256",
-    "manifestWireSha256",
-    "manifestWireSizeBytes",
-    "treeSha256",
-    "fileCount",
-    "totalBytes",
-    "blobs",
-    "receiptSha256",
-)
-RECEIPT_OPTIONAL_KEYS = frozenset({"sourceProvenanceProofSha256", "formalResourceEnvelopeHash"})
-
-
-def validate_v2_receipt(payload: bytes, requested: Mapping[str, str], manifest_payload: bytes) -> None:
-    try:
-        document = json.loads(payload.decode("utf-8"))
-        manifest = json.loads(manifest_payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise GatewayError(409, "denied", DENIED_BODY) from error
-    if not isinstance(document, dict) or not isinstance(manifest, dict):
-        raise GatewayError(409, "denied", DENIED_BODY)
-    if document.get("schemaVersion") != "act-runtime-release-receipt.v2":
-        raise GatewayError(409, "denied", DENIED_BODY)
-    extra = set(document) - set(RECEIPT_REQUIRED_KEYS) - RECEIPT_OPTIONAL_KEYS
-    missing = set(RECEIPT_REQUIRED_KEYS) - set(document)
-    if extra or missing:
-        raise GatewayError(409, "denied", DENIED_BODY)
-    if document.get("manifestVersion") != "act-runtime-release.v2":
-        raise GatewayError(409, "denied", DENIED_BODY)
-    if document.get("releaseId") != requested["releaseId"]:
-        raise GatewayError(409, "denied", DENIED_BODY)
-    expected_key = "runtime/blob-releases/%s/manifest.json" % requested["releaseId"]
-    if document.get("manifestObjectKey") != expected_key:
-        raise GatewayError(409, "denied", DENIED_BODY)
-    if document.get("manifestSha256") != requested["manifestSha256"] or document.get("treeSha256") != requested["treeSha256"]:
-        raise GatewayError(409, "denied", DENIED_BODY)
-    if document.get("manifestWireSha256") != hashlib.sha256(manifest_payload).hexdigest():
-        raise GatewayError(409, "denied", DENIED_BODY)
-    if document.get("manifestWireSizeBytes") != len(manifest_payload):
-        raise GatewayError(409, "denied", DENIED_BODY)
-    if document.get("fileCount") != manifest.get("fileCount") or document.get("totalBytes") != manifest.get("totalBytes"):
-        raise GatewayError(409, "denied", DENIED_BODY)
-    files = manifest.get("files")
-    blobs = document.get("blobs")
-    if not isinstance(files, list) or not isinstance(blobs, list) or not blobs:
-        raise GatewayError(409, "denied", DENIED_BODY)
-    expected = {(item.get("objectKey"), item.get("sizeBytes"), item.get("sha256")) for item in files if isinstance(item, dict)}
-    actual = set()
-    for item in blobs:
-        if not isinstance(item, dict) or set(item) != {"objectKey", "sizeBytes", "sha256"}:
-            raise GatewayError(409, "denied", DENIED_BODY)
-        actual.add((item["objectKey"], item["sizeBytes"], item["sha256"]))
-    if actual != expected:
-        raise GatewayError(409, "denied", DENIED_BODY)
-    without_digest = {key: value for key, value in document.items() if key != "receiptSha256"}
-    if digest_hex(without_digest) != document.get("receiptSha256"):
-        raise GatewayError(409, "denied", DENIED_BODY)
-
-
 def parse_range(header: str | None, size: int) -> tuple[int, int] | None:
     if not header:
         return None
@@ -369,10 +301,6 @@ class GatewayService:
         if manifest is None:
             raise GatewayError(409, "denied", DENIED_BODY)
         allowlist, blob_sizes = validate_v2_manifest(manifest, requested)
-        receipt = self._host.receipt_bytes(requested)
-        if receipt is None:
-            raise GatewayError(409, "denied", DENIED_BODY)
-        validate_v2_receipt(receipt, requested, manifest)
         now = self._time()
         with self._lock:
             still_active = require_identity(self._host.active_identity())
@@ -434,19 +362,6 @@ class GatewayService:
         if payload is None:
             raise GatewayError(503, "unavailable", UNAVAILABLE_BODY)
         validate_v2_manifest(payload, identity)
-        return payload
-
-    def get_receipt(self, lease_id: str, transport_token: str | None) -> bytes:
-        with self._lock:
-            lease = self._authorized_lease(lease_id, transport_token)
-            identity = dict(lease.identity)
-        payload = self._host.receipt_bytes(identity)
-        if payload is None:
-            raise GatewayError(503, "unavailable", UNAVAILABLE_BODY)
-        manifest = self._host.manifest_bytes(identity)
-        if manifest is None:
-            raise GatewayError(503, "unavailable", UNAVAILABLE_BODY)
-        validate_v2_receipt(payload, identity, manifest)
         return payload
 
     def get_blob(

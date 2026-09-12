@@ -550,25 +550,14 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             blobs.mkdir()
             for digest_hex, payload in host_mem._blobs.items():
                 (blobs / digest_hex).write_bytes(payload)
-            receipt = {
-                "schemaVersion": "runtime-release-active-receipt.v1",
-                "healthCheck": "readyz",
-                "selection": {
-                    "schemaVersion": "runtime-release-selection.v1",
-                    "generation": 1,
-                    "releaseId": identity_a["releaseId"],
-                    "manifestSha256": identity_a["manifestSha256"],
-                    "treeSha256": identity_a["treeSha256"],
-                },
-            }
             receipt_path = root / "act-runtime-active-receipt.json"
-            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
-            disk = DiskHost(receipt_path, root, blobs)
+            receipt_path.write_text("stale audit receipt", encoding="utf-8")
+            (root / "current").symlink_to(view, target_is_directory=True)
+            disk = DiskHost(root, blobs)
             service = GatewayService(TOKEN, disk)
             issued = service.issue_lease(identity_a, "disk-a")
-            served = service.get_receipt(issued["leaseId"], issued["transport"]["token"])
-            self.assertEqual(json.loads(served.decode("utf-8"))["schemaVersion"], "act-runtime-release-receipt.v2")
-            self.assertEqual(served, host_mem.receipt_bytes(identity_a))
+            served = service.get_manifest(issued["leaseId"], issued["transport"]["token"])
+            self.assertEqual(served, host_mem.manifest_bytes(identity_a))
             body, _, _ = service.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)
             self.assertEqual(body, b"a-only")
             with self.assertRaises(GatewayError) as denied:
@@ -576,7 +565,7 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             self.assertEqual(denied.exception.status, 404)
 
 
-    def test_disk_host_refuses_materialization_receipt_as_release_contract(self):
+    def test_disk_host_issues_from_current_without_release_receipt(self):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
             host_mem, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
@@ -589,34 +578,22 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             )
             blobs = root / "blobs"
             blobs.mkdir()
-            receipt = {
-                "schemaVersion": "runtime-release-active-receipt.v1",
-                "healthCheck": "readyz",
-                "selection": {
-                    "schemaVersion": "runtime-release-selection.v1",
-                    "generation": 1,
-                    "releaseId": identity_a["releaseId"],
-                    "manifestSha256": identity_a["manifestSha256"],
-                    "treeSha256": identity_a["treeSha256"],
-                },
-            }
             receipt_path = root / "act-runtime-active-receipt.json"
-            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
-            service = GatewayService(TOKEN, DiskHost(receipt_path, root, blobs))
-            with self.assertRaises(GatewayError) as denied:
-                service.issue_lease(identity_a, "disk-materialization")
-            self.assertEqual(denied.exception.status, 409)
+            receipt_path.write_text("stale audit receipt", encoding="utf-8")
+            (root / "current").symlink_to(view, target_is_directory=True)
+            service = GatewayService(TOKEN, DiskHost(root, blobs))
+            issued = service.issue_lease(identity_a, "disk-materialization")
+            self.assertEqual(issued["releaseId"], identity_a["releaseId"])
 
-    def test_issue_lease_rejects_non_v2_receipt_bytes(self):
+    def test_issue_lease_ignores_obsolete_receipt_bytes(self):
         host, identity_a, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
         host.put_receipt(identity_a, canonical({
             "schemaVersion": "runtime-blob-materialization.v1",
             "releaseId": identity_a["releaseId"],
         }) + b"\n")
         service = GatewayService(TOKEN, host)
-        with self.assertRaises(GatewayError) as denied:
-            service.issue_lease(identity_a, "wrong-receipt")
-        self.assertEqual(denied.exception.status, 409)
+        issued = service.issue_lease(identity_a, "obsolete-receipt")
+        self.assertEqual(issued["releaseId"], identity_a["releaseId"])
 
 
     def test_live_lease_survives_gateway_reload_after_activation(self):
@@ -830,6 +807,62 @@ class DeveloperRuntimeGatewayTests(unittest.TestCase):
             limiter.check("client", now)
         self.assertEqual(raised.exception.status, 429)
         limiter.check("client", now + 1.0)
+
+
+class CurrentPointerIntegrationTests(unittest.TestCase):
+    @mock.patch.dict(os.environ, {"ACT_RUNTIME_DEV_ALLOW_HTTP": "1"})
+    def test_materialized_current_bootstraps_without_any_release_receipt(self):
+        from bootstrap import fetch_release_manifest, verify_release_manifest, load_materializer
+        from gateway_client import GatewayClient
+        host_mem, identity_a, identity_b, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            for identity in (identity_a, identity_b):
+                view = root / "views" / identity["releaseId"]
+                view.mkdir(parents=True)
+                # Use the actual CAS materializer, including its pretty-printed manifest.
+                load_materializer().write_materialization_artifacts(
+                    view, json.loads(host_mem.manifest_bytes(identity)))
+            current = root / "current"
+            current.symlink_to(root / "views" / identity_a["releaseId"])
+            blobs = root / "blobs"
+            blobs.mkdir()
+            for digest, payload in host_mem._blobs.items():
+                (blobs / digest).write_bytes(payload)
+            service = GatewayService(TOKEN, DiskHost(root, blobs))
+            httpd = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(service, RateLimiter()))
+            thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+            thread.start()
+            try:
+                client = GatewayClient("http://127.0.0.1:%s" % httpd.server_port, TOKEN)
+                issued = client.issue_lease(identity_a, "pointer-client")
+                manifest_path = fetch_release_manifest(identity_a["releaseId"], root / "download", {"client": client, "lease": issued})
+                verify_release_manifest(identity_a, manifest_path)
+                self.assertFalse((root / "download/receipt.json").exists())
+                current.unlink()
+                current.symlink_to(root / "views" / identity_b["releaseId"])
+                self.assertEqual(service._host.active_identity(), identity_b)
+                self.assertEqual(client.get_blob(issued["leaseId"], issued["transport"]["token"], a_only), b"a-only")
+                new = client.issue_lease(identity_b, "new-checkout")
+                self.assertEqual(new["releaseId"], identity_b["releaseId"])
+            finally:
+                httpd.shutdown()
+                httpd.server_close()
+                thread.join()
+
+    def test_default_lease_survives_a_weekend_then_renews_and_stops(self):
+        clock = Clock()
+        host, identity, _, _, a_only, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host, time_fn=clock)
+        issued = service.issue_lease(identity, "weekend")
+        clock.now += 23 * 3600
+        self.assertEqual(service.get_blob(issued["leaseId"], issued["transport"]["token"], a_only)[0], b"a-only")
+        clock.now += 3 * 24 * 3600
+        renewed = service.renew_transport(issued["leaseId"])
+        self.assertEqual(service.get_blob(issued["leaseId"], renewed["transport"]["token"], a_only)[0], b"a-only")
+        service.stop_checkout(issued["leaseId"])
+        with self.assertRaises(GatewayError):
+            service.renew_transport(issued["leaseId"])
 
 
 if __name__ == "__main__":

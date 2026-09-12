@@ -102,10 +102,6 @@ def make_handler(service: GatewayService, limiter: RateLimiter):
                     body = service.get_manifest(parts[2], transport)
                     self._send(200, body, {"Content-Type": "application/json"})
                     return
-                if self.command == "GET" and len(parts) == 4 and parts[0] == "v1" and parts[1] == "leases" and parts[3] == "receipt":
-                    body = service.get_receipt(parts[2], transport)
-                    self._send(200, body, {"Content-Type": "application/json"})
-                    return
                 if self.command == "GET" and len(parts) == 4 and parts[0] == "v1" and parts[1] == "blobs" and parts[2] == "sha256":
                     body, status, headers = service.get_blob(lease_id or "", transport, parts[3], self.headers.get("Range"))
                     headers["Content-Type"] = "application/octet-stream"
@@ -148,13 +144,13 @@ def main() -> int:
     parser.add_argument("--listen", default="127.0.0.1:8787")
     parser.add_argument("--token-file", required=True)
     parser.add_argument("--lease-store")
-    parser.add_argument("--active-receipt", required=True)
+    parser.add_argument("--active-receipt", default="", help=argparse.SUPPRESS)
     parser.add_argument("--view-root", required=True)
     parser.add_argument("--blob-root", required=True)
     args = parser.parse_args()
     host, port_text = args.listen.rsplit(":", 1)
     token_path = Path(args.token_file)
-    disk = DiskHost(Path(args.active_receipt), Path(args.view_root), Path(args.blob_root))
+    disk = DiskHost(Path(args.view_root), Path(args.blob_root))
     lease_store = Path(args.lease_store) if args.lease_store else None
     service = GatewayService(
         read_token_file(token_path),
