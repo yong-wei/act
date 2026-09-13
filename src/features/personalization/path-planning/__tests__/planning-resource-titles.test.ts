@@ -6,6 +6,7 @@ import {
   isInternalPlanningTitle,
   loadPlanningAssertionKnowledgeIds,
   loadPlanningKnowledgeLabels,
+  planningAuthorityReleaseStatus,
   resetPlanningKnowledgeLabelsForTest,
   resolvePlanningAuthoringReleaseDir,
   resolvePlanningResourceTitle,
@@ -63,5 +64,11 @@ describe('planning resource titles', () => {
     expect(resolvePlanningAuthoringReleaseDir(process.cwd(), {
       authorityReleaseSetId: 'actkg-authoritative-candidate-control-theory-engineering-v9.99-r1',
     })).toBeNull();
+    expect(planningAuthorityReleaseStatus(process.cwd(), {
+      authorityReleaseSetId: 'actkg-authoritative-candidate-control-theory-engineering-v9.99-r1',
+    })).toMatchObject({
+      status: 'missing-release',
+      setId: 'actkg-authoritative-candidate-control-theory-engineering-v9.99-r1',
+    });
   });
 });

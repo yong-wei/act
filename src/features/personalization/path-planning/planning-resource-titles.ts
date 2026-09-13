@@ -73,17 +73,32 @@ type PlanningKnowledgeCache = {
 
 const caches = new Map<string, PlanningKnowledgeCache>();
 
+export type PlanningAuthorityReleaseStatus =
+  | { status: 'ready'; dir: string; setId: string }
+  | { status: 'missing-release'; setId: string }
+  | { status: 'no-pointer' };
+
 export function resolvePlanningAuthoringReleaseDir(
   repoRoot = process.cwd(),
   options: { authorityReleaseSetId?: string | null } = {},
 ): string | null {
+  const resolved = planningAuthorityReleaseStatus(repoRoot, options);
+  return resolved.status === 'ready' ? resolved.dir : null;
+}
+
+export function planningAuthorityReleaseStatus(
+  repoRoot = process.cwd(),
+  options: { authorityReleaseSetId?: string | null } = {},
+): PlanningAuthorityReleaseStatus {
   const setId = options.authorityReleaseSetId === undefined
     ? readLiveAuthorityReleaseSetId(repoRoot)
     : options.authorityReleaseSetId;
-  const match = AUTHORING_RELEASE_NAME.exec(setId ?? '');
-  if (!match) return null;
+  if (!setId?.trim()) return { status: 'no-pointer' };
+  const match = AUTHORING_RELEASE_NAME.exec(setId);
+  if (!match) return { status: 'missing-release', setId };
   const dir = join(repoRoot, 'course-content/authoring/knowledge/releases', match[0]);
-  return existsSync(dir) ? dir : null;
+  if (!existsSync(dir)) return { status: 'missing-release', setId };
+  return { status: 'ready', dir, setId };
 }
 
 function ensurePlanningKnowledgeCaches(

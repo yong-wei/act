@@ -28,6 +28,7 @@ import {
 import {
   loadPlanningAssertionKnowledgeIds,
   loadPlanningKnowledgeLabels,
+  planningAuthorityReleaseStatus,
   resolvePlanningResourceTitle,
 } from '../planning-resource-titles';
 import { expandFeasibleKnowledgeIds } from '../knowledge-scope';
@@ -77,6 +78,7 @@ export interface KnowledgePathMountOptions {
   heuristicTimeoutMs?: number;
   now?: Date;
   policy?: Partial<KnowledgePathPolicy>;
+  authorityReleaseSetId?: string | null;
 }
 
 export function shouldAssembleByKnowledgePath(input: AdaptiveLearningPathPlannerInput): boolean {
@@ -90,6 +92,12 @@ export function assembleKnowledgePathPlan(
   const now = (options.now ?? input.now ?? new Date()).toISOString();
   const policy = resolveKnowledgePathPolicy(options.policy);
   const targets = goalCanonicalIds(input.goal.id);
+  const authority = planningAuthorityReleaseStatus(process.cwd(), {
+    authorityReleaseSetId: options.authorityReleaseSetId,
+  });
+  if (authority.status === 'missing-release') {
+    return failClosedKnowledgePathPlan(input, now, targets, ['authority-release-unavailable']);
+  }
   const edges = options.prerequisiteEdges
     ?? input.planningScope?.edges
     ?? loadLiveTeachingPrerequisiteEdges();
@@ -113,8 +121,12 @@ export function assembleKnowledgePathPlan(
   const expandedIds = buildKnowledgeSkeleton(targets, edges, 'required')
     .knowledgeIds
     .filter((id) => feasibleKnowledge.has(id));
-  const labels = loadPlanningKnowledgeLabels();
-  const assertionIds = loadPlanningAssertionKnowledgeIds();
+  const labels = loadPlanningKnowledgeLabels(process.cwd(), {
+    authorityReleaseSetId: options.authorityReleaseSetId,
+  });
+  const assertionIds = loadPlanningAssertionKnowledgeIds(process.cwd(), {
+    authorityReleaseSetId: options.authorityReleaseSetId,
+  });
   const knowledgeIds = selectPriorityKnowledgeSkeleton(expandedIds, masteryById, {
     policy,
     labels,
@@ -267,6 +279,114 @@ export function assembleKnowledgePathPlan(
           prerequisiteNodeIds: node.prerequisiteNodeIds,
         })),
         teacherPolicy: mainPath.map((node) => ({ nodeId: node.nodeId, policy: node.teacherPolicy })),
+        alternatives: [],
+      },
+    },
+  };
+}
+
+function failClosedKnowledgePathPlan(
+  input: AdaptiveLearningPathPlannerInput,
+  now: string,
+  targets: string[],
+  fallbackReasons: string[],
+): AdaptiveLearningPathPlan {
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const policyFamily = STYLE_META[0]!.family;
+  return {
+    id: `adaptive-path:${input.studentId}:${input.goal.id}`,
+    userId: input.studentId,
+    goal: {
+      ...input.goal,
+      knowledgeTargets: targets,
+      learningGoal: registeredGoal?.learningGoal,
+      learningGoalPackage: registeredGoal?.learningGoal,
+    },
+    stage: 'stage-1-rules-graph',
+    policyFamily,
+    policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily],
+    policyBundle: {
+      families: STYLE_META.map((style) => style.family),
+      overlapThreshold: 1,
+      status: 'low-resource-fallback',
+      paths: [],
+      diversity: {
+        maxResourceOverlap: 0,
+        minModalityDistance: 0,
+        minEstimatedEffortDifference: 0,
+        minTerminalValidationDifference: 0,
+        pairwiseResourceOverlap: [],
+        pairwiseModalityDistance: [],
+        pairwiseEstimatedEffortDifference: [],
+        pairwiseTerminalValidationDifference: [],
+        modalityMixByPolicy: {},
+        estimatedEffortByPolicy: {},
+        terminalValidationDifference: 0,
+      },
+      fallbackReasons,
+    },
+    excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
+    status: 'fallback',
+    currentNodeId: null,
+    mainPath: [],
+    alternatives: [],
+    score: {
+      total: 0,
+      objectives: {
+        learningGain: 0,
+        engagement: 0,
+        constraintSatisfaction: 1,
+        diversity: 0,
+        fatigue: 0,
+        dropoutRisk: 0,
+      },
+    },
+    confidence: {
+      level: 'low',
+      score: 0,
+      sourceCoverage: 0,
+    },
+    explanations: {
+      selectedReasons: ['goal-knowledge-path'],
+      rejectedAlternatives: [],
+      fallbackReasons,
+      configurationFulfillment: [],
+    },
+    executionStatus: {
+      adopted: false,
+      completedNodeIds: input.constraints.completedNodeIds ?? [],
+      activeNodeId: null,
+      updatedAt: now,
+    },
+    deviations: [],
+    corrections: [],
+    feedbackEvents: [],
+    visualization: {
+      map: {
+        mainPathNodeIds: [],
+        branchPaths: [],
+        currentNodeId: null,
+        completedNodeIds: input.constraints.completedNodeIds ?? [],
+        riskNodeIds: [],
+        blockedNodes: [],
+        alternatives: [],
+      },
+      timeline: {
+        generatedAt: now,
+        windows: [{
+          days: input.constraints.timelineWindowDays ?? 7,
+          nodeIds: [],
+          estimatedMinutes: 0,
+        }],
+      },
+      evidence: {
+        evidenceBasis: 'fallback',
+        confidence: { level: 'low', score: 0, sourceCoverage: 0 },
+        sourceCoverage: {},
+        learnerStateDeficits: [],
+        capabilityEvidence: [],
+        prerequisiteReasons: [],
+        teacherPolicy: [],
         alternatives: [],
       },
     },
