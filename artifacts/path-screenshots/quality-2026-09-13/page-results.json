@@ -1,0 +1,92 @@
+[
+  {
+    "student": "无掌握证据",
+    "goal": "反馈与闭环结构基础",
+    "file": "1-1-zero-feedback-loop-concept-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 2528,
+    "batchId": "path-candidate-batch_063f18ca1d3db266f92ec08a"
+  },
+  {
+    "student": "无掌握证据",
+    "goal": "根轨迹分析基础",
+    "file": "1-2-zero-root-locus-analysis-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 3157,
+    "batchId": "path-candidate-batch_f70980a0431f11b31f2d2f60"
+  },
+  {
+    "student": "无掌握证据",
+    "goal": "频率响应基础",
+    "file": "1-3-zero-frequency-response-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 2575,
+    "batchId": "path-candidate-batch_29e661998f55d2208af30bb7"
+  },
+  {
+    "student": "部分掌握",
+    "goal": "反馈与闭环结构基础",
+    "file": "2-1-partial-feedback-loop-concept-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 2224,
+    "batchId": "path-candidate-batch_d0881efe76eb0d62e0d29aa8"
+  },
+  {
+    "student": "部分掌握",
+    "goal": "根轨迹分析基础",
+    "file": "2-2-partial-root-locus-analysis-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 2818,
+    "batchId": "path-candidate-batch_408084ee7edf2b97a23177e3"
+  },
+  {
+    "student": "部分掌握",
+    "goal": "频率响应基础",
+    "file": "2-3-partial-frequency-response-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 2744,
+    "batchId": "path-candidate-batch_f524d00248dd7ce2ae45b1ea"
+  },
+  {
+    "student": "前置基础较充分",
+    "goal": "反馈与闭环结构基础",
+    "file": "3-1-mastered-feedback-loop-concept-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 1,
+    "elapsedMs": 2194,
+    "batchId": "path-candidate-batch_a8660075c5652b808ad1fc01"
+  },
+  {
+    "student": "前置基础较充分",
+    "goal": "根轨迹分析基础",
+    "file": "3-2-mastered-root-locus-analysis-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 2836,
+    "batchId": "path-candidate-batch_871aed09b5f8eeb11139930a"
+  },
+  {
+    "student": "前置基础较充分",
+    "goal": "频率响应基础",
+    "file": "3-3-mastered-frequency-response-foundations.png",
+    "status": 200,
+    "generationStatus": "persisted",
+    "options": 3,
+    "elapsedMs": 2336,
+    "batchId": "path-candidate-batch_48e7f7a66fbd840342082334"
+  }
+]

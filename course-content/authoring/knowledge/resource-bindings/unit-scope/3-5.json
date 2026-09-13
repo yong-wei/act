@@ -1,0 +1,86 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "3-5",
+ "canonicalIds": [
+  "ctc:modeling-8010502b57930c3dcb915af9",
+  "ctc:v11g-13a9994c50acce777819aa2a",
+  "ctc:v11g-5322cdb3c781cb7b9828732a",
+  "ctc:v11g-5845390ded447e37f06ea222",
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+  "ctc:v11g-e85c0145d63244c46853c9cf",
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+  "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+  "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+  "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+  "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+  "ctkg:v3e-object-2805a69722f0a741c2479d22",
+  "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3"
+ ],
+ "sources": {
+  "ctc:modeling-8010502b57930c3dcb915af9": [
+   "topic:zeros"
+  ],
+  "ctc:v11g-13a9994c50acce777819aa2a": [
+   "reuse_node_ids:闭环极点_3_f9432bf3"
+  ],
+  "ctc:v11g-5322cdb3c781cb7b9828732a": [
+   "topic:nonminimum-phase"
+  ],
+  "ctc:v11g-5845390ded447e37f06ea222": [
+   "topic:root-locus"
+  ],
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02": [
+   "reuse_node_ids:阻尼比_3_b849784e",
+   "topic:damping"
+  ],
+  "ctc:v11g-e85c0145d63244c46853c9cf": [
+   "topic:lead"
+  ],
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": [
+   "topic:phase-margin"
+  ],
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33": [
+   "topic:bandwidth"
+  ],
+  "ctkg:v3e-canonical-1647a1b078950a5b81783825": [
+   "topic:velocity-feedback"
+  ],
+  "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b": [
+   "topic:velocity-feedback"
+  ],
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": [
+   "reuse_node_ids:闭环极点_3_f9432bf3"
+  ],
+  "ctkg:v3e-canonical-4ce9b77cff23117a65f42588": [
+   "topic:zero-second-order"
+  ],
+  "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1": [
+   "reuse_node_ids:自然频率_10_51a8b7d0"
+  ],
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837": [
+   "reuse_node_ids:相角裕度_5_5a74b451",
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b": [
+   "topic:lead"
+  ],
+  "ctkg:v3e-object-2805a69722f0a741c2479d22": [
+   "topic:pd"
+  ],
+  "ctkg:v3e-object-3bf89181c7be53ac268d5785": [
+   "reuse_node_ids:带宽_5_6730fda4"
+  ],
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8": [
+   "topic:feedback-compensation"
+  ],
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3": [
+   "topic:feedback-compensation"
+  ]
+ }
+}

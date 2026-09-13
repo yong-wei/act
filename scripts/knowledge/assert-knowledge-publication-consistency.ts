@@ -104,4 +104,27 @@ export function assertKnowledgePublicationConsistency(
   }
   const coverage = json<{ projectionHash: string; fullCourseCoverage: boolean }>('course-order/coverage.json');
   check(coverage.projectionHash === overlay.projectionHash, 'course coverage proof');
+  let bindingPointer: string | null = null;
+  try {
+    bindingPointer = read(root + '/resource-bindings/current.json');
+  } catch {
+    bindingPointer = null;
+  }
+  if (bindingPointer) {
+    const bindingCurrent = JSON.parse(bindingPointer) as {
+      bindingReleaseId: string;
+      bindingHash: string;
+      authorityReleaseId?: string;
+    };
+    const bindingManifest = json<{ bindingHash: string; authorityReleaseId: string }>(
+      'resource-bindings/releases/' + bindingCurrent.bindingReleaseId + '/binding-manifest.json',
+    );
+    check(
+      bindingManifest.bindingHash === bindingCurrent.bindingHash
+      && bindingManifest.authorityReleaseId === courseManifest.authorityReleaseId
+      && (bindingCurrent.authorityReleaseId == null
+        || bindingCurrent.authorityReleaseId === courseManifest.authorityReleaseId),
+      'resource binding release identity',
+    );
+  }
 }

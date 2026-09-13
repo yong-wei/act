@@ -147,6 +147,19 @@ function dbFixture(existing: any = null) {
 }
 
 describe('adaptive path candidate batches', () => {
+  it('keeps knowledge-first shared foundations selectable while retaining legacy diversity gates', async () => {
+    const knowledgePlan = plan();
+    knowledgePlan.explanations.selectedReasons.push('knowledge-skeleton');
+    const knowledgeBatch = await persistAdaptivePathCandidateBatch(dbFixture().db, {
+      generationRequestId: 'knowledge-shared', plan: knowledgePlan,
+    });
+    expect(knowledgeBatch.candidates).toHaveLength(2);
+    expect(knowledgeBatch.metadata.diversityLimitations).not.toContain('insufficient-candidate-diversity');
+    const legacyBatch = await persistAdaptivePathCandidateBatch(dbFixture().db, {
+      generationRequestId: 'legacy-shared', plan: plan(),
+    });
+    expect(legacyBatch.metadata.diversityLimitations).toContain('insufficient-candidate-diversity');
+  });
   it('persists ordered immutable candidates without mutating LearningPath', async () => {
     const { db, create } = dbFixture();
     const learningPathUpdate = vi.fn();

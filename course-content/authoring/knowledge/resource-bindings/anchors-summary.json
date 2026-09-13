@@ -1,0 +1,1194 @@
+{
+ "contract": "act-resource-anchors-summary/v1",
+ "units": {
+  "1-1": {
+   "scope": 22,
+   "steps": 15,
+   "stepsWithCanonical": 12,
+   "sections": 27,
+   "sectionsWithCanonical": 22,
+   "media": {
+    "1-1-audio": {
+     "segments": 40,
+     "bound": 11,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "1-1-intro-video": {
+     "segments": 19,
+     "bound": 7,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "1-1-course": {
+     "segments": 33,
+     "bound": 5,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "1-2": {
+   "scope": 17,
+   "steps": 14,
+   "stepsWithCanonical": 11,
+   "sections": 28,
+   "sectionsWithCanonical": 22,
+   "media": {
+    "1-2-audio": {
+     "segments": 51,
+     "bound": 18,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "1-2-intro-video": {
+     "segments": 29,
+     "bound": 11,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "1-2-course": {
+     "segments": 55,
+     "bound": 14,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "1-3": {
+   "scope": 11,
+   "steps": 11,
+   "stepsWithCanonical": 9,
+   "sections": 19,
+   "sectionsWithCanonical": 18,
+   "media": {
+    "1-3-intro-video": {
+     "segments": 19,
+     "bound": 5,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "1-4": {
+   "scope": 10,
+   "steps": 12,
+   "stepsWithCanonical": 11,
+   "sections": 27,
+   "sectionsWithCanonical": 22,
+   "media": {
+    "1-4-intro-video": {
+     "segments": 27,
+     "bound": 10,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "1-5": {
+   "scope": 13,
+   "steps": 14,
+   "stepsWithCanonical": 12,
+   "sections": 30,
+   "sectionsWithCanonical": 22,
+   "media": {
+    "1-5-intro-video": {
+     "segments": 23,
+     "bound": 12,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "2-1": {
+   "scope": 35,
+   "steps": 16,
+   "stepsWithCanonical": 14,
+   "sections": 25,
+   "sectionsWithCanonical": 20,
+   "media": {
+    "2-1-audio": {
+     "segments": 36,
+     "bound": 16,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "2-1-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "2-1-course": {
+     "segments": 44,
+     "bound": 16,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "2-2": {
+   "scope": 36,
+   "steps": 17,
+   "stepsWithCanonical": 15,
+   "sections": 30,
+   "sectionsWithCanonical": 19,
+   "media": {
+    "2-2-audio": {
+     "segments": 34,
+     "bound": 23,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "2-2-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "2-2-course": {
+     "segments": 54,
+     "bound": 27,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "2-3": {
+   "scope": 23,
+   "steps": 17,
+   "stepsWithCanonical": 15,
+   "sections": 29,
+   "sectionsWithCanonical": 19,
+   "media": {
+    "2-3-audio": {
+     "segments": 31,
+     "bound": 5,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "2-3-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "2-3-course": {
+     "segments": 24,
+     "bound": 3,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "2-4": {
+   "scope": 22,
+   "steps": 17,
+   "stepsWithCanonical": 8,
+   "sections": 39,
+   "sectionsWithCanonical": 27,
+   "media": {
+    "2-4-audio": {
+     "segments": 46,
+     "bound": 5,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "2-4-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "2-4-course": {
+     "segments": 31,
+     "bound": 7,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-1": {
+   "scope": 23,
+   "steps": 15,
+   "stepsWithCanonical": 15,
+   "sections": 24,
+   "sectionsWithCanonical": 17,
+   "media": {
+    "3-1-audio": {
+     "segments": 40,
+     "bound": 10,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-1-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-1-course": {
+     "segments": 37,
+     "bound": 6,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-2": {
+   "scope": 15,
+   "steps": 13,
+   "stepsWithCanonical": 3,
+   "sections": 29,
+   "sectionsWithCanonical": 28,
+   "media": {
+    "3-2-audio": {
+     "segments": 41,
+     "bound": 10,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-2-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-2-course": {
+     "segments": 39,
+     "bound": 8,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-3": {
+   "scope": 23,
+   "steps": 15,
+   "stepsWithCanonical": 7,
+   "sections": 33,
+   "sectionsWithCanonical": 32,
+   "media": {
+    "3-3-audio": {
+     "segments": 48,
+     "bound": 17,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-3-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-3-course": {
+     "segments": 48,
+     "bound": 25,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-4": {
+   "scope": 20,
+   "steps": 16,
+   "stepsWithCanonical": 3,
+   "sections": 43,
+   "sectionsWithCanonical": 36,
+   "media": {
+    "3-4-audio": {
+     "segments": 40,
+     "bound": 16,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-4-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-4-course": {
+     "segments": 33,
+     "bound": 6,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-5": {
+   "scope": 19,
+   "steps": 15,
+   "stepsWithCanonical": 15,
+   "sections": 37,
+   "sectionsWithCanonical": 26,
+   "media": {
+    "3-5-audio": {
+     "segments": 44,
+     "bound": 16,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-5-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-5-course": {
+     "segments": 37,
+     "bound": 7,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-6": {
+   "scope": 24,
+   "steps": 15,
+   "stepsWithCanonical": 11,
+   "sections": 44,
+   "sectionsWithCanonical": 23,
+   "media": {
+    "3-6-audio": {
+     "segments": 44,
+     "bound": 13,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-6-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-6-course": {
+     "segments": 31,
+     "bound": 9,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-7": {
+   "scope": 25,
+   "steps": 17,
+   "stepsWithCanonical": 15,
+   "sections": 19,
+   "sectionsWithCanonical": 16,
+   "media": {
+    "3-7-audio": {
+     "segments": 33,
+     "bound": 11,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-7-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-7-course": {
+     "segments": 36,
+     "bound": 8,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-8": {
+   "scope": 30,
+   "steps": 22,
+   "stepsWithCanonical": 19,
+   "sections": 9,
+   "sectionsWithCanonical": 8,
+   "media": {
+    "3-8-audio": {
+     "segments": 37,
+     "bound": 15,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-8-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-8-course": {
+     "segments": 37,
+     "bound": 4,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "3-9": {
+   "scope": 25,
+   "steps": 11,
+   "stepsWithCanonical": 11,
+   "sections": 22,
+   "sectionsWithCanonical": 17,
+   "media": {
+    "3-9-audio": {
+     "segments": 55,
+     "bound": 11,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "3-9-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "3-9-course": {
+     "segments": 38,
+     "bound": 8,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "4-1": {
+   "scope": 16,
+   "steps": 13,
+   "stepsWithCanonical": 7,
+   "sections": 33,
+   "sectionsWithCanonical": 11,
+   "media": {
+    "4-1-audio": {
+     "segments": 49,
+     "bound": 14,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-1-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "4-1-course": {
+     "segments": 40,
+     "bound": 5,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "4-2": {
+   "scope": 30,
+   "steps": 20,
+   "stepsWithCanonical": 11,
+   "sections": 25,
+   "sectionsWithCanonical": 20,
+   "media": {
+    "4-2-audio": {
+     "segments": 42,
+     "bound": 13,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-2-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "4-2-course": {
+     "segments": 41,
+     "bound": 7,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "4-3": {
+   "scope": 29,
+   "steps": 19,
+   "stepsWithCanonical": 4,
+   "sections": 26,
+   "sectionsWithCanonical": 11,
+   "media": {
+    "4-3-audio": {
+     "segments": 41,
+     "bound": 5,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-3-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "4-3-course": {
+     "segments": 28,
+     "bound": 1,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "4-4": {
+   "scope": 7,
+   "steps": 14,
+   "stepsWithCanonical": 7,
+   "sections": 33,
+   "sectionsWithCanonical": 12,
+   "media": {
+    "4-4-audio": {
+     "segments": 30,
+     "bound": 2,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-4-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "4-4-course": {
+     "segments": 29,
+     "bound": 1,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "4-5": {
+   "scope": 10,
+   "steps": 13,
+   "stepsWithCanonical": 8,
+   "sections": 29,
+   "sectionsWithCanonical": 15,
+   "media": {
+    "4-5-audio": {
+     "segments": 31,
+     "bound": 8,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-5-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "4-5-course": {
+     "segments": 35,
+     "bound": 4,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "4-6": {
+   "scope": 10,
+   "steps": 11,
+   "stepsWithCanonical": 3,
+   "sections": 23,
+   "sectionsWithCanonical": 4,
+   "media": {
+    "4-6-audio": {
+     "segments": 50,
+     "bound": 3,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-6-intro-video": {
+     "segments": 0,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "media-drift-vs-active-release"
+    },
+    "4-6-course": {
+     "segments": 42,
+     "bound": 1,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "4-7": {
+   "scope": 15,
+   "steps": 12,
+   "stepsWithCanonical": 8,
+   "sections": 18,
+   "sectionsWithCanonical": 9,
+   "media": {
+    "4-7-audio": {
+     "segments": 42,
+     "bound": 10,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-7-intro-video": {
+     "segments": 18,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "4-7-course": {
+     "segments": 48,
+     "bound": 5,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "5-1": {
+   "scope": 16,
+   "steps": 14,
+   "stepsWithCanonical": 14,
+   "sections": 31,
+   "sectionsWithCanonical": 20,
+   "media": {
+    "5-1-audio": {
+     "segments": 48,
+     "bound": 18,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-1-intro-video": {
+     "segments": 17,
+     "bound": 1,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-1-course": {
+     "segments": 35,
+     "bound": 6,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "5-2": {
+   "scope": 16,
+   "steps": 18,
+   "stepsWithCanonical": 15,
+   "sections": 40,
+   "sectionsWithCanonical": 35,
+   "media": {
+    "5-2-audio": {
+     "segments": 53,
+     "bound": 24,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-2-intro-video": {
+     "segments": 25,
+     "bound": 8,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-2-course": {
+     "segments": 45,
+     "bound": 19,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "5-3": {
+   "scope": 6,
+   "steps": 15,
+   "stepsWithCanonical": 3,
+   "sections": 17,
+   "sectionsWithCanonical": 5,
+   "media": {
+    "5-3-audio": {
+     "segments": 35,
+     "bound": 3,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-3-intro-video": {
+     "segments": 22,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-3-course": {
+     "segments": 43,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "5-4": {
+   "scope": 4,
+   "steps": 17,
+   "stepsWithCanonical": 3,
+   "sections": 34,
+   "sectionsWithCanonical": 9,
+   "media": {
+    "5-4-audio": {
+     "segments": 37,
+     "bound": 2,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-4-intro-video": {
+     "segments": 17,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-4-course": {
+     "segments": 39,
+     "bound": 3,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "5-5": {
+   "scope": 4,
+   "steps": 17,
+   "stepsWithCanonical": 2,
+   "sections": 28,
+   "sectionsWithCanonical": 7,
+   "media": {
+    "5-5-audio": {
+     "segments": 50,
+     "bound": 4,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-5-intro-video": {
+     "segments": 16,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-5-course": {
+     "segments": 50,
+     "bound": 2,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  },
+  "5-6": {
+   "scope": 11,
+   "steps": 18,
+   "stepsWithCanonical": 3,
+   "sections": 25,
+   "sectionsWithCanonical": 5,
+   "media": {
+    "5-6-audio": {
+     "segments": 36,
+     "bound": 6,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-6-intro-video": {
+     "segments": 21,
+     "bound": 0,
+     "offsetVerified": true,
+     "status": "anchored"
+    },
+    "5-6-course": {
+     "segments": 47,
+     "bound": 6,
+     "offsetVerified": true,
+     "status": "anchored"
+    }
+   }
+  }
+ },
+ "crosswalk": {
+  "mapped": 49,
+  "total": 220
+ },
+ "ambiguousLabels": {
+  "I控制器": [
+   "ctkg:v3e-object-35942e1152c99bd94bdecd00",
+   "ctkg:v3e-object-35942e1152c99bd94bdecd00"
+  ],
+  "PD控制器": [
+   "ctkg:v3e-object-2805a69722f0a741c2479d22",
+   "ctkg:v3e-object-2805a69722f0a741c2479d22"
+  ],
+  "PID 控制器": [
+   "m1r-v1d:object:45b2dd117606e1ca658ef8f9",
+   "m1r-v1d:object:d005b1d37456c7675cc30990"
+  ],
+  "PID控制器": [
+   "ctkg:domainconcept:f4808ef41d5a4821c75f5a83",
+   "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b",
+   "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+   "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+   "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+   "m1r-v1d:object:0a43147d8bf50e8ee5d0313a"
+  ],
+  "definition": [
+   "m1r-v1d:statement:0341d87f6382c105351b7f28",
+   "m1r-v1d:statement:2a07379a59a7f361267eff27",
+   "m1r-v1d:statement:45cb692251f939942c3fd8dc",
+   "m1r-v1d:statement:4ba2eb7db13d051473e41d8c"
+  ],
+  "f(0)=0": [
+   "ctkg:condition:85c59d96180fb2dfb8939945",
+   "ctkg:condition:85c59d96180fb2dfb8939945",
+   "ctkg:condition:b057aa1c4d09fb6b73dc4202",
+   "ctkg:condition:b057aa1c4d09fb6b73dc4202",
+   "ctkg:condition:c2790bef0553b0f4dd2b6cda",
+   "ctkg:condition:c2790bef0553b0f4dd2b6cda"
+  ],
+  "modeling": [
+   "ctc:modeling-348746457d644126ff8ecf77",
+   "ctc:modeling-34d3b4c651b0047e6e180fe2",
+   "ctc:modeling-db7aabf07d906f63b237e10d"
+  ],
+  "overshoot": [
+   "ctc:v11g-7b077c33b2c8dde2b1980d10",
+   "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "ctkg:domainconcept:d0ce721957a07ee537d1a149",
+   "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+   "ctkg:v3e-canonical-eaee7091900b796af8d937c1"
+  ],
+  "y=f(x)": [
+   "ctkg:v3e-object-fc150ca5e1bd5e02becc7024",
+   "ctkg:v3e-object-fc150ca5e1bd5e02becc7024"
+  ],
+  "一阶系统": [
+   "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+   "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c"
+  ],
+  "一阶系统的单位阶跃响应": [
+   "ctkg:v3e-canonical-e48cc89f8ed152e7f44ba43f",
+   "ctkg:v3e-canonical-e48cc89f8ed152e7f44ba43f"
+  ],
+  "上升时间": [
+   "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+   "ctkg:v3e-canonical-ade112ca8305a54c0b76a828"
+  ],
+  "不稳定极限环": [
+   "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+   "ctkg:v3e-object-c866a4872c0f99bf61bb4859"
+  ],
+  "临界阻尼": [
+   "ctc:v11g-a066f5e5a1852fcde776a250",
+   "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+   "ctkg:v3e-canonical-6bb580c242f908566ab53b18"
+  ],
+  "二阶系统": [
+   "ctkg:m3-v2k:source-object:367756d22f254642e2972e18",
+   "ctkg:v3e-canonical-772065f42947b660c72584f3",
+   "ctkg:v3e-canonical-772065f42947b660c72584f3"
+  ],
+  "交接频率": [
+   "ctkg:v3e-object-69529eb08c9279e8b19dc4f6",
+   "ctkg:v3e-object-69529eb08c9279e8b19dc4f6"
+  ],
+  "传递函数": [
+   "ctc:modeling-865eb1c8824e157c2f05a903",
+   "ctc:modeling-aa10e4daa1e969c557f6ef83"
+  ],
+  "典型输入": [
+   "ctkg:domainconcept:bbb77635a4753e2de17d81ca",
+   "ctkg:domainconcept:bbb77635a4753e2de17d81ca"
+  ],
+  "典型输入信号": [
+   "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca",
+   "ctkg:v3e-canonical-b03bdd7d909a44a2830459ca"
+  ],
+  "前馈信号": [
+   "ctkg:v3e-object-9615125c7f9a504980e7ca04",
+   "ctkg:v3e-object-9615125c7f9a504980e7ca04"
+  ],
+  "前馈通路": [
+   "ctkg:v3e-canonical-00c82f915797f85ae708834a",
+   "ctkg:v3e-canonical-00c82f915797f85ae708834a"
+  ],
+  "动态性能": [
+   "ctkg:v3e-canonical-813c3692771aa00de2a18d93",
+   "ctkg:v3e-canonical-813c3692771aa00de2a18d93"
+  ],
+  "动态性能指标": [
+   "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+   "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412"
+  ],
+  "动态过程": [
+   "ctkg:v3e-canonical-f9718484925341d6ce1dec78",
+   "ctkg:v3e-canonical-f9718484925341d6ce1dec78"
+  ],
+  "单位阶跃响应": [
+   "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+   "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253"
+  ],
+  "参数变化": [
+   "ctkg:domainconcept:72d64287614ba07da65b3adf",
+   "ctkg:domainconcept:d59701f04ecd244e0d27dc18"
+  ],
+  "反馈校正": [
+   "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+   "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8"
+  ],
+  "固有频率": [
+   "ctc:modeling-8d3c115cdb81c364733e1e43",
+   "ctc:v12g-b536959708e2d0fe3c8c791a",
+   "ctkg:v3e-object-7e274b7e5ef258bd54400783",
+   "m1r-v1d:object:23eed46c13bc2a524812521d"
+  ],
+  "复合控制": [
+   "ctkg:domainconcept:150c8a62277a497691a2f785",
+   "ctkg:domainconcept:150c8a62277a497691a2f785"
+  ],
+  "峰值时间": [
+   "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+   "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a"
+  ],
+  "带宽频率": [
+   "ctkg:v3e-object-13e696ca025028445460f1df",
+   "ctkg:v3e-object-6592690fdccf416b0340917b",
+   "ctkg:v3e-object-6592690fdccf416b0340917b"
+  ],
+  "幅值裕度": [
+   "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+   "ctkg:v3e-object-c2881833cb4d8b1e415dc742"
+  ],
+  "幅频特性": [
+   "ctkg:v3e-object-de873c97a924107857f79242",
+   "ctkg:v3e-object-de873c97a924107857f79242"
+  ],
+  "平衡状态": [
+   "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107",
+   "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
+   "ctkg:domainconcept:f1074549d93c62bc34bd9b3a",
+   "ctkg:v3e-object-548b056b7b4bc0e10290af72",
+   "ctkg:v3e-object-548b056b7b4bc0e10290af72"
+  ],
+  "延迟环节": [
+   "ctkg:v3e-object-b0cbf122498bca9269e55406",
+   "ctkg:v3e-object-b0cbf122498bca9269e55406"
+  ],
+  "开环增益": [
+   "ctc:v11g-c3abeee0067f823ed190d79e",
+   "ctkg:v3e-canonical-91f03880e67e6587b27f7039",
+   "ctkg:v3e-canonical-91f03880e67e6587b27f7039"
+  ],
+  "开环极点": [
+   "ctc:v11g-bd59ac156c37a1e319ab71c8",
+   "ctc:v11g-f0a551cbfb667c38018a1aa9"
+  ],
+  "性能指标": [
+   "ctkg:m1q:phase-g:source:bb73369ac528efb1b0c17a01",
+   "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+   "ctkg:v3e-object-10c37fd947ba55593ff03ede"
+  ],
+  "截止频率": [
+   "ctkg:v3e-object-232e387ed53e92abee078346",
+   "ctkg:v3e-object-232e387ed53e92abee078346"
+  ],
+  "扰动信号": [
+   "ctkg:domainconcept:550f9472042bebc4561cc83b",
+   "ctkg:domainconcept:75bb9455b7033d0d7856decc"
+  ],
+  "振荡周期": [
+   "ctkg:v3e-object-5c04a71914f42217047a20bf",
+   "ctkg:v3e-object-5c04a71914f42217047a20bf"
+  ],
+  "描述函数": [
+   "ctkg:v3e-object-4f3c574bf5cd52ae72e30600",
+   "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+   "ctkg:v3e-object-d1a6e648c1524a51f3c42346"
+  ],
+  "数字信号": [
+   "ctkg:v3e-object-a2b0a7b010b1060501e788c2",
+   "ctkg:v3e-object-a2b0a7b010b1060501e788c2"
+  ],
+  "时间常数": [
+   "ctc:modeling-3d919906545f3c2891c3f444",
+   "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+   "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+   "ctkg:v3e-object-2352b539ff08187f42885709",
+   "ctkg:v3e-object-2352b539ff08187f42885709"
+  ],
+  "最优控制": [
+   "ctkg:m1q:phase-g:source:55f0727b1a436cb92aa23bbe",
+   "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3"
+  ],
+  "最大超前角": [
+   "ctkg:v3e-object-f20650600a6b6301d29c6025",
+   "ctkg:v3e-object-f20650600a6b6301d29c6025"
+  ],
+  "最小相位系统": [
+   "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+   "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2"
+  ],
+  "极点配置": [
+   "ctkg:v3e-object-d36def50dedc036b5c5db035",
+   "ctkg:v3e-object-f1ec085ab5a77428affa50eb",
+   "ctkg:v3e-object-f1ec085ab5a77428affa50eb"
+  ],
+  "校正装置": [
+   "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+   "ctkg:v3e-object-f1df5739a34bf55489aeeeeb"
+  ],
+  "比例系数": [
+   "ctkg:v3e-object-508501381207b32fdb98c6c2",
+   "ctkg:v3e-object-508501381207b32fdb98c6c2"
+  ],
+  "渐近稳定性": [
+   "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+   "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd"
+  ],
+  "状态变量": [
+   "ctc:modeling-023f560241f0e47081f0f59e",
+   "ctc:modeling-4f6741e807ce91bcc0c55edc"
+  ],
+  "环路增益": [
+   "ctkg:domainconcept:02e5b960f076b42478c001d9",
+   "ctkg:domainconcept:3c543b41f43c8ad2f2aeb77d",
+   "ctkg:domainconcept:d648aca9705d20330b480898"
+  ],
+  "相角裕度": [
+   "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+   "m1r-v1d:object:a49cf86191bb4c964206a571"
+  ],
+  "相频特性": [
+   "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+   "ctkg:v3e-object-9967c0867249bf4c1a625dab"
+  ],
+  "稳定极限环": [
+   "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+   "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f"
+  ],
+  "稳态性能": [
+   "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+   "ctkg:v3e-canonical-299c52f97e423f68b4ac6093"
+  ],
+  "稳态误差": [
+   "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "ctkg:domainconcept:be726bac049cf9cd8b4c2324",
+   "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+   "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+   "ctkg:v3e-canonical-8d214840417a4c3b5780c715"
+  ],
+  "穿越频率": [
+   "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+   "ctkg:v3e-object-1010934a92a0dacb1caec1e2",
+   "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+   "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+   "ctkg:v3e-object-7761615701fb4915a76924ff"
+  ],
+  "等效增益": [
+   "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "ctkg:v3e-object-3d704911971a572aac4e975e",
+   "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57"
+  ],
+  "系统型别": [
+   "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+   "ctkg:v3e-canonical-a781b2b377529226a4c5d077"
+  ],
+  "线性定常系统": [
+   "ctc:modeling-26ca57c1d48b4588cb72f6a0",
+   "ctc:modeling-c26fddc50074ec84707d5950",
+   "ctkg:m1q:source:b62de820edbebab8c6b71c56"
+  ],
+  "脉冲响应": [
+   "ctc:modeling-5da44f2fc98d268259459e04",
+   "ctc:modeling-d1d778fef91f78f0d3490f87"
+  ],
+  "自然频率": [
+   "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+   "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1"
+  ],
+  "误差信号": [
+   "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+   "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71"
+  ],
+  "误差响应": [
+   "ctkg:v3e-canonical-e5eec53e01f5ac974d074ac4",
+   "ctkg:v3e-canonical-e5eec53e01f5ac974d074ac4"
+  ],
+  "调节时间": [
+   "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "ctkg:domainconcept:ea66b99fa9c8cac1f149c856",
+   "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+   "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609"
+  ],
+  "谐振峰值": [
+   "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+   "ctkg:v3e-object-0008b516b8ac52f0e05c7596",
+   "ctkg:v3e-object-02ce94d02ad32ee9bc5528e9",
+   "ctkg:v3e-object-ac5da367d445afc46b4baca3",
+   "ctkg:v3e-object-ac5da367d445afc46b4baca3"
+  ],
+  "谐振频率": [
+   "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+   "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+   "ctkg:v3e-object-531c51135a4903c618a0fc8b",
+   "ctkg:v3e-object-531c51135a4903c618a0fc8b",
+   "ctkg:v3e-object-8a7f5fdab24fd119e93f1c2f"
+  ],
+  "运动稳定性": [
+   "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+   "ctkg:v3e-object-c36a6e957077c474e91e17ab"
+  ],
+  "速度反馈": [
+   "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424",
+   "ctkg:v3e-object-af9c2e9b81c0a2bc815ac424"
+  ],
+  "速度误差系数": [
+   "ctkg:domainconcept:275296ae58e9a926faac7ae3",
+   "ctkg:domainconcept:275296ae58e9a926faac7ae3"
+  ],
+  "采样周期": [
+   "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+   "ctkg:domainconcept:9e0ece5ddc1de81897928b5f",
+   "ctkg:domainconcept:b6aa705c3bcc3630a4c1962b",
+   "ctkg:domainconcept:b6aa705c3bcc3630a4c1962b",
+   "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1",
+   "ctkg:v3e-object-30cb7d43e8cbe99fe69e5e39",
+   "ctkg:v3e-object-9c2c202d7940f9cd4af8fae8",
+   "ctkg:v3e-object-9c2c202d7940f9cd4af8fae8"
+  ],
+  "闭环主导极点": [
+   "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+   "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+   "ctkg:v3e-canonical-cc82e137f42aa09df514e615"
+  ],
+  "闭环极点": [
+   "ctc:v11g-13a9994c50acce777819aa2a",
+   "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+   "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d"
+  ],
+  "闭环特征方程": [
+   "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+   "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+   "ctkg:m3-v2r:canonical-object:04e480f9a0752e3842300580",
+   "ctkg:v3e-object-3a244e26b20b97f3ecac9e98"
+  ],
+  "闭环零点": [
+   "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+   "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550"
+  ],
+  "阻尼系数": [
+   "ctkg:v3e-canonical-23e85dbf38c6880d27e4d02b",
+   "ctkg:v3e-canonical-23e85dbf38c6880d27e4d02b"
+  ],
+  "非线性系统": [
+   "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+   "ctkg:v3e-object-655c25a7c9e926bc0004b983"
+  ],
+  "频率特性": [
+   "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+   "ctkg:v3e-object-38d4679bf3335318b0f4afb7"
+  ]
+ }
+}

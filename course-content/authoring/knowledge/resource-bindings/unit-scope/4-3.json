@@ -1,0 +1,124 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "4-3",
+ "canonicalIds": [
+  "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+  "ctc:modeling-7734a0845c335f160395bac0",
+  "ctc:modeling-865eb1c8824e157c2f05a903",
+  "ctc:modeling-aa10e4daa1e969c557f6ef83",
+  "ctc:v11g-69118dc66489d66b1732901b",
+  "ctc:v11g-e85c0145d63244c46853c9cf",
+  "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+  "ctkg:domainconcept:42146fa04dc1459716346cc7",
+  "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+  "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+  "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+  "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+  "ctkg:v3e-object-2805a69722f0a741c2479d22",
+  "ctkg:v3e-object-5104f48a9527029987e0519a",
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+  "ctkg:v3e-object-b73224087c9c0475612e8635",
+  "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+  "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0",
+  "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+  "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+  "ctkg:v3e-object-f9ac171d68c8622f62106397",
+  "ctkg:v3e-object-fbebd7b09546031f82f974ed"
+ ],
+ "sources": {
+  "ctc:modeling-47e8eb68c1aa5cd068c72e54": [
+   "topic:feedback"
+  ],
+  "ctc:modeling-7734a0845c335f160395bac0": [
+   "topic:model"
+  ],
+  "ctc:modeling-865eb1c8824e157c2f05a903": [
+   "topic:transfer"
+  ],
+  "ctc:modeling-aa10e4daa1e969c557f6ef83": [
+   "topic:transfer"
+  ],
+  "ctc:v11g-69118dc66489d66b1732901b": [
+   "topic:closed-transfer"
+  ],
+  "ctc:v11g-e85c0145d63244c46853c9cf": [
+   "topic:lead"
+  ],
+  "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0": [
+   "topic:reference-feedforward"
+  ],
+  "ctkg:domainconcept:42146fa04dc1459716346cc7": [
+   "topic:disturbance-rejection"
+  ],
+  "ctkg:domainconcept:4ecbee25dbf52616b5613e8b": [
+   "topic:disturbance-feedforward"
+  ],
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab": [
+   "topic:feedforward"
+  ],
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146": [
+   "topic:feedforward"
+  ],
+  "ctkg:v3e-canonical-de9cd255c7e8770506442de0": [
+   "topic:superposition"
+  ],
+  "ctkg:v3e-object-0a05ec9e84791b95d3794bc0": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-1b720d82e3de003a38fa57f6": [
+   "topic:series-compensation"
+  ],
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b": [
+   "topic:lead"
+  ],
+  "ctkg:v3e-object-2805a69722f0a741c2479d22": [
+   "topic:pd"
+  ],
+  "ctkg:v3e-object-5104f48a9527029987e0519a": [
+   "topic:feedforward"
+  ],
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68": [
+   "topic:saturation"
+  ],
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81": [
+   "topic:pi"
+  ],
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a": [
+   "topic:pi"
+  ],
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8": [
+   "topic:feedback-compensation"
+  ],
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3": [
+   "topic:feedback-compensation"
+  ],
+  "ctkg:v3e-object-b73224087c9c0475612e8635": [
+   "topic:lag"
+  ],
+  "ctkg:v3e-object-c437a7c8ef65d5677ad5c387": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0": [
+   "topic:compound-compensation"
+  ],
+  "ctkg:v3e-object-e1caec9f68da5c573be699d5": [
+   "topic:series-compensation"
+  ],
+  "ctkg:v3e-object-f1df5739a34bf55489aeeeeb": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-f9ac171d68c8622f62106397": [
+   "topic:lag"
+  ],
+  "ctkg:v3e-object-fbebd7b09546031f82f974ed": [
+   "topic:prefilter"
+  ]
+ }
+}

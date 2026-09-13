@@ -1,0 +1,2165 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-4",
+ "unitIndex": 12,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-4/3-4-handout.md",
+  "sha256": "af3aebe6bd21afd493db72ab591b9f3f9035501b309cd6ad16cd01ef31343231"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图：从 `3-3` 法则走向 `3-4` 判断",
+   "groupName": null,
+   "textChars": 129,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "问题提出与三张记录表：稳定之后还要回答什么",
+   "groupName": null,
+   "textChars": 111,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "固定对象与三个版本：先暴露“稳定=可用”的第一误判",
+   "groupName": null,
+   "textChars": 230,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "固定读图顺序：先骨架，再关键节点，再窗口，再后果",
+   "groupName": null,
+   "textChars": 223,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "关键节点证据板：分离点、虚轴交点与参考工作点 `B`",
+   "groupName": null,
+   "textChars": 242,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "关键节点读图记录：把主图证据写成一句工程判断",
+   "groupName": null,
+   "textChars": 234,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "稳定窗口与可接受窗口：`A/B/C` 各自处在哪一侧",
+   "groupName": null,
+   "textChars": 234,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "增益换算链：从图上的 `k` 落回工程参数 `K`",
+   "groupName": null,
+   "textChars": 257,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "为什么必须三域互证：主图、时域、频域先并排对齐",
+   "groupName": null,
+   "textChars": 219,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "时域验证：版本 `B` 为什么能够作为参考工作点",
+   "groupName": null,
+   "textChars": 234,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "频域代价：版本 `C` 为什么不能只看跟踪收益",
+   "groupName": null,
+   "textChars": 249,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "斜坡响应与航迹对照：连续跟踪中的收益与代价",
+   "groupName": null,
+   "textChars": 249,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "广义根轨迹与等效改写：局部反馈系数 `a` 为什么不是“再调一次 `K`”",
+   "groupName": null,
+   "textChars": 295,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "非增益参数窗口记录：`a` 从 `0` 到 `1` 怎样改写主导极点",
+   "groupName": null,
+   "textChars": 254,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "后测：读图、换算、三域与广义参数是否已经成链",
+   "groupName": null,
+   "textChars": 223,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "收束与去向：沿既有结构分析的能力与边界",
+   "groupName": null,
+   "textChars": 99,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-问题提出-稳定之后-还要回答什么",
+   "order": 1,
+   "level": 2,
+   "title": "一、问题提出：稳定之后，还要回答什么",
+   "startLine": 17,
+   "endLine": 38,
+   "bodyChars": 580,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-证据单元一-先把主图读对",
+   "order": 2,
+   "level": 2,
+   "title": "二、证据单元一：先把主图读对",
+   "startLine": 39,
+   "endLine": 40,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-固定对象与三个版本",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 固定对象与三个版本",
+   "startLine": 41,
+   "endLine": 66,
+   "bodyChars": 596,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-拿到主图后的固定读图顺序",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 拿到主图后的固定读图顺序",
+   "startLine": 67,
+   "endLine": 77,
+   "bodyChars": 189,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-分离点-从实极点主导走向共轭极点主导",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 分离点：从实极点主导走向共轭极点主导",
+   "startLine": 78,
+   "endLine": 133,
+   "bodyChars": 726,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 120,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-虚轴交点-稳定窗口的上界",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 虚轴交点：稳定窗口的上界",
+   "startLine": 134,
+   "endLine": 149,
+   "bodyChars": 186,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-参考工作点-B-的位置为什么重要",
+   "order": 7,
+   "level": 3,
+   "title": "2.5 参考工作点 B 的位置为什么重要",
+   "startLine": 150,
+   "endLine": 168,
+   "bodyChars": 330,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-关键节点读图记录",
+   "order": 8,
+   "level": 3,
+   "title": "2.6 关键节点读图记录",
+   "startLine": 169,
+   "endLine": 176,
+   "bodyChars": 325,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-证据单元二-从关键节点走到参数窗口",
+   "order": 9,
+   "level": 2,
+   "title": "三、证据单元二：从关键节点走到参数窗口",
+   "startLine": 177,
+   "endLine": 178,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-先把图上的增益和工程里的增益分开",
+   "order": 10,
+   "level": 3,
+   "title": "3.1 先把图上的增益和工程里的增益分开",
+   "startLine": 179,
+   "endLine": 196,
+   "bodyChars": 314,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+     "matchedLabel": "根轨迹图",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-稳定窗口不等于可接受窗口",
+   "order": 11,
+   "level": 3,
+   "title": "3.2 稳定窗口不等于可接受窗口",
+   "startLine": 197,
+   "endLine": 219,
+   "bodyChars": 312,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-参数窗口判断表",
+   "order": 12,
+   "level": 3,
+   "title": "3.3 参数窗口判断表",
+   "startLine": 220,
+   "endLine": 229,
+   "bodyChars": 431,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-证据单元三-对象化三域验证",
+   "order": 13,
+   "level": 2,
+   "title": "四、证据单元三：对象化三域验证",
+   "startLine": 230,
+   "endLine": 231,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h14-为什么要做三域验证",
+   "order": 14,
+   "level": 3,
+   "title": "4.1 为什么要做三域验证",
+   "startLine": 232,
+   "endLine": 241,
+   "bodyChars": 126,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-总三域对照表",
+   "order": 15,
+   "level": 3,
+   "title": "4.2 总三域对照表",
+   "startLine": 242,
+   "endLine": 254,
+   "bodyChars": 565,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-时域验证-版本-B-为什么能够作为参考工作点",
+   "order": 16,
+   "level": 3,
+   "title": "4.3 时域验证：版本 B 为什么能够作为参考工作点",
+   "startLine": 255,
+   "endLine": 264,
+   "bodyChars": 332,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-频域验证-低中频为什么近似成立-高频为何仍不能忽略",
+   "order": 17,
+   "level": 3,
+   "title": "4.4 频域验证：低中频为什么近似成立，高频为何仍不能忽略",
+   "startLine": 265,
+   "endLine": 285,
+   "bodyChars": 687,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-频域代价-版本-C-为什么不能只看跟踪收益",
+   "order": 18,
+   "level": 3,
+   "title": "4.5 频域代价：版本 C 为什么不能只看跟踪收益",
+   "startLine": 286,
+   "endLine": 301,
+   "bodyChars": 622,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-斜坡响应与航迹对照-连续跟踪中的收益与代价",
+   "order": 19,
+   "level": 3,
+   "title": "4.6 斜坡响应与航迹对照：连续跟踪中的收益与代价",
+   "startLine": 302,
+   "endLine": 317,
+   "bodyChars": 600,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-f1592d0294e49b97a717c2f0",
+     "matchedLabel": "斜坡输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-对象化验证记录",
+   "order": 20,
+   "level": 3,
+   "title": "4.7 对象化验证记录",
+   "startLine": 318,
+   "endLine": 325,
+   "bodyChars": 400,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-证据单元四-广义根轨迹与非增益参数判断",
+   "order": 21,
+   "level": 2,
+   "title": "五、证据单元四：广义根轨迹与非增益参数判断",
+   "startLine": 326,
+   "endLine": 327,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-为什么这里还要补上广义根轨迹",
+   "order": 22,
+   "level": 3,
+   "title": "5.1 为什么这里还要补上广义根轨迹",
+   "startLine": 328,
+   "endLine": 333,
+   "bodyChars": 204,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-给定局部反馈结构如何改写特征方程",
+   "order": 23,
+   "level": 3,
+   "title": "5.2 给定局部反馈结构如何改写特征方程",
+   "startLine": 334,
+   "endLine": 388,
+   "bodyChars": 868,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-非增益参数-$a$-改写主导极点的方式",
+   "order": 24,
+   "level": 3,
+   "title": "5.3 非增益参数 $a$ 改写主导极点的方式",
+   "startLine": 389,
+   "endLine": 408,
+   "bodyChars": 778,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-非增益参数窗口记录",
+   "order": 25,
+   "level": 3,
+   "title": "5.4 非增益参数窗口记录",
+   "startLine": 409,
+   "endLine": 421,
+   "bodyChars": 508,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-课末收束-沿既有结构分析的能力与边界",
+   "order": 26,
+   "level": 2,
+   "title": "六、课末收束：沿既有结构分析的能力与边界",
+   "startLine": 422,
+   "endLine": 423,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-这一讲留下了什么判断能力",
+   "order": 27,
+   "level": 3,
+   "title": "6.1 这一讲留下了什么判断能力",
+   "startLine": 424,
+   "endLine": 441,
+   "bodyChars": 331,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h28-沿既有结构分析的边界",
+   "order": 28,
+   "level": 3,
+   "title": "6.2 沿既有结构分析的边界",
+   "startLine": 442,
+   "endLine": 445,
+   "bodyChars": 127,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h29-小结",
+   "order": 29,
+   "level": 2,
+   "title": "七、小结",
+   "startLine": 446,
+   "endLine": 455,
+   "bodyChars": 466,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h30-课后自学建议",
+   "order": 30,
+   "level": 2,
+   "title": "八、课后自学建议",
+   "startLine": 456,
+   "endLine": 457,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h31-先独立完成三张记录表",
+   "order": 31,
+   "level": 3,
+   "title": "8.1 先独立完成三张记录表",
+   "startLine": 458,
+   "endLine": 465,
+   "bodyChars": 196,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h32-再让-AI-只做校对-不做代答",
+   "order": 32,
+   "level": 3,
+   "title": "8.2 再让 AI 只做校对，不做代答",
+   "startLine": 466,
+   "endLine": 478,
+   "bodyChars": 320,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h33-最后回到数值验证",
+   "order": 33,
+   "level": 3,
+   "title": "8.3 最后回到数值验证",
+   "startLine": 479,
+   "endLine": 489,
+   "bodyChars": 267,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h34-附录-A-关键节点计算补充",
+   "order": 34,
+   "level": 2,
+   "title": "附录 A：关键节点计算补充",
+   "startLine": 490,
+   "endLine": 493,
+   "bodyChars": 43,
+   "canonical": []
+  },
+  {
+   "headingId": "h35-A-1-分离点计算",
+   "order": 35,
+   "level": 3,
+   "title": "A.1 分离点计算",
+   "startLine": 494,
+   "endLine": 525,
+   "bodyChars": 304,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h36-A-2-稳定边界计算",
+   "order": 36,
+   "level": 3,
+   "title": "A.2 稳定边界计算",
+   "startLine": 526,
+   "endLine": 541,
+   "bodyChars": 172,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h37-A-3-主导极点近似为什么可以用",
+   "order": 37,
+   "level": 3,
+   "title": "A.3 主导极点近似为什么可以用",
+   "startLine": 542,
+   "endLine": 552,
+   "bodyChars": 143,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h38-A-4-广义根轨迹为什么能分析局部反馈系数",
+   "order": 38,
+   "level": 3,
+   "title": "A.4 广义根轨迹为什么能分析局部反馈系数",
+   "startLine": 553,
+   "endLine": 593,
+   "bodyChars": 447,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h39-附录-B-`MATLAB-Octave`-验证代码说明",
+   "order": 39,
+   "level": 2,
+   "title": "附录 B：`MATLAB/Octave` 验证代码说明",
+   "startLine": 594,
+   "endLine": 597,
+   "bodyChars": 72,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h40-B-1-根轨迹与极点核对",
+   "order": 40,
+   "level": 3,
+   "title": "B.1 根轨迹与极点核对",
+   "startLine": 598,
+   "endLine": 620,
+   "bodyChars": 368,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "root locus",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20.0,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h41-B-2-阶跃响应对比",
+   "order": 41,
+   "level": 3,
+   "title": "B.2 阶跃响应对比",
+   "startLine": 621,
+   "endLine": 641,
+   "bodyChars": 383,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h42-B-3-频域对比",
+   "order": 42,
+   "level": 3,
+   "title": "B.3 频域对比",
+   "startLine": 642,
+   "endLine": 675,
+   "bodyChars": 790,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h43-B-4-广义根轨迹与局部反馈系数-$a$",
+   "order": 43,
+   "level": 3,
+   "title": "B.4 广义根轨迹与局部反馈系数 $a$",
+   "startLine": 676,
+   "endLine": 699,
+   "bodyChars": 491,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "generalized root locus",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24.0,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+     "matchedLabel": "根轨迹增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-4-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-4/media/3-4-audio.m4a",
+   "sha256": "3666f4d99e046e04f004d0d65474b9635517d5f11638305712cc1e38db3b29c0",
+   "durationSeconds": 1274.612971,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-4.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 4,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.36,
+     "textPreview": "你知道吗平时咱们买个电子产品它到底好不好用其实你按下快关那一秒心里就有数了没错屏",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.36,
+     "endSeconds": 50.48,
+     "textPreview": "头的这份资料面对一艘几万吨级的远洋巨轮嗯这时候那个好与坏的边界突然就变得极其模糊",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.48,
+     "endSeconds": 75.64,
+     "textPreview": "棚的第三把椅子上欢迎你今天咱们主打一个硬核拆解完全是配合你们那个自动控制原理课程",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.64,
+     "endSeconds": 100.76,
+     "textPreview": "任务就是要帮大家把脑海里那个就是只停留在A系统它还稳定吗这种极格线思维彻底拔高拔",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.76,
+     "endSeconds": 125.76,
+     "textPreview": "态模型还有一整套的根轨迹图BOD图以及阶跃响应数据简直是保姆级资料我们要用这份资",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 36,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.76,
+     "endSeconds": 165.0,
+     "textPreview": "着就头晕对吧对呀你问他画法规则他能给你背出十条八条的什么渐进线焦点怎么算呢分离角",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 165.0,
+     "endSeconds": 190.12,
+     "textPreview": "看路径但不会抓证据其实啊读图是一门艺术怎么讲你不能一上来就扎进细节里急着下结论你",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 190.12,
+     "endSeconds": 220.08,
+     "textPreview": "就是看主骨架先别管细节对别急着拿放大镜看具体的数值先看大方向渐进线是往哪个方向飞",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 220.16,
+     "endSeconds": 246.88,
+     "textPreview": "哪儿先把系统的基本盘看清楚嗯等大方向笃定了知道系统大致是怎么个走向之后第二步是不",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 246.88,
+     "endSeconds": 275.0,
+     "textPreview": "播航向控制的资料来看如果我们用求极值的数学手段去推演系统的特征方程你会发现那个关",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 275.0,
+     "endSeconds": 300.04,
+     "textPreview": "稍微注入点物理灵魂怎么注入在课本上他们只是方程的解嘛但在物理世界上对于这艘巨轮来",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 300.04,
+     "endSeconds": 330.0,
+     "textPreview": "绝对",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 330.0,
+     "endSeconds": 355.61,
+     "textPreview": "转折的十字路口原来如此那虚轴焦点呢就是他穿过中间那条线跑到右边去的那一瞬间虚轴焦",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 356.15,
+     "endSeconds": 381.36,
+     "textPreview": "翻在这份资料里也就是跨过正负J04626这个频率点你的船就不再是按既定航向开了那",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 381.36,
+     "endSeconds": 406.6,
+     "textPreview": "有可能所以这两个点其实是在根轨迹那张无限大的图纸上硬生生给你框出了一个物理上的参",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 407.48,
+     "endSeconds": 432.6,
+     "textPreview": "呦我知道你要说什么了是不是那个让人在实验室里欲哭无泪的增益换算没错就是他我跟你说",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 432.92,
+     "endSeconds": 495.0,
+     "textPreview": "钮一拧到那个数结果机器直接疯狂震荡对甚至触发硬件的过载保护直接宕机满头大汗的问为",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+       "matchedLabel": "根轨迹增益",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 495.0,
+     "endSeconds": 520.44,
+     "textPreview": "和数学量不是一码事儿对资料里非常明确的指出了一个换算关系数学上的K等于00171",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 520.68,
+     "endSeconds": 546.84,
+     "textPreview": "的数值挺小的挺便宜但你要掏钱把这个参数烧进芯片里的时候你兜里装的是功成国度的货币",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 546.87,
+     "endSeconds": 605.16,
+     "textPreview": "物理增益K等于数学增益K除以001715咱们算算看比如资料里算出来保证系统不越过",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 605.16,
+     "endSeconds": 631.48,
+     "textPreview": "就是这艘巨轮的主控工程师没问题我已经站在舰桥上了海风吹在脸上手里紧紧握着控制权和",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 631.48,
+     "endSeconds": 657.96,
+     "textPreview": "行一场真实的选型大比拼先看方案AA方案给出的物理增益非常保守大写K等于0220我",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 657.96,
+     "endSeconds": 715.16,
+     "textPreview": "角度你怎么评价这个方案给人的物理体感呃这个方案的极点全部都在实轴上完全没有虚部好",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 715.16,
+     "endSeconds": 740.2,
+     "textPreview": "速度把物理增益直接开到了2020那对应的极点在哪已经跑到了10轴复负的零点零一三",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 740.2,
+     "endSeconds": 767.07,
+     "textPreview": "非常近了对而且虚部这么大说明这艘船现在就像一根绷紧的弹簧你抓住了核心虽然它严格来",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 767.14,
+     "endSeconds": 792.84,
+     "textPreview": "仅剩可怜的四度等等相角阈度只有四度可能很多同学对这",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 792.84,
+     "endSeconds": 825.0,
+     "textPreview": "个指标缺乏物理概念你能具体说说四度在海面上究竟意味着什么吗相角阈度本质上是系统允",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 825.0,
+     "endSeconds": 850.12,
+     "textPreview": "过度开始疯狂左右摇摆最后直接掉下悬崖就是这个理这哪是开船啊这是在海上撬重金属摇滚",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 850.28,
+     "endSeconds": 875.43,
+     "textPreview": "妙了哦B方案的数据是什么方案B给出的增益是k等于0606406064我看了一下资",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 875.8,
+     "endSeconds": 935.0,
+     "textPreview": "错他刚好卡在那个即将离开时轴的黄金分割线上我这正是这套方案最高明的地方啊为什么他",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 935.0,
+     "endSeconds": 960.36,
+     "textPreview": "析出A太慢C震荡致密而B是完美的黄金比例这种系统性格上的巨大差异究竟是在根轨基实",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 960.36,
+     "endSeconds": 985.55,
+     "textPreview": "蓝图当你拿制笔看到C的极点已经疯狂逼近虚轴或者看到A的极点全都懒洋洋的躺在实轴靠",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 985.89,
+     "endSeconds": 1045.16,
+     "textPreview": "无余的但他的缺陷在于他不考虑物理世界里那些真实的延时和损耗所以这就需要频域包地图",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 1045.16,
+     "endSeconds": 1070.28,
+     "textPreview": "平缓爬升的线告诉你船有多迟钝C方案则是一条上上下下疯狂波动的波浪线甲方一看就懂确",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 1070.37,
+     "endSeconds": 1095.53,
+     "textPreview": "看任何一张图你都只是在盲人摸象这个闭环太舒服了根轨迹看的是趋势和潜能频预定的是物",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 1095.66,
+     "endSeconds": 1122.58,
+     "textPreview": "修机器啊哈哈是的而且资料的复录里其实提到了一个很有意思的现代工程线上哦什么线上复",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 1126.08,
+     "endSeconds": 1155.0,
+     "textPreview": "在的工程环境里AI和这些强大的软件工具能瞬间画出仪器对现在算力太强了比如资料里演",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 1155.0,
+     "endSeconds": 1210.0,
+     "textPreview": "无差分的话曲线但代码不知道一艘几万灯的远洋货轮在面对狂风巨浪时到底需要什么样的响",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1210.0,
+     "endSeconds": 1265.0,
+     "textPreview": "一下我们从那张错综复杂的根轨迹寻宝图上学过了先找寻分离点和序轴交点这两个地形抓手",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 39,
+     "startSeconds": 1265.0,
+     "endSeconds": 1274.61,
+     "textPreview": "考题既然现在AI和MATLAB可以一键跑出ABC所有的极点和包的图甚至直接替你标",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "3666f4d99e046e04f004d0d65474b9635517d5f11638305712cc1e38db3b29c0",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-4-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-4/media/3-4-intro-video.mp4",
+   "sha256": "643401951b97e262730f9b2b63c2018fe96804b5f35878037fb1adc8e346528a",
+   "durationSeconds": 261.546667,
+   "transcriptSource": "videos-project:lesson-3-4/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 239.5,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 261.5,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 82,
+   "segments": [],
+   "activeReleaseSha256": "151d6d4f460ffbfb797eed817af2d1c4a95150ee374c5b49965899f2c8833c7b",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-4-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-4/media/3-4-course.mp4",
+   "sha256": "c83fe3508d11465ddb65cbc6edca1653c6592d21fe6cec8978af61cc557f533e",
+   "durationSeconds": 461.705578,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-4.json",
+   "transcriptSourceSha256": "c83fe3508d11465ddb65cbc6edca1653c6592d21fe6cec8978af61cc557f533e",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 14.0,
+     "textPreview": "嘿，欢迎来到我们的技术侦探社。今天啊，咱们要干一件特酷的事，就是把一个听起来挺头",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 14.0,
+     "endSeconds": 31.12,
+     "textPreview": "来，咱们先从一个生活中的小烦恼开始，不知道你有没有这种感觉？玩赛车游戏的时候，那",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.12,
+     "endSeconds": 47.77,
+     "textPreview": "其实啊，这就是工程师们天天要面对的挑战，怎么才能把一个系统调教到最完美的状态？O",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 47.77,
+     "endSeconds": 61.69,
+     "textPreview": "最后嘛，当然是找出那个唯一的正确答案，放心，跟着我绝对不会跑偏。好了，各位侦探，",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 61.69,
+     "endSeconds": 79.93,
+     "textPreview": "这次的当事人呢，是一艘大船的航向控制系统，他现在有点迷失自我，行为特别奇怪。我们",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 79.93,
+     "endSeconds": 95.28,
+     "textPreview": "诶，别被这个名字给唬住了啊！听着测专业，其实呢，你可以把它想象成一个超级厉害的行",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 95.28,
+     "endSeconds": 106.16,
+     "textPreview": "大家看这个看起来复杂的方程，就是咱们这次的核心案卷了。我们的目标很简单，就是要找",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 106.16,
+     "endSeconds": 118.6,
+     "textPreview": "这个K啊，它就像一个神器的旋钮，往左拧一点，系统可能就变得温顺；往右拧一点呢，又",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 118.6,
+     "endSeconds": 133.08,
+     "textPreview": "咱们专业的侦探啊，可不能光凭感觉办事儿，得有方法运来。接下来就是咱们屡试不爽的四",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 133.08,
+     "endSeconds": 141.46,
+     "textPreview": "你看这张图，它简直就是我们整个探案过程的作战地图，从一开始画出这个系统的所有可能",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 141.46,
+     "endSeconds": 155.62,
+     "textPreview": "到锁定关键的转折点，再到最后反复确认每一步都规划得明明白白。所以咱们就严格按照这",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 155.62,
+     "endSeconds": 168.3,
+     "textPreview": "第二步，在地图上找到那些最关键的岔路口；第三步呢，就是调整我们的关键参数K。最后",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 168.3,
+     "endSeconds": 185.9,
+     "textPreview": "却报万无一失。这里大家注意了，第二步是重中之重，我们要找的这个分离点，说白了就是",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 185.9,
+     "endSeconds": 202.28,
+     "textPreview": "那怎么找呢？很简单，用一点点微积分知识就行。你看，数学工具就是我们侦探手里最强大",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 202.28,
+     "endSeconds": 211.88,
+     "textPreview": "这可不是一个普通的点，这简直就是系统命运的十字路口啊！从这个点开始，系统的行为就",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 211.88,
+     "endSeconds": 225.87,
+     "textPreview": "所以说这是我们破案过程中一个决定性的证据。好了，调查方法咱们有了，关键证据也找到",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 225.87,
+     "endSeconds": 234.91,
+     "textPreview": "他们代表了增益K的三种不同设定，究竟谁才是我们苦苦寻找的那个最佳方案呢？",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 234.91,
+     "endSeconds": 247.07,
+     "textPreview": "咱们先来看看两位风格很极端的选手：嫌疑人A、K等于02，这家伙就跟个慢性子一样，",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 247.07,
+     "endSeconds": 259.84,
+     "textPreview": "再看嫌疑人C。K等于20，哇，这家伙简直就是个速度与激情的狂热分子。响应飞快，但",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 259.84,
+     "endSeconds": 276.44,
+     "textPreview": "那么最后登场的就是我们的3号嫌疑人B方案，他的K值不大不小，正好卡在一个微妙的位",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 276.44,
+     "endSeconds": 289.08,
+     "textPreview": "他会是我们想要的答案吗？光说不练假把式，对吧？咱们得上证据来。大家看这张表，这可",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 289.08,
+     "endSeconds": 304.56,
+     "textPreview": "咱们重点看极点这栏啊，这个东西的位置说白了就直接决定了整个系统的皮儿系。你看啊，",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 304.56,
+     "endSeconds": 321.28,
+     "textPreview": "好了，各位，最激动人心的时刻到了，现在我们要进入最终审判环节。咱们要从根基、轨迹",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 321.28,
+     "endSeconds": 331.45,
+     "textPreview": "这就是我们的王牌，一张根轨迹速查表。这张图的厉害之处就在于，它把之前所有零散的线",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 331.45,
+     "endSeconds": 345.21,
+     "textPreview": "从根轨迹图到时域响应的波形，再到频域的特性，三份独立的证词全部汇总到了一起。这样",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 345.21,
+     "endSeconds": 362.01,
+     "textPreview": "经过我们三堂会审，结果已经非常清楚了。你看，无论是在根轨迹图上的位置，还是在时域",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 362.01,
+     "endSeconds": 373.85,
+     "textPreview": "所以我宣布案件告破，综合所有领域的证据链，我们可以百分之百的确定嫌疑人B，也就是",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 373.85,
+     "endSeconds": 384.33,
+     "textPreview": "这个方案就是我们寻找的那个唯一的最佳的设置案子。虽然破了，但我觉得啊，咱们这一次",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 384.33,
+     "endSeconds": 401.61,
+     "textPreview": "接下来啊，咱们得聊聊你刚刚解锁的这项新技能，这项工程师的抽能力到底有多牛？你要知",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 401.61,
+     "endSeconds": 417.0,
+     "textPreview": "我们可以在还没开始造东西之前就能非常精准地预测出它未来的表现，这就避免了大量烧钱",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 417.0,
+     "endSeconds": 435.32,
+     "textPreview": "你今天学到的这套侦探方法，它就是一项通用的超能力。以后不管你是要设计一台无人机，",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+       "matchedLabel": "动态系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 435.32,
+     "endSeconds": 450.45,
+     "textPreview": "好了，那咱们今天的探案故事就到这儿了。你看，咱们一起搞定了一艘大船的航向问题。那",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 450.45,
+     "endSeconds": 461.71,
+     "textPreview": "是那个每天早上都想让你砸掉的闹钟，还是你那个永远赶不上变化的学习技法？嗯，快到评",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "c83fe3508d11465ddb65cbc6edca1653c6592d21fe6cec8978af61cc557f533e",
+   "status": "anchored"
+  }
+ ]
+}

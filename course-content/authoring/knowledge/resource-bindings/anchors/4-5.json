@@ -1,0 +1,1376 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "4-5",
+ "unitIndex": 22,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/4-5/4-5-handout.md",
+  "sha256": "7f449ea9e3d31420ce053320f6f1f5aa7137d36fd30f1570a4f55523062efb72"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "无约束候选越界：时间指标更好，为什么仍不可交付",
+   "groupName": "无约束候选回收",
+   "textChars": 370,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标：完成这轮实践后应能做到什么",
+   "groupName": "无约束候选回收",
+   "textChars": 328,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "自由目标收益与工程复核：更优为什么还不等于可用",
+   "groupName": "约束翻译与职责区分",
+   "textChars": 594,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "三条硬约束第一次被显性提出",
+   "groupName": "约束翻译与职责区分",
+   "textChars": 406,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "参数范围与硬约束分别在回答什么",
+   "groupName": "罚函数与求解实现",
+   "textChars": 447,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "罚函数把边界写进模型",
+   "groupName": "罚函数与求解实现",
+   "textChars": 550,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "求解输入与六步求解链：求解器究竟在消费什么",
+   "groupName": "统一证据比较",
+   "textChars": 1990,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "同一权重下，为什么会分出两组最优",
+   "groupName": "统一证据比较",
+   "textChars": 555,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "权重影响：可行域不变时，收益会怎样被重新分配",
+   "groupName": "剩余风险与移交",
+   "textChars": 506,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "同一主案例下：优化 PID 和优化超前结构为什么会分化",
+   "groupName": "剩余风险与移交",
+   "textChars": 556,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "三方案闭环比较：当前结果为何可接受但不是终局",
+   "groupName": null,
+   "textChars": 741,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "后测：边界、求解与解释是否已经成链",
+   "groupName": null,
+   "textChars": 73,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "总结：把越界证据、约束翻译与结构边界连成一条链",
+   "groupName": null,
+   "textChars": 252,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-问题引入-为什么“自由目标更优”不等于“工程上可用”",
+   "order": 1,
+   "level": 2,
+   "title": "一、问题引入：为什么“自由目标更优”不等于“工程上可用”",
+   "startLine": 13,
+   "endLine": 41,
+   "bodyChars": 417,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-本次课程目标",
+   "order": 2,
+   "level": 2,
+   "title": "二、本次课程目标",
+   "startLine": 42,
+   "endLine": 51,
+   "bodyChars": 189,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-先做复核-`4-4`-的无约束候选到底出了什么问题",
+   "order": 3,
+   "level": 2,
+   "title": "三、先做复核：`4-4` 的无约束候选到底出了什么问题",
+   "startLine": 52,
+   "endLine": 53,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h4-从自由目标看-它确实很有诱惑力",
+   "order": 4,
+   "level": 3,
+   "title": "3.1 从自由目标看，它确实很有诱惑力",
+   "startLine": 54,
+   "endLine": 68,
+   "bodyChars": 340,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-一旦回到工程边界-问题立刻暴露",
+   "order": 5,
+   "level": 3,
+   "title": "3.2 一旦回到工程边界，问题立刻暴露",
+   "startLine": 69,
+   "endLine": 86,
+   "bodyChars": 496,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-图上最先看见的是什么",
+   "order": 6,
+   "level": 3,
+   "title": "3.3 图上最先看见的是什么",
+   "startLine": 87,
+   "endLine": 100,
+   "bodyChars": 345,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-硬约束第一次被显性提出",
+   "order": 7,
+   "level": 2,
+   "title": "四、硬约束第一次被显性提出",
+   "startLine": 101,
+   "endLine": 102,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h8-哪三条边界必须升格为硬约束",
+   "order": 8,
+   "level": 3,
+   "title": "4.1 哪三条边界必须升格为硬约束",
+   "startLine": 103,
+   "endLine": 128,
+   "bodyChars": 467,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-参数范围和硬约束不是同一种东西",
+   "order": 9,
+   "level": 3,
+   "title": "4.2 参数范围和硬约束不是同一种东西",
+   "startLine": 129,
+   "endLine": 147,
+   "bodyChars": 259,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-先有边界-后有求解器",
+   "order": 10,
+   "level": 3,
+   "title": "4.3 先有边界，后有求解器",
+   "startLine": 148,
+   "endLine": 162,
+   "bodyChars": 311,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-把边界写进模型-罚函数为什么成为必要工具",
+   "order": 11,
+   "level": 2,
+   "title": "五、把边界写进模型：罚函数为什么成为必要工具",
+   "startLine": 163,
+   "endLine": 164,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-先保留上一课的自由目标",
+   "order": 12,
+   "level": 3,
+   "title": "5.1 先保留上一课的自由目标",
+   "startLine": 165,
+   "endLine": 181,
+   "bodyChars": 265,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-罚函数把越界代价显性写进目标",
+   "order": 13,
+   "level": 3,
+   "title": "5.2 罚函数把越界代价显性写进目标",
+   "startLine": 182,
+   "endLine": 208,
+   "bodyChars": 310,
+   "canonical": []
+  },
+  {
+   "headingId": "h14-`fmincon`-在这里是什么角色",
+   "order": 14,
+   "level": 3,
+   "title": "5.3 `fmincon` 在这里是什么角色",
+   "startLine": 209,
+   "endLine": 217,
+   "bodyChars": 160,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-带约束求解-怎样把搜索拉回可用区域",
+   "order": 15,
+   "level": 2,
+   "title": "六、带约束求解：怎样把搜索拉回可用区域",
+   "startLine": 218,
+   "endLine": 219,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-当前求解输入",
+   "order": 16,
+   "level": 3,
+   "title": "6.1 当前求解输入",
+   "startLine": 220,
+   "endLine": 237,
+   "bodyChars": 441,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-`fmincon`-求解流程拆解",
+   "order": 17,
+   "level": 3,
+   "title": "6.2 `fmincon` 求解流程拆解",
+   "startLine": 238,
+   "endLine": 304,
+   "bodyChars": 1319,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "overshoot",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 18.0,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-同一权重下-无约束与有约束为什么会分出两组不同解",
+   "order": 18,
+   "level": 3,
+   "title": "6.3 同一权重下，无约束与有约束为什么会分出两组不同解",
+   "startLine": 305,
+   "endLine": 342,
+   "bodyChars": 1095,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-权重影响-可行域不变时-收益会怎样被重新分配",
+   "order": 19,
+   "level": 3,
+   "title": "6.4 权重影响：可行域不变时，收益会怎样被重新分配",
+   "startLine": 343,
+   "endLine": 367,
+   "bodyChars": 777,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-同一主案例下-优化-PID-和优化超前结构为什么会分化",
+   "order": 20,
+   "level": 3,
+   "title": "6.5 同一主案例下：优化 PID 和优化超前结构为什么会分化",
+   "startLine": 368,
+   "endLine": 398,
+   "bodyChars": 1083,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-三方案比较真正说明了什么",
+   "order": 21,
+   "level": 3,
+   "title": "6.6 三方案比较真正说明了什么",
+   "startLine": 399,
+   "endLine": 420,
+   "bodyChars": 602,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-参数变化为什么仍然合乎结构机理",
+   "order": 22,
+   "level": 3,
+   "title": "6.7 参数变化为什么仍然合乎结构机理",
+   "startLine": 421,
+   "endLine": 430,
+   "bodyChars": 254,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-当前结果为什么可接受-但还不是终局",
+   "order": 23,
+   "level": 2,
+   "title": "七、当前结果为什么可接受，但还不是终局",
+   "startLine": 431,
+   "endLine": 447,
+   "bodyChars": 392,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-小结",
+   "order": 24,
+   "level": 2,
+   "title": "八、小结",
+   "startLine": 448,
+   "endLine": 474,
+   "bodyChars": 393,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-分层练习",
+   "order": 25,
+   "level": 2,
+   "title": "九、分层练习",
+   "startLine": 475,
+   "endLine": 476,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-练习-1-边界识别",
+   "order": 26,
+   "level": 3,
+   "title": "练习 1：边界识别",
+   "startLine": 477,
+   "endLine": 480,
+   "bodyChars": 121,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-练习-2-约束翻译",
+   "order": 27,
+   "level": 3,
+   "title": "练习 2：约束翻译",
+   "startLine": 481,
+   "endLine": 490,
+   "bodyChars": 169,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-练习-3-同权重下的最优点为什么会改变",
+   "order": 28,
+   "level": 3,
+   "title": "练习 3：同权重下的最优点为什么会改变",
+   "startLine": 491,
+   "endLine": 506,
+   "bodyChars": 217,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-附录-A-客船航向保持的-`fmincon`-完整代码",
+   "order": 29,
+   "level": 2,
+   "title": "附录 A：客船航向保持的 `fmincon` 完整代码",
+   "startLine": 507,
+   "endLine": 610,
+   "bodyChars": 2789,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "overshoot",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36.0,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "4-5-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/4-5/media/4-5-audio.m4a",
+   "sha256": "81d3b9635bf43d2b65c185ac4b8da5e9eaec07d379b8b257fa31798ea7564928",
+   "durationSeconds": 797.489342,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/4-5.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.28,
+     "textPreview": "大家好欢迎收听专为你们也就是咱们正在死磕自动控制原理的自动化专业大学生们量身定制",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.28,
+     "endSeconds": 50.56,
+     "textPreview": "向保持系统的呃约束下的优化设计实践顺便提一句啊我刚才看讲义的时候差点笑出声里面居",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.56,
+     "endSeconds": 75.56,
+     "textPreview": "起来堪称完美的无约束候选控制器是一个超前校正环节哇那个设计怎么说呢真的是神仙级节",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+       "matchedLabel": "超前校正",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.56,
+     "endSeconds": 100.68,
+     "textPreview": "极小速度极快你肯定觉得自己已经彻底掌控了整个物理世界但这就是我们今天这场深度探讨",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.68,
+     "endSeconds": 125.76,
+     "textPreview": "是要弄清楚为什么这种纸面上的完美在真实的工程应用中根本不能用以及最重要的一点作为",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.76,
+     "endSeconds": 150.88,
+     "textPreview": "状态下算出来的最优控制器也就是Cus对我们来看看他到底有多华丽它的调节时间呃竟然",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.88,
+     "endSeconds": 176.6,
+     "textPreview": "到了28265嗯对于还在写代码的同学们来说这可能就是调用个积分函数的事但物理意义",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.6,
+     "endSeconds": 201.64,
+     "textPreview": "间乘平方误差积分这个只有12404平方误差意味着他对出奇的剧烈偏离非常敏感这两种",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.64,
+     "endSeconds": 226.64,
+     "textPreview": "一里的工程复核数据也就是关键边界的制那个控制峰值我的天直接飚到了25对这个25在",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.64,
+     "endSeconds": 251.84,
+     "textPreview": "等一下最大只能输出7那我的算法给出了25的指令这意味着什么你要求舵机以超出他物理",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.84,
+     "endSeconds": 277.09,
+     "textPreview": "轮崩碎控制柜都得冒黑烟了物理世界是绝对不会陪你玩这种纯数学游戏的完全正确而且哈抛",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 277.11,
+     "endSeconds": 302.2,
+     "textPreview": "百分死一艘万吨客船超掉百分之二十船体要是这么剧烈的回摆别说咖啡洒了全船乘客估计得",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.2,
+     "endSeconds": 330.0,
+     "textPreview": "点可怜的欲度瞬间就被吃干抹净了系统直接罚散所以啊同学们作为未来的工程师必须把这句",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.2,
+     "textPreview": "们知道极限在哪儿了接下来的问题就是我们怎么用数学语言把这些物理法则写进代码里真正",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.2,
+     "endSeconds": 386.2,
+     "textPreview": "值绝对值必须小于等于7第三稳健性储备相位阈度必须大于等于45度除我还注意到加了控",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 386.76,
+     "endSeconds": 411.8,
+     "textPreview": "之间嗯限制这些参数的范围是为了保证控制器的结构是具有物理可解释性的我们如果不限制",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 411.96,
+     "endSeconds": 440.0,
+     "textPreview": "20乘以max零Umax减去7的平方我当时看这个公式脑子里瞬间冒出一个画面这简直",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 465.04,
+     "textPreview": "动了但理确实是这个理这里最引人入胜的是罚函数实际上是把越界的代价极其显性的写进了",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.04,
+     "endSeconds": 495.24,
+     "textPreview": "零出来零的平方还是零这时候项圈是不通电的算法觉得很安全那只要他敢跨过那条红线呢比",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.24,
+     "endSeconds": 520.36,
+     "textPreview": "大于0了平方之后变成025再乘以权重20啪的一下一个巨大的惩罚值瞬间砸进总目标函",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.6,
+     "endSeconds": 550.0,
+     "textPreview": "硬约束保证可交付分工明确那既然算法被带上了这么严酷的紧箍咒重新计算出来的结果会不",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.12,
+     "textPreview": "终方案也就是那个CBC结果非常有意思调节时间确实略微增加了变成了154秒ITA也",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.12,
+     "endSeconds": 605.08,
+     "textPreview": "味着什么呢如果是一个追求极致完美的同学乍一看哎我调节时间变慢了两秒误差指标变差了",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.08,
+     "endSeconds": 630.28,
+     "textPreview": "为了满足物理限制被迫牺牲了系统的最佳性能绝对不是如果我们将此与更宏观的图景联系起",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 630.28,
+     "endSeconds": 660.0,
+     "textPreview": "的最优解我懂了算法并没有妥协他只是在带着脚帘的情况下帮我们穷尽",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.0,
+     "endSeconds": 685.32,
+     "textPreview": "了所有可能的动作找到了最极致的姿态是的而且讲义里还给了一个极其震撼的对比哪怕我们",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 685.84,
+     "endSeconds": 710.88,
+     "textPreview": "几十秒不是200秒200秒这也差太多了吧同样的约束同样的求解器为什么PID这么拉",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 710.88,
+     "endSeconds": 737.56,
+     "textPreview": "全不同的区间优秀的结构比如我们用的超前效证加上严谨的约束这才是工程设计的王道明白",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+       "matchedLabel": "超前校正",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 737.96,
+     "endSeconds": 770.0,
+     "textPreview": "用max函数和平方程法很直观但是在你们未来的自动化职业生涯中如果面对的约束是不可",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.0,
+     "endSeconds": 795.12,
+     "textPreview": "呢比如甲方要求你要降低设备未来十年的磨损老化速度或者要求系统能应对不可预置的极端",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 795.12,
+     "endSeconds": 797.28,
+     "textPreview": "再见大家加油我们下次再见",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "81d3b9635bf43d2b65c185ac4b8da5e9eaec07d379b8b257fa31798ea7564928",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "4-5-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/4-5/media/4-5-intro-video.mp4",
+   "sha256": "92171732076d81244fb85fa4319e0cfd49e00c50ab779e1dcf41274781a0d6d1",
+   "durationSeconds": 222.485333,
+   "transcriptSource": "videos-project:lesson-4-5/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 200.433,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 222.433,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 57,
+   "segments": [],
+   "activeReleaseSha256": "d1f3b1ca367fe7be5cddf0560d1fbb5bf4c0848e31bb0f75c4d47e4fff825284",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "4-5-course",
+   "kind": "video",
+   "runtimePath": "lessons/4-5/media/4-5-course.mp4",
+   "sha256": "53915146d9fd4d37ac23fbf04b72941ad7a99ef4634de11de2c94104f6d3da65",
+   "durationSeconds": 453.926893,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/4-5.json",
+   "transcriptSourceSha256": "53915146d9fd4d37ac23fbf04b72941ad7a99ef4634de11de2c94104f6d3da65",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 15.2,
+     "textPreview": "嗨，同学们好。今天我们来聊一个在工程里头特别有意思，也特别让人头疼的问题。就是啊",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 15.2,
+     "endSeconds": 36.08,
+     "textPreview": "你说气不气人？这到底是怎么回事呢？咱们今天就来把它掰扯清楚。好，咱们先来看第一个",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 36.08,
+     "endSeconds": 55.53,
+     "textPreview": "说白了啊，木雕就是把系统的误差想办法降到最低最低来，咱们看一眼这个成绩单。哇，你",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 55.53,
+     "endSeconds": 72.89,
+     "textPreview": "这效果简直是碾压级别的，对吧？那按理说这事儿不就成了吗？可以收工了。哎，先别急着",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 72.89,
+     "endSeconds": 86.84,
+     "textPreview": "而现实世界可没那么简单，它有它自己的一套规矩。那结果怎么样呢？哎，简直没眼看。你",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 86.84,
+     "endSeconds": 96.44,
+     "textPreview": "上窜下跳的非常不稳定。再看右边，为了实现这个效果，它需要的控制信号也就是能量大到",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 96.44,
+     "endSeconds": 105.0,
+     "textPreview": "这在现实中你上哪儿找这么给力的设备去？所以说这设计理路上再完美，实际上也是个大型",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 105.0,
+     "endSeconds": 114.27,
+     "textPreview": "好，那问题就来了，咱们这个在数学上看起来无懈可击的方案，为什么一到实际应用里就败",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 114.27,
+     "endSeconds": 124.99,
+     "textPreview": "到底是哪里出了问题？其实啊，这事儿还真不能怪算法。算法本身是无辜的，它只是老老实",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 124.99,
+     "endSeconds": 138.27,
+     "textPreview": "真正的问题在于我们给它提要求的时候问错了问题，我们只让它去追求最低的误差，却忘了",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 138.27,
+     "endSeconds": 155.45,
+     "textPreview": "不过别怕，这时候我们的救星……诶，哆啦A梦就出场了。他要来给我们普及一个工程学里",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 155.45,
+     "endSeconds": 164.17,
+     "textPreview": "这个极限我们用一个专业点词来讲，就是约束。那什么是约束呢？来，咱们看第一个，超调",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 164.17,
+     "endSeconds": 177.59,
+     "textPreview": "说白了就是你的系统在达到目标值的时候，会不会一下子冲过头？就好像你坐电梯，你肯定",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 177.59,
+     "endSeconds": 188.15,
+     "textPreview": "那体验多差呀，对吧？所以我们一般会要求这个超调量，比如说不能超过百分之二十。好，",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 188.15,
+     "endSeconds": 198.06,
+     "textPreview": "这个更好理解了，就是你的控制器能使出多大的劲儿。你总不能指望一辆普通家用车一脚油",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 198.06,
+     "endSeconds": 207.42,
+     "textPreview": "不可能的，它的发动机有极限。所以这个控制器的输出能量或者力量也必须有个上限，比如",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 207.42,
+     "endSeconds": 216.59,
+     "textPreview": "然后是第三个，这个听起来可能专业一点，向位余度，你可以把它想象成一个安全距离。",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 216.59,
+     "endSeconds": 229.31,
+     "textPreview": "就像咱们开车不能贴着悬崖边开，太危险了，得留点余地。这个相位余度就是系统稳定性的",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 229.31,
+     "endSeconds": 245.08,
+     "textPreview": "我们要求它至少要大于45度，这样才够稳妥。好，规矩我们是定好了，但问题是，怎么才",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 245.08,
+     "endSeconds": 254.52,
+     "textPreview": "别急，方法这就来了。你看哆啦A梦又从他的四次元口袋里掏出了一个法宝，叫什么呢？叫",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 254.52,
+     "endSeconds": 265.0,
+     "textPreview": "这个东西特别巧妙，他用一个很聪明的数学方法，把一个复杂的优化问题变成了一个简单粗",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 265.0,
+     "endSeconds": 276.72,
+     "textPreview": "他的核心思想就在这个公式里，你看我们最后要算的总分等于原来的那个误差分。再加上一",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 276.72,
+     "endSeconds": 285.68,
+     "textPreview": "它的作用是什么呢？就是如果你的设计方案很乖，遵守了我们前面说的所有规矩，那这个惩",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 285.68,
+     "endSeconds": 297.12,
+     "textPreview": "可一旦你的设计越界了，比如说超调量太大了，或者控制输出超标了，砰，这个惩罚项就会",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 297.12,
+     "endSeconds": 307.34,
+     "textPreview": "你看这就好办了。算法的目标不是要找一个分数最低的方案吗？现在只要他一犯规，分数就",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 307.34,
+     "endSeconds": 326.91,
+     "textPreview": "那他为了完成任务，是不是就得自己学聪明点儿，主动绕开那些会挨罚的设计？这么一来，",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 326.91,
+     "endSeconds": 338.83,
+     "textPreview": "行，理论我们说完了。那加上了这个惩罚游戏规则之后，效果到底怎么样呢？咱们再跑一次",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 338.83,
+     "endSeconds": 362.41,
+     "textPreview": "来来来，见证奇迹的时刻到了，咱们直接看最终对决的结果。你看这个有约束这一列，超调",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 362.41,
+     "endSeconds": 374.97,
+     "textPreview": "没错，这儿就是整个故事最关键的地方，我们牺牲了一丁点纸面上的完美，换来的是一个能",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 374.97,
+     "endSeconds": 387.17,
+     "textPreview": "这笔交易太值了，所以通过今天这个例子，我们应该明白一个道理，在工程世界里，所谓最",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 387.17,
+     "endSeconds": 400.45,
+     "textPreview": "一个在表格里看起来最牛的方案，不一定就是最好的方案。真正的工程设计是在一大堆条条",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 400.45,
+     "endSeconds": 419.21,
+     "textPreview": "而像乘法函数这样的工具，就是帮助我们架起理论和现实之间桥梁的法宝。说到底，我们工",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 419.21,
+     "endSeconds": 430.49,
+     "textPreview": "这才是真正的胜利。其实啊，这种约束无处不在。你想想，你每天用的手机，它的电池续航",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 430.49,
+     "endSeconds": 442.65,
+     "textPreview": "你开的车，它的动力和油耗之间是不是也有一个约束？可以说我们身边几乎所有的科技产品",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 442.65,
+     "endSeconds": 453.93,
+     "textPreview": "那么下次你再看到一个新产品的时候，不妨也想一想它背后可能有哪些有趣的约束呢？好了",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "53915146d9fd4d37ac23fbf04b72941ad7a99ef4634de11de2c94104f6d3da65",
+   "status": "anchored"
+  }
+ ]
+}

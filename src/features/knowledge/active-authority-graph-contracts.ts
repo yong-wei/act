@@ -192,6 +192,8 @@ export interface ActiveResourceViewerContent {
   imageSrc?: string;
 }
 
+export type ActiveResourceAppearance = 'first' | 'revisit' | 'reference';
+
 export interface ActiveResourceBinding {
   resourceId?: string;
   title: string;
@@ -200,6 +202,11 @@ export interface ActiveResourceBinding {
   availability: 'available' | 'unavailable';
   launch: ActiveResourceLaunchDescriptor;
   viewer?: ActiveResourceViewerContent;
+  /** Anchor position inside the resource (step number, section title, time range, textbook section). */
+  anchorLabel?: string | null;
+  /** Teaching-order semantics of this binding for the selected node. */
+  appearance?: ActiveResourceAppearance;
+  unitId?: string | null;
 }
 
 export type ActiveNodeResourceBindings =

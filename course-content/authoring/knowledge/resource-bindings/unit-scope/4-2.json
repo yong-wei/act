@@ -1,0 +1,129 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "4-2",
+ "canonicalIds": [
+  "ctc:v11g-6bfefff084f66202b9af9dd4",
+  "ctc:v11g-93b322aec104af4eb69aa152",
+  "ctc:v11g-e85c0145d63244c46853c9cf",
+  "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+  "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+  "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+  "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+  "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+  "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+  "ctkg:v3e-object-2805a69722f0a741c2479d22",
+  "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+  "ctkg:v3e-object-5104f48a9527029987e0519a",
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+  "ctkg:v3e-object-b73224087c9c0475612e8635",
+  "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+  "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+  "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+  "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+  "ctkg:v3e-object-f9ac171d68c8622f62106397"
+ ],
+ "sources": {
+  "ctc:v11g-6bfefff084f66202b9af9dd4": [
+   "topic:pid-tuning"
+  ],
+  "ctc:v11g-93b322aec104af4eb69aa152": [
+   "topic:pid-tuning"
+  ],
+  "ctc:v11g-e85c0145d63244c46853c9cf": [
+   "topic:lead"
+  ],
+  "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0": [
+   "topic:reference-feedforward"
+  ],
+  "ctkg:domainconcept:4ecbee25dbf52616b5613e8b": [
+   "topic:disturbance-feedforward"
+  ],
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab": [
+   "topic:feedforward"
+  ],
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146": [
+   "topic:feedforward"
+  ],
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": [
+   "topic:phase-margin"
+  ],
+  "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd": [
+   "topic:steady-error"
+  ],
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-canonical-8d214840417a4c3b5780c715": [
+   "topic:steady-error"
+  ],
+  "ctkg:v3e-object-0a05ec9e84791b95d3794bc0": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede": [
+   "topic:performance"
+  ],
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-object-1b720d82e3de003a38fa57f6": [
+   "topic:series-compensation"
+  ],
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837": [
+   "reuse_node_ids:相角裕度_5_5a74b451",
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b": [
+   "topic:lead"
+  ],
+  "ctkg:v3e-object-2805a69722f0a741c2479d22": [
+   "topic:pd"
+  ],
+  "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee": [
+   "topic:p-control"
+  ],
+  "ctkg:v3e-object-5104f48a9527029987e0519a": [
+   "topic:feedforward"
+  ],
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81": [
+   "topic:pi"
+  ],
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a": [
+   "topic:pi"
+  ],
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8": [
+   "topic:feedback-compensation"
+  ],
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3": [
+   "topic:feedback-compensation"
+  ],
+  "ctkg:v3e-object-b73224087c9c0475612e8635": [
+   "topic:lag"
+  ],
+  "ctkg:v3e-object-c2881833cb4d8b1e415dc742": [
+   "reuse_node_ids:幅值裕度_5_73af26a5"
+  ],
+  "ctkg:v3e-object-c437a7c8ef65d5677ad5c387": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-e1caec9f68da5c573be699d5": [
+   "topic:series-compensation"
+  ],
+  "ctkg:v3e-object-f1df5739a34bf55489aeeeeb": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-f9ac171d68c8622f62106397": [
+   "topic:lag"
+  ]
+ }
+}

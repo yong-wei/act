@@ -7,6 +7,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 import { DEFAULT_DOMAIN_TEACHING_RUNTIME_RELATIVE } from '@/lib/authority-domain-shards/teaching';
+import {
+  DEFAULT_RESOURCE_BINDING_RUNTIME_RELATIVE,
+  RESOURCE_BINDING_RELEASE_CURRENT_CONTRACT,
+  RESOURCE_BINDING_RELEASE_FILES,
+} from '@/lib/resource-binding-release/contracts';
 import { DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE } from './contracts';
 
 export interface AgreedLiveCourseProjection {
@@ -106,4 +111,74 @@ export function overlayLiveTeachingPins<T extends {
     projectionId: live.projectionId,
     projectionHash: live.projectionHash,
   };
+}
+
+export interface AgreedLiveResourceBindingRelease {
+  bindingReleaseId: string;
+  bindingHash: string;
+  authorityReleaseId: string;
+}
+
+/**
+ * Live anchored resource binding release: `resource-bindings/current.json` must name a
+ * staged release whose manifest carries the same hash, a passed gate, and the same
+ * Authority release as the live course projection. Anything else means "no live
+ * binding release" and resource consumers must not overlay it.
+ */
+export function readAgreedLiveResourceBindingRelease(
+  repoRoot = process.cwd(),
+  options: { projectionRoot?: string } = {},
+): AgreedLiveResourceBindingRelease | null {
+  const live = readAgreedLiveCourseProjection(repoRoot, options);
+  if (!live) return null;
+  const pointer = readJson<{
+    contract?: string;
+    bindingReleaseId?: string;
+    bindingHash?: string;
+    authorityReleaseId?: string;
+  }>(join(repoRoot, DEFAULT_RESOURCE_BINDING_RUNTIME_RELATIVE, 'current.json'));
+  if (
+    pointer?.contract !== RESOURCE_BINDING_RELEASE_CURRENT_CONTRACT
+    || !pointer.bindingReleaseId
+    || !pointer.bindingHash
+    || pointer.authorityReleaseId !== live.authorityReleaseId
+  ) {
+    return null;
+  }
+  const manifest = readJson<{
+    bindingReleaseId?: string;
+    bindingHash?: string;
+    authorityReleaseId?: string;
+    gatePassed?: boolean;
+  }>(join(
+    repoRoot,
+    DEFAULT_RESOURCE_BINDING_RUNTIME_RELATIVE,
+    'releases',
+    pointer.bindingReleaseId,
+    RESOURCE_BINDING_RELEASE_FILES.manifest,
+  ));
+  if (
+    manifest?.bindingReleaseId !== pointer.bindingReleaseId
+    || manifest.bindingHash !== pointer.bindingHash
+    || manifest.authorityReleaseId !== live.authorityReleaseId
+    || manifest.gatePassed !== true
+  ) {
+    return null;
+  }
+  return {
+    bindingReleaseId: pointer.bindingReleaseId,
+    bindingHash: pointer.bindingHash,
+    authorityReleaseId: live.authorityReleaseId,
+  };
+}
+
+export function overlayLiveBindingPins<T extends {
+  authorityReleaseId: string | null;
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
+}>(pins: T, live: AgreedLiveResourceBindingRelease | null): T {
+  if (!live || !pins.authorityReleaseId || pins.authorityReleaseId !== live.authorityReleaseId) {
+    return pins;
+  }
+  return { ...pins, bindingReleaseId: live.bindingReleaseId, bindingHash: live.bindingHash };
 }

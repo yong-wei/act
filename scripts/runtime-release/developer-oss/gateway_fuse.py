@@ -406,7 +406,9 @@ def main() -> int:
                 stop.set()
 
         def getattr(self, path, fh=None):
-            now = int(time.time())
+            # Content-addressed Blobs are immutable and have no publication
+            # timestamp. Keep metadata stable across reads and remounts.
+            timestamp = 0
             if path == "/":
                 return dict(
                     st_mode=(stat.S_IFDIR | 0o555),
@@ -414,9 +416,9 @@ def main() -> int:
                     st_uid=os.getuid(),
                     st_gid=os.getgid(),
                     st_size=0,
-                    st_atime=now,
-                    st_mtime=now,
-                    st_ctime=now,
+                    st_atime=timestamp,
+                    st_mtime=timestamp,
+                    st_ctime=timestamp,
                 )
             digest = self._digest(path)
             if digest is None:
@@ -430,9 +432,9 @@ def main() -> int:
                 st_uid=os.getuid(),
                 st_gid=os.getgid(),
                 st_size=size,
-                st_atime=now,
-                st_mtime=now,
-                st_ctime=now,
+                st_atime=timestamp,
+                st_mtime=timestamp,
+                st_ctime=timestamp,
             )
 
         def readdir(self, path, fh):

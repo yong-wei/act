@@ -1,0 +1,1213 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "1-3",
+ "unitIndex": 2,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/1-3/1-3-handout.md",
+  "sha256": "b27576c9a1d1d95a35d24467e07a2c9566076984abe90be1c13761691dc7ce58"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "导入——自动舵增益旋钮与极点迁移现象",
+   "groupName": "区分增益在开环与闭环中的作用",
+   "textChars": 192,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "课程目标",
+   "groupName": "区分增益在开环与闭环中的作用",
+   "textChars": 138,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+     "matchedLabel": "开环增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:25943f64c06ac39c58e78489",
+     "matchedLabel": "闭环增益",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测——进入根轨迹前的准备",
+   "groupName": "区分增益在开环与闭环中的作用",
+   "textChars": 43,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "开环与闭环——同一个增益，两种命运",
+   "groupName": "区分增益在开环与闭环中的作用",
+   "textChars": 582,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-736212ccb3694d44a24fa358",
+     "matchedLabel": "output",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 18.0,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "极点移动有连续性，响应变化也有连续性",
+   "groupName": "追踪极点随参数连续迁移",
+   "textChars": 283,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-e2066e5e888d36826fd01d4d",
+     "matchedLabel": "衰减振荡",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+     "matchedLabel": "临界阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "从极点到曲线——三组 K 值的时域全貌",
+   "groupName": "联读极点路径与时域行为",
+   "textChars": 781,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+     "matchedLabel": "临界阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "根轨迹雏形——把极点路径画在同一张图上",
+   "groupName": "追踪极点随参数连续迁移",
+   "textChars": 793,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "例题——追踪极点迁移，预判行为变化",
+   "groupName": "追踪极点随参数连续迁移",
+   "textChars": 221,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "案例——自动舵增益调节的三次记录",
+   "groupName": "追踪极点随参数连续迁移",
+   "textChars": 265,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "后测",
+   "groupName": "联读极点路径与时域行为",
+   "textChars": 32,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "总结——三个可带走的判断",
+   "groupName": "追踪极点随参数连续迁移",
+   "textChars": 232,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+     "matchedLabel": "开环增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-模块1-导论串讲-控制系统的完整图像",
+   "order": 1,
+   "level": 2,
+   "title": "模块1 导论串讲——控制系统的完整图像",
+   "startLine": 7,
+   "endLine": 23,
+   "bodyChars": 483,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-拧一个旋钮-整条曲线就变了",
+   "order": 2,
+   "level": 2,
+   "title": "一、拧一个旋钮，整条曲线就变了",
+   "startLine": 24,
+   "endLine": 41,
+   "bodyChars": 500,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-开环与闭环-同一个增益-两种命运",
+   "order": 3,
+   "level": 2,
+   "title": "二、开环与闭环：同一个增益，两种命运",
+   "startLine": 42,
+   "endLine": 45,
+   "bodyChars": 62,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-开环-增益只按比例缩放响应",
+   "order": 4,
+   "level": 3,
+   "title": "2.1 开环：增益只按比例缩放响应",
+   "startLine": 46,
+   "endLine": 77,
+   "bodyChars": 888,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 56,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+     "matchedLabel": "开环传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+     "matchedLabel": "开环增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+     "matchedLabel": "开环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-闭环-增益进入了特征方程",
+   "order": 5,
+   "level": 3,
+   "title": "2.2 闭环：增益进入了特征方程",
+   "startLine": 78,
+   "endLine": 130,
+   "bodyChars": 1265,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 56,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-极点移动有连续性-响应变化也有连续性",
+   "order": 6,
+   "level": 2,
+   "title": "三、极点移动有连续性，响应变化也有连续性",
+   "startLine": 131,
+   "endLine": 156,
+   "bodyChars": 788,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-从极点到曲线-三组-$K$-值的时域全貌",
+   "order": 7,
+   "level": 2,
+   "title": "四、从极点到曲线：三组 $K$ 值的时域全貌",
+   "startLine": 157,
+   "endLine": 209,
+   "bodyChars": 1878,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+     "matchedLabel": "临界阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-e2066e5e888d36826fd01d4d",
+     "matchedLabel": "衰减振荡",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-根轨迹雏形-把极点路径画在同一张图上",
+   "order": 8,
+   "level": 2,
+   "title": "五、根轨迹雏形：把极点路径画在同一张图上",
+   "startLine": 210,
+   "endLine": 235,
+   "bodyChars": 896,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-例题-追踪极点迁移-预判行为变化",
+   "order": 9,
+   "level": 2,
+   "title": "六、例题：追踪极点迁移，预判行为变化",
+   "startLine": 236,
+   "endLine": 298,
+   "bodyChars": 1619,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+     "matchedLabel": "临界阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-案例-自动舵增益调节的三次记录",
+   "order": 10,
+   "level": 2,
+   "title": "七、案例：自动舵增益调节的三次记录",
+   "startLine": 299,
+   "endLine": 302,
+   "bodyChars": 109,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-三次试验记录",
+   "order": 11,
+   "level": 3,
+   "title": "7.1 三次试验记录",
+   "startLine": 303,
+   "endLine": 318,
+   "bodyChars": 685,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+     "matchedLabel": "未建模动态",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-e2066e5e888d36826fd01d4d",
+     "matchedLabel": "衰减振荡",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-如果再继续拧大-$K$",
+   "order": 12,
+   "level": 3,
+   "title": "7.2 如果再继续拧大 $K$",
+   "startLine": 319,
+   "endLine": 324,
+   "bodyChars": 323,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+     "matchedLabel": "单位反馈",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-复现试验数据的代码",
+   "order": 13,
+   "level": 3,
+   "title": "7.3 复现试验数据的代码",
+   "startLine": 325,
+   "endLine": 346,
+   "bodyChars": 506,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-分层练习",
+   "order": 14,
+   "level": 2,
+   "title": "八、分层练习",
+   "startLine": 347,
+   "endLine": 348,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-基础题-•",
+   "order": 15,
+   "level": 3,
+   "title": "基础题 •",
+   "startLine": 349,
+   "endLine": 359,
+   "bodyChars": 449,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-进阶题-••",
+   "order": 16,
+   "level": 3,
+   "title": "进阶题 ••",
+   "startLine": 360,
+   "endLine": 368,
+   "bodyChars": 369,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+     "matchedLabel": "临界阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-挑战题-•••",
+   "order": 17,
+   "level": 3,
+   "title": "挑战题 •••",
+   "startLine": 369,
+   "endLine": 381,
+   "bodyChars": 440,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1fb0a531634b25a0b8ca4240",
+     "matchedLabel": "调节时间要求",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-总结与扩展思考",
+   "order": 18,
+   "level": 2,
+   "title": "九、总结与扩展思考",
+   "startLine": 382,
+   "endLine": 401,
+   "bodyChars": 826,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-附录-部分习题简答",
+   "order": 19,
+   "level": 2,
+   "title": "附录：部分习题简答",
+   "startLine": 402,
+   "endLine": 416,
+   "bodyChars": 1454,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+     "matchedLabel": "临界阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "1-3-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/1-3/media/1-3-intro-video.mp4",
+   "sha256": "29ec09654dae4041c8840349191d8d0876b5622ff9ce2b8aefbdd1a4975db637",
+   "durationSeconds": 238.144,
+   "transcriptSource": "videos-project:lesson-1-3/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 218.1,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 238.1,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 46,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 24.03,
+     "textPreview": "大家好，欢迎来到闲聊自控。自动舵上有一个增益旋钮，船还是那条船。把它拧大一点，修",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 24.45,
+     "endSeconds": 33.25,
+     "textPreview": "同一个结构，只改一个数字，行为为什么差这么多？今天我们就看清：这个旋钮到底在系统",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 35.23,
+     "endSeconds": 47.96,
+     "textPreview": "先看没有反馈时，增益能做什么。对象 G0 等于 s 乘 s 加 4 分之一，前面",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 47.96,
+     "endSeconds": 56.6,
+     "textPreview": "开环极点固定在 0 和 −4，K 改不动它们。现在加上单位负反馈。",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 56.6,
+     "endSeconds": 67.6,
+     "textPreview": "误差是期望减输出，输出是误差乘 K 再乘对象。消去误差，闭环传递函数等于 KG0",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+       "matchedLabel": "闭环传递函数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 67.6,
+     "endSeconds": 76.62,
+     "textPreview": "代入对象，分母变成 s 方加 4s 加 K。看出区别了吗？开环里 K 是乘数，只",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 76.62,
+     "endSeconds": 88.98,
+     "textPreview": "闭环里 K 进了特征方程，成了系数。每换一个 K，极点就跟着搬一次家。既然 K ",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 88.98,
+     "endSeconds": 101.83,
+     "textPreview": "s 等于 −2 加减根号下 4 减 K。K 很小时，两个极点在实轴上，一个从 −",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 102.25,
+     "endSeconds": 111.59,
+     "textPreview": "K 等于 4，两个极点在 −2 会合——这是临界阻尼。K 再大，极点离开实轴，变",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+       "matchedLabel": "临界阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 111.59,
+     "endSeconds": 123.1,
+     "textPreview": "实部停在 −2，衰减包络不再加速；虚部一直涨，摆动越来越密，超调出现了。注意，全",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 125.1,
+     "endSeconds": 136.22,
+     "textPreview": "极点预判完了，把三条完整响应曲线请出来验证。K 等于 1，两个实极点，单调慢收，",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 136.22,
+     "endSeconds": 148.78,
+     "textPreview": "K 等于 4，重极点——不产生超调的最快响应，约 2.4 秒。K 等于 8，共轭",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 149.2,
+     "endSeconds": 167.42,
+     "textPreview": "用 4% 出头的超调，换十倍的提速——这就是调参的交换。同样的三种脾气，在弹簧阻",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 167.84,
+     "endSeconds": 176.29,
+     "textPreview": "起点告诉你零增益时系统在哪，方向告诉你参数增大时往哪走，会合点告诉你行为在哪里发",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 176.29,
+     "endSeconds": 187.04,
+     "textPreview": "现在不用记绘制规则，会先读这张地图就够了。回到自动舵。同一艘船，三个工作点，三份",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 187.04,
+     "endSeconds": 200.13,
+     "textPreview": "保守、临界、少量超调——各有适用场景。但继续拧大 K，实部永远停在 −2，衰减不",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 200.13,
+     "endSeconds": 212.37,
+     "textPreview": "想突破它，就得改控制器的结构，那是模块三和四的任务。这一讲的核心动作只有一步：把",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 212.37,
+     "endSeconds": 221.03,
+     "textPreview": "从此增益成了结构变量，极点被它推着走，根轨迹就是这条参数、极点、行为之链的可视化",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 221.03,
+     "endSeconds": 226.09,
+     "textPreview": "留个悬念：旋钮换成积分或微分，极点还会这样走吗？",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "29ec09654dae4041c8840349191d8d0876b5622ff9ce2b8aefbdd1a4975db637",
+   "status": "anchored"
+  }
+ ]
+}

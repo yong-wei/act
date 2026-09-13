@@ -1,0 +1,1055 @@
+{
+ "contract": "act-active-runtime-media-index/v1",
+ "runtimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "manifestSha256": "a3102798ef559f23837230469871d5a7aa9eaae6b23c120d4004c652bee1955e",
+ "treeSha256": "4fc8cec5f69f8b943aeaf25c1fa8c790c47feb19d7cb90ab50c32802c5d02cf3",
+ "sourceRevision": "d09d3c3650a644909a83cd4edbb0c9cefed92cde",
+ "fileCount": 209,
+ "files": [
+  {
+   "path": "lessons/1-1/1-1-handout.md",
+   "sha256": "9852cdc9215b7e0c87b1fe456bd9e90e982f585332c71d4ccdd95b0d1f8eec99",
+   "sizeBytes": 34214
+  },
+  {
+   "path": "lessons/1-1/media/1-1-audio.m4a",
+   "sha256": "4f2ea482eece6e3802edfcfb557b3dc3a6845049072f52b730130518e4661178",
+   "sizeBytes": 40977983
+  },
+  {
+   "path": "lessons/1-1/media/1-1-bode-example.pdf",
+   "sha256": "df2e48bd4b528a3e580518b2e7f8266419f5057d3124cb9f555687b35f7056da",
+   "sizeBytes": 43271
+  },
+  {
+   "path": "lessons/1-1/media/1-1-course.mp4",
+   "sha256": "f56b4adc46b2ed526f160a3a51f063b6587f9065f4685bfe4a9167016deaf2eb",
+   "sizeBytes": 39620359
+  },
+  {
+   "path": "lessons/1-1/media/1-1-example-bode.pdf",
+   "sha256": "e49f3af56fc9b8e9d7b6a48667fb03d90698afe0318086e6aeaa57f6398adc77",
+   "sizeBytes": 43612
+  },
+  {
+   "path": "lessons/1-1/media/1-1-example-correction-triptych.pdf",
+   "sha256": "992236aa67873aa9b8ced29d859153f340a93fd7206c85e077c579dbbe72b340",
+   "sizeBytes": 32166
+  },
+  {
+   "path": "lessons/1-1/media/1-1-example-openloop-step.pdf",
+   "sha256": "69cf4fa2e562fa60efd022e34236cdf2f3ac7d3820aab31998879a10a8ba2153",
+   "sizeBytes": 7637
+  },
+  {
+   "path": "lessons/1-1/media/1-1-example-root-locus.pdf",
+   "sha256": "c30b2f57467f7814b469d3367925c8c1bdd84ddcdf77c79f291571b9cbaf5004",
+   "sizeBytes": 9351
+  },
+  {
+   "path": "lessons/1-1/media/1-1-gain-comparison.pdf",
+   "sha256": "6129d53ca9a7a7db2a5fb136eefac05c5de7471ed7c56a177b92cc6eb3d5ac9b",
+   "sizeBytes": 31669
+  },
+  {
+   "path": "lessons/1-1/media/1-1-intro-video.mp4",
+   "sha256": "3bfa1234aa5a6a65fff19bd4a0e586da82f3c75b3f668b5d96dceff58beafb24",
+   "sizeBytes": 79765940
+  },
+  {
+   "path": "lessons/1-1/media/1-1-root-locus-example.pdf",
+   "sha256": "a3c62f5a8c898e81d5ecf3e3b32dfd755dd4b63d3a83101d4f1e68bdfa4e2d95",
+   "sizeBytes": 8810
+  },
+  {
+   "path": "lessons/1-1/media/1-1-slides.pdf",
+   "sha256": "9896b8d775fcc474437c54df8a806f8beb2036cf896a0a336c6baaa8938c635e",
+   "sizeBytes": 26345071
+  },
+  {
+   "path": "lessons/1-1/media/1-1-step-response-first-order.pdf",
+   "sha256": "f36bdd22b5b06036f3f1e7af478ca4f3cc8eb5a1f4fffdada531f04d2b73b5ea",
+   "sizeBytes": 8052
+  },
+  {
+   "path": "lessons/1-2/1-2-handout.md",
+   "sha256": "7f7b7a4343bf449b6d29823d3068b1ff37fb9a4619a95b4bed6c5c26d857b6a8",
+   "sizeBytes": 27214
+  },
+  {
+   "path": "lessons/1-2/media/1-2-audio.m4a",
+   "sha256": "1a51dbf54610e60ed84b2edce99fb632e6b97262f8942ab5b22377d4fdf3f306",
+   "sizeBytes": 47440693
+  },
+  {
+   "path": "lessons/1-2/media/1-2-course.mp4",
+   "sha256": "64c1a2db2cbbc710a28791da706fe2b5d3f791363495698f0ec741e9e3ba8035",
+   "sizeBytes": 55045799
+  },
+  {
+   "path": "lessons/1-2/media/1-2-fig-03-direct-solve-response.pdf",
+   "sha256": "f36d3547cb85bbc352e02ee11dab18e2882cdbe00971d658173e46f80d6c8cbd",
+   "sizeBytes": 237004
+  },
+  {
+   "path": "lessons/1-2/media/1-2-fig-08-magnitude-surface.pdf",
+   "sha256": "92ef98cdb41a827f0cd860e4e35f1c9e94e7f96780ab086cee8886e9a71333a1",
+   "sizeBytes": 1421565
+  },
+  {
+   "path": "lessons/1-2/media/1-2-fig-09-phase-surface.pdf",
+   "sha256": "fd3056f3e46c626ec988119cd35c9bbabb2a96cac35dd35f9bd9f7f948b13c18",
+   "sizeBytes": 2320949
+  },
+  {
+   "path": "lessons/1-2/media/1-2-fig-10-s-plane-map.pdf",
+   "sha256": "8e553aa66f7fb38d64dcff9f0c96fcadd3b4c4b30ed867ca9e44cf2149da3da4",
+   "sizeBytes": 330857
+  },
+  {
+   "path": "lessons/1-2/media/1-2-fig-11-poles-responses.pdf",
+   "sha256": "4e7253c53c5cf290360bbd9be5a8192f68e53b5272a579c1ce3d99722cc7c286",
+   "sizeBytes": 133121
+  },
+  {
+   "path": "lessons/1-2/media/1-2-info.pdf",
+   "sha256": "19194287638b195acbe4c6c2d7cc2c63b885cdaa0a0a35bd65ae8459a56217e3",
+   "sizeBytes": 515677
+  },
+  {
+   "path": "lessons/1-2/media/1-2-intro-video.mp4",
+   "sha256": "a122e8ea3e7d72576754a4f3d28206dcb4659e2d6b6c08750bf25a7e7ac7bd2f",
+   "sizeBytes": 156021021
+  },
+  {
+   "path": "lessons/1-2/media/1-2-slides.pdf",
+   "sha256": "bd4d48c8599f56638f72375a6b096889b60e43a5ba60832fe4cf96fac673f6fb",
+   "sizeBytes": 23332622
+  },
+  {
+   "path": "lessons/1-3/1-3-handout.md",
+   "sha256": "b27576c9a1d1d95a35d24467e07a2c9566076984abe90be1c13761691dc7ce58",
+   "sizeBytes": 28406
+  },
+  {
+   "path": "lessons/1-3/media/1-3-fig-01-open-loop-scaling.pdf",
+   "sha256": "164009ebcf45a8f7e2e1f048cf0c62245e79b78e8e5a683dfa892649e8c2641e",
+   "sizeBytes": 19901
+  },
+  {
+   "path": "lessons/1-3/media/1-3-fig-02-open-closed-loop.pdf",
+   "sha256": "ffc46c15f967fa55f2da16407276262043eaf4b057f4f7d26fddba07ee6648f8",
+   "sizeBytes": 22541
+  },
+  {
+   "path": "lessons/1-3/media/1-3-fig-03-closed-loop-responses.pdf",
+   "sha256": "056e3e1f5b8470178ce6a5753e8bdc0d418a7defba7d5d74f54f0fde67fe229d",
+   "sizeBytes": 206887
+  },
+  {
+   "path": "lessons/1-3/media/1-3-fig-04-root-locus.pdf",
+   "sha256": "24d8f2c9bd820d37bd4cfe5ff58ca6bd30cdbad7be5faaba60b3e13dfae1f471",
+   "sizeBytes": 11915
+  },
+  {
+   "path": "lessons/1-3/media/1-3-intro-video.mp4",
+   "sha256": "29ec09654dae4041c8840349191d8d0876b5622ff9ce2b8aefbdd1a4975db637",
+   "sizeBytes": 23623432
+  },
+  {
+   "path": "lessons/1-4/1-4-handout.md",
+   "sha256": "578dc70c4a43675c53d17ecf73a47a8138faa8b92d011e3a8fc9c505d85e259a",
+   "sizeBytes": 31383
+  },
+  {
+   "path": "lessons/1-4/media/1-4-fig-01-step-responses.pdf",
+   "sha256": "e0f639ec484433fb18df2329e661beface187c40f7f32f76e154124c84644ab5",
+   "sizeBytes": 206880
+  },
+  {
+   "path": "lessons/1-4/media/1-4-fig-02-closed-loop-bode.pdf",
+   "sha256": "d9f5e0cbc617ae4a0c16d8ceff7ed59bd563053a0d69355700183f76b9045abb",
+   "sizeBytes": 43545
+  },
+  {
+   "path": "lessons/1-4/media/1-4-fig-03-open-loop-bode.pdf",
+   "sha256": "c1c1d3e70f896e0b8304838e929a3936ccec6e44e9d08d666328097ab5cb96e5",
+   "sizeBytes": 45780
+  },
+  {
+   "path": "lessons/1-4/media/1-4-fig-03b-loop-k8-bode.pdf",
+   "sha256": "e2b1963bd0669cf0066727ca3a250f2d83e1e5e905beaf5e2a7772d32f412c6f",
+   "sizeBytes": 46317
+  },
+  {
+   "path": "lessons/1-4/media/1-4-fig-04-open-loop-nyquist.pdf",
+   "sha256": "76738f844df3c409271c4be54d9a4d01933e1ca02e83f59755886453d9dc76ca",
+   "sizeBytes": 19393
+  },
+  {
+   "path": "lessons/1-4/media/1-4-fig-05-four-views.pdf",
+   "sha256": "a1d819ce108946bd08491036df7cdcceca8453499525721b4c5738f6d626b8b5",
+   "sizeBytes": 73118
+  },
+  {
+   "path": "lessons/1-4/media/1-4-fig-06-three-domain-reading.pdf",
+   "sha256": "a33c8755e83fab10b361dc7f318b3629ed497c0d80f84c0281126ae2e64677c8",
+   "sizeBytes": 58168
+  },
+  {
+   "path": "lessons/1-4/media/1-4-intro-video.mp4",
+   "sha256": "77e96afaaa06aaf3245987bf6408fd1223851d0153279a28b173cb7f879965ff",
+   "sizeBytes": 49014843
+  },
+  {
+   "path": "lessons/1-5/1-5-handout.md",
+   "sha256": "5c369d346a34ea118e793b05738f2ae5a5b1dd0617023c04c652666873aeb2b3",
+   "sizeBytes": 23359
+  },
+  {
+   "path": "lessons/1-5/media/1-5-fig-01-three-domain-k3.pdf",
+   "sha256": "ce57c976b0ce0febcee6a34653b5de28dba0cbbb4c67eb66055387baa2e55671",
+   "sizeBytes": 84202
+  },
+  {
+   "path": "lessons/1-5/media/1-5-fig-02-three-domain-k12.pdf",
+   "sha256": "6a43e50f9bfefd9d2ac99b473b0164cc4e82352616bf8a103df3008bff7882dc",
+   "sizeBytes": 86796
+  },
+  {
+   "path": "lessons/1-5/media/1-5-fig-03-step-k24-k36.pdf",
+   "sha256": "b6c09fdb9371d525a6c59c20ab751931fe46a16a912fc36d70ea7d09c081c9a8",
+   "sizeBytes": 139140
+  },
+  {
+   "path": "lessons/1-5/media/1-5-fig-04-critical-k42.pdf",
+   "sha256": "f98887c8f249625968c8e7f20da75289f06f60fed0324404f95089e755d03b4e",
+   "sizeBytes": 90401
+  },
+  {
+   "path": "lessons/1-5/media/1-5-fig-05-sweep-summary.pdf",
+   "sha256": "bbbd3623a5c156f41329eb492c3be1cc1f3801eda79e8b66451c5de0bf465f9c",
+   "sizeBytes": 184071
+  },
+  {
+   "path": "lessons/1-5/media/1-5-intro-video.mp4",
+   "sha256": "01c0bcee9b7cff6e77aa607eb68ad8aba0198fca134d38c3d0690cc2284c9ea5",
+   "sizeBytes": 37795784
+  },
+  {
+   "path": "lessons/2-1/2-1-handout.md",
+   "sha256": "6186945f611c9f7e31e11037c9eb4a915e6c42b5119f862b42a4543f5fca5165",
+   "sizeBytes": 40424
+  },
+  {
+   "path": "lessons/2-1/media/2-1-audio.m4a",
+   "sha256": "8bc57993aca6de149304381e609f3a18a3632cb1718889a8b911cffb4ebee7ff",
+   "sizeBytes": 30179332
+  },
+  {
+   "path": "lessons/2-1/media/2-1-course.mp4",
+   "sha256": "fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+   "sizeBytes": 40239737
+  },
+  {
+   "path": "lessons/2-1/media/2-1-intro-video.mp4",
+   "sha256": "f6d6931988f7c16601a17b16a9c5d3059f56b18d354f39215f21cab087c20e35",
+   "sizeBytes": 12007807
+  },
+  {
+   "path": "lessons/2-1/media/2-1-slides.pdf",
+   "sha256": "8418bbd21c9841c1421eb5ed13f947da2b9a67801d82bb20aeca128fcacfaf03",
+   "sizeBytes": 23830124
+  },
+  {
+   "path": "lessons/2-2/2-2-handout.md",
+   "sha256": "a58f5369ea96c93ef6aff8337d88a6b4566563a515d1cb01ea3d1d40e96b5829",
+   "sizeBytes": 40231
+  },
+  {
+   "path": "lessons/2-2/media/2-2-audio.m4a",
+   "sha256": "5992253e27abaa59606a4bc8ee46f6b3799815d1e3b6cfd888eda2a4bdd1e5ce",
+   "sizeBytes": 32373449
+  },
+  {
+   "path": "lessons/2-2/media/2-2-course.mp4",
+   "sha256": "73e004e57137cc0554e9458ac66664a904415e749992776b80e586abfd988564",
+   "sizeBytes": 60291740
+  },
+  {
+   "path": "lessons/2-2/media/2-2-intro-video.mp4",
+   "sha256": "68d61874569b8d0fc16dc91f3e521f5c6f9f76d641f9c60e45bdb5f0703ad375",
+   "sizeBytes": 11332287
+  },
+  {
+   "path": "lessons/2-2/media/2-2-slides.pdf",
+   "sha256": "f3e5ff4cfae5d70453bc2b2982759e7f3ddfb9319433b8f8160d39233715c15a",
+   "sizeBytes": 16247941
+  },
+  {
+   "path": "lessons/2-2/media/2-2-td-01-time-domain-input-response-overview.pdf",
+   "sha256": "4cd64b4f4bb4c2ee47cd0c33f2b2dc68476f027704058eee221cfc0c223ced2a",
+   "sizeBytes": 86764
+  },
+  {
+   "path": "lessons/2-2/media/2-2-td-02-first-order-step-time-constant.pdf",
+   "sha256": "21f7ae5ee0e164e97983e9884accf0d758e55d77c510361e9f734ed81e7780ab",
+   "sizeBytes": 45532
+  },
+  {
+   "path": "lessons/2-2/media/2-2-td-03-second-order-response-families.pdf",
+   "sha256": "9b6b46b3b3f7235b5cc622894fb314d81c66767c471d307f1c9e4d425460d00e",
+   "sizeBytes": 93578
+  },
+  {
+   "path": "lessons/2-2/media/2-2-td-04-time-domain-indices-annotated.pdf",
+   "sha256": "58e7ea6c434c643feb88cbcc4625023866aa1837f217f9d2589099c247e5e9da",
+   "sizeBytes": 46102
+  },
+  {
+   "path": "lessons/2-2/media/2-2-td-05-example-response-with-indices.pdf",
+   "sha256": "8d97efaadfbae19cc5f3eaa8704500d807a22e55d153d4cbe2e52603ee275430",
+   "sizeBytes": 88357
+  },
+  {
+   "path": "lessons/2-2/media/2-2-td-06-time-spec-to-pole-region.pdf",
+   "sha256": "37dbf01cdee81fa962337c58a75b6dabb9e02287f393e517ab7c6817a483f607",
+   "sizeBytes": 115937
+  },
+  {
+   "path": "lessons/2-3/2-3-handout.md",
+   "sha256": "7d1abcafcd8a519364c4276916bc6564e4065c8b81d5af908ce1cc089bd52d42",
+   "sizeBytes": 34481
+  },
+  {
+   "path": "lessons/2-3/media/2-3-audio.m4a",
+   "sha256": "52b8a246c143cb1f990dc179b97a2151e3b8bb33411f817f31dfd0f416b44a10",
+   "sizeBytes": 28069746
+  },
+  {
+   "path": "lessons/2-3/media/2-3-course.mp4",
+   "sha256": "b63304a0a6b9367f14f23f5d1f26557c14da23ecfd17ec8101a02d576ab11437",
+   "sizeBytes": 33536473
+  },
+  {
+   "path": "lessons/2-3/media/2-3-fr-01-command-vs-disturbance.pdf",
+   "sha256": "f2386bf1b5078ea0e9fc523bbb649f8154e288a0d406acb4f74d789a80755882",
+   "sizeBytes": 85178
+  },
+  {
+   "path": "lessons/2-3/media/2-3-fr-02-square-wave-harmonics.pdf",
+   "sha256": "21571d5bc4dcdb43ccf088346a9a73ea789202c9beb456d3dc92837f5e07cc6e",
+   "sizeBytes": 99204
+  },
+  {
+   "path": "lessons/2-3/media/2-3-fr-03-sine-in-sine-out.pdf",
+   "sha256": "9e842e7ae3ee6387ed3f137fcce09e854bf2327d7b39746d79961201f498fa81",
+   "sizeBytes": 72216
+  },
+  {
+   "path": "lessons/2-3/media/2-3-intro-video.mp4",
+   "sha256": "14d2f6e5ac4f051dcec7e3e990f228ee3950636df3159c88037188cd1527d506",
+   "sizeBytes": 12031542
+  },
+  {
+   "path": "lessons/2-3/media/2-3-slides.pdf",
+   "sha256": "881b05ce528613693aeefee89b481d67200eb2c90f03d7cd49bd65419ca1c411",
+   "sizeBytes": 24693669
+  },
+  {
+   "path": "lessons/2-4/2-4-handout.md",
+   "sha256": "66a10371a625c4ad38e91dd0403da328e87d07afa74c923337d3c1aae326c133",
+   "sizeBytes": 33391
+  },
+  {
+   "path": "lessons/2-4/media/2-4-audio.m4a",
+   "sha256": "74631dfb24a9d4fdd4e6ce671ced97f9f7f10814297f029bafa7140c90398bcd",
+   "sizeBytes": 39349606
+  },
+  {
+   "path": "lessons/2-4/media/2-4-course.mp4",
+   "sha256": "76a9f7fcbdd6188d8b9c209e96ed72b098b96b17d54048c78ba3464596771305",
+   "sizeBytes": 28290742
+  },
+  {
+   "path": "lessons/2-4/media/2-4-fd-05-first-order-nyquist-track.pdf",
+   "sha256": "e9e7648c6fb9908b92b5dbed7ce69e23330725d45b5b4a7dcc15a9a3c31e0742",
+   "sizeBytes": 34163
+  },
+  {
+   "path": "lessons/2-4/media/2-4-fd-06-pure-pole-nyquist-comparison.pdf",
+   "sha256": "75ce315d239665e3922be831d7dc43465af50008cc3afb198e9e2d0c13ffc5b0",
+   "sizeBytes": 47248
+  },
+  {
+   "path": "lessons/2-4/media/2-4-fd-08-bode-nyquist-consistency-panel.pdf",
+   "sha256": "1f3a8068e4c9abf73587ea979a241c583883474c00fc5d708c81836c16ebd4f9",
+   "sizeBytes": 60702
+  },
+  {
+   "path": "lessons/2-4/media/2-4-intro-video.mp4",
+   "sha256": "c154868418030c00533fdf84ac821185c214884e09be2c1166b067a471f29af9",
+   "sizeBytes": 11900773
+  },
+  {
+   "path": "lessons/2-4/media/2-4-slides.pdf",
+   "sha256": "778bfa2db01a6503a5b1c239c46eef318056c286aa6837ea438d8b7fb72c2b85",
+   "sizeBytes": 15930649
+  },
+  {
+   "path": "lessons/3-1/3-1-handout.md",
+   "sha256": "3ac67089852c0ea0695ecf014b2f8c8c7c1ad59f372f6bb9f53bf0a7b0e04dfd",
+   "sizeBytes": 19252
+  },
+  {
+   "path": "lessons/3-1/media/3-1-audio.m4a",
+   "sha256": "b5a6ea9544788a2a2177ebcb007195619cf38d79b918fd296f2f592a1c872656",
+   "sizeBytes": 33000447
+  },
+  {
+   "path": "lessons/3-1/media/3-1-course.mp4",
+   "sha256": "ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+   "sizeBytes": 35028191
+  },
+  {
+   "path": "lessons/3-1/media/3-1-intro-video.mp4",
+   "sha256": "ab079e59d13941ec461919606251dc3047b0f177431c6193cac4b8803c649be4",
+   "sizeBytes": 12137008
+  },
+  {
+   "path": "lessons/3-1/media/3-1-pp-01-stability-half-plane.pdf",
+   "sha256": "cf80715b25cc4a1727e02c461e0135da1219a3fef845f45c22d25171576a14c2",
+   "sizeBytes": 16700
+  },
+  {
+   "path": "lessons/3-1/media/3-1-pp-02-poles-and-modes.pdf",
+   "sha256": "3569c7985116641ad3cd52015ecefd83c7cac4069cba1f0ec7aa2339614ce625",
+   "sizeBytes": 39326
+  },
+  {
+   "path": "lessons/3-1/media/3-1-pp-03-dominant-pole-response-families.pdf",
+   "sha256": "e2c4489628ada5d4746e57968ba38f8a23ffc05cfb243513bb23c316b3913a9f",
+   "sizeBytes": 37320
+  },
+  {
+   "path": "lessons/3-1/media/3-1-pp-04-modal-superposition-high-order.pdf",
+   "sha256": "39f76ec682466f667138a23eedb2dc00649377e27ad6e4a5e57264e3209c29f7",
+   "sizeBytes": 40666
+  },
+  {
+   "path": "lessons/3-1/media/3-1-pp-05-bode-model-reduction.pdf",
+   "sha256": "8fdd7cb07f42acaee6960e7486806859adb402ad802cd037ae4dafc355fb2699",
+   "sizeBytes": 91341
+  },
+  {
+   "path": "lessons/3-1/media/3-1-pp-06-convolution-step-from-impulse.pdf",
+   "sha256": "4349b12fa9c6b4c75915caf4c745630852d6f2aa6a601b9d9bd8907c0e1e2a40",
+   "sizeBytes": 57508
+  },
+  {
+   "path": "lessons/3-1/media/3-1-slides.pdf",
+   "sha256": "4c6fbd2e09dc2236c0a5cd7c9331260fc8b34aacd9013027d6a7e823471b1595",
+   "sizeBytes": 10543340
+  },
+  {
+   "path": "lessons/3-2/3-2-handout.md",
+   "sha256": "4dde9485a203a91dcbc7af9e50cae27ca159e49a2dfb78e5ef3e016ec7480602",
+   "sizeBytes": 29462
+  },
+  {
+   "path": "lessons/3-2/media/3-2-audio.m4a",
+   "sha256": "e37cdc075b7204b1e15941a64b1f6b8e63188ec164ce313201b3a505acef2877",
+   "sizeBytes": 38250365
+  },
+  {
+   "path": "lessons/3-2/media/3-2-course.mp4",
+   "sha256": "54ffce986a5717aed90de8424f9c5a198958ff378a666fc3e316925137bdee3a",
+   "sizeBytes": 37229308
+  },
+  {
+   "path": "lessons/3-2/media/3-2-intro-video.mp4",
+   "sha256": "647d4890542beb404303370e4e1b112089e0a1b4a63f87e023b425a88b340695",
+   "sizeBytes": 12169727
+  },
+  {
+   "path": "lessons/3-2/media/3-2-parameter-range-flow.pdf",
+   "sha256": "a0839a299a47a71f0d7de03b7a4fed39123fac5cbc9d6db4811afa7d264aed2b",
+   "sizeBytes": 120463
+  },
+  {
+   "path": "lessons/3-2/media/3-2-slides.pdf",
+   "sha256": "6c6d95fc4c052896e8b6270c50c98a013459dd6717f682a3a9bf43664e8a3308",
+   "sizeBytes": 21428159
+  },
+  {
+   "path": "lessons/3-2/media/3-2-special-cases-card.pdf",
+   "sha256": "b45406c9e30b5fa11b1eee5d901c262d2abb73e5c089ac4d59d3ad7906593afc",
+   "sizeBytes": 179895
+  },
+  {
+   "path": "lessons/3-3/3-3-handout.md",
+   "sha256": "85863c98c471aa87b82354f293f25a871cddbf281e28ae17d551230ca338243d",
+   "sizeBytes": 21486
+  },
+  {
+   "path": "lessons/3-3/media/3-3-audio.m4a",
+   "sha256": "942e63aa87ed94ad9ac496863cd860396c631b3df80f7b38312b55b12db7db21",
+   "sizeBytes": 42335069
+  },
+  {
+   "path": "lessons/3-3/media/3-3-course.mp4",
+   "sha256": "3e3c9e56d73f8a51c7debf4e1d24bf2ef67421319f7e633da6663b1c00c173ea",
+   "sizeBytes": 38629535
+  },
+  {
+   "path": "lessons/3-3/media/3-3-example-01-skeleton.pdf",
+   "sha256": "4fb0fbc2bdfd4db3663683b9933e836f4ac93877fe917257b41ba2283887c47f",
+   "sizeBytes": 73646
+  },
+  {
+   "path": "lessons/3-3/media/3-3-example-02-breakaway-crossing.pdf",
+   "sha256": "c2d09794e949183895c03fba7979a8ad288cc9125255857b1f35b53f3ce44f50",
+   "sizeBytes": 76397
+  },
+  {
+   "path": "lessons/3-3/media/3-3-example-03-departure-sum.pdf",
+   "sha256": "e0c606d14aa99f93df7fe06ce120838546a7ce0ac2296e9d99aa890dbd3ebfa8",
+   "sizeBytes": 68427
+  },
+  {
+   "path": "lessons/3-3/media/3-3-intro-video.mp4",
+   "sha256": "9a4ddc704bdbfa8df1baf0f6f49d8de09bad8f4b70518852f85c098c9a455ac0",
+   "sizeBytes": 12116276
+  },
+  {
+   "path": "lessons/3-3/media/3-3-pp-02-generalized-root-locus-map.pdf",
+   "sha256": "3e576f92801cb783f9dd6e7b4549c884b3acbe805dc30d9c28513270e25ebc5c",
+   "sizeBytes": 85593
+  },
+  {
+   "path": "lessons/3-3/media/3-3-pp-03-angle-and-magnitude-geometry.pdf",
+   "sha256": "02cbd73c5f8a46e8227f691dbf9beb8638e7279b5ec9626060958775e2e4820c",
+   "sizeBytes": 88536
+  },
+  {
+   "path": "lessons/3-3/media/3-3-pp-04-complete-rules-example.pdf",
+   "sha256": "168176d9eea68b7f551f57ebfd6dccc8a6e5f98c71fa2abc084b239dc4338c2e",
+   "sizeBytes": 123885
+  },
+  {
+   "path": "lessons/3-3/media/3-3-pp-05-real-axis-parity.pdf",
+   "sha256": "826b9ffbb854f4e7e948efe4a196a5188313c29685c57cf40daab7e8c43f5d70",
+   "sizeBytes": 72892
+  },
+  {
+   "path": "lessons/3-3/media/3-3-pp-06-departure-arrival-angle.pdf",
+   "sha256": "1d48ffc7969162aebee2179a0d20b3dc4d581caa8bf642526d455c5f5f1ff3b7",
+   "sizeBytes": 81347
+  },
+  {
+   "path": "lessons/3-3/media/3-3-pp-07-generalized-time-constant-example.pdf",
+   "sha256": "b79881082b18a650ed481e820328aad2ad502c5fdf07b3c72d3e2263f0931eb0",
+   "sizeBytes": 80490
+  },
+  {
+   "path": "lessons/3-3/media/3-3-pp-08-dynamics-translation.pdf",
+   "sha256": "5f764d4c69694db4ad7f11269484daaa78286dec50e69a50584337382618f10e",
+   "sizeBytes": 82739
+  },
+  {
+   "path": "lessons/3-3/media/3-3-slides.pdf",
+   "sha256": "a1a3bc2ef1c8cd3340b3bd441543bc3cf7673528253d350eb430a91f1f20c28f",
+   "sizeBytes": 20511771
+  },
+  {
+   "path": "lessons/3-4/3-4-handout.md",
+   "sha256": "af3aebe6bd21afd493db72ab591b9f3f9035501b309cd6ad16cd01ef31343231",
+   "sizeBytes": 32024
+  },
+  {
+   "path": "lessons/3-4/media/3-4-audio.m4a",
+   "sha256": "3666f4d99e046e04f004d0d65474b9635517d5f11638305712cc1e38db3b29c0",
+   "sizeBytes": 41022806
+  },
+  {
+   "path": "lessons/3-4/media/3-4-course.mp4",
+   "sha256": "c83fe3508d11465ddb65cbc6edca1653c6592d21fe6cec8978af61cc557f533e",
+   "sizeBytes": 42444380
+  },
+  {
+   "path": "lessons/3-4/media/3-4-intro-video.mp4",
+   "sha256": "151d6d4f460ffbfb797eed817af2d1c4a95150ee374c5b49965899f2c8833c7b",
+   "sizeBytes": 12054287
+  },
+  {
+   "path": "lessons/3-4/media/3-4-slides.pdf",
+   "sha256": "1bc57cb8a41bc5170b7b59086ce0122143d7e04a15edadfb13529f158a1cad3e",
+   "sizeBytes": 16073071
+  },
+  {
+   "path": "lessons/3-5/3-5-handout.md",
+   "sha256": "97b33ccac87703bfea35dbcef7311ba45f3c4a6d5cfde6c207a5e96470cbd4ad",
+   "sizeBytes": 29526
+  },
+  {
+   "path": "lessons/3-5/media/3-5-audio.m4a",
+   "sha256": "25818859b3b09ec4166aeb12a1a495b31b16a744e532443b62ae0f2f296955c4",
+   "sizeBytes": 42979996
+  },
+  {
+   "path": "lessons/3-5/media/3-5-course.mp4",
+   "sha256": "ffd1facb155c34f874e9ccc34e6135ce7156de28c29585f5337381ed082d8c21",
+   "sizeBytes": 36223401
+  },
+  {
+   "path": "lessons/3-5/media/3-5-intro-video.mp4",
+   "sha256": "f503201fa875fe524559f847af7a7c74446b796d13bbb7e5a14ba153b0d4243e",
+   "sizeBytes": 12055414
+  },
+  {
+   "path": "lessons/3-5/media/3-5-slides.pdf",
+   "sha256": "c1771cd7778fdb4539a6567ae72f1b80da38960cd5f4f1c157b95d5d579e8f15",
+   "sizeBytes": 22554456
+  },
+  {
+   "path": "lessons/3-6/3-6-handout.md",
+   "sha256": "40e0d190acb42b325350a50f003faa7486f31602ac64ece0aaf89ca7b50809f6",
+   "sizeBytes": 26832
+  },
+  {
+   "path": "lessons/3-6/media/3-6-audio.m4a",
+   "sha256": "e9c4aadfad3688756e6cef300699a02df37e2cc107814867e0faff8929754a53",
+   "sizeBytes": 39221863
+  },
+  {
+   "path": "lessons/3-6/media/3-6-course.mp4",
+   "sha256": "362c9589c623a43cfafc9be5cada750d512b8180d00ae6965cbec668b3b442a0",
+   "sizeBytes": 27488831
+  },
+  {
+   "path": "lessons/3-6/media/3-6-intro-video.mp4",
+   "sha256": "3b620996cc826ef12f5e04805b3567c15ac580f1213c84125e2dcb28414dc0dd",
+   "sizeBytes": 12120088
+  },
+  {
+   "path": "lessons/3-6/media/3-6-slides.pdf",
+   "sha256": "c2f29f487955791408bb5875ae0284b4147227a268e10f9dbfd117ac8233ed2b",
+   "sizeBytes": 24618769
+  },
+  {
+   "path": "lessons/3-7/3-7-handout.md",
+   "sha256": "bb91da00d74187bb85807d30d5db35e4347d489100cc289671e3b38c8266d9da",
+   "sizeBytes": 26086
+  },
+  {
+   "path": "lessons/3-7/media/3-7-audio.m4a",
+   "sha256": "95fe81de36ce0485eeb6a30d07b85fc8c7a1e2da1d87a2d0e39d622915f6a382",
+   "sizeBytes": 36987405
+  },
+  {
+   "path": "lessons/3-7/media/3-7-course.mp4",
+   "sha256": "dfa4f7abe44a83907dc291ec95da71ad33a675d6dbb94dcf0e599bcd1f062630",
+   "sizeBytes": 32685696
+  },
+  {
+   "path": "lessons/3-7/media/3-7-error-dual-channel.pdf",
+   "sha256": "29cf340f5da43cb3188a838aa307b545fdfd30fb1e53c65bf5cedfffaa66023e",
+   "sizeBytes": 14048
+  },
+  {
+   "path": "lessons/3-7/media/3-7-example2-structure.pdf",
+   "sha256": "944e2e97f27588c132d2ce2fc697b7d9367e6d17319af6fbf5902eb9bb70f800",
+   "sizeBytes": 25187
+  },
+  {
+   "path": "lessons/3-7/media/3-7-intro-video.mp4",
+   "sha256": "e3273cf3d1f074603d3a9017176e160b0959df3e2a1b36cb791d06219f2e08a5",
+   "sizeBytes": 12313524
+  },
+  {
+   "path": "lessons/3-7/media/3-7-slides.pdf",
+   "sha256": "093b83665d50aec85d260dbf3113a43241f09bbe4596ea905d8539ccaeea478d",
+   "sizeBytes": 17459713
+  },
+  {
+   "path": "lessons/3-8/3-8-handout.md",
+   "sha256": "183cfc40d71b05c0ac01046a837e5f88c62d51d87248557f08fbf91dc7e738a2",
+   "sizeBytes": 30418
+  },
+  {
+   "path": "lessons/3-8/media/3-8-audio.m4a",
+   "sha256": "dc958e12d5b4a7c5936a24a3aaa8c01a19db553bfa9158f2683edba5a179cf23",
+   "sizeBytes": 31496921
+  },
+  {
+   "path": "lessons/3-8/media/3-8-course.mp4",
+   "sha256": "e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+   "sizeBytes": 41198644
+  },
+  {
+   "path": "lessons/3-8/media/3-8-intro-video.mp4",
+   "sha256": "ec31080063bab44e1a1aa92d8b2749833ce15fdb6ed98a8f4cc3cc64e1ff3982",
+   "sizeBytes": 11982304
+  },
+  {
+   "path": "lessons/3-8/media/3-8-slides.pdf",
+   "sha256": "c7a32700d573896541788734adc3a303f2a76747ab4fd90290e002af8d883560",
+   "sizeBytes": 20468830
+  },
+  {
+   "path": "lessons/3-9/3-9-handout.md",
+   "sha256": "480de2e0f2503045739717a024e93e088588896f8286d353cbcf6ff02e2783fb",
+   "sizeBytes": 24614
+  },
+  {
+   "path": "lessons/3-9/media/3-9-audio.m4a",
+   "sha256": "ec791b6a895aad911508de079549426ae594b386da3d2a8d7315dd21e040340d",
+   "sizeBytes": 47194801
+  },
+  {
+   "path": "lessons/3-9/media/3-9-course.mp4",
+   "sha256": "30dbd95e478918fd4911f9ccaef46f6cc05a2f287bab13a95dd246b4271dd079",
+   "sizeBytes": 38646611
+  },
+  {
+   "path": "lessons/3-9/media/3-9-intro-video.mp4",
+   "sha256": "d016196414b70a092da1fe343cd9ea6df92ce98ea859f569dde5ef3a9266b153",
+   "sizeBytes": 12145908
+  },
+  {
+   "path": "lessons/3-9/media/3-9-slides.pdf",
+   "sha256": "3cb2697afec4509e373d04727af2cb7b48d8c5d569056d6b0d8a64dcc85368d7",
+   "sizeBytes": 18155843
+  },
+  {
+   "path": "lessons/4-1/4-1-handout.md",
+   "sha256": "27b9c06f8b881148cfd2ff2a98a0f938a8e9ba9961fe1e12c47689d6c5ed2925",
+   "sizeBytes": 30028
+  },
+  {
+   "path": "lessons/4-1/media/4-1-audio.m4a",
+   "sha256": "37932cea190e0fc19da383aaa9df46936a61212d2fda115cecdaedd5909587e0",
+   "sizeBytes": 40028149
+  },
+  {
+   "path": "lessons/4-1/media/4-1-course.mp4",
+   "sha256": "4d2f982b6d771fcf2ade192a5102cf69136073d53c5444cbd4bb86ddce2b54a9",
+   "sizeBytes": 42402872
+  },
+  {
+   "path": "lessons/4-1/media/4-1-intro-video.mp4",
+   "sha256": "74a541e911fe210a518c62b3ad3c80812545cf303ccb600365e3f3c80a5d63bc",
+   "sizeBytes": 11378106
+  },
+  {
+   "path": "lessons/4-1/media/4-1-slides.pdf",
+   "sha256": "b04d65f5c543d2c812da024fc7477eda39f327ec5f22f39fa14085eab714dcd2",
+   "sizeBytes": 16790513
+  },
+  {
+   "path": "lessons/4-2/4-2-handout.md",
+   "sha256": "a26a6f68f387fbb93dd91a16d2295e2c4c435464aa25e4cb697c8154cbf9ce57",
+   "sizeBytes": 22522
+  },
+  {
+   "path": "lessons/4-2/media/4-2-audio.m4a",
+   "sha256": "b1b02bfabf110d99cd9b282b3d6560c555bf7e6c9dd7270bfd011377c99fe2f9",
+   "sizeBytes": 41132620
+  },
+  {
+   "path": "lessons/4-2/media/4-2-course.mp4",
+   "sha256": "dfc8316cd2ff64138cbf2df665d456258a928dcc082c4809e5919d70d73335d7",
+   "sizeBytes": 41437801
+  },
+  {
+   "path": "lessons/4-2/media/4-2-intro-video.mp4",
+   "sha256": "026ace23b4c66b4bead7be08719417a4a309af3ac23a4820596090f568b1d2b3",
+   "sizeBytes": 11170514
+  },
+  {
+   "path": "lessons/4-2/media/4-2-slides.pdf",
+   "sha256": "044fa71f1a6fb4e5f2e63a58b5895ff25feafb4440ecb6ac1605423dab1e0f73",
+   "sizeBytes": 17920748
+  },
+  {
+   "path": "lessons/4-3/4-3-handout.md",
+   "sha256": "2936f4cd5b8bb20d1e85c0895d594cf2701688111993e6971a3b1c29f08faa35",
+   "sizeBytes": 26383
+  },
+  {
+   "path": "lessons/4-3/media/4-3-audio.m4a",
+   "sha256": "499bbad1a1ff9335fafad21336abbffb822ebb1e800045c7e80f4fa21ada459b",
+   "sizeBytes": 35142271
+  },
+  {
+   "path": "lessons/4-3/media/4-3-course.mp4",
+   "sha256": "0e79b1b0362479a0c11acadaf81e2430502d1705502739fad76e9fe667d697dd",
+   "sizeBytes": 50536339
+  },
+  {
+   "path": "lessons/4-3/media/4-3-intro-video.mp4",
+   "sha256": "95514c76c6410c24cca005ba11cf32f78af0f02bc571cb39aae6f6bddbcf3016",
+   "sizeBytes": 12091713
+  },
+  {
+   "path": "lessons/4-3/media/4-3-slides.pdf",
+   "sha256": "5e2da44d04a5b26f8e9899f0ad87ea44b41274ec8c2cb66fcd55881ec9c14c50",
+   "sizeBytes": 24721694
+  },
+  {
+   "path": "lessons/4-4/4-4-handout.md",
+   "sha256": "b1d5506155a249953e29c8466c57c364a9e11e71b833c76ac4633a2c5ffca24a",
+   "sizeBytes": 23237
+  },
+  {
+   "path": "lessons/4-4/media/4-4-audio.m4a",
+   "sha256": "c9dd210abb1438996a09e47af9a262eeb6d75a03354ddae03c241af7e05bc2f1",
+   "sizeBytes": 28465793
+  },
+  {
+   "path": "lessons/4-4/media/4-4-course.mp4",
+   "sha256": "600501060c7deba1e08d2c5b8d33ed8f0544add8316c689666ba139148cae2dc",
+   "sizeBytes": 28296414
+  },
+  {
+   "path": "lessons/4-4/media/4-4-intro-video.mp4",
+   "sha256": "c88a11db4164b8509410f32cda62eccfd3d8b778cbc4c1de25b1ce1c05a1c5b6",
+   "sizeBytes": 11400782
+  },
+  {
+   "path": "lessons/4-4/media/4-4-slides.pdf",
+   "sha256": "d83c18cd4e7197338ac4f3d7a63e606d23af3cedc7e6e0e782121cbbbb9f6876",
+   "sizeBytes": 20798651
+  },
+  {
+   "path": "lessons/4-5/4-5-handout.md",
+   "sha256": "7f449ea9e3d31420ce053320f6f1f5aa7137d36fd30f1570a4f55523062efb72",
+   "sizeBytes": 25213
+  },
+  {
+   "path": "lessons/4-5/media/4-5-audio.m4a",
+   "sha256": "81d3b9635bf43d2b65c185ac4b8da5e9eaec07d379b8b257fa31798ea7564928",
+   "sizeBytes": 25667089
+  },
+  {
+   "path": "lessons/4-5/media/4-5-course.mp4",
+   "sha256": "53915146d9fd4d37ac23fbf04b72941ad7a99ef4634de11de2c94104f6d3da65",
+   "sizeBytes": 36779004
+  },
+  {
+   "path": "lessons/4-5/media/4-5-intro-video.mp4",
+   "sha256": "d1f3b1ca367fe7be5cddf0560d1fbb5bf4c0848e31bb0f75c4d47e4fff825284",
+   "sizeBytes": 11555323
+  },
+  {
+   "path": "lessons/4-5/media/4-5-slides.pdf",
+   "sha256": "014ef7846867e44427c8b94da64c97333b14881fc89f6578176ab383d7ca9279",
+   "sizeBytes": 16107406
+  },
+  {
+   "path": "lessons/4-6/4-6-handout.md",
+   "sha256": "c45b25102dbbb2b67d2542b8643938f95cf802a8ee97ff21467c624b71baf896",
+   "sizeBytes": 28501
+  },
+  {
+   "path": "lessons/4-6/media/4-6-audio.m4a",
+   "sha256": "7fb63702a6d5d2b4a716f4b3c68b892eca939837fe12a3b97d73d47b6fdd8915",
+   "sizeBytes": 41925576
+  },
+  {
+   "path": "lessons/4-6/media/4-6-course.mp4",
+   "sha256": "5cd392c74a03a4c8799a94c358de0271b54786b55ade1b65492b09ef4eb9b349",
+   "sizeBytes": 41059916
+  },
+  {
+   "path": "lessons/4-6/media/4-6-intro-video.mp4",
+   "sha256": "1ce07c54968651e4786b99a79c914e8974af4828514ab57b2a363f88e6eb0c78",
+   "sizeBytes": 11427259
+  },
+  {
+   "path": "lessons/4-6/media/4-6-slides.pdf",
+   "sha256": "1a1768c9e00e1c27f2f9cc960c6b0cad2a75f393ac4f711f08dfc88b47993a43",
+   "sizeBytes": 15485430
+  },
+  {
+   "path": "lessons/4-7/4-7-handout.md",
+   "sha256": "4fd47f86e022e12b0550a5e6842d35cdb669847461d5c060dec22f56a66c739c",
+   "sizeBytes": 25152
+  },
+  {
+   "path": "lessons/4-7/media/4-7-audio.m4a",
+   "sha256": "ded1b7254c77f94eecebef0f391207bde6c9b2ac5b7d32e4c217902a9d9006b1",
+   "sizeBytes": 34743237
+  },
+  {
+   "path": "lessons/4-7/media/4-7-course.mp4",
+   "sha256": "0467b5426d73878e3a177ab1e765e9a47541a7f5e2683018f493d4850f9b4ec7",
+   "sizeBytes": 45794473
+  },
+  {
+   "path": "lessons/4-7/media/4-7-intro-video.mp4",
+   "sha256": "c8181dd8a3ca4f7ecbd60d4baa77b3afdd3baadbbc93b03a50e25babcfe7a3c9",
+   "sizeBytes": 22294641
+  },
+  {
+   "path": "lessons/4-7/media/4-7-slides.pdf",
+   "sha256": "ad1df30f9e68efd8ea0dbe849862e885bc6ede271f277d42e54f3809c2a70463",
+   "sizeBytes": 17432553
+  },
+  {
+   "path": "lessons/5-1/5-1-handout.md",
+   "sha256": "51e0b2305273d6123cc3329c1df332529f89dc3dd755cc777c36a59517e897d3",
+   "sizeBytes": 23029
+  },
+  {
+   "path": "lessons/5-1/media/5-1-audio.m4a",
+   "sha256": "afc6ce2b72108e62e05fb1fef0249c320bda55a82c32df0d8030bc650353df1d",
+   "sizeBytes": 38662099
+  },
+  {
+   "path": "lessons/5-1/media/5-1-course.mp4",
+   "sha256": "7bd36ce537ebbf3b66bc909dea16a9aee2b54aef5b787eea246a975372cddcf4",
+   "sizeBytes": 48068508
+  },
+  {
+   "path": "lessons/5-1/media/5-1-intro-video.mp4",
+   "sha256": "47ee99c7dd9b43ea76ba7c1ca6d7629faa4370434cf2ce115beb8d442a103f41",
+   "sizeBytes": 37233155
+  },
+  {
+   "path": "lessons/5-1/media/5-1-slides.pdf",
+   "sha256": "5ca2e3657f98ea21ddda3c1ddbba77f0dda99cf6cf888220957fc952a6e96c8a",
+   "sizeBytes": 18422932
+  },
+  {
+   "path": "lessons/5-2/5-2-handout.md",
+   "sha256": "f93ec571571384d16c5c41d6ce10c1ff82d0b0841d33f03de41a650abda8fc96",
+   "sizeBytes": 28909
+  },
+  {
+   "path": "lessons/5-2/media/5-2-audio.m4a",
+   "sha256": "aaf656e41fd2fe705b22a26f3ab666c66dc4a30b6b297dd4a56b510fc515c7c2",
+   "sizeBytes": 49941959
+  },
+  {
+   "path": "lessons/5-2/media/5-2-course.mp4",
+   "sha256": "91f1fd3646640a210cc0e159bd4b64aebdad4fc20311b69fb19f8e127f0241bd",
+   "sizeBytes": 40952806
+  },
+  {
+   "path": "lessons/5-2/media/5-2-intro-video.mp4",
+   "sha256": "6ce1c907e1d8fc245e98e72871ab5a91cfe34d6a31c201579d308d6075850e5a",
+   "sizeBytes": 33758469
+  },
+  {
+   "path": "lessons/5-2/media/5-2-slides.pdf",
+   "sha256": "d505bea9ed649b685c534ec1097613ceac0c03eefd18e3dc14f470273d174008",
+   "sizeBytes": 25569176
+  },
+  {
+   "path": "lessons/5-3/5-3-handout.md",
+   "sha256": "19380834987f3a2479cd94badd4babe7e51e14e8b0e2151cad4fb3d590f3d8e4",
+   "sizeBytes": 26571
+  },
+  {
+   "path": "lessons/5-3/media/5-3-audio.m4a",
+   "sha256": "545146c6cefc9ed9700f2a7ec9da3419fa199e39578f7d64106699ac65beefc1",
+   "sizeBytes": 32541649
+  },
+  {
+   "path": "lessons/5-3/media/5-3-course.mp4",
+   "sha256": "02efd6a83d36487a1e2f112af67c6fca772c691f46a02c13ca18f64878e26e20",
+   "sizeBytes": 45080770
+  },
+  {
+   "path": "lessons/5-3/media/5-3-intro-video.mp4",
+   "sha256": "75f1ab01aa6e285bc6e094f19e59f4ef715b8dac07e124f9bb7bb31c60bacf55",
+   "sizeBytes": 38864677
+  },
+  {
+   "path": "lessons/5-3/media/5-3-slides.pdf",
+   "sha256": "0f05be85f8f4a3a4fb671d30a54a6c4c3744493d5ae9773558db97fb0a1cae17",
+   "sizeBytes": 20500209
+  },
+  {
+   "path": "lessons/5-4/5-4-handout.md",
+   "sha256": "4a261e014bddc2dad2f3331e05bd2e3c679ead52c6f453cffbcb5d918c29e487",
+   "sizeBytes": 31106
+  },
+  {
+   "path": "lessons/5-4/media/5-4-audio.m4a",
+   "sha256": "a9023905ea77a247aa40496861a2d6b8378b5af2657a991e14e6cd668a31003e",
+   "sizeBytes": 31700883
+  },
+  {
+   "path": "lessons/5-4/media/5-4-course.mp4",
+   "sha256": "d08b19a869ebecdc48bbaf2517b2f3599aadc424384f5c62b5d462d914cc18b7",
+   "sizeBytes": 35232369
+  },
+  {
+   "path": "lessons/5-4/media/5-4-intro-video.mp4",
+   "sha256": "97f96a7bb05973b63b6df8abca29d329e28f757c1c4cdbf96e64b09ff33e0b4d",
+   "sizeBytes": 27616444
+  },
+  {
+   "path": "lessons/5-4/media/5-4-slides.pdf",
+   "sha256": "a644e5cbd1a8a9a6590161a3a5f1501c4d292d7d7718f43e8c8b488126341bde",
+   "sizeBytes": 23077984
+  },
+  {
+   "path": "lessons/5-5/5-5-handout.md",
+   "sha256": "0073d0dff706fd86e3ce7ceb7f3220081b6fd3977c8f037f141a5bef1d305519",
+   "sizeBytes": 30927
+  },
+  {
+   "path": "lessons/5-5/media/5-5-audio.m4a",
+   "sha256": "4468eb29c37c2dfa12d7c68606fc9e40d3943dd3cc0dd04b9ba76ab1a8ec3464",
+   "sizeBytes": 41900924
+  },
+  {
+   "path": "lessons/5-5/media/5-5-course.mp4",
+   "sha256": "29662a74ecb811e8659bfb5044339089b3f03e065094274bd78e193d81e5821d",
+   "sizeBytes": 69507509
+  },
+  {
+   "path": "lessons/5-5/media/5-5-intro-video.mp4",
+   "sha256": "943f0a714c387aa5061b5f177dcc7337d9aeea03eccccb2130232ca9ccf34540",
+   "sizeBytes": 26418716
+  },
+  {
+   "path": "lessons/5-5/media/5-5-slides.pdf",
+   "sha256": "6c34c35daf8370a97c1f8fa46ea459e515ae5b746e02701efb64ad837ab92be8",
+   "sizeBytes": 27442829
+  },
+  {
+   "path": "lessons/5-6/5-6-handout.md",
+   "sha256": "fa60a607998ea736a508caf3370cb3cffccfc416d4ba8736cda33a439868f6d3",
+   "sizeBytes": 29964
+  },
+  {
+   "path": "lessons/5-6/media/5-6-audio.m4a",
+   "sha256": "fb1eb678af788b656369ba1888f6601c521100e579f666deaf3d8fba400f533d",
+   "sizeBytes": 33779209
+  },
+  {
+   "path": "lessons/5-6/media/5-6-course.mp4",
+   "sha256": "69f007ff50e5414913959279bf1c4ca02e69c4820fa0697310c8665bb5ca23b1",
+   "sizeBytes": 58963988
+  },
+  {
+   "path": "lessons/5-6/media/5-6-intro-video.mp4",
+   "sha256": "394838bbdbf388886ebd75c8796daed117390c82ea44de28d8e084cffa62fb13",
+   "sizeBytes": 21473372
+  },
+  {
+   "path": "lessons/5-6/media/5-6-slides.pdf",
+   "sha256": "7155a995f5c9eaf9d108cdfb2613acf56cac0f65e30d4d41fb064d215fa44cb3",
+   "sizeBytes": 18813479
+  },
+  {
+   "path": "lessons/cruise-comfort-boppps/cruise-comfort-boppps-handout.md",
+   "sha256": "7a770d98fe7e525c5ce3d81b5b3e76167a1436a453880cad8d19ff59837b31b5",
+   "sizeBytes": 865
+  }
+ ]
+}

@@ -1,0 +1,158 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "2-1",
+ "canonicalIds": [
+  "ctc:0f418dc24d2aacaaafdcdcc0",
+  "ctc:90af7a0497e616bbe6249c30",
+  "ctc:modeling-00d2998755974a1329049aac",
+  "ctc:modeling-05fbe60f54c183c4e3ded892",
+  "ctc:modeling-07799c3f876317e36fe669f8",
+  "ctc:modeling-1a01abb71d037ed52c2bc394",
+  "ctc:modeling-239e401e0fcc8485f3a0533d",
+  "ctc:modeling-385c515b4d8dbb550b664072",
+  "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+  "ctc:modeling-4c7a0114a15c9e4039f6d193",
+  "ctc:modeling-50ed406e4478b481d868adfb",
+  "ctc:modeling-57c56ef58df2315f765a32dc",
+  "ctc:modeling-5e62391de61ac1af304601cb",
+  "ctc:modeling-7734a0845c335f160395bac0",
+  "ctc:modeling-7aef273143199795496abedb",
+  "ctc:modeling-865eb1c8824e157c2f05a903",
+  "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+  "ctc:modeling-9121dc2c97afa77f52ce0220",
+  "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+  "ctc:modeling-aa10e4daa1e969c557f6ef83",
+  "ctc:modeling-b2fd214ec64665147e16ff9d",
+  "ctc:modeling-bddaef2510e39cbb62d60df2",
+  "ctc:modeling-c26fddc50074ec84707d5950",
+  "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+  "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+  "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+  "ctc:modeling-v2r-split-0045791b9009bbe457f6e17a",
+  "ctc:v11g-69118dc66489d66b1732901b",
+  "ctc:v11g-c8c8aef0d010e68842be7236",
+  "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+  "ctkg:v3e-canonical-772065f42947b660c72584f3",
+  "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+  "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+  "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+  "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee"
+ ],
+ "sources": {
+  "ctc:0f418dc24d2aacaaafdcdcc0": [
+   "topic:forward-path"
+  ],
+  "ctc:90af7a0497e616bbe6249c30": [
+   "reuse_node_ids:微分方程_2_775c96a3",
+   "topic:ode"
+  ],
+  "ctc:modeling-00d2998755974a1329049aac": [
+   "topic:gain"
+  ],
+  "ctc:modeling-05fbe60f54c183c4e3ded892": [
+   "topic:inverse-laplace"
+  ],
+  "ctc:modeling-07799c3f876317e36fe669f8": [
+   "topic:flow-determinant"
+  ],
+  "ctc:modeling-1a01abb71d037ed52c2bc394": [
+   "focus_node_ids:结构图_2_3f312ccc",
+   "topic:block-diagram"
+  ],
+  "ctc:modeling-239e401e0fcc8485f3a0533d": [
+   "topic:block-algebra"
+  ],
+  "ctc:modeling-385c515b4d8dbb550b664072": [
+   "topic:flow-branch"
+  ],
+  "ctc:modeling-47e8eb68c1aa5cd068c72e54": [
+   "topic:feedback"
+  ],
+  "ctc:modeling-4c7a0114a15c9e4039f6d193": [
+   "reuse_node_ids:回路_2_e1adbdfa",
+   "topic:flow-loop"
+  ],
+  "ctc:modeling-50ed406e4478b481d868adfb": [
+   "topic:cofactor"
+  ],
+  "ctc:modeling-57c56ef58df2315f765a32dc": [
+   "focus_node_ids:梅森增益公式_2_419eab0c",
+   "topic:mason"
+  ],
+  "ctc:modeling-5e62391de61ac1af304601cb": [
+   "topic:flow-branch"
+  ],
+  "ctc:modeling-7734a0845c335f160395bac0": [
+   "topic:model"
+  ],
+  "ctc:modeling-7aef273143199795496abedb": [
+   "topic:block-algebra"
+  ],
+  "ctc:modeling-865eb1c8824e157c2f05a903": [
+   "focus_node_ids:传递函数_1_5b0faf8b",
+   "topic:transfer"
+  ],
+  "ctc:modeling-8aa475ed6514adc11f9b5c8d": [
+   "topic:system"
+  ],
+  "ctc:modeling-9121dc2c97afa77f52ce0220": [
+   "focus_node_ids:信号流图_2_372d4084",
+   "topic:flow-graph"
+  ],
+  "ctc:modeling-a2b2e4c67cee79eef87f3b81": [
+   "topic:forward-path"
+  ],
+  "ctc:modeling-aa10e4daa1e969c557f6ef83": [
+   "focus_node_ids:传递函数_1_5b0faf8b",
+   "topic:transfer"
+  ],
+  "ctc:modeling-b2fd214ec64665147e16ff9d": [
+   "topic:integrator"
+  ],
+  "ctc:modeling-bddaef2510e39cbb62d60df2": [
+   "topic:block-diagram"
+  ],
+  "ctc:modeling-c26fddc50074ec84707d5950": [
+   "topic:lti"
+  ],
+  "ctc:modeling-c5b0f0ad36036b531f6bcdec": [
+   "topic:open-transfer"
+  ],
+  "ctc:modeling-e8a0502ecb67f574a5cb6c1b": [
+   "topic:cofactor"
+  ],
+  "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2": [
+   "reuse_node_ids:回路_2_e1adbdfa",
+   "topic:flow-loop"
+  ],
+  "ctc:modeling-v2r-split-0045791b9009bbe457f6e17a": [
+   "topic:laplace"
+  ],
+  "ctc:v11g-69118dc66489d66b1732901b": [
+   "focus_node_ids:闭环传递函数_2_5399c369",
+   "summary_nodes:闭环传递函数_2_5399c369",
+   "topic:closed-transfer"
+  ],
+  "ctc:v11g-c8c8aef0d010e68842be7236": [
+   "topic:integrator"
+  ],
+  "ctkg:v3e-canonical-04fd7f69994f8821467462e5": [
+   "topic:laplace"
+  ],
+  "ctkg:v3e-canonical-772065f42947b660c72584f3": [
+   "topic:second-order"
+  ],
+  "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c": [
+   "topic:first-order"
+  ],
+  "ctkg:v3e-canonical-de9cd255c7e8770506442de0": [
+   "topic:superposition"
+  ],
+  "ctkg:v3e-object-17cae71babbbfe193c0124a4": [
+   "topic:integrator"
+  ],
+  "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee": [
+   "topic:p-control"
+  ]
+ }
+}

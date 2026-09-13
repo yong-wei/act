@@ -1,0 +1,78 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "3-2",
+ "canonicalIds": [
+  "ctc:v11g-13a9994c50acce777819aa2a",
+  "ctc:v11g-40ac1517fc1bfb398dd75afe",
+  "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+  "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+  "ctkg:v3e-object-327cafd07ac8956536bab418",
+  "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+  "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+  "ctkg:v3e-object-863069c1389e01dcca80138a",
+  "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+  "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+  "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+  "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085"
+ ],
+ "sources": {
+  "ctc:v11g-13a9994c50acce777819aa2a": [
+   "reuse_node_ids:闭环极点_3_f9432bf3",
+   "topic:closed-poles"
+  ],
+  "ctc:v11g-40ac1517fc1bfb398dd75afe": [
+   "topic:characteristic"
+  ],
+  "ctkg:domainconcept:e125c73a1fa9700b183695ce": [
+   "reuse_node_ids:闭环特征方程_3_87c88e19"
+  ],
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": [
+   "reuse_node_ids:闭环极点_3_f9432bf3",
+   "topic:closed-poles"
+  ],
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b": [
+   "reuse_node_ids:稳定性_3_72d04fbd",
+   "topic:stability"
+  ],
+  "ctkg:v3e-object-23665070dce851fbb0ebda8b": [
+   "topic:auxiliary"
+  ],
+  "ctkg:v3e-object-327cafd07ac8956536bab418": [
+   "topic:stability-range"
+  ],
+  "ctkg:v3e-object-570b74ec5294ac993add9b5f": [
+   "topic:marginal"
+  ],
+  "ctkg:v3e-object-7aa500461c5109b7cffd9b19": [
+   "topic:routh-array"
+  ],
+  "ctkg:v3e-object-863069c1389e01dcca80138a": [
+   "topic:marginal"
+  ],
+  "ctkg:v3e-object-a5bc9701adc27b91f6da074b": [
+   "topic:routh-array"
+  ],
+  "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d": [
+   "focus_node_ids:变量平移判稳_3_38e76ca0",
+   "summary_nodes:变量平移判稳_3_38e76ca0",
+   "topic:shift-stability"
+  ],
+  "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760": [
+   "entry_nodes:劳斯判据_3_e3500ac9",
+   "focus_node_ids:劳斯判据_3_e3500ac9",
+   "topic:routh"
+  ],
+  "ctkg:v3e-object-cfdae92ada72d7710e7f1cee": [
+   "entry_nodes:劳斯判据_3_e3500ac9",
+   "focus_node_ids:劳斯判据_3_e3500ac9",
+   "topic:routh"
+  ],
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085": [
+   "reuse_node_ids:稳定性_3_72d04fbd",
+   "topic:stability"
+  ]
+ }
+}

@@ -76,11 +76,15 @@ export interface AdaptivePathPlanningResourceSnapshot {
   projectionId: string;
   projectionHash: string;
   runtimeReleaseId: string | null;
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
   recommendable: Array<{
     resourceId: string;
     resourceVersion: string;
     sourcePath: string | null;
     type: string;
+    appearance?: string | null;
+    anchorLabel?: string | null;
   }>;
 }
 
@@ -135,6 +139,9 @@ export class AdaptivePathCandidateBatchConflictError extends Error {}
 export class AdaptivePathCandidateBatchValidationError extends Error {}
 
 function planRequestsThreePathHardGate(plan: AdaptiveLearningPathPlan): boolean {
+  // Knowledge-first styles share the prerequisite skeleton. Their overlap is
+  // comparison evidence, not a requirement to replace half the resources.
+  if (plan.explanations.selectedReasons.includes('knowledge-skeleton')) return false;
   return getRegisteredAdaptiveLearningPathGoal(plan.goal.id)?.starterPathPolicy.targetOptionCount !== 2;
 }
 

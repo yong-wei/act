@@ -104,3 +104,9 @@ Wolfram 维护窗口部署：`SKIP_WOLFRAM_READY_CHECK=1` 放在远端 `.env.ser
 
 - 应用容器环境变量默认应使用 `act-obe-postgres` 与 `act-obe-redis` 这两个网络别名，不再把 `*.dns.podman` 作为默认主机名
 - 若 `/api/readyz` 中 `db=false` 或 `redis=false`，先排基础连通性，再看业务页面日志，不要直接怀疑页面逻辑
+
+## 开发者网关签发 409 与简化激活
+
+2026-09-12：简化物化器只写所选 manifest 和物化记录，旧网关要求发布回执导致新租约 409。网关应读取 `blob-views/current/.act-runtime-release.v2.json`，客户端仅获取 manifest；不得补回旧回执门禁或因 JSON 排版改变拒收当前权威。已有心跳 204 不能证明新租约可签发。验证使用真实物化器生成的视图，覆盖无回执、过期审计回执、current 切换及旧租约继续读。传输默认 24 小时、心跳宽限 7 天。
+
+2026-09-13：路径规划在未挂载 Runtime 的开发机上可通过 `runtime-planning-manifest.ts` 读取 Gateway 的锁定 manifest，仅缓存元数据，不要求下载 Blob 正文。必须比较绑定锁、公开 readyz 身份及 manifest 自校验结果，不能用缺失本地清单的 null 值冒充版本变化。实测 manifest 约 47.7 MB；Gateway HTTP 对明确接受 gzip 的 manifest 请求压缩传输，旧客户端仍收到原始 JSON。更新 Gateway 脚本前比较远端与本地基线，备份并验证脚本，重启后核验哈希与生产 readyz 身份未变。冷启动获取与内存缓存命中的耗时应分开报告。

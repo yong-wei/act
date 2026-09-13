@@ -91,4 +91,30 @@ describe('frozen knowledge publication consistency', () => {
     f.put('composite-envelopes/actkg-composite-envelope-registry.json', { envelopes: [] });
     expect(() => assertKnowledgePublicationConsistency(f.read)).toThrow('qualified composite registry');
   });
+  it('accepts a binding release pointer that matches the course Authority', () => {
+    const f = fixture();
+    f.put('resource-bindings/current.json', {
+      bindingReleaseId: 'control-theory-engineering-v0.37-r6-b2',
+      bindingHash: 'a'.repeat(64),
+      authorityReleaseId: 'release',
+    });
+    f.put('resource-bindings/releases/control-theory-engineering-v0.37-r6-b2/binding-manifest.json', {
+      bindingHash: 'a'.repeat(64),
+      authorityReleaseId: 'release',
+    });
+    expect(() => assertKnowledgePublicationConsistency(f.read)).not.toThrow();
+  });
+  it('rejects a binding release pointer that does not match the course Authority', () => {
+    const f = fixture();
+    f.put('resource-bindings/current.json', {
+      bindingReleaseId: 'control-theory-engineering-v0.37-r6-b2',
+      bindingHash: 'a'.repeat(64),
+      authorityReleaseId: 'other-release',
+    });
+    f.put('resource-bindings/releases/control-theory-engineering-v0.37-r6-b2/binding-manifest.json', {
+      bindingHash: 'a'.repeat(64),
+      authorityReleaseId: 'other-release',
+    });
+    expect(() => assertKnowledgePublicationConsistency(f.read)).toThrow('resource binding release identity');
+  });
 });

@@ -118,8 +118,5 @@ class GatewayClient:
     def get_manifest(self, lease_id: str, transport: str) -> bytes:
         return self.get_bytes("v1/leases/%s/manifest" % lease_id, lease_id, transport)
 
-    def get_receipt(self, lease_id: str, transport: str) -> bytes:
-        return self.get_bytes("v1/leases/%s/receipt" % lease_id, lease_id, transport)
-
     def get_blob(self, lease_id: str, transport: str, digest: str, range_header: str | None = None) -> bytes:
         return self.get_bytes("v1/blobs/sha256/%s" % digest, lease_id, transport, range_header)

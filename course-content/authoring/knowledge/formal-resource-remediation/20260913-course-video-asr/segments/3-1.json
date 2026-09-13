@@ -1,0 +1,232 @@
+{
+ "contract": "remediation-audio-semantic-segments/v1",
+ "unit": "3-1",
+ "sourceSha256": "ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+ "segmentCount": 37,
+ "boundSegmentCount": 0,
+ "bindingModel": "pending: terminology overlap assigned by the anchor builder",
+ "segments": [
+  {
+   "text": "嘿，各位同学，欢迎回来。今天呢，咱们来聊一个自动控制理论里头可以说是最核心、最强大的概念之一——系同极。",
+   "startSeconds": 0.08,
+   "endSeconds": 10.4,
+   "nodeBindings": []
+  },
+  {
+   "text": "准备好了吗？咱们这就来揭开它的神秘面纱。哎，我相信大家看到这种又是框图又是公式的高阶系统。",
+   "startSeconds": 10.4,
+   "endSeconds": 20.0,
+   "nodeBindings": []
+  },
+  {
+   "text": "第一反应是不是都觉得哇，头都大了？别慌，你不是一个人。但这里就藏着一个特别有意思的谜题：我们到底怎么才能光是瞅一眼这些数学表达式，就能知道一个系统最后是会乖乖听话呢？",
+   "startSeconds": 20.0,
+   "endSeconds": 34.64,
+   "nodeBindings": []
+  },
+  {
+   "text": "还是会像一匹脱缰的野马，彻底跑偏失控呢？不如啊，咱们把今天这堂课当成一场侦探游，写我们要在一个复杂的系统里去寻找一些蛛丝马迹来揭示它的真面目。",
+   "startSeconds": 34.64,
+   "endSeconds": 48.81,
+   "nodeBindings": []
+  },
+  {
+   "text": "而这一场游戏里头最最关键的线索就是我们今天要讲的系统的极点，你可以把它想象成决定一个系统所有行为模式的遗传密码DNA。",
+   "startSeconds": 48.81,
+   "endSeconds": 60.57,
+   "nodeBindings": []
+  },
+  {
+   "text": "那到底什么是系统极点呢？嗯，书本上的定义是系统传递函数，它那个分母多项式的根。",
+   "startSeconds": 60.57,
+   "endSeconds": 70.01,
+   "nodeBindings": []
+  },
+  {
+   "text": "我知道传递函数这词儿啊，听起来挺吓人的，但你其实完全可以把它理解成一个系统输入和输出关系的说明书，而极点就是这本说明书里最关键的那几个参数。",
+   "startSeconds": 70.01,
+   "endSeconds": 84.33,
+   "nodeBindings": []
+  },
+  {
+   "text": "说白了，极点就像是藏在系统内部的秘密指纹，只要我们找到了它们，这个系统是慢性子还是极脾气，所有性格特点就都一清二楚了。",
+   "startSeconds": 84.33,
+   "endSeconds": 96.14,
+   "nodeBindings": []
+  },
+  {
+   "text": "好，既然咱们是侦探，那总得有个案发现场，对吧？这个现场在控制系统里就是复平面，我们一般也管它叫S平面。",
+   "startSeconds": 96.14,
+   "endSeconds": 107.74,
+   "nodeBindings": []
+  },
+  {
+   "text": "你可以把它看成是一张地图，一张能精确标出所有极点藏身之处的地图。来，大家看，这就是我们的地图。",
+   "startSeconds": 107.74,
+   "endSeconds": 116.71,
+   "nodeBindings": []
+  },
+  {
+   "text": "注意了，中间这条垂直的序轴是关键中的关键，它就像一条楚河汉界，把整个地图划分成了两个完全不同的区域。",
+   "startSeconds": 116.71,
+   "endSeconds": 127.51,
+   "nodeBindings": []
+  },
+  {
+   "text": "左边的是安全区，而右边的呢，就是危险区。所以各位记住，控制系统稳定性分析的第一条也是最重要的一条：铁律，只要你系统里所有的极点都老老实实的待在左半平面，OK。",
+   "startSeconds": 127.51,
+   "endSeconds": 144.2,
+   "nodeBindings": []
+  },
+  {
+   "text": "那这个系统就是稳定的，它早晚会自己安分下来，但是哪怕只有一个极点不小心溜到了右半平面，那完了，整个系统就会失控，一入奔向不稳定。",
+   "startSeconds": 144.2,
+   "endSeconds": 157.32,
+   "nodeBindings": []
+  },
+  {
+   "text": "对，就是这么简单，这么粗暴。好了，现在我们知道该去哪儿找这些线索了。那接下来咱们就来挨个认识一下几位老熟人，看看不同类型的极点，他们各自都有什么独门绝技，让系统产生怎样独特的行为。",
+   "startSeconds": 157.32,
+   "endSeconds": 177.08,
+   "nodeBindings": []
+  },
+  {
+   "text": "首先登场的这位呢，是咱们的稳重可靠型选手，复时极点。当一个系统里只有这样一个极点的时候，你看它的响应曲线，哎，就非常的平滑，不带一丝抖动。",
+   "startSeconds": 177.08,
+   "endSeconds": 191.87,
+   "nodeBindings": []
+  },
+  {
+   "text": "就是这么单调的、稳稳的奔向他的最终目标。接下来出场的是这对形影不离的好搭档，共轭复极点。",
+   "startSeconds": 191.87,
+   "endSeconds": 202.35,
+   "nodeBindings": []
+  },
+  {
+   "text": "记住啊，他们总是成双成对的出现，当他们出现在左半平面的时候，就会制造出一种特别常见的响应。",
+   "startSeconds": 202.35,
+   "endSeconds": 212.11,
+   "nodeBindings": []
+  },
+  {
+   "text": "你想想看，就好像荡秋千或者敲一下钟，它会嗡的一下来回震荡。但这个震荡会越来越小，最后慢慢停下来。",
+   "startSeconds": 212.11,
+   "endSeconds": 221.81,
+   "nodeBindings": []
+  },
+  {
+   "text": "对，就是这种感觉，在咱们现实世界的机械和电器系统里，这种现象简直太普遍了。最后咱们来会一会这个故事里的大反派，右半平面极点。",
+   "startSeconds": 221.81,
+   "endSeconds": 234.69,
+   "nodeBindings": []
+  },
+  {
+   "text": "只要有这么一个家伙出现，那系统就像一辆刹车失灵的跑车，响应会呈指数级无限的增长。",
+   "startSeconds": 234.69,
+   "endSeconds": 243.02,
+   "nodeBindings": []
+  },
+  {
+   "text": "只会朝着失控的深渊一路狂奔，这毫无疑问就是系统要崩溃的信号。有时候后果甚至是灾难性的。",
+   "startSeconds": 243.02,
+   "endSeconds": 252.62,
+   "nodeBindings": []
+  },
+  {
+   "text": "没错，这句话总结得太到位了。极点的位置和类型，它真的不是什么抽象的数学游戏，它们和系统最终的动态行为是死死地绑在一起的。",
+   "startSeconds": 252.62,
+   "endSeconds": 265.42,
+   "nodeBindings": []
+  },
+  {
+   "text": "只要你学会了看极点图，你就等于拥有了一个水晶球。能完美地预测出系统响应曲线会是什么形状。",
+   "startSeconds": 265.42,
+   "endSeconds": 274.73,
+   "nodeBindings": []
+  },
+  {
+   "text": "讲到这儿啊，你可能会问，在现实世界里，一个复杂的系统它往往有很多很多个极点啊。那问题就来了，难道每个极点都一样重要吗？",
+   "startSeconds": 274.73,
+   "endSeconds": 286.65,
+   "nodeBindings": []
+  },
+  {
+   "text": "其实啊，答案是非秉如此，在极点的世界里也是有江湖地位之分的，在这一群极点里头啊。",
+   "startSeconds": 286.65,
+   "endSeconds": 296.53,
+   "nodeBindings": []
+  },
+  {
+   "text": "总有那么一个或者一对儿大佬，我们管他们叫主导极点。他们是谁呢？就是那些离虚轴最近的家伙。",
+   "startSeconds": 296.53,
+   "endSeconds": 306.77,
+   "nodeBindings": []
+  },
+  {
+   "text": "为什么是他们说了算呢？你想啊，那些离虚轴特别远的极点，他们对应的响应分量会衰减得非常快，嗖的一下就没了，对系统整体的影响很快就可以忽略不计了。",
+   "startSeconds": 306.77,
+   "endSeconds": 320.69,
+   "nodeBindings": []
+  },
+  {
+   "text": "最后舞台上就只剩下主导极点。继续唱主角，这张图就是最好的证明。大家看，蓝色的线代表一个我们只考虑主导极点的简化的耳节系统，而绿线和红线呢，是增加了额外非主导极点的系统。",
+   "startSeconds": 320.69,
+   "endSeconds": 338.79,
+   "nodeBindings": []
+  },
+  {
+   "text": "你看它们仨的曲线是不是几乎完全重合了？这就告诉我们一个超级有用的技巧，我们常常可以把一个看起来很复杂的高阶系统近似的看成一个只由主到极点决定的低阶系统，问题一下子就简单多了，对不对？",
+   "startSeconds": 338.79,
+   "endSeconds": 355.87,
+   "nodeBindings": []
+  },
+  {
+   "text": "那么刚才说的离得足够远，到底多远才算远呢？来给大伙分享一个工程师们都在用的经验法则。",
+   "startSeconds": 355.87,
+   "endSeconds": 365.87,
+   "nodeBindings": []
+  },
+  {
+   "text": "如果其他的那些非主导极点，他们离虚轴的距离是主导极点离虚轴距离的五倍以上，那么你基本上就可以非常放心地忽略掉他们的影响了。",
+   "startSeconds": 365.87,
+   "endSeconds": 378.29,
+   "nodeBindings": []
+  },
+  {
+   "text": "这在做工程估算的时候，能帮你大大简化分析过程。好了，各位侦探，我们今天的探案工作到这里就差不多告一段落了。",
+   "startSeconds": 378.29,
+   "endSeconds": 387.17,
+   "nodeBindings": []
+  },
+  {
+   "text": "咱们一起追踪线索，分析了各位嫌疑人，最终成功破解了系统行为的密码。所以恭喜你，你已经解锁了一项非常强大的工程新技能。",
+   "startSeconds": 387.17,
+   "endSeconds": 398.77,
+   "nodeBindings": []
+  },
+  {
+   "text": "来，最后啊，咱们用几句口诀。快速的把今天的核心要点串一下，大家一定要记住喽。极点位置定干坤，左半稳定，右半崩，时点平滑，复点震，主导极点说了算。",
+   "startSeconds": 398.77,
+   "endSeconds": 413.38,
+   "nodeBindings": []
+  },
+  {
+   "text": "掌握了几点的知识，其实就意味着你拥有了预测，甚至去设计一个系统动态行为的能力。",
+   "startSeconds": 413.38,
+   "endSeconds": 422.5,
+   "nodeBindings": []
+  },
+  {
+   "text": "这就是一种真正的工程超能力，你可以用今天学到的知识去设计一个让无人机在狂风中也能稳如泰山的飞控系统，或者设计一个反应超快的机械人手臂，是不是超酷的？",
+   "startSeconds": 422.5,
+   "endSeconds": 436.3,
+   "nodeBindings": []
+  },
+  {
+   "text": "未来就在你们的手中。",
+   "startSeconds": 436.3,
+   "endSeconds": 440.88,
+   "nodeBindings": []
+  }
+ ]
+}

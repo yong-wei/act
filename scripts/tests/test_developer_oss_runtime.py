@@ -27,7 +27,7 @@ from bootstrap import (  # noqa: E402
     start,
     stop,
     unmount,
-    verify_release_documents,
+    verify_release_manifest,
     write_selection_receipt,
 )
 from shared_mount import (  # noqa: E402
@@ -301,10 +301,10 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
             "manifestSha256": manifest["manifestSha256"],
             "treeSha256": manifest["treeSha256"],
         }
-        verify_release_documents(identity, manifest_path, receipt_path)
+        verify_release_manifest(identity, manifest_path)
         identity["manifestSha256"] = "f" * 64
         with self.assertRaises(Exception):
-            verify_release_documents(identity, manifest_path, receipt_path)
+            verify_release_manifest(identity, manifest_path)
 
     def test_prepare_reuses_matching_state_and_stop_only_owned_mounts(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -337,7 +337,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
-                    mock.patch("bootstrap.fetch_release_documents") as fetch, \
+                    mock.patch("bootstrap.fetch_release_manifest") as fetch, \
                     mock.patch("bootstrap.materialize_view") as materialize, \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -375,7 +375,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
         view_root = root / "materialized"
         view_root.mkdir()
         os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
-        materialize_view(manifest_path, receipt_path, blob_root, view_root, manifest["releaseId"])
+        materialize_view(manifest_path, blob_root, view_root, manifest["releaseId"])
         view = view_root / "views" / manifest["releaseId"]
         for candidate in sorted(view.rglob("*"), key=lambda path: len(path.parts), reverse=True):
             if candidate.is_dir() and not candidate.is_symlink():
@@ -638,8 +638,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                 mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                 mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                 mock.patch("bootstrap.is_readonly_mount", return_value=True), \
-                mock.patch("bootstrap.fetch_release_documents", return_value=documents), \
-                mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
+                mock.patch("bootstrap.fetch_release_manifest", return_value=documents[0]), \
+                mock.patch("bootstrap.verify_release_manifest", return_value=manifest), \
                 mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
                 mock.patch(
                     "bootstrap.consumer_gate",
@@ -813,8 +813,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=readyz_payload(manifest)["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
-                    mock.patch("bootstrap.fetch_release_documents", return_value=(manifest_path, receipt_path)), \
-                    mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
+                    mock.patch("bootstrap.fetch_release_manifest", return_value=manifest_path), \
+                    mock.patch("bootstrap.verify_release_manifest", return_value=manifest), \
                     mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -856,8 +856,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=readyz_payload(manifest)["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
-                    mock.patch("bootstrap.fetch_release_documents", return_value=(manifest_path, receipt_path)), \
-                    mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
+                    mock.patch("bootstrap.fetch_release_manifest", return_value=manifest_path), \
+                    mock.patch("bootstrap.verify_release_manifest", return_value=manifest), \
                     mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -895,8 +895,8 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                         mock.patch("bootstrap.fetch_readyz_identity", return_value=readyz_payload(manifest)["runtime"]["identity"]), \
                         mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                         mock.patch("bootstrap.is_readonly_mount", return_value=True), \
-                        mock.patch("bootstrap.fetch_release_documents", return_value=(manifest_path, receipt_path)), \
-                        mock.patch("bootstrap.verify_release_documents", return_value=manifest), \
+                        mock.patch("bootstrap.fetch_release_manifest", return_value=manifest_path), \
+                        mock.patch("bootstrap.verify_release_manifest", return_value=manifest), \
                         mock.patch("bootstrap.materialize_view", return_value=checkout / "helper"), \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -972,7 +972,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
-                    mock.patch("bootstrap.fetch_release_documents") as fetch, \
+                    mock.patch("bootstrap.fetch_release_manifest") as fetch, \
                     mock.patch("bootstrap.materialize_view") as materialize, \
                     mock.patch(
                         "bootstrap.consumer_gate",
@@ -1015,7 +1015,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
                     mock.patch("bootstrap.is_fuse_readonly", return_value=True), \
                     mock.patch("bootstrap.is_readonly_mount", return_value=True), \
-                    mock.patch("bootstrap.fetch_release_documents") as fetch, \
+                    mock.patch("bootstrap.fetch_release_manifest") as fetch, \
                     mock.patch(
                         "bootstrap.consumer_gate",
                         return_value={
@@ -1070,7 +1070,7 @@ class DeveloperOssRuntimeTests(unittest.TestCase):
                         },
                     }), \
                     mock.patch("bootstrap.fetch_readyz_identity", return_value=payload["runtime"]["identity"]), \
-                    mock.patch("bootstrap.fetch_release_documents", side_effect=DeveloperRuntimeError("documents failed")):
+                    mock.patch("bootstrap.fetch_release_manifest", side_effect=DeveloperRuntimeError("documents failed")):
                 with self.assertRaises(DeveloperRuntimeError):
                     prepare(checkout)
             client.stop_lease.assert_called_with("orphan-lease")
@@ -1224,7 +1224,7 @@ def materialize_fixture_view(root, manifest, manifest_path, receipt_path):
     os.environ["ACT_RUNTIME_DEV_ALLOW_NON_LINUX"] = "1"
     view_root = root / "materialized"
     view_root.mkdir(parents=True, exist_ok=True)
-    materialize_view(manifest_path, receipt_path, root / "blobs", view_root, manifest["releaseId"])
+    materialize_view(manifest_path, root / "blobs", view_root, manifest["releaseId"])
     return view_root / "current"
 
 

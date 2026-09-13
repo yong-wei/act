@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, unlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -16,6 +16,7 @@ const envelope = (changed: boolean) => ({
 
 vi.mock('@/lib/teaching-projection/live-course-pointer', () => ({
   readAgreedLiveCourseProjection: () => ({ projectionId: 'proj-' + state.projectionHash, projectionHash: state.projectionHash }),
+  readAgreedLiveResourceBindingRelease: () => null,
   resolveConfiguredTeachingProjectionRoot: () => process.cwd(),
 }));
 vi.mock('@/lib/teaching-projection/store', () => ({
@@ -102,6 +103,25 @@ describe('published resource index capture', () => {
     const capture = await loadPublishedResourceFeatureIndexCapture();
     capture.assertCurrent();
     state.projectionHash = 'e'.repeat(64);
+    expect(() => capture.assertCurrent()).toThrow('Resource publication changed');
+  });
+
+  it('reuses stable Blob links but rejects a same-size, same-time Blob replacement', async () => {
+    const file = join(root, 'releases/proj-' + projectionHash, 'bindings.jsonl');
+    mkdirSync(join(file, '..'), { recursive: true });
+    const firstBlob = join(root, 'a'.repeat(64));
+    const secondBlob = join(root, 'b'.repeat(64));
+    for (const [blob, body] of [[firstBlob, 'aa'], [secondBlob, 'bb']]) {
+      writeFileSync(blob, body);
+      utimesSync(blob, 0, 0);
+    }
+    symlinkSync(firstBlob, file);
+    const capture = await loadPublishedResourceFeatureIndexCapture();
+    capture.assertCurrent();
+    await loadPublishedResourceFeatureIndex();
+    expect(infographic).toHaveBeenCalledTimes(1);
+    unlinkSync(file);
+    symlinkSync(secondBlob, file);
     expect(() => capture.assertCurrent()).toThrow('Resource publication changed');
   });
 

@@ -1,0 +1,60 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "1-5",
+ "canonicalIds": [
+  "ctc:v11g-13a9994c50acce777819aa2a",
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+  "ctc:v11g-2628d227495a3860151a16c1",
+  "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+  "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "ctkg:v3e-object-232e387ed53e92abee078346",
+  "ctkg:v3e-object-327cafd07ac8956536bab418",
+  "ctkg:v3e-object-7761615701fb4915a76924ff"
+ ],
+ "sources": {
+  "ctc:v11g-13a9994c50acce777819aa2a": [
+   "topic:closed-poles"
+  ],
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6": [
+   "topic:settling-time"
+  ],
+  "ctc:v11g-2628d227495a3860151a16c1": [
+   "topic:imaginary-crossing"
+  ],
+  "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e": [
+   "topic:gain-margin"
+  ],
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": [
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253": [
+   "topic:step-response"
+  ],
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": [
+   "topic:closed-poles"
+  ],
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609": [
+   "topic:settling-time"
+  ],
+  "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67": [
+   "topic:rise-time"
+  ],
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837": [
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-object-232e387ed53e92abee078346": [
+   "topic:gain-crossover"
+  ],
+  "ctkg:v3e-object-327cafd07ac8956536bab418": [
+   "topic:stability-range"
+  ],
+  "ctkg:v3e-object-7761615701fb4915a76924ff": [
+   "topic:gain-crossover"
+  ]
+ }
+}

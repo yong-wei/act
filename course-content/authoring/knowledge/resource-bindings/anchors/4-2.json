@@ -1,0 +1,1805 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "4-2",
+ "unitIndex": 19,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/4-2/4-2-handout.md",
+  "sha256": "a26a6f68f387fbb93dd91a16d2295e2c4c435464aa25e4cb697c8154cbf9ce57"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "控制器选型与整定任务的导入场景",
+   "groupName": "入口目标与前置基础",
+   "textChars": 204,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": "入口目标与前置基础",
+   "textChars": 89,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前置基础快测",
+   "groupName": "入口目标与前置基础",
+   "textChars": 40,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "单结构整定的四类复核量",
+   "groupName": "结构选型与整定方法",
+   "textChars": 80,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "典型控制结构的频域特性矩阵",
+   "groupName": "结构选型与整定方法",
+   "textChars": 202,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "控制器结构选型决策树",
+   "groupName": "结构选型与整定方法",
+   "textChars": 185,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "经验整定与临界比例整定步骤",
+   "groupName": "结构选型与整定方法",
+   "textChars": 164,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "频域 PI 与滞后整定步骤",
+   "groupName": "结构选型与整定方法",
+   "textChars": 222,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "频域 PD、超前与超前-滞后整定步骤",
+   "groupName": "结构选型与整定方法",
+   "textChars": 271,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "模型匹配、IMC/SIMC 与前馈整定步骤",
+   "groupName": "结构选型与整定方法",
+   "textChars": 153,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "例题 5.1 频域 PI 参数计算",
+   "groupName": "分结构整定例题",
+   "textChars": 275,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "例题 5.2 频域超前参数计算",
+   "groupName": "分结构整定例题",
+   "textChars": 365,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "例题 5.3 滞后校正参数计算",
+   "groupName": "分结构整定例题",
+   "textChars": 300,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "例题 5.4 Ziegler-Nichols PID 参数计算",
+   "groupName": "分结构整定例题",
+   "textChars": 378,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "扰动前馈例题的补偿计算",
+   "groupName": "分结构整定例题",
+   "textChars": 291,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "客船航向控制对象与候选参数初算",
+   "groupName": "客船整定比较与起步卡",
+   "textChars": 143,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "客船候选结构的 Bode 与时域复核",
+   "groupName": "客船整定比较与起步卡",
+   "textChars": 465,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-18",
+   "index": 17,
+   "title": "分层练习与单结构起步卡工作区",
+   "groupName": "客船整定比较与起步卡",
+   "textChars": 261,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-19",
+   "index": 18,
+   "title": "后测：结构选型与整定复核判断",
+   "groupName": "后测与总结",
+   "textChars": 39,
+   "canonical": []
+  },
+  {
+   "stepId": "step-20",
+   "index": 19,
+   "title": "总结：频域证据到首轮候选结构",
+   "groupName": "后测与总结",
+   "textChars": 291,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-单结构控制器的收束任务",
+   "order": 1,
+   "level": 2,
+   "title": "一、单结构控制器的收束任务",
+   "startLine": 12,
+   "endLine": 35,
+   "bodyChars": 636,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+     "matchedLabel": "未建模动态",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-89a95ab28be324dc6d7040c5",
+     "matchedLabel": "扰动抑制",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-典型控制结构的频域特性",
+   "order": 2,
+   "level": 2,
+   "title": "二、典型控制结构的频域特性",
+   "startLine": 36,
+   "endLine": 64,
+   "bodyChars": 1247,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-控制器结构选型决策树",
+   "order": 3,
+   "level": 2,
+   "title": "三、控制器结构选型决策树",
+   "startLine": 65,
+   "endLine": 78,
+   "bodyChars": 418,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-整定方法的完整步骤",
+   "order": 4,
+   "level": 2,
+   "title": "四、整定方法的完整步骤",
+   "startLine": 79,
+   "endLine": 80,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-经验整定与临界比例整定",
+   "order": 5,
+   "level": 3,
+   "title": "4.1 经验整定与临界比例整定",
+   "startLine": 81,
+   "endLine": 110,
+   "bodyChars": 711,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-频域-PI-与滞后整定",
+   "order": 6,
+   "level": 3,
+   "title": "4.2 频域 PI 与滞后整定",
+   "startLine": 111,
+   "endLine": 143,
+   "bodyChars": 699,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-频域-PD-超前与超前-滞后整定",
+   "order": 7,
+   "level": 3,
+   "title": "4.3 频域 PD、超前与超前-滞后整定",
+   "startLine": 144,
+   "endLine": 192,
+   "bodyChars": 911,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-模型匹配-IMC-SIMC-与前馈整定",
+   "order": 8,
+   "level": 3,
+   "title": "4.4 模型匹配、IMC/SIMC 与前馈整定",
+   "startLine": 193,
+   "endLine": 234,
+   "bodyChars": 746,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-分结构整定例题",
+   "order": 9,
+   "level": 2,
+   "title": "五、分结构整定例题",
+   "startLine": 235,
+   "endLine": 236,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-例题一-频域-PI-参数计算",
+   "order": 10,
+   "level": 3,
+   "title": "5.1 例题一：频域 PI 参数计算",
+   "startLine": 237,
+   "endLine": 267,
+   "bodyChars": 654,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-例题二-频域超前参数计算",
+   "order": 11,
+   "level": 3,
+   "title": "5.2 例题二：频域超前参数计算",
+   "startLine": 268,
+   "endLine": 301,
+   "bodyChars": 688,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-例题三-滞后校正参数计算",
+   "order": 12,
+   "level": 3,
+   "title": "5.3 例题三：滞后校正参数计算",
+   "startLine": 302,
+   "endLine": 331,
+   "bodyChars": 549,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+     "matchedLabel": "单位反馈",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-例题四-Ziegler-Nichols-PID-参数计算",
+   "order": 13,
+   "level": 3,
+   "title": "5.4 例题四：Ziegler-Nichols PID 参数计算",
+   "startLine": 332,
+   "endLine": 367,
+   "bodyChars": 976,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:98fd8fbe7aa3340c7fe6bc08",
+     "matchedLabel": "校正后根轨迹",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 6,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-例题五-扰动前馈参数计算",
+   "order": 14,
+   "level": 3,
+   "title": "5.5 例题五：扰动前馈参数计算",
+   "startLine": 368,
+   "endLine": 393,
+   "bodyChars": 363,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-客船航向控制的候选结构整定",
+   "order": 15,
+   "level": 2,
+   "title": "六、客船航向控制的候选结构整定",
+   "startLine": 394,
+   "endLine": 395,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-对象与基准证据",
+   "order": 16,
+   "level": 3,
+   "title": "6.1 对象与基准证据",
+   "startLine": 396,
+   "endLine": 407,
+   "bodyChars": 253,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-滞后-PI-超前与超前-滞后的参数初算",
+   "order": 17,
+   "level": 3,
+   "title": "6.2 滞后、PI、超前与超前-滞后的参数初算",
+   "startLine": 408,
+   "endLine": 440,
+   "bodyChars": 687,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-Bode-图与时域响应比较",
+   "order": 18,
+   "level": 3,
+   "title": "6.3 Bode 图与时域响应比较",
+   "startLine": 441,
+   "endLine": 462,
+   "bodyChars": 1134,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-客船案例的结构边界",
+   "order": 19,
+   "level": 3,
+   "title": "6.4 客船案例的结构边界",
+   "startLine": 463,
+   "endLine": 473,
+   "bodyChars": 318,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-分层练习",
+   "order": 20,
+   "level": 2,
+   "title": "七、分层练习",
+   "startLine": 474,
+   "endLine": 475,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-练习-1-结构识别",
+   "order": 21,
+   "level": 3,
+   "title": "练习 1：结构识别",
+   "startLine": 476,
+   "endLine": 481,
+   "bodyChars": 121,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-练习-2-滞后整定",
+   "order": 22,
+   "level": 3,
+   "title": "练习 2：滞后整定",
+   "startLine": 482,
+   "endLine": 491,
+   "bodyChars": 201,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-练习-3-超前整定",
+   "order": 23,
+   "level": 3,
+   "title": "练习 3：超前整定",
+   "startLine": 492,
+   "endLine": 497,
+   "bodyChars": 219,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-练习-4-客船候选结果解释",
+   "order": 24,
+   "level": 3,
+   "title": "练习 4：客船候选结果解释",
+   "startLine": 498,
+   "endLine": 507,
+   "bodyChars": 130,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-选型边界总结",
+   "order": 25,
+   "level": 2,
+   "title": "八、选型边界总结",
+   "startLine": 508,
+   "endLine": 524,
+   "bodyChars": 669,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "4-2-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/4-2/media/4-2-audio.m4a",
+   "sha256": "b1b02bfabf110d99cd9b282b3d6560c555bf7e6c9dd7270bfd011377c99fe2f9",
+   "durationSeconds": 1278.026304,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/4-2.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.96,
+     "endSeconds": 26.0,
+     "textPreview": "唉如果此时此刻作为自动化专业大学生的你正痛苦地揉着太阳穴死死盯着手边那份就是那份",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 26.0,
+     "endSeconds": 51.12,
+     "textPreview": "欲度朋友我们完全懂你现在的感受确实啊控制工程的讲义乍一看真的就是一堆毫无感情的数",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 2,
+     "startSeconds": 51.12,
+     "endSeconds": 76.36,
+     "textPreview": "使命啊绝不是干巴巴的带你复习一遍课本上的推导过程绝对不是啊我们要把你手边这堆包含",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 76.36,
+     "endSeconds": 101.48,
+     "textPreview": "晰的底层逻辑怎么说呢就让我们直接切入这份讲义的核心入口吧也就是那个控制器结构选型",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 101.48,
+     "endSeconds": 126.48,
+     "textPreview": "这张图啊我感觉这个就非常像我们在打那种大型RPG游戏在里面选你的职业体系哈哈这比",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 126.72,
+     "endSeconds": 151.92,
+     "textPreview": "也就是所谓的消除净差这时候我们该派什么职业上场显然你需要一个能持续稳定输出的法师",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+       "matchedLabel": "PI控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.92,
+     "endSeconds": 177.24,
+     "textPreview": "断累加直到把误差彻底清零为止诶那如果换一个场景呢你面对的是一个极其敏捷的刺客经常",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 177.24,
+     "endSeconds": 202.44,
+     "textPreview": "就需要预判他的走位了这在控制学里就是必须要引入微分作用选PD控制器或者超前也就是",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 202.44,
+     "endSeconds": 227.6,
+     "textPreview": "在摇篮里那至于第三个分支就更好理解了如果这个boss的出招表你早就背得滚瓜烂熟了",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 227.6,
+     "endSeconds": 252.8,
+     "textPreview": "终都要汇聚的终点那个叫做复合边界对这个复合边界实际上到底是在卡什么东西嗯这个边界",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.8,
+     "endSeconds": 278.04,
+     "textPreview": "如系统的截止频率合理吗象位与度到底够不够呃更关键的是物理约束对吧库里聊饱和了吗没",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 278.6,
+     "endSeconds": 303.72,
+     "textPreview": "物理上限只有二十四伏那数学就输了呀哎就是这个道理你的执行机构比如阀门啊泵啊电机他",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 303.72,
+     "endSeconds": 330.0,
+     "textPreview": "然而然地引出了讲义里的下一个大板块了博得图也就是bo的兔矩阵如果说选型术是告诉你",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 331.36,
+     "endSeconds": 356.72,
+     "textPreview": "了对你看着这个矩震他的分工其实非常明确首先是PI控制器它的Bode图特点是低频抬",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+       "matchedLabel": "PI控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 356.72,
+     "endSeconds": 385.0,
+     "textPreview": "实兼顾了稳态和动态看起来简直是个完美的闭环看上去是这样但这就是让我觉得特别反执学",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.2,
+     "textPreview": "睛全用PID不就行了吗很多人都会这么想对呀为什么讲义的后半部分还要费尽心思搞出超",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.44,
+     "endSeconds": 440.24,
+     "textPreview": "在频域里要替换成J欧米伽随着频率Omega的增加这个微分项的幅值增异算比例无限放",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.32,
+     "endSeconds": 465.36,
+     "textPreview": "sensor传回来的信号绝对不可能是那种平滑完美的数学公式对它里面肯定夹杂着大量",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.84,
+     "endSeconds": 495.0,
+     "textPreview": "你看讲义里给出的实际应用的PD控制器公式嗯我看看CPDS等于KP1加TDS除以1",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "母上的那个一加tdns通常n的取值在520之间等等让我理一下这个数学逻辑我们在分",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.12,
+     "endSeconds": 550.48,
+     "textPreview": "明白了超前和滞后效证网络存在的真正价值他们不是为了给PID绕远路对他们从一开始就",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.48,
+     "endSeconds": 575.6,
+     "textPreview": "益的基因这么一说超前和滞后其实是带着那种物理世界的现实主义色彩的那我们顺势看看这",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.6,
+     "endSeconds": 605.24,
+     "textPreview": "它放的离截止频率OmakeC这么远吗这个嘛因为天下没有免费的午餐啊滞",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.32,
+     "endSeconds": 631.14,
+     "textPreview": "后网络虽然补了低频增异但它的副作用是会带来负的象位也就是象位滞后对我们把它放在截",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 631.82,
+     "endSeconds": 657.72,
+     "textPreview": "热这叫惹不起躲得起哈哈解释的很到位接下来就是超前效证劣的了目标是补象尾讲义里的核",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 657.72,
+     "endSeconds": 682.86,
+     "textPreview": "以anglejomegac也就是用期望的象位预度减去当前截止频率下的实际相位对吧",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 682.99,
+     "endSeconds": 715.0,
+     "textPreview": "统多滞后了八",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 715.0,
+     "endSeconds": 770.0,
+     "textPreview": "度那你最后算出来的相位域度还是不达标的这就跟赛车过高速弯一样如果你只看着脸前的弧",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 770.0,
+     "endSeconds": 825.0,
+     "textPreview": "制这两种流派我觉得完全代表了控制工程史上两种截然不同的人生观啊我们先看zn也就是",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 825.0,
+     "endSeconds": 850.17,
+     "textPreview": "时代这就是工程师的生存神迹但是呀这个方法细想起来其实有点让人冒冷汗怎么说你想啊他",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 850.46,
+     "endSeconds": 878.44,
+     "textPreview": "炉确实为了调几个PID参数工程师故意让锅炉处于持续震荡的边缘这在真实的工业界岂不",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 879.16,
+     "endSeconds": 935.0,
+     "textPreview": "禁止的所以这就好比老中医把脉非要让病人先发个高烧来试探体质哈哈这比喻绝了也是为什",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 935.0,
+     "endSeconds": 990.0,
+     "textPreview": "l我探探这里的lambda是闭环响应的时间常数也就是说作为工程师我可以像点菜一样",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 990.0,
+     "endSeconds": 1046.6,
+     "textPreview": "的系统只要安全范围允许进行小幅度的阶越或者震荡测试经过现代改良的Z衡法则依然是让",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 1046.6,
+     "endSeconds": 1071.88,
+     "textPreview": "出现系统发生偏差审査捕捉到了误差控制器才如梦初醒一般开始计算输出它必须依靠误差才",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+       "matchedLabel": "闭环系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 1071.88,
+     "endSeconds": 1099.35,
+     "textPreview": "等他产生误差在数学推导上也非常止界讲一中系统的出是YS等于GUSplusgdsd",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 1100.85,
+     "endSeconds": 1126.08,
+     "textPreview": "一项之后就得到了理想的乾坤控制器ＦＴＳ等于负gdsgs在例题五点五中已知的扰动通",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+       "matchedLabel": "前馈补偿",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+       "matchedLabel": "补偿器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 1126.29,
+     "endSeconds": 1151.68,
+     "textPreview": "是一个非常巧妙的系统架构设计怎么个巧妙方你想普通的反馈控制就像是你走在街上被雨淋",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1151.68,
+     "endSeconds": 1177.48,
+     "textPreview": "门的瞬间就把伞搭好连淋湿的机会都不给反馈控制器在那边淋着雨抱怨潜窥控制器已经在一",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1177.48,
+     "endSeconds": 1202.6,
+     "textPreview": "提图里低通率的物理现实从超前效正如赛车过弯一般的提前量计算到ZN和IMC在黑和与",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+       "matchedLabel": "前馈控制",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 40,
+     "startSeconds": 1202.6,
+     "endSeconds": 1265.0,
+     "textPreview": "付动态世界的生存指南呢是的每一道繁琐的拉普拉斯变换背后其实都是为了让物理世界变得",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 1265.0,
+     "endSeconds": 1277.8,
+     "textPreview": "个即将被非线性AI算法接管的动态世界里你认为今天学的这些经典的PID和拉普拉斯变",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "b1b02bfabf110d99cd9b282b3d6560c555bf7e6c9dd7270bfd011377c99fe2f9",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "4-2-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/4-2/media/4-2-intro-video.mp4",
+   "sha256": "4e15bda43a9385a61a5cfe72b5271a2e3fe64f07d2c494e86825d5270d0e4d4e",
+   "durationSeconds": 136.789333,
+   "transcriptSource": "videos-project:lesson-4-2/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 114.733,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 136.733,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 35,
+   "segments": [],
+   "activeReleaseSha256": "026ace23b4c66b4bead7be08719417a4a309af3ac23a4820596090f568b1d2b3",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "4-2-course",
+   "kind": "video",
+   "runtimePath": "lessons/4-2/media/4-2-course.mp4",
+   "sha256": "dfc8316cd2ff64138cbf2df665d456258a928dcc082c4809e5919d70d73335d7",
+   "durationSeconds": 508.377687,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/4-2.json",
+   "transcriptSourceSha256": "dfc8316cd2ff64138cbf2df665d456258a928dcc082c4809e5919d70d73335d7",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 15.04,
+     "textPreview": "各位还在熬夜刷题的工程学子们，大家挺住啊！期末考前这几个大夜，面对着满黑板的微积",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 15.04,
+     "endSeconds": 31.2,
+     "textPreview": "别慌，深呼吸。今天这份期末复习神器绝对是为你量身定制的救命稻草。接下来咱们不念经",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.2,
+     "endSeconds": 40.17,
+     "textPreview": "别管公式多吓人，跟着我的节奏，咱们直接在考场上满血复罗。来看一下咱们今天的作战大",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.17,
+     "endSeconds": 52.17,
+     "textPreview": "首先是控制理论求生指南，接着挑选控制器、武器库，然后搞定终极决策术，再带你攻克最",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 52.17,
+     "endSeconds": 73.53,
+     "textPreview": "好了，直接进入第一部分，控制理论求生指南，咱们来聊聊怎么拿捏这门让机器听化的艺术",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 73.53,
+     "endSeconds": 84.81,
+     "textPreview": "其实啊，这根本就不是单纯的数学问题，它更像是在走钢丝儿。你想要系统反应快吧，它就",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 84.81,
+     "endSeconds": 96.5,
+     "textPreview": "所以你看……控制的核心矛盾就在于系统稳定性和响应速度之间的这种极限拉扯。只要你真",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 96.5,
+     "endSeconds": 111.11,
+     "textPreview": "那么接下来第二部分，控制器武器库，咱们来挑一挑你的最佳通关装备。说实话，千万别把",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 111.11,
+     "endSeconds": 122.47,
+     "textPreview": "你看眼前这个密密麻麻的六类控制结构，波类特性矩阵，第一眼看上去绝对能把人吓退。但",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 122.47,
+     "endSeconds": 131.59,
+     "textPreview": "在这里，不管是PI控制器的低平台声，还是PD控制器的中频相位特性，全都一览无余。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+       "matchedLabel": "PI控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 131.59,
+     "endSeconds": 141.08,
+     "textPreview": "咱们用大白话快速过一下这四大铁王：P、比例控制器，它就是你的基础普攻。非常简单粗",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 141.08,
+     "endSeconds": 150.76,
+     "textPreview": "PI呢？几分控制器你可以把它看作是一个自带记忆的法师，专门负责修正过去的低频误差",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 150.76,
+     "endSeconds": 159.8,
+     "textPreview": "PD为分控制器，这就是个妥妥的预言家了，它能提前感知误差变化的速度，帮你提前拉高",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 159.8,
+     "endSeconds": 168.57,
+     "textPreview": "最后PID把前面所有的优点原占了。绝对是咱们控制界当之无愧的全能六边形战士，最顶",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 168.57,
+     "endSeconds": 181.29,
+     "textPreview": "装备都认识了，咱们赶紧进入第三部分——终极角色术。这可是你在考场上的寻宝地图，知",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 181.29,
+     "endSeconds": 206.5,
+     "textPreview": "打起精神，接下来的这个逻辑绝对是你期末考试的圣杯。面对控制器选型，这套决策逻辑其",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 206.5,
+     "endSeconds": 218.92,
+     "textPreview": "这条路线死死刻在脑子里，考场上你绝对不可能迷路。为了帮大家把复习效率直接拉满，我",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 218.92,
+     "endSeconds": 234.52,
+     "textPreview": "如果发生这个，就用那个的作弊表格。你做选择题，只要看到低频稳态误差大，闭着眼睛选",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 234.52,
+     "endSeconds": 245.93,
+     "textPreview": "要是题目既要稳态又要动态呢？别犹豫。直接上PID或者超前置后，如果人家题目明摆着",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 245.93,
+     "endSeconds": 257.37,
+     "textPreview": "听我的，记住这四行对应关系，考试保底多拿十分。搞定选型第四部分，攻克BOLD图，",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 257.37,
+     "endSeconds": 266.59,
+     "textPreview": "我们马上要踏入很多人最害怕的频域领地了，但是别慌，咱们的策略是绝不让自己淹没在数",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 266.59,
+     "endSeconds": 278.11,
+     "textPreview": "大家记住，不管试卷上给的开环报的图画得有多离谱、多复杂，你的第一反应就是去揪出这",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 278.11,
+     "endSeconds": 287.71,
+     "textPreview": "这就好比是给系统量脉搏和测血压，你要是没把这两个数测准，后面你算再多的控制器增益",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 287.71,
+     "endSeconds": 298.96,
+     "textPreview": "只有这两个指标达标了。你才能非常有底气的在卷子上写下：本系统绝对稳了。在频域提醒",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 298.96,
+     "endSeconds": 315.68,
+     "textPreview": "咱们来做个最直白的对比：超前补偿器，也就是劣的，你可以把它当成一个高敏捷的刺客，",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+       "matchedLabel": "补偿器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+       "matchedLabel": "超前补偿",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 315.68,
+     "endSeconds": 328.2,
+     "textPreview": "而滞后补偿器（lag）呢？它完全就是一个重装坦克，它的唯一任务就是死死撑住低频段",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+       "matchedLabel": "补偿器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+       "matchedLabel": "滞后补偿",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 328.2,
+     "endSeconds": 340.12,
+     "textPreview": "你看，一个主攻，一个主守，分工明明白白。好了，终于到了最后冲刺，第五部分参数整定",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 340.12,
+     "endSeconds": 352.98,
+     "textPreview": "咱们前面武器选好了，战术也定下来了。那在卷子上到底怎么算出具体的比例、积分和微分",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 352.98,
+     "endSeconds": 362.81,
+     "textPreview": "第一步，你慢慢调大增益，一直调到系统开始出现等幅震荡。好，记住这时候的临界增益K",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 362.81,
+     "endSeconds": 374.17,
+     "textPreview": "第三步，最爽直接套用乘数公式，比如题目让你算PID，直接拿06乘以KU完事儿。只",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 374.17,
+     "endSeconds": 384.97,
+     "textPreview": "但是啊，凡事都有个万一，如果这系统有严重的网络延迟，也就是遇到到了大纯之后咋办？",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 384.97,
+     "endSeconds": 395.05,
+     "textPreview": "你的超级备用计划就是内膜控制，也就是IMC，或者你直接利用系统的时间常数和延迟时",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 395.05,
+     "endSeconds": 405.86,
+     "textPreview": "如果想拿高分，那就直接上极点配置，把闭环极点硬生生按到目。标位置上，我跟你讲，这",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 405.86,
+     "endSeconds": 418.18,
+     "textPreview": "咱们再跳到扰动抵消这块，大家千万死死盯住这个百分比范围，百分之五十到百分之八十，",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+       "matchedLabel": "前馈补偿",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+       "matchedLabel": "补偿器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 418.18,
+     "endSeconds": 431.3,
+     "textPreview": "如果在卷子上叫你设计前馈千万别一上来就脑子一热追求百分之百的完美步长，因为在现实",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 431.3,
+     "endSeconds": 444.02,
+     "textPreview": "记住，从百分之五十到百分之八十开始起步，这才是真正的工程实践智慧。你要是能把这个",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 444.02,
+     "endSeconds": 456.5,
+     "textPreview": "讲到这儿，我们基本上已经克服了所有的核心考点。但其实我最希望大家记住的是这句话，",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 456.5,
+     "endSeconds": 474.19,
+     "textPreview": "你要知道，学控制系统设计真不仅仅是为了期末考试那几个干巴巴的学分，它实际上赋予了",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 474.19,
+     "endSeconds": 486.91,
+     "textPreview": "现在所有的终极武器——寻宝、剔、图和无脑连招，你都已已经牢牢握在手里了，剩下的就",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 486.91,
+     "endSeconds": 502.83,
+     "textPreview": "千万别被那些看起来贼复杂的压轴题吓到，把他们当成一个个等着你去驯服的狂野系统。那",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 502.83,
+     "endSeconds": 508.38,
+     "textPreview": "祝各位考神附体，咱们考场见。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "dfc8316cd2ff64138cbf2df665d456258a928dcc082c4809e5919d70d73335d7",
+   "status": "anchored"
+  }
+ ]
+}

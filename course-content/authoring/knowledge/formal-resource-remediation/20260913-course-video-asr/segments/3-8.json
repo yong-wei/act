@@ -1,0 +1,232 @@
+{
+ "contract": "remediation-audio-semantic-segments/v1",
+ "unit": "3-8",
+ "sourceSha256": "e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+ "segmentCount": 37,
+ "boundSegmentCount": 0,
+ "bindingModel": "pending: terminology overlap assigned by the anchor builder",
+ "segments": [
+  {
+   "text": "嘿，同学们，欢迎回来。今天啊，咱们来当一回侦探，要破解一个控制系统里头最核心的谜案——稳定性。",
+   "startSeconds": 0.0,
+   "endSeconds": 10.24,
+   "nodeBindings": []
+  },
+  {
+   "text": "你想啊，不管你设计的是个超乎的机器人，还是能送快递的无人机，你咋能保证它一通电不会突然开始瞎转圈？",
+   "startSeconds": 10.24,
+   "endSeconds": 20.0,
+   "nodeBindings": []
+  },
+  {
+   "text": "彻底失控的，这可是个大问题。OK，这是咱们今天的探案计划，先搞清楚到底什么是稳定性这个终极问题，然后请出两位王牌侦探，奈、奎、斯特和伯德，看看他们是怎么用各自的独门绝技来破案的。",
+   "startSeconds": 20.0,
+   "endSeconds": 40.01,
+   "nodeBindings": []
+  },
+  {
+   "text": "好，那咱们就正式开案。所有侦探破案都得从最关键的证据入手，对吧？",
+   "startSeconds": 40.01,
+   "endSeconds": 49.45,
+   "nodeBindings": []
+  },
+  {
+   "text": "在咱们这儿，这个关键证据就是一个数学表达式。喏，就是这个东西，开环传递函数LS，你可以把把它想象成系统的原始DNA，它描述的是系统在没有任何人为干预、最天然状态下的行为特性。",
+   "startSeconds": 49.45,
+   "endSeconds": 68.73,
+   "nodeBindings": []
+  },
+  {
+   "text": "我们后面所有的分析都得靠它。首先登场的是我们的奈亏斯侦探，这位老兄啊是个彻头彻尾的细节控，把案运风格就是严谨、严谨再严谨。",
+   "startSeconds": 68.73,
+   "endSeconds": 84.14,
+   "nodeBindings": []
+  },
+  {
+   "text": "它会把整个案发现场画成一张巨细靡遗的地图。没错，它的独门绝技就是画图。这张图呢，不是普通的地图，而是一张频率响应图。",
+   "startSeconds": 84.14,
+   "endSeconds": 97.66,
+   "nodeBindings": []
+  },
+  {
+   "text": "它能告诉我们，系统在面对从低到高各种不同频率的信号时，会做出什么样的反应。那么这张地图上最重要的地点是哪儿呢？",
+   "startSeconds": 97.66,
+   "endSeconds": 108.22,
+   "nodeBindings": []
+  },
+  {
+   "text": "就是这个点，负一零。你可以把它看作是案发现场的震中。我们画出的内调曲线到底有没有包围住这个点，这就是破案的关键线索。",
+   "startSeconds": 108.22,
+   "endSeconds": 121.37,
+   "nodeBindings": []
+  },
+  {
+   "text": "有了地图和关键地点，奈奎斯特侦探就要掏出他的破案法宝了。一个超级简单的公式，咱们管它叫PNZ密码，这个公式就是Z等于P减N。",
+   "startSeconds": 121.37,
+   "endSeconds": 138.95,
+   "nodeBindings": []
+  },
+  {
+   "text": "听起来很简单对吧？咱们一步步拆解。首先，P代表系统本身有多少个不稳定因子，你可以理解为系统自带的前科，也就是已知的嫌疑人。",
+   "startSeconds": 138.95,
+   "endSeconds": 151.03,
+   "nodeBindings": []
+  },
+  {
+   "text": "然后是N，这个就是我们刚才说的，看地图数一数那条曲线顺时针绕了负一零这个点几圈，最后用P减去N就得到了Z。",
+   "startSeconds": 151.03,
+   "endSeconds": 162.15,
+   "nodeBindings": []
+  },
+  {
+   "text": "这个Z就是最终的判决结果。它代表加上反馈控制之后，系统里还剩下多少不稳定因子。我们的目标当然是让Z等于零，偏下太平。",
+   "startSeconds": 162.15,
+   "endSeconds": 173.37,
+   "nodeBindings": []
+  },
+  {
+   "text": "来看第一个案子，这个系统本身很安分，没有任何前科，所以P等于零。再看它的耐试图，曲线根本没靠近负一零，更别说包围了，所以N等于零。",
+   "startSeconds": 173.37,
+   "endSeconds": 189.21,
+   "nodeBindings": []
+  },
+  {
+   "text": "那么Z等于零减零还是零？结论：系统稳定，结案好。第二个案子情况变了，这个系统本身就有点问题，它有一个不稳定极点，所以P就等于1。",
+   "startSeconds": 189.21,
+   "endSeconds": 204.86,
+   "nodeBindings": []
+  },
+  {
+   "text": "但是呢，你看它的曲线还是没有包尾关键点，所以N就等于零，结果Z就等于1减0等于1，Z不等于零，这就意味着最终的系统里还是藏着一个稳定因子，拉响警报这个系统是不稳定的。",
+   "startSeconds": 204.86,
+   "endSeconds": 224.67,
+   "nodeBindings": []
+  },
+  {
+   "text": "哇，这个案子就有意思了，简直是神操作。你看，系统开局不利，p等于一本身是不稳定的，但神奇的是它的耐试图不多不少，正好顺时针包围了关键点一次，也就是n等于一。",
+   "startSeconds": 224.67,
+   "endSeconds": 240.59,
+   "nodeBindings": []
+  },
+  {
+   "text": "这么一来，z等于一减一等于零，奇迹出现了。一个原本不稳定的系统，通过反馈控制居然变得稳定了，这就是控制的魅力所在呀。",
+   "startSeconds": 240.59,
+   "endSeconds": 252.06,
+   "nodeBindings": []
+  },
+  {
+   "text": "最后一个案例，你看这个曲线长得有点放荡不羁，对吧？但别被它的外表给骗了。咱们的破案流程是一样的，首先系统本身有没有问题？",
+   "startSeconds": 252.06,
+   "endSeconds": 264.7,
+   "nodeBindings": []
+  },
+  {
+   "text": "没有。P等于零，曲线有没有包围关键点？也没有。N等于零。所以Z等于零，结论非常清晰，系统稳定。",
+   "startSeconds": 264.7,
+   "endSeconds": 276.97,
+   "nodeBindings": []
+  },
+  {
+   "text": "这就告诉我们，不管曲线长啥样，奈奎斯特的法则永远好事。这么看下来，奈奎斯特侦犯的方法确实是权威、严谨、百分之百准确。",
+   "startSeconds": 276.97,
+   "endSeconds": 289.21,
+   "nodeBindings": []
+  },
+  {
+   "text": "但说实话，每次都画这么复杂的地图也挺累的。有没有一种更快、更直观的破案方法呢？当然有。",
+   "startSeconds": 289.21,
+   "endSeconds": 298.64,
+   "nodeBindings": []
+  },
+  {
+   "text": "下面就请出我们的第二位侦探，伯德。这位侦探的风格就完全不同了，他更像个现代的犯罪侧写师，不用画完整的现场地图，只看两张关键的图表就能快速锁定问题。",
+   "startSeconds": 298.64,
+   "endSeconds": 315.6,
+   "nodeBindings": []
+  },
+  {
+   "text": "他的方法是把奈奎斯特侦探的那张复杂图拆解成两张更简单的图，一张叫辅值图。",
+   "startSeconds": 315.6,
+   "endSeconds": 324.66,
+   "nodeBindings": []
+  },
+  {
+   "text": "告诉你系统把信号放大了多少倍。另一张叫相位图，告诉你系统让信号延迟了多少。这么一拆，问题就看得清楚多了。",
+   "startSeconds": 324.66,
+   "endSeconds": 335.94,
+   "nodeBindings": []
+  },
+  {
+   "text": "而且呢，伯的氮闭震不关心什么包围不包围，他关心的是另一个概念，叫做阈度。说白了就是我们的系统离危险的边缘还有多大的安全距离。",
+   "startSeconds": 335.94,
+   "endSeconds": 348.98,
+   "nodeBindings": []
+  },
+  {
+   "text": "先看第一个阈度，叫增益阈度。你得先找到一个非常危险的时刻，就是相位延迟刚好达到负一百八十度的时候。",
+   "startSeconds": 348.98,
+   "endSeconds": 359.22,
+   "nodeBindings": []
+  },
+  {
+   "text": "这差不多就是系统快要造反的临界点了。就在这个时刻，你抬头去看复值图，如果这个时候增益还小于一，也就是小于零分贝，那就说明我们还有一定的安全空间。",
+   "startSeconds": 359.22,
+   "endSeconds": 373.14,
+   "nodeBindings": []
+  },
+  {
+   "text": "这个空间就是增益欲度，另一个呢叫相位欲度。这次反过来，我们先找另一个危险时刻，就是增E刚好等于E，也就是零分贝的时候。",
+   "startSeconds": 373.14,
+   "endSeconds": 386.18,
+   "nodeBindings": []
+  },
+  {
+   "text": "在这个点上，我们再低头去看相位图，看看此时的相位离那个危险的负一百八十度还有多远。这个角度差就是我们的相位阈度，这个安全距离越大，系统当然就越稳定。",
+   "startSeconds": 386.18,
+   "endSeconds": 401.22,
+   "nodeBindings": []
+  },
+  {
+   "text": "所以博德侦探的结论就特别直白。只要增益阈和向外阈都是正数，就说明系统有足够的安全空间是稳定的。",
+   "startSeconds": 401.22,
+   "endSeconds": 411.18,
+   "nodeBindings": []
+  },
+  {
+   "text": "如果任何一个变成了负数，那就意味着已经越过危险线了，系统不稳定。是不是很简单？好了，两位侦探我们都认识了，他们一个严谨缜密，一个快速直观，但目标都是一样的，就是确保我们的系统安全可靠。",
+   "startSeconds": 411.18,
+   "endSeconds": 430.78,
+   "nodeBindings": []
+  },
+  {
+   "text": "那么问题来了。日常办案，我们到底该请谁呢？其实啊，奈奎斯侦探更像是理论基石，他是处理各种疑难杂症的终极权威，能给你一个绝对不会错的答案。",
+   "startSeconds": 430.78,
+   "endSeconds": 445.57,
+   "nodeBindings": []
+  },
+  {
+   "text": "而博德侦探呢，更像是我们日常工作中的得力干将，他快速、直观，不仅能告诉你系统稳不稳定，还能告诉你他有多稳。",
+   "startSeconds": 445.57,
+   "endSeconds": 455.81,
+   "nodeBindings": []
+  },
+  {
+   "text": "这对于我们去设计和优化系统来说，简直太有用了。好了，今天的案子就分析到这里。但大家一定要记住，判断一个系统是否稳定，仅仅是万里长征的第一步。",
+   "startSeconds": 455.81,
+   "endSeconds": 469.08,
+   "nodeBindings": []
+  },
+  {
+   "text": "真正的艺术和挑战，其实在于如何去调整和设计、去塑造这些曲线，让我们的系统不仅稳定，还要响应快、精度高、抗干扰能力强。",
+   "startSeconds": 469.08,
+   "endSeconds": 480.52,
+   "nodeBindings": []
+  },
+  {
+   "text": "那么你准备好设计你的第一个完美系统了吗？",
+   "startSeconds": 480.52,
+   "endSeconds": 486.41,
+   "nodeBindings": []
+  }
+ ]
+}

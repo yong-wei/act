@@ -1,0 +1,262 @@
+{
+ "contract": "remediation-asr-course-video-run/v1",
+ "processorIdentity": "fun-asr-nano+qwen3-forcedaligner+fsmn-vad (registry 61a631d0 + VAD addendum; course-video reuse 2026-09-13)",
+ "processorRegistryRef": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/processor-registry.json",
+ "vadModel": "fsmn-vad (modelscope)",
+ "chunkMaxSeconds": 28.0,
+ "segmentRule": "sentence-end + 8s min / 25s max windows over word timestamps",
+ "units": {
+  "3-8": {
+   "sourceSha256": "e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+   "durationSeconds": 486.412,
+   "chars": 2229,
+   "words": 1986,
+   "segments": 37,
+   "chunks": 19,
+   "asrSeconds": 47.8
+  },
+  "1-1": {
+   "sourceSha256": "f56b4adc46b2ed526f160a3a51f063b6587f9065f4685bfe4a9167016deaf2eb",
+   "durationSeconds": 413.733,
+   "chars": 2155,
+   "words": 1927,
+   "segments": 33,
+   "chunks": 17,
+   "asrSeconds": 45.3
+  },
+  "1-2": {
+   "sourceSha256": "64c1a2db2cbbc710a28791da706fe2b5d3f791363495698f0ec741e9e3ba8035",
+   "durationSeconds": 673.541,
+   "chars": 3370,
+   "words": 3049,
+   "segments": 55,
+   "chunks": 27,
+   "asrSeconds": 71.8
+  },
+  "2-1": {
+   "sourceSha256": "fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+   "durationSeconds": 484.345,
+   "chars": 2439,
+   "words": 2167,
+   "segments": 44,
+   "chunks": 22,
+   "asrSeconds": 50.8
+  },
+  "2-2": {
+   "sourceSha256": "73e004e57137cc0554e9458ac66664a904415e749992776b80e586abfd988564",
+   "durationSeconds": 646.954,
+   "chars": 3384,
+   "words": 3040,
+   "segments": 54,
+   "chunks": 30,
+   "asrSeconds": 67.9
+  },
+  "2-3": {
+   "sourceSha256": "b63304a0a6b9367f14f23f5d1f26557c14da23ecfd17ec8101a02d576ab11437",
+   "durationSeconds": 285.698,
+   "chars": 1390,
+   "words": 1214,
+   "segments": 24,
+   "chunks": 13,
+   "asrSeconds": 29.1
+  },
+  "2-4": {
+   "sourceSha256": "76a9f7fcbdd6188d8b9c209e96ed72b098b96b17d54048c78ba3464596771305",
+   "durationSeconds": 369.662,
+   "chars": 1936,
+   "words": 1742,
+   "segments": 31,
+   "chunks": 15,
+   "asrSeconds": 38.3
+  },
+  "3-1": {
+   "sourceSha256": "ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+   "durationSeconds": 440.877,
+   "chars": 2129,
+   "words": 1924,
+   "segments": 37,
+   "chunks": 18,
+   "asrSeconds": 44.7
+  },
+  "3-2": {
+   "sourceSha256": "54ffce986a5717aed90de8424f9c5a198958ff378a666fc3e316925137bdee3a",
+   "durationSeconds": 460.173,
+   "chars": 2175,
+   "words": 1927,
+   "segments": 39,
+   "chunks": 18,
+   "asrSeconds": 46.4
+  },
+  "3-3": {
+   "sourceSha256": "3e3c9e56d73f8a51c7debf4e1d24bf2ef67421319f7e633da6663b1c00c173ea",
+   "durationSeconds": 594.779,
+   "chars": 3178,
+   "words": 2834,
+   "segments": 48,
+   "chunks": 25,
+   "asrSeconds": 64.3
+  },
+  "3-4": {
+   "sourceSha256": "c83fe3508d11465ddb65cbc6edca1653c6592d21fe6cec8978af61cc557f533e",
+   "durationSeconds": 461.706,
+   "chars": 2234,
+   "words": 2015,
+   "segments": 33,
+   "chunks": 18,
+   "asrSeconds": 46.6
+  },
+  "3-5": {
+   "sourceSha256": "ffd1facb155c34f874e9ccc34e6135ce7156de28c29585f5337381ed082d8c21",
+   "durationSeconds": 435.885,
+   "chars": 2243,
+   "words": 1964,
+   "segments": 37,
+   "chunks": 19,
+   "asrSeconds": 47.4
+  },
+  "3-6": {
+   "sourceSha256": "362c9589c623a43cfafc9be5cada750d512b8180d00ae6965cbec668b3b442a0",
+   "durationSeconds": 381.318,
+   "chars": 1815,
+   "words": 1597,
+   "segments": 31,
+   "chunks": 15,
+   "asrSeconds": 38.0
+  },
+  "3-7": {
+   "sourceSha256": "dfa4f7abe44a83907dc291ec95da71ad33a675d6dbb94dcf0e599bcd1f062630",
+   "durationSeconds": 436.14,
+   "chars": 2124,
+   "words": 1877,
+   "segments": 36,
+   "chunks": 18,
+   "asrSeconds": 45.2
+  },
+  "3-9": {
+   "sourceSha256": "30dbd95e478918fd4911f9ccaef46f6cc05a2f287bab13a95dd246b4271dd079",
+   "durationSeconds": 466.512,
+   "chars": 2448,
+   "words": 2189,
+   "segments": 38,
+   "chunks": 21,
+   "asrSeconds": 49.1
+  },
+  "4-1": {
+   "sourceSha256": "4d2f982b6d771fcf2ade192a5102cf69136073d53c5444cbd4bb86ddce2b54a9",
+   "durationSeconds": 497.72,
+   "chars": 2488,
+   "words": 2237,
+   "segments": 40,
+   "chunks": 21,
+   "asrSeconds": 50.3
+  },
+  "4-2": {
+   "sourceSha256": "dfc8316cd2ff64138cbf2df665d456258a928dcc082c4809e5919d70d73335d7",
+   "durationSeconds": 508.378,
+   "chars": 2688,
+   "words": 2396,
+   "segments": 41,
+   "chunks": 22,
+   "asrSeconds": 54.3
+  },
+  "4-3": {
+   "sourceSha256": "0e79b1b0362479a0c11acadaf81e2430502d1705502739fad76e9fe667d697dd",
+   "durationSeconds": 406.28,
+   "chars": 2138,
+   "words": 1904,
+   "segments": 28,
+   "chunks": 17,
+   "asrSeconds": 42.9
+  },
+  "4-4": {
+   "sourceSha256": "600501060c7deba1e08d2c5b8d33ed8f0544add8316c689666ba139148cae2dc",
+   "durationSeconds": 373.075,
+   "chars": 1843,
+   "words": 1630,
+   "segments": 29,
+   "chunks": 15,
+   "asrSeconds": 38.0
+  },
+  "4-5": {
+   "sourceSha256": "53915146d9fd4d37ac23fbf04b72941ad7a99ef4634de11de2c94104f6d3da65",
+   "durationSeconds": 453.927,
+   "chars": 2247,
+   "words": 2015,
+   "segments": 35,
+   "chunks": 18,
+   "asrSeconds": 46.4
+  },
+  "4-6": {
+   "sourceSha256": "5cd392c74a03a4c8799a94c358de0271b54786b55ade1b65492b09ef4eb9b349",
+   "durationSeconds": 459.407,
+   "chars": 2402,
+   "words": 2159,
+   "segments": 42,
+   "chunks": 18,
+   "asrSeconds": 49.5
+  },
+  "4-7": {
+   "sourceSha256": "0467b5426d73878e3a177ab1e765e9a47541a7f5e2683018f493d4850f9b4ec7",
+   "durationSeconds": 610.267,
+   "chars": 3114,
+   "words": 2749,
+   "segments": 48,
+   "chunks": 29,
+   "asrSeconds": 62.7
+  },
+  "5-1": {
+   "sourceSha256": "7bd36ce537ebbf3b66bc909dea16a9aee2b54aef5b787eea246a975372cddcf4",
+   "durationSeconds": 437.092,
+   "chars": 2379,
+   "words": 2134,
+   "segments": 35,
+   "chunks": 18,
+   "asrSeconds": 47.4
+  },
+  "5-2": {
+   "sourceSha256": "91f1fd3646640a210cc0e159bd4b64aebdad4fc20311b69fb19f8e127f0241bd",
+   "durationSeconds": 523.308,
+   "chars": 2732,
+   "words": 2467,
+   "segments": 45,
+   "chunks": 23,
+   "asrSeconds": 54.8
+  },
+  "5-3": {
+   "sourceSha256": "02efd6a83d36487a1e2f112af67c6fca772c691f46a02c13ca18f64878e26e20",
+   "durationSeconds": 532.271,
+   "chars": 2739,
+   "words": 2481,
+   "segments": 43,
+   "chunks": 21,
+   "asrSeconds": 56.0
+  },
+  "5-4": {
+   "sourceSha256": "d08b19a869ebecdc48bbaf2517b2f3599aadc424384f5c62b5d462d914cc18b7",
+   "durationSeconds": 481.071,
+   "chars": 2430,
+   "words": 2160,
+   "segments": 39,
+   "chunks": 19,
+   "asrSeconds": 49.2
+  },
+  "5-5": {
+   "sourceSha256": "29662a74ecb811e8659bfb5044339089b3f03e065094274bd78e193d81e5821d",
+   "durationSeconds": 635.786,
+   "chars": 3379,
+   "words": 3026,
+   "segments": 50,
+   "chunks": 28,
+   "asrSeconds": 66.1
+  },
+  "5-6": {
+   "sourceSha256": "69f007ff50e5414913959279bf1c4ca02e69c4820fa0697310c8665bb5ca23b1",
+   "durationSeconds": 611.498,
+   "chars": 3200,
+   "words": 2867,
+   "segments": 47,
+   "chunks": 25,
+   "asrSeconds": 62.8
+  }
+ }
+}

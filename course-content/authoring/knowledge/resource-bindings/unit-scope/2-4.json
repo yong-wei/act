@@ -1,0 +1,101 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "2-4",
+ "canonicalIds": [
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+  "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+  "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+  "ctkg:v3e-canonical-504581e399675b9792ab8502",
+  "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+  "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa",
+  "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "ctkg:v3e-object-232e387ed53e92abee078346",
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+  "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+  "ctkg:v3e-object-7761615701fb4915a76924ff",
+  "ctkg:v3e-object-8496155b16d82318d90949d0",
+  "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+  "ctkg:v3e-object-ac5da367d445afc46b4baca3",
+  "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+  "ctkg:v3e-object-de873c97a924107857f79242",
+  "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e"
+ ],
+ "sources": {
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02": [
+   "topic:damping"
+  ],
+  "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e": [
+   "topic:gain-margin"
+  ],
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": [
+   "topic:phase-margin"
+  ],
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33": [
+   "topic:bandwidth"
+  ],
+  "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830": [
+   "topic:time-constant"
+  ],
+  "ctkg:v3e-canonical-504581e399675b9792ab8502": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627": [
+   "topic:time-constant"
+  ],
+  "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa": [
+   "topic:resonance"
+  ],
+  "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c": [
+   "topic:phase-crossover"
+  ],
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837": [
+   "focus_node_ids:相角裕度_5_5a74b451",
+   "summary_nodes:相角裕度_5_5a74b451",
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-object-232e387ed53e92abee078346": [
+   "focus_node_ids:截止频率_5_c7d09ff7",
+   "topic:gain-crossover"
+  ],
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7": [
+   "entry_nodes:频率特性_5_404adfdd",
+   "focus_node_ids:频率特性_5_404adfdd",
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-763fd65e573e7a65dfc4b79c": [
+   "topic:nyquist-plot"
+  ],
+  "ctkg:v3e-object-7761615701fb4915a76924ff": [
+   "topic:gain-crossover"
+  ],
+  "ctkg:v3e-object-8496155b16d82318d90949d0": [
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-9967c0867249bf4c1a625dab": [
+   "topic:phase"
+  ],
+  "ctkg:v3e-object-ac5da367d445afc46b4baca3": [
+   "topic:resonance"
+  ],
+  "ctkg:v3e-object-c2881833cb4d8b1e415dc742": [
+   "focus_node_ids:幅值裕度_5_73af26a5"
+  ],
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-object-de873c97a924107857f79242": [
+   "topic:magnitude"
+  ],
+  "ctkg:v3e-object-e16a21bf52b0d6a12485f477": [
+   "topic:corner-frequency"
+  ],
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e": [
+   "topic:bode"
+  ]
+ }
+}

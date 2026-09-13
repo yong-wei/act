@@ -1,0 +1,1447 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "5-5",
+ "unitIndex": 29,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/5-5/5-5-handout.md",
+  "sha256": "0073d0dff706fd86e3ce7ceb7f3220081b6fd3977c8f037f141a5bef1d305519"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "策略学习进入控制问题的导入场景",
+   "groupName": null,
+   "textChars": 240,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": null,
+   "textChars": 216,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前置基础快测",
+   "groupName": null,
+   "textChars": 113,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "显式控制律的结构证据",
+   "groupName": null,
+   "textChars": 207,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "复杂自主系统中的动作选择压力",
+   "groupName": null,
+   "textChars": 210,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+     "matchedLabel": "状态空间",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "显式控制律与学习策略的证明责任",
+   "groupName": null,
+   "textChars": 419,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "强化学习的序贯决策与长期回报",
+   "groupName": null,
+   "textChars": 376,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "横向误差修正实时训练",
+   "groupName": null,
+   "textChars": 393,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "策略学习进入控制任务的五项条件",
+   "groupName": null,
+   "textChars": 359,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "进入条件与风险矩阵",
+   "groupName": null,
+   "textChars": 225,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "航向控制中的三类 RL 进入结构",
+   "groupName": null,
+   "textChars": 334,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "Nomoto 航向环境的状态与动作设计",
+   "groupName": null,
+   "textChars": 489,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "航向保持奖励与 Q-learning 更新",
+   "groupName": null,
+   "textChars": 734,
+   "canonical": []
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "训练覆盖、安全外壳与部署验证",
+   "groupName": null,
+   "textChars": 327,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "三类航向 RL 策略训练与评价",
+   "groupName": null,
+   "textChars": 486,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "后测：策略学习入口与责任判断",
+   "groupName": null,
+   "textChars": 135,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "总结：策略学习的收益、代价与边界",
+   "groupName": null,
+   "textChars": 409,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-本次课程目标",
+   "order": 1,
+   "level": 2,
+   "title": "本次课程目标",
+   "startLine": 12,
+   "endLine": 21,
+   "bodyChars": 251,
+   "canonical": []
+  },
+  {
+   "headingId": "h2-显式控制器到策略学习的迁移压力",
+   "order": 2,
+   "level": 2,
+   "title": "一、显式控制器到策略学习的迁移压力",
+   "startLine": 22,
+   "endLine": 23,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-显式控制器的价值来自结构清楚",
+   "order": 3,
+   "level": 3,
+   "title": "1.1 显式控制器的价值来自结构清楚",
+   "startLine": 24,
+   "endLine": 35,
+   "bodyChars": 310,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m1s-object-3b6627a75236540ecca11111",
+     "matchedLabel": "状态反馈",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-复杂自主系统会放大动作选择空间",
+   "order": 4,
+   "level": 3,
+   "title": "1.2 复杂自主系统会放大动作选择空间",
+   "startLine": 36,
+   "endLine": 49,
+   "bodyChars": 534,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+     "matchedLabel": "状态空间",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-显式控制律与学习策略承担不同证明责任",
+   "order": 5,
+   "level": 3,
+   "title": "1.3 显式控制律与学习策略承担不同证明责任",
+   "startLine": 50,
+   "endLine": 75,
+   "bodyChars": 840,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-强化学习的最小概念与仿真演示",
+   "order": 6,
+   "level": 2,
+   "title": "二、强化学习的最小概念与仿真演示",
+   "startLine": 76,
+   "endLine": 77,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-序贯决策-策略与回报",
+   "order": 7,
+   "level": 3,
+   "title": "2.1 序贯决策、策略与回报",
+   "startLine": 78,
+   "endLine": 103,
+   "bodyChars": 707,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-一个横向误差修正的小仿真",
+   "order": 8,
+   "level": 3,
+   "title": "2.2 一个横向误差修正的小仿真",
+   "startLine": 104,
+   "endLine": 121,
+   "bodyChars": 717,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-策略学习进入控制问题的条件与代价",
+   "order": 9,
+   "level": 2,
+   "title": "三、策略学习进入控制问题的条件与代价",
+   "startLine": 122,
+   "endLine": 123,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-五项进入条件",
+   "order": 10,
+   "level": 3,
+   "title": "3.1 五项进入条件",
+   "startLine": 124,
+   "endLine": 139,
+   "bodyChars": 522,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-进入条件与风险矩阵",
+   "order": 11,
+   "level": 3,
+   "title": "3.2 进入条件与风险矩阵",
+   "startLine": 140,
+   "endLine": 153,
+   "bodyChars": 501,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-收益与代价同时出现",
+   "order": 12,
+   "level": 3,
+   "title": "3.3 收益与代价同时出现",
+   "startLine": 154,
+   "endLine": 169,
+   "bodyChars": 564,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-航向控制中的强化学习技术路线",
+   "order": 13,
+   "level": 2,
+   "title": "四、航向控制中的强化学习技术路线",
+   "startLine": 170,
+   "endLine": 171,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h14-第一步-确定控制结构",
+   "order": 14,
+   "level": 3,
+   "title": "4.1 第一步：确定控制结构",
+   "startLine": 172,
+   "endLine": 193,
+   "bodyChars": 723,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-第二步-建立-Nomoto-航向仿真环境",
+   "order": 15,
+   "level": 3,
+   "title": "4.2 第二步：建立 Nomoto 航向仿真环境",
+   "startLine": 194,
+   "endLine": 205,
+   "bodyChars": 338,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-第三步-设计状态",
+   "order": 16,
+   "level": 3,
+   "title": "4.3 第三步：设计状态",
+   "startLine": 206,
+   "endLine": 218,
+   "bodyChars": 309,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-第四步-设计动作",
+   "order": 17,
+   "level": 3,
+   "title": "4.4 第四步：设计动作",
+   "startLine": 219,
+   "endLine": 235,
+   "bodyChars": 319,
+   "canonical": []
+  },
+  {
+   "headingId": "h18-第五步-设计奖励",
+   "order": 18,
+   "level": 3,
+   "title": "4.5 第五步：设计奖励",
+   "startLine": 236,
+   "endLine": 267,
+   "bodyChars": 646,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-第六步-训练策略",
+   "order": 19,
+   "level": 3,
+   "title": "4.6 第六步：训练策略",
+   "startLine": 268,
+   "endLine": 275,
+   "bodyChars": 541,
+   "canonical": []
+  },
+  {
+   "headingId": "h20-第七步-做泛化训练",
+   "order": 20,
+   "level": 3,
+   "title": "4.7 第七步：做泛化训练",
+   "startLine": 276,
+   "endLine": 290,
+   "bodyChars": 424,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-第八步-加入安全保护",
+   "order": 21,
+   "level": 3,
+   "title": "4.8 第八步：加入安全保护",
+   "startLine": 291,
+   "endLine": 296,
+   "bodyChars": 264,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-第九步-从仿真走向实船",
+   "order": 22,
+   "level": 3,
+   "title": "4.9 第九步：从仿真走向实船",
+   "startLine": 297,
+   "endLine": 308,
+   "bodyChars": 262,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-第十步-评价控制效果",
+   "order": 23,
+   "level": 3,
+   "title": "4.10 第十步：评价控制效果",
+   "startLine": 309,
+   "endLine": 333,
+   "bodyChars": 1537,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-练习-常见误判与参考文献",
+   "order": 24,
+   "level": 2,
+   "title": "五、练习、常见误判与参考文献",
+   "startLine": 334,
+   "endLine": 335,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-分层练习",
+   "order": 25,
+   "level": 3,
+   "title": "5.1 分层练习",
+   "startLine": 336,
+   "endLine": 360,
+   "bodyChars": 715,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-常见误判",
+   "order": 26,
+   "level": 3,
+   "title": "5.2 常见误判",
+   "startLine": 361,
+   "endLine": 370,
+   "bodyChars": 354,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-本节小结",
+   "order": 27,
+   "level": 3,
+   "title": "5.3 本节小结",
+   "startLine": 371,
+   "endLine": 380,
+   "bodyChars": 322,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-参考文献",
+   "order": 28,
+   "level": 3,
+   "title": "5.4 参考文献",
+   "startLine": 381,
+   "endLine": 388,
+   "bodyChars": 1368,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "5-5-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/5-5/media/5-5-audio.m4a",
+   "sha256": "4468eb29c37c2dfa12d7c68606fc9e40d3943dd3cc0dd04b9ba76ab1a8ec3464",
+   "durationSeconds": 1301.896417,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/5-5.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.12,
+     "textPreview": "想象一下啊呃一艘5万吨级的巨型货轮正航行在狂风大作的远洋上就是那种传统的自动驾驶",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.24,
+     "textPreview": "艘巨轮的船多完全交接给一个仅仅是通过不不断试错来学习开船的AI也就是说一个彻头彻",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.24,
+     "endSeconds": 75.4,
+     "textPreview": "那个自动控制原理的阶梯架式里头晕脑胀的走出来正盯着手头那份代号为55的课程讲义为",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.72,
+     "endSeconds": 100.76,
+     "textPreview": "都是新老技术的碰撞就是经典的控治理论老大哥遇到了人工智能这个新贵这两套截然不同的",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.76,
+     "endSeconds": 125.84,
+     "textPreview": "直接碰撞嗯一边是我们熟悉的传统显示控制器另一边就是学习策略了嘿对传统的控制率它就",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.84,
+     "endSeconds": 150.96,
+     "textPreview": "状态X和已知参数P的明确函数在自动化这个领域我们的传统思路永远是先写出结构再去分",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.96,
+     "endSeconds": 176.04,
+     "textPreview": "他其实就像是一个啊怎么说呢拿着极度精密菜谱的米其林大厨哎这个比喻很有意思就是每一",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.04,
+     "endSeconds": 201.24,
+     "textPreview": "了对他不要闲事的配方了这就让我想起另一个比喻如果说强化学习也是个除湿的话那他绝对",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.24,
+     "endSeconds": 226.4,
+     "textPreview": "论家每次菜做出来评论家吃一口直接喊出一个分数就是奖励星好没错这个厨师一开始可能会",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.4,
+     "endSeconds": 251.52,
+     "textPreview": "方到底是什么公式写不出来但他就是能本能的抓起恰到好处的盐拿到那个评论家的满分你这",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.6,
+     "endSeconds": 278.08,
+     "textPreview": "工程界极其致命的隐患え哪里致命了你刚才轻描淡写的说经历了成千上万次炸除防是啊需练",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 278.08,
+     "endSeconds": 303.08,
+     "textPreview": "炸了所以你看讲义的架构图里特意用红框圈出了一个极其关键的概念叫做验证责任的同步增",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 303.08,
+     "endSeconds": 328.2,
+     "textPreview": "试错练出来的AI大厨他的决策逻辑是由几百万个神经网络权重组成的黑盒啊也就是讲义里",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 328.2,
+     "endSeconds": 353.28,
+     "textPreview": "全性兜底的缺失正是目前AI在物理控制系统落地时最大的达摩克里斯件这确实是个让人极",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 353.28,
+     "endSeconds": 378.32,
+     "textPreview": "回报机制我们俗称的胡萝卜与大棒这个比喻很贴切讲义这里列出了一个呃非常复杂的单步奖",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 378.4,
+     "endSeconds": 403.48,
+     "textPreview": "也要扣分甚至你连续两次打舵的差值太大也就是操作不平稳还要扣分对这些都是常规的性能",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 403.48,
+     "endSeconds": 428.6,
+     "textPreview": "出一个极其现实的灵魂拷问呵你问我听着我们以前在实验室调PID的时候天天盯着比例积",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 428.6,
+     "endSeconds": 453.92,
+     "textPreview": "不就是把手动调PID的痛苦原封不动的转移成了手动调reward的痛苦吗嗯换汤不换",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 453.92,
+     "endSeconds": 479.04,
+     "textPreview": "子你会觉得他就像个作弊的学生但是你要注意讲义里关于总回报公式的另外一个关键变量折",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 479.04,
+     "endSeconds": 504.12,
+     "textPreview": "短视的执行短视怎么说他只关心一件事儿就是此时此刻的误差是多少过去积累的误差是多少",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 504.12,
+     "endSeconds": 529.16,
+     "textPreview": "来所有步骤奖励的折现累加这就意味着折扣因子赋予了AAI一个真正的时间视野它在进行",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 529.16,
+     "endSeconds": 554.32,
+     "textPreview": "的但这绝不是下棋那么简单哎为什么不是因为下棋是一个离散的状态空间棋盘就那么大而且",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+       "matchedLabel": "状态空间",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 554.72,
+     "endSeconds": 579.76,
+     "textPreview": "结合讲义里那个训练曲线的小例子你就会明白了那个横向误差收敛的图对吧是的你会发现在",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 579.76,
+     "endSeconds": 605.0,
+     "textPreview": "的误差压到零它是怎么做的它是找到了一条极其平滑的轨迹只要你的奖励函数设置的当它能",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 605.0,
+     "endSeconds": 630.28,
+     "textPreview": "了这种面向未来的轨迹寻用能力你靠手动调PID的那三个参数是极难极难实现点的明白了",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 630.28,
+     "endSeconds": 660.08,
+     "textPreview": "是一场拔河比赛一方是传播巨大的惯性也就是公式里的那个参数T比如你要让一艘5万吨的",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 660.08,
+     "endSeconds": 685.28,
+     "textPreview": "性时间常数没错然后另一方呢则是船舵切入水流时产生的转向力也就是参数K模型描述的就",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-d55636bf45da33ce5a6c5084",
+       "matchedLabel": "状态向量",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 685.28,
+     "endSeconds": 715.0,
+     "textPreview": "上一时刻的跺脚指令以及系统估算出来的外界风浪干扰绕全都打包塞了进去哦这就等于他赋",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 715.0,
+     "endSeconds": 740.2,
+     "textPreview": "及外部推他的阻力有多大这样他才能做出正确的判断不过呢在这个实战环节我发现了一个让",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 740.2,
+     "endSeconds": 770.0,
+     "textPreview": "动作空间甚至它还要通过一个什么赛尺饱和函数去硬生生限制它的最大值明明有高精度的连",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 770.0,
+     "endSeconds": 795.04,
+     "textPreview": "程和纯计算算法的本质分水岭啊你觉得十二点五度这个数字在理论上非常完美对吧理论上却",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 795.04,
+     "endSeconds": 825.0,
+     "textPreview": "帧之间这么剧烈的信号跳变舵机根本来不及响应哇那舵机会卡死吗如果强行执行巨大的机械",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 825.0,
+     "endSeconds": 850.04,
+     "textPreview": "上是把物理世界的执行器约束强制内化到了算法的决策空间里也就是说给算法戴上了物理的",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 850.04,
+     "endSeconds": 880.16,
+     "textPreview": "跟误差的数据彻底揭开了这两种控制哲学的底牌这个对比确实非常有戏剧性简直是大跌眼睛",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 880.16,
+     "endSeconds": 905.2,
+     "textPreview": "RMS保持在443度最大抽调量只有微小的一点七八度老大哥还是稳的但是当那个被吹得",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 905.2,
+     "endSeconds": 935.0,
+     "textPreview": "的测纯强化学习反而成了一个浪费燃料疯狂输出的莽夫了呢因为我们刚才提到的那个物理属",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 935.0,
+     "endSeconds": 960.27,
+     "textPreview": "没有任何关于传播运动学基础结构的弦验知识他不知道传有多难转弯儿对所以当他面对海浪",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 960.46,
+     "endSeconds": 990.0,
+     "textPreview": "的组合控制架构我看到最后一行数据的时候确实有一种啊哈moment的感觉是的这个组",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 990.0,
+     "endSeconds": 1015.28,
+     "textPreview": "向误差直接降到了全场最低的420度而能量消耗指标甚至比传统的PID还要低直接降到",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1015.28,
+     "endSeconds": 1045.0,
+     "textPreview": "随这个比喻好脊髓附着条件反射对即随附做条件反射和基础的稳定性当高频的海浪拍打过来",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1045.0,
+     "endSeconds": 1071.0,
+     "textPreview": "过的前馈与反馈机制瞬间做出反应确保船只不会立刻翻沉他接管了系统最底层的短及纠偏也",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1071.0,
+     "endSeconds": 1100.08,
+     "textPreview": "后强化学习通过输出一个补偿信号或者去动态的微调PID的工作基准点原来如此底层的P",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 1100.08,
+     "endSeconds": 1125.2,
+     "textPreview": "学习则抵消了PID无法应对的复杂非线性偏移拓展了系统性能的上限脊髓负责生存大脑负",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1125.2,
+     "endSeconds": 1155.0,
+     "textPreview": "在啃书本的自动化专业学生或者正在做架构选择的工程师来说是一个极其重要的器是啊这两",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 1155.08,
+     "endSeconds": 1180.2,
+     "textPreview": "这也是自动化人应该有的态度不迷信纯数学解析的完美也不盲目崇拜黑和算法的万能在种种",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 1180.2,
+     "endSeconds": 1210.0,
+     "textPreview": "天我们论证了RL和PID可以通过这种层级架构实现性能和安全的双赢但是随着AI权限",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 1210.0,
+     "endSeconds": 1235.12,
+     "textPreview": "学习指挥的无人艇在海上遇到了突发障碍他的奖励函数告诉他相撞是绝对不能接受的毁灭性",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 1235.12,
+     "endSeconds": 1265.0,
+     "textPreview": "理和法律困境系啊这份带有自动化学院logo的讲义教会了我们如何构建严密的数学模型",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 48,
+     "startSeconds": 1265.0,
+     "endSeconds": 1290.04,
+     "textPreview": "责任链条到底该怎么界定这真的很难说清这个锅是属于那个在实验室里手动设定碰撞权重的",
+     "canonical": []
+    },
+    {
+     "index": 49,
+     "startSeconds": 1290.04,
+     "endSeconds": 1301.72,
+     "textPreview": "到自动化技术在这个时代的最前沿究竟面临着怎样激动人心的挑战祝大家期末顺利好的我们",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "4468eb29c37c2dfa12d7c68606fc9e40d3943dd3cc0dd04b9ba76ab1a8ec3464",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-5-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/5-5/media/5-5-intro-video.mp4",
+   "sha256": "943f0a714c387aa5061b5f177dcc7337d9aeea03eccccb2130232ca9ccf34540",
+   "durationSeconds": 188.288,
+   "transcriptSource": "videos-project:lesson-5-5/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 166.233,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 188.233,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 51,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 22.46,
+     "textPreview": "大家好，欢迎来到闲聊自控。上一讲，数据可以补模型，却不能取消目标和约束。今天再往",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 22.46,
+     "endSeconds": 31.03,
+     "textPreview": "近岸避碰的状态又多又变，同样舵角，在不同水域后果不同。结构还在，但规则很难事先枚",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 33.03,
+     "endSeconds": 41.96,
+     "textPreview": "显式控制律把动作写清楚。误差怎么进、约束怎么限，都能说明。学习策略把动作交给可训",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 41.96,
+     "endSeconds": 50.12,
+     "textPreview": "它靠状态、样本和回报长出来。证据来源完全不同：一边靠结构分析，一边靠交互验证。",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 50.12,
+     "endSeconds": 60.32,
+     "textPreview": "策略不是没有控制器，只是把困难挪到了样本和验证上。强化学习先看三件事。",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 60.32,
+     "endSeconds": 68.94,
+     "textPreview": "状态：现在看见了什么。动作：这一步能选什么。回报：怎样算做好了。",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 69.36,
+     "endSeconds": 80.5,
+     "textPreview": "简单横向误差，比例修正就够。学习策略能学到类似动作，却要付出训练和验证成本。价值",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 82.5,
+     "endSeconds": 92.42,
+     "textPreview": "策略学习进控制，要过四道门。任务是不是真的复杂到写不完？样本有没有盖住关键边界？",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 92.84,
+     "endSeconds": 101.59,
+     "textPreview": "动作来源能不能被解释？固定结构已经可靠，就不必整体替换。训练高分，不能直接当部署",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 101.59,
+     "endSeconds": 109.78,
+     "textPreview": "样本范围，比样本数量更重要。航向保持里，强化学习有三条进路。",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 109.78,
+     "endSeconds": 118.65,
+     "textPreview": "直接控舵：验证最难。生成参考航向：稳定性更好解释。调度 PID 参数：工程入口最",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 119.07,
+     "endSeconds": 130.83,
+     "textPreview": "越靠近舵机，越要能限制、能降级。越靠近环境适应，策略才更有价值。更合理的起步，通",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 132.83,
+     "endSeconds": 144.43,
+     "textPreview": "同一边缘场景，三列对照一起看。固定 PID：误差小，舵也稳。直接控舵的强化学习：",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 144.85,
+     "endSeconds": 154.62,
+     "textPreview": "加上安全外壳，危险动作能被拉回，但底层策略不会自动变好。对照的是 PID、强化学",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 154.62,
+     "endSeconds": 164.42,
+     "textPreview": "入口更像调度参数，而不是替换整条律。显式结构清楚时，不必追求策略学习。",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 164.42,
+     "endSeconds": 174.24,
+     "textPreview": "结构写不清，才谈样本和回报。前沿方法不会减少工程责任。越难解释，越要边界、验证和",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "943f0a714c387aa5061b5f177dcc7337d9aeea03eccccb2130232ca9ccf34540",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-5-course",
+   "kind": "video",
+   "runtimePath": "lessons/5-5/media/5-5-course.mp4",
+   "sha256": "29662a74ecb811e8659bfb5044339089b3f03e065094274bd78e193d81e5821d",
+   "durationSeconds": 635.785578,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/5-5.json",
+   "transcriptSourceSha256": "29662a74ecb811e8659bfb5044339089b3f03e065094274bd78e193d81e5821d",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 10.0,
+     "textPreview": "欢迎各位同学来到这一期的硬核猜解。如果大家平时喜欢看那种神仙打架的科技评测，那今",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 10.0,
+     "endSeconds": 24.87,
+     "textPreview": "没错，我们要把目光从桌面上的数码产品直接拉到大航海时代的终极自动化战场——船舶自",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 24.87,
+     "endSeconds": 35.51,
+     "textPreview": "一边呢是经历了数十年时间考验，基于经典控制理论的老司机；另一边呢是这几年风头无量",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 35.51,
+     "endSeconds": 46.78,
+     "textPreview": "今天我们就要通过这份极其硬核的最新研究资料，把那些看起来让人头皮发麻的控制方程和",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 46.78,
+     "endSeconds": 72.13,
+     "textPreview": "各位同学，准备好你们的弹幕和笔记，咱们的硬核评测现在发车。好的，咱们直接切入正题",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 72.13,
+     "endSeconds": 85.17,
+     "textPreview": "有时候会直接翻车，甚至引发撞船事故呢？这听起来是不是很不符合咱们对AI那种全知全",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 85.17,
+     "endSeconds": 94.59,
+     "textPreview": "下棋的规则是绝对的、封闭的。但在真实的大海里，狂风、巨浪、水流，还有那几十万吨的",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 94.59,
+     "endSeconds": 103.39,
+     "textPreview": "正是我们今天这场技术大比武的大背景，AI要想在现实物理世界中真正落地，光靠机房里",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 103.39,
+     "endSeconds": 113.79,
+     "textPreview": "那么咱们赶紧来看看啊，今天同台竞技的两位主角，左边是咱们的老当益壮派，完全由数学",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 113.79,
+     "endSeconds": 129.07,
+     "textPreview": "代表人物就是大名鼎鼎的pid和npc他们俩啊，就像是那种经验极其丰富、严谨到有点",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 129.07,
+     "endSeconds": 141.0,
+     "textPreview": "而右边这位则是咱们的当红榨汁机，数据驱动的现代ai特别是强化学习。他呢，就像是一",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 141.0,
+     "endSeconds": 150.36,
+     "textPreview": "脑子里根本没有那么多复杂的物理公式，全靠海量的数据喂养和几千万次的试错，硬生生练",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 150.36,
+     "endSeconds": 158.84,
+     "textPreview": "一边是严密推导的数学堡垒，一边是狂野生长的算法黑盒。究竟谁能在真实风浪中笑到最后",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 158.84,
+     "endSeconds": 172.16,
+     "textPreview": "既然要比赛，就得有个统一的比赛场地和规则，对吧？现在展现在咱们面前的就是这艘船的",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 172.16,
+     "endSeconds": 181.76,
+     "textPreview": "各位同学看到这个微分方程，千万别头大啊，咱们别把它当成期末考试里的噩梦，你就把它",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 181.76,
+     "endSeconds": 194.95,
+     "textPreview": "这个方程里的T和K代表了这艘船的固有属性，比如它的惯性有多大，转弯有多灵活。那个",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 194.95,
+     "endSeconds": 205.27,
+     "textPreview": "二就是船体实际转弯的速度。至于那个最让人头疼的d二，就是外界无时无刻不在给你捣乱",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 205.27,
+     "endSeconds": 216.98,
+     "textPreview": "不管你是严谨的老司机mpc，还是天才猩猩ai，你都必须在这个物理法则的绝对框架下",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 216.98,
+     "endSeconds": 228.82,
+     "textPreview": "最后偏出航线多远，全靠这个模型来无情解算。搞清楚了规则，最关键的一点来了，系统是",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 228.82,
+     "endSeconds": 239.94,
+     "textPreview": "咱们先来看看NPC这个老司机的策略。NPC在这里简直就像是一个极其精于算计的电竞",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 239.94,
+     "endSeconds": 255.46,
+     "textPreview": "用工程术语说，就是我们要去最小化的代价函数。你看他的这套判定条件啊，他既要在保证",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 255.46,
+     "endSeconds": 265.7,
+     "textPreview": "更绝的是，他脑子里时刻绷着两根高压线，避免碰撞致惩罚和遵守边界惩罚，一旦越界，好",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 265.7,
+     "endSeconds": 274.58,
+     "textPreview": "这位老司机每走一步，都会在脑海里把未来几十步的轨迹预测和扣分情况算得清清楚楚，主",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 274.58,
+     "endSeconds": 288.75,
+     "textPreview": "那么切换一下视角，看看右边的AI选手是怎么应对这场挑战的。这里展示的就是强化学习",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 288.75,
+     "endSeconds": 299.87,
+     "textPreview": "它靠的是什么？靠的就是纯粹的莽。第一步，看看当前的航向状态；第二步，根据当前的神",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 299.87,
+     "endSeconds": 310.59,
+     "textPreview": "第三步最关键了，系统会给他真实的物理反馈，偏离航向了吗？狠狠给你一个安全惩罚扣分",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 310.59,
+     "endSeconds": 321.07,
+     "textPreview": "然后第四步，他把这次被现实毒打的惨痛经验死死克进脑子里，更新他的策略网络，争取下",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 321.07,
+     "endSeconds": 331.63,
+     "textPreview": "你看看，这就是AI的暴力美学。任何先言之始，硬是通过成千上万次在帆船沿边的试错，",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 331.63,
+     "endSeconds": 344.52,
+     "textPreview": "刚才咱们说的啊，都还是纸上谈兵。现在真正考验技术的时刻到了，研究团队为这两种算法",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 344.52,
+     "endSeconds": 358.6,
+     "textPreview": "大家注意看这组干扰测试设定，研究人员可以说是不遗余力的在折磨这艘可怜的测试船。首",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 358.6,
+     "endSeconds": 371.16,
+     "textPreview": "紧接着是极其恶心人的反向阶跃扰动，什么意思呢？就是让你刚搭完左舵就得瞬间反向操作",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 371.16,
+     "endSeconds": 380.04,
+     "textPreview": "这意味着跑着跑着船的吃水变深了，或者舵机老化效能降低了，导致AI前面花的几万次学",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 380.04,
+     "endSeconds": 388.79,
+     "textPreview": "这就好比你开着车在高速上狂飙，突然摊太爆了，方向盘阻力直接翻倍，在这么变态的综合",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 388.79,
+     "endSeconds": 398.07,
+     "textPreview": "马上见分晓。随着测试的深入，各位同学，这期拆解最让人拍案叫绝的情节反转来了。",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 398.07,
+     "endSeconds": 414.7,
+     "textPreview": "大家原本以为这会是一场现代AI把经典控治理论安在地上无情摩擦的科幻爽文，对吧？但",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 414.7,
+     "endSeconds": 435.18,
+     "textPreview": "甚至几度濒临翻船。那工程界是怎么做的？直接把AI开除吗？当然不是。研究人员想出了",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 435.18,
+     "endSeconds": 446.28,
+     "textPreview": "AI的任务是什么？是根据风浪的实时变化，动态去微调老司机的PID参数，又或者……",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 446.28,
+     "endSeconds": 456.92,
+     "textPreview": "一旦AI的微操超出物理常理，立刻强制接管。咱们不淘汰经典公式，咱们是给AI配上了",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 456.92,
+     "endSeconds": 465.8,
+     "textPreview": "来来来，咱们直接看这一场BOSS战最核心的赛后成绩单。这份表格上的数据对比简直可",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 465.8,
+     "endSeconds": 476.33,
+     "textPreview": "大家重点看第二行，当直接让强化学习全面接管方向盘的时候。它的最大超调量竟然达到了",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 476.33,
+     "endSeconds": 495.92,
+     "textPreview": "同学们，这是什么概念？整艘船几乎要在海上被风浪吹得横过来了，这完全是灾难级的航行",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 495.92,
+     "endSeconds": 514.4,
+     "textPreview": "它完美结合了AI对环境的极致敏锐直觉，以及PID底层的绝对稳定性，硬生生将航向误",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+       "matchedLabel": "绝对稳定性",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 514.4,
+     "endSeconds": 532.4,
+     "textPreview": "如果刚才硬邦邦的数据大家觉得还不够直观，那现在这张图表绝对是今天最强有力的视觉证",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 532.4,
+     "endSeconds": 543.45,
+     "textPreview": "没错，那就是直接让AI接管的悲惨下场。在受到风浪干扰的时候，它不仅没法迅速稳定船",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 543.45,
+     "endSeconds": 556.89,
+     "textPreview": "然而，仅瓦视线移向那条紫色的曲线，这正是AI调度PID的混合形态。大家看看，它的",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 556.89,
+     "endSeconds": 574.01,
+     "textPreview": "无论是遇到突发的测风，还是恶性的参数漂移它都能迅速精准的化解于无形这条紫色的完美",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 574.01,
+     "endSeconds": 599.14,
+     "textPreview": "好了，各位同学，今天的硬核拆解到这里就接近尾声了，看着这份令人震撼看的数据对比和",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 599.14,
+     "endSeconds": 612.74,
+     "textPreview": "弃那些看起来有些老旧的经典公式吗？还是说最伟大的突破，其实在于教导AI去理解、去",
+     "canonical": []
+    },
+    {
+     "index": 48,
+     "startSeconds": 612.74,
+     "endSeconds": 628.36,
+     "textPreview": "在这个AI技术疯狂爆发的时代，或许我们最需要的最强工程师并不是那些只懂无脑堆算理",
+     "canonical": []
+    },
+    {
+     "index": 49,
+     "startSeconds": 628.36,
+     "endSeconds": 635.79,
+     "textPreview": "感谢大家的陪伴与观看，我们下期硬核拆解不见不散。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "29662a74ecb811e8659bfb5044339089b3f03e065094274bd78e193d81e5821d",
+   "status": "anchored"
+  }
+ ]
+}

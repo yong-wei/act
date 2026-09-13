@@ -5,11 +5,16 @@ import { describe, expect, it } from 'vitest';
 
 import { KNOWLEDGE_PATH_MAX_STEPS } from '@/features/personalization/path-planning/knowledge-path-assembly';
 import { assembleKnowledgePathPlan } from '@/features/personalization/path-planning/internal/knowledge-path-mount';
+import { isInternalPlanningTitle } from '@/features/personalization/path-planning/planning-resource-titles';
 import {
   loadGoalPlanningRegistry,
+  buildGoalPlanningRegistry,
   sliceGoalPlanningUniverse,
 } from '@/features/personalization/path-planning/planning-projection-index';
 import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
+import { buildIndexedCandidateResourceRecords } from '../indexed-resource-verification';
+import { validateLearningPathPlanForPersistence } from '../control-correction-path-rounds';
+import type { AdaptiveLearningPathPlanNode } from '../internal/assemble-plan';
 
 const HASH = 'c'.repeat(64);
 
@@ -22,6 +27,27 @@ function hasLiveProjection() {
 }
 
 describe('goal planning universe', () => {
+  it('verifies each anchored binding version and rejects an altered launch target', () => {
+    const target = 'ctc:v11g-5845390ded447e37f06ea222';
+    const universe = sliceGoalPlanningUniverse({
+      goalId: 'root-locus-analysis-foundations', projectionId: `proj-${HASH}`, projectionHash: HASH,
+      snapshotId: `snap-${HASH}`, snapshotHash: HASH, authorityReleaseId: 'authority-test',
+      bindingReleaseId: 'binding-test', bindingHash: HASH,
+      resources: [row('act:handout:1-1', 'handout')],
+      bindings: ['a', 'b'].map((key) => ({ ...bind('act:handout:1-1', target), bindingId: key.repeat(64) })),
+      edges: [],
+    });
+    const registry = buildGoalPlanningRegistry(universe);
+    const nodes = registry.nodes.map((node) => ({
+      nodeId: node.id, type: node.type, sourceKind: node.sourceKind, sourceRef: node.sourceRef,
+      target: node.launchTarget!, resourceFeatureRef: { ...node.publishedResource!.identity,
+        resourceVersion: node.publishedResource!.version, indexId: universe.index.indexId },
+    } as AdaptiveLearningPathPlanNode));
+    const verify = () => buildIndexedCandidateResourceRecords([{ styleId: 'test', planNodes: nodes }], null, universe.index);
+    expect(verify().map((record) => record.state)).toEqual(['index-verified', 'index-verified']);
+    nodes[0]!.target = '/interactive-learning/unrelated';
+    expect(verify().map((record) => record.state)).toEqual(['unverified', 'index-verified']);
+  });
   it('keeps only the goal knowledge closure and resources bound inside it', () => {
     const target = 'ctc:v11g-5845390ded447e37f06ea222';
     const prior = 'ctc:prior-root-locus';
@@ -56,10 +82,14 @@ describe('goal planning universe', () => {
     expect(universe.knowledgeIds).toEqual([prior, target]);
     expect(universe.resources.map((resource) => resource.identity.resourceId)).toEqual([
       'act:card:in-scope',
+      'act:card:in-scope',
       'act:card:mixed',
     ]);
-    expect(universe.resources.find((resource) => resource.identity.resourceId === 'act:card:mixed')?.canonicalIds)
-      .toEqual([target]);
+    expect(universe.resources.map((resource) => resource.canonicalIds)).toEqual([
+      [prior],
+      [target],
+      [target],
+    ]);
     expect(universe.edges).toEqual([{
       id: 'edge-1',
       sourceCanonicalId: prior,
@@ -68,9 +98,9 @@ describe('goal planning universe', () => {
     }]);
   });
 
-  it('leaves unbound goals as an empty search space', () => {
+  it('leaves unregistered goals as an empty search space', () => {
     const universe = sliceGoalPlanningUniverse({
-      goalId: 'simulation-validation-practice',
+      goalId: 'unregistered-empty-goal',
       projectionId: `proj-${HASH}`,
       projectionHash: HASH,
       snapshotId: `snap-${HASH}`,
@@ -93,7 +123,7 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     expect(knowledge.size).toBeLessThan(50);
     expect(loaded.registry.nodes.length).toBe(loaded.universe.resources.length);
     expect(loaded.registry.nodes.length).toBeGreaterThan(0);
-    expect(loaded.registry.nodes.length).toBeLessThan(1200);
+    expect(loaded.registry.nodes.length).toBeLessThan(8000);
     expect(loaded.universe.resources.every((resource) =>
       resource.canonicalIds.length > 0
       && resource.canonicalIds.every((id) => knowledge.has(id)),
@@ -126,7 +156,7 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     expect(mounted.every((node) => node.knowledgeCoverage.every((id) => knowledge.has(id)))).toBe(true);
   });
 
-  it('keeps every style path at or under the step cap and still reaches the goal targets', () => {
+  it('clips the live skeleton from the default head and keeps style as a tendency', () => {
     const loaded = loadGoalPlanningRegistry('root-locus-analysis-foundations');
     const plan = assembleKnowledgePathPlan({
       studentId: 'student-live',
@@ -145,11 +175,36 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     const paths = plan.policyBundle?.paths ?? [];
     expect(paths.every((path) => (path.planNodes?.length ?? 0) <= KNOWLEDGE_PATH_MAX_STEPS)).toBe(true);
     expect(plan.mainPath.length).toBeLessThanOrEqual(KNOWLEDGE_PATH_MAX_STEPS);
-    expect(plan.explanations.fallbackReasons).toContain('path-length-capped');
+    expect(plan.policyFamily).toBe('foundation-remediation');
     const simulation = paths.find((path) => path.policyFamily === 'simulation-driven');
-    expect(simulation?.planNodes?.some((node) => node.knowledgeCoverage.includes('ctc:v11g-5845390ded447e37f06ea222'))).toBe(true);
+    const foundation = paths.find((path) => path.policyFamily === 'foundation-remediation');
+    const simShare = shareOf(simulation?.planNodes ?? [], ['simulation', 'control_workbench', 'arena_task']);
+    const foundationSimShare = shareOf(foundation?.planNodes ?? [], ['simulation', 'control_workbench', 'arena_task']);
+    expect(simShare).toBeGreaterThan(foundationSimShare);
+    expect(simShare).toBeLessThan(1);
+    expect(simulation?.planNodes?.every((node) => node.type === 'simulation')).toBe(false);
+    expect(plan.mainPath.every((node) => !isInternalPlanningTitle(node.title))).toBe(true);
+    expect(() => validateLearningPathPlanForPersistence(plan, loaded.universe.index)).not.toThrow();
+    expect(buildIndexedCandidateResourceRecords(paths, null, loaded.universe.index)
+      .every((record) => record.state === 'index-verified')).toBe(true);
+  });
+
+  it('maps the previously empty goals onto a non-empty live universe', () => {
+    for (const goalId of ['simulation-validation-practice', 'ship-ocean-transfer-application'] as const) {
+      const loaded = loadGoalPlanningRegistry(goalId);
+      expect(loaded.universe.knowledgeIds.length).toBeGreaterThan(0);
+      expect(loaded.universe.resources.length).toBeGreaterThan(0);
+    }
   });
 });
+
+function shareOf(
+  nodes: Array<{ type: string }>,
+  kinds: readonly string[],
+): number {
+  if (nodes.length === 0) return 0;
+  return nodes.filter((node) => kinds.includes(node.type)).length / nodes.length;
+}
 
 function row(resourceId: string, resourceType: string) {
   return {

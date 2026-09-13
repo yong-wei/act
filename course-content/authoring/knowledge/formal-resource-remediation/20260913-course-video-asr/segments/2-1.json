@@ -1,0 +1,274 @@
+{
+ "contract": "remediation-audio-semantic-segments/v1",
+ "unit": "2-1",
+ "sourceSha256": "fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+ "segmentCount": 44,
+ "boundSegmentCount": 0,
+ "bindingModel": "pending: terminology overlap assigned by the anchor builder",
+ "segments": [
+  {
+   "text": "嘿，各位工程师，还有未来的工程师们，欢迎回来。今天啊，咱们要解锁一个超酷的技能，一个能让你在控制系统这个领域里怎么说呢？",
+   "startSeconds": 0.0,
+   "endSeconds": 11.52,
+   "nodeBindings": []
+  },
+  {
+   "text": "横着走的强大工具，它就叫传递函数。怎么样，准备好给你的大脑来一次大升级了吗？",
+   "startSeconds": 11.52,
+   "endSeconds": 20.0,
+   "nodeBindings": []
+  },
+  {
+   "text": "行，咱们这就开始。哎，看看我们今天的游戏计划，咱们先聊聊为啥微积分这么难，得想办法做b绕过去。",
+   "startSeconds": 20.0,
+   "endSeconds": 31.28,
+   "nodeBindings": []
+  },
+  {
+   "text": "然后呢，我们会进入一个神奇的地方，叫s域。在这里学三个基本招式，学完之后就得去挑战。",
+   "startSeconds": 31.28,
+   "endSeconds": 40.01,
+   "nodeBindings": []
+  },
+  {
+   "text": "一个怪手级的系统，最后嘛我还给你们准备了一个终极高手秘籍，是不是听着就觉得特带劲儿？",
+   "startSeconds": 40.01,
+   "endSeconds": 48.97,
+   "nodeBindings": []
+  },
+  {
+   "text": "好，那我们先从第一点开始说，真的咱们当工程师或者学工程的，在分析那些会动的系统，你想想比如机器人、手臂。",
+   "startSeconds": 48.97,
+   "endSeconds": 60.01,
+   "nodeBindings": []
+  },
+  {
+   "text": "呀，或者无人机啊，最头疼的是啥？没错，就是解那些该死的微分方程。你肯定有过这种经历吧？",
+   "startSeconds": 60.01,
+   "endSeconds": 69.77,
+   "nodeBindings": []
+  },
+  {
+   "text": "就盯着屏幕上一大堆复杂的微分方程，感觉脑子都快烧了，心里就在想：天呐，肯定有更简单的方法吧？",
+   "startSeconds": 69.77,
+   "endSeconds": 79.05,
+   "nodeBindings": []
+  },
+  {
+   "text": "别担心，你不是一个人，我敢说每个学工科的都这么想过。对，就是这种东西。什么高阶线性常微分方程，这玩意儿吧，确实能很精确地描述真实世界里的系统。",
+   "startSeconds": 79.05,
+   "endSeconds": 94.6,
+   "nodeBindings": []
+  },
+  {
+   "text": "但是，但是你要是想直接去解它，特别是在分析一个复杂的系统的时候，那简直就是噩梦。不过如果我告诉你，咱们有办法能把这玩意儿变成初中生都会的代数题，你信吗？",
+   "startSeconds": 94.6,
+   "endSeconds": 109.64,
+   "nodeBindings": []
+  },
+  {
+   "text": "那么欢迎来到我们的作弊天堂S域。在这个神奇的地方，微积分什么的我们不聊。在这里，咱们只说代数。",
+   "startSeconds": 109.64,
+   "endSeconds": 119.16,
+   "nodeBindings": []
+  },
+  {
+   "text": "可以说，这就是一个能让我们的工作量瞬间减半的魔法空间。那这个魔法是怎么实现的呢？靠的就是这个叫拉普拉斯变换的神器。",
+   "startSeconds": 119.16,
+   "endSeconds": 130.52,
+   "nodeBindings": []
+  },
+  {
+   "text": "你听着，你完全不需要去死磕它背后那些复杂的数学证明。你只要记住它能干嘛就行了，它就像一个传送门。",
+   "startSeconds": 130.52,
+   "endSeconds": 140.44,
+   "nodeBindings": []
+  },
+  {
+   "text": "能把那些让你头疼的微分运算，biu的一下就变成了简单的乘法。你看，在十域里求一次导，到了s域就只是乘以一个s，求两次导呢，那就乘以s的平方。",
+   "startSeconds": 140.44,
+   "endSeconds": 154.2,
+   "nodeBindings": []
+  },
+  {
+   "text": "怎么样？是不是感觉世界瞬间就清爽了？好，到了四域这个新世界之后呢，每个系统或者说系统里的每个零件都会有一个独一无二的身份证。",
+   "startSeconds": 154.2,
+   "endSeconds": 167.59,
+   "nodeBindings": []
+  },
+  {
+   "text": "这个身份证就叫传递函数，我们一般用GS来表示。说白了，它就是系统输出除以输入，一张身份证就清清楚楚的告诉你。",
+   "startSeconds": 167.59,
+   "endSeconds": 179.94,
+   "nodeBindings": []
+  },
+  {
+   "text": "这个系统是干嘛的？给他一个信号，他会怎么反应？特别直接行。既然我们已经懂了S域和传递函数，我们就可以开始玩点好玩的了。",
+   "startSeconds": 179.94,
+   "endSeconds": 190.98,
+   "nodeBindings": []
+  },
+  {
+   "text": "用方框图把整个系统画出来。那接下来呢，咱们就要学简化这些图的三大基本招式。我跟你说，只只要你学会了这三招，基本上百分之九十的系统你都能搞定。",
+   "startSeconds": 190.98,
+   "endSeconds": 205.06,
+   "nodeBindings": []
+  },
+  {
+   "text": "来，第一招：串联。你看这个图，两个方块一前一后的连着，信号先进G1出来，再进G2。",
+   "startSeconds": 205.06,
+   "endSeconds": 214.5,
+   "nodeBindings": []
+  },
+  {
+   "text": "这种情况怎么办？简单到不行，直接把它们俩的传递函数乘起来就行了。总的计就等于计一乘以计二，就这么简单粗暴。",
+   "startSeconds": 214.5,
+   "endSeconds": 225.95,
+   "nodeBindings": []
+  },
+  {
+   "text": "多好好，第二招并联这种情况呢，就是两个模块同时在干活，最后把结果汇总到一块。",
+   "startSeconds": 225.95,
+   "endSeconds": 236.03,
+   "nodeBindings": []
+  },
+  {
+   "text": "那总的传递函数是啥？你可能都猜到了，直接把它们俩加起来G等于G一加G二，是不是也超级直观？",
+   "startSeconds": 236.03,
+   "endSeconds": 246.67,
+   "nodeBindings": []
+  },
+  {
+   "text": "OK，注意了啊，接下来是重头戏，第三招也是最最重要的一招——反馈回路。我跟你说啊，几乎所有你听过的什么智能控制系统，它的核心就是这玩意儿。",
+   "startSeconds": 246.67,
+   "endSeconds": 258.91,
+   "nodeBindings": []
+  },
+  {
+   "text": "你看它把输的一部分通过一个叫H的环节，又给绕回了输入端。用来干嘛呢？用来比较，用来修正它的等效传递函数是J除以一加JH。",
+   "startSeconds": 258.91,
+   "endSeconds": 271.47,
+   "nodeBindings": []
+  },
+  {
+   "text": "这个公式大家一定要记牢了，画重点要考的，所有稳定智能的系统都靠它了。好了，理论知识咱们讲。",
+   "startSeconds": 271.47,
+   "endSeconds": 279.96,
+   "nodeBindings": []
+  },
+  {
+   "text": "讲完了，是时候上战场了。来，咱们就用刚学的这三招去挑战一个看起来特别吓人的怪兽级系统。",
+   "startSeconds": 279.96,
+   "endSeconds": 288.52,
+   "nodeBindings": []
+  },
+  {
+   "text": "别怕，我们的目标很简单，把这一大坨东西最后变成一个干干净净的方框。好，咱们来一步步把它拆了。",
+   "startSeconds": 288.52,
+   "endSeconds": 297.8,
+   "nodeBindings": []
+  },
+  {
+   "text": "对付这种复杂的系统要从从里到外，先看最里面。你看到G二和H一组成的这个小圈圈了吗？",
+   "startSeconds": 297.8,
+   "endSeconds": 306.28,
+   "nodeBindings": []
+  },
+  {
+   "text": "这不就是咱们的第三招——反馈回路吗？直接套公式，把它变成一个新方框。这个方框里面的值就是G二除以一加G二乘以H一。",
+   "startSeconds": 306.28,
+   "endSeconds": 317.88,
+   "nodeBindings": []
+  },
+  {
+   "text": "搞定一个好，再看。我们刚得到的这个新方框跟它下面的G三是什么关系？哎，是并联。能用第几招？第二招嘛，直接加起来。",
+   "startSeconds": 317.88,
+   "endSeconds": 327.8,
+   "nodeBindings": []
+  },
+  {
+   "text": "加完之后，这个合并起来的大块儿头又跟最前面的G一是什么关系？串联。第一招直接乘。你看这么一顿操作下来，原来乱七八糟的一堆，现在变成了一个清爽的大方框，最后一步了。",
+   "startSeconds": 327.8,
+   "endSeconds": 342.21,
+   "nodeBindings": []
+  },
+  {
+   "text": "现在整个系统是不是就变成了一个由H2构成的大号反馈回路？没错吧？那还等什么？再用一次我们万能的第三招——反馈公式，啪！",
+   "startSeconds": 342.21,
+   "endSeconds": 352.61,
+   "nodeBindings": []
+  },
+  {
+   "text": "最终的答案就出来了，一个唯一的传递函数。所以你看，所谓的怪兽系统，拆开来不就是我们那三招来？会用吗？怎么样，刚刚那个简化过程是不是特有成就吧？",
+   "startSeconds": 352.61,
+   "endSeconds": 364.61,
+   "nodeBindings": []
+  },
+  {
+   "text": "不过说实话，要是系统再复杂一点，这么一步一步来还是挺烦的。所以接下来我给你们看看真正的高手秘籍，算是个Protip吧。",
+   "startSeconds": 364.61,
+   "endSeconds": 375.49,
+   "nodeBindings": []
+  },
+  {
+   "text": "大家看啊，除了用方框图，我们还能用另一种方式来画这个系统，叫信号流图。你看右边这个，是不是感觉画风突变，有点像地铁线路图？",
+   "startSeconds": 375.49,
+   "endSeconds": 387.27,
+   "nodeBindings": []
+  },
+  {
+   "text": "其实它俩说的是一回事儿，只是长得不一样而已。用点和带箭头的线来表示信号怎么走、怎么被放大或缩小。",
+   "startSeconds": 387.27,
+   "endSeconds": 397.03,
+   "nodeBindings": []
+  },
+  {
+   "text": "那为什么要换种画法呢？因为信号流图它有一个终极作弊码叫梅森增益公式。这个公式牛在这儿呢，它能让你不用一步一步化简，只需要在图里找到几条路、几个圈儿，然后带进公式里。",
+   "startSeconds": 397.03,
+   "endSeconds": 413.34,
+   "nodeBindings": []
+  },
+  {
+   "text": "不管这个系统有多复杂，唰的一下就能直接算出总的传递行数，一步到位，这绝对是控治理论里的降龙十八掌，终极大招。",
+   "startSeconds": 413.34,
+   "endSeconds": 423.42,
+   "nodeBindings": []
+  },
+  {
+   "text": "所以咱们折腾了半天，又是s与又是方框图的，这玩意到底有啥用？我跟你说，用处可太大了。你看到的那些无人机怎么能稳稳的停在空中？",
+   "startSeconds": 423.42,
+   "endSeconds": 435.18,
+   "nodeBindings": []
+  },
+  {
+   "text": "工厂里那些机械人胳膊怎么能那么准的抓取东西？你车上的自动巡航功能是怎么实现的？甚至连分析经济系统都可能会用到它。",
+   "startSeconds": 435.18,
+   "endSeconds": 445.2,
+   "nodeBindings": []
+  },
+  {
+   "text": "所有这些东西的核心都离不开咱们今天聊的控制理论。所以你今天学的可不是什么枯燥的公式，你学的是跟这些顶尖科技对话的语言。",
+   "startSeconds": 445.2,
+   "endSeconds": 454.72,
+   "nodeBindings": []
+  },
+  {
+   "text": "好了，今天的升级攻略就到这儿了。现在你的工具箱里已经有了分析和简化控制系统的基本武器。",
+   "startSeconds": 454.72,
+   "endSeconds": 463.35,
+   "nodeBindings": []
+  },
+  {
+   "text": "那么不妨大胆赏一下，如果你能用今天学的这些知识去创造点什么，你最想搞定的第一个真实世界系统会是什么呢？",
+   "startSeconds": 463.35,
+   "endSeconds": 473.11,
+   "nodeBindings": []
+  },
+  {
+   "text": "是做一个能自动浇花的装置，还是设计一个更牛的游戏手柄？在下面留言告诉我你的想法吧，咱们下次再见。",
+   "startSeconds": 473.11,
+   "endSeconds": 484.35,
+   "nodeBindings": []
+  }
+ ]
+}

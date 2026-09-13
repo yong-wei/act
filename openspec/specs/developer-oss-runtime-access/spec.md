@@ -49,14 +49,14 @@ The supported developer execution environments SHALL be native Linux, Windows WS
 - **THEN** bootstrap SHALL stop with a credential-safe diagnostic and SHALL NOT fall back to public ossfs2, macFUSE, WinFSP or another unverified mount adapter
 
 ### Requirement: Active runtime is verified and materialized without copying the logical tree
-Bootstrap SHALL fetch the exact immutable v2 manifest and receipt named by readiness through the authenticated gateway, validate their Release ID, schema, canonical digest, receipt/wire binding, logical tree digest, normalized path set and SHA-derived Blob keys, obtain a pin-time read lease for that identity, and expose only `runtime/blobs/sha256/` through a read-only gateway-backed adapter bound to that lease. It SHALL use the repository materializer to prepare, attach, verify and select a logical view, then expose that view read-only at the checkout's `course-content/runtime` path without deleting or overwriting the checkout directory.
+Bootstrap SHALL fetch the selected v2 manifest named by readiness through the authenticated gateway, validate their Release ID, schema, canonical digest, logical tree digest, normalized path set and SHA-derived Blob keys, obtain a pin-time read lease for that identity, and expose only `runtime/blobs/sha256/` through a read-only gateway-backed adapter bound to that lease. It SHALL use the repository materializer to prepare, attach, verify and select a logical view, then expose that view read-only at the checkout's `course-content/runtime` path without deleting or overwriting the checkout directory.
 
 #### Scenario: Active manifest and Blob adapter are valid
-- **WHEN** the immutable manifest/receipt match readiness and every required mount, materialization and read-only check passes
+- **WHEN** the selected manifest matches readiness and every required mount, materialization and read-only check passes
 - **THEN** bootstrap SHALL expose one manifest-bound filesystem view and start the existing development services against it
 
 #### Scenario: Manifest identity or Blob content drifts
-- **WHEN** the fetched manifest/receipt differs from readiness, a Blob is absent or mismatched, a materialized link escapes the Blob root, or the selected view receipt differs
+- **WHEN** the fetched manifest differs from readiness, a Blob is absent or mismatched, a materialized link escapes the Blob root, or the selected view receipt differs
 - **THEN** bootstrap SHALL fail closed, leave development services stopped, and SHALL NOT select a candidate, previous package, checkout residue or public OSS fallback
 
 #### Scenario: Mounted runtime is modified through the application path
@@ -64,7 +64,7 @@ Bootstrap SHALL fetch the exact immutable v2 manifest and receipt named by readi
 - **THEN** the filesystem SHALL reject the write and preserve both the gateway-served objects and hidden checkout directory
 
 #### Scenario: Matching startup is repeated
-- **WHEN** the fixed readiness identity, lease, manifest receipt, adapter source, read-only options, selected view and checkout bind all match a prior completed startup
+- **WHEN** the fixed readiness identity, lease, manifest identity, adapter source, read-only options, selected view and checkout bind all match a prior completed startup
 - **THEN** bootstrap SHALL reuse the verified state without rebuilding or downloading the complete logical runtime
 
 #### Scenario: Production switches while a leased checkout is running
@@ -233,3 +233,17 @@ Repair and recovery SHALL rebuild only the affected checkout-owned logical view 
 - **THEN** 系统 SHALL 呈现具体受限原因，SHALL NOT 静默回退本地 fixture、页面内置样例或普通站内资源以伪造读取成功
 - **AND** 失败资源 SHALL NOT 计入 OSS 覆盖与路径区分度
 
+
+### Requirement: Gateway follows the activated pointer without receipt gates
+The gateway SHALL derive the active identity and Blob access set from the manifest selected by `blob-views/current`. Audit receipts and publication receipts SHALL NOT gate lease issuance or developer bootstrap. Clients SHALL fetch the selected manifest without requiring the legacy receipt endpoint. Existing leases SHALL retain their pinned release across activation.
+
+#### Scenario: Simplified activation omits publication receipts
+- **WHEN** current selects a readable v2 manifest and its audit receipts are absent or stale
+- **THEN** the gateway SHALL issue a lease for that identity and serve its manifest without receipt or wire-format qualification
+
+### Requirement: Developer leases tolerate normal offline periods
+Default transport credentials SHALL last 24 hours and leases SHALL tolerate 7 days without a heartbeat. Explicit stop and credential revocation SHALL remain effective immediately.
+
+#### Scenario: Workstation resumes after a weekend
+- **WHEN** a checkout resumes after three days without a heartbeat
+- **THEN** it SHALL renew its transport and continue reading its pinned release without obtaining a new lease

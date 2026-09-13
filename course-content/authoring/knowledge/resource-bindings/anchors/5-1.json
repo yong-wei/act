@@ -1,0 +1,1929 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "5-1",
+ "unitIndex": 25,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/5-1/5-1-handout.md",
+  "sha256": "51e0b2305273d6123cc3329c1df332529f89dc3dd755cc777c36a59517e897d3"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "舵机大角度响应中的线性边界显现",
+   "groupName": "入口现象",
+   "textChars": 288,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": "目标与前测",
+   "textChars": 173,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测：线性模型的预备判断",
+   "groupName": "目标与前测",
+   "textChars": 110,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+     "matchedLabel": "叠加原理",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "线性主干依赖的五个默认条件",
+   "groupName": "线性默认条件",
+   "textChars": 357,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+     "matchedLabel": "叠加原理",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "典型非线性环节的假设破坏类型",
+   "groupName": "典型非线性环节",
+   "textChars": 857,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "合理局部线性化：平滑非线性的小扰动模型",
+   "groupName": "局部线性化与预测对比",
+   "textChars": 975,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 15,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+     "matchedLabel": "非线性系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "继电器切换的伪线性化失真",
+   "groupName": "局部线性化与预测对比",
+   "textChars": 1130,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 108,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "饱和执行器：大指令下前段响应变慢",
+   "groupName": "局部线性化与预测对比",
+   "textChars": 687,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "死区执行机构：小误差附近连续修正失效",
+   "groupName": "局部线性化与预测对比",
+   "textChars": 747,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "滞环继电器：阈值附近的切换和周期摆动",
+   "groupName": "局部线性化与预测对比",
+   "textChars": 725,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "速率限制舵机：快速指令下动作被拖慢",
+   "groupName": "局部线性化与预测对比",
+   "textChars": 690,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "边界识别五步与方法迁移前说明",
+   "groupName": "边界判断与方法迁移",
+   "textChars": 754,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "后测：边界类型、线性化与风险说明",
+   "groupName": "边界判断与方法迁移",
+   "textChars": 121,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "总结：局部有效、全局失真与方法去向",
+   "groupName": "边界判断与方法迁移",
+   "textChars": 1547,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 5,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3d61744c1f15d0d0bbf20902",
+     "matchedLabel": "accuracy",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8.0,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-工程对象触碰边界后的响应失真",
+   "order": 1,
+   "level": 2,
+   "title": "一、工程对象触碰边界后的响应失真",
+   "startLine": 11,
+   "endLine": 22,
+   "bodyChars": 607,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-学习目标",
+   "order": 2,
+   "level": 2,
+   "title": "二、学习目标",
+   "startLine": 23,
+   "endLine": 32,
+   "bodyChars": 247,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-线性主干依赖的五个默认条件",
+   "order": 3,
+   "level": 2,
+   "title": "三、线性主干依赖的五个默认条件",
+   "startLine": 33,
+   "endLine": 48,
+   "bodyChars": 505,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+     "matchedLabel": "状态空间",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+     "matchedLabel": "叠加原理",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-典型非线性环节的输入输出特性",
+   "order": 4,
+   "level": 2,
+   "title": "四、典型非线性环节的输入输出特性",
+   "startLine": 49,
+   "endLine": 54,
+   "bodyChars": 160,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-饱和截断大幅值动作",
+   "order": 5,
+   "level": 3,
+   "title": "4.1 饱和截断大幅值动作",
+   "startLine": 55,
+   "endLine": 69,
+   "bodyChars": 292,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+     "matchedLabel": "积分控制",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-死区屏蔽小信号",
+   "order": 6,
+   "level": 3,
+   "title": "4.2 死区屏蔽小信号",
+   "startLine": 70,
+   "endLine": 84,
+   "bodyChars": 259,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-继电器与带滞环继电器把连续输入变成开关动作",
+   "order": 7,
+   "level": 3,
+   "title": "4.3 继电器与带滞环继电器把连续输入变成开关动作",
+   "startLine": 85,
+   "endLine": 94,
+   "bodyChars": 188,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-间隙-回差与摩擦让路径和起动条件成为状态",
+   "order": 8,
+   "level": 3,
+   "title": "4.4 间隙、回差与摩擦让路径和起动条件成为状态",
+   "startLine": 95,
+   "endLine": 98,
+   "bodyChars": 137,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-速率限制-量化和平滑非线性改变动态细节",
+   "order": 9,
+   "level": 3,
+   "title": "4.5 速率限制、量化和平滑非线性改变动态细节",
+   "startLine": 99,
+   "endLine": 102,
+   "bodyChars": 154,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-分段增益-模式切换-模型失配和强扰动",
+   "order": 10,
+   "level": 3,
+   "title": "4.6 分段增益、模式切换、模型失配和强扰动",
+   "startLine": 103,
+   "endLine": 116,
+   "bodyChars": 323,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-局部线性化-合理近似与错误近似",
+   "order": 11,
+   "level": 2,
+   "title": "五、局部线性化：合理近似与错误近似",
+   "startLine": 117,
+   "endLine": 127,
+   "bodyChars": 211,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-合理例子-平滑非线性在工作点附近线性化",
+   "order": 12,
+   "level": 3,
+   "title": "5.1 合理例子：平滑非线性在工作点附近线性化",
+   "startLine": 128,
+   "endLine": 159,
+   "bodyChars": 717,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 84,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+     "matchedLabel": "非线性系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-不合理例子-把继电器切换误当成比例斜率",
+   "order": 13,
+   "level": 3,
+   "title": "5.2 不合理例子：把继电器切换误当成比例斜率",
+   "startLine": 160,
+   "endLine": 186,
+   "bodyChars": 631,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-局部线性化的使用边界",
+   "order": 14,
+   "level": 3,
+   "title": "5.3 局部线性化的使用边界",
+   "startLine": 187,
+   "endLine": 200,
+   "bodyChars": 369,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-不同非线性类型中的线性预测失真",
+   "order": 15,
+   "level": 2,
+   "title": "六、不同非线性类型中的线性预测失真",
+   "startLine": 201,
+   "endLine": 204,
+   "bodyChars": 61,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-饱和执行器-大指令下响应前段变慢",
+   "order": 16,
+   "level": 3,
+   "title": "6.1 饱和执行器：大指令下响应前段变慢",
+   "startLine": 205,
+   "endLine": 230,
+   "bodyChars": 540,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-死区执行机构-小误差附近的连续修正失效",
+   "order": 17,
+   "level": 3,
+   "title": "6.2 死区执行机构：小误差附近的连续修正失效",
+   "startLine": 231,
+   "endLine": 265,
+   "bodyChars": 599,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-继电器和滞环-阈值附近出现抖振或周期运动",
+   "order": 18,
+   "level": 3,
+   "title": "6.3 继电器和滞环：阈值附近出现抖振或周期运动",
+   "startLine": 266,
+   "endLine": 296,
+   "bodyChars": 589,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-速率限制舵机-快速指令下初段动作被拖慢",
+   "order": 19,
+   "level": 3,
+   "title": "6.4 速率限制舵机：快速指令下初段动作被拖慢",
+   "startLine": 297,
+   "endLine": 335,
+   "bodyChars": 774,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+     "matchedLabel": "非线性系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-边界识别的五步判断框架",
+   "order": 20,
+   "level": 2,
+   "title": "七、边界识别的五步判断框架",
+   "startLine": 336,
+   "endLine": 351,
+   "bodyChars": 454,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-方法迁移前的三类处理方向",
+   "order": 21,
+   "level": 2,
+   "title": "八、方法迁移前的三类处理方向",
+   "startLine": 352,
+   "endLine": 353,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-继续留在线性主干内修正",
+   "order": 22,
+   "level": 3,
+   "title": "8.1 继续留在线性主干内修正",
+   "startLine": 354,
+   "endLine": 357,
+   "bodyChars": 106,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-进入边界工具分析",
+   "order": 23,
+   "level": 3,
+   "title": "8.2 进入边界工具分析",
+   "startLine": 358,
+   "endLine": 361,
+   "bodyChars": 106,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 5,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-更换系统视角",
+   "order": 24,
+   "level": 3,
+   "title": "8.3 更换系统视角",
+   "startLine": 362,
+   "endLine": 365,
+   "bodyChars": 130,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-小结",
+   "order": 25,
+   "level": 2,
+   "title": "九、小结",
+   "startLine": 366,
+   "endLine": 371,
+   "bodyChars": 242,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-分层练习",
+   "order": 26,
+   "level": 2,
+   "title": "十、分层练习",
+   "startLine": 372,
+   "endLine": 373,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-练习-1-边界现象识别",
+   "order": 27,
+   "level": 3,
+   "title": "练习 1：边界现象识别",
+   "startLine": 374,
+   "endLine": 383,
+   "bodyChars": 160,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-练习-2-死区与小信号误差",
+   "order": 28,
+   "level": 3,
+   "title": "练习 2：死区与小信号误差",
+   "startLine": 384,
+   "endLine": 393,
+   "bodyChars": 164,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-练习-3-局部线性化是否合理",
+   "order": 29,
+   "level": 3,
+   "title": "练习 3：局部线性化是否合理",
+   "startLine": 394,
+   "endLine": 403,
+   "bodyChars": 170,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+     "matchedLabel": "继电器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h30-练习-4-模型失配与方法迁移说明",
+   "order": 30,
+   "level": 3,
+   "title": "练习 4：模型失配与方法迁移说明",
+   "startLine": 404,
+   "endLine": 412,
+   "bodyChars": 148,
+   "canonical": []
+  },
+  {
+   "headingId": "h31-扩展思考",
+   "order": 31,
+   "level": 2,
+   "title": "十一、扩展思考",
+   "startLine": 413,
+   "endLine": 417,
+   "bodyChars": 223,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "5-1-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/5-1/media/5-1-audio.m4a",
+   "sha256": "afc6ce2b72108e62e05fb1fef0249c320bda55a82c32df0d8030bc650353df1d",
+   "durationSeconds": 1201.261134,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/5-1.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.16,
+     "endSeconds": 25.2,
+     "textPreview": "嗯如果你现在正在就是死磕自动控制原理这门课啊不管你现在是正走在去教室的路上还是深",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+       "matchedLabel": "叠加原理",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.2,
+     "endSeconds": 50.24,
+     "textPreview": "在嗯不仅不存在那些理论其实更像是工程师们为了方便推导公式人为构筑了一个怎么说呢一",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.24,
+     "endSeconds": 75.32,
+     "textPreview": "的物理极限没错这简直就是一场现实对理论的降维打击那欢迎来到闲聊自控博客我是那个平",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.32,
+     "endSeconds": 100.44,
+     "textPreview": "任务其实就是带你拆解一份在自控领域极其硬核的讲义治疗关于典情非限行环节在就是那份",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.44,
+     "endSeconds": 125.44,
+     "textPreview": "才咱们说完尾的限行只是工程师的一厢情愿那现实里的非线性系统它到底长什么样呢其实讲",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.44,
+     "endSeconds": 150.64,
+     "textPreview": "型的两个代表就是大家经常听到的报和和死区哎这两个词在课本出场率极高为了方便大家在",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.2,
+     "endSeconds": 176.44,
+     "textPreview": "在它的音量没有达到某个能把我彻底震醒的阈值之前无论他怎么想我在被窝里是根本无动于",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.68,
+     "endSeconds": 202.04,
+     "textPreview": "对你给一个电机施加了电压电压在慢慢升高但在突破电机的静摩擦阻力之前那个转子是纹丝",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 202.04,
+     "endSeconds": 227.04,
+     "textPreview": "且带着极大的起床气爆发了绝对的爆发这时候我可能想狂吼一声发泄一下这就对应系统开始",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 227.04,
+     "endSeconds": 252.08,
+     "textPreview": "准你的肺活量其实就是讲义中提到的最大输出限制在电路中运算放大器的输出电压绝不可能",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-c11008d631001e9adf28c536",
+       "matchedLabel": "运算放大器",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.08,
+     "endSeconds": 277.24,
+     "textPreview": "器计算出多么庞大的控制指令物理现实都会在那个极限点把输出硬生生的截断哇所以总结一",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 277.24,
+     "endSeconds": 302.52,
+     "textPreview": "器的非线性特性啊计电器它的特性就像是一个极度情绪化的人非黑即白怎么个非黑即白它的",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.52,
+     "endSeconds": 327.88,
+     "textPreview": "功率加热温度到了瞬间彻底断电听起来倒是挺简单粗暴的但是这种就是非黑即白的控制逻辑",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 327.88,
+     "endSeconds": 352.96,
+     "textPreview": "方向盘只有两种状态要么向左打死要么向右打死哇那这车没法开了是啊你想保持车让直线行",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+       "matchedLabel": "继电器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 352.96,
+     "endSeconds": 378.0,
+     "textPreview": "在跨越零点时瞬间产生的巨大能量突变会让系统永远无法平稳地停在一个点上这在工程上简",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 378.0,
+     "endSeconds": 403.0,
+     "textPreview": "的机械非线性你想象两个咬合的齿轮他们之间因为磨损总是存在一点点空间的对吧嗯不可能",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 403.0,
+     "endSeconds": 428.12,
+     "textPreview": "动齿轮的另一侧在这个空间被走完之前驱动齿轮再动但从动齿轮是完全停的我这就等于是说",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 428.12,
+     "endSeconds": 453.12,
+     "textPreview": "奇形怪状甚至还会记仇的非线性怪物如果我们工程师还要硬生生地去手算维分方程这根本就",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 453.12,
+     "endSeconds": 478.4,
+     "textPreview": "码就是讲一理重点讲述的工作点附近的局部限训化我中了这就是传说中把弯的强行说成直的",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 478.4,
+     "endSeconds": 503.52,
+     "textPreview": "就是两头平中间弯的那种对只要这个系统绝大部分时间都稳定运行在某一个点附近我们叫它",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 503.52,
+     "endSeconds": 528.52,
+     "textPreview": "一条直线就是这个逻辑数学上我们在工作点做泰勒展开然后直接砍掉所有的高阶项只保留一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 528.52,
+     "endSeconds": 554.44,
+     "textPreview": "平滑最后呈现出我们刚才说的饱和状态这确实是个极其典型的非线性方程啊那我们具体要怎",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 554.44,
+     "endSeconds": 579.52,
+     "textPreview": "为一的直线替换掉了那条复杂的S型曲线原本复杂的非线性项瞬间变成了一个极其简单的线",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 579.52,
+     "endSeconds": 604.64,
+     "textPreview": "微清醒一点的角度反思一下这个操作啊你说我们把一根明明有天花板有地板的S型取死死盯",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 604.8,
+     "endSeconds": 629.96,
+     "textPreview": "没有看到地平线的弧度那地球在我眼里绝对是平的我们工程师既然在用地平说来设计现代的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 629.96,
+     "endSeconds": 655.32,
+     "textPreview": "就是局部线性化在小信号下的表现ええ但如果我要造火箭飞向太空我还在用地平说写轨到方",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 655.32,
+     "endSeconds": 680.4,
+     "textPreview": "发生什么图里是怎么对的实验对比了原始的非线性系统好我们用地平说推导出的那个线性系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 680.4,
+     "endSeconds": 705.68,
+     "textPreview": "个巨大的阶跃信号时画风突变那个线性化模型因为他坚信地球是平的他坚信输出可以无限制",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 705.76,
+     "endSeconds": 730.76,
+     "textPreview": "冲到一定高处后砰的一声撞到了物理天花板就是saturate边界对他的输出被硬生生",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 730.76,
+     "endSeconds": 755.8,
+     "textPreview": "的电压输出但实际电机早就卡死在24伏的物理极限上你的整个控制逻辑就会全面坑盘哇讲",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 756.04,
+     "endSeconds": 781.04,
+     "textPreview": "一个系统存在死区阈值是02但是呢输入信号的活动范围被死死限制在了正负015之间这",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 781.04,
+     "endSeconds": 806.08,
+     "textPreview": "系数出来输入不是015吗按比例乘一乘算出一个大概是零点一或者零点零五的输出值在纸",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 806.08,
+     "endSeconds": 831.16,
+     "textPreview": "统根本就没有被激活转子连动都没动一下纹丝不动所以不管你的线性公式算出了多么精妙的",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 831.56,
+     "endSeconds": 856.76,
+     "textPreview": "讲义里的波的图对比也展示了非线性在大信号下的破坏力在面对大偏置频率扫描时真实非线",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 856.76,
+     "endSeconds": 881.76,
+     "textPreview": "滞你过了一秒半才动那我整个控制的节作就全乱套了呀就是这样那既然现实这么残酷系统动",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 881.76,
+     "endSeconds": 906.96,
+     "textPreview": "极其优雅的急救手段如果你只看讲义上的公式它像是一个复杂的镍秤函数包含了变化率限制",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 906.96,
+     "endSeconds": 932.0,
+     "textPreview": "其固执的记账员记账员对只要系统有误差它就会把误差一点一点的累加起来不断的增加他的",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 932.0,
+     "endSeconds": 957.08,
+     "textPreview": "限制但是车还是没动这时候那个固的积分器在他的数学世界里还在疯狂的累加误差他心里想",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 957.08,
+     "endSeconds": 982.12,
+     "textPreview": "令车子冲出泥坑的瞬间会像炮弹一样飞出去极其危险而且即使车速已经超过了50码积分器",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 982.12,
+     "endSeconds": 1007.12,
+     "textPreview": "所以讲义里那个antiwind共事就是为了阻止这个固执的羁账员干蠢事儿怎么阻止那",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1007.12,
+     "endSeconds": 1032.24,
+     "textPreview": "接放掉哇他等于是强行在代码里揪着积分器的耳朵告诉他喂电机已经到极限了你再怎么累加",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1032.24,
+     "endSeconds": 1057.4,
+     "textPreview": "溃和设备损毁的血泪教训中摸索出来的生存法则确是如此ふう今天这一趟深挖真是把冷冰冰",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 1057.4,
+     "endSeconds": 1082.44,
+     "textPreview": "号与大信号的残酷较量中鉴定了纯数学模型是如何在物理天花板面前粉身碎骨的其实控制工",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 43,
+     "startSeconds": 1082.44,
+     "endSeconds": 1107.44,
+     "textPreview": "业总结的太好了所以如果你正在听这期节目下次做题或者去实验室调参的时候千万不要看到",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 1107.44,
+     "endSeconds": 1132.48,
+     "textPreview": "我们结束今天的探跑之前我想给你也就是正在听节目的你留下一个值得深入思考的问题哦来",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 1132.48,
+     "endSeconds": 1157.56,
+     "textPreview": "的反应即便他撞了天花板他也是基于现在的状态在撞天花板是的但你还记得我们前面提到的",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 1157.56,
+     "endSeconds": 1182.6,
+     "textPreview": "一秒是在往左转还是往右转过去的历史状态深刻地参与了现在的决定带有记忆的非线性面对",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 47,
+     "startSeconds": 1182.84,
+     "endSeconds": 1201.16,
+     "textPreview": "这个问题真的直击轮回啊看来线性化这把手术刀可能根本切不开时间的维度希望正在听节目",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "afc6ce2b72108e62e05fb1fef0249c320bda55a82c32df0d8030bc650353df1d",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-1-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/5-1/media/5-1-intro-video.mp4",
+   "sha256": "47ee99c7dd9b43ea76ba7c1ca6d7629faa4370434cf2ce115beb8d442a103f41",
+   "durationSeconds": 189.376,
+   "transcriptSource": "videos-project:lesson-5-1/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 167.333,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 189.333,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 53,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 19.18,
+     "textPreview": "大家好，欢迎来到闲聊自控。小角度修航时，线性模型很听话。参考角突然放大，预测还是",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 19.18,
+     "endSeconds": 31.83,
+     "textPreview": "可真实舵机可能已经顶到限位。输出变慢，尾段误差也被拖长。线性模型没有立刻作废，它",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.83,
+     "endSeconds": 40.29,
+     "textPreview": "今天就看：主干在哪里开始失真。线性主干默认五件事同时成立。",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.29,
+     "endSeconds": 48.6,
+     "textPreview": "第一，比例关系大致还在。第二，多个作用可以分开再相加。第三，同一输入对应同一输出",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 49.02,
+     "endSeconds": 60.49,
+     "textPreview": "第四，短时间内参数别乱跑。第五，工作模式不要突然切换。它们不要求世界完全线性。只",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 62.5,
+     "endSeconds": 71.36,
+     "textPreview": "先看饱和：输出有最大幅值。没顶到限位时，它和比例一样。一旦饱和，再加大指令也推不",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 71.36,
+     "endSeconds": 82.58,
+     "textPreview": "线性预测会高估执行器能力。再看死区：太小的指令没有输出。控制器以为自己在微调，执",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 82.58,
+     "endSeconds": 92.47,
+     "textPreview": "小误差附近，连续修正会失效。继电器把连续输入变成开关。越过零点，输出就从负跳到正",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+       "matchedLabel": "继电器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 92.47,
+     "endSeconds": 100.95,
+     "textPreview": "带滞环时，还要看从哪边走来。同一输入，可能对应两种输出。滞回减少抖动，也带来路径",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 100.95,
+     "endSeconds": 109.33,
+     "textPreview": "线性预测会掩盖开关和周期摆动。这时不是稳态差一点点，而是整套比例语言已经失效。",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 111.33,
+     "endSeconds": 119.47,
+     "textPreview": "切换会改写系统方程本身。保护逻辑一介入，结构就变了。模型失配不是一个静态环节。",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 119.47,
+     "endSeconds": 127.89,
+     "textPreview": "航速、载荷、海况都会让参数走偏。扰动若把系统推到饱和或死区，失真就不再只是参数误",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 127.89,
+     "endSeconds": 138.26,
+     "textPreview": "试验池里超调量和调节时间都合格，海上却可能同时触边、拖尾。边界识别，先整理五步证",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 138.26,
+     "endSeconds": 147.69,
+     "textPreview": "现象在哪：输出、控制量还是模式。哪条线性假设正在被破坏。问题只在局部，还是跨工况",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 148.1,
+     "endSeconds": 158.49,
+     "textPreview": "继续用线性，会低估什么风险。然后才选处理方向。能线性修正，就先别换方法。触边了再",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 160.5,
+     "endSeconds": 169.53,
+     "textPreview": "线性主干是最重要的分析语言。它通常局部有效，不能自动全局有效。先说清哪里还能用、",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 169.53,
+     "endSeconds": 175.34,
+     "textPreview": "方法迁移，必须建立在边界证据上。下一讲，再看边界工具怎么入手。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "47ee99c7dd9b43ea76ba7c1ca6d7629faa4370434cf2ce115beb8d442a103f41",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-1-course",
+   "kind": "video",
+   "runtimePath": "lessons/5-1/media/5-1-course.mp4",
+   "sha256": "7bd36ce537ebbf3b66bc909dea16a9aee2b54aef5b787eea246a975372cddcf4",
+   "durationSeconds": 437.092426,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/5-1.json",
+   "transcriptSourceSha256": "7bd36ce537ebbf3b66bc909dea16a9aee2b54aef5b787eea246a975372cddcf4",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 15.68,
+     "textPreview": "各位自动化专业的同学们，大家好，欢迎来到这期干货满满的解析。说真的，你们打游戏的",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 15.68,
+     "endSeconds": 24.32,
+     "textPreview": "如果遇到过，那你今天绝对来对地方了。这期内容简直就是为咱们硬核玩家量身定制的生存",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 24.32,
+     "endSeconds": 33.04,
+     "textPreview": "我们要一起通关自动化工程里最让人头大的关卡，也就是非线性控制系统的复杂数学计算。",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 33.04,
+     "endSeconds": 48.89,
+     "textPreview": "咱们直接开干！想想看，当初填报自动化专业的时候，你脑子里是不是浮现出那种极其酷炫",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 48.89,
+     "endSeconds": 63.69,
+     "textPreview": "一切看起来都那么井然有序，但现实往往会给你迎头痛击。咱们真正要面对的挑战，其实是",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 63.69,
+     "endSeconds": 78.41,
+     "textPreview": "真实世界的物理系统嘛，它可是从来都不按套路出牌的哦。如果说你们之前学的那些线性系",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 78.41,
+     "endSeconds": 95.49,
+     "textPreview": "看看眼前这密密麻麻的八张图表，它们简直就是真实世界物理引擎里的八大最终BOSS，",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 95.49,
+     "endSeconds": 115.07,
+     "textPreview": "唉，先别慌，深呼吸。其实啊，只要咱们摸清了它们的规律，这些所谓的反派也没那么可怕",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 115.07,
+     "endSeconds": 128.83,
+     "textPreview": "第二类呢是不敏感区，信号一旦掉进去就像掉进了黑洞一样毫无反应。第三类是那种脾气特",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 128.83,
+     "endSeconds": 137.84,
+     "textPreview": "这么一分类，这堆乱糟糟的数据是不是瞬间感觉好管理多了？那么让我们进入第一关，饱和",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 137.84,
+     "endSeconds": 148.24,
+     "textPreview": "想搞懂这个机制啊，最核心的就是要看懂U等于SETV这个饱和函数。说白了，你可以把",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 148.24,
+     "endSeconds": 163.87,
+     "textPreview": "当你的输入输入V在一定范围内的时候，系统的是非常听话的。但一旦你把数字油门死死踩",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 163.87,
+     "endSeconds": 173.55,
+     "textPreview": "多余的输入带来的额外输出等于零，这就是现实世界在冷酷地对你喊：嘿，到速度线了！接",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 173.55,
+     "endSeconds": 183.79,
+     "textPreview": "你看公式上写着：当输入的绝对值小于或等于余值delta的时候，输出U居然等于零，",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 183.79,
+     "endSeconds": 194.94,
+     "textPreview": "典型的模拟摇感漂移效应，它就像是你手里那个用了很久早就坏掉的游戏手柄。在中心de",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 194.94,
+     "endSeconds": 203.26,
+     "textPreview": "只有当你用力推，彻底逃离了这个死区中心之后，公式里那个带斜率的k乘以v减delt",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 203.26,
+     "endSeconds": 212.14,
+     "textPreview": "理解了这个原理，你就能彻底明白为什么死区会那么让人抓狂。接着往下走，第二关，继电",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+       "matchedLabel": "继电器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 212.14,
+     "endSeconds": 226.18,
+     "textPreview": "大家看看这个公式：u等于m乘以s、g、n、v。它可是完美诠释了什么叫暴力的关键。",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 226.18,
+     "endSeconds": 241.22,
+     "textPreview": "只要你的输入稍微正一点点，输入瞬间暴增到正m，输入稍微负一点点，马上又从重的衰回",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 241.22,
+     "endSeconds": 251.52,
+     "textPreview": "感觉就像是一个只懂全开或者全关的极度狂暴的电闸，不过别太绝望。物理世界偶尔也是会",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 251.52,
+     "endSeconds": 261.36,
+     "textPreview": "相比于刚才那个狂暴的符号函数、继电器，双取正切函数，也就是TENTUREF位给出",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+       "matchedLabel": "继电器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 261.36,
+     "endSeconds": 273.93,
+     "textPreview": "你看它有着非常优美的非线性曲线，可以说完美地柔化了标准继电器那刺眼扎人的锯齿状边",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+       "matchedLabel": "继电器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 273.93,
+     "endSeconds": 284.25,
+     "textPreview": "会有时候只要方法对，他们也是能被温和驾驭的。那么重点来了，解锁我们的通关作弊码—",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 284.25,
+     "endSeconds": 294.41,
+     "textPreview": "打到这儿，如果你觉得非线性的微积分实在太反人类，感觉自己血条都快空了的话，先别急",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 294.41,
+     "endSeconds": 304.08,
+     "textPreview": "一边是那些让人头皮发麻，布满了各种条件分支的分段非线性方程。这简直就是真实又残酷",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 304.08,
+     "endSeconds": 320.62,
+     "textPreview": "但是你看另一边，仅仅是通过一个简单的近似符号Y约等于FX零加上F撇X零乘以X减X",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 320.62,
+     "endSeconds": 330.54,
+     "textPreview": "它能精准地把一条复杂的曲线在某一点附近强行拉直，让你终于能长舒一口气，直接从困难",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 330.54,
+     "endSeconds": 346.38,
+     "textPreview": "所以在下一次的考试或者是实验室里，你到底该怎么打出这套完美的连招呢？其实特别简单",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 346.38,
+     "endSeconds": 360.44,
+     "textPreview": "第二步，计算在这个点的导数，摸清这一圣经的斜率变化规律。第三步，把这些数值狠狠地",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 360.44,
+     "endSeconds": 374.44,
+     "textPreview": "接下来迎战最终boss，技能应用。既然带上了无敌的作弊码，我们赶紧先来刺探一下敌",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 374.44,
+     "endSeconds": 391.42,
+     "textPreview": "首先你需要分析当工作点从五度偏移到二十五度的时候，会产生怎样的线性化误差。其次，",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 391.42,
+     "endSeconds": 402.27,
+     "textPreview": "最后，在这个工作点V等于零的附近，你需要亲自去对比一下那个温和的ten和暴躁的S",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 402.27,
+     "endSeconds": 418.43,
+     "textPreview": "心里有底了吧？好了，所有的核心技能和通关招式咱们已经都是彻底解析完了。现在手柄交",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 418.43,
+     "endSeconds": 429.48,
+     "textPreview": "还是决定拔出线性化这把利剑，完美通关这场工程物理学的终极生存大战？我相信你们早就",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 429.48,
+     "endSeconds": 437.09,
+     "textPreview": "感谢大家收看这一期的解析，祝大家把把超神。咱们下一个关卡再见。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "7bd36ce537ebbf3b66bc909dea16a9aee2b54aef5b787eea246a975372cddcf4",
+   "status": "anchored"
+  }
+ ]
+}

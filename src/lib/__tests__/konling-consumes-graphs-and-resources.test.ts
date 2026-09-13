@@ -45,6 +45,7 @@ vi.mock('@/lib/versioned-knowledge-activation', async (importOriginal) => {
 vi.mock('@/lib/teaching-projection/live-course-pointer', () => ({
   overlayLiveTeachingPins: (pins: unknown) => pins,
   readAgreedLiveCourseProjection: vi.fn(() => null),
+  readAgreedLiveResourceBindingRelease: vi.fn(() => null),
 }));
 
 vi.mock('@/lib/math-calc', async () => {

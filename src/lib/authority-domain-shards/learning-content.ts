@@ -4,7 +4,9 @@
  * The composite shard envelope is the cross-domain authorization boundary:
  * it binds a passed Teaching Projection that selects the published card
  * identities and seals its Authority identity. This module only reads
- * exported runtime copies, never authoring sources.
+ * exported runtime copies, never authoring sources. It does not read course
+ * projection B′ `bindings.jsonl`; the knowledge drawer resource list comes
+ * from `resource-bindings/`.
  */
 
 import { createHash } from 'node:crypto';

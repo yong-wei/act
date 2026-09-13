@@ -1,0 +1,2948 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "2-2",
+ "unitIndex": 6,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/2-2/2-2-handout.md",
+  "sha256": "a58f5369ea96c93ef6aff8337d88a6b4566563a515d1cb01ea3d1d40e96b5829"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图——从传函走向响应曲线",
+   "groupName": "引入与研究对象",
+   "textChars": 92,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "单位阶跃响应_2_6a2a83b9"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "情境引入——稳定并不等于表现一样",
+   "groupName": "引入与研究对象",
+   "textChars": 217,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "单位阶跃响应_2_6a2a83b9"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "学习目标——本课要建立哪套语言",
+   "groupName": "引入与研究对象",
+   "textChars": 80,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "单位阶跃响应_2_6a2a83b9"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "前测——快、稳、冲分别看什么",
+   "groupName": "引入与研究对象",
+   "textChars": 197,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "单位阶跃响应_2_6a2a83b9"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "时域分析对象与典型输入",
+   "groupName": "引入与研究对象",
+   "textChars": 199,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "单位阶跃响应_2_6a2a83b9"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "一阶系统阶跃响应与时间常数",
+   "groupName": "一阶与二阶基础",
+   "textChars": 229,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "阻尼比_3_b849784e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "无阻尼自然频率_3_13001"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+     "matchedLabel": "时间常数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "一阶系统_3_4f3b29ce"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "临界阻尼响应_3_5839e0e4"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "过阻尼响应_3_adf3867e"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "二阶系统标准型：ωn、ζ、ωd",
+   "groupName": "一阶与二阶基础",
+   "textChars": 215,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "阻尼比_3_b849784e"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "无阻尼自然频率_3_13001"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "matchedLabel": "自然频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "一阶系统_3_4f3b29ce"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "临界阻尼响应_3_5839e0e4"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "过阻尼响应_3_adf3867e"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "四种响应家族对比",
+   "groupName": "一阶与二阶基础",
+   "textChars": 198,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "阻尼比_3_b849784e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "无阻尼自然频率_3_13001"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+     "matchedLabel": "临界阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "一阶系统_3_4f3b29ce"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+     "matchedLabel": "欠阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+     "matchedLabel": "过阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "临界阻尼响应_3_5839e0e4"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "过阻尼响应_3_adf3867e"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "动态性能指标总览",
+   "groupName": "动态性能指标精讲",
+   "textChars": 194,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "动态性能指标_3_a10733c1"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "上升时间_3_6fa0ec00"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "上升时间的定义与推导",
+   "groupName": "动态性能指标精讲",
+   "textChars": 208,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "动态性能指标_3_a10733c1"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "上升时间_3_6fa0ec00"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "峰值时间与超调量",
+   "groupName": "动态性能指标精讲",
+   "textChars": 194,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "动态性能指标_3_a10733c1"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "上升时间_3_6fa0ec00"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "调节时间与误差带",
+   "groupName": "动态性能指标精讲",
+   "textChars": 200,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "动态性能指标_3_a10733c1"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "上升时间_3_6fa0ec00"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "例题一——已知参数求指标",
+   "groupName": "动态性能指标精讲",
+   "textChars": 240,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "动态性能指标_3_a10733c1"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "上升时间_3_6fa0ec00"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "峰值时间_3_adc7ea95"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "例题二——由指标反推参数区域 + AI 对照",
+   "groupName": "例题与跨域桥接",
+   "textChars": 242,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "方法总结与轻量桥接——从时域指标走向参数与极点趋势",
+   "groupName": "例题与跨域桥接",
+   "textChars": 243,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "后测——公式会算，更要会解释",
+   "groupName": "后测与收束",
+   "textChars": 191,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "总结与后续预告",
+   "groupName": "后测与收束",
+   "textChars": 66,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-为什么\"稳定\"仅仅是起点",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：为什么\"稳定\"仅仅是起点",
+   "startLine": 14,
+   "endLine": 36,
+   "bodyChars": 680,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "matchedLabel": "动态性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "matchedLabel": "稳定时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "matchedLabel": "自然频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-核心内容",
+   "order": 2,
+   "level": 2,
+   "title": "二、核心内容",
+   "startLine": 37,
+   "endLine": 40,
+   "bodyChars": 65,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "matchedLabel": "动态性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "matchedLabel": "一阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-时域分析的研究对象-任务与典型输入",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 时域分析的研究对象、任务与典型输入",
+   "startLine": 41,
+   "endLine": 80,
+   "bodyChars": 959,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "matchedLabel": "稳定时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "matchedLabel": "峰值时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-一阶系统的单位阶跃响应与时间常数",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 一阶系统的单位阶跃响应与时间常数",
+   "startLine": 81,
+   "endLine": 157,
+   "bodyChars": 1491,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "matchedLabel": "一阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 176,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+     "matchedLabel": "时间常数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 128,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-二阶系统标准型与单位阶跃响应的严格表达",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 二阶系统标准型与单位阶跃响应的严格表达",
+   "startLine": 158,
+   "endLine": 260,
+   "bodyChars": 2146,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 144,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "matchedLabel": "一阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "matchedLabel": "自然频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-动态性能指标的定义-公式与物理意义",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 动态性能指标的定义、公式与物理意义",
+   "startLine": 261,
+   "endLine": 478,
+   "bodyChars": 3590,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "matchedLabel": "动态性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "超调量",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-从时域指标到参数与极点趋势-本课的轻量桥接",
+   "order": 7,
+   "level": 3,
+   "title": "2.5 从时域指标到参数与极点趋势：本课的轻量桥接",
+   "startLine": 479,
+   "endLine": 538,
+   "bodyChars": 1493,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "matchedLabel": "自然频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-例题精解",
+   "order": 8,
+   "level": 2,
+   "title": "三、例题精解",
+   "startLine": 539,
+   "endLine": 540,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-例题一-已知二阶系统参数-求动态性能指标",
+   "order": 9,
+   "level": 3,
+   "title": "3.1 例题一：已知二阶系统参数，求动态性能指标",
+   "startLine": 541,
+   "endLine": 624,
+   "bodyChars": 1539,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "matchedLabel": "动态性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-例题二-已知性能指标要求-反推参数范围",
+   "order": 10,
+   "level": 3,
+   "title": "3.2 例题二：已知性能指标要求，反推参数范围",
+   "startLine": 625,
+   "endLine": 751,
+   "bodyChars": 1920,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 112,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "超调量",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "matchedLabel": "自然频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-例题后的方法总结",
+   "order": 11,
+   "level": 3,
+   "title": "3.3 例题后的方法总结",
+   "startLine": 752,
+   "endLine": 772,
+   "bodyChars": 438,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+     "matchedLabel": "系统参数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-工程判断-为何不能只追求\"快\"",
+   "order": 12,
+   "level": 2,
+   "title": "四、工程判断：为何不能只追求\"快\"",
+   "startLine": 773,
+   "endLine": 788,
+   "bodyChars": 386,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-0cf99c642f502f5984fc4317",
+     "matchedLabel": "时域性能指标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-本节小结与前后衔接",
+   "order": 13,
+   "level": 2,
+   "title": "五、本节小结与前后衔接",
+   "startLine": 789,
+   "endLine": 790,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h14-本节必须掌握的五个结论",
+   "order": 14,
+   "level": 3,
+   "title": "5.1 本节必须掌握的五个结论",
+   "startLine": 791,
+   "endLine": 798,
+   "bodyChars": 297,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "matchedLabel": "动态性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+     "matchedLabel": "时间常数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "matchedLabel": "一阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-与后续课程的衔接",
+   "order": 15,
+   "level": 3,
+   "title": "5.2 与后续课程的衔接",
+   "startLine": 799,
+   "endLine": 815,
+   "bodyChars": 446,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-0cf99c642f502f5984fc4317",
+     "matchedLabel": "时域性能指标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "matchedLabel": "正弦稳态响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 9,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+     "matchedLabel": "稳态响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-附录A｜动态性能指标速查表",
+   "order": 16,
+   "level": 2,
+   "title": "附录A｜动态性能指标速查表",
+   "startLine": 816,
+   "endLine": 827,
+   "bodyChars": 797,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+     "matchedLabel": "一阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "matchedLabel": "峰值时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "matchedLabel": "动态性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-复习提示",
+   "order": 17,
+   "level": 3,
+   "title": "复习提示",
+   "startLine": 828,
+   "endLine": 835,
+   "bodyChars": 146,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "超调量",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-附录B｜欠阻尼标准响应的完整推导",
+   "order": 18,
+   "level": 2,
+   "title": "附录B｜欠阻尼标准响应的完整推导",
+   "startLine": 836,
+   "endLine": 839,
+   "bodyChars": 79,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+     "matchedLabel": "欠阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-B-1-从标准型和单位阶跃输入出发",
+   "order": 19,
+   "level": 3,
+   "title": "B.1 从标准型和单位阶跃输入出发",
+   "startLine": 840,
+   "endLine": 861,
+   "bodyChars": 256,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉普拉斯变换",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-B-2-先作部分分式整理",
+   "order": 20,
+   "level": 3,
+   "title": "B.2 先作部分分式整理",
+   "startLine": 862,
+   "endLine": 881,
+   "bodyChars": 366,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-B-3-对二次项配方",
+   "order": 21,
+   "level": 3,
+   "title": "B.3 对二次项配方",
+   "startLine": 882,
+   "endLine": 917,
+   "bodyChars": 406,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-B-4-将分子拆为标准逆变换形式",
+   "order": 22,
+   "level": 3,
+   "title": "B.4 将分子拆为标准逆变换形式",
+   "startLine": 918,
+   "endLine": 951,
+   "bodyChars": 567,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-B-5-逐项逆拉普拉斯变换",
+   "order": 23,
+   "level": 3,
+   "title": "B.5 逐项逆拉普拉斯变换",
+   "startLine": 952,
+   "endLine": 1019,
+   "bodyChars": 935,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉普拉斯变换",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+     "matchedLabel": "欠阻尼",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-B-6-改写为相角形式",
+   "order": 24,
+   "level": 3,
+   "title": "B.6 改写为相角形式",
+   "startLine": 1020,
+   "endLine": 1069,
+   "bodyChars": 677,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+     "matchedLabel": "动态性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+     "matchedLabel": "峰值时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-B-7-本附录的作用",
+   "order": 25,
+   "level": 3,
+   "title": "B.7 本附录的作用",
+   "startLine": 1070,
+   "endLine": 1080,
+   "bodyChars": 187,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-附录C｜MATLAB-Octave-复现代码",
+   "order": 26,
+   "level": 2,
+   "title": "附录C｜MATLAB/Octave 复现代码",
+   "startLine": 1081,
+   "endLine": 1084,
+   "bodyChars": 74,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-C-1-`-2-2-1-first-order-step-m-`",
+   "order": 27,
+   "level": 3,
+   "title": "C.1 `(2.2.1.first-order-step.m)`",
+   "startLine": 1085,
+   "endLine": 1098,
+   "bodyChars": 194,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-C-2-`-2-4-1-damping-ratio-scan-m",
+   "order": 28,
+   "level": 3,
+   "title": "C.2 `(2.4.1.damping-ratio-scan.m)`",
+   "startLine": 1099,
+   "endLine": 1115,
+   "bodyChars": 321,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-C-3-`-3-1-1-example-step-respons",
+   "order": 29,
+   "level": 3,
+   "title": "C.3 `(3.1.1.example-step-response.m)`",
+   "startLine": 1116,
+   "endLine": 1128,
+   "bodyChars": 142,
+   "canonical": []
+  },
+  {
+   "headingId": "h30-C-4-`-3-2-1-spec-boundary-check-",
+   "order": 30,
+   "level": 3,
+   "title": "C.4 `(3.2.1.spec-boundary-check.m)`",
+   "startLine": 1129,
+   "endLine": 1142,
+   "bodyChars": 194,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "2-2-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/2-2/media/2-2-audio.m4a",
+   "sha256": "5992253e27abaa59606a4bc8ee46f6b3799815d1e3b6cfd888eda2a4bdd1e5ce",
+   "durationSeconds": 1005.865215,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/2-2.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.12,
+     "textPreview": "想象一下啊同学们你花了整整一个月时间对估计手都被电烙铁烫了好几次没错你亲手焊了一",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.88,
+     "textPreview": "心跳加速的瞬间它是像丝般顺滑的起飞旋悬停还是还是像发疯一样上下乱窜直接炸机或者干",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.88,
+     "endSeconds": 76.12,
+     "textPreview": "迎大家来到闲聊自控我是落奖我是斯稳在咱们这档节目里呢我们专门为各位正在被自动控制",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 76.44,
+     "endSeconds": 101.64,
+     "textPreview": "拔掉他们冷冰冰的数穴外衣看看他们到底有着怎样的癖嗯讲义开头其实有一句话特别通透角",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 101.64,
+     "endSeconds": 126.64,
+     "textPreview": "他他的表现肯定是不一样的讲义里提到了三种典型的测试信号单位脉冲单位阶跃还有单位斜",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-4ab0ef32a4b6e8688292e5d1",
+       "matchedLabel": "单位脉冲",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 126.64,
+     "endSeconds": 151.68,
+     "textPreview": "们你想想啊所谓的单位解约其实就像是你大半月突然给你的道士发了一条微信消息然后你就",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.68,
+     "endSeconds": 176.68,
+     "textPreview": "冲准备的情况下突然受到一个恒定目标值的指令以基础的一节系统也就是讲义里那种只带一",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.68,
+     "endSeconds": 201.88,
+     "textPreview": "一个指数上升的曲线讲义上明确标出当时间刚好走到T的时候这个系统的输出才勉强爬到目",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.88,
+     "endSeconds": 226.88,
+     "textPreview": "个系统的反射弧就越长动作就越迟缓而且讲义里不仅给了定义还给了一个工程上极其好用的",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.88,
+     "endSeconds": 252.08,
+     "textPreview": "长数也就是t大约等于4T同学们这可是个能救命的估算技巧啊怎么说这就好比呃你室友跟",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+       "matchedLabel": "时间常数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.08,
+     "endSeconds": 277.32,
+     "textPreview": "到他把复杂的指数衰减过程简化成四T这样一眼就能看穿快慢的尺度这就是工程师的智慧总",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 277.32,
+     "endSeconds": 302.36,
+     "textPreview": "条单调的指数曲线要么快要么慢但真实的自动化世界比如你刚才提到的无人机或者机械臂复",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+       "matchedLabel": "临界阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.36,
+     "endSeconds": 330.0,
+     "textPreview": "阻尼就是个永动机曲线一直上下震荡个不停那肯定不能用故阻尼呢又慢的像只数然半",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.2,
+     "textPreview": "天拿不到目标那按理说最理想的不就是零界阻尼吗阻尼比在塔刚好等于一的时候对呀他既不",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+       "matchedLabel": "欠阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+       "matchedLabel": "临界阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.2,
+     "endSeconds": 385.0,
+     "textPreview": "实中比如呢比如一辆汽车的悬挂系统或者一个重型机械闭的转动关节你会发现",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.04,
+     "textPreview": "临界阻尼的起步依然不够干脆还是有点肉为了追求更极致的起步速度更短的上升时间工程师",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+       "matchedLabel": "临界阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.04,
+     "endSeconds": 440.0,
+     "textPreview": "里的专业词汇讲义里管这个充过目标值",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 482.35,
+     "textPreview": "的幅度叫呃超同学们注意了啊这可是个大坑没错是个容易暴露基本功的细节不管是平时做题",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+       "matchedLabel": "欠阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-11d00d2120a83f5e05efdb6e",
+       "matchedLabel": "欠阻尼系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 482.46,
+     "endSeconds": 508.16,
+     "textPreview": "子去衡量它为此讲义抛出了四个极其重要的动态性的指标唉来了来了上升时间T2峰值时间",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+       "matchedLabel": "峰值时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 508.16,
+     "endSeconds": 546.04,
+     "textPreview": "了不让大家死记硬背咱们不妨把这四个指标想象成你开着一辆车要在一个带有停止线的红绿",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+       "matchedLabel": "峰值时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 546.04,
+     "endSeconds": 571.6,
+     "textPreview": "调量MP嘛就是你冲出停止线的那段多余距离占你原本要开的总路程的百分比这直接说明了",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 571.6,
+     "endSeconds": 597.52,
+     "textPreview": "的误差带里从你一脚油门开始到彻底冷静下来听好所花的全部时间就是TS如果我们把这套",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 598.24,
+     "endSeconds": 623.48,
+     "textPreview": "他是一个以自然底数E为底的复杂指数方程分子分母里带着圆周率派和根号但是最关键的细",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+       "matchedLabel": "自然频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 623.48,
+     "endSeconds": 648.98,
+     "textPreview": "失了消失的无影无踪这说明失控的有多离谱纯粹只取决于系统的阻尼性格也就是你这辆车的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 649.42,
+     "endSeconds": 714.24,
+     "textPreview": "看刚才说的调节时间ts根据讲义在百分之二的误差带下它的近似公式是四除以阻尼比和自",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+       "matchedLabel": "自然频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 715.0,
+     "endSeconds": 741.88,
+     "textPreview": "MP大约是百分之二十五点四TS是2秒这感觉就像是拿着体检报告在看闭得出症状对但到",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+       "matchedLabel": "系统参数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 741.88,
+     "endSeconds": 767.0,
+     "textPreview": "讲义例题二里呈现的那样也就是逆向制这个我深有体会工程甲方或者产品经理会丢给你一份",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 767.0,
+     "endSeconds": 792.6,
+     "textPreview": "于2秒至于系统参数怎么定你们工程师自己看着办妥妥的打工人视角面对这种既要又要的需",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+       "matchedLabel": "系统参数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 792.6,
+     "endSeconds": 825.0,
+     "textPreview": "是把刚才那些冰冷的性能要求翻译成几何图形没错我们先来看超调量MP小于等于百分之十",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 36,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 825.0,
+     "endSeconds": 880.0,
+     "textPreview": "以这就相当于在复平面上距离虚轴左侧距离为二的地方砌起了一道垂直的墙现在极点不仅要",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+       "matchedLabel": "闭环系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 880.0,
+     "endSeconds": 935.32,
+     "textPreview": "一嘴讲义最后的C部分还贴心的附上了matlab和oct的代码现在的计算辅助工具非",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 935.32,
+     "endSeconds": 960.9,
+     "textPreview": "我们从给系统踢一脚的单位节约输入讲起拆解了一阶系统时间常数的朗前法则嗯嗯接着深入",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+       "matchedLabel": "时间常数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 961.34,
+     "endSeconds": 986.68,
+     "textPreview": "四大动态性能指标代表起步的T2代表最失控瞬间的TP衡量冲出多少的MP以及最终冷静",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+       "matchedLabel": "动态性能指标",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+       "matchedLabel": "性能指标",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 986.68,
+     "endSeconds": 1005.6,
+     "textPreview": "在节目的最后我要给大家留一个终极的灵魂拷问同学们今天我们拆解的所有完美公式和优美",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "5992253e27abaa59606a4bc8ee46f6b3799815d1e3b6cfd888eda2a4bdd1e5ce",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "2-2-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/2-2/media/2-2-intro-video.mp4",
+   "sha256": "6b34a827d99d83a4fc067495edf77fb77af9e4658533215c6f2851e8a22dab52",
+   "durationSeconds": 260.245333,
+   "transcriptSource": "videos-project:lesson-2-2/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 238.2,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 260.2,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 61,
+   "segments": [],
+   "activeReleaseSha256": "68d61874569b8d0fc16dc91f3e521f5c6f9f76d641f9c60e45bdb5f0703ad375",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "2-2-course",
+   "kind": "video",
+   "runtimePath": "lessons/2-2/media/2-2-course.mp4",
+   "sha256": "73e004e57137cc0554e9458ac66664a904415e749992776b80e586abfd988564",
+   "durationSeconds": 646.954376,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/2-2.json",
+   "transcriptSourceSha256": "73e004e57137cc0554e9458ac66664a904415e749992776b80e586abfd988564",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.16,
+     "endSeconds": 9.12,
+     "textPreview": "嘿，同学们好。大家有没有想过，每一个控制系统其实都有自己非常独特的个性？有的呢，",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 9.12,
+     "endSeconds": 20.0,
+     "textPreview": "有的呢，慢吞吞的，像个慢性子；还有的甚至有点儿小情绪，会冲过头，我们叫它超调，甚",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.0,
+     "endSeconds": 29.6,
+     "textPreview": "学会怎么看懂一个系统的个性，并且准确地预测出它接下来会怎么做。好了，咱们今天的探",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 29.6,
+     "endSeconds": 41.29,
+     "textPreview": "我们会先从最基础的系统响应开始，搞明白它是怎么回事，然后呢，我们会分别去解密一阶",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 41.29,
+     "endSeconds": 51.45,
+     "textPreview": "接下来咱们得学会怎么给系统打分，看看他的成绩单怎么样。最后也是最酷的部分，咱们要",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 51.45,
+     "endSeconds": 64.17,
+     "textPreview": "都准备好了吗？那我们马上出发。那么咱们要搞明白的第一个核心问题就是，当我们给一个",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 64.17,
+     "endSeconds": 74.89,
+     "textPreview": "它的输出行为会随着时间怎么变化呢？为了能公平地评判所有系统，工程师们通常会用几种",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 74.89,
+     "endSeconds": 84.01,
+     "textPreview": "大家看图里这几个有脉冲啊、斜坡啊什么的，但咱们最最常用的是今天重点要讲的就是这个",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 84.01,
+     "endSeconds": 93.17,
+     "textPreview": "你可以把它想象成在时间等于零的那一瞬间。啪的一下，我们把一个开关打开，输入信号瞬",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 93.17,
+     "endSeconds": 102.69,
+     "textPreview": "我们就看系统会怎么跟着这个突如其来的变化做出反应。诶，这个问题问得特别好，其实这",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 102.69,
+     "endSeconds": 112.58,
+     "textPreview": "你想啊，同样是关门这个指令，但是不同的门，也就是不同的系统，它们的响应方式那可是",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 112.58,
+     "endSeconds": 124.08,
+     "textPreview": "一个呢特别丝滑，特别优雅的关上，另一个呢哐的一声撞上，可能还得弹会了几下。这背后",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 124.08,
+     "endSeconds": 139.04,
+     "textPreview": "好了，咱们先从最简单的模型开始，也就是一阶系统。你可以把它看作是控制系统世界里的",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 139.04,
+     "endSeconds": 160.65,
+     "textPreview": "大家看这条漂亮的指数曲线就是一阶系统的标志性签名照，而这条曲线具体长什么样，是胖",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+       "matchedLabel": "时间常数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 160.65,
+     "endSeconds": 174.25,
+     "textPreview": "那么说的专业一点，时间常数t的定义到底是什么呢？就是系统输出从零开始，一路爬升到",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+       "matchedLabel": "时间常数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 174.25,
+     "endSeconds": 189.85,
+     "textPreview": "所以啊，你只要记住这个关键点就行，t这个值越小，说明系统动作越越麻利响应也就越快",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 189.85,
+     "endSeconds": 202.09,
+     "textPreview": "考试的时候大概率会考到它，就是一阶系统时间常数的物理意义，是连接参数T和我们肉眼",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+       "matchedLabel": "时间常数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 202.09,
+     "endSeconds": 220.6,
+     "textPreview": "好啦，一阶系统这个基础咱们已经掌握了。现在是时候升级打怪了。接下来我们来看二阶系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 220.6,
+     "endSeconds": 229.0,
+     "textPreview": "咱们来做个对比，如果说一阶系统就像左边这个，行为比较简单，只有一个时间常数T来定",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+       "matchedLabel": "时间常数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+       "matchedLabel": "一阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 229.0,
+     "endSeconds": 240.4,
+     "textPreview": "那二阶系统呢？就像右边这个更酷、更复杂的家伙。它的个性是由两个全新的参数来共同塑",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 240.4,
+     "endSeconds": 253.28,
+     "textPreview": "我们用希腊字母Z来表示；另一个呢，是决定它动作到底有多快的自然频率。我们写作OM",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+       "matchedLabel": "自然频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 253.28,
+     "endSeconds": 263.2,
+     "textPreview": "哇，现在这张图就特别精彩了，它完美地展示了阻尼比Z。是怎么一手塑造出系统各种不同",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 263.2,
+     "endSeconds": 273.92,
+     "textPreview": "咱们一个一个来看啊。左上角这个，当Z等于零的时候，系统就像一个失控的中半，没完没",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 273.92,
+     "endSeconds": 284.16,
+     "textPreview": "再看右上角，当Z在零和一之间的时候，系统会先冲过头，然后再晃晃悠悠的稳定下来，有",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+       "matchedLabel": "欠阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 284.16,
+     "endSeconds": 295.25,
+     "textPreview": "左下角这个当Z塾刚好等于一的时候，哇，它就是效率之王，会用最快的速度，不多不少，",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 295.25,
+     "endSeconds": 305.17,
+     "textPreview": "最后看右下角，当Z塾大于一，系统就变得特别老成持重，慢悠悠的靠近目标，绝对不会冲",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+       "matchedLabel": "过阻尼",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 305.17,
+     "endSeconds": 319.55,
+     "textPreview": "好了，了解了系统的这些不同个性之后，问题来了，我们怎么来评价他们的表现，给他们打",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 319.55,
+     "endSeconds": 332.27,
+     "textPreview": "这张成绩单上啊，主要有四个科目。第一个是上升时间，看它起步快不快；第二个是峰值时",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+       "matchedLabel": "峰值时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 332.27,
+     "endSeconds": 344.93,
+     "textPreview": "第三个是最大超调量，看它冲过头冲了多少；最后一个是调节时间。也就是衡量它到底要花",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 344.93,
+     "endSeconds": 359.87,
+     "textPreview": "咱们结合这张图来看，就一目了然了。它清楚的标出了这四个指标在实际响应曲线上的位置",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+       "matchedLabel": "峰值时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 359.87,
+     "endSeconds": 375.95,
+     "textPreview": "对应的就是曲线的最高点，超调量就是这个最高点比我们的目标值高出了多少，通常用百分",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 375.95,
+     "endSeconds": 394.03,
+     "textPreview": "现在这张表格揭示了最重要的秘密，同学们。这是精华中的精华，请特别注意第一行最大超",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+       "matchedLabel": "自然频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 394.03,
+     "endSeconds": 409.32,
+     "textPreview": "而调节时间TS呢，也就是稳定下来的速度，取决于Theta和OmegaN的乘积。闭",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+       "matchedLabel": "自然频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+       "matchedLabel": "峰值时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 409.32,
+     "endSeconds": 419.24,
+     "textPreview": "这几条关系就是控制系统设计的灵魂。好了，咱们纸上谈兵了这么久，理论学的差不多了，",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 419.24,
+     "endSeconds": 431.08,
+     "textPreview": "我们现在要从分析师的角转变成设计师，看看怎么用刚刚学到的知识去解决一个实际的工程",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 431.08,
+     "endSeconds": 440.12,
+     "textPreview": "客户的要求有两个：第一，它的最大超调量绝对不能超过百分之十；第二，它必须在两秒钟",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 440.12,
+     "endSeconds": 448.6,
+     "textPreview": "任务明确，挑战开始。那么这个问题要怎么解决呢？思路很清晰，分三步走。",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 448.6,
+     "endSeconds": 459.89,
+     "textPreview": "第一步，我们得把客户的性能要求，也就是超调量和调节时间，给翻译成我们工程师能懂的",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 38,
+     "startSeconds": 459.89,
+     "endSeconds": 471.33,
+     "textPreview": "的限制条件。第二步，通过计算我们就能得出阻尼比Z塔必须大于等于0591，同时呢，",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 39,
+     "startSeconds": 471.33,
+     "endSeconds": 479.89,
+     "textPreview": "最后一步也是最直观的一步，我们会把这两个条件画在一张特殊的设计地图上，也就是我们",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 479.89,
+     "endSeconds": 489.81,
+     "textPreview": "找到那个能同时满足这两个条件的甜蜜点区域。大家看这张图，就是咱们的设计宝图，在专",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 489.81,
+     "endSeconds": 510.05,
+     "textPreview": "你可以把这个平面上的每一个点都想象成一个具有独特个性的二阶系统，这个点的位置我们",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+       "matchedLabel": "自然频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 510.05,
+     "endSeconds": 524.94,
+     "textPreview": "而第二个要求调节时间要小于两秒，他又给我们画了一条垂直线，要求我们的极点必须在这",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 43,
+     "startSeconds": 524.94,
+     "endSeconds": 534.94,
+     "textPreview": "没错，这张图就把设计的核心思想说透了。你看这个A点，它稳稳的落在了我们允许的阴影",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 534.94,
+     "endSeconds": 544.46,
+     "textPreview": "再看B点，它虽然稳定的很快，在垂直线左边，但它跑出了扇形区域。域一直就说它的阻尼",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 45,
+     "startSeconds": 544.46,
+     "endSeconds": 558.94,
+     "textPreview": "那C点呢？它倒是超调很小，在扇形区里，可它稳定的太慢了，在垂直线右边是个慢性子，",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 558.94,
+     "endSeconds": 567.98,
+     "textPreview": "那么如果我们真的从那个允许的区域里挑选一个点来完成我们的设计，它实际跑起来会是什",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 567.98,
+     "endSeconds": 580.39,
+     "textPreview": "就像这条曲线展示的这样，我们可以清楚的看到它的超调量被成功的控制在了一个很小的范",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 48,
+     "startSeconds": 580.39,
+     "endSeconds": 591.51,
+     "textPreview": "这就完满的证明了我们通过S平面这张设计地图是完全可以实现我们的工程目标的。所以说",
+     "canonical": []
+    },
+    {
+     "index": 49,
+     "startSeconds": 591.51,
+     "endSeconds": 606.39,
+     "textPreview": "就是时间常数T、阻尼比Z和自然频率欧米伽N这三个参数，它们不光是用来分析可预测系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+       "matchedLabel": "时间常数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+       "matchedLabel": "自然频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 50,
+     "startSeconds": 606.39,
+     "endSeconds": 618.23,
+     "textPreview": "我们可以通过调整它们去主动的设计和塑造系统的行为，让机器听我们的话。好了，今天呢",
+     "canonical": []
+    },
+    {
+     "index": 51,
+     "startSeconds": 618.23,
+     "endSeconds": 627.47,
+     "textPreview": "但是一个更牛、也更激动人心的问题来了。如果我们对体见结果不满意，我们能不能给系统",
+     "canonical": []
+    },
+    {
+     "index": 52,
+     "startSeconds": 627.47,
+     "endSeconds": 636.19,
+     "textPreview": "我们该怎么设计一个所谓的控制器，去主动地改变一个系统的个性，让慢的变快，让晃的变",
+     "canonical": []
+    },
+    {
+     "index": 53,
+     "startSeconds": 636.19,
+     "endSeconds": 646.95,
+     "textPreview": "这就是咱们控制理论里更高级的玩法，也是我们下一次要一起探索的控制魔法了。敬请期待",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "73e004e57137cc0554e9458ac66664a904415e749992776b80e586abfd988564",
+   "status": "anchored"
+  }
+ ]
+}

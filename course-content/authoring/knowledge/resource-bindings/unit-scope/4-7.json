@@ -1,0 +1,68 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "4-7",
+ "canonicalIds": [
+  "ctc:90af7a0497e616bbe6249c30",
+  "ctc:modeling-7734a0845c335f160395bac0",
+  "ctc:modeling-865eb1c8824e157c2f05a903",
+  "ctc:modeling-aa10e4daa1e969c557f6ef83",
+  "ctkg:domainconcept:42146fa04dc1459716346cc7",
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+  "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+  "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+  "ctkg:v3e-object-5104f48a9527029987e0519a",
+  "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0"
+ ],
+ "sources": {
+  "ctc:90af7a0497e616bbe6249c30": [
+   "topic:ode"
+  ],
+  "ctc:modeling-7734a0845c335f160395bac0": [
+   "topic:model"
+  ],
+  "ctc:modeling-865eb1c8824e157c2f05a903": [
+   "topic:transfer"
+  ],
+  "ctc:modeling-aa10e4daa1e969c557f6ef83": [
+   "topic:transfer"
+  ],
+  "ctkg:domainconcept:42146fa04dc1459716346cc7": [
+   "topic:disturbance-rejection"
+  ],
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117": [
+   "topic:uncertainty"
+  ],
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab": [
+   "topic:feedforward"
+  ],
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146": [
+   "topic:feedforward"
+  ],
+  "ctkg:domainconcept:d582399ff6cef0663ad4e2a7": [
+   "topic:measurement-noise"
+  ],
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-canonical-cc82e137f42aa09df514e615": [
+   "topic:dominant-approximation"
+  ],
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede": [
+   "topic:performance"
+  ],
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-object-5104f48a9527029987e0519a": [
+   "topic:feedforward"
+  ],
+  "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0": [
+   "topic:compound-compensation"
+  ]
+ }
+}

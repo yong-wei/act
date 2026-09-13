@@ -5,6 +5,7 @@ import 'katex/dist/katex.min.css';
 import { RuntimeMarkdownContent } from '@/components/shared/runtime-markdown';
 import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { resolveHandoutAssetUrl } from '@/lib/handout-pdf';
+import { handoutHeadingIdByLine } from '@/lib/handout-heading-anchors';
 import { readReadableContentText } from '@/lib/runtime-content-path';
 
 export const dynamic = 'force-dynamic';
@@ -46,6 +47,7 @@ export default async function LessonHandoutPrintPage(
     const runtime = await loadLessonRuntimeEntry(params.lessonId);
     const markdown = await readReadableContentText(runtime.handoutSourcePath);
     const resolveAssetHref = (href: string) => resolveHandoutAssetUrl(href, { lessonId: params.lessonId });
+    const headingIdsByLine = handoutHeadingIdByLine(markdown);
 
     return (
       <main className="min-h-screen bg-white text-slate-900" data-handout-print-ready="true">
@@ -58,7 +60,7 @@ export default async function LessonHandoutPrintPage(
           </header>
 
           <article className="space-y-4">
-            <RuntimeMarkdownContent markdown={markdown} resolveAssetHref={resolveAssetHref} />
+            <RuntimeMarkdownContent markdown={markdown} resolveAssetHref={resolveAssetHref} headingIdsByLine={headingIdsByLine} />
           </article>
         </div>
       </main>

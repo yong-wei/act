@@ -52,6 +52,22 @@ export interface StagedActivationArtifactSet {
     hasPrerequisites: boolean;
     hasImpactReport: boolean;
   } | null;
+  /**
+   * Anchored resource binding release staged with this set. When the field is
+   * present, resource-consuming teaching consumers require it (gate passed, same
+   * Authority release, no bound-media drift). Omit for legacy sets.
+   */
+  bindingRelease?: {
+    present: boolean;
+    bindingReleaseId: string | null;
+    bindingHash: string | null;
+    authorityReleaseId: string | null;
+    gatePassed: boolean;
+    /** File digests under the binding release (binding-manifest.json, bindings.jsonl, …). */
+    artifactHashes: Record<string, string>;
+    /** Bound media whose sha256 differs from the activated runtime release. */
+    mediaDriftReasons: string[];
+  } | null;
   /** Optional route/resource smoke results keyed by consumer. */
   routeSmoke?: Partial<Record<ConsumerActivationId, { ok: boolean; reasons: string[] }>>;
   /** Explicit identity-drift flags (mixed capture / cross-artifact mismatch). */
@@ -126,6 +142,15 @@ function mixedCaptureReasons(artifacts: StagedActivationArtifactSet): string[] {
   ) {
     reasons.push('authority-projection-capture-drift');
   }
+  if (
+    artifacts.authority?.present
+    && artifacts.bindingRelease?.present
+    && artifacts.authority.releaseId
+    && artifacts.bindingRelease.authorityReleaseId
+    && artifacts.authority.releaseId !== artifacts.bindingRelease.authorityReleaseId
+  ) {
+    reasons.push('authority-binding-release-mismatch');
+  }
   return reasons;
 }
 
@@ -148,6 +173,10 @@ function buildCombination(
       artifacts.projection.captureRevision
       ?? base.captureRevision
       ?? artifacts.captureRevision;
+  }
+  if (opts.includeProjection && artifacts.bindingRelease !== undefined) {
+    base.bindingReleaseId = artifacts.bindingRelease?.present ? artifacts.bindingRelease.bindingReleaseId : null;
+    base.bindingHash = artifacts.bindingRelease?.present ? artifacts.bindingRelease.bindingHash : null;
   }
   return base;
 }
@@ -295,9 +324,15 @@ function evaluateTeaching(
   const prior = priorFor(input.priorConsumers, consumerId);
   const proj = input.artifacts.projection;
   const auth = input.artifacts.authority;
+  const bindingRelease = input.artifacts.bindingRelease;
   const artifactHashes: Record<string, string> = {
     ...(auth?.artifactHashes ?? {}),
     ...(proj?.artifactHashes ?? {}),
+    ...(bindingRelease?.artifactHashes
+      ? Object.fromEntries(
+          Object.entries(bindingRelease.artifactHashes).map(([key, value]) => [`binding:${key}`, value]),
+        )
+      : {}),
   };
 
   if (input.shadowConsumerIds?.includes(consumerId)) {
@@ -393,6 +428,27 @@ function evaluateTeaching(
       // impact is diagnostic; soft require presence of hash if report claimed.
       // When neither present, still allow if gate passed — but fixtures may mark.
     }
+  }
+
+  // Anchored resource binding release: every teaching consumer reads resources
+  // and bindings from it, so a staged set that declares one must have it whole.
+  if (bindingRelease !== undefined) {
+    if (!bindingRelease?.present) {
+      return block(['binding-release-missing']);
+    }
+    if (!bindingRelease.bindingReleaseId || !bindingRelease.bindingHash) {
+      return block(['binding-release-identity-incomplete']);
+    }
+    if (!bindingRelease.gatePassed) {
+      return block(['binding-gate-failed']);
+    }
+    if (!bindingRelease.artifactHashes['binding-manifest.json'] || !bindingRelease.artifactHashes['bindings.jsonl']) {
+      return block(['binding-release-artifacts-missing']);
+    }
+    if (bindingRelease.mediaDriftReasons.length > 0) {
+      return block(['binding-media-drift', ...bindingRelease.mediaDriftReasons]);
+    }
+    reasons.push('binding-release-ready');
   }
 
   const smoke = input.artifacts.routeSmoke?.[consumerId];

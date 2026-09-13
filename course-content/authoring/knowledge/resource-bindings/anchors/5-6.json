@@ -1,0 +1,1370 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "5-6",
+ "unitIndex": 30,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/5-6/5-6-handout.md",
+  "sha256": "fa60a607998ea736a508caf3370cb3cffccfc416d4ba8736cda33a439868f6d3"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "冷链方法选择压力的导入场景",
+   "groupName": null,
+   "textChars": 185,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": null,
+   "textChars": 187,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前置基础快测",
+   "groupName": null,
+   "textChars": 80,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "冷链温控同题任务与约束证据",
+   "groupName": null,
+   "textChars": 399,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "二状态热模型与实验场景",
+   "groupName": null,
+   "textChars": 510,
+   "canonical": []
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "经典 PI/PID 冷链基线",
+   "groupName": null,
+   "textChars": 584,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "热负荷预测补偿路线",
+   "groupName": null,
+   "textChars": 615,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "策略学习监督层调度边界",
+   "groupName": null,
+   "textChars": 286,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-d55636bf45da33ce5a6c5084",
+     "matchedLabel": "状态向量",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "同题实验数据与指标口径",
+   "groupName": null,
+   "textChars": 377,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "常规日与经典控制优先判断",
+   "groupName": null,
+   "textChars": 168,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "入库高峰与预测补偿收益判断",
+   "groupName": null,
+   "textChars": 301,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "未见扰动与覆盖风险判断",
+   "groupName": null,
+   "textChars": 241,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "路线选择的证据结构",
+   "groupName": null,
+   "textChars": 167,
+   "canonical": []
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "方法选择说明卡工作区",
+   "groupName": null,
+   "textChars": 470,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "分层实践与评审陈述",
+   "groupName": null,
+   "textChars": 136,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "边界情况与常见误判",
+   "groupName": null,
+   "textChars": 114,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "后测：方法迁移与证据责任判断",
+   "groupName": null,
+   "textChars": 108,
+   "canonical": []
+  },
+  {
+   "stepId": "step-18",
+   "index": 17,
+   "title": "总结：同题比较的方法选择证据",
+   "groupName": null,
+   "textChars": 485,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-本单元目标",
+   "order": 1,
+   "level": 2,
+   "title": "本单元目标",
+   "startLine": 12,
+   "endLine": 21,
+   "bodyChars": 234,
+   "canonical": []
+  },
+  {
+   "headingId": "h2-同一冷链任务中的方法选择压力",
+   "order": 2,
+   "level": 2,
+   "title": "一、同一冷链任务中的方法选择压力",
+   "startLine": 22,
+   "endLine": 46,
+   "bodyChars": 922,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-二状态热模型与可复现实验",
+   "order": 3,
+   "level": 2,
+   "title": "二、二状态热模型与可复现实验",
+   "startLine": 47,
+   "endLine": 97,
+   "bodyChars": 1842,
+   "canonical": []
+  },
+  {
+   "headingId": "h4-三路线同题实验",
+   "order": 4,
+   "level": 2,
+   "title": "三、三路线同题实验",
+   "startLine": 98,
+   "endLine": 101,
+   "bodyChars": 61,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-经典-PI-PID-固定设定点与抗饱和闭环",
+   "order": 5,
+   "level": 3,
+   "title": "3.1 经典 PI/PID：固定设定点与抗饱和闭环",
+   "startLine": 102,
+   "endLine": 169,
+   "bodyChars": 1456,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-数据驱动预测补偿-预测热负荷-不直接预测控制动作",
+   "order": 6,
+   "level": 3,
+   "title": "3.2 数据驱动预测补偿：预测热负荷，不直接预测控制动作",
+   "startLine": 170,
+   "endLine": 217,
+   "bodyChars": 1300,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-策略学习监督层-四模式阈值策略-避免黑箱控机",
+   "order": 7,
+   "level": 3,
+   "title": "3.3 策略学习监督层：四模式阈值策略，避免黑箱控机",
+   "startLine": 218,
+   "endLine": 240,
+   "bodyChars": 972,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-d55636bf45da33ce5a6c5084",
+     "matchedLabel": "状态向量",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-数据和结果如何得到",
+   "order": 8,
+   "level": 3,
+   "title": "3.4 数据和结果如何得到",
+   "startLine": 241,
+   "endLine": 282,
+   "bodyChars": 2169,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-路线选择的证据结构",
+   "order": 9,
+   "level": 2,
+   "title": "四、路线选择的证据结构",
+   "startLine": 283,
+   "endLine": 284,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-经典控制的优先入口",
+   "order": 10,
+   "level": 3,
+   "title": "4.1 经典控制的优先入口",
+   "startLine": 285,
+   "endLine": 294,
+   "bodyChars": 333,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-数据驱动的合理位置",
+   "order": 11,
+   "level": 3,
+   "title": "4.2 数据驱动的合理位置",
+   "startLine": 295,
+   "endLine": 306,
+   "bodyChars": 474,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-策略学习的受限入口",
+   "order": 12,
+   "level": 3,
+   "title": "4.3 策略学习的受限入口",
+   "startLine": 307,
+   "endLine": 323,
+   "bodyChars": 617,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-方法选择说明卡",
+   "order": 13,
+   "level": 2,
+   "title": "五、方法选择说明卡",
+   "startLine": 324,
+   "endLine": 342,
+   "bodyChars": 664,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-分层实践任务",
+   "order": 14,
+   "level": 2,
+   "title": "六、分层实践任务",
+   "startLine": 343,
+   "endLine": 344,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-证据辨析",
+   "order": 15,
+   "level": 3,
+   "title": "6.1 证据辨析",
+   "startLine": 345,
+   "endLine": 356,
+   "bodyChars": 270,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-定量判断",
+   "order": 16,
+   "level": 3,
+   "title": "6.2 定量判断",
+   "startLine": 357,
+   "endLine": 367,
+   "bodyChars": 161,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-方法选择说明卡",
+   "order": 17,
+   "level": 3,
+   "title": "6.3 方法选择说明卡",
+   "startLine": 368,
+   "endLine": 375,
+   "bodyChars": 247,
+   "canonical": []
+  },
+  {
+   "headingId": "h18-三分钟评审陈述",
+   "order": 18,
+   "level": 3,
+   "title": "6.4 三分钟评审陈述",
+   "startLine": 376,
+   "endLine": 387,
+   "bodyChars": 203,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-边界情况与常见误判",
+   "order": 19,
+   "level": 2,
+   "title": "七、边界情况与常见误判",
+   "startLine": 388,
+   "endLine": 389,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h20-温度曲线更低不代表路线更适合",
+   "order": 20,
+   "level": 3,
+   "title": "7.1 温度曲线更低不代表路线更适合",
+   "startLine": 390,
+   "endLine": 393,
+   "bodyChars": 75,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-数据量大不代表覆盖充分",
+   "order": 21,
+   "level": 3,
+   "title": "7.2 数据量大不代表覆盖充分",
+   "startLine": 394,
+   "endLine": 397,
+   "bodyChars": 84,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-策略学习不能省略安全壳",
+   "order": 22,
+   "level": 3,
+   "title": "7.3 策略学习不能省略安全壳",
+   "startLine": 398,
+   "endLine": 401,
+   "bodyChars": 75,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-更复杂的路线必须承担更重的说明责任",
+   "order": 23,
+   "level": 3,
+   "title": "7.4 更复杂的路线必须承担更重的说明责任",
+   "startLine": 402,
+   "endLine": 405,
+   "bodyChars": 102,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-总结与扩展思考",
+   "order": 24,
+   "level": 2,
+   "title": "八、总结与扩展思考",
+   "startLine": 406,
+   "endLine": 422,
+   "bodyChars": 487,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-附录-A-参考文献与资料来源",
+   "order": 25,
+   "level": 2,
+   "title": "附录 A 参考文献与资料来源",
+   "startLine": 423,
+   "endLine": 441,
+   "bodyChars": 1442,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "5-6-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/5-6/media/5-6-audio.m4a",
+   "sha256": "fb1eb678af788b656369ba1888f6601c521100e579f666deaf3d8fba400f533d",
+   "durationSeconds": 1049.54195,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/5-6.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 2,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.2,
+     "textPreview": "你好我是罗佳欢迎来到闲聊自控呃正在啃自动控制原理这门课的你是不是就是常常有这种感",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.2,
+     "endSeconds": 50.4,
+     "textPreview": "个问题肯定就是这玩意儿在真实的物理世界里到底是怎么转起来的对吧没错就是感觉平时做",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.4,
+     "endSeconds": 75.4,
+     "textPreview": "实之间隔着一堵厚厚的墙书本上的控制系统呢总是极其听话给个阶跃信号它就乖乖的按预期",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.4,
+     "endSeconds": 100.44,
+     "textPreview": "不聊刻板上那种无摩擦的真空环境我们要来看一份带着浓浓工业机油味还有合规血泪史的一",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.44,
+     "endSeconds": 125.6,
+     "textPreview": "现实物理极限的时候工程师到底是怎么说呢breath怎么带着镣铐跳舞的花这个背景听",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.6,
+     "endSeconds": 150.88,
+     "textPreview": "的铁律货品的合规温度必须死死卡在二度到八度之间设定目标就是最完美的五度听起来就是",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.88,
+     "endSeconds": 175.88,
+     "textPreview": "批量的货物一送进来那个货品的核心温度就会跟脱缰的野马一样一路飙升到逼近危险红线的",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.88,
+     "endSeconds": 201.0,
+     "textPreview": "必须缩短温度超标的回复时间但同时甲方给出了两个堪称地狱级的限制条件拿两的第一绝对",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.0,
+     "endSeconds": 226.08,
+     "textPreview": "的AI直接接管底层硬件对吧完全正确这就是一个非常经典的工程困境那在弄清楚怎么破局",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.08,
+     "endSeconds": 251.12,
+     "textPreview": "到的系统动力学方程了这个系统面临的可不是什么简单的数学扰动啊它是实达实的物理热量",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.52,
+     "endSeconds": 277.0,
+     "textPreview": "也就是资料里的那个UK而且它的取值被死死限制在了零到一之间嘿这就好比你坐在一艘正",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 277.0,
+     "endSeconds": 302.36,
+     "textPreview": "狂涌入嗯而你手里呢只有一个固定容量的小水桶就是那个被限制在零到一之间的占控比你拼",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-ef0228881c8874509244b517",
+       "matchedLabel": "状态方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.76,
+     "endSeconds": 330.16,
+     "textPreview": "空气的比热容非常小换热极快没错所以当压缩机全负荷运转的时候空气温度可以在很短的时",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.16,
+     "endSeconds": 355.36,
+     "textPreview": "到立体物理性质的限制有着巨大的热惯性嗯为了让大家听得更直观一点我打个比方啊这就好",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.36,
+     "endSeconds": 385.0,
+     "textPreview": "散发很快又会把整个房间烤热这个比喻非常贴切在冷链仓库里也是一样的大",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.87,
+     "textPreview": "量热气腾腾的货物堆进来冷气吹过去空气温度可能很快就逼近了5度的安全线可是这批货品",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 411.72,
+     "endSeconds": 440.0,
+     "textPreview": "PID里的积分环节就是那个I它是用来消除稳态误差的而且现在的工业PID基本都带了",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 465.6,
+     "textPreview": "重也就是他必须基于误差来行动没错不管你的PID调的多么精妙他都必须在CSO真正看",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 466.72,
+     "endSeconds": 494.08,
+     "textPreview": "把货品彻底穿透了对然后在0到1的硬约束下你的压缩机就算开到百分之百也无法瞬间抽走",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 494.08,
+     "endSeconds": 519.64,
+     "textPreview": "既然我们无法改变生物自己的热物理属性反馈控制又不可避免会有滞后工程师们只能从被动",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 519.64,
+     "endSeconds": 545.8,
+     "textPreview": "它让核心温度飙到了744度恢复时间长达22分钟这个数据确实相当拉胯所以第二条路线",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 546.15,
+     "endSeconds": 571.42,
+     "textPreview": "础上利用过去两个月的开门记录和环境温度日志去寻找热负荷的规律也就是预判魔法攻击他",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 571.48,
+     "endSeconds": 596.72,
+     "textPreview": "习模型直接跳过传统的逻辑去监督和接管底层的控制指令没错儿我们可以看看这两条新路线",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 597.12,
+     "endSeconds": 660.0,
+     "textPreview": "双双把恢复时间降到了0分钟等等零分钟对零分钟他们完美的把最高温度压制在了727度",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 660.0,
+     "endSeconds": 686.88,
+     "textPreview": "责的风险这就涉及到了真实高危领域控制工程里的一个概念也就是隐藏账本隐藏账本对在这",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 686.88,
+     "endSeconds": 712.24,
+     "textPreview": "么呢因为它的底层就是清晰的微分积分方程出了问题工程师拿着日志一步一步推倒就能向监",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 712.24,
+     "endSeconds": 770.0,
+     "textPreview": "么动作也就是因果关系是铁板钉钉的但那套性能完美的纯AI策略学习呢唉这就惨了在边界",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 770.0,
+     "endSeconds": 825.0,
+     "textPreview": "出解释如果是AI接管了底层控制你根本无法向调查员解释到底是神经网络第十五层的哪几",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 825.08,
+     "endSeconds": 850.2,
+     "textPreview": "路线就是那个数据驱动预测补偿没错它不仅像纯压一样把温度越解时间保持在了零分钟更关",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 850.2,
+     "endSeconds": 875.24,
+     "textPreview": "AI的策略学习让压缩器切换了八次而数据驱动预测补偿只切换了六次千万别小看这两次的",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 875.24,
+     "endSeconds": 901.96,
+     "textPreview": "大的启动浪涌电流如果为了把温度曲线卡得死死的让压缩机像抽风一样频繁启停电机定子线",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 903.16,
+     "endSeconds": 935.08,
+     "textPreview": "度曲线是好看了但造价昂贵的压缩机可能半年就得报废这种维护成本任何家访肯定都是无法",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+       "matchedLabel": "前馈补偿",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 935.08,
+     "endSeconds": 960.12,
+     "textPreview": "了预冷防御了最绝的是万一前馈模型死机了或者预测离谱了呢底层的PID依然有着严格的",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 960.56,
+     "endSeconds": 985.92,
+     "textPreview": "高体现啊它在能耗验证设备物理寿命以及不可逾越的安全合规之间找到了那个也许数学上不",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 986.25,
+     "endSeconds": 1045.0,
+     "textPreview": "真的会彻底改变大家对自动控制原理这门课的看法就是那些黑板上枯燥的传递函数和方框图",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-c00613a7c1461d8693f43488",
+       "matchedLabel": "系统变量",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 1045.0,
+     "endSeconds": 1049.54,
+     "textPreview": "明一种奇妙的算法翻译器没错一种能把庞大AI神经网络里那些不可名状的潜意识完完全全",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "fb1eb678af788b656369ba1888f6601c521100e579f666deaf3d8fba400f533d",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-6-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/5-6/media/5-6-intro-video.mp4",
+   "sha256": "394838bbdbf388886ebd75c8796daed117390c82ea44de28d8e084cffa62fb13",
+   "durationSeconds": 240.362667,
+   "transcriptSource": "videos-project:lesson-5-6/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 218.3,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 240.3,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 68,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 19.69,
+     "textPreview": "大家好，欢迎来到闲聊自控。同一座冷链仓，温区只要二到八度。空气温度变得快，货品核",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 19.69,
+     "endSeconds": 29.81,
+     "textPreview": "压缩机占空比只能卡在零到一。同一任务上，三条路线同时候场：经典 PI、数据预冷、",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 29.81,
+     "endSeconds": 38.99,
+     "textPreview": "该守住旧方法，还是往前迁？方法怎么选，先看五类证据。模型还信得过吗？",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 38.99,
+     "endSeconds": 47.34,
+     "textPreview": "数据盖住关键工况了吗？扰动从哪来，能不能提前看见？动作有没有限幅和退路？",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 47.34,
+     "endSeconds": 56.52,
+     "textPreview": "越界之后，谁来负责？这五件事说不清，算法再新也不迁。常规日没有高热负荷，经典控制",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 56.52,
+     "endSeconds": 64.93,
+     "textPreview": "入库高峰能提前看见，预冷才有位置。覆盖不足、安全壳不完整，策略学习只能停在监督层",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 66.93,
+     "endSeconds": 76.05,
+     "textPreview": "先看经典 PI 温控。误差来自测得空气温度减设定点。积分项慢慢补长期偏差。压缩机",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 76.47,
+     "endSeconds": 89.92,
+     "textPreview": "常规日里，空气峰值五点四六度，货品核心峰值五点一五度。没有越界，也没有恢复压力。",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 89.92,
+     "endSeconds": 100.62,
+     "textPreview": "所以常规日，优先把经典控制当主路。入库高峰不是随机噪声。开门、批次、外温，都能提",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 100.62,
+     "endSeconds": 109.77,
+     "textPreview": "数据路线不替代经典闭环，只预测未来一小时热负荷。负荷分数一高，设定点先降到四点二",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 109.77,
+     "endSeconds": 119.99,
+     "textPreview": "再加一截压缩机前馈，把热挡在进仓前。同一高峰里，经典恢复要二十二分钟。组合预冷把",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 119.99,
+     "endSeconds": 131.67,
+     "textPreview": "空气峰值从六点九三降到六点七七。核心峰值从七点四四降到七点二七。这只证明当前组合",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 133.67,
+     "endSeconds": 143.47,
+     "textPreview": "策略学习能不能直接接管压缩机？不能。它只许选四种上层模式：预冷、正常、节能、保守",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 143.47,
+     "endSeconds": 154.75,
+     "textPreview": "底层仍要过 PI、限幅、回退和温区检查。未见扰动里，门封退化、传感器偏低、制冷能",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 154.75,
+     "endSeconds": 168.28,
+     "textPreview": "读数看起来正常，真实空气已经偏高。它没有优于数据路线，切换还更多。训练覆盖和安全",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 170.27,
+     "endSeconds": 178.28,
+     "textPreview": "把选择写成一张可审查的说明卡。常规日：推荐经典 PI。收益是结构清楚，验证负担低",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 178.28,
+     "endSeconds": 187.63,
+     "textPreview": "入库高峰：推荐闭环加预测预冷。收益是恢复从二十二分钟降到零。风险是覆盖和漂移，要",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 188.05,
+     "endSeconds": 200.45,
+     "textPreview": "策略学习为什么暂不进主闭环？未见扰动没有性能优势，还缺覆盖、安全壳和拒绝条件。更",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 202.43,
+     "endSeconds": 212.2,
+     "textPreview": "记住三件不能混为一谈的事。性能更好，不等于能够部署。能够部署，不等于责任可审查。",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 212.2,
+     "endSeconds": 222.86,
+     "textPreview": "单一指标，替代不了工程判断。温度更低，也不等于路线更合适。同一任务，三条路可以并",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 222.86,
+     "endSeconds": 226.3,
+     "textPreview": "谁上主闭环，要看证据和责任。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "394838bbdbf388886ebd75c8796daed117390c82ea44de28d8e084cffa62fb13",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-6-course",
+   "kind": "video",
+   "runtimePath": "lessons/5-6/media/5-6-course.mp4",
+   "sha256": "69f007ff50e5414913959279bf1c4ca02e69c4820fa0697310c8665bb5ca23b1",
+   "durationSeconds": 611.497506,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/5-6.json",
+   "transcriptSourceSha256": "69f007ff50e5414913959279bf1c4ca02e69c4820fa0697310c8665bb5ca23b1",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.24,
+     "endSeconds": 11.28,
+     "textPreview": "嗨，各位同学，欢迎来到今天的硬核解析。想象一下，此时此刻你正坐在控制台前，手里掌",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 11.28,
+     "endSeconds": 26.32,
+     "textPreview": "一直以来系统都运行得极其完美，对吧？但是突然之间，控制面板上毫无征兆地闪起了红灯",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 26.32,
+     "endSeconds": 40.01,
+     "textPreview": "今天我们就来彻头彻尾的拆解一下这个让人肾上腺素飙升的工程危机，让我们赶紧看看手头",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.01,
+     "endSeconds": 52.73,
+     "textPreview": "入库，这就导致了一个让人非常头大的致命问题。早高峰一过，货品的核心温度竟然一路飙",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 52.73,
+     "endSeconds": 67.85,
+     "textPreview": "现在仓库经理给我们的要求非常直接，必须缩短恢复时间，绝不能增加任何冻伤风险，而且",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 67.85,
+     "endSeconds": 79.93,
+     "textPreview": "我们需要的是一个既能一针见血解决问题，又绝对安全透明的方案。好，咱们今天的求生教",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 79.93,
+     "endSeconds": 90.97,
+     "textPreview": "第二步，吐槽一下老牌PID控制器的硬伤；第三步，看看数据驱动的预测魔法怎么力挽狂",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 90.97,
+     "endSeconds": 99.85,
+     "textPreview": "最后一步，咱们必须面对现实，算一算安全与成本这笔账。走起！第一部分，冷链早高峰危",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 99.85,
+     "endSeconds": 113.69,
+     "textPreview": "咱们先切入现场，看看清晨这场混乱的入库保卫战到底有多严峻。想象一下，早上八点，冷",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 113.69,
+     "endSeconds": 122.49,
+     "textPreview": "原本岁月静好的热力学平衡，瞬间就被轰成了渣。听起来很复杂的工程术语，其实特别接地",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 122.49,
+     "endSeconds": 141.1,
+     "textPreview": "你知道所谓的热负载，也就是QLOD还有开门干扰QDOOR是什么吗？这就好比在炎热",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 141.1,
+     "endSeconds": 152.46,
+     "textPreview": "环境温度加上这种高频的物理折腾，直接把系统内部的温度防线给击穿了。这里有一个极其",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 152.46,
+     "endSeconds": 164.46,
+     "textPreview": "76摄氏度，为什么要强调它？因为根据美国CDC，也就是疾病控制和预防中心的死命令",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 164.46,
+     "endSeconds": 177.21,
+     "textPreview": "老天……76度意味着什么？意味着你的冷库已经一只脚踏在悬崖边角了。只要是有，哦不",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 177.21,
+     "endSeconds": 192.23,
+     "textPreview": "这压力测试够顶吧？就就来到了我们的第二部分，经典PID的局限性。这位咱们一直仰仗",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 192.23,
+     "endSeconds": 205.27,
+     "textPreview": "说实话，经典PID控制器在平时还是挺靠谱的。在一个没什么人进出的闲暇下午，它就像",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 205.27,
+     "endSeconds": 216.47,
+     "textPreview": "但是一到早高峰，它就彻底懵了。突如其来的热量洪流让它瞬间反应不及，为什么？因为它",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 216.47,
+     "endSeconds": 225.03,
+     "textPreview": "这就导致它永远慢半拍，出现了严重的滞后。随之而来的就是一段漫长到让人胆战心惊的温",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 225.03,
+     "endSeconds": 244.36,
+     "textPreview": "咱们用数学逻辑来拆解一下它为什么会拉胯。经典PID的核心瓶颈在于它是纯反应式的，",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 244.36,
+     "endSeconds": 262.04,
+     "textPreview": "更绝望的是，他的那些参数什么KP呀、KI呀，全都是死板不变的。这就好比你拿着游戏",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 262.04,
+     "endSeconds": 273.28,
+     "textPreview": "根本没戏嘛！既然白板装备打不过，那就必须上科技了。第三部分：数据驱动的钱亏补偿。",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 273.28,
+     "endSeconds": 282.48,
+     "textPreview": "我们给系统打上了一个史诗级补丁，引入了两个超级武器，一个是Q60，也就是对未来6",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 282.48,
+     "endSeconds": 293.28,
+     "textPreview": "另一个是UF前馈控制。这俩组合在一起，说白了就是给冷库开启了透视外挂，通过分析历",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+       "matchedLabel": "前馈控制",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 293.28,
+     "endSeconds": 305.52,
+     "textPreview": "如果系统能看到未来一个小时内会有一大波热量袭来，它还需要傻乎乎的等温度升高吗？不",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+       "matchedLabel": "前馈控制",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 305.52,
+     "endSeconds": 314.79,
+     "textPreview": "让我们欣赏一下这套行云流水般的战术连招。第一步，精准预测到六十分钟内的负载高峰将",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 314.79,
+     "endSeconds": 337.67,
+     "textPreview": "第二步，系统根本不按套路出牌，它会主动出击，瞬间把设定温度拉低到425摄氏度，来",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+       "matchedLabel": "前馈控制",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 337.67,
+     "endSeconds": 346.41,
+     "textPreview": "接下来是第四部分，监督层策略切换。这是动态参数控制的领域，也是整个系统真正聪明起",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 346.41,
+     "endSeconds": 362.57,
+     "textPreview": "为了把系统武装到牙齿，现在的AI拥有了上帝视角，在工厂上我们成为状态向量XK。它",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-d55636bf45da33ce5a6c5084",
+       "matchedLabel": "状态向量",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 362.57,
+     "endSeconds": 374.06,
+     "textPreview": "有了这种全方位、无死角的派式感知，高一层的监督主管逻辑。就能根据战况，在不同的策",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 374.06,
+     "endSeconds": 388.94,
+     "textPreview": "危机一解除，马上又丝滑地切回温和省电的日商状态。但是同学们，极其有趣的反转来了！",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 388.94,
+     "endSeconds": 401.24,
+     "textPreview": "来看看这两组分别是在早高峰和极限压力下的测试数据结果呢？经典老PID和高阶策略学",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 401.24,
+     "endSeconds": 417.32,
+     "textPreview": "惊不惊喜？意不意外？难道我们费了这么大劲写的复杂算法，全都是在搞笑吗？当然不是，",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 417.32,
+     "endSeconds": 432.9,
+     "textPreview": "抛开纸面数据，咱们来算算在现实世界里……为了这一点边界性能去部署复杂AI的真正代",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 432.9,
+     "endSeconds": 448.63,
+     "textPreview": "深吸一口气，咱们来看看工程师眼中的终极BOSS——路线证据要求矩阵。在这个热力图",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 448.63,
+     "endSeconds": 461.75,
+     "textPreview": "发现没？最下面的区域轰的都发黑了。这意味着什么？意味着你的算法越聪明，越像个黑盒",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 461.75,
+     "endSeconds": 473.35,
+     "textPreview": "为什么策略学习在这个矩阵里会被标成代表着极高成本的深红色？因为像FDA这样的监管",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 473.35,
+     "endSeconds": 491.19,
+     "textPreview": "你想用AI没问题。但你必须用海量到变态的数据覆盖来证明它绝对不会发疯。你还得解释",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 491.19,
+     "endSeconds": 501.88,
+     "textPreview": "不过这其中最最致命的一条红线是，你必须向监管方证明你拥有一个绝对硬核的安全壳。所",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 501.88,
+     "endSeconds": 512.6,
+     "textPreview": "其实它就是一套极度死板但绝对可靠的兜底防线。它包含了积分抗饱和器制，用来死死限制",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 512.6,
+     "endSeconds": 527.97,
+     "textPreview": "它还有执行器限幅，强制让机器的输出老老实实待在零到一的合理区间。更关键的是，它画",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 527.97,
+     "endSeconds": 539.57,
+     "textPreview": "甚至是因为某个神Sir独树一帜，想要疯狂降温。这套底层的安全壳儿都会六亲不认地把",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 539.57,
+     "endSeconds": 552.13,
+     "textPreview": "仔细品一品我们从E3压力测试中得出的这句真理：无论你用经典PID还是数据驱动，或",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 552.13,
+     "endSeconds": 564.66,
+     "textPreview": "为什么不是因为AI有多神？而是因为底层那套无坚不摧的安全壳，同学们独立的安全壳远",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 564.66,
+     "endSeconds": 578.66,
+     "textPreview": "这就叫工程思维，算法的花哨固然能锦上添花，但真正能让系统在现实世界长久存活，能让",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 578.66,
+     "endSeconds": 590.21,
+     "textPreview": "所以在今天这个全人类都在为各种炫酷生成式AI和智能算法狂着着迷的时代，我想给大家",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 590.21,
+     "endSeconds": 603.13,
+     "textPreview": "比起写出那些看起来酷炫无比的预测模型，你准备好静下心来去编写那些无毫光环可言却能",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 603.13,
+     "endSeconds": 611.5,
+     "textPreview": "这才是真正的大神级挑战。好了，感谢大家参与今天的硬核解析，我们下期再见。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "69f007ff50e5414913959279bf1c4ca02e69c4820fa0697310c8665bb5ca23b1",
+   "status": "anchored"
+  }
+ ]
+}

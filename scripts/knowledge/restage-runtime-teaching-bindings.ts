@@ -2,6 +2,10 @@
 /**
  * Restage course Teaching Projection B′ from the runtime resource denominator
  * and switch every teaching-semantic consumer together.
+ *
+ * The `bindings.jsonl` written here is historical B′ spray kept with the
+ * course projection package (prerequisites / core nodes / cards). Live
+ * resource consumers must read `resource-bindings/`, not this file.
  */
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
