@@ -1,0 +1,1500 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "4-7",
+ "unitIndex": 24,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/4-7/4-7-handout.md",
+  "sha256": "4fd47f86e022e12b0550a5e6842d35cdb669847461d5c060dec22f56a66c739c"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "从固定结构设计到高保真任务边界",
+   "groupName": "真实任务与分段辨识",
+   "textChars": 399,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "前测",
+   "groupName": "真实任务与分段辨识",
+   "textChars": 348,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "真实航迹任务与分段辨识模型结构",
+   "groupName": "指标翻译与传统设计",
+   "textChars": 5080,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "指标到代价函数：航迹、舵角和裕度怎样进入同一个判断",
+   "groupName": "指标翻译与传统设计",
+   "textChars": 2462,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "传统设计诊断四联图：为什么结构定型为 $PI+\\text{超前}$",
+   "groupName": "优化设计与跨模型验证",
+   "textChars": 783,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+     "matchedLabel": "超前补偿",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "传统控制器参数计算与名义验证：控制值怎样落成可复核公式",
+   "groupName": "优化设计与跨模型验证",
+   "textChars": 2723,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:98fd8fbe7aa3340c7fe6bc08",
+     "matchedLabel": "校正后根轨迹",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "优化设计编码与解码：搜索结果怎样回到确定控制值",
+   "groupName": "优化设计与跨模型验证",
+   "textChars": 2543,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "跨模型验证：名义模型上最好是否能转成高保真可用",
+   "groupName": "扰动噪声与设计边界",
+   "textChars": 986,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "扰动边界：为什么中等扰动需要重新搜索抗扰控制器",
+   "groupName": "扰动噪声与设计边界",
+   "textChars": 2067,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "航向传感器噪声：噪声只进入测量通道时怎样抗噪",
+   "groupName": "扰动噪声与设计边界",
+   "textChars": 1759,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "后测：参数来源、结构选择和边界判断是否已经成链",
+   "groupName": null,
+   "textChars": 275,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "总结：传统控制结构的局限与前沿方法入口",
+   "groupName": null,
+   "textChars": 1103,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-真实航迹任务与分段辨识模型结构",
+   "order": 1,
+   "level": 2,
+   "title": "一、真实航迹任务与分段辨识模型结构",
+   "startLine": 13,
+   "endLine": 55,
+   "bodyChars": 1516,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-分段辨识与参数确定",
+   "order": 2,
+   "level": 2,
+   "title": "二、分段辨识与参数确定",
+   "startLine": 56,
+   "endLine": 59,
+   "bodyChars": 68,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-舵机惯性辨识",
+   "order": 3,
+   "level": 3,
+   "title": "舵机惯性辨识",
+   "startLine": 60,
+   "endLine": 71,
+   "bodyChars": 336,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-船体惯性辨识",
+   "order": 4,
+   "level": 3,
+   "title": "船体惯性辨识",
+   "startLine": 72,
+   "endLine": 83,
+   "bodyChars": 413,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-扰动等效惯性尝试",
+   "order": 5,
+   "level": 3,
+   "title": "扰动等效惯性尝试",
+   "startLine": 84,
+   "endLine": 114,
+   "bodyChars": 741,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-实际指标到代价函数",
+   "order": 6,
+   "level": 2,
+   "title": "三、实际指标到代价函数",
+   "startLine": 115,
+   "endLine": 169,
+   "bodyChars": 1530,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-控制器设计与优化对比",
+   "order": 7,
+   "level": 2,
+   "title": "四、控制器设计与优化对比",
+   "startLine": 170,
+   "endLine": 173,
+   "bodyChars": 141,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 9,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-传统设计-从三域诊断到-$PI+\\text{超前}$",
+   "order": 8,
+   "level": 3,
+   "title": "传统设计：从三域诊断到 $PI+\\text{超前}$",
+   "startLine": 174,
+   "endLine": 238,
+   "bodyChars": 1883,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 18,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 9,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-优化设计-结构编码-参数搜索与解码",
+   "order": 9,
+   "level": 3,
+   "title": "优化设计：结构编码、参数搜索与解码",
+   "startLine": 239,
+   "endLine": 308,
+   "bodyChars": 2427,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-扰动-噪声与传统控制结构的局限",
+   "order": 10,
+   "level": 2,
+   "title": "五、扰动、噪声与传统控制结构的局限",
+   "startLine": 309,
+   "endLine": 310,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-扰动是独立设计边界",
+   "order": 11,
+   "level": 3,
+   "title": "扰动是独立设计边界",
+   "startLine": 311,
+   "endLine": 350,
+   "bodyChars": 1565,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-航向传感器噪声只进入测量通道",
+   "order": 12,
+   "level": 3,
+   "title": "航向传感器噪声只进入测量通道",
+   "startLine": 351,
+   "endLine": 381,
+   "bodyChars": 987,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 50,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-传统控制结构的局限与前沿方法",
+   "order": 13,
+   "level": 3,
+   "title": "传统控制结构的局限与前沿方法",
+   "startLine": 382,
+   "endLine": 391,
+   "bodyChars": 577,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-练习",
+   "order": 14,
+   "level": 2,
+   "title": "六、练习",
+   "startLine": 392,
+   "endLine": 393,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-基础练习",
+   "order": 15,
+   "level": 3,
+   "title": "基础练习",
+   "startLine": 394,
+   "endLine": 397,
+   "bodyChars": 75,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-进阶练习",
+   "order": 16,
+   "level": 3,
+   "title": "进阶练习",
+   "startLine": 398,
+   "endLine": 407,
+   "bodyChars": 93,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-综合设计练习",
+   "order": 17,
+   "level": 3,
+   "title": "综合设计练习",
+   "startLine": 408,
+   "endLine": 411,
+   "bodyChars": 106,
+   "canonical": []
+  },
+  {
+   "headingId": "h18-边界讨论",
+   "order": 18,
+   "level": 3,
+   "title": "边界讨论",
+   "startLine": 412,
+   "endLine": 414,
+   "bodyChars": 114,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "4-7-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/4-7/media/4-7-audio.m4a",
+   "sha256": "ded1b7254c77f94eecebef0f391207bde6c9b2ac5b7d32e4c217902a9d9006b1",
+   "durationSeconds": 1079.495692,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/4-7.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.12,
+     "textPreview": "欢迎大家收听我们这一期的闲聊自控深度解析我是你们的主持人洛嘉同学们想象一下啊你此",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.4,
+     "textPreview": "的高速在波涛汹涌的大风大浪里全速挺进而你的任务就是死死稳住这艘船的航向听起来像个",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.4,
+     "endSeconds": 75.4,
+     "textPreview": "简直是自动化专业学生的终极噩梦了绝对的噩梦不过呢今天我们的任务绝不是带大家死记硬",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.4,
+     "endSeconds": 100.6,
+     "textPreview": "学模型是怎么在遇到真是大风大浪时被现实疯狂毒打的啊最后又是怎么被现代的进化算法给",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.6,
+     "endSeconds": 125.68,
+     "textPreview": "图一切的源头是我们的期望行项就是那个葡债递这个指令经过控制器算出一个舵令也就是我",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.68,
+     "endSeconds": 150.72,
+     "textPreview": "了这意味着巨大的液压机械臂收到指令后大概一点一秒就能执行到位大部分动作这在重型机",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.72,
+     "endSeconds": 175.88,
+     "textPreview": "零零除以四十二点零零S加一同学呢四十二秒的时间常数是的极其迟钝这简直已吐啦控制这",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.88,
+     "endSeconds": 201.08,
+     "textPreview": "面上精确地倒车入库一栋摩天大楼这个冰面倒车的比喻绝了非常精准你必须得提前将近一分",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.08,
+     "endSeconds": 226.08,
+     "textPreview": "分环节就是那个s分之一这个积分环节在物理上到底代表什么前面那个传体环节算出来的仅",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.08,
+     "endSeconds": 251.28,
+     "textPreview": "度相位之后我的天本来就有四十二秒的物理延迟了是的再加上这九十度的数学滞后可以说直",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.28,
+     "endSeconds": 276.36,
+     "textPreview": "了舵机环节之后船体环节之前这有什么玄机吗这其实完全遵循了真实的物理逻辑你想想海浪",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 276.36,
+     "endSeconds": 301.48,
+     "textPreview": "推搡在船体外壳上动了所以在数学模型里扰动必须和实际跺脚加在一起共同作为船体的输入",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 301.48,
+     "endSeconds": 330.0,
+     "textPreview": "是教科书上的经典操作了他们用PID结构凑了一个非常华丽的分子强行把舵机的一点一秒",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.2,
+     "textPreview": "看着是很爽但是我在这里必须要杠一下了来你杠纸面上画条线减消掉几点咱们假装这42秒",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.2,
+     "endSeconds": 380.24,
+     "textPreview": "时候分子分母对不上了几点消不掉了这种所谓的完完美数学和谐是不是在大浪中瞬间就崩配",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+       "matchedLabel": "频域设计",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 380.24,
+     "endSeconds": 405.32,
+     "textPreview": "一个精确的代数方程但其实工程设计的核心是对抗和管理不确定性也就是防着现实世界给你",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 405.32,
+     "endSeconds": 430.36,
+     "textPreview": "角频率是0040弧度每秒然后相位预度是35度是的作为自动化专业的咱们都知道相位预",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 430.76,
+     "endSeconds": 455.84,
+     "textPreview": "工程师通过这些指标算出了超前网络的参数那个阿尔法是0271时间常数ＴZ是4802",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 455.92,
+     "endSeconds": 481.2,
+     "textPreview": "哪怕像你刚才假设的船体满载导致时间常数变了或者水下出现了一些我们根本没建模的高频",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 481.2,
+     "endSeconds": 506.2,
+     "textPreview": "频域工具给不确定性画个安全圈儿这老手艺确实有大智慧但是讲义马上就给我们上强度了显",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+       "matchedLabel": "频域设计",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 506.2,
+     "endSeconds": 531.24,
+     "textPreview": "死硬的边界没错讲义里写了最大物理跺脚被死此限制在正负35度而且不管你多着急舵机打",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+       "matchedLabel": "滞后补偿",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 531.48,
+     "endSeconds": 558.52,
+     "textPreview": "可以说是毫无还手之力线性系统有个天真的假设他觉得只要控制器下达了每秒转20度的指",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+       "matchedLabel": "频域设计",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 558.52,
+     "endSeconds": 583.52,
+     "textPreview": "方法这里登场的就是基于综合代价函数的遗传算法大家注意这个代价函数J呀他简直是在构",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 583.52,
+     "endSeconds": 608.6,
+     "textPreview": "了一个极度暴力的撒好惩罚项只要跺脚感超出35度的物理极限算式里就是一个求最大值的",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 608.6,
+     "endSeconds": 633.96,
+     "textPreview": "掉随它是个综合六边形战士的考量那遗传算法具体是怎么在这个复杂的函数里找最优解的呢",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 633.96,
+     "endSeconds": 659.08,
+     "textPreview": "套完全不同的控制器参数让这四十八只虚拟赛犬去试错开传对有些参数特别激进一上来就要",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 659.08,
+     "endSeconds": 684.32,
+     "textPreview": "向最准同时最保护舵机的六个幸存者他们的基因会被原封不动传给下一代没错在这个过程中",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 684.32,
+     "endSeconds": 709.36,
+     "textPreview": "尔法L阿尔法G和贝塔人工根本算不过来这种非线性空间这等于是算力替我们摸索到了人类",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 709.84,
+     "endSeconds": 734.84,
+     "textPreview": "这就好比让一个在驾校里满分的学员突然被塞进晚高峰的北京二环甚至是台碰天的北京二环",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 734.84,
+     "endSeconds": 760.6,
+     "textPreview": "试在这个跨界测试里我看讲义上的数据可以说是惨不忍睹啊传统现行控制区翻车翻得很彻底",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:9b4e79193b3701a9657113eb",
+       "matchedLabel": "未建模动态",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 761.16,
+     "endSeconds": 786.4,
+     "textPreview": "我就纳闷了之前不是留了35度的项为域度吗怎么一到这个Z字形狂魔测试里就全线崩盘了",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 786.4,
+     "endSeconds": 811.6,
+     "textPreview": "大的航向误差他第一反应是什么赶紧打满舵救回来啊对他立刻下达一个非常猛的指令但舵机",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 811.6,
+     "endSeconds": 836.76,
+     "textPreview": "因为那42秒的迟钝终于开始转向目标的时候控制器里的积分项早就爆表了挽的所以舵机会",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 836.76,
+     "endSeconds": 861.8,
+     "textPreview": "过来了吗他们展现出了压倒性的辱帮性为什么他们没控因为在几万次的净化淘汰里那个包含",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 861.8,
+     "endSeconds": 887.04,
+     "textPreview": "化出来的非线性抗上火系数就会瞬间激活他们截断了积分项的无脑累加完全正确所以即使面",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 887.04,
+     "endSeconds": 912.16,
+     "textPreview": "平滑的把误差收回来死死稳住衡向漂这真是一场理问数学和物理现实之间惊心动魄的博弈同",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 912.24,
+     "endSeconds": 942.76,
+     "textPreview": "我们面前时线性系统遭遇了积分上轨的彻底滑铁卢于是工程思维想象了算力我们用遗传算法",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 942.76,
+     "endSeconds": 967.88,
+     "textPreview": "近物理极限是的这也让我想到一个更加终极的问题想抛给今天在听播客的各位同学ほ什么问",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 967.88,
+     "endSeconds": 1008.96,
+     "textPreview": "最优解这是很多人的困惑那作为自供化专业的学生或者工程师我们今天苦苦的在草稿纸上画",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1008.96,
+     "endSeconds": 1045.0,
+     "textPreview": "有的极端黑天鹅事件比如罕见的疯狗浪整个系统濒临控报警报狂闪在这种危机关头AI是没",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1046.68,
+     "endSeconds": 1071.72,
+     "textPreview": "工程师只有那些把报的图的频率响应几点零点的物理意义深深印在脑子里的工程师才能在那",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 1071.72,
+     "endSeconds": 1079.16,
+     "textPreview": "的收听如果你喜欢我们的节目别忘了点赞订阅我们下期闲聊自控深度解析再见同学们再见",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "ded1b7254c77f94eecebef0f391207bde6c9b2ac5b7d32e4c217902a9d9006b1",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "4-7-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/4-7/media/4-7-intro-video.mp4",
+   "sha256": "c8181dd8a3ca4f7ecbd60d4baa77b3afdd3baadbbc93b03a50e25babcfe7a3c9",
+   "durationSeconds": 200.576,
+   "transcriptSource": "videos-project:lesson-4-7/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 178.533,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 200.533,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 53,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 21.84,
+     "textPreview": "大家好，欢迎来到闲聊自控。今天把航向控制走完一圈设计闭环。驾驶指令说的是走哪条航",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 22.26,
+     "endSeconds": 31.78,
+     "textPreview": "两条任务先登场：之字线和回转。若一开始就压成一条响应曲线，航迹偏离和舵机极限都会",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.78,
+     "endSeconds": 39.93,
+     "textPreview": "所以先问：主通道到底长什么样？高保真模型能看见整条物理链。",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 39.93,
+     "endSeconds": 48.43,
+     "textPreview": "舵令不会立刻变成实际舵角。实际舵角先改变艏摇角速度，艏摇角速度再积分成航向角。",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 48.43,
+     "endSeconds": 58.13,
+     "textPreview": "航向角，才决定船往哪边走。设计需要的，是一条可解释主通道。舵令到舵角，再到艏摇，",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 58.13,
+     "endSeconds": 66.73,
+     "textPreview": "扰动只当作等效舵角入口来观察。分段辨识，让每个参数都有位置。",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 66.73,
+     "endSeconds": 74.76,
+     "textPreview": "舵机段：舵令阶跃，看实际舵角。一阶惯性拟合，得到 Tr 等于 1.10 秒。",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 74.76,
+     "endSeconds": 84.03,
+     "textPreview": "船体段：实际舵角到艏摇角速度。不能只贴合一条角速度曲线。还要约束积分后的航向角。",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 84.03,
+     "endSeconds": 93.28,
+     "textPreview": "结果是 Th 等于 42 秒，Kh 等于 0.0700。扰动通道能画，却解释不稳",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 95.27,
+     "endSeconds": 103.68,
+     "textPreview": "三段合起来，得到名义航向模型。它是一个带积分的三阶对象。名义模型写成 K 除以 ",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 103.68,
+     "endSeconds": 114.27,
+     "textPreview": "K 由 Kh 除以 Tr 乘 Th 给出。数字必须回到阶跃数据里核对。否则我们只",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 114.27,
+     "endSeconds": 125.09,
+     "textPreview": "舵机和船体可以支撑名义设计。扰动通道，只能当观察入口。两条任务，翻译成两种期望航",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 125.09,
+     "endSeconds": 133.72,
+     "textPreview": "之字线对应正负四十五度方波。它检查快速跟踪、残留和用舵。回转对应持续增大的斜坡航",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 134.14,
+     "endSeconds": 145.03,
+     "textPreview": "它检查连续转向和航迹曲率。航向图要画给定信号，航迹图要画期望航迹。否则只能看见跟",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 147.03,
+     "endSeconds": 155.29,
+     "textPreview": "传统设计在辨识模型上做诊断。慢、相位不够、执行还容易贴边。所以定型成 PI 加超",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 155.29,
+     "endSeconds": 165.12,
+     "textPreview": "优化设计则在同一结构集合里搜索。关键不在名义模型上谁分数更高。而在高保真任务里还",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 165.12,
+     "endSeconds": 176.22,
+     "textPreview": "中等扰动会让航向误差和饱和抬头。设计写在辨识模型，判断写在任务边界。这一讲走完了",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 176.22,
+     "endSeconds": 186.53,
+     "textPreview": "先拆开主通道，再读出三个参数。控制器在低阶模型上设计，必须回到高保真任务里验收。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "c8181dd8a3ca4f7ecbd60d4baa77b3afdd3baadbbc93b03a50e25babcfe7a3c9",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "4-7-course",
+   "kind": "video",
+   "runtimePath": "lessons/4-7/media/4-7-course.mp4",
+   "sha256": "0467b5426d73878e3a177ab1e765e9a47541a7f5e2683018f493d4850f9b4ec7",
+   "durationSeconds": 610.266848,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/4-7.json",
+   "transcriptSourceSha256": "0467b5426d73878e3a177ab1e765e9a47541a7f5e2683018f493d4850f9b4ec7",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.16,
+     "endSeconds": 12.48,
+     "textPreview": "诶，大家想过没有？一艘上万吨的巨轮飘在茫茫大海上，船长竟然可以不用亲自掌舵，他自",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 12.48,
+     "endSeconds": 31.12,
+     "textPreview": "听起来是不是特别科幻？但你猜怎么着，这玩意儿就是船舶自动驾驶仪的日常啊，简直就是",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.12,
+     "endSeconds": 41.85,
+     "textPreview": "这可绝对不是说哎写几行代码就完事了那么简单。来，今天咱们就带上工程师的帽子，一步",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 41.85,
+     "endSeconds": 53.21,
+     "textPreview": "好，这趟技术探险咱们的路线图已经画好了，你看啊，咱们先搞清楚挑战到底有多大，然后",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 53.21,
+     "endSeconds": 65.45,
+     "textPreview": "接着得定个规矩，什么样的舵手才算好舵手，然后就是最关键的设计，那个控制它的大脑最",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 65.45,
+     "endSeconds": 75.85,
+     "textPreview": "准备好了吗？怎么出发来？咱们先看第一部分，这个挑战到底在哪儿。说真的，控制一艘船",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 75.85,
+     "endSeconds": 88.74,
+     "textPreview": "你想想，海上的没完没了的风浪还有洋流，全都是不确定因素，一直在那儿干扰你。对这么",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 88.74,
+     "endSeconds": 97.94,
+     "textPreview": "所以在咱们控制工程这个圈子里啊，有一条黄金法则，你必须记住，你永远没法控制一个你",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 97.94,
+     "endSeconds": 107.14,
+     "textPreview": "这道理很简单，对吧？你想让电脑去开船，那你首先得让电脑把这艘船的里里外外、脾气、",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 107.14,
+     "endSeconds": 117.78,
+     "textPreview": "不然的话，你设计的控制器再牛，那也白搭，纯属纸上谈兵。好，这就引出了咱们至关重要",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 117.78,
+     "endSeconds": 128.02,
+     "textPreview": "说白了，这是什么意思呢？其实啊，就是给这艘现实世界里的大船在电脑里头给它造一个数",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 128.02,
+     "endSeconds": 144.97,
+     "textPreview": "你可以把它想象成一个虚拟替身，这个模型啊，它会把船的所有行为模式、反应方式……都",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+       "matchedLabel": "反馈控制系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 144.97,
+     "endSeconds": 161.15,
+     "textPreview": "咱们顺着箭头的方向走一遍啊，你看最左边，我们给它一个期望航向，这就是我们的目标。",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 161.15,
+     "endSeconds": 169.39,
+     "textPreview": "算出来的指令就传给舵机和船体去执行，最后在最右边船就有了一个实际的航向。但这就完",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 169.39,
+     "endSeconds": 181.63,
+     "textPreview": "当然没有。声会立刻把这个实际航向给反馈回来，跟咱们最初的目标一比较，哎，有偏差，",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 181.63,
+     "endSeconds": 190.38,
+     "textPreview": "好，蓝图是有了，但问题又来了。模型里头那些复杂的参数，比如这船对跺脚指令的反应有",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 190.38,
+     "endSeconds": 201.42,
+     "textPreview": "它转向的时候惯性有多大呀？这些数据咱们从哪儿来呢？这其实就跟交朋友一样，你总得先",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 201.42,
+     "endSeconds": 212.85,
+     "textPreview": "为了搞清楚它的脾气，工程师们就要做一个实验，专业术语叫系统辨识。你看这张图，其实",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 212.85,
+     "endSeconds": 224.77,
+     "textPreview": "他们会干嘛呢？就是给舵机一个突然的指令，比如说向右打舵10度，就像猛的打一下方向",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 224.77,
+     "endSeconds": 236.21,
+     "textPreview": "画出来的这条响应曲线一下子就把这艘船的动态特性给暴露无疑了。有了这些宝贵的数据，",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 236.21,
+     "endSeconds": 245.43,
+     "textPreview": "好嘞！到这儿，我们已经有了一个非常精确的传播模型了，算是把传的脾气给摸透了。那下",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 245.43,
+     "endSeconds": 258.55,
+     "textPreview": "在咱们开始动手设计那个自动舵手之前，还有一件特别重要的事儿得先做。咱们得先给好舵",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 258.55,
+     "endSeconds": 270.41,
+     "textPreview": "对，咱们需要一套明确的评分标准。也就是工程师说的性能指标，这玩意儿说白了就跟咱们",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+       "matchedLabel": "性能指标",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 270.41,
+     "endSeconds": 287.37,
+     "textPreview": "有了它，我们才能评判自己的设计到底是学半级的还是学渣级的。那么这场期末考主要就考",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 287.37,
+     "endSeconds": 296.08,
+     "textPreview": "第二门叫经济性。你这个舵不能没事就瞎动，动作也不能太大，不然又费油又磨损设备，对",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 296.08,
+     "endSeconds": 306.02,
+     "textPreview": "省钱才是硬道理。第三门，平稳性。这也更好理解了，开船得稳呐，总不能让船上的乘客跟",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 306.02,
+     "endSeconds": 319.78,
+     "textPreview": "诶，看到屏幕上这个公式，大家先别慌别怕，它看上去复杂，但其实就是把咱们刚才说的那",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 319.78,
+     "endSeconds": 339.79,
+     "textPreview": "你就把它当成最终的考试总分，也就是综合性能指标。你看啊，他把咱们关心的那些事儿，",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+       "matchedLabel": "性能指标",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 339.79,
+     "endSeconds": 355.95,
+     "textPreview": "咱们的目标就一个，设计一个控制器，让这个总分J越小越好。你看最牛的地方就在这儿，",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 355.95,
+     "endSeconds": 373.1,
+     "textPreview": "好，铺垫了这么多，终于到了最核心的部分了。咱们要来亲手设计这个自动多的大脑了。在",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 373.1,
+     "endSeconds": 384.22,
+     "textPreview": "他就是大名鼎鼎的PID控制器。PID顾名思义就是由PId三部分组成的，咱们一个一",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 384.22,
+     "endSeconds": 406.07,
+     "textPreview": "首先是pproportion比例环节，这家伙的性格怎么说呢？就是个直来直去的急性",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 406.07,
+     "endSeconds": 425.35,
+     "textPreview": "然后是Iintegral积分环节，如果说P是个急性子，那I就像一个记性超好还特别",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 425.35,
+     "endSeconds": 434.87,
+     "textPreview": "屁那个急性子可能觉得哎呀，误差太小了，懒得玩。但是爱不行，他会拿着小本本把这些小",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 434.87,
+     "endSeconds": 444.07,
+     "textPreview": "时间一长，这累积的误差就大了，爱就会说不行，必须纠正，然后发出一个足够大的力，把",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 444.07,
+     "endSeconds": 453.35,
+     "textPreview": "最后登场的是递derivative维分环节，这样家伙就更神了，像个能预见未来的先",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 453.35,
+     "endSeconds": 471.84,
+     "textPreview": "他根本不关心你现在偏了多少，他只关心你偏离的速度有多快。举个例子，如果船正飞快地",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 471.84,
+     "endSeconds": 484.24,
+     "textPreview": "所以你看，d的作用就是提前踩刹车，起到一个阻尼和稳定的效果，防止系统来回晃荡，也",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 484.24,
+     "endSeconds": 496.16,
+     "textPreview": "理论讲完了，我们也已经把这个基于PID的自动舵大脑给设计好了，而且还用优化算法找",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 496.16,
+     "endSeconds": 505.52,
+     "textPreview": "那么现在是骡子是马，总得拉出来溜溜了，对吧？来，让我们进入虚拟海洋，看看它的实战",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 505.52,
+     "endSeconds": 519.93,
+     "textPreview": "来来来，激动人心的时刻到了，直接看测试结果。我们让虚拟大传来做一个非常经典的Z字",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 519.93,
+     "endSeconds": 533.53,
+     "textPreview": "转45度，然后再猛的向左转45度。那么这条平滑又漂亮的绿色实线呢？bingo它就",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 533.53,
+     "endSeconds": 546.25,
+     "textPreview": "你看这个结果简直太棒了，无论是看左边的航向响应图，还是右边的航迹对比图都能清楚的",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 546.25,
+     "endSeconds": 559.93,
+     "textPreview": "而且你注意看，它几乎没有那种冲过头的现象，也就是超掉整个转向过程如丝般顺滑，这就",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 559.93,
+     "endSeconds": 573.29,
+     "textPreview": "控程思路是完完全全成功的，咱们的自动舵手妥妥的高分通过了这次期末大考。好了，今天",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 573.29,
+     "endSeconds": 582.9,
+     "textPreview": "最后呢，留给大家一个开放性问题思考一下，这个强大又经典的PID控制思想，你以为它",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 582.9,
+     "endSeconds": 597.54,
+     "textPreview": "那你就错了。其实啊，它早就渗透到我们生活的角落落了。小到你家的空调怎么保持恒温，",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 597.54,
+     "endSeconds": 610.27,
+     "textPreview": "所以你还能想到哪些地方也在撬？悄悄的运行着这个极，现在、过去、未来与一身的控制智",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "0467b5426d73878e3a177ab1e765e9a47541a7f5e2683018f493d4850f9b4ec7",
+   "status": "anchored"
+  }
+ ]
+}

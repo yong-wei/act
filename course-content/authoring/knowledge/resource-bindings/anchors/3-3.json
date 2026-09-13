@@ -1,0 +1,2646 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-3",
+ "unitIndex": 11,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-3/3-3-handout.md",
+  "sha256": "85863c98c471aa87b82354f293f25a871cddbf281e28ae17d551230ca338243d"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图：为什么稳定边界还不等于迁移机制",
+   "groupName": null,
+   "textChars": 114,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "问题引入：知道稳定区间为什么仍然不够",
+   "groupName": null,
+   "textChars": 213,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "本课目标：完成本次课程后你应能做到什么",
+   "groupName": null,
+   "textChars": 99,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "根轨迹定义与两大条件：从闭环方程到资格与参数",
+   "groupName": null,
+   "textChars": 112,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "条件互动：拖动 s_0 检查相角条件与幅值条件",
+   "groupName": null,
+   "textChars": 231,
+   "canonical": []
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "骨架法则：起点终点、实轴区段与渐近线",
+   "groupName": null,
+   "textChars": 242,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+     "matchedLabel": "渐近线",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "例题 1：先用骨架法则判断整体走向",
+   "groupName": null,
+   "textChars": 221,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "分离点与虚轴交点：关键节点怎样进入主图",
+   "groupName": null,
+   "textChars": 105,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "例题 2：用 dK/ds 与劳斯判据找关键节点",
+   "groupName": null,
+   "textChars": 235,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "出射角、入射角与根之和：局部方向怎样与整图自洽",
+   "groupName": null,
+   "textChars": 101,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "例题 3：复极点附近怎样离开，整张图怎样自洽",
+   "groupName": null,
+   "textChars": 234,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "读图顺序：先骨架，再关键点，最后补局部方向",
+   "groupName": null,
+   "textChars": 200,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "三类开环极点：原点极点、实轴极点、共轭复极点",
+   "groupName": null,
+   "textChars": 213,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "后测：条件、法则、例题与读图顺序是否已经成链",
+   "groupName": null,
+   "textChars": 217,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "总结：九项法则带走什么，3-4 从哪里接走",
+   "groupName": null,
+   "textChars": 99,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-为什么稳定区间还不够",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：为什么稳定区间还不够",
+   "startLine": 13,
+   "endLine": 36,
+   "bodyChars": 418,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c3abeee0067f823ed190d79e",
+     "matchedLabel": "开环增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-普通根轨迹的定义与两大判据",
+   "order": 2,
+   "level": 2,
+   "title": "二、普通根轨迹的定义与两大判据",
+   "startLine": 37,
+   "endLine": 84,
+   "bodyChars": 487,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-相角条件",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 相角条件",
+   "startLine": 85,
+   "endLine": 92,
+   "bodyChars": 96,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-幅值条件",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 幅值条件",
+   "startLine": 93,
+   "endLine": 111,
+   "bodyChars": 260,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+     "matchedLabel": "根轨迹法",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-普通根轨迹完整法则",
+   "order": 5,
+   "level": 2,
+   "title": "三、普通根轨迹完整法则",
+   "startLine": 112,
+   "endLine": 117,
+   "bodyChars": 162,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+     "matchedLabel": "根轨迹法",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-法则-1-起点与终点",
+   "order": 6,
+   "level": 3,
+   "title": "法则 1：起点与终点",
+   "startLine": 118,
+   "endLine": 127,
+   "bodyChars": 157,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+     "matchedLabel": "渐近线",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-法则-2-分支数-连续性与实轴对称",
+   "order": 7,
+   "level": 3,
+   "title": "法则 2：分支数、连续性与实轴对称",
+   "startLine": 128,
+   "endLine": 135,
+   "bodyChars": 87,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-法则-3-实轴区段判据",
+   "order": 8,
+   "level": 3,
+   "title": "法则 3：实轴区段判据",
+   "startLine": 136,
+   "endLine": 143,
+   "bodyChars": 181,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-法则-4-渐近线条数-交点与角度",
+   "order": 9,
+   "level": 3,
+   "title": "法则 4：渐近线条数、交点与角度",
+   "startLine": 144,
+   "endLine": 202,
+   "bodyChars": 759,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+     "matchedLabel": "渐近线",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 84,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-法则-5-分离点与汇合点",
+   "order": 10,
+   "level": 3,
+   "title": "法则 5：分离点与汇合点",
+   "startLine": 203,
+   "endLine": 238,
+   "bodyChars": 490,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-法则-6-虚轴交点",
+   "order": 11,
+   "level": 3,
+   "title": "法则 6：虚轴交点",
+   "startLine": 239,
+   "endLine": 320,
+   "bodyChars": 789,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+     "matchedLabel": "临界稳定",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-法则-7-复极点出射角",
+   "order": 12,
+   "level": 3,
+   "title": "法则 7：复极点出射角",
+   "startLine": 321,
+   "endLine": 331,
+   "bodyChars": 177,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-法则-8-复零点入射角",
+   "order": 13,
+   "level": 3,
+   "title": "法则 8：复零点入射角",
+   "startLine": 332,
+   "endLine": 344,
+   "bodyChars": 283,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-法则-9-根之和原则",
+   "order": 14,
+   "level": 3,
+   "title": "法则 9：根之和原则",
+   "startLine": 345,
+   "endLine": 418,
+   "bodyChars": 863,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-普通根轨迹的读图顺序",
+   "order": 15,
+   "level": 2,
+   "title": "四、普通根轨迹的读图顺序",
+   "startLine": 419,
+   "endLine": 434,
+   "bodyChars": 321,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+     "matchedLabel": "渐近线",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-三类开环极点对普通根轨迹的基本影响",
+   "order": 16,
+   "level": 2,
+   "title": "五、三类开环极点对普通根轨迹的基本影响",
+   "startLine": 435,
+   "endLine": 438,
+   "bodyChars": 21,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-原点极点",
+   "order": 17,
+   "level": 3,
+   "title": "5.1 原点极点",
+   "startLine": 439,
+   "endLine": 442,
+   "bodyChars": 95,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-实轴极点",
+   "order": 18,
+   "level": 3,
+   "title": "5.2 实轴极点",
+   "startLine": 443,
+   "endLine": 446,
+   "bodyChars": 86,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-共轭复极点",
+   "order": 19,
+   "level": 3,
+   "title": "5.3 共轭复极点",
+   "startLine": 447,
+   "endLine": 454,
+   "bodyChars": 118,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-本讲小结",
+   "order": 20,
+   "level": 2,
+   "title": "六、本讲小结",
+   "startLine": 455,
+   "endLine": 477,
+   "bodyChars": 385,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+     "matchedLabel": "渐近线",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-附录-A-伊万斯与根轨迹法的提出",
+   "order": 21,
+   "level": 2,
+   "title": "附录 A 伊万斯与根轨迹法的提出",
+   "startLine": 478,
+   "endLine": 483,
+   "bodyChars": 207,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+     "matchedLabel": "根轨迹法",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-A-1-伊万斯看到的问题是什么",
+   "order": 22,
+   "level": 3,
+   "title": "A.1 伊万斯看到的问题是什么",
+   "startLine": 484,
+   "endLine": 489,
+   "bodyChars": 191,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-A-2-根轨迹法为什么会迅速流行",
+   "order": 23,
+   "level": 3,
+   "title": "A.2 根轨迹法为什么会迅速流行",
+   "startLine": 490,
+   "endLine": 499,
+   "bodyChars": 248,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+     "matchedLabel": "根轨迹法",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-A-3-一张图背后的工程思想",
+   "order": 24,
+   "level": 3,
+   "title": "A.3 一张图背后的工程思想",
+   "startLine": 500,
+   "endLine": 511,
+   "bodyChars": 181,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+     "matchedLabel": "根轨迹法",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-附录-B-各法则推导",
+   "order": 25,
+   "level": 2,
+   "title": "附录 B 各法则推导",
+   "startLine": 512,
+   "endLine": 513,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-B-1-起点与终点",
+   "order": 26,
+   "level": 3,
+   "title": "B.1 起点与终点",
+   "startLine": 514,
+   "endLine": 543,
+   "bodyChars": 262,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-B-2-分支数-连续性与实轴对称",
+   "order": 27,
+   "level": 3,
+   "title": "B.2 分支数、连续性与实轴对称",
+   "startLine": 544,
+   "endLine": 551,
+   "bodyChars": 215,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h28-B-3-实轴区段判据",
+   "order": 28,
+   "level": 3,
+   "title": "B.3 实轴区段判据",
+   "startLine": 552,
+   "endLine": 568,
+   "bodyChars": 263,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h29-B-4-渐近线条数-交点与角度",
+   "order": 29,
+   "level": 3,
+   "title": "B.4 渐近线条数、交点与角度",
+   "startLine": 569,
+   "endLine": 606,
+   "bodyChars": 415,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-4c152561a989c34245c538b6",
+     "matchedLabel": "渐近线",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-f5ab87cb5fc7e1f248b279e0",
+     "matchedLabel": "无穷远零点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h30-B-5-分离点-汇合点与-`dK-ds`-方法",
+   "order": 30,
+   "level": 3,
+   "title": "B.5 分离点、汇合点与 `dK/ds` 方法",
+   "startLine": 607,
+   "endLine": 670,
+   "bodyChars": 792,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+     "matchedLabel": "分离点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h31-B-6-虚轴交点",
+   "order": 31,
+   "level": 3,
+   "title": "B.6 虚轴交点",
+   "startLine": 671,
+   "endLine": 682,
+   "bodyChars": 217,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h32-B-7-复极点出射角与复零点入射角",
+   "order": 32,
+   "level": 3,
+   "title": "B.7 复极点出射角与复零点入射角",
+   "startLine": 683,
+   "endLine": 722,
+   "bodyChars": 637,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+     "matchedLabel": "出射角",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h33-B-8-根之和原则",
+   "order": 33,
+   "level": 3,
+   "title": "B.8 根之和原则",
+   "startLine": 723,
+   "endLine": 759,
+   "bodyChars": 386,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+     "matchedLabel": "开环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-3-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-3/media/3-3-audio.m4a",
+   "sha256": "942e63aa87ed94ad9ac496863cd860396c631b3df80f7b38312b55b12db7db21",
+   "durationSeconds": 1315.387211,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-3.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.04,
+     "textPreview": "想象一下这个画面啊就是你作为一个控制工程师刚好在一台那种巨型工业机械臂的控制台上",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.04,
+     "endSeconds": 50.24,
+     "textPreview": "剧烈震荡哇那这现场绝对是非常可怕的没错伴随着那种极其刺耳的轰鸣声他甚至快要把底座",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.24,
+     "endSeconds": 75.4,
+     "textPreview": "没有任何预警的情况下跨越了一条看不见的生死线是的如果呃我们有某种工具能在你按下启",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.4,
+     "endSeconds": 100.52,
+     "textPreview": "陪伴你们死磕自动控制原理的落家大家好我是志与把复杂公式扒掉外衣看透它本质的斯文呃",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+       "matchedLabel": "动态系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.52,
+     "endSeconds": 125.6,
+     "textPreview": "的工程师去调参数简直就像是在蒙着眼睛猜诈伴一样你根本不知道剪断哪根线会爆炸确实是",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.6,
+     "endSeconds": 150.72,
+     "textPreview": "理呢任务就是帮你彻底拿下这个让人头疼的根轨迹画法与分析没错咱们先回到一切的起点你",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+       "matchedLabel": "根轨迹法",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.72,
+     "endSeconds": 175.84,
+     "textPreview": "器都非常稀缺的年代更别提什么metLabs软件了对吧对工程师哪怕只是在值上手算一",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.96,
+     "endSeconds": 201.4,
+     "textPreview": "个特别简单的几何法则在图纸上随便画几条线就能直接看出系统参数改变的时候整个命运的",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+       "matchedLabel": "闭环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+       "matchedLabel": "系统参数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.4,
+     "endSeconds": 227.35,
+     "textPreview": "们可以把系统的这个闭环极点想象成是这台机器当前的性格或者是他的情绪状态情绪状态这",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+       "matchedLabel": "闭环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 227.93,
+     "endSeconds": 253.04,
+     "textPreview": "GPS定位系统哇这个GPS的比喻太准了你相消一下现在你在控制台程手里握着一个标着",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 253.04,
+     "endSeconds": 278.08,
+     "textPreview": "两辆车相向而行然后撞在一起对撞在一起之后突然起飞脱离了实轴变成了共轭复根一上一下",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 278.08,
+     "endSeconds": 303.08,
+     "textPreview": "稍微一个象就行对吧对只要把它变成gshs等于负一属于根轨迹的魔法就诞生了这就是同",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 303.08,
+     "endSeconds": 328.2,
+     "textPreview": "位这个到底意味着什么物理状态啊嗯这是一个非常好的问题很多同学就把相角条件当成一个",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 328.2,
+     "endSeconds": 353.28,
+     "textPreview": "是说当信号在闭环系统里面转了一整圈回来正好和输入信号完全反向这种特定的几何位置导",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+       "matchedLabel": "闭环系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 353.36,
+     "endSeconds": 378.4,
+     "textPreview": "所以它就绝不可能是极点原来如此所以象角陶鉴画出来的其实是系统能量循环的高速公路网",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+       "matchedLabel": "开环传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 378.4,
+     "endSeconds": 407.4,
+     "textPreview": "件画出的是高速公路的路线那扶值条件就是路标上的公里数公里数对当你确定某个点已经在",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 407.4,
+     "endSeconds": 432.44,
+     "textPreview": "在考场上又没有点嗯咱们怎么徒手把这副GPS地图给画出来呢你看讲义里列了七八招法则",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 432.44,
+     "endSeconds": 457.6,
+     "textPreview": "的起点永远是开环极点然后随着你把K往无穷大的方向拧极点会产生一种强烈的物理本能想",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 40,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+       "matchedLabel": "极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 40,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+       "matchedLabel": "开环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 457.6,
+     "endSeconds": 482.64,
+     "textPreview": "落他们去哪儿总不能凭空消失吧他们当然不会消失既然地球上没有现成的零点来吸收他们他",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 482.64,
+     "endSeconds": 513.64,
+     "textPreview": "的这个我记得回忆一下讲义里那个极点数减零点数等于三也就是n减m等于3的例子对那三",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 513.96,
+     "endSeconds": 539.0,
+     "textPreview": "极对是的数学之美嘛好那咱们再来看看实轴上的矩其实我以前一直不明白为什么根轨极只会",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 539.0,
+     "endSeconds": 564.31,
+     "textPreview": "件的DNA去想一秒钟就明白了怎么说在复平面上只有当你的右边有奇数个零点或者极点的",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 564.5,
+     "endSeconds": 589.84,
+     "textPreview": "成了三百六十度也就是零度这瞬间就不满足那个负一的条件了呀わっせ太妙了一切都是为了",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 589.84,
+     "endSeconds": 616.08,
+     "textPreview": "对S的导数等于零也就是dkds等于零用求导等于零来找这个相撞点其实我以前觉得这里",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 616.96,
+     "endSeconds": 642.12,
+     "textPreview": "增益K越调大他们肯定离得越晚越近对不对嗯对但是你要知道实轴上满足180度条件的那",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 642.12,
+     "endSeconds": 667.74,
+     "textPreview": "了无路可走了哇我感受到了就是一场数学上的交通大拥堵啊没错此时这个K达到了这段时轴",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 668.13,
+     "endSeconds": 696.33,
+     "textPreview": "下两个方向飞进复平面这就是这种极其暴力的物理过程最最优雅的数学表达太正看了然",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 698.73,
+     "endSeconds": 723.96,
+     "textPreview": "后呢当极点在复平面上继续飞舞的时候我们工程师最害怕的一条线也就是虚轴它就出现了虚",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 724.06,
+     "endSeconds": 749.55,
+     "textPreview": "并且K等于与六的那个点呃这就意味着当你手里的那个旋钮拧到六的这一刻极点的十步变成",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 750.21,
+     "endSeconds": 776.52,
+     "textPreview": "绝对的零没错再往前拧一点点比如K等于六点一极点就跨进了右半平面十步变成正数那能量",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 778.08,
+     "endSeconds": 835.04,
+     "textPreview": "对的安全红线听得我都起鸡皮疙瘩了呃好了当你觉得你已经完全掌握了增EK这个旋钮觉得",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+       "matchedLabel": "广义根轨迹",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 835.04,
+     "endSeconds": 860.12,
+     "textPreview": "到底怎么破放心雷达绝对没换只不过我们需要用一招广义根轨迹的核心奥义也就是等效替换",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+       "matchedLabel": "广义根轨迹",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 860.12,
+     "endSeconds": 885.24,
+     "textPreview": "法的本质啊其实就是代数变形你把方程里面含有你想要变化的那个参数的项比如这里的涛浅",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 885.51,
+     "endSeconds": 915.64,
+     "textPreview": "开呀合并同类项啊除以乘数项这一系列看似暴力的操作之后原本乱七八糟的方程奇迹般的重",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 880.24,
+     "endSeconds": 905.4,
+     "textPreview": "一加上涛程以s乘以S加一再除以S加二等于零平经过你这么一番硬核拆解他竟然又变回了",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 905.52,
+     "endSeconds": 931.08,
+     "textPreview": "传递函数变成了一个全新的等效函数而那个讨厌的涛居然完美的篡位直接坐在了原来增益k",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-462227b4794133f894bdd0a8",
+       "matchedLabel": "分离点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 931.6,
+     "endSeconds": 956.92,
+     "textPreview": "传递函数上火力全开对比如讲义里通过这个方法就算出来当T在三减二倍根号二到三加二倍",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 957.44,
+     "endSeconds": 1011.72,
+     "textPreview": "极其诡异的充满无理数的区间内的时候极点居然会在实轴上相撞使说真的如果不做这个等效",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 38,
+     "startSeconds": 990.0,
+     "endSeconds": 1015.04,
+     "textPreview": "的场景你作为一个控制工程手里拿着这张画好的根轨迹图站在轰鸣的设备前假如你看到那个",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+       "matchedLabel": "闭环主导极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 39,
+     "startSeconds": 1016.8,
+     "endSeconds": 1041.84,
+     "textPreview": "它的虚部欧米伽D又飘得非常非常高你来给大家直白地翻译翻译摁下启动键后机器会呈现什",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1041.86,
+     "endSeconds": 1111.24,
+     "textPreview": "系统的衰减速度就是它收敛的快慢对那既然你的sigma是一个巨大的负数这就意味着系",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1111.24,
+     "endSeconds": 1155.0,
+     "textPreview": "极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 1155.0,
+     "endSeconds": 1180.2,
+     "textPreview": "极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极极",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1180.2,
+     "endSeconds": 1210.0,
+     "textPreview": "性还有震荡之间疯狂博弈的视觉化日记没说今天咱们从evans相角条件的这个能量共振",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 1210.0,
+     "endSeconds": 1235.04,
+     "textPreview": "能呃然后还破解了广义根轨迹的重新接线系法最后回归到了对机器动态性性能的真实评估上",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 36,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+       "matchedLabel": "广义根轨迹",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 45,
+     "startSeconds": 1235.52,
+     "endSeconds": 1265.16,
+     "textPreview": "这个前提在纸面上的数学实验室里非常完美但在现实的公寓现场里这个假设却显得无比脆弱",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 1266.28,
+     "endSeconds": 1291.4,
+     "textPreview": "缓慢改变机械臂搬运的负载重量忽大忽小电机剧烈发热又会导致线圈的电阻疯狂漂移喂如果",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 47,
+     "startSeconds": 1291.4,
+     "endSeconds": 1315.16,
+     "textPreview": "图纸上复杂百倍的狂野舞蹈这范属于高维度的工程进位就留给你在未来的进阶探索中去慢慢",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "942e63aa87ed94ad9ac496863cd860396c631b3df80f7b38312b55b12db7db21",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-3-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-3/media/3-3-intro-video.mp4",
+   "sha256": "1039768af6dd735dccb057e7f0bd00b6a3baa01575b9dbdb593812b4bdd394d8",
+   "durationSeconds": 234.752,
+   "transcriptSource": "videos-project:lesson-3-3/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 212.7,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 234.7,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 83,
+   "segments": [],
+   "activeReleaseSha256": "9a4ddc704bdbfa8df1baf0f6f49d8de09bad8f4b70518852f85c098c9a455ac0",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-3-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-3/media/3-3-course.mp4",
+   "sha256": "3e3c9e56d73f8a51c7debf4e1d24bf2ef67421319f7e633da6663b1c00c173ea",
+   "durationSeconds": 594.779138,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-3.json",
+   "transcriptSourceSha256": "3e3c9e56d73f8a51c7debf4e1d24bf2ef67421319f7e633da6663b1c00c173ea",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.44,
+     "endSeconds": 12.2,
+     "textPreview": "嘿，大家好。搞控制系统的同学肯定都遇到过这么个事儿对吧？就是你手上明明只有一个旋",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 12.2,
+     "endSeconds": 23.32,
+     "textPreview": "它到底是会变得更稳呢，还是说直接就给你起飞了？今天啊，咱们就来聊一个能把这一切都",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 23.32,
+     "endSeconds": 32.76,
+     "textPreview": "你正在调一个机器人手臂，调它的那个灵敏度，这参数要是给低了呢？它就笨手笨脚的，反",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 32.76,
+     "endSeconds": 46.45,
+     "textPreview": "它又开始在那疯狂抖动，跟抽风了似的。这背后到底发生了什么？其实啊，就是系统的闭环",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+       "matchedLabel": "闭环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 46.45,
+     "endSeconds": 55.57,
+     "textPreview": "它决定了系统是个急性子还是慢性子，是稳如泰山还是特别容易激动。那问题就来了，这些",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 55.57,
+     "endSeconds": 79.73,
+     "textPreview": "有没有一张地图能把它们的路线给咱们标出来呢？你猜怎么着？还真有在上世纪四十年代啊",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 79.73,
+     "endSeconds": 90.11,
+     "textPreview": "没错，这个天才的想法就是我们今天的主角——根、轨、计、法。说白了，它就是一张给系",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-42e60317a7f829d9743436fb",
+       "matchedLabel": "系统极点",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 90.11,
+     "endSeconds": 102.03,
+     "textPreview": "这张图清清楚楚的告诉你，当你拧动那个叫K的增益旋钮，从零一直拧到无穷大的时候，我",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+       "matchedLabel": "闭环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 102.03,
+     "endSeconds": 113.68,
+     "textPreview": "OK，那这张地图咱们得先学会怎么看，对吧？得知道它的游戏规则，别怕，规则其实挺简",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 113.68,
+     "endSeconds": 125.84,
+     "textPreview": "你可能不信，整张这么复杂的地图其实都建立在一个超级超级简洁的条件上，就是这个GS",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 125.84,
+     "endSeconds": 135.12,
+     "textPreview": "记住了，任何一个能够落在根轨迹上的点都必须满足这个方程，这可以说是我们画图的唯一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 135.12,
+     "endSeconds": 149.39,
+     "textPreview": "好那GSHS等于负一，这个简单的式子到底藏了什么秘密呢？其实它能拆成两个条件：第",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 149.39,
+     "endSeconds": 162.58,
+     "textPreview": "这个条件是干嘛的呢？它主要是帮我们反过来算当极点在轨迹上某个位置的时候那个增益K",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 162.58,
+     "endSeconds": 172.1,
+     "textPreview": "它的角度比是180度的奇数倍，比如180度、540度等等，这个才是决定根轨迹到底",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 172.1,
+     "endSeconds": 184.58,
+     "textPreview": "光说不练，夹巴式对不对？理论讲了这么多，是不是手有点痒了？行，那咱们就拿一个具体",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 184.58,
+     "endSeconds": 201.43,
+     "textPreview": "好，就拿这个系统开刀吧，GS等于K。除以S，S加一，S加二。这可是个经典款的例子",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+       "matchedLabel": "开环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 201.43,
+     "endSeconds": 215.03,
+     "textPreview": "而且呢，它没有开环零点。好，第一个线索来了，起点和终点，这个特别好记，根、轨迹的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+       "matchedLabel": "开环零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+       "matchedLabel": "开环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 215.03,
+     "endSeconds": 224.68,
+     "textPreview": "那终点呢？就是开环零点，你可以把零点想象成一个黑洞，它会把轨迹给吸过去。但我们这",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+       "matchedLabel": "开环零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 224.68,
+     "endSeconds": 236.76,
+     "textPreview": "那怎么办？很简单，如果极点比零点多，那多出来的这些分支，它们的终点站就是无穷远。",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 236.76,
+     "endSeconds": 252.68,
+     "textPreview": "第二个线索是关于时轴上的路径。这个规则呀，可以说是简单粗暴但又超级好用。你就站在",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+       "matchedLabel": "开环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 252.68,
+     "endSeconds": 267.25,
+     "textPreview": "只要这个总数是个奇数，那你脚下的这段时轴就属于根轨迹，就这么简单。所以回到我们的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 267.25,
+     "endSeconds": 282.53,
+     "textPreview": "同理，在负二左边的任何一点，它右边有三个极点，也是奇数。所以从负无穷到负二这段也",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 282.53,
+     "endSeconds": 295.1,
+     "textPreview": "当然不是，它们会非常有方向性地沿着几条叫渐进线的直线前进。所以第三个线索就是我们",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 295.1,
+     "endSeconds": 305.65,
+     "textPreview": "这些线从实轴的哪个点出发，以及它们各自的角度是多少？计算方法其实就是两个公式，大",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 305.65,
+     "endSeconds": 318.85,
+     "textPreview": "就是把所有极点的坐标加起来，减去所有零点的坐标，然后除以极点数减去零点数。对我们",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 318.85,
+     "endSeconds": 328.21,
+     "textPreview": "所以渐进线会在十轴负一这个点交汇，那角度呢？公式是二K加一乘以一百八十度再除以极",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 328.21,
+     "endSeconds": 340.14,
+     "textPreview": "这里的K呢？你就从零开始取，零、一、二一直取下去，算出来三个角度分别是六十度、一",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 340.14,
+     "endSeconds": 352.86,
+     "textPreview": "我们这张地图的轮廓是不是一下子就清晰起来了？讲到这里，你可能会觉得，哦，根轨迹嘛",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+       "matchedLabel": "根轨迹法",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 352.86,
+     "endSeconds": 365.74,
+     "textPreview": "通过一点点代数上的小魔法，它其实可以用来分析系统里任何一个参数变化。带来的影响。",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 365.74,
+     "endSeconds": 375.42,
+     "textPreview": "我们想知道的是，如果这里面的这个时间常数T发生变化，会对系统有什么影响？那问题来",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 375.42,
+     "endSeconds": 387.64,
+     "textPreview": "答案是当然可以。接下来就是见证代数魔术的时刻，我们的目标只有一个，就是把这个系统",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 387.64,
+     "endSeconds": 399.0,
+     "textPreview": "想办法也给它变成一加某个参数乘以某个函数等于零，这种我们熟悉的样子。大家可以跟着",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 399.0,
+     "endSeconds": 410.36,
+     "textPreview": "第二步，展开；第三步，把所有跟我们关心的参数套有关的项放一边，没关系的放另一边；",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 410.36,
+     "endSeconds": 428.05,
+     "textPreview": "你看，我们成功的把套给单独分离出来了。看到了吗？这么一变，我们就得到了一个全新的",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 428.05,
+     "endSeconds": 438.7,
+     "textPreview": "而后面那一坨S乘S加一除以S加二呢，就成了新的等效开环传递函数。这一下好了，所有",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+       "matchedLabel": "开环传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-d20816e0005b7c325c7f4477",
+       "matchedLabel": "等效开环传递函数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 438.7,
+     "endSeconds": 450.78,
+     "textPreview": "我们完全可以把刚才学到的所有画图规则原封不动地用在这个等效系统上。画出来的图就是",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-42e60317a7f829d9743436fb",
+       "matchedLabel": "系统极点",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 450.78,
+     "endSeconds": 460.62,
+     "textPreview": "这招是不是超级酷？哦，对了，顺便提一句，我们到目前为止画的所有根轨迹，它的相角条",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 460.62,
+     "endSeconds": 473.75,
+     "textPreview": "这种呢，我们叫它一百八十度根轨迹，它对应的是咱们最常见的负反馈系统。那万一你碰到",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+       "matchedLabel": "正反馈系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 38,
+     "startSeconds": 473.75,
+     "endSeconds": 485.75,
+     "textPreview": "画出来的图呢，就叫零度根轨迹。这个大家知道有这么回事就行了。好，到现在为止，我们",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+       "matchedLabel": "零度根轨迹",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 39,
+     "startSeconds": 485.75,
+     "endSeconds": 497.21,
+     "textPreview": "那么问题来了，说了这么多，所以呢，工程师们费这么大劲儿画这么一张图，它到底有啥用",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 497.21,
+     "endSeconds": 509.69,
+     "textPreview": "首先最核心的就是判断系统的稳定性。你看这个轨迹，只要它一不小心跨过了中间那条虚轴",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 509.69,
+     "endSeconds": 519.79,
+     "textPreview": "而根轨迹图能非常精确地告诉你，在哪个增益K值，系统会刚好走到这个危险的边界上。其",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 519.79,
+     "endSeconds": 529.39,
+     "textPreview": "直接决定了系统的响应速度、超调调这些性能指标。我们想让系统反应快点儿还是稳一点儿",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 529.39,
+     "endSeconds": 543.15,
+     "textPreview": "最后它绝对是个设计神器，比如你想加个控制器来改善性能，根轨迹能让你在动手之前就提",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 44,
+     "startSeconds": 543.15,
+     "endSeconds": 562.24,
+     "textPreview": "所以总的来说根轨迹法真的就像是控制工程师手里的一个水晶球，它最厉害的地方就是把那",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+       "matchedLabel": "根轨迹法",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 45,
+     "startSeconds": 562.24,
+     "endSeconds": 571.69,
+     "textPreview": "好，那最后给大家留一个开放性的问题思考一下，现在你已经掌握了绘制系统极点GPS地",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-42e60317a7f829d9743436fb",
+       "matchedLabel": "系统极点",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 46,
+     "startSeconds": 571.69,
+     "endSeconds": 586.65,
+     "textPreview": "那如果让你来给一辆汽车设计一套完美的巡航控制系统，要求是什么呢？嗯，既要它在设定",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 586.65,
+     "endSeconds": 594.78,
+     "textPreview": "那你会怎么利用咱们今天学的根轨迹来帮你找到那个最完美的控制参数呢？",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "3e3c9e56d73f8a51c7debf4e1d24bf2ef67421319f7e633da6663b1c00c173ea",
+   "status": "anchored"
+  }
+ ]
+}

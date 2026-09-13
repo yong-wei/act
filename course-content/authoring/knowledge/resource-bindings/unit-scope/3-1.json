@@ -1,0 +1,109 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "3-1",
+ "canonicalIds": [
+  "ctc:v11g-13a9994c50acce777819aa2a",
+  "ctc:v11g-40ac1517fc1bfb398dd75afe",
+  "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+  "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+  "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+  "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+  "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+  "ctkg:v3e-canonical-504581e399675b9792ab8502",
+  "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+  "ctkg:v3e-canonical-772065f42947b660c72584f3",
+  "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+  "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+  "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+  "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+  "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+  "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7",
+  "ctkg:v3e-object-863069c1389e01dcca80138a",
+  "ctkg:v3e-object-865b301177a623225344064f",
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e"
+ ],
+ "sources": {
+  "ctc:v11g-13a9994c50acce777819aa2a": [
+   "entry_nodes:闭环极点_3_f9432bf3",
+   "focus_node_ids:闭环极点_3_f9432bf3",
+   "topic:closed-poles"
+  ],
+  "ctc:v11g-40ac1517fc1bfb398dd75afe": [
+   "topic:characteristic"
+  ],
+  "ctkg:domainconcept:e125c73a1fa9700b183695ce": [
+   "entry_nodes:闭环特征方程_3_87c88e19",
+   "focus_node_ids:闭环特征方程_3_87c88e19"
+  ],
+  "ctkg:v3e-canonical-060bc33f21e93205ee271eda": [
+   "topic:partial-fractions"
+  ],
+  "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b": [
+   "topic:non-dominant"
+  ],
+  "ctkg:v3e-canonical-23c4127cb1ffab795d290351": [
+   "topic:modes"
+  ],
+  "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1": [
+   "topic:convolution"
+  ],
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": [
+   "entry_nodes:闭环极点_3_f9432bf3",
+   "focus_node_ids:闭环极点_3_f9432bf3",
+   "topic:closed-poles"
+  ],
+  "ctkg:v3e-canonical-504581e399675b9792ab8502": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-canonical-7147bc2427dae1863e06ef77": [
+   "focus_node_ids:闭环主导极点_3_de941720",
+   "summary_nodes:闭环主导极点_3_de941720",
+   "topic:dominant-poles"
+  ],
+  "ctkg:v3e-canonical-772065f42947b660c72584f3": [
+   "topic:second-order"
+  ],
+  "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7": [
+   "topic:partial-fractions"
+  ],
+  "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091": [
+   "topic:partial-fractions"
+  ],
+  "ctkg:v3e-canonical-cc82e137f42aa09df514e615": [
+   "topic:dominant-approximation"
+  ],
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b": [
+   "focus_node_ids:稳定性_3_72d04fbd",
+   "topic:stability"
+  ],
+  "ctkg:v3e-object-51cfdcf1f943a39dfc550be1": [
+   "topic:bibo"
+  ],
+  "ctkg:v3e-object-570b74ec5294ac993add9b5f": [
+   "topic:marginal"
+  ],
+  "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7": [
+   "topic:bibo"
+  ],
+  "ctkg:v3e-object-863069c1389e01dcca80138a": [
+   "topic:marginal"
+  ],
+  "ctkg:v3e-object-865b301177a623225344064f": [
+   "topic:bibo"
+  ],
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085": [
+   "focus_node_ids:稳定性_3_72d04fbd",
+   "topic:stability"
+  ],
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e": [
+   "topic:bode"
+  ]
+ }
+}

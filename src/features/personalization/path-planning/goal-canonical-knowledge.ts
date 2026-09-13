@@ -40,8 +40,16 @@ export const GOAL_CANONICAL_KNOWLEDGE: Record<string, readonly GoalCanonicalKnow
     { canonicalId: 'ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e', label: '增益裕度' },
     { canonicalId: 'ctkg:v3e-object-c2881833cb4d8b1e415dc742', label: '幅值裕度' },
   ],
-  'simulation-validation-practice': [],
-  'ship-ocean-transfer-application': [],
+  'simulation-validation-practice': [
+    { canonicalId: 'ctkg:domainconcept:9b4e79193b3701a9657113eb', label: '未建模动态' },
+    { canonicalId: 'ctkg:domainconcept:4eaa0995db3f87d3b7e0f117', label: '参数不确定性' },
+    { canonicalId: 'ctkg:v3e-object-0ca481aed329f4e6c74c8d30', label: '实验频率响应测定' },
+  ],
+  'ship-ocean-transfer-application': [
+    { canonicalId: 'ctc:v11g-caa20b325717f0a3c570f16b', label: '时间延迟' },
+    { canonicalId: 'ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2', label: '时延' },
+    { canonicalId: 'ctkg:domainconcept:42146fa04dc1459716346cc7', label: '扰动抑制' },
+  ],
 };
 
 export function goalCanonicalIds(goalId: string): string[] {

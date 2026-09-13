@@ -1,0 +1,2489 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "1-2",
+ "unitIndex": 1,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/1-2/1-2-handout.md",
+  "sha256": "7f7b7a4343bf449b6d29823d3068b1ff37fb9a4619a95b4bed6c5c26d857b6a8"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "导入——不同对象的行为差异与共性",
+   "groupName": "导入与课程目标",
+   "textChars": 231,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "课程目标",
+   "groupName": "导入与课程目标",
+   "textChars": 156,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测——进入建模专题前的准备",
+   "groupName": "导入与课程目标",
+   "textChars": 44,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "建模的两条路径",
+   "groupName": "建模路径与微分方程",
+   "textChars": 663,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-736212ccb3694d44a24fa358",
+     "matchedLabel": "output",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12.0,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "微分方程——物理对象的第一次翻译",
+   "groupName": "建模路径与微分方程",
+   "textChars": 2241,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "传递函数——从微分运算到代数运算",
+   "groupName": "传递函数与结构表达",
+   "textChars": 2111,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 40,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉氏变换",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 20,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "方框图——系统的结构表达",
+   "groupName": "传递函数与结构表达",
+   "textChars": 1083,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-736212ccb3694d44a24fa358",
+     "matchedLabel": "output",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 42.0,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "信号流图——变量间的决定关系",
+   "groupName": "传递函数与结构表达",
+   "textChars": 612,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "极点的几何来源——三维幅值曲面",
+   "groupName": "极点、复平面与行为地图",
+   "textChars": 816,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+     "matchedLabel": "传递函数极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 88,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "拖动极点看响应——行为地图的互动验证",
+   "groupName": "极点、复平面与行为地图",
+   "textChars": 1690,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 208,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "案例——三艘船，三种行为",
+   "groupName": "案例、例题与检测",
+   "textChars": 2103,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 152,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "例题——从特征方程到行为判断",
+   "groupName": "案例、例题与检测",
+   "textChars": 1458,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 144,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 120,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "后测——检验本次课程目标达成",
+   "groupName": "案例、例题与检测",
+   "textChars": 44,
+   "canonical": []
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "总结——建模专题的局部地图",
+   "groupName": "总结回看",
+   "textChars": 899,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-为什么不同的对象-会有相似的行为",
+   "order": 1,
+   "level": 2,
+   "title": "一、为什么不同的对象，会有相似的行为",
+   "startLine": 7,
+   "endLine": 24,
+   "bodyChars": 463,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-建模的两条路径",
+   "order": 2,
+   "level": 2,
+   "title": "二、建模的两条路径",
+   "startLine": 25,
+   "endLine": 28,
+   "bodyChars": 35,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-机理建模-从物理定律出发",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 机理建模：从物理定律出发",
+   "startLine": 29,
+   "endLine": 36,
+   "bodyChars": 262,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-数据驱动建模-从数据出发",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 数据驱动建模：从数据出发",
+   "startLine": 37,
+   "endLine": 42,
+   "bodyChars": 206,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-本课程的定位",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 本课程的定位",
+   "startLine": 43,
+   "endLine": 54,
+   "bodyChars": 284,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-微分方程-物理对象的第一次翻译",
+   "order": 6,
+   "level": 2,
+   "title": "三、微分方程：物理对象的第一次翻译",
+   "startLine": 55,
+   "endLine": 56,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-从哪里开始",
+   "order": 7,
+   "level": 3,
+   "title": "3.1 从哪里开始",
+   "startLine": 57,
+   "endLine": 72,
+   "bodyChars": 446,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-微分方程告诉你什么-不告诉你什么",
+   "order": 8,
+   "level": 3,
+   "title": "3.2 微分方程告诉你什么，不告诉你什么",
+   "startLine": 73,
+   "endLine": 104,
+   "bodyChars": 1086,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-传递函数-从微分运算到代数运算",
+   "order": 9,
+   "level": 2,
+   "title": "四、传递函数：从微分运算到代数运算",
+   "startLine": 105,
+   "endLine": 106,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-核心思想",
+   "order": 10,
+   "level": 3,
+   "title": "4.1 核心思想",
+   "startLine": 107,
+   "endLine": 146,
+   "bodyChars": 1369,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉氏变换",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-传递函数的含义",
+   "order": 11,
+   "level": 3,
+   "title": "4.2 传递函数的含义",
+   "startLine": 147,
+   "endLine": 158,
+   "bodyChars": 390,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-传递函数把不同对象放进同一个框架",
+   "order": 12,
+   "level": 3,
+   "title": "4.3 传递函数把不同对象放进同一个框架",
+   "startLine": 159,
+   "endLine": 166,
+   "bodyChars": 210,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-方框图与信号流图-系统的结构表达",
+   "order": 13,
+   "level": 2,
+   "title": "五、方框图与信号流图：系统的结构表达",
+   "startLine": 167,
+   "endLine": 170,
+   "bodyChars": 78,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-方框图",
+   "order": 14,
+   "level": 3,
+   "title": "5.1 方框图",
+   "startLine": 171,
+   "endLine": 194,
+   "bodyChars": 545,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-信号流图",
+   "order": 15,
+   "level": 3,
+   "title": "5.2 信号流图",
+   "startLine": 195,
+   "endLine": 213,
+   "bodyChars": 419,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 112,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-模型的核心产出-极点与复平面",
+   "order": 16,
+   "level": 2,
+   "title": "六、模型的核心产出：极点与复平面",
+   "startLine": 214,
+   "endLine": 217,
+   "bodyChars": 84,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-极点是行为的第一批暴露者",
+   "order": 17,
+   "level": 3,
+   "title": "6.1 极点是行为的第一批暴露者",
+   "startLine": 218,
+   "endLine": 257,
+   "bodyChars": 1655,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 184,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 112,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-复平面-第一张行为地图",
+   "order": 18,
+   "level": 3,
+   "title": "6.2 复平面：第一张行为地图",
+   "startLine": 258,
+   "endLine": 275,
+   "bodyChars": 538,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-从地图回看工程现象",
+   "order": 19,
+   "level": 3,
+   "title": "6.3 从地图回看工程现象",
+   "startLine": 276,
+   "endLine": 291,
+   "bodyChars": 288,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-案例-三项航向修正任务-三种极点-三种行为",
+   "order": 20,
+   "level": 2,
+   "title": "七、案例：三项航向修正任务，三种极点，三种行为",
+   "startLine": 292,
+   "endLine": 309,
+   "bodyChars": 502,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-例题-从特征方程到行为判断",
+   "order": 21,
+   "level": 2,
+   "title": "八、例题：从特征方程到行为判断",
+   "startLine": 310,
+   "endLine": 335,
+   "bodyChars": 426,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-分层练习",
+   "order": 22,
+   "level": 2,
+   "title": "九、分层练习",
+   "startLine": 336,
+   "endLine": 337,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-练习-1-基础辨认",
+   "order": 23,
+   "level": 3,
+   "title": "练习 1 基础辨认",
+   "startLine": 338,
+   "endLine": 347,
+   "bodyChars": 133,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-练习-2-反向读图",
+   "order": 24,
+   "level": 3,
+   "title": "练习 2 反向读图",
+   "startLine": 348,
+   "endLine": 357,
+   "bodyChars": 129,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-练习-3-迁移应用",
+   "order": 25,
+   "level": 3,
+   "title": "练习 3 迁移应用",
+   "startLine": 358,
+   "endLine": 369,
+   "bodyChars": 202,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-总结-建模专题的局部地图",
+   "order": 26,
+   "level": 2,
+   "title": "十、总结：建模专题的局部地图",
+   "startLine": 370,
+   "endLine": 385,
+   "bodyChars": 583,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-扩展思考",
+   "order": 27,
+   "level": 3,
+   "title": "扩展思考",
+   "startLine": 386,
+   "endLine": 395,
+   "bodyChars": 231,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-附录-部分习题简答",
+   "order": 28,
+   "level": 2,
+   "title": "附录：部分习题简答",
+   "startLine": 396,
+   "endLine": 411,
+   "bodyChars": 761,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "1-2-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/1-2/media/1-2-audio.m4a",
+   "sha256": "1a51dbf54610e60ed84b2edce99fb632e6b97262f8942ab5b22377d4fdf3f306",
+   "durationSeconds": 1474.025941,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/1-2.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.04,
+     "textPreview": "想象一下呃你现在正站在一艘万吨巨轮的驾驶舱里手握着舵轮嗯感觉责任重大绝对的你的任",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.04,
+     "endSeconds": 50.24,
+     "textPreview": "同一艘船在满载和空载的时候它表现出来的那个那个脾气可以说是截然不同的有的船可能非",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.24,
+     "endSeconds": 75.4,
+     "textPreview": "越打舵它偏的越离谱直接就失控了这种情况在工程上其实非常常见是的欢迎收听今天的闲聊",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.64,
+     "endSeconds": 100.92,
+     "textPreview": "化工厂里的液位控制啊哪怕只是调节你宿舍里的空调温度对你会发现一个最令人惊讶的秘密",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.92,
+     "endSeconds": 125.92,
+     "textPreview": "机械这些看似八杆子打不着的物理世界在底层居然有一套通用语言所以我们这期深度解析的",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.92,
+     "endSeconds": 151.68,
+     "textPreview": "模但是呃要建立这套底层语言我们马上就会面临第一道关坎儿就是一个路线选择的问题没错",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.68,
+     "endSeconds": 176.68,
+     "textPreview": "说到黑箱借母这个词儿现在真的是太火了特别是随着AI啊深度学习的爆发感觉现在全世界",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.68,
+     "endSeconds": 201.72,
+     "textPreview": "后我就死死滴着他的输出信号就行了完全靠算法去找规律对这就让我想到一个极其生动的场",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.72,
+     "endSeconds": 227.56,
+     "textPreview": "的神经元是怎么放电的你只知道你喊一声坐下只要它坐下了你就给它一块肉干嗯强化学习的",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 228.52,
+     "endSeconds": 268.28,
+     "textPreview": "建模或者叫机理建模它的逻辑就完全不同了它不像是训练小狗它更像是当兽医兽医就是",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 220.0,
+     "endSeconds": 245.04,
+     "textPreview": "要动刀子的那种吗没错你必须拿起手术刀进行解剖你得精确的了解这只狗的骨骼结构它的肌",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 245.04,
+     "endSeconds": 270.08,
+     "textPreview": "起来硬核多了是的你必须懂底层的物理定律比如能量守恒定律啊质量平衡啊牛顿运动定律然",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 270.08,
+     "endSeconds": 295.12,
+     "textPreview": "制工程师我们还非要死磕那个极其复杂费时费力的受益路线呢这个问题非常关键对啊如果只",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 295.28,
+     "endSeconds": 322.8,
+     "textPreview": "是这其实涉及到一个非常核",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 322.8,
+     "endSeconds": 348.64,
+     "textPreview": "心的工程哲学问题数据驱动确实容易上手但它有一个致命伤什么致命伤它缺乏物理可解释性",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 348.64,
+     "endSeconds": 373.76,
+     "textPreview": "果这个系统是个纯黑箱当它在万米高空遇到极其罕见的极端风切变时由于它肚子里没有物理",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 373.76,
+     "endSeconds": 398.77,
+     "textPreview": "理机制的可解释性是工程可靠性的底线这也就是为什么不管数据科学怎么发展控制工程做系",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 398.95,
+     "endSeconds": 424.78,
+     "textPreview": "这个翻译的自然起点到底是什么这个起点自然而然就是微分方程",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 433.12,
+     "endSeconds": 458.25,
+     "textPreview": "微分方程听到这四个字估计很多同学的血压已经上来了为什么非得是微分方程啊因为在这个",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 458.8,
+     "endSeconds": 484.8,
+     "textPreview": "入控制型号UofT其实就是你手里转动的舵轮它产生了",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 485.35,
+     "endSeconds": 510.4,
+     "textPreview": "一个实实在在推着船去转动的力对这是动力来源那等号左边呢其实是在反抗你的力量那个J",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 513.2,
+     "endSeconds": 541.36,
+     "textPreview": "么痛点啊用维分方程描述物理现象确实",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 541.36,
+     "endSeconds": 571.19,
+     "textPreview": "很直观可是要去解这玩意儿对于任何工程师来说简直就是一场噩梦好吗确实求解过程非常繁",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 576.53,
+     "endSeconds": 601.84,
+     "textPreview": "了不过你的吐槽非常精准为分方程的求解步骤和你的输入信号格式是深度绑定的这就很烦人",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 601.84,
+     "endSeconds": 627.16,
+     "textPreview": "狱难度算到明眼去了更严重的是微分方程天然是在时间轴上工作的这就意味着你用它根本没",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 627.16,
+     "endSeconds": 652.6,
+     "textPreview": "上总是说拉普拉斯变换能把微积分变成简单的代数运算把求导变成了乘以一个字母S但我一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 652.6,
+     "endSeconds": 681.64,
+     "textPreview": "人的微积分就神奇的消失了这背后的机制到底是什么这个魔法的底层逻辑其实极其巧妙拉普",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 684.12,
+     "endSeconds": 723.52,
+     "textPreview": "角这是个角这是个角这是个角这是个角这是个角这是个角这是个角这是个角这是个角这是个",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 723.52,
+     "endSeconds": 763.52,
+     "textPreview": "个角这是个角这是个角这是个",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 763.52,
+     "endSeconds": 825.0,
+     "textPreview": "角这是个角这是个角这是个角这是个角这是个角这是个角这是个角这是个角这是个角这是个",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 825.0,
+     "endSeconds": 851.27,
+     "textPreview": "微分方程经过这样一变我们把输出信号除以输入信号就得到了一个极其紧凑的代数表达式这",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 852.17,
+     "endSeconds": 877.96,
+     "textPreview": "递函数的公式里它只有物体的物理参数比如刚才说的惯性g和阻尼b它里面根本没有输入信",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 878.08,
+     "endSeconds": 903.52,
+     "textPreview": "和曲率这个比喻很有画面感对吧你可以拿红色的激光笔去照它这就好比是阶跃信号你也可以",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 903.52,
+     "endSeconds": 928.63,
+     "textPreview": "了所以说拉普拉斯变换就像是一个工程界的万能翻译剂我们在代数世界里搞定一切再也不用",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 928.98,
+     "endSeconds": 985.44,
+     "textPreview": "函数建立了一个标准对象库怎么理解只要两个物理对象的动态关系相似比如它们的分母结构",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 985.44,
+     "endSeconds": 1036.36,
+     "textPreview": "的电机还是你家的温控系统它们的结论就可以无缝迁移哇带一桶了属于是对传递函数让我们",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 48,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 1036.36,
+     "endSeconds": 1063.04,
+     "textPreview": "成一排传递函数直接相乘第二种是并联信号兵分两路处理完再相加第三种也是自动控制系统",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+       "matchedLabel": "参考输入",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 1064.08,
+     "endSeconds": 1089.16,
+     "textPreview": "象这两个东西看着讲的不是同一件事吗难道真的是为了考试凑字数故意折磨我们哈哈绝对不",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1089.16,
+     "endSeconds": 1114.4,
+     "textPreview": "全绕在一起了绝对会被缠死没错非常繁琐极容易出错而信号流图呢它抛弃了硬件的实体外壳",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 39,
+     "startSeconds": 1114.54,
+     "endSeconds": 1155.0,
+     "textPreview": "就是它可以配合后面要学的一个终极解题大发器梅森增益公式啊梅森公式这就相当于玩游记",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+       "matchedLabel": "梅森增益公式",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 40,
+     "startSeconds": 1155.0,
+     "endSeconds": 1210.0,
+     "textPreview": "艘船到底会不会失控哦当然有这就是系统性格的算命先生几点几点终于到了这个激动人心的",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1210.0,
+     "endSeconds": 1235.04,
+     "textPreview": "数代表什么代表着系统的瞬态响应会随着时间指数级衰减也就是任何偏差最终都会消失系统",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+       "matchedLabel": "瞬态响应",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 1235.04,
+     "endSeconds": 1265.16,
+     "textPreview": "往左走系统越安全一",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1265.16,
+     "endSeconds": 1290.84,
+     "textPreview": "旦你不小心越过中间的虚轴走到了右半边那就只接爆炸彻底失控这个比喻太贴切了而那个纵",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 1290.84,
+     "endSeconds": 1315.88,
+     "textPreview": "的就越厉害震荡越剧烈你这么一说换面感全出来了我们拿课本上的例题一杠二来看它的特征",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 45,
+     "startSeconds": 1315.91,
+     "endSeconds": 1340.96,
+     "textPreview": "理论这个系统是个什么脾气这个太明显了它的实部是负一在左半平面虚部使正负二这意味着",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 1340.96,
+     "endSeconds": 1366.64,
+     "textPreview": "象不管是平稳托打剧烈摆动还是彻底爆炸全都压缩到了这一张图上你只要看一眼几点落在那",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 1366.64,
+     "endSeconds": 1396.47,
+     "textPreview": "吧好的我们首先从真实的物理对象出发为了保证系统的可靠性我们选择了当兽医的机理模型",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 48,
+     "startSeconds": 1396.59,
+     "endSeconds": 1430.08,
+     "textPreview": "天节目的最后我想留给大家呃留给正在听节目的你一个震撼的课后脑洞一个思想实验对请你",
+     "canonical": []
+    },
+    {
+     "index": 49,
+     "startSeconds": 1430.08,
+     "endSeconds": 1455.2,
+     "textPreview": "眼都需要凑近才能看清的微型RC电路两个体积极其悬殊的对象是的经过我们今天这套流程",
+     "canonical": []
+    },
+    {
+     "index": 50,
+     "startSeconds": 1455.2,
+     "endSeconds": 1473.76,
+     "textPreview": "之或者气收加速时的推背感你不妨在脑子里问问自己它的极点现在正藏在负平面的哪个角呢",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "1a51dbf54610e60ed84b2edce99fb632e6b97262f8942ab5b22377d4fdf3f306",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "1-2-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/1-2/media/1-2-intro-video.mp4",
+   "sha256": "a122e8ea3e7d72576754a4f3d28206dcb4659e2d6b6c08750bf25a7e7ac7bd2f",
+   "durationSeconds": 360.917333,
+   "transcriptSource": "videos-project:lesson-1-2/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 340.867,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 360.867,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 113,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 24.59,
+     "textPreview": "大家好，欢迎来到闲聊自控。同一道转向指令，给到不同的船上，结果不同。有的平稳靠近",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.01,
+     "endSeconds": 35.96,
+     "textPreview": "反过来，RC 电路和热水箱，物理上毫无关系，行为却几乎一样。这指向同一个问题：差",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 35.96,
+     "endSeconds": 48.08,
+     "textPreview": "今天要建立的，就是这套语言——建模。工程师手上有两条路。第一条，机理建模——你知",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 48.08,
+     "endSeconds": 60.23,
+     "textPreview": "每项参数都有物理含义，这是白箱。代价是复杂对象的方程很难写。第二条，数据驱动建模",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 60.23,
+     "endSeconds": 72.23,
+     "textPreview": "优势是不依赖先验知识，代价是内部变成黑箱，超出训练范围就不靠谱。本课程以机理建模",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 74.23,
+     "endSeconds": 87.5,
+     "textPreview": "面对需要控制的工程对象，建模第一步，是把运动规律写成微分方程。以船为例：舵施加力",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 87.5,
+     "endSeconds": 97.31,
+     "textPreview": "翻译成数学，就是 J 乘角加速度，加 B 乘角速度，等于 K 乘舵角。但这个方程",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 97.31,
+     "endSeconds": 105.75,
+     "textPreview": "第一，求解步骤和输入绑定，换输入就得重来。第二，串联困难，几个方程联立，复杂度爆",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 105.75,
+     "endSeconds": 116.61,
+     "textPreview": "第三，跨对象不直观，解完船，看不出它和电机的共性。第四，频域要另架桥——方程在时",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 117.03,
+     "endSeconds": 129.61,
+     "textPreview": "所以需要一种等价的语言，把微分变成代数，让求解与输入解耦，让串联变成相乘，让不同",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 129.61,
+     "endSeconds": 137.75,
+     "textPreview": "这就是传递函数。传递函数做一件事——把微分运算变成代数运算。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 137.75,
+     "endSeconds": 147.62,
+     "textPreview": "靠的是拉氏变换。它把微积分问题，变成代数问题。核心规律只有一条：对时间求一次导，",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉氏变换",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 147.62,
+     "endSeconds": 164.49,
+     "textPreview": "二阶导乘 s 平方，以此类推。回到船的方程，两边同时做拉氏变换。二阶导变成 s ",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉氏变换",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 164.49,
+     "endSeconds": 176.52,
+     "textPreview": "提取输出与输入的比值，就得到传递函数。整个过程只有三步：写出微分方程，两边做拉氏",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉氏变换",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 176.52,
+     "endSeconds": 185.67,
+     "textPreview": "传递函数描述的是系统本身，与输入无关。换个输入，不需要重新建模，代入就能算。再看",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 185.67,
+     "endSeconds": 197.79,
+     "textPreview": "分母里的 s，意味着积分效应，舵角留下的影响会持续累积；s 加 B 比 J 这一",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 197.79,
+     "endSeconds": 207.7,
+     "textPreview": "极点，就藏在这个分母里。传递函数告诉你输入输出关系，但不告诉你系统里面长什么样。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 207.7,
+     "endSeconds": 219.54,
+     "textPreview": "方框图把每个环节画成方块——比较点、控制器、执行器、对象、传感器，箭头连接信息流",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 219.96,
+     "endSeconds": 234.6,
+     "textPreview": "信号流图换了一种视角：用节点表示变量，用支路表示传递关系。方框图以谁对谁做什么组",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 234.6,
+     "endSeconds": 246.75,
+     "textPreview": "同一件事，两种视角。工程图纸里，你会反复见到它们。分母等于零，得到特征方程，特征",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 246.75,
+     "endSeconds": 256.71,
+     "textPreview": "把 s 平面铺在脚下，把幅值画成曲面——在零和负 B 比 J 两处，曲面冲向无穷",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 256.71,
+     "endSeconds": 266.65,
+     "textPreview": "这就是极点的几何来源。现在俯视这张地图。横轴是实部，管收还是放；纵轴是虚部，管摆",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 266.65,
+     "endSeconds": 277.01,
+     "textPreview": "左半平面是稳定区，右半平面是不稳定区，虚轴是稳定边界。远离实轴振荡密集，靠近实轴",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 277.43,
+     "endSeconds": 287.81,
+     "textPreview": "看这张极点图鉴——左边是极点位置，右边是时域行为。极点在左半平面的实轴上，单调收",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+       "matchedLabel": "极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 287.81,
+     "endSeconds": 300.36,
+     "textPreview": "出现虚部，开始摆动；越往右移，收敛越慢；跨过虚轴，发散。看到极点坐标，就像看到经",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 302.0,
+     "endSeconds": 310.33,
+     "textPreview": "三艘船，极点分布不同。模型 A，负 1.5 加减 2.2 j，有虚部，边摆边收。",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 310.33,
+     "endSeconds": 325.42,
+     "textPreview": "模型 B，负 3.0 和负 0.8 两个实极点，单调收敛，被慢极点拖住。模型 C",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 325.42,
+     "endSeconds": 344.24,
+     "textPreview": "三组极点，三种行为。复平面把平稳、摆动、失控，压进同一张地图。建模的完整地形，今",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 344.24,
+     "endSeconds": 348.86,
+     "textPreview": "下次课，我们改变参数，看极点在地图上怎么移动。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "a122e8ea3e7d72576754a4f3d28206dcb4659e2d6b6c08750bf25a7e7ac7bd2f",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "1-2-course",
+   "kind": "video",
+   "runtimePath": "lessons/1-2/media/1-2-course.mp4",
+   "sha256": "64c1a2db2cbbc710a28791da706fe2b5d3f791363495698f0ec741e9e3ba8035",
+   "durationSeconds": 673.541224,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/1-2.json",
+   "transcriptSourceSha256": "64c1a2db2cbbc710a28791da706fe2b5d3f791363495698f0ec741e9e3ba8035",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 9.12,
+     "textPreview": "嘿，同学们，准备好搞定自动控治理论了吗？每次看到满黑版的积分符号和复平面，是不是",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 9.12,
+     "endSeconds": 20.32,
+     "textPreview": "别慌，今天咱们不单传背公式，咱们来做一回地图绘制式。其实啊，这些看似枯燥的工程公",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.32,
+     "endSeconds": 34.24,
+     "textPreview": "咱们的目标很简单，就是要摸透隐藏在负责工程背后的行为地图。作为控制工程师，我们要",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 34.24,
+     "endSeconds": 48.73,
+     "textPreview": "准备好了吗？咱们直接进入正题，你想想看，让一艘几万吨的巨轮在惊涛骇浪里乖乖转向，",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 48.73,
+     "endSeconds": 57.61,
+     "textPreview": "这几个东西物理体量差的简直十万八千里，对吧？巨轮对抗的是几百吨的阻力，电路里可是",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 57.61,
+     "endSeconds": 67.93,
+     "textPreview": "在特定条件下，它们表现出的动态特征竟然完全一样，当受到外部干扰时，它们都会延迟、",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 67.93,
+     "endSeconds": 78.97,
+     "textPreview": "为什么？因为它们底层用的根本就是同一套标准行为库，这就非常完美的阐释了控制理论最",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 78.97,
+     "endSeconds": 101.95,
+     "textPreview": "只要你搞懂了这套数学，你简直就掌握了控制万物的底层密码。那么为了不在这些硬核概念",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 101.95,
+     "endSeconds": 114.16,
+     "textPreview": "最后咱们一期画出那张能预测未来的行为谜图，五个步骤一气呵成，直接帮你打通任度二脉",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 114.16,
+     "endSeconds": 127.52,
+     "textPreview": "也是我们对物理对象建模时必须做的第一道选择题。面对一个陌生的系统，咱们有两条路：",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 127.52,
+     "endSeconds": 136.56,
+     "textPreview": "这就要求你必须懂底层的物理定律，比如牛顿力学、热力学定律之类的。好处是绝对透明，",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 136.56,
+     "endSeconds": 146.62,
+     "textPreview": "公式里哪个参数是摩擦力，哪个是转动惯量，清清楚楚。那右边呢，就是现在火的一塌糊涂",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 146.62,
+     "endSeconds": 162.3,
+     "textPreview": "这玩意儿听起来太爽了，不用管复杂的物理原理，只要疯狂为海量数据让算法自己找规律就",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 162.3,
+     "endSeconds": 177.0,
+     "textPreview": "为啥？因为咱们得从根本上知道系统为什么会有这样的反应。如果遇到极端工况，比如突发",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 177.0,
+     "endSeconds": 192.57,
+     "textPreview": "真实的硬核工程里，生命财产安全绝不是儿戏，咱们需要的是对系统的绝对掌控力。选定了",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 192.57,
+     "endSeconds": 207.29,
+     "textPreview": "这个让人头皮发麻的数学起点唉，看着这一长串就头疼。J乘上C的二阶导，加上B乘上C",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 207.29,
+     "endSeconds": 219.09,
+     "textPreview": "这确实是描述船舶偏行角最自然、最符合物理知觉的起点了。你看，每一个字母都有写有肉",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 219.09,
+     "endSeconds": 234.93,
+     "textPreview": "B是海水粘性阻尼，K是螺旋桨提供的控制力矩。牛顿第二定律嘛，非常完美。但是说真的",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 234.93,
+     "endSeconds": 244.18,
+     "textPreview": "为什么说是噩梦？回想一下被高数支配的恐惧吧，直接在时间域里求解它，代价极其惨痛。",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 244.18,
+     "endSeconds": 253.3,
+     "textPreview": "你得先掉几根头发去求其次解，还得硬着头皮去猜特解的形式，最后带入一堆初始条件去定",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 253.3,
+     "endSeconds": 270.1,
+     "textPreview": "好不容易算完了一大黑板，得出了漂亮的航向时间曲线。结果这时候假设我是甲方，跑来跟",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 270.1,
+     "endSeconds": 280.58,
+     "textPreview": "你刚才算的所有东西瞬间作废，必须回到零点重新推导一遍。这种被输入信号死死绑架的数",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 280.58,
+     "endSeconds": 291.62,
+     "textPreview": "咱们迫切需要一个高级武器，能把系统本身的属性和外来的输入信号彻底剥离开，这就引出",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 291.62,
+     "endSeconds": 300.79,
+     "textPreview": "这绝对是这门课里的终极通关秘籍。专门用来把复杂的微分运算化解成简单的代数运算。",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 300.79,
+     "endSeconds": 313.43,
+     "textPreview": "准备好迎接数学上的降维打击了吗？拉普拉斯变换闪亮登场，只需要极其舒适的三步走：第",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 313.43,
+     "endSeconds": 328.73,
+     "textPreview": "第二步，在等号两边同时做拉式变换。这里的魔法在于什么？它把所有让人抓狂的实践域里",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 328.73,
+     "endSeconds": 340.81,
+     "textPreview": "第三步，把输出信号和输入信号各放一边，轻轻一除，奇迹发生了。刚谈那个高深莫测的方",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 340.81,
+     "endSeconds": 350.44,
+     "textPreview": "这就是见证奇迹的时刻。你看这个表达式，它可不只是个公式，它是他们控制工程师的神器",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 350.44,
+     "endSeconds": 361.32,
+     "textPreview": "他把错综复杂的时间享用浓缩成了一个极其紧凑的代数式。最绝的是什么？你仔细看，公式",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 361.32,
+     "endSeconds": 375.38,
+     "textPreview": "他真正实现了和输入信号的解绑。管你的输入是粗暴的阶跃信号，还是持续的正弦波，传递",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 375.38,
+     "endSeconds": 386.34,
+     "textPreview": "这简直就是通关路上梦寐以求的武器升级啊！有了它，分析系统终于变成了一件特别优雅的",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 386.34,
+     "endSeconds": 395.62,
+     "textPreview": "虽然拿到了神器，传递函数告诉了我们因果关系，但咱们还得像做X光一样，看透系统内部",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 395.62,
+     "endSeconds": 410.88,
+     "textPreview": "讲到系统内部，方框图的魅力就体现出来了。重点关注那个比较点，也就是带叉号的小圆圈",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 410.88,
+     "endSeconds": 422.58,
+     "textPreview": "所有的控制误差都在这儿诞生，系统就是靠着这个误差来决定下一步动作的，而那个被控对",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 422.58,
+     "endSeconds": 434.42,
+     "textPreview": "方框图用带箭头的信号线把各个组件连起来，不仅清晰展示了串联、并联，还有我们控制理",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 434.42,
+     "endSeconds": 453.68,
+     "textPreview": "控制之所以叫控制，就是因为有了闭环反馈，系统才真正具备了自我纠错的超能力。当然了",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 453.68,
+     "endSeconds": 466.0,
+     "textPreview": "这时候信号流图就该上场了。这两者有什么区别呢？方框图讲究的是谁对谁做了什么，每个",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 466.0,
+     "endSeconds": 481.18,
+     "textPreview": "而信号流图呢，完全抛弃了物理实体的概念，它只关心变量、结、点之间是怎么互相决定的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 38,
+     "startSeconds": 481.18,
+     "endSeconds": 490.06,
+     "textPreview": "遇到超级复杂的系统时，用信号流图加上梅森增益公式，能让人一步写出总传递函数，简直",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+       "matchedLabel": "梅森增益公式",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 39,
+     "startSeconds": 490.06,
+     "endSeconds": 503.85,
+     "textPreview": "好了，历经千辛万苦，咱们终于来到了最终boss的领地——第五部分。我们要用前面获",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 503.85,
+     "endSeconds": 513.93,
+     "textPreview": "拿到总传递函数之后干嘛呢？咱们让传递函数的分母多项式等于零，解出来的根就是控制界",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 513.93,
+     "endSeconds": 523.2,
+     "textPreview": "为什么叫极点？大家发挥一下空间想象力，假设你站在一个叫S平面的平地上，把传递函数",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 523.2,
+     "endSeconds": 535.04,
+     "textPreview": "当分母等于0的时候，数学上这个高度会突然变成无穷大。就好像平地上瞬间拔起了一根无",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 535.04,
+     "endSeconds": 546.24,
+     "textPreview": "极点插在平地上的坐标一旦定下来，系统未来是快速稳定还是剧烈发疯，就彻底被钉死了。",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 546.24,
+     "endSeconds": 556.12,
+     "textPreview": "同学们强烈建议把这张表直接刻在脑子里。这绝对是一张超神级别的作弊小抄，也是咱们费",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 556.12,
+     "endSeconds": 574.31,
+     "textPreview": "只要看几点在S平面上的坐标就全明白了。实不主管收放决定系统能量是衰减还是爆炸，虚",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 574.31,
+     "endSeconds": 582.95,
+     "textPreview": "离虚轴略远，收敛的越快，那叫一个雷厉风行。如果带点虚步呢？就像阻尼弹簧一样，边晃",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 582.95,
+     "endSeconds": 592.47,
+     "textPreview": "以后做分析题，只要你能确定极点的位置，连逆变换都不用算，系统的最终结局你就已经一",
+     "canonical": []
+    },
+    {
+     "index": 48,
+     "startSeconds": 592.47,
+     "endSeconds": 600.91,
+     "textPreview": "现在咱们放慢脚步，回望一下今天这条地图绘制实之路，咱们从真实的物理巨轮出发。",
+     "canonical": []
+    },
+    {
+     "index": 49,
+     "startSeconds": 600.91,
+     "endSeconds": 612.59,
+     "textPreview": "熬过了笨重但精准的微分方程，接着用拉不拉斯变换来了个降维打击，拿到了优雅的传递函",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 50,
+     "startSeconds": 612.59,
+     "endSeconds": 628.0,
+     "textPreview": "最后把极点精准地钉在S平面上，获得了一张能直接预测未来的行为地图。这不仅是公式的",
+     "canonical": []
+    },
+    {
+     "index": 51,
+     "startSeconds": 628.0,
+     "endSeconds": 644.56,
+     "textPreview": "解析的最后，给大家留个相当致命的悬念：如果因为设计偏差或者外部环境巨变，导致你的",
+     "canonical": []
+    },
+    {
+     "index": 52,
+     "startSeconds": 644.56,
+     "endSeconds": 655.64,
+     "textPreview": "在这个数学符号改变的瞬间，现实海域里那时候几万吨的巨轮到底会遭遇什么灭顶之灾？方",
+     "canonical": []
+    },
+    {
+     "index": 53,
+     "startSeconds": 655.64,
+     "endSeconds": 668.84,
+     "textPreview": "记住，数学上的微小改变在现实中往往意味着灾难性的物理反馈。带着这个头皮发麻的问题",
+     "canonical": []
+    },
+    {
+     "index": 54,
+     "startSeconds": 668.84,
+     "endSeconds": 673.54,
+     "textPreview": "咱们下去解析，接着聊。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "64c1a2db2cbbc710a28791da706fe2b5d3f791363495698f0ec741e9e3ba8035",
+   "status": "anchored"
+  }
+ ]
+}

@@ -1,0 +1,1854 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-2",
+ "unitIndex": 10,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-2/3-2-handout.md",
+  "sha256": "4dde9485a203a91dcbc7af9e50cae27ca159e49a2dfb78e5ef3e016ec7480602"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图——从纯极点语言走向稳定边界",
+   "groupName": null,
+   "textChars": 108,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "先看主对象——极点迁移图提出了哪三个问题",
+   "groupName": null,
+   "textChars": 227,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测——不求根判稳、特殊情况与区域收紧",
+   "groupName": null,
+   "textChars": 226,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "普通劳斯表——固定 k=4 时怎样从第一列读出稳定性",
+   "groupName": null,
+   "textChars": 260,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "带参数劳斯表——稳定区间怎样从第一列条件链中写出",
+   "groupName": null,
+   "textChars": 246,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "边界点回到复平面——k=-2、18、22 分别对应什么根结构",
+   "groupName": null,
+   "textChars": 260,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "首位为 0——ε 连续化为什么只服务于符号判断",
+   "groupName": null,
+   "textChars": 273,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "全零行——辅助方程怎样把对称根结构重新写出来",
+   "groupName": null,
+   "textChars": 236,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "劳斯现象到时域——极点结构怎样改写响应形态",
+   "groupName": null,
+   "textChars": 219,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "劳斯现象到频域——峰值抬高、理想共振与低频抬升如何区分",
+   "groupName": null,
+   "textChars": 249,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "变量平移——把 Re(s)<-0.5 转成普通劳斯判定",
+   "groupName": null,
+   "textChars": 259,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "后测——判稳、特殊情况与区域约束能否连成一条链",
+   "groupName": null,
+   "textChars": 252,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "收束——从稳定判定走向参数设计入口",
+   "groupName": null,
+   "textChars": 92,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-高阶系统稳定分析为什么需要劳斯判据",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：高阶系统稳定分析为什么需要劳斯判据",
+   "startLine": 14,
+   "endLine": 42,
+   "bodyChars": 549,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 50,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-统一高阶主对象与普通劳斯表",
+   "order": 2,
+   "level": 2,
+   "title": "二、统一高阶主对象与普通劳斯表",
+   "startLine": 43,
+   "endLine": 52,
+   "bodyChars": 146,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-先固定一个参数值-完成普通劳斯表",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 先固定一个参数值，完成普通劳斯表",
+   "startLine": 53,
+   "endLine": 122,
+   "bodyChars": 749,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-从第一列直接读出稳定结论",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 从第一列直接读出稳定结论",
+   "startLine": 123,
+   "endLine": 140,
+   "bodyChars": 211,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-为什么“看第一列”就够了",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 为什么“看第一列”就够了",
+   "startLine": 141,
+   "endLine": 155,
+   "bodyChars": 267,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 30,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-用数值求根做一次交叉验证",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 用数值求根做一次交叉验证",
+   "startLine": 156,
+   "endLine": 176,
+   "bodyChars": 252,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-普通情形小结",
+   "order": 7,
+   "level": 3,
+   "title": "2.5 普通情形小结",
+   "startLine": 177,
+   "endLine": 188,
+   "bodyChars": 164,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "matchedLabel": "闭环特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-带参数劳斯表-从稳定判定走向稳定区间确定",
+   "order": 8,
+   "level": 2,
+   "title": "三、带参数劳斯表：从稳定判定走向稳定区间确定",
+   "startLine": 189,
+   "endLine": 190,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-保留参数后-整张劳斯表一次列完",
+   "order": 9,
+   "level": 3,
+   "title": "3.1 保留参数后，整张劳斯表一次列完",
+   "startLine": 191,
+   "endLine": 250,
+   "bodyChars": 689,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-第一列不等式直接给出稳定区间",
+   "order": 10,
+   "level": 3,
+   "title": "3.2 第一列不等式直接给出稳定区间",
+   "startLine": 251,
+   "endLine": 304,
+   "bodyChars": 382,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-两个边界点对应两种不同的临界根结构",
+   "order": 11,
+   "level": 3,
+   "title": "3.3 两个边界点对应两种不同的临界根结构",
+   "startLine": 305,
+   "endLine": 350,
+   "bodyChars": 432,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-用三个参数点核对这一结论",
+   "order": 12,
+   "level": 3,
+   "title": "3.4 用三个参数点核对这一结论",
+   "startLine": 351,
+   "endLine": 370,
+   "bodyChars": 680,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-从“稳定判定”提升到“先定可行域-再谈设计”",
+   "order": 13,
+   "level": 3,
+   "title": "3.5 从“稳定判定”提升到“先定可行域，再谈设计”",
+   "startLine": 371,
+   "endLine": 382,
+   "bodyChars": 121,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-特殊情况处理-首位为-0-与全零行",
+   "order": 14,
+   "level": 2,
+   "title": "四、特殊情况处理：首位为 0 与全零行",
+   "startLine": 383,
+   "endLine": 391,
+   "bodyChars": 164,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-首位为-0-且该行不全为-0-用极小正数保持符号连续性",
+   "order": 15,
+   "level": 3,
+   "title": "4.1 首位为 0 且该行不全为 0：用极小正数保持符号连续性",
+   "startLine": 392,
+   "endLine": 475,
+   "bodyChars": 941,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-出现全零行-上一行隐藏着辅助方程",
+   "order": 16,
+   "level": 3,
+   "title": "4.2 出现全零行：上一行隐藏着辅助方程",
+   "startLine": 476,
+   "endLine": 579,
+   "bodyChars": 1031,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-两类特殊情况的辨识与处理规则",
+   "order": 17,
+   "level": 3,
+   "title": "4.3 两类特殊情况的辨识与处理规则",
+   "startLine": 580,
+   "endLine": 600,
+   "bodyChars": 577,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-劳斯结论与极点-时域-频域的跨域对应",
+   "order": 18,
+   "level": 2,
+   "title": "五、劳斯结论与极点、时域、频域的跨域对应",
+   "startLine": 601,
+   "endLine": 604,
+   "bodyChars": 80,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-先将劳斯结论翻译成极点结构",
+   "order": 19,
+   "level": 3,
+   "title": "5.1 先将劳斯结论翻译成极点结构",
+   "startLine": 605,
+   "endLine": 626,
+   "bodyChars": 464,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-极点结构一旦确定-时域表现就随之确定",
+   "order": 20,
+   "level": 3,
+   "title": "5.2 极点结构一旦确定，时域表现就随之确定",
+   "startLine": 627,
+   "endLine": 680,
+   "bodyChars": 746,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-同一组极点在频域中留下的痕迹",
+   "order": 21,
+   "level": 3,
+   "title": "5.3 同一组极点在频域中留下的痕迹",
+   "startLine": 681,
+   "endLine": 710,
+   "bodyChars": 654,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+     "matchedLabel": "稳定系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-一张表格总结三域对应关系",
+   "order": 22,
+   "level": 3,
+   "title": "5.4 一张表格总结三域对应关系",
+   "startLine": 711,
+   "endLine": 725,
+   "bodyChars": 334,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-变量平移与区域约束-劳斯判据的参数设计入口",
+   "order": 23,
+   "level": 2,
+   "title": "六、变量平移与区域约束：劳斯判据的参数设计入口",
+   "startLine": 726,
+   "endLine": 741,
+   "bodyChars": 171,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-竖线左侧约束如何转化为普通稳定性判定",
+   "order": 24,
+   "level": 3,
+   "title": "6.1 竖线左侧约束如何转化为普通稳定性判定",
+   "startLine": 742,
+   "endLine": 775,
+   "bodyChars": 283,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-在主对象上加入“极点位于-$\\operatorname{Re}-",
+   "order": 25,
+   "level": 3,
+   "title": "6.2 在主对象上加入“极点位于 $\\operatorname{Re}(s)<-0.5$”约束",
+   "startLine": 776,
+   "endLine": 837,
+   "bodyChars": 810,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-约束一旦加强-可行域会同步收缩",
+   "order": 26,
+   "level": 3,
+   "title": "6.3 约束一旦加强，可行域会同步收缩",
+   "startLine": 838,
+   "endLine": 921,
+   "bodyChars": 700,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cccba806baf3e7a86cade9e4",
+     "matchedLabel": "右半平面根",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-为何这标志着进入设计层面",
+   "order": 27,
+   "level": 3,
+   "title": "6.4 为何这标志着进入设计层面",
+   "startLine": 922,
+   "endLine": 965,
+   "bodyChars": 626,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h28-自学核验建议",
+   "order": 28,
+   "level": 2,
+   "title": "七、自学核验建议",
+   "startLine": 966,
+   "endLine": 978,
+   "bodyChars": 516,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+     "matchedLabel": "劳斯表",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h29-附录-A-劳斯小传",
+   "order": 29,
+   "level": 2,
+   "title": "附录 A：劳斯小传",
+   "startLine": 979,
+   "endLine": 989,
+   "bodyChars": 870,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+     "matchedLabel": "劳斯判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-2-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-2/media/3-2-audio.m4a",
+   "sha256": "e37cdc075b7204b1e15941a64b1f6b8e63188ec164ce313201b3a505acef2877",
+   "durationSeconds": 1188.466939,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-2.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.28,
+     "textPreview": "你知道吗平时咱们说起医学诊断就是呃总期待那种非黑即白的清晰度嗯最好是一拍片子什么",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.28,
+     "endSeconds": 50.32,
+     "textPreview": "备的闲聊自控其实这种直观的结果确实让人安心我是思稳不过今天呢我们要为你拆解的这份",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.32,
+     "endSeconds": 75.4,
+     "textPreview": "分析的世界时那台X光机仿佛直接就失灵了你要面对的诊断环境老实说简直就是一片泥潭这",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.4,
+     "endSeconds": 100.44,
+     "textPreview": "那些极其枯燥的特征方程劳斯护而为次稳定型判拒还有什么含参变量K的根轨迹扫描还有那",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.44,
+     "endSeconds": 125.52,
+     "textPreview": "底层逻辑的认赌而卖没错不过呢在直接闯入那些让人头疼的多项式之前我觉得我们必须先聊",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.52,
+     "endSeconds": 150.64,
+     "textPreview": "Ruth也就是我们天天挂在嘴边让你算到手软的那个劳斯劳斯震裂的那个劳斯对他在18",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.64,
+     "endSeconds": 175.88,
+     "textPreview": "谁吗是詹姆斯克拉克麦克斯韦主就是那个写出麦克斯为电磁学方程组的真神对就是法那个几",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.88,
+     "endSeconds": 201.0,
+     "textPreview": "顿直接按在地上狠狠摩擦哈哈确实是这种感觉老四就是一个神级学霸而且他后来还成了超级",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.48,
+     "endSeconds": 226.48,
+     "textPreview": "了解了这位学神的恐怖实力咱们再来看看他当时面临的绝境你想啊在那个连计算器都没有的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.48,
+     "endSeconds": 252.0,
+     "textPreview": "生生劈开了一条捷径就是咱们要聊的捞丝阵列对吧没错他发现我们根本不需要知道根的具体",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.08,
+     "endSeconds": 277.4,
+     "textPreview": "特中方程是一个带有可调参数K的四阶多项式对S的四次方加上五倍的S三次方等等的一长",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 277.4,
+     "endSeconds": 302.44,
+     "textPreview": "底是怎么把稳定性的秘密给榨取出来的它的本质啊其实是一种像剥洋葱一样的降维算法你不",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.44,
+     "endSeconds": 330.0,
+     "textPreview": "情他在试图把高阶多项式里那些隐藏的符号特征一层一层的剥离开来最终浓缩到阵列的第一",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.04,
+     "textPreview": "里的核心法则极其霸道要想让系统稳定也就是所有的极点都乖乖待在复平面的左半边第一列",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.04,
+     "endSeconds": 385.0,
+     "textPreview": "些数他们就像是客人们的身份证保安根本不关心你到底叫什么也就是不需要求具体的根他只",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.12,
+     "textPreview": "就等于保安查出了一张假证只要放进去哪怕一个右半平面的危险分子系统这个夜店就会彻底",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.12,
+     "endSeconds": 440.0,
+     "textPreview": "在负2到18之间蹦跶那我作为一个不安分的工程我现在脑子里一定在想如果我非要把旋钮",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 465.04,
+     "textPreview": "工程师的本性暴露了我们在资料里看到的那几张阶跃响应图呃视觉冲击力简直太强了没错图",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.04,
+     "endSeconds": 495.0,
+     "textPreview": "停不下来的秋欠就是你推了一下秋千然后他就以完全相同的幅度永远荡下去或者是一个电机",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.28,
+     "textPreview": "狂的正反向抖动他确实没有彻底爆炸但他永远停不下来也永远达不到你设定的目标值在工程",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+       "matchedLabel": "临界稳定",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.28,
+     "endSeconds": 550.0,
+     "textPreview": "直到直接烧毁或者飞机在空中直接方拱坠毁简直就是掀桌子吃直直接",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.92,
+     "textPreview": "引爆了看着矩阵里那些冷冰冰的数字你可能觉得没什么感觉但一看那张发散的波形图真的让",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.92,
+     "endSeconds": 605.0,
+     "textPreview": "点像蓝色的小点一样从安全的左半平面稳步走向序轴一步步走向深渊对呀当K等于12的时",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.0,
+     "endSeconds": 646.36,
+     "textPreview": "这位保安的查证规则时程数学总爱给你出点刁钻的难题唉总有意外情况你在算劳氏阵列的时",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 647.32,
+     "endSeconds": 672.8,
+     "textPreview": "CPU少了对呀这就好比天平达到了绝对完美的平衡保安根本不知道该放行还是该赶人资料",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 672.8,
+     "endSeconds": 699.76,
+     "textPreview": "数学家最擅长的微草了也就是极小正数那个希腊字母Epsilon的方法就是咱们书上写",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 699.76,
+     "endSeconds": 724.84,
+     "textPreview": "小正数Epsilon去替换掉那个碍事的零然后呢假装它是一个正常的数字继续往下交叉",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 724.84,
+     "endSeconds": 770.0,
+     "textPreview": "式下跌变成了负无穷大最后一行又变回了正数发生了两次负号的突变这就无可辩驳的证明了",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 770.0,
+     "endSeconds": 825.0,
+     "textPreview": "半平面绝对不稳定对系统直接控这种用一粒灰尘去试探系统底线的方法简直把数学的严谨和",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+       "matchedLabel": "绝对稳定性",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 825.0,
+     "endSeconds": 872.76,
+     "textPreview": "或者扇有一点点电磁噪声系统立马就凉了对不对完全正确在真实的工程设计上没有任何容错",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 873.08,
+     "endSeconds": 898.08,
+     "textPreview": "现这个缩门注计算量可是极其恐怖的怎么说我们需要引入一个新的复变量Z令原系统的S等",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 898.24,
+     "endSeconds": 926.24,
+     "textPreview": "数展开算错一个符号全盘皆出是的展开之后还得对这个面目全非的新多项式重新列一次老四",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 926.32,
+     "endSeconds": 951.32,
+     "textPreview": "严苛的负的八分之三到四之间我的天缩水了这么多啊对如果K稍微超过了四即使系统不会马",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 951.32,
+     "endSeconds": 990.0,
+     "textPreview": "个频域分析也",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 990.0,
+     "endSeconds": 1045.56,
+     "textPreview": "就是波对图波德图嗯浮特性图当你用代码跑方分把K从安全的四逐渐增达到十二在逼近边界",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 1045.56,
+     "endSeconds": 1071.88,
+     "textPreview": "也没法给你一个全局的视野你想想当你敲击参数时你必须输入具体的数字对吧对必须是实实",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 1071.88,
+     "endSeconds": 1097.13,
+     "textPreview": "底顿悟了劳斯阵列给的是一张包含所有可能性的全局地图它提前给你画好了哪里是雷区哪里",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 1097.57,
+     "endSeconds": 1122.8,
+     "textPreview": "时你需要的是地图啊对你需要知道参数调整的龙魂边界到底在哪而不是像个无头苍蝇一样输",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1122.8,
+     "endSeconds": 1155.56,
+     "textPreview": "错每一次指上的推导其实都是你在和系统底层的物理规律在对话掌握了这套语言你就能",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1155.56,
+     "endSeconds": 1180.6,
+     "textPreview": "让暴躁的电机安静下来让摇晃的机翼平稳穿过极在今天深浅的最后我想留给你一个课外思考",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+       "matchedLabel": "稳定性边界",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 40,
+     "startSeconds": 1180.6,
+     "endSeconds": 1188.2,
+     "textPreview": "们快去刷题复习吧祝正死科自控的你期末高分飘过咱们下次深浅再见再见",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "e37cdc075b7204b1e15941a64b1f6b8e63188ec164ce313201b3a505acef2877",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-2-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-2/media/3-2-intro-video.mp4",
+   "sha256": "6c695f3f5490cc8e39e00120f9ebf687e9fc3a6d2b3ee831a62e3f3ddb30c3fb",
+   "durationSeconds": 273.322667,
+   "transcriptSource": "videos-project:lesson-3-2/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 251.267,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 273.267,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 86,
+   "segments": [],
+   "activeReleaseSha256": "647d4890542beb404303370e4e1b112089e0a1b4a63f87e023b425a88b340695",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-2-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-2/media/3-2-course.mp4",
+   "sha256": "54ffce986a5717aed90de8424f9c5a198958ff378a666fc3e316925137bdee3a",
+   "durationSeconds": 460.173061,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-2.json",
+   "transcriptSourceSha256": "54ffce986a5717aed90de8424f9c5a198958ff378a666fc3e316925137bdee3a",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 16.72,
+     "textPreview": "嘿，各位未来的工程师们，你们好啊。今天咱们来聊一个控制系统里的超级神器——劳斯赫",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 16.72,
+     "endSeconds": 30.24,
+     "textPreview": "准备好一起当一回系统真灿了吗？好的，那咱们今天的侦探行动路线图是这样的。首先咱们",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 2,
+     "startSeconds": 30.24,
+     "endSeconds": 40.01,
+     "textPreview": "接着我们会拿到关键的侦查工具，也就是劳四表，然后咱们直接上手一个实战案例，解密一",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.01,
+     "endSeconds": 50.25,
+     "textPreview": "呸，之后呢再学几招高级侦查技巧，处理一些棘手的情况，最后用眼见为实的证据给出咱们",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 50.25,
+     "endSeconds": 60.09,
+     "textPreview": "好，我们先来看看这案子到底是怎么回事。这么说吧，一个不稳定的系统，你想想，一个走",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 60.09,
+     "endSeconds": 76.33,
+     "textPreview": "的机器人，或者一个随时可能崩掉的电网，那简直就是个定时炸弹呢，对吧？所以啊，每个",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 76.33,
+     "endSeconds": 86.01,
+     "textPreview": "破案的关键线索就在这儿了，特征方程你可以把它想成是一个系统的基因，或者说DNA。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 86.01,
+     "endSeconds": 96.25,
+     "textPreview": "它里面藏着的所有根，就决定了这系统的性格到底是老老实实的三好学生，还是随时准备嗨",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 96.25,
+     "endSeconds": 110.89,
+     "textPreview": "这些根子呢，能告诉我们所有秘密。但问题来了，对于一个复杂点的系统，你想直接把这些",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 110.89,
+     "endSeconds": 119.29,
+     "textPreview": "就在我们头大的时候。救星登场了，这就是我们今天的超级英雄劳斯赫尔维斯判举。",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 119.29,
+     "endSeconds": 129.45,
+     "textPreview": "他怎么说呢？特别优雅，也特别强大，能让我们直接绕开那些烦人的解方程过程。那这个神",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 129.45,
+     "endSeconds": 140.01,
+     "textPreview": "放心，特别简单，就四步：第一步，先看看基本条件满不满足；第二步，从方程里把系数抄",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 140.01,
+     "endSeconds": 150.23,
+     "textPreview": "第三步……用一个固定的小公式，一行一行往下算。最后一步看看第一列，答案就出来了。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+       "matchedLabel": "劳斯表",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 150.23,
+     "endSeconds": 163.99,
+     "textPreview": "其实啊，它就是个整理信息的表格。我们把系统DNA里的那些系数按照一个很巧妙的规则",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 163.99,
+     "endSeconds": 175.05,
+     "textPreview": "好，理论讲的差不多了，光说不练假把式。现在咱们就来动真格了，用这个工具来破个案子",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 175.05,
+     "endSeconds": 188.57,
+     "textPreview": "这个案子里有个关键人物，就是这个参数k他的一举一动都可能改变全局。来，各位侦探请",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 188.57,
+     "endSeconds": 199.09,
+     "textPreview": "看到没？这个方程里有个未知数k咱们今天的任务啊，就是要查清楚。这个K到底在什么范",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 199.09,
+     "endSeconds": 208.53,
+     "textPreview": "好，开共第一步简直是送分题，我们直接把方程里的系数拿过来填进劳斯表的前两行看，就",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+       "matchedLabel": "劳斯表",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 208.53,
+     "endSeconds": 220.29,
+     "textPreview": "接下来就是核心的计算环节了，你看B一、B二、C一、D一这些，它们都不是凭空来的，",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 220.29,
+     "endSeconds": 232.93,
+     "textPreview": "通过一个固定的交叉相乘再相减的模式得到的，就像解一个连环谜局，一环扣一环。现在到",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 232.93,
+     "endSeconds": 243.25,
+     "textPreview": "loss判据的铁律就是要想系统稳定，第一列的所有数字从上到下必须全都是正数，一个",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 243.25,
+     "endSeconds": 253.32,
+     "textPreview": "所以我们就根据这个规则，把每一行都变成一个不等式。解开这些不等式，就能锁定K的安",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 253.32,
+     "endSeconds": 265.72,
+     "textPreview": "所以你看，综合我们解出来的所有条件，我们成功破案了。K的安全范围就是大于负二，小",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 265.72,
+     "endSeconds": 275.76,
+     "textPreview": "当然了，现实中的案子总会有些意外，一帆风顺那是理想情况。那万一咱们的线索变得有点",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 275.76,
+     "endSeconds": 285.2,
+     "textPreview": "别急，我们还有高级侦查技巧。一帮情况很简单，第一列全是正号，案子就结了，系统稳定",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 285.2,
+     "endSeconds": 295.2,
+     "textPreview": "但有时候你会碰到特殊情况，比如第一列算着算着突然出现一个零，或者更夸张，一整行都",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 295.2,
+     "endSeconds": 306.67,
+     "textPreview": "遇到这种事儿，咱们就得启动特殊预案，用一些小技巧来继续分析。好，现在我们知道系统",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 306.67,
+     "endSeconds": 318.03,
+     "textPreview": "一个系统只是稳定和非常稳定，那可是两码事儿。这就引出了一个更深层次的问题：它到底",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 318.03,
+     "endSeconds": 327.95,
+     "textPreview": "这就涉及到相对稳定性了。你想啊，我们不只是想让系统别崩溃，我们还想让它离崩溃的边",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-6d78bc7ec6f37d397dd08c67",
+       "matchedLabel": "相对稳定性",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 327.95,
+     "endSeconds": 345.5,
+     "textPreview": "所以我们可以把稳定的极格线，也就是那个虚轴往左边挪一挪。通过一个坐标变换，我们要",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 345.5,
+     "endSeconds": 353.88,
+     "textPreview": "说了这么多数学，是不是有点抽象？别急，接下来就是见证奇迹的时刻，咱们来看看。",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 353.88,
+     "endSeconds": 369.4,
+     "textPreview": "我们算出来的这些结论，在现实世界里到底长什么样？你看，这就是根的移动轨迹。当K在",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 369.4,
+     "endSeconds": 380.81,
+     "textPreview": "只要它们都乖乖地待在左边这个安全区，系统就没事儿。但你看，当K等于18的时候，有",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+       "matchedLabel": "临界稳定",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 380.81,
+     "endSeconds": 393.61,
+     "textPreview": "要是K再大一点，比如到22诶，你看有两个根就越界跑到右边的危险区了，系统立马就不",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 393.61,
+     "endSeconds": 407.28,
+     "textPreview": "这张图就更直观了，它直接告诉我们系统会怎么动。你看当K等于12，在稳定区里，系统",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 407.28,
+     "endSeconds": 418.32,
+     "textPreview": "当K等于18，在临界点上，系统就开始不停地抖，没完没了。而当K等于22，在不稳定",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 418.32,
+     "endSeconds": 435.25,
+     "textPreview": "响应直接冲向无穷大，系统就崩了。所以就像一位工程师说的，劳师赫尔维斯判拒这个工具",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 435.25,
+     "endSeconds": 450.45,
+     "textPreview": "好，现在我们已经有能力保证系统不翻车了。但一个新的问题又来了，在这个稳定的范围里",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 450.45,
+     "endSeconds": 460.17,
+     "textPreview": "这个问题就留给大家去探索了。它也把我们带入了控制系统设计这个更广阔、更有趣的世界",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "54ffce986a5717aed90de8424f9c5a198958ff378a666fc3e316925137bdee3a",
+   "status": "anchored"
+  }
+ ]
+}

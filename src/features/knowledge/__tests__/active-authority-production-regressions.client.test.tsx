@@ -20,6 +20,7 @@ vi.mock('../graph/active-renderer/active-authority-renderer', () => ({
     // 与真实 2D 一致：只在节点集变化时通知，不因回调身份重入。
     useEffect(() => {
       if (renderer.settleOnNodeCount) onEngineSettled?.();
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- 故意不跟随回调身份，避免测试里重入结算。
     }, [nodes.length]);
     return createElement('div', { 'data-test-active-renderer': true });
   },

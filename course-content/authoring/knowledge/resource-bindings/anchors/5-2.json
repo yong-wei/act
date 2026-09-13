@@ -1,0 +1,3182 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "5-2",
+ "unitIndex": 26,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/5-2/5-2-handout.md",
+  "sha256": "f93ec571571384d16c5c41d6ce10c1ff82d0b0841d33f03de41a650abda8fc96"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "非线性边界现象与三种观察工具",
+   "groupName": null,
+   "textChars": 220,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1d8759ac1188e2de38f75ed3",
+     "matchedLabel": "状态轨迹",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 5,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": null,
+   "textChars": 348,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+     "matchedLabel": "平衡点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "matchedLabel": "负倒描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前置基础快测",
+   "groupName": null,
+   "textChars": 75,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "工作点附近的局部线性化",
+   "groupName": null,
+   "textChars": 419,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 20,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相平面图_8_bd606f51"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "动态系统线性化与局部结论",
+   "groupName": null,
+   "textChars": 424,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相平面图_8_bd606f51"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+     "matchedLabel": "平衡点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "相平面中的状态轨迹与周期行为",
+   "groupName": null,
+   "textChars": 445,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相平面图_8_bd606f51"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "描述函数的基波近似",
+   "groupName": null,
+   "textChars": 366,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "饱和、死区与死区饱和的描述函数",
+   "groupName": null,
+   "textChars": 1673,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-453ccee1d99fcde47aefa517",
+     "matchedLabel": "无记忆非线性",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "继电、滞环继电与间隙的描述函数",
+   "groupName": null,
+   "textChars": 1150,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "负倒描述函数与候选自振条件",
+   "groupName": null,
+   "textChars": 300,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8bf044c43e3936166dff5b1c",
+     "matchedLabel": "负反馈结构",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "负倒描述函数_8_159ff256"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "微小扰动法判断稳定自振点",
+   "groupName": null,
+   "textChars": 255,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "负倒描述函数_8_159ff256"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "常见负倒曲线与参数影响",
+   "groupName": null,
+   "textChars": 447,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "负倒描述函数_8_159ff256"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "理想继电闭环的自振计算",
+   "groupName": null,
+   "textChars": 483,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "负倒描述函数_8_159ff256"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "饱和环节中线性增益改变自振条件",
+   "groupName": null,
+   "textChars": 500,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:25943f64c06ac39c58e78489",
+     "matchedLabel": "闭环增益",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "负倒描述函数_8_159ff256"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "舵机执行器结构中的死区与饱和",
+   "groupName": null,
+   "textChars": 264,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 56,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "舵机自振风险与整改方向",
+   "groupName": null,
+   "textChars": 366,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "后测：非线性边界判断链",
+   "groupName": null,
+   "textChars": 87,
+   "canonical": []
+  },
+  {
+   "stepId": "step-18",
+   "index": 17,
+   "title": "总结：三种入口与工程验证边界",
+   "groupName": null,
+   "textChars": 300,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1d8759ac1188e2de38f75ed3",
+     "matchedLabel": "状态轨迹",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+     "matchedLabel": "非线性系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-非线性边界需要先选观察工具",
+   "order": 1,
+   "level": 2,
+   "title": "一、非线性边界需要先选观察工具",
+   "startLine": 11,
+   "endLine": 20,
+   "bodyChars": 581,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+     "matchedLabel": "平衡点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+     "matchedLabel": "描述函数法",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-学习目标",
+   "order": 2,
+   "level": 2,
+   "title": "二、学习目标",
+   "startLine": 21,
+   "endLine": 31,
+   "bodyChars": 222,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "matchedLabel": "负倒描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-局部线性化描述工作点附近的小扰动",
+   "order": 3,
+   "level": 2,
+   "title": "三、局部线性化描述工作点附近的小扰动",
+   "startLine": 32,
+   "endLine": 33,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 5,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-工作点决定线性近似的对象",
+   "order": 4,
+   "level": 3,
+   "title": "3.1 工作点决定线性近似的对象",
+   "startLine": 34,
+   "endLine": 61,
+   "bodyChars": 272,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 5,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-同一非线性关系在不同工作点得到不同线性模型",
+   "order": 5,
+   "level": 3,
+   "title": "3.2 同一非线性关系在不同工作点得到不同线性模型",
+   "startLine": 62,
+   "endLine": 89,
+   "bodyChars": 353,
+   "canonical": []
+  },
+  {
+   "headingId": "h6-动态系统的线性化看雅可比矩阵",
+   "order": 6,
+   "level": 3,
+   "title": "3.3 动态系统的线性化看雅可比矩阵",
+   "startLine": 90,
+   "endLine": 134,
+   "bodyChars": 878,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+     "matchedLabel": "平衡点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+     "matchedLabel": "非线性系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-相平面显示状态怎样运动",
+   "order": 7,
+   "level": 2,
+   "title": "四、相平面显示状态怎样运动",
+   "startLine": 135,
+   "endLine": 136,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-相平面把时间过程改写成状态轨迹",
+   "order": 8,
+   "level": 3,
+   "title": "4.1 相平面把时间过程改写成状态轨迹",
+   "startLine": 137,
+   "endLine": 152,
+   "bodyChars": 269,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-平衡点和轨迹形态是相平面阅读的核心",
+   "order": 9,
+   "level": 3,
+   "title": "4.2 平衡点和轨迹形态是相平面阅读的核心",
+   "startLine": 153,
+   "endLine": 181,
+   "bodyChars": 775,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+     "matchedLabel": "平衡点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 84,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+     "matchedLabel": "非线性系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-典型非线性环节的描述函数",
+   "order": 10,
+   "level": 2,
+   "title": "五、典型非线性环节的描述函数",
+   "startLine": 182,
+   "endLine": 183,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-描述函数保留正弦输出中的基波",
+   "order": 11,
+   "level": 3,
+   "title": "5.1 描述函数保留正弦输出中的基波",
+   "startLine": 184,
+   "endLine": 201,
+   "bodyChars": 351,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+     "matchedLabel": "描述函数法",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-饱和环节",
+   "order": 12,
+   "level": 3,
+   "title": "5.2 饱和环节",
+   "startLine": 202,
+   "endLine": 218,
+   "bodyChars": 290,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-死区环节",
+   "order": 13,
+   "level": 3,
+   "title": "5.3 死区环节",
+   "startLine": 219,
+   "endLine": 235,
+   "bodyChars": 332,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-理想继电环节",
+   "order": 14,
+   "level": 3,
+   "title": "5.4 理想继电环节",
+   "startLine": 236,
+   "endLine": 245,
+   "bodyChars": 115,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-死区继电环节",
+   "order": 15,
+   "level": 3,
+   "title": "5.5 死区继电环节",
+   "startLine": 246,
+   "endLine": 259,
+   "bodyChars": 228,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-滞环继电环节",
+   "order": 16,
+   "level": 3,
+   "title": "5.6 滞环继电环节",
+   "startLine": 260,
+   "endLine": 273,
+   "bodyChars": 229,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-间隙环节",
+   "order": 17,
+   "level": 3,
+   "title": "5.7 间隙环节",
+   "startLine": 274,
+   "endLine": 289,
+   "bodyChars": 362,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-死区饱和环节",
+   "order": 18,
+   "level": 3,
+   "title": "5.8 死区饱和环节",
+   "startLine": 290,
+   "endLine": 311,
+   "bodyChars": 599,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-负倒描述函数与自振判断",
+   "order": 19,
+   "level": 2,
+   "title": "六、负倒描述函数与自振判断",
+   "startLine": 312,
+   "endLine": 313,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "matchedLabel": "负倒描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-描述函数法适用的闭环结构",
+   "order": 20,
+   "level": 3,
+   "title": "6.1 描述函数法适用的闭环结构",
+   "startLine": 314,
+   "endLine": 329,
+   "bodyChars": 451,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+     "matchedLabel": "描述函数法",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-自振条件来自闭环特征方程",
+   "order": 21,
+   "level": 3,
+   "title": "6.2 自振条件来自闭环特征方程",
+   "startLine": 330,
+   "endLine": 347,
+   "bodyChars": 270,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "matchedLabel": "负倒描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 曲线",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-微小扰动法判断交点是否稳定",
+   "order": 22,
+   "level": 3,
+   "title": "6.3 微小扰动法判断交点是否稳定",
+   "startLine": 348,
+   "endLine": 359,
+   "bodyChars": 697,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "matchedLabel": "负倒描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-常见负倒描述函数曲线",
+   "order": 23,
+   "level": 3,
+   "title": "6.4 常见负倒描述函数曲线",
+   "startLine": 360,
+   "endLine": 379,
+   "bodyChars": 1439,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 112,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "matchedLabel": "负倒描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-描述函数法判断自振例题",
+   "order": 24,
+   "level": 2,
+   "title": "七、描述函数法判断自振例题",
+   "startLine": 380,
+   "endLine": 381,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+     "matchedLabel": "描述函数法",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-例题一-理想继电闭环的自振频率与振幅",
+   "order": 25,
+   "level": 3,
+   "title": "7.1 例题一：理想继电闭环的自振频率与振幅",
+   "startLine": 382,
+   "endLine": 431,
+   "bodyChars": 779,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-例题二-饱和环节中线性增益改变自振条件",
+   "order": 26,
+   "level": 3,
+   "title": "7.2 例题二：饱和环节中线性增益改变自振条件",
+   "startLine": 432,
+   "endLine": 490,
+   "bodyChars": 1012,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+     "matchedLabel": "描述函数法",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 曲线",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-船舶航向舵机饱和与死区案例",
+   "order": 27,
+   "level": 2,
+   "title": "八、船舶航向舵机饱和与死区案例",
+   "startLine": 491,
+   "endLine": 492,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-执行器结构决定非线性来源",
+   "order": 28,
+   "level": 3,
+   "title": "8.1 执行器结构决定非线性来源",
+   "startLine": 493,
+   "endLine": 500,
+   "bodyChars": 466,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h29-自振风险需要放在具体运行场景中判断",
+   "order": 29,
+   "level": 3,
+   "title": "8.2 自振风险需要放在具体运行场景中判断",
+   "startLine": 501,
+   "endLine": 532,
+   "bodyChars": 687,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h30-整改方案围绕曲线交点和执行器边界展开",
+   "order": 30,
+   "level": 3,
+   "title": "8.3 整改方案围绕曲线交点和执行器边界展开",
+   "startLine": 533,
+   "endLine": 548,
+   "bodyChars": 744,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+     "matchedLabel": "死区",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 56,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h31-边缘情况与近似风险",
+   "order": 31,
+   "level": 2,
+   "title": "九、边缘情况与近似风险",
+   "startLine": 549,
+   "endLine": 550,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h32-局部稳定不保证全局稳定",
+   "order": 32,
+   "level": 3,
+   "title": "9.1 局部稳定不保证全局稳定",
+   "startLine": 551,
+   "endLine": 554,
+   "bodyChars": 96,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+     "matchedLabel": "平衡点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h33-相平面难以直接推广到高维复杂系统",
+   "order": 33,
+   "level": 3,
+   "title": "9.2 相平面难以直接推广到高维复杂系统",
+   "startLine": 555,
+   "endLine": 558,
+   "bodyChars": 79,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-ef0228881c8874509244b517",
+     "matchedLabel": "状态方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h34-描述函数依赖基波近似",
+   "order": 34,
+   "level": 3,
+   "title": "9.3 描述函数依赖基波近似",
+   "startLine": 559,
+   "endLine": 562,
+   "bodyChars": 91,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h35-分层练习",
+   "order": 35,
+   "level": 2,
+   "title": "十、分层练习",
+   "startLine": 563,
+   "endLine": 564,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h36-练习-1-复述型",
+   "order": 36,
+   "level": 3,
+   "title": "练习 1：复述型",
+   "startLine": 565,
+   "endLine": 568,
+   "bodyChars": 66,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+     "matchedLabel": "局部线性化",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 5,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h37-练习-2-公式识别型",
+   "order": 37,
+   "level": 3,
+   "title": "练习 2：公式识别型",
+   "startLine": 569,
+   "endLine": 572,
+   "bodyChars": 87,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+     "matchedLabel": "负倒描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h38-练习-3-自振判断型",
+   "order": 38,
+   "level": 3,
+   "title": "练习 3：自振判断型",
+   "startLine": 573,
+   "endLine": 576,
+   "bodyChars": 123,
+   "canonical": []
+  },
+  {
+   "headingId": "h39-练习-4-迁移型",
+   "order": 39,
+   "level": 3,
+   "title": "练习 4：迁移型",
+   "startLine": 577,
+   "endLine": 580,
+   "bodyChars": 104,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-1d8759ac1188e2de38f75ed3",
+     "matchedLabel": "状态轨迹",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h40-小结与扩展思考",
+   "order": 40,
+   "level": 2,
+   "title": "十一、小结与扩展思考",
+   "startLine": 581,
+   "endLine": 587,
+   "bodyChars": 340,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+     "matchedLabel": "描述函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+     "matchedLabel": "非线性系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+     "matchedLabel": "线性化",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+     "matchedLabel": "相平面",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+     "matchedLabel": "描述函数法",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "5-2-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/5-2/media/5-2-audio.m4a",
+   "sha256": "aaf656e41fd2fe705b22a26f3ab666c66dc4a30b6b297dd4a56b510fc515c7c2",
+   "durationSeconds": 1551.743129,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/5-2.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 2,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.6,
+     "textPreview": "你知道吗平时大家在学那个自动控制原理的时候面对线性系统总有一种就是尽在掌握的安全",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.6,
+     "endSeconds": 51.04,
+     "textPreview": "递函数一写系统的极点和零点一算这系统到底稳不稳定一切都在预料之中对人类的大脑其实",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 2,
+     "startSeconds": 51.04,
+     "endSeconds": 76.12,
+     "textPreview": "断环境瞬间就变泥泞了简直是极其模糊不仅以前的规律全变了原本好用的工具什么平第仿不",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 76.12,
+     "endSeconds": 101.16,
+     "textPreview": "都要塌了所以为了拯救正在死磕期末复习的孔雀们欢迎来到闲聊自控我是那个陪大家熬夜复",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 101.16,
+     "endSeconds": 126.56,
+     "textPreview": "骨头了对大家在学自控原理时一遇到非线性系统比如那个什么带有饱和呀死区呀或者是机电",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 126.56,
+     "endSeconds": 151.68,
+     "textPreview": "线性分析工具的硬核资料划重点了啊大家重点我们要拆解三个关键战术第一个试图划区为直",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.92,
+     "endSeconds": 177.0,
+     "textPreview": "听起来这战斗力直接拉满了啊那咱们废话不多说直接聊聊最符合人类直觉的第一招就是那个",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 177.0,
+     "endSeconds": 202.04,
+     "textPreview": "一个特定的呃所谓工作点复经强行给他画一条切线没错就是找切线然后咱们就在心里告诉自",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 202.04,
+     "endSeconds": 227.2,
+     "textPreview": "学上啊其实就是把高阶的非线性项给无情的砍掉了一把梭全当没看见对具体来说如果我们有",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 227.2,
+     "endSeconds": 252.4,
+     "textPreview": "面啊咱们直接套用资料里的那个例子双取正切函数就是tx同学们想象一下这个函数画在坐",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.4,
+     "endSeconds": 279.08,
+     "textPreview": "好就是坐标轴的原点也就是X零等于零的地方对在这个点上函数值是零而且此时曲线是最陡",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 279.08,
+     "endSeconds": 304.2,
+     "textPreview": "常完美输出的变动量几乎就等于输入的变动量DeltaY约等于DeltaX完全正确这",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 304.36,
+     "endSeconds": 330.08,
+     "textPreview": "诶那整个画风就彻底变了怎么说在横坐标等于一的地方这根S型曲线已经开始变平缓了它准",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.08,
+     "endSeconds": 355.36,
+     "textPreview": "不到一而且它的斜率也大幅度下降算出来大约只有0420哇这斜率掉了一半多啊对所以你",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.84,
+     "endSeconds": 385.0,
+     "textPreview": "呃一个极度近视的人在走夜路近视眼抖夜路对只要他低着头死死盯着脚边的半米远的距离任",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.36,
+     "textPreview": "它就是直的但是我有个深层的质疑啊这种近视眼走法它肯定有致命的弱点吧万一系统受到了",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.76,
+     "endSeconds": 440.16,
+     "textPreview": "这个函数已经表现出了极强的非线性曲线几乎变成了水平的平顶也就是saturatio",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.32,
+     "endSeconds": 465.44,
+     "textPreview": "你输出还会无限增长但其实真实系统早就卡死在那里了这时候局部线性化就彻底崩溃了明白",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.44,
+     "endSeconds": 495.0,
+     "textPreview": "性环节比如一个开关继电器非黑即白或者一个死区根本没有任何过度对面对这种直上直下的",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.04,
+     "textPreview": "还怎么去禁近视眼直接掉选牙里了哈哈这是一个非常核心的工程困境面对这种硬非线性食欲",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+       "matchedLabel": "频率特性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.04,
+     "endSeconds": 550.16,
+     "textPreview": "波的响应那可是线性系统的绝对专利啊没错教科书上是这么写的非线性系统他不是会把一个",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.16,
+     "endSeconds": 575.52,
+     "textPreview": "八糟的形重吗怎么也能玩频域这一套这就是控制学前辈们智慧的闪光点了他们发现非线性系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.52,
+     "endSeconds": 605.4,
+     "textPreview": "后能真正留下来并且在系统里起作用的主要",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.4,
+     "endSeconds": 630.48,
+     "textPreview": "还是那个频率最低的奇波完全正确我们等于是给自己带上了一副滤镜假装没看见那些高次谐",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 630.6,
+     "endSeconds": 660.0,
+     "textPreview": "咱们正弦输入的比值让我用大白话给同学们翻译一下哈我觉得就就好像呃咱们现在用的那种",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.0,
+     "endSeconds": 686.08,
+     "textPreview": "字门的大小也就是输入的振幅A在随时动态变化的拿智能音响来解释等效增益再合适不过了",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 686.16,
+     "endSeconds": 711.44,
+     "textPreview": "线性世界里这个增益成了一个随着输入振幅大小动态伸缩的魔法增益资料里给出了几个硬核",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 711.92,
+     "endSeconds": 739.08,
+     "textPreview": "是啊首先是最典型的理想计电器它的特点是不管你输入信号多大多少只要一触发输出永远是",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 739.08,
+     "endSeconds": 764.6,
+     "textPreview": "A小于某一个特定的死区宽度",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.0,
+     "endSeconds": 796.4,
+     "textPreview": "德时描述函的值直接等于零这个极其好动就叫好比呃一个睡得特别死的人你的推力如果没有",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 796.4,
+     "endSeconds": 821.52,
+     "textPreview": "推理大于死去宽度突破了阈值这人终于醒过来了系统才开始产生有效的增益那么再来看一个",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 821.52,
+     "endSeconds": 846.76,
+     "textPreview": "项头疼的来了就是那个带着虚数符号J的部分负的J乘以分子是4MH分母是派乘以a的平",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 847.0,
+     "endSeconds": 872.1,
+     "textPreview": "向量被拉偏了整数这说明制环给系统带来了相位差切中要害这个虚数项在物理意义上就代表",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 872.22,
+     "endSeconds": 935.0,
+     "textPreview": "相位玉度给偷走了就是这样它在不知不觉中让系统变得迟钝且容易反应过度听得我都起鸡皮",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+       "matchedLabel": "闭环系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 935.0,
+     "endSeconds": 966.48,
+     "textPreview": "加上线性部分即接欧再乘以非线性部分的描述函数na等于零一加G乘N等于零对稍微一个",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 975.82,
+     "endSeconds": 1000.88,
+     "textPreview": "意了这条新可限不再跟频率有关它是随着输入振幅A的变化而画出来的一条轨迹等啊你先等",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 1001.0,
+     "endSeconds": 1045.0,
+     "textPreview": "截然不同的力量达成了一种神奇的动态平衡而这个交点就是咱们控",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 1045.0,
+     "endSeconds": 1100.0,
+     "textPreview": "制工程里经常出没的幽灵极限环是的极限环在这个状态下系统既不会老老实实的收敛到静止",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 36,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 38,
+     "startSeconds": 1100.0,
+     "endSeconds": 1130.08,
+     "textPreview": "是不稳定的一碰就彻底发散爆炸了这个问题直指这部分知识的最核心同学们其实不需要去死",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1135.2,
+     "endSeconds": 1164.78,
+     "textPreview": "定区域那么这就",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1169.28,
+     "endSeconds": 1195.48,
+     "textPreview": "是一个稳定的极限环哇为什么呢大家可以联想一下物理画面啊假设系统现在正舒服地待在这",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 1195.48,
+     "endSeconds": 1220.97,
+     "textPreview": "会被系统自己慢慢给吸收憋回去最后乖乖缩回到原来的焦点这就叫极其强大的自我纠偏能力",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 1221.36,
+     "endSeconds": 1265.0,
+     "textPreview": "不仅不吸收能量反而落入了发散的深渊越震越大拉都拉不回来这就是极其危险的工程上绝对",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 43,
+     "startSeconds": 1265.05,
+     "endSeconds": 1290.52,
+     "textPreview": "我们作为一个比较激进的工程师把控制器的放大系数K直接拧到了十油门踩到底经过数学计",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 1290.52,
+     "endSeconds": 1315.88,
+     "textPreview": "分的响应值算出来大约是负的一点六六七既然有焦点这个复的一点六六七它就必须等于非线",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 1316.28,
+     "endSeconds": 1341.6,
+     "textPreview": "向稳定区也就是说这个系统不仅会震到而且会死死锁定在一个稳定的极限环上没错换句话说",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 46,
+     "startSeconds": 1341.6,
+     "endSeconds": 1367.84,
+     "textPreview": "长可不需问电极蹦迪啊如果我们想让它彻底安静下来不产生震荡呢我们可以把k的值降下来",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 1367.84,
+     "endSeconds": 1392.84,
+     "textPreview": "映在图像上整个线性部分的曲线向原点大幅度收缩这时候在同样的根号五频率下它所能达到",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+       "matchedLabel": "平衡点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 48,
+     "startSeconds": 1430.0,
+     "endSeconds": 1455.2,
+     "textPreview": "局部限行化发现他一遇到硬拐角就失效后我们又极其聪明地跨入平域用振幅去替代频率体练",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 49,
+     "startSeconds": 1455.2,
+     "endSeconds": 1483.44,
+     "textPreview": "过寻找那个唯一的焦点成功捕捉并化解了极限环这真的是一套充满智慧的工程思维控制学的",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 50,
+     "startSeconds": 1483.44,
+     "endSeconds": 1509.64,
+     "textPreview": "动化工程师们留下一个略带挑战性的开放思考哦这是要给大家留课后悬念了大家想一下今天",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 51,
+     "startSeconds": 1509.64,
+     "endSeconds": 1535.0,
+     "textPreview": "果在未来的工程一线你们遇到一个非线性极其剧烈或者系统惯性极小高次斜坡大到根本无法",
+     "canonical": []
+    },
+    {
+     "index": 52,
+     "startSeconds": 1535.26,
+     "endSeconds": 1551.74,
+     "textPreview": "更加汹涌你们又该去寻找什么样的全新理论来拯救即将失控的系统呢wow这个问题简直是",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "aaf656e41fd2fe705b22a26f3ab666c66dc4a30b6b297dd4a56b510fc515c7c2",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-2-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/5-2/media/5-2-intro-video.mp4",
+   "sha256": "6ce1c907e1d8fc245e98e72871ab5a91cfe34d6a31c201579d308d6075850e5a",
+   "durationSeconds": 279.253333,
+   "transcriptSource": "videos-project:lesson-5-2/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 257.2,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 279.2,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 61,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 20.69,
+     "textPreview": "大家好，欢迎来到闲聊自控。系统出了异常，常常不是简单的稳或不稳。小角度修正时，回",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 20.69,
+     "endSeconds": 31.19,
+     "textPreview": "大角度指令一来，执行器就碰到饱和。稳态附近有点误差，却长期消不掉。有时输出不再收",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.19,
+     "endSeconds": 41.86,
+     "textPreview": "只用一条传递函数，解释不了这些边界。今天先选三把最小观察工具。三把工具看的对象并",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 41.86,
+     "endSeconds": 50.02,
+     "textPreview": "局部线性化：看某个工作点附近的小扰动。相平面：看二阶系统状态怎样绕着平衡点走。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+       "matchedLabel": "相平面",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+       "matchedLabel": "平衡点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 50.02,
+     "endSeconds": 58.28,
+     "textPreview": "描述函数：看正弦基波下的幅值相关增益。第一把回答：小扰动还能不能用线性主干。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 58.28,
+     "endSeconds": 69.0,
+     "textPreview": "第二把回答：轨迹会不会被吸引、会不会转圈。第三把回答：频域里有没有自振候选交点。",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 71.0,
+     "endSeconds": 79.72,
+     "textPreview": "局部线性化从一个平衡工作点开始。非线性关系 y 等于 f(x)，在 x 零附近展",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 79.72,
+     "endSeconds": 93.2,
+     "textPreview": "增量变量把问题改写成小信号增益。这个斜率只属于工作点附近，不是全局比例。同一条 ",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 93.2,
+     "endSeconds": 101.49,
+     "textPreview": "扰动一旦变大，碰到饱和，直线就会高估变化。适用条件：工作点附近可导，幅值还没触边",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 101.49,
+     "endSeconds": 111.31,
+     "textPreview": "路径相关的继电、滞回，不能直接当传递函数。时间曲线只显示一个变量怎么随时间变。",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 111.31,
+     "endSeconds": 121.41,
+     "textPreview": "相平面把位置和速度画在同一张图上。每一点都是一个状态，箭头给出下一步方向。先找平",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+       "matchedLabel": "相平面",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+       "matchedLabel": "平衡点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 121.83,
+     "endSeconds": 131.67,
+     "textPreview": "焦点螺旋进出，中心成闭合圈，鞍点有进有出。不同初值可能被吸到同一条闭合轨道。",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 131.67,
+     "endSeconds": 141.5,
+     "textPreview": "那就是周期行为，局部线性化不容易看见。相平面对二阶最有效，高维需要降阶再读。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+       "matchedLabel": "相平面",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 143.5,
+     "endSeconds": 155.25,
+     "textPreview": "描述函数先假定输入是正弦。非线性输出里有基波，也有高次谐波。它只保留基波，把环节",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 155.25,
+     "endSeconds": 166.37,
+     "textPreview": "无记忆奇对称时，这个增益常常是实数。有滞环或间隙时，它会带相位。近似成立，还要求",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 166.37,
+     "endSeconds": 179.34,
+     "textPreview": "饱和一削平，等效增益随振幅下降。死区会屏蔽小信号，幅值不够就没有基波。把非线性环",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 179.34,
+     "endSeconds": 188.67,
+     "textPreview": "闭环特征条件写成一加 G 乘 N 等于零。等价地，G 的奈奎斯特曲线等于负倒描述",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-e90594bf67aa0149a800d9db",
+       "matchedLabel": "负倒描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "奈奎斯特曲线",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 6,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 188.67,
+     "endSeconds": 197.31,
+     "textPreview": "两条曲线的交点，给出候选频率和振幅。交点只说明存在周期运动条件，不是最终结论。",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 197.31,
+     "endSeconds": 205.32,
+     "textPreview": "还要看扰动后振幅是被推回，还是被推开。增益变大，曲线更容易相交，自振风险上升。",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 205.32,
+     "endSeconds": 214.65,
+     "textPreview": "整改方向是让线性曲线躲开危险交点。把这套语言放到船舶航向舵机上看。",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 214.65,
+     "endSeconds": 225.78,
+     "textPreview": "放大器或阀电压有限幅，大指令会被削平。阀芯搭接和摩擦，又会形成死区。高增益加上死",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 226.2,
+     "endSeconds": 235.56,
+     "textPreview": "一旦出现稳定交点，舵角和航向就会自振。处理时不要只拧控制器，也要查执行器边界。",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 235.56,
+     "endSeconds": 244.13,
+     "textPreview": "降低增益、抗饱和、补偿死区，都是线索。工具给出方向，仿真和试验还要回来核对。",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 246.13,
+     "endSeconds": 257.48,
+     "textPreview": "三把工具，一起构成非线性的最小入口。线性化看工作点，相平面看轨迹，描述函数看自振",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+       "matchedLabel": "相平面",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 257.48,
+     "endSeconds": 265.19,
+     "textPreview": "选对观察工具，才能看清线性主干的边界。复杂自主系统里，这些边界会嵌进更长的链路。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "6ce1c907e1d8fc245e98e72871ab5a91cfe34d6a31c201579d308d6075850e5a",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-2-course",
+   "kind": "video",
+   "runtimePath": "lessons/5-2/media/5-2-course.mp4",
+   "sha256": "91f1fd3646640a210cc0e159bd4b64aebdad4fc20311b69fb19f8e127f0241bd",
+   "durationSeconds": 523.308118,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/5-2.json",
+   "transcriptSourceSha256": "91f1fd3646640a210cc0e159bd4b64aebdad4fc20311b69fb19f8e127f0241bd",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 13.68,
+     "textPreview": "各位同学，大家好，欢迎来到本期解读。说真的，你们有没有过这种经历？深夜熬在自习室",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 13.68,
+     "endSeconds": 28.4,
+     "textPreview": "如果有，那你今天绝对来对地方了。这期解读啊，简直就是为你们量身定制。的生存指南，",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 28.4,
+     "endSeconds": 43.45,
+     "textPreview": "看到自动化学院这几个字了吧？首先必须向自动化相关专业的同学们质疑最深切的同情和敬",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 43.45,
+     "endSeconds": 55.05,
+     "textPreview": "教材上那些密密麻麻的推导，看着都让人滑欲人生，对吧？但是别怕，今天咱们就把这些枯",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 55.05,
+     "endSeconds": 68.09,
+     "textPreview": "咱们面对现实吧，大家是不是早就厌倦了在做题的时候闭着眼睛？假装现实世界里的每条曲",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 68.09,
+     "endSeconds": 79.45,
+     "textPreview": "但老实说，真正的现实生活哪儿有这么听话？现实是一条充满坎坷的曲线，它有死区，有齿",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 79.45,
+     "endSeconds": 92.25,
+     "textPreview": "一句话，现实它从来就不走直线。为了打赢非线性系统这场硬仗。咱们今天的路线图非常明",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 92.25,
+     "endSeconds": 104.09,
+     "textPreview": "接着我们会依次解锁三大通关工具：局部线性化、相平面法还有描述函数法。最后呢，咱们",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+       "matchedLabel": "描述函数法",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+       "matchedLabel": "相平面法",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 104.09,
+     "endSeconds": 112.85,
+     "textPreview": "好了，第一部分：认识非线性世界。现实总是骨感的，准备好迎接我们的第一场BOSS战",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 112.85,
+     "endSeconds": 123.67,
+     "textPreview": "在非线性世界里，系统的响应早就跟数用不成正比了。你们熟悉的叠加原理也彻底罢工。以",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+       "matchedLabel": "叠加原理",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 123.67,
+     "endSeconds": 134.87,
+     "textPreview": "面对这种局面，我们需要建立一个全新的认知框架。应对非线性边界，咱们手里有三大视觉",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 134.87,
+     "endSeconds": 144.63,
+     "textPreview": "第二是直接俯瞰系统运动归入的向平面图；第三是利用平去寻找焦点的描述函数法，这就是",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+       "matchedLabel": "描述函数法",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 144.63,
+     "endSeconds": 153.35,
+     "textPreview": "接下来进入第二部分，也就是我们的工具一，局部线性化。这招啊，就像是一个简单粗暴的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 153.35,
+     "endSeconds": 166.08,
+     "textPreview": "这个外挂到底是怎么玩的呢？你想象一下，自己在手机上不断放大一张弯弯曲曲的折线图，",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 166.08,
+     "endSeconds": 178.08,
+     "textPreview": "这其实就是局部线性化的核心精髓。只要选定一个特定的工作点，也就是公式里的X零，咱",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 178.08,
+     "endSeconds": 187.44,
+     "textPreview": "不过这招虽然爽，但风险也不小。如果你的系统运行状态一不小心偏离了这个工作点，太软",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 187.44,
+     "endSeconds": 200.24,
+     "textPreview": "等着你的就是计算误差的深渊。想要实操这个方法，一共分三步。我知道一听到牙可比矩阵",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 200.24,
+     "endSeconds": 212.45,
+     "textPreview": "但其实你想想，这根本没什么可怕的。第一步，找到系统的平衡点；第二步，对着变量求个",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+       "matchedLabel": "平衡点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 212.45,
+     "endSeconds": 221.33,
+     "textPreview": "你看，原本吓人的多维空间微积分，拨开外衣其实也就是个按部就班的体力活儿，完全不需",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 221.33,
+     "endSeconds": 234.48,
+     "textPreview": "搞定了，微观咱们来看宏观。第三部分工具二：向平面法，带你开启上帝视角。刚才说了，",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-57fe9fb7d5fdd731b82b9408",
+       "matchedLabel": "局部线性化",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 5,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 234.48,
+     "endSeconds": 248.08,
+     "textPreview": "那怎么办？相平面法这时候就闪亮登场了，它就像是给系统装了个全景雷达。咱们不再死盯",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+       "matchedLabel": "相平面法",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+       "matchedLabel": "相平面",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 248.08,
+     "endSeconds": 262.29,
+     "textPreview": "以经典的范德波尔阵子为例，无论系统的起始点在哪里，哪怕它们从极其夸张的大位移出发",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 262.29,
+     "endSeconds": 272.69,
+     "textPreview": "简直就像是控制系统里的黑洞一样。刚才提到的这个现象极其关键，因为在你们熟悉的纯线",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 272.69,
+     "endSeconds": 281.89,
+     "textPreview": "这可是非线性系统独门绝技——极限环。在线性世界里，系统要么老老实实收敛回原点，要",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+       "matchedLabel": "非线性系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 281.89,
+     "endSeconds": 292.89,
+     "textPreview": "但是极限环不一样，它是一种稳定的、持续不断的周期性震荡，可以说这才是非线性控制真",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 292.89,
+     "endSeconds": 303.99,
+     "textPreview": "好了，接着看第四部分工具三描述函数法，我们要开始施展频域魔法了。如果系统维度太高",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+       "matchedLabel": "描述函数法",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 303.99,
+     "endSeconds": 319.99,
+     "textPreview": "咱们总不能去硬刚高阶时域微积分吧。这时候就需要用到描述函数法了，它就像是一座桥梁",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+       "matchedLabel": "描述函数法",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 319.99,
+     "endSeconds": 328.95,
+     "textPreview": "看看现实世界里常见的这些非线性环节，从死区到祭奠，它们的外表看起来就像是存心想让",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 328.95,
+     "endSeconds": 343.84,
+     "textPreview": "但别被吓退了，有了妙数函数，驯服它们只是时间问题。我们来快速扫除一下这些纸老火，",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 343.84,
+     "endSeconds": 353.44,
+     "textPreview": "饱和就像是给系统加了些限速器，你的振幅越大，它给的增益反而越小。死区呢，简直就是",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 353.44,
+     "endSeconds": 368.88,
+     "textPreview": "继电器就是个典型的暴脾气，非黑即白，瞬间满血输出。而制环最有意思，它自带一种记忆",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 368.88,
+     "endSeconds": 385.3,
+     "textPreview": "终于到了第五部分，迫切系统稳定性，这是检验你全部实力的终极boss战。把线性和非",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 385.3,
+     "endSeconds": 397.54,
+     "textPreview": "GJOmega等于负一除以NA。大家注意看，等式左边是我们无比亲切的线性系统频率",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+       "matchedLabel": "频率特性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 397.54,
+     "endSeconds": 412.37,
+     "textPreview": "当这两个原本水火不容的世界在复平面上产生了交点，注意了，那个交点就是决定系统命运",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 412.37,
+     "endSeconds": 422.69,
+     "textPreview": "想要像拆解定时炸弹一样精准猎杀这个焦点吗？记住这四步法：首先，老老实实写出闭环特",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 422.69,
+     "endSeconds": 431.33,
+     "textPreview": "然后，巧妙移项，让线性和非线性部分各占等式一边；接着，在图纸上找出它们的交汇点；",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 431.33,
+     "endSeconds": 440.07,
+     "textPreview": "最后，从这个焦点身上提取出对应的参数，这就直接决定了系统振动的确切振幅A和频率O",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 440.07,
+     "endSeconds": 456.23,
+     "textPreview": "光说不练假把式。咱们来看原材料里的一个硬核实战案例，假设有个特定的系统，正好包含",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 456.23,
+     "endSeconds": 464.71,
+     "textPreview": "这个系统不仅绝对会发生震荡，而且它的震荡振幅A算出刚好等于0796。看到了吧，这",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 464.71,
+     "endSeconds": 474.17,
+     "textPreview": "这证明了我们今天装配的这套生存工具包。是绝对管用，刀刀见血的。你完全有能力去预测",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 474.17,
+     "endSeconds": 485.93,
+     "textPreview": "各位同学，今天我们从局部线性化的微观视角一路杀到了描述函数法的宏观平域预测，总算",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+       "matchedLabel": "描述函数法",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+       "matchedLabel": "描述函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+       "matchedLabel": "线性化",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 485.93,
+     "endSeconds": 495.27,
+     "textPreview": "但在接触之前，我想给大家留一个稍微有点扎心的思考题：如果系统的极限环就像是生活里",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+       "matchedLabel": "极限环",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 495.27,
+     "endSeconds": 505.11,
+     "textPreview": "那么反观你自己的大学生活，你每天的日常学习习惯到底是一个能够自我修正，跌倒了也能",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 505.11,
+     "endSeconds": 518.15,
+     "textPreview": "还是说只要稍微来点手机弹窗的扰动，你的期末复习进度已经像一个发散系统一样彻底失控",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+       "matchedLabel": "平衡点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 44,
+     "startSeconds": 518.15,
+     "endSeconds": 523.31,
+     "textPreview": "感谢收看本期解读，咱们下期再见。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "91f1fd3646640a210cc0e159bd4b64aebdad4fc20311b69fb19f8e127f0241bd",
+   "status": "anchored"
+  }
+ ]
+}

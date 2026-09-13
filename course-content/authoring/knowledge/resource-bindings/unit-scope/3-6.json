@@ -1,0 +1,105 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "3-6",
+ "canonicalIds": [
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+  "ctc:v11g-5322cdb3c781cb7b9828732a",
+  "ctc:v11g-5845390ded447e37f06ea222",
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+  "ctc:v11g-e85c0145d63244c46853c9cf",
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+  "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+  "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+  "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+  "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+  "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+  "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+  "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+  "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+  "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+  "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+  "ctkg:v3e-object-2805a69722f0a741c2479d22",
+  "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3"
+ ],
+ "sources": {
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6": [
+   "topic:settling-time"
+  ],
+  "ctc:v11g-5322cdb3c781cb7b9828732a": [
+   "topic:nonminimum-phase"
+  ],
+  "ctc:v11g-5845390ded447e37f06ea222": [
+   "topic:root-locus"
+  ],
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02": [
+   "topic:damping"
+  ],
+  "ctc:v11g-e85c0145d63244c46853c9cf": [
+   "topic:lead"
+  ],
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": [
+   "topic:phase-margin"
+  ],
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33": [
+   "topic:bandwidth"
+  ],
+  "ctkg:v3e-canonical-15b23d588244f407f6ed4b35": [
+   "topic:natural-frequency"
+  ],
+  "ctkg:v3e-canonical-1647a1b078950a5b81783825": [
+   "topic:velocity-feedback"
+  ],
+  "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b": [
+   "topic:velocity-feedback"
+  ],
+  "ctkg:v3e-canonical-4ce9b77cff23117a65f42588": [
+   "topic:zero-second-order"
+  ],
+  "ctkg:v3e-canonical-9988510f6127d3086f4aa265": [
+   "topic:peak-time"
+  ],
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609": [
+   "topic:settling-time"
+  ],
+  "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a": [
+   "topic:peak-time"
+  ],
+  "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67": [
+   "topic:rise-time"
+  ],
+  "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa": [
+   "topic:peak-time"
+  ],
+  "ctkg:v3e-canonical-df3167f36376f526f6ec5562": [
+   "topic:overshoot"
+  ],
+  "ctkg:v3e-canonical-eaee7091900b796af8d937c1": [
+   "topic:overshoot"
+  ],
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837": [
+   "reuse_node_ids:相角裕度_5_5a74b451",
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b": [
+   "topic:lead"
+  ],
+  "ctkg:v3e-object-2805a69722f0a741c2479d22": [
+   "topic:pd"
+  ],
+  "ctkg:v3e-object-3bf89181c7be53ac268d5785": [
+   "reuse_node_ids:带宽_5_6730fda4"
+  ],
+  "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8": [
+   "topic:feedback-compensation"
+  ],
+  "ctkg:v3e-object-b51bc504a48917b2c5ec25c3": [
+   "topic:feedback-compensation"
+  ]
+ }
+}

@@ -4,6 +4,7 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { buildPublishedResourceHref, parsePublishedResourceHref, PUBLISHED_RESOURCE_LABELS } from '@/lib/published-resource-reference';
 import { resolvePublishedResourceFeature } from '@/lib/published-resource-index';
 import { resolveBindingViewerContentForType } from '@/lib/authority-domain-shards/binding-viewer-content';
+import { launchRowsForResource } from '@/lib/resource-binding-release/query';
 import { PublishedResourcePage, type PublishedResourcePageData } from '@/features/knowledge/published-resource-page';
 
 export const dynamic = 'force-dynamic';
@@ -41,6 +42,15 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
     limitation: current ? resource.limitation : '该引用来自已保留版本，当前内容已更新。请返回路径重新选择，避免读取不同版本。',
     kind: current ? resource.backend.kind : 'reference-only',
     referenceHref: current ? buildPublishedResourceHref(versionedIdentity) : undefined,
+    appearance: resource.appearance ?? null,
+    anchors: launchRowsForResource(
+      resource.identity.resourceId,
+      current && resource.backend.kind === 'route' ? resource.backend.href : null,
+    ).flatMap((row) => row.anchorLabel ? [{
+      label: row.anchorLabel,
+      appearance: row.appearance,
+      href: row.href,
+    }] : []),
   };
   if (current && resource.backend.kind === 'card') {
     const card = resolveBindingViewerContentForType(resource.identity.resourceId, resource.type, resource.sourcePath);

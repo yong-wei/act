@@ -1,0 +1,72 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "5-1",
+ "canonicalIds": [
+  "ctc:modeling-34de45f2470f6c09c7d96698",
+  "ctc:modeling-70629af71e754aac8b740638",
+  "ctc:modeling-c26fddc50074ec84707d5950",
+  "ctc:modeling-c64dfb875b6343ff32d0acb2",
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+  "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+  "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+  "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+  "ctkg:v3e-object-69aaaef625010f7755f253e8",
+  "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+  "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+  "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+  "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+  "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+  "ctkg:v3e-object-eacdf5b7407bac89d24540ed"
+ ],
+ "sources": {
+  "ctc:modeling-34de45f2470f6c09c7d96698": [
+   "topic:linearization"
+  ],
+  "ctc:modeling-70629af71e754aac8b740638": [
+   "topic:linearization"
+  ],
+  "ctc:modeling-c26fddc50074ec84707d5950": [
+   "topic:lti"
+  ],
+  "ctc:modeling-c64dfb875b6343ff32d0acb2": [
+   "topic:friction"
+  ],
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117": [
+   "topic:uncertainty"
+  ],
+  "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3": [
+   "topic:hysteresis"
+  ],
+  "ctkg:v3e-object-1107a657eb90b8264d4dac38": [
+   "topic:nonlinear"
+  ],
+  "ctkg:v3e-object-2c2f917a06c974fda55b52fd": [
+   "topic:quantization"
+  ],
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68": [
+   "topic:saturation"
+  ],
+  "ctkg:v3e-object-69aaaef625010f7755f253e8": [
+   "topic:dead-zone"
+  ],
+  "ctkg:v3e-object-a24b53236c203ab7f9d5f504": [
+   "topic:equilibrium"
+  ],
+  "ctkg:v3e-object-aa79b6fedda690cfd68855aa": [
+   "topic:relay"
+  ],
+  "ctkg:v3e-object-b0896b071da350e2cc6ca186": [
+   "topic:backlash"
+  ],
+  "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a": [
+   "topic:quantization"
+  ],
+  "ctkg:v3e-object-d537d542fc83f3d91e2f6d72": [
+   "topic:friction"
+  ],
+  "ctkg:v3e-object-eacdf5b7407bac89d24540ed": [
+   "topic:quantization"
+  ]
+ }
+}

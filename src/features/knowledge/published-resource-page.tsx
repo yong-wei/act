@@ -25,6 +25,8 @@ export interface PublishedResourcePageData {
   media?: { mediaType: 'video' | 'audio'; src: string; assetPath: string };
   card?: { summary: string; insight: string | null; explanation: string };
   children?: Array<{ title: string; href: string }>;
+  appearance?: 'first' | 'revisit' | 'reference' | null;
+  anchors?: Array<{ label: string; appearance: string; href: string | null }>;
 }
 
 export function PublishedResourcePage({ resource }: { resource: PublishedResourcePageData }) {
@@ -100,7 +102,26 @@ export function PublishedResourcePage({ resource }: { resource: PublishedResourc
           <span className="rounded-md bg-platform-action-subtle px-2 py-1 text-platform-action-primary">{resource.kindLabel}</span>
           {resource.knowledgeCount > 0 && <span>关联 {resource.knowledgeCount} 个知识点</span>}
           {resource.estimatedMinutes !== null && <span>参考用时约 {resource.estimatedMinutes} 分钟</span>}
+          {resource.appearance === 'first' ? <span data-published-resource-appearance="first">首次出现</span> : null}
+          {resource.appearance === 'revisit' ? <span data-published-resource-appearance="revisit">复现</span> : null}
         </div>
+        {resource.anchors && resource.anchors.length > 0 ? (
+          <ul className="flex flex-wrap gap-2 text-xs" data-published-resource-anchors>
+            {resource.anchors.map((anchor) => (
+              <li key={`${anchor.label}-${anchor.appearance}-${anchor.href ?? 'none'}`}>
+                {anchor.href ? (
+                  <Link href={anchor.href} className="rounded-md border border-platform-border bg-platform-surface px-2 py-1">
+                    {anchor.label} · {anchor.appearance === 'first' ? '首次' : anchor.appearance === 'revisit' ? '复现' : '参考'}
+                  </Link>
+                ) : (
+                  <span className="rounded-md border border-platform-border bg-platform-surface px-2 py-1">
+                    {anchor.label} · {anchor.appearance === 'first' ? '首次' : anchor.appearance === 'revisit' ? '复现' : '参考'}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {resource.limitation && <p className="rounded-lg border border-platform-border bg-platform-canvas-muted p-4 text-sm text-platform-fg-secondary" role="status">{resource.limitation}</p>}
         {resource.kind === 'card' && resource.card ? (
           <KnowledgeCard name={resource.title} description={resource.card.summary} nodeType="KnowledgeStatement"

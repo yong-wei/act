@@ -1,0 +1,1988 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-6",
+ "unitIndex": 14,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-6/3-6-handout.md",
+  "sha256": "40e0d190acb42b325350a50f003faa7486f31602ac64ece0aaf89ca7b50809f6"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "封面导入：目标必须先于工具",
+   "groupName": "从 3-5 机理切到目标翻译",
+   "textChars": 241,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "回到地图：从 3-5 的机理走向 3-6 的设计",
+   "groupName": "从 3-5 机理切到目标翻译",
+   "textChars": 176,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "五任务设计链与提交物总览",
+   "groupName": "从 3-5 机理切到目标翻译",
+   "textChars": 168,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+     "matchedLabel": "频域设计",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "前测：三类目标分别从哪里进入",
+   "groupName": "从 3-5 机理切到目标翻译",
+   "textChars": 259,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "任务书：统一对象、三类装置与五任务入口",
+   "groupName": "从 3-5 机理切到目标翻译",
+   "textChars": 175,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "时域指标如何变成设计可行域",
+   "groupName": "从 3-5 机理切到目标翻译",
+   "textChars": 197,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "任务 A：PD 时域设计",
+   "groupName": "任务 A / B：时域目标驱动设计",
+   "textChars": 191,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "任务 B 的证据板：测速反馈为何不是“换位置的 PD”",
+   "groupName": "任务 A / B：时域目标驱动设计",
+   "textChars": 127,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "任务 B：测速反馈时域设计",
+   "groupName": "任务 A / B：时域目标驱动设计",
+   "textChars": 276,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "推导显影 B：频域目标如何进入超前设计",
+   "groupName": "任务 C / D：频域目标驱动设计",
+   "textChars": 108,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "任务 C：超前频域设计",
+   "groupName": "任务 C / D：频域目标驱动设计",
+   "textChars": 250,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+     "matchedLabel": "频域设计",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "推导显影 C：为何同一频域指标下还要再做一次 PD",
+   "groupName": "任务 C / D：频域目标驱动设计",
+   "textChars": 194,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "任务 D：同指标下的 PD 频域设计与并排比较",
+   "groupName": "任务 C / D：频域目标驱动设计",
+   "textChars": 231,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+     "matchedLabel": "频域设计",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "任务 E：右半平面零点下的边界与结构选择",
+   "groupName": "任务 E 与课末收束",
+   "textChars": 343,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "后测与收束：从指标走到结构选择",
+   "groupName": "任务 E 与课末收束",
+   "textChars": 321,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-从机理课进入设计课",
+   "order": 1,
+   "level": 2,
+   "title": "一、从机理课进入设计课",
+   "startLine": 14,
+   "endLine": 15,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h2-上一课的成果与本课的挑战",
+   "order": 2,
+   "level": 3,
+   "title": "1.1 上一课的成果与本课的挑战",
+   "startLine": 16,
+   "endLine": 32,
+   "bodyChars": 259,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-本课主线",
+   "order": 3,
+   "level": 3,
+   "title": "1.2 本课主线",
+   "startLine": 33,
+   "endLine": 46,
+   "bodyChars": 258,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-先做一次“目标翻译”预测",
+   "order": 4,
+   "level": 3,
+   "title": "1.3 先做一次“目标翻译”预测",
+   "startLine": 47,
+   "endLine": 57,
+   "bodyChars": 197,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "超调量",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-示例系统与设计任务书",
+   "order": 5,
+   "level": 2,
+   "title": "二、示例系统与设计任务书",
+   "startLine": 58,
+   "endLine": 59,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h6-示例系统",
+   "order": 6,
+   "level": 3,
+   "title": "2.1 示例系统",
+   "startLine": 60,
+   "endLine": 74,
+   "bodyChars": 199,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-本课使用的三类校正表达式",
+   "order": 7,
+   "level": 3,
+   "title": "2.2 本课使用的三类校正表达式",
+   "startLine": 75,
+   "endLine": 122,
+   "bodyChars": 433,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:formula:daa2997914f79cb93172e95f",
+     "matchedLabel": "E(s)=R(s)-Y(s)",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 28,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-五个设计任务",
+   "order": 8,
+   "level": 3,
+   "title": "2.3 五个设计任务",
+   "startLine": 123,
+   "endLine": 139,
+   "bodyChars": 642,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-将时域指标翻译为目标区域",
+   "order": 9,
+   "level": 3,
+   "title": "2.4 将时域指标翻译为目标区域",
+   "startLine": 140,
+   "endLine": 205,
+   "bodyChars": 975,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "超调量",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-任务-A-时域目标驱动的-`PD`-设计",
+   "order": 10,
+   "level": 2,
+   "title": "三、任务 A：时域目标驱动的 `PD` 设计",
+   "startLine": 206,
+   "endLine": 207,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-先选设计点-而非先猜零点",
+   "order": 11,
+   "level": 3,
+   "title": "3.1 先选设计点，而非先猜零点",
+   "startLine": 208,
+   "endLine": 243,
+   "bodyChars": 593,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-用相角条件反推零点位置",
+   "order": 12,
+   "level": 3,
+   "title": "3.2 用相角条件反推零点位置",
+   "startLine": 244,
+   "endLine": 314,
+   "bodyChars": 863,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+     "matchedLabel": "开环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-用模值条件求增益与闭环验收",
+   "order": 13,
+   "level": 3,
+   "title": "3.3 用模值条件求增益与闭环验收",
+   "startLine": 315,
+   "endLine": 364,
+   "bodyChars": 602,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-任务-B-时域目标驱动的测速反馈设计",
+   "order": 14,
+   "level": 2,
+   "title": "四、任务 B：时域目标驱动的测速反馈设计",
+   "startLine": 365,
+   "endLine": 366,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-将测速反馈改写成广义根轨迹问题",
+   "order": 15,
+   "level": 3,
+   "title": "4.1 将测速反馈改写成广义根轨迹问题",
+   "startLine": 367,
+   "endLine": 406,
+   "bodyChars": 550,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:formula:daa2997914f79cb93172e95f",
+     "matchedLabel": "E(s)=R(s)-Y(s)",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 28,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-79840533ef35fdf38b995397",
+     "matchedLabel": "根轨迹增益参数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 14,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-用等效极点位置反推-$K_t$",
+   "order": 16,
+   "level": 3,
+   "title": "4.2 用等效极点位置反推 $K_t$",
+   "startLine": 407,
+   "endLine": 448,
+   "bodyChars": 323,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-由模值条件选定-$K$",
+   "order": 17,
+   "level": 3,
+   "title": "4.3 由模值条件选定 $K$",
+   "startLine": 449,
+   "endLine": 486,
+   "bodyChars": 484,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-`PD`-与测速反馈的设计差异",
+   "order": 18,
+   "level": 3,
+   "title": "4.4 `PD` 与测速反馈的设计差异",
+   "startLine": 487,
+   "endLine": 499,
+   "bodyChars": 284,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+     "matchedLabel": "广义根轨迹",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-任务-C-频域目标驱动的超前校正设计",
+   "order": 19,
+   "level": 2,
+   "title": "五、任务 C：频域目标驱动的超前校正设计",
+   "startLine": 500,
+   "endLine": 501,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-固定频域目标-并说明为何任务-D-沿用",
+   "order": 20,
+   "level": 3,
+   "title": "5.1 固定频域目标，并说明为何任务 D 沿用",
+   "startLine": 502,
+   "endLine": 547,
+   "bodyChars": 604,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-第一步-计算所需最大超前角",
+   "order": 21,
+   "level": 3,
+   "title": "5.2 第一步：计算所需最大超前角",
+   "startLine": 548,
+   "endLine": 583,
+   "bodyChars": 416,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-第二步-将最大超前角布置到目标截止频率",
+   "order": 22,
+   "level": 3,
+   "title": "5.3 第二步：将最大超前角布置到目标截止频率",
+   "startLine": 584,
+   "endLine": 618,
+   "bodyChars": 392,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-第三步-由幅值条件求-$K_c$",
+   "order": 23,
+   "level": 3,
+   "title": "5.4 第三步：由幅值条件求 $K_c$",
+   "startLine": 619,
+   "endLine": 641,
+   "bodyChars": 341,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-第四步-验收频域与时域",
+   "order": 24,
+   "level": 3,
+   "title": "5.5 第四步：验收频域与时域",
+   "startLine": 642,
+   "endLine": 663,
+   "bodyChars": 344,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-任务-D-同一频域指标下的-`PD`-设计",
+   "order": 25,
+   "level": 2,
+   "title": "六、任务 D：同一频域指标下的 `PD` 设计",
+   "startLine": 664,
+   "endLine": 665,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-为何要在同一指标下再做一次-`PD`",
+   "order": 26,
+   "level": 3,
+   "title": "6.1 为何要在同一指标下再做一次 `PD`",
+   "startLine": 666,
+   "endLine": 677,
+   "bodyChars": 155,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-第一步-沿用任务-C-的基准频率点",
+   "order": 27,
+   "level": 3,
+   "title": "6.2 第一步：沿用任务 C 的基准频率点",
+   "startLine": 678,
+   "endLine": 699,
+   "bodyChars": 239,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h28-第二步-由相角条件直接求-$T_d$",
+   "order": 28,
+   "level": 3,
+   "title": "6.3 第二步：由相角条件直接求 $T_d$",
+   "startLine": 700,
+   "endLine": 729,
+   "bodyChars": 328,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-第三步-由幅值条件求-$K$",
+   "order": 29,
+   "level": 3,
+   "title": "6.4 第三步：由幅值条件求 $K$",
+   "startLine": 730,
+   "endLine": 750,
+   "bodyChars": 221,
+   "canonical": []
+  },
+  {
+   "headingId": "h30-第四步-验收-并与超前比较",
+   "order": 30,
+   "level": 3,
+   "title": "6.5 第四步：验收，并与超前比较",
+   "startLine": 751,
+   "endLine": 780,
+   "bodyChars": 513,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h31-任务-E-右半平面零点下的可行性边界与结构选择",
+   "order": 31,
+   "level": 2,
+   "title": "七、任务 E：右半平面零点下的可行性边界与结构选择",
+   "startLine": 781,
+   "endLine": 782,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h32-明确边界对象",
+   "order": 32,
+   "level": 3,
+   "title": "7.1 明确边界对象",
+   "startLine": 783,
+   "endLine": 800,
+   "bodyChars": 188,
+   "canonical": []
+  },
+  {
+   "headingId": "h33-非最小相对象的设计难点",
+   "order": 33,
+   "level": 3,
+   "title": "7.2 非最小相对象的设计难点",
+   "startLine": 801,
+   "endLine": 848,
+   "bodyChars": 519,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h34-在非最小相对象上如何选择-`PD`-测速反馈和超前",
+   "order": 34,
+   "level": 3,
+   "title": "7.3 在非最小相对象上如何选择 `PD`、测速反馈和超前",
+   "startLine": 849,
+   "endLine": 868,
+   "bodyChars": 362,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "matchedLabel": "带宽",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h35-本课仅将\"完整例子\"移入附录",
+   "order": 35,
+   "level": 3,
+   "title": "7.4 本课仅将\"完整例子\"移入附录",
+   "startLine": 869,
+   "endLine": 877,
+   "bodyChars": 205,
+   "canonical": []
+  },
+  {
+   "headingId": "h36-本课小结与前后衔接",
+   "order": 36,
+   "level": 2,
+   "title": "八、本课小结与前后衔接",
+   "startLine": 878,
+   "endLine": 892,
+   "bodyChars": 443,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-21fba199a9fdef15887d600f",
+     "matchedLabel": "滞后补偿",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h37-附录-A｜本课实验记录模板",
+   "order": 37,
+   "level": 2,
+   "title": "附录 A｜本课实验记录模板",
+   "startLine": 893,
+   "endLine": 894,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h38-A-1-时域目标设计记录",
+   "order": 38,
+   "level": 3,
+   "title": "A.1 时域目标设计记录",
+   "startLine": 895,
+   "endLine": 903,
+   "bodyChars": 197,
+   "canonical": []
+  },
+  {
+   "headingId": "h39-A-2-频域目标设计记录",
+   "order": 39,
+   "level": 3,
+   "title": "A.2 频域目标设计记录",
+   "startLine": 904,
+   "endLine": 912,
+   "bodyChars": 179,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h40-A-3-非最小相边界记录",
+   "order": 40,
+   "level": 3,
+   "title": "A.3 非最小相边界记录",
+   "startLine": 913,
+   "endLine": 923,
+   "bodyChars": 164,
+   "canonical": []
+  },
+  {
+   "headingId": "h41-附录-B｜非最小相对象上的三种保守校正示例",
+   "order": 41,
+   "level": 2,
+   "title": "附录 B｜非最小相对象上的三种保守校正示例",
+   "startLine": 924,
+   "endLine": 933,
+   "bodyChars": 153,
+   "canonical": []
+  },
+  {
+   "headingId": "h42-B-1-`PD`-保守示例",
+   "order": 42,
+   "level": 3,
+   "title": "B.1 `PD` 保守示例",
+   "startLine": 934,
+   "endLine": 969,
+   "bodyChars": 392,
+   "canonical": []
+  },
+  {
+   "headingId": "h43-B-2-测速反馈保守示例",
+   "order": 43,
+   "level": 3,
+   "title": "B.2 测速反馈保守示例",
+   "startLine": 970,
+   "endLine": 1002,
+   "bodyChars": 253,
+   "canonical": []
+  },
+  {
+   "headingId": "h44-B-3-超前保守示例",
+   "order": 44,
+   "level": 3,
+   "title": "B.3 超前保守示例",
+   "startLine": 1003,
+   "endLine": 1045,
+   "bodyChars": 452,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-6-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-6/media/3-6-audio.m4a",
+   "sha256": "e9c4aadfad3688756e6cef300699a02df37e2cc107814867e0faff8929754a53",
+   "durationSeconds": 1218.65288,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-6.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.12,
+     "textPreview": "试想一下这样的场景你坐在一辆性能跑车里前方是一条笔直的赛道你一脚地板有猛踩下去期",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.24,
+     "textPreview": "常生活中你肯定会觉得完了这是坏了对吧但是在控制工程的世界里这其实是一种极其危险却",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.32,
+     "endSeconds": 75.48,
+     "textPreview": "了而是严谨的科学大家好我是思文欢迎正在备考或者正在预期自动控制原理的你来到这档专",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.48,
+     "endSeconds": 100.76,
+     "textPreview": "计图这份资料所以称为地图呃是因为它非常清晰地展示了一个工程师在面对给定的系统对象",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 101.16,
+     "endSeconds": 126.24,
+     "textPreview": "其实第一步咱们得先做个翻译官凡一观这个说法很有意思你想啊在工程项目里甲方抛给你的",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 126.24,
+     "endSeconds": 151.28,
+     "textPreview": "了具体的时域标志也就是超调量要小于等于百分号二调节时间必须在4秒以内当听到这两个",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.28,
+     "endSeconds": 176.52,
+     "textPreview": "了系统的阻尼比必须呃大于等于零点四五六嗯0456这在根轨极图上就像是画出了一个特",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.52,
+     "endSeconds": 201.8,
+     "textPreview": "嘛顺着这个公式一推导闭环极点的时步就必须小于等于负一小于等于负一这就相当于在负平",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.8,
+     "endSeconds": 226.88,
+     "textPreview": "线交直出的那个算是左侧负递里完全正确既然目标这么明确界线也都画好了那我第一反应肯",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 227.2,
+     "endSeconds": 252.4,
+     "textPreview": "这恰巧是很多新手最容易掉进去的陷阱陷阱大力不能出奇迹吗纯增益调节往往会碰触到系统",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.4,
+     "endSeconds": 278.68,
+     "textPreview": "数极点只会直直的向上或者向下移动等一下直直的上下移动这就意味着这对极点在时轴上的",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 278.68,
+     "endSeconds": 303.72,
+     "textPreview": "在负零点四这个位置上但我们刚才翻译出来的极格线是十步必须小于等于负一呀卡在负04",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 303.72,
+     "endSeconds": 330.88,
+     "textPreview": "在九点五秒左右徘徊九点五秒距离我们邀的四秒目标差了十万八千里啊是的这就带来了一个",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 331.12,
+     "endSeconds": 356.16,
+     "textPreview": "必须改变系统的结构已取改结构这就到了我们需要引入物理外挂的时候了既然原系统的骨架",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 356.16,
+     "endSeconds": 385.16,
+     "textPreview": "是怎么想的你看纯比例控就像个介一眼他只能看到系统眼前的误差有误差就罚劣但微分是在",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.16,
+     "endSeconds": 411.88,
+     "textPreview": "变化的趋势对看趋势那是不是可以这样理解即使系统现在的误差还不太大但如果偏离的趋势",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 411.88,
+     "endSeconds": 440.16,
+     "textPreview": "移反映在根轨迹图上就是一种强大的向左拉扯的引力限左对原本直直上下卡在负零点四的根",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 36,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.24,
+     "endSeconds": 465.31,
+     "textPreview": "便扔一个极靠左的零点进去比如放在负一百负一万的位置零点越靠左拽的越猛系统响应岂不",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.4,
+     "endSeconds": 492.32,
+     "textPreview": "的位置进行了一套极其精密的相角条件推导相角条件根轨迹上的任何一点要想成为闭环极点",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 492.32,
+     "endSeconds": 517.43,
+     "textPreview": "白了所以我们不能乱扔领地而是要在我们期望他到达的那个完美极点位置反过来进行倒推就",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 517.8,
+     "endSeconds": 542.84,
+     "textPreview": "供这435度的补角就是为了补齐这个角没错儿利用三角函数顺藤摸瓜目标零点的位置就被",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 542.84,
+     "endSeconds": 567.9,
+     "textPreview": "儿狙击这个词儿用的很准而且我看那个仿真结果也非常体加上这个精心设就的零点后系统的",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 568.0,
+     "endSeconds": 593.28,
+     "textPreview": "临复杂的高频干扰或者系统本身带有时间延迟对实际环境没那么理想这个时候仅仅在时域里",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-caa20b325717f0a3c570f16b",
+       "matchedLabel": "时间延迟",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 593.28,
+     "endSeconds": 618.34,
+     "textPreview": "域的波的图很多同学可能会觉得一阵头疼哈哈曝的图确实是很多人的噩梦但其实把视角切换",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 618.41,
+     "endSeconds": 643.71,
+     "textPreview": "两个指标截止频率和向角余度截止频率和象角余度我记得截止频率反映了系统的贷款贷款越",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 643.9,
+     "endSeconds": 669.4,
+     "textPreview": "确那你看资料里客户的目标是相角余度必须大于等于50度截止频率大约在三弧度每秒五十",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 669.4,
+     "endSeconds": 696.0,
+     "textPreview": "来形容了原文件显示未校正系统在三弧度每秒这个频率点上象角已经调到了负一百六十五度",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 696.0,
+     "endSeconds": 721.04,
+     "textPreview": "里就引出了频遇的超级英雄超前效证网络超前效证超前效政的核心任务就是在系统最危险的",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 721.04,
+     "endSeconds": 746.28,
+     "textPreview": "度减去现有的不到十五度再加上为了防止在推高截止频率时带来的项位损失我们通常还得预",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+       "matchedLabel": "超前校正",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 746.28,
+     "endSeconds": 772.28,
+     "textPreview": "止频率往高了推为了让系统响应变得飞快但那其实是个巨大的陷阱对吧非常敏锐的观察大家",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 772.28,
+     "endSeconds": 825.24,
+     "textPreview": "极但却没有生计刹车和屯轮这个飙车的类比太绝了所以频域的超前修正本质上是一场精密的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 826.12,
+     "endSeconds": 851.42,
+     "textPreview": "途同归这个词用的非常好不过呢顺着地图继续往下看你会有新发现还有隐藏路线对给系统增",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 851.6,
+     "endSeconds": 877.24,
+     "textPreview": "子S既然大家都在做为分随便挑一个用不就行了吗这就涉及到系统设计的另一个深层次思考",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 877.24,
+     "endSeconds": 948.64,
+     "textPreview": "但因为他们在控制结构中的位置完全不同导致他们面对实际输入时的表现可谓是大相径庭结",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 935.0,
+     "endSeconds": 960.12,
+     "textPreview": "馈是放在反馈环路里的它提取的不是误差信号而是系统实际出错的速度或者说变化率实际出",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 960.28,
+     "endSeconds": 985.61,
+     "textPreview": "的微分信号总是平滑的渐进的它既能提供阻尼抑制振又完美避开了阶越输入带来的巨大冲击",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 986.32,
+     "endSeconds": 1045.16,
+     "textPreview": "环的反馈为分则更加平滑从容这就要求我们在面对具体工程问题时必须先选结构始的先选结",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+       "matchedLabel": "非最小相位系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 28,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 1045.16,
+     "endSeconds": 1070.6,
+     "textPreview": "大的信号结果呢他一开始往后倒退的幅度也会极其猛烈甚至直接把机器给拉扯散架了对吧确",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1070.68,
+     "endSeconds": 1098.44,
+     "textPreview": "物理极限我们不能再死磕之前的超高指标了指标是人定的但物理法则是大自然的说的太好了",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1098.44,
+     "endSeconds": 1123.44,
+     "textPreview": "PD控制像物理外挂一样引入零点去预判和拉拽再到切换频域率到用超前效证一边急速飙车",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1123.44,
+     "endSeconds": 1149.04,
+     "textPreview": "识点串联成线你才算是真正拥有了控制系统设计的全局观不过呢在我们解除这次探索之前结",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 1149.04,
+     "endSeconds": 1174.29,
+     "textPreview": "系统在仿真里响应的又快又稳简直无懈极仿真里总是很完美的但是如果你明天把这套",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 1174.76,
+     "endSeconds": 1200.12,
+     "textPreview": "完美的理论搬进真实的实验室接上真实的身侧sens你要知道现实中的身测测量回来的信",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1200.36,
+     "endSeconds": 1218.56,
+     "textPreview": "PD控制程会对这些充满矛刺的高频那一次做什么我的天它会把noise放大它的尾分作",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "e9c4aadfad3688756e6cef300699a02df37e2cc107814867e0faff8929754a53",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-6-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-6/media/3-6-intro-video.mp4",
+   "sha256": "cf0294dcc2296ede5af11133bed374031e6572d113fb9fff74af1041dbeb57f6",
+   "durationSeconds": 282.624,
+   "transcriptSource": "videos-project:lesson-3-6/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 260.567,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 282.567,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 86,
+   "segments": [],
+   "activeReleaseSha256": "3b620996cc826ef12f5e04805b3567c15ac580f1213c84125e2dcb28414dc0dd",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-6-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-6/media/3-6-course.mp4",
+   "sha256": "362c9589c623a43cfafc9be5cada750d512b8180d00ae6965cbec668b3b442a0",
+   "durationSeconds": 381.318095,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-6.json",
+   "transcriptSourceSha256": "362c9589c623a43cfafc9be5cada750d512b8180d00ae6965cbec668b3b442a0",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 12.64,
+     "textPreview": "嘿，同学们准备好了吗？今天我们来干件大事啊！我们要用一个工程师的超酷工具去驯服一",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 12.64,
+     "endSeconds": 27.03,
+     "textPreview": "咱们今天这个讲解呢，内容其实是来自自动化学院的一份技术讲义，不过别怕，我们不不搞",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 27.03,
+     "endSeconds": 40.54,
+     "textPreview": "来想象一个场景啊，你辛辛苦苦打了个机器人，结果它动起来简直像个憨憨，你给个指令，",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.54,
+     "endSeconds": 51.98,
+     "textPreview": "唉，是不是看着就头大？这就是我们今天要解决的问题。好，这就是咱们今天的行动路线图",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 51.98,
+     "endSeconds": 62.29,
+     "textPreview": "第二步，量出咱们的秘密武器；然后呢，我们会用两种完全不同的策略来解决问题。最后当",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 62.29,
+     "endSeconds": 72.05,
+     "textPreview": "OK，任务第一步，咱们先来好好认识一下这位急需治疗的病人，也就是我们今天的主角—",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 72.05,
+     "endSeconds": 81.81,
+     "textPreview": "那屏幕上这串公式就是这个系统的身份证，也就是它的传递函数，它决定了系统的先天性格",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 81.81,
+     "endSeconds": 93.59,
+     "textPreview": "从数据上来看，它的反应时间，也就是调节时间，长得有点离谱。要九点五秒，你想想你点",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 93.59,
+     "endSeconds": 103.91,
+     "textPreview": "我的天，这谁受得了啊？绝对不行！所以你看咱们的目标特别明确，首先调节时间必须砍掉",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 103.91,
+     "endSeconds": 113.67,
+     "textPreview": "其次那个猛冲过头的幅度，也就是超调量也得控制住，不能超过百分之二十，就是要让它变",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 113.67,
+     "endSeconds": 125.43,
+     "textPreview": "那么问题来了。这么个烫手山芋，我们该怎么解决呢？别急，我们的英雄要登场了。将枪就",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 125.43,
+     "endSeconds": 138.47,
+     "textPreview": "你看啊，它不光会看系统现在离目标有多远，也就是P比例部分的作用，它还能预判系统下",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 138.47,
+     "endSeconds": 147.56,
+     "textPreview": "这就好比一个经验丰富的老司机。不光盯着眼前的路，还能预判前方的路况，提前做好准备",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 147.56,
+     "endSeconds": 155.96,
+     "textPreview": "这么说吧，P部分就像是汽车的油门，误差越大，油门踩得越狠，动力就越足；而D部分呢",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 155.96,
+     "endSeconds": 167.63,
+     "textPreview": "就像一个超级智能的刹车系统，它能感觉到你接近目标的速度，在快要撞线的时候帮你提前",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 167.63,
+     "endSeconds": 176.91,
+     "textPreview": "一个给力，一个预判，简直是黄金搭档。好了，来看我们的第一套方案——根轨迹法。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-e8d4b4f1c63aa5a052b15538",
+       "matchedLabel": "根轨迹法",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 176.91,
+     "endSeconds": 193.47,
+     "textPreview": "这个名字听起来有点玄乎，但你完全可以把它理解成一种系统性格重塑术。我们要做的就是",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 193.47,
+     "endSeconds": 203.66,
+     "textPreview": "具体怎么操作呢？其实逻辑很简单，就四步。说白了就是咱们先画个靶子，想好我们希望系",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 203.66,
+     "endSeconds": 215.74,
+     "textPreview": "然后呢，我们再倒着推算，看看需要给它招上一个什么样的控制器，才能把它精确地改造成",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 215.74,
+     "endSeconds": 232.08,
+     "textPreview": "为了达到咱们那个理想的极点位置，sd等于负一加上j一点六七零。我们量身定做的控制",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 232.08,
+     "endSeconds": 246.24,
+     "textPreview": "这就是我们赋予系统新性格的魔法密码。好，如果说刚才那个方法像是做外科手术，直接了",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 246.24,
+     "endSeconds": 264.81,
+     "textPreview": "这次咱们换个战场，到频率的世界里去解决问题。这里的思路就完全不一样了。我们不再去",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 264.81,
+     "endSeconds": 276.69,
+     "textPreview": "这就像是调整一个人的饮食结构，让他变得更健康、更有活力。你看，这也就是我们用新方",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+       "matchedLabel": "超前补偿",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 276.69,
+     "endSeconds": 292.45,
+     "textPreview": "看起来好像和刚才的PD控制器不太一样，但其实啊，它在功能上和PD控制器几乎是等效",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 60,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 292.45,
+     "endSeconds": 300.64,
+     "textPreview": "好了，最激动人心的时刻到了，搞了这么多，到底咱们的努力有没有白费？两种策略。",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 300.64,
+     "endSeconds": 309.36,
+     "textPreview": "谁的效果更好？让我们来看看改造前后的数据大PK。哇，见证奇迹的时刻！",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 309.36,
+     "endSeconds": 324.32,
+     "textPreview": "快看这个数据，两种方法都成功的完成了任务。根、轨、极、法，直接把调节时间从95秒",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 324.32,
+     "endSeconds": 334.82,
+     "textPreview": "性能提升简直是天翻地覆。而且超调量也控制得更小，太成功了。那么这次任务中最重要的",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 334.82,
+     "endSeconds": 351.95,
+     "textPreview": "就是PD控制器的魔力所在，它能给系统增加一个零点，这个零点像一个强大的引力源，能",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 351.95,
+     "endSeconds": 369.31,
+     "textPreview": "好了，我们这次的系统拯救任务可以说是圆满成功。但是这又引出了一个全新的问题：你看",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 369.31,
+     "endSeconds": 381.32,
+     "textPreview": "如果我们追求的是百分之百的精确，又该用什么新工具呢？嗯，这就是我们下一次要挑战的",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "362c9589c623a43cfafc9be5cada750d512b8180d00ae6965cbec668b3b442a0",
+   "status": "anchored"
+  }
+ ]
+}

@@ -21,6 +21,7 @@ import {
   resolveActiveTeachingProjection,
   type TeachingProjectionStorePaths,
 } from '@/lib/teaching-projection/store';
+import { overlayTeachingBindingsFromLiveRelease } from '@/lib/resource-binding-release/project-teaching-bindings';
 
 import type {
   LayeredGraphAuthorityInput,
@@ -328,9 +329,15 @@ function projectionArtifactsToInput(input: {
   scope: LayeredGraphScope | null | undefined;
   manifest?: LayeredGraphProjectionInput['manifest'];
 }): LayeredGraphProjectionInput {
+  const liveBindings = input.source === 'active'
+    ? overlayTeachingBindingsFromLiveRelease(input.bindings, process.cwd(), {
+      projectionId: input.projectionId,
+      authorityReleaseId: input.authorityReleaseId,
+    })
+    : { bindings: input.bindings, overlaid: false, bindingReleaseId: null };
   const scoped = filterProjectionToScope({
     resources: input.resources,
-    bindings: input.bindings,
+    bindings: liveBindings.bindings,
     prerequisites: input.prerequisites,
     coreNodes: input.coreNodes,
     cards: input.cards,
@@ -352,7 +359,9 @@ function projectionArtifactsToInput(input: {
     coreNodes: scoped.coreNodes,
     cards: scoped.cards,
     notProjectedCanonicalIds: scoped.notProjectedCanonicalIds,
-    reasons: input.reasons,
+    reasons: liveBindings.overlaid
+      ? [...input.reasons, `live-binding-release:${liveBindings.bindingReleaseId}`]
+      : input.reasons,
     fallback: input.fallback ?? null,
   };
 }

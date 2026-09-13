@@ -1,11 +1,12 @@
 # 设计决策索引
 
 状态: active
-最后更新: 2026-04-20
-摘要: 存放长期有效的设计决策记录，推荐使用 ADR 命名。
+最后更新: 2026-09-12
+摘要: 存放长期有效的设计决策记录，推荐使用 ADR 命名。最新是路径规划质量裁决。
 上游:
 - [../00-index.md](../00-index.md)
 下游:
+- [ADR-2026-09-12-path-planning-quality.md](ADR-2026-09-12-path-planning-quality.md)
 - [ADR-2026-04-20-module4-optimization-chain.md](ADR-2026-04-20-module4-optimization-chain.md)
 - [ADR-2026-04-18-module4-merge-4-3-4-4.md](ADR-2026-04-18-module4-merge-4-3-4-4.md)
 - [ADR-2026-04-14-unit-3-6-zero-design-boundary.md](ADR-2026-04-14-unit-3-6-zero-design-boundary.md)

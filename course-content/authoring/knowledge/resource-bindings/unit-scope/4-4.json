@@ -1,0 +1,36 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "4-4",
+ "canonicalIds": [
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+  "ctc:v11g-6bfefff084f66202b9af9dd4",
+  "ctc:v11g-93b322aec104af4eb69aa152",
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+  "m1r-v1d:object:5dc35d8a90ffc6cc5ca18c4e"
+ ],
+ "sources": {
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6": [
+   "topic:settling-time"
+  ],
+  "ctc:v11g-6bfefff084f66202b9af9dd4": [
+   "topic:pid-tuning"
+  ],
+  "ctc:v11g-93b322aec104af4eb69aa152": [
+   "topic:pid-tuning"
+  ],
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609": [
+   "topic:settling-time"
+  ],
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086": [
+   "topic:pid"
+  ],
+  "m1r-v1d:object:5dc35d8a90ffc6cc5ca18c4e": [
+   "topic:itae"
+  ]
+ }
+}

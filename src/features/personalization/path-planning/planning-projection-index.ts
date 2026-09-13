@@ -11,12 +11,20 @@ import {
   type PublishedResourceFeature,
   type PublishedResourceFeatureIndex,
 } from '@/lib/published-resource-reference';
+import type { BindingAnchor, BindingAppearance, BindingTeachingOrder } from '@/lib/resource-binding-release/contracts';
+import { loadCurrentResourceBindingRelease } from '@/lib/resource-binding-release';
 import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
 import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
+import {
+  anchorDisplayLabel,
+  buildTeachingResourceLaunchMaps,
+  resolveAnchoredLaunchHref,
+} from '@/lib/layered-graph/teaching-resource-launch-maps';
 
 import { goalCanonicalIds } from './goal-canonical-knowledge';
 import { expandFeasibleKnowledgeIds } from './knowledge-scope';
 import type { TeachingPrerequisiteEdge } from './live-teaching-prerequisites';
+import { resolvePlanningResourceTitle } from './planning-resource-titles';
 
 const ESTIMATED_MINUTES: Record<string, number> = {
   card: 8,
@@ -43,6 +51,7 @@ export interface ProjectionResourceRow {
   sourcePath: string | null;
   bindingDigest: string;
   projectionStatus: string;
+  unitId?: string | null;
 }
 
 export interface ProjectionBindingRow {
@@ -50,6 +59,10 @@ export interface ProjectionBindingRow {
   resourceId: string;
   canonicalId: string;
   role: string;
+  appearance?: BindingAppearance;
+  teachingOrder?: BindingTeachingOrder | null;
+  anchor?: BindingAnchor;
+  unitId?: string | null;
 }
 
 export interface GoalPlanningUniverse {
@@ -68,6 +81,8 @@ export function sliceGoalPlanningUniverse(input: {
   snapshotHash: string;
   authorityReleaseId: string;
   runtimeReleaseId?: string | null;
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
   resources: readonly ProjectionResourceRow[];
   bindings: readonly ProjectionBindingRow[];
   edges: readonly TeachingPrerequisiteEdge[];
@@ -79,31 +94,35 @@ export function sliceGoalPlanningUniverse(input: {
   const edges = input.edges.filter((edge) =>
     knowledge.has(edge.sourceCanonicalId) && knowledge.has(edge.targetCanonicalId),
   );
-  const scoped = new Map<string, { ids: string[]; roles: string[]; bindingIds: string[] }>();
-  for (const binding of input.bindings) {
-    if (!knowledge.has(binding.canonicalId)) continue;
-    const current = scoped.get(binding.resourceId) ?? { ids: [], roles: [], bindingIds: [] };
-    current.ids.push(binding.canonicalId);
-    current.roles.push(binding.role);
-    current.bindingIds.push(binding.bindingId);
-    scoped.set(binding.resourceId, current);
-  }
-  const resources = input.resources.flatMap((row) => {
-    const bound = scoped.get(row.resourceId);
-    if (!bound || bound.ids.length === 0) return [];
-    return [toPlanningFeature(row, bound, {
-      projectionId: input.projectionId,
-      projectionHash: input.projectionHash,
-      snapshotId: input.snapshotId,
-      snapshotHash: input.snapshotHash,
-      runtimeReleaseId: input.runtimeReleaseId ?? null,
-    })];
+  const resourceById = new Map(input.resources.map((row) => [row.resourceId, row]));
+  const launchMaps = buildTeachingResourceLaunchMaps(
+    input.resources.map((row) => ({
+      resourceId: row.resourceId,
+      resourceType: row.resourceType as TeachingResourceType,
+      unitId: row.unitId ?? null,
+    })),
+  );
+  const identity = {
+    projectionId: input.projectionId,
+    projectionHash: input.projectionHash,
+    snapshotId: input.snapshotId,
+    snapshotHash: input.snapshotHash,
+    runtimeReleaseId: input.runtimeReleaseId ?? null,
+    bindingReleaseId: input.bindingReleaseId ?? null,
+    bindingHash: input.bindingHash ?? null,
+  };
+  const resources = input.bindings.flatMap((binding) => {
+    if (!knowledge.has(binding.canonicalId)) return [];
+    const row = resourceById.get(binding.resourceId);
+    if (!row) return [];
+    return [toPlanningFeature(row, binding, identity, launchMaps.resourceLaunchTargets[row.resourceId] ?? null)];
   });
   const indexId = digest([
     input.projectionHash,
+    input.bindingHash ?? null,
     input.goalId,
     knowledgeIds,
-    resources.map((resource) => resource.identity.resourceId),
+    resources.map((resource) => resource.bindingIds[0] ?? resource.identity.resourceId),
   ]);
   const index: PublishedResourceFeatureIndex = {
     contract: 'published-resource-features/v1',
@@ -114,6 +133,8 @@ export function sliceGoalPlanningUniverse(input: {
     snapshotHash: input.snapshotHash,
     runtimeReleaseId: input.runtimeReleaseId ?? null,
     authorityReleaseId: input.authorityReleaseId,
+    bindingReleaseId: input.bindingReleaseId ?? null,
+    bindingHash: input.bindingHash ?? null,
     generatedAt: input.generatedAt ?? new Date().toISOString(),
     resources: resources.map((resource) => ({ ...resource })),
     prerequisiteEdges: [],
@@ -172,7 +193,7 @@ export function tryLoadGoalPlanningRegistry(goalId: string, repoRoot = process.c
 
 function toPlanningFeature(
   row: ProjectionResourceRow,
-  bound: { ids: string[]; roles: string[]; bindingIds: string[] },
+  binding: ProjectionBindingRow,
   identity: {
     projectionId: string;
     projectionHash: string;
@@ -180,10 +201,12 @@ function toPlanningFeature(
     snapshotHash: string;
     runtimeReleaseId: string | null;
   },
+  baseHref: string | null,
 ): PublishedResourceFeature {
   const type = row.resourceType as TeachingResourceType;
-  const canonicalIds = unique(bound.ids);
-  const version = /^[a-f0-9]{64}$/u.test(row.bindingDigest) ? row.bindingDigest : digest([row.resourceId, row.bindingDigest]);
+  const version = /^[a-f0-9]{64}$/u.test(binding.bindingId)
+    ? binding.bindingId
+    : digest([binding.bindingId, row.resourceId, binding.canonicalId]);
   const featureIdentity = {
     resourceId: row.resourceId,
     projectionId: identity.projectionId,
@@ -193,15 +216,31 @@ function toPlanningFeature(
     runtimeReleaseId: identity.runtimeReleaseId,
     resourceVersion: version,
   };
+  const label = binding.anchor ? anchorDisplayLabel(binding.anchor) : null;
+  const title = row.title;
+  const anchored = binding.anchor
+    ? resolveAnchoredLaunchHref(
+      { resourceId: row.resourceId, resourceType: type, unitId: binding.unitId ?? row.unitId ?? null },
+      binding.anchor,
+      baseHref,
+    )
+    : baseHref;
+  const href = anchored ?? buildPublishedResourceHref(featureIdentity);
   return {
     identity: featureIdentity,
     version,
     type,
-    title: row.title,
-    summary: row.title,
-    canonicalIds,
-    bindingIds: unique(bound.bindingIds),
-    bindingRoles: unique(bound.roles),
+    title: resolvePlanningResourceTitle(title, {
+      canonicalIds: [binding.canonicalId],
+      resourceId: row.resourceId,
+    }),
+    summary: resolvePlanningResourceTitle(title, {
+      canonicalIds: [binding.canonicalId],
+      resourceId: row.resourceId,
+    }),
+    canonicalIds: [binding.canonicalId],
+    bindingIds: [binding.bindingId],
+    bindingRoles: [binding.role],
     sourcePath: row.sourcePath,
     baselineDifficulty: null,
     estimatedMinutes: ESTIMATED_MINUTES[type] ?? 15,
@@ -209,16 +248,20 @@ function toPlanningFeature(
     executable: true,
     recommendable: true,
     limitation: null,
-    backend: { kind: 'route', href: buildPublishedResourceHref(featureIdentity) },
+    backend: { kind: 'route', href },
+    appearance: binding.appearance,
+    teachingOrder: binding.teachingOrder ?? null,
+    anchorLabel: label,
   };
 }
 
 function toPlanningNode(feature: PublishedResourceFeature, indexId: string): ResourceNode {
   const type = publishedResourcePathType(feature.type);
-  const target = buildPublishedResourceHref({ ...feature.identity, resourceVersion: feature.version });
+  const published = buildPublishedResourceHref({ ...feature.identity, resourceVersion: feature.version });
+  const target = feature.backend.kind === 'route' ? feature.backend.href : published;
   return {
     id: publishedResourceNodeId(feature.identity.resourceId, feature.version),
-    title: feature.title,
+    title: feature.anchorLabel ? `${feature.title} · ${feature.anchorLabel}` : feature.title,
     description: feature.summary,
     type,
     courseModule: null,
@@ -252,7 +295,7 @@ function toPlanningNode(feature: PublishedResourceFeature, indexId: string): Res
       pathDisposition: {
         kind: 'path-plannable',
         reviewStatus: 'published-contract',
-        rationale: '资源来自已激活教学投影索引，规划器只使用目标知识子集上的绑定。',
+        rationale: '资源来自已激活锚定绑定发布，规划器只使用目标知识子集上的绑定。',
         sourceFamily: 'teaching_projection',
         stableSourceRef: feature.identity.resourceId,
         sourceVersionRef: feature.version,
@@ -285,27 +328,48 @@ function readLiveProjectionIndex(repoRoot: string) {
   if (!manifest?.projectionHash || !manifest.authoritySnapshotHash) {
     throw new Error('Active teaching projection manifest is missing');
   }
+  const binding = loadCurrentResourceBindingRelease(repoRoot);
+  if (!binding) {
+    throw new Error('Active resource binding release is missing');
+  }
+  if (binding.manifest.authorityReleaseId !== manifest.authorityReleaseId) {
+    throw new Error('Resource binding release Authority does not match the live teaching projection');
+  }
+  const resourcesById = new Map(binding.resources.map((row) => [row.resourceId, row]));
   return {
     projectionId: manifest.projectionId,
     projectionHash: manifest.projectionHash,
     snapshotId: manifest.authoritySnapshotId,
     snapshotHash: manifest.authoritySnapshotHash,
     authorityReleaseId: manifest.authorityReleaseId,
-    runtimeReleaseId: null,
-    resources: readJsonl(join(release, 'resources.jsonl')).map((row) => ({
-      resourceId: String(row.resourceId ?? ''),
-      resourceType: String(row.resourceType ?? ''),
-      title: String(row.title ?? row.resourceId ?? ''),
-      sourcePath: typeof row.sourcePath === 'string' ? row.sourcePath : null,
-      bindingDigest: String(row.bindingDigest ?? ''),
-      projectionStatus: String(row.projectionStatus ?? ''),
-    })).filter((row) => row.resourceId.startsWith('act:')),
-    bindings: readJsonl(join(release, 'bindings.jsonl')).map((row) => ({
-      bindingId: String(row.bindingId ?? ''),
-      resourceId: String(row.resourceId ?? ''),
-      canonicalId: String(row.canonicalId ?? ''),
-      role: String(row.role ?? ''),
-    })).filter((row) => row.resourceId && row.canonicalId),
+    runtimeReleaseId: binding.manifest.activeRuntimeReleaseId ?? null,
+    bindingReleaseId: binding.manifest.bindingReleaseId,
+    bindingHash: binding.manifest.bindingHash,
+    resources: binding.resources
+      .filter((row) => row.resourceId.startsWith('act:') && row.resourceType !== 'lesson')
+      .map((row) => ({
+        resourceId: row.resourceId,
+        resourceType: row.resourceType,
+        title: row.title ?? row.resourceId,
+        sourcePath: row.sourcePath,
+        bindingDigest: binding.manifest.bindingHash,
+        projectionStatus: row.bindingStatus,
+        unitId: row.unitId,
+      })),
+    bindings: binding.bindings.flatMap((row) => {
+      const resource = resourcesById.get(row.resourceId);
+      if (!resource || resource.resourceType === 'lesson') return [];
+      return [{
+        bindingId: row.bindingId,
+        resourceId: row.resourceId,
+        canonicalId: row.canonicalId,
+        role: row.role,
+        appearance: row.appearance,
+        teachingOrder: row.teachingOrder,
+        anchor: row.anchor,
+        unitId: row.teachingOrder?.unitId ?? resource.unitId,
+      }];
+    }),
     edges: readJsonl(join(release, 'prerequisites.jsonl')).flatMap((row) => {
       if (row.strength !== 'REQUIRED' && row.strength !== 'RECOMMENDED') return [];
       if (typeof row.sourceCanonicalId !== 'string' || typeof row.targetCanonicalId !== 'string') return [];
@@ -345,8 +409,4 @@ function readJsonl(filePath: string): Array<Record<string, unknown>> {
 
 function digest(value: unknown): string {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
-}
-
-function unique(values: readonly string[]): string[] {
-  return [...new Set(values)].sort();
 }

@@ -1,0 +1,1157 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "5-3",
+ "unitIndex": 27,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/5-3/5-3-handout.md",
+  "sha256": "19380834987f3a2479cd94badd4babe7e51e14e8b0e2151cad4fb3d590f3d8e4"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "复杂自主系统链路中的控制位置",
+   "groupName": null,
+   "textChars": 146,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": null,
+   "textChars": 304,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前置基础快测",
+   "groupName": null,
+   "textChars": 38,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "MASS 协同链路与责任流",
+   "groupName": null,
+   "textChars": 376,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "单回路控制在自主系统链路中的位置",
+   "groupName": null,
+   "textChars": 303,
+   "canonical": []
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "上游信息质量与反馈可信度",
+   "groupName": null,
+   "textChars": 756,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "规划参考可实现性",
+   "groupName": null,
+   "textChars": 226,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "执行约束与可实现反馈",
+   "groupName": null,
+   "textChars": 380,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "链路责任诊断顺序",
+   "groupName": null,
+   "textChars": 505,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "自主避碰中的偏差传播场景",
+   "groupName": null,
+   "textChars": 190,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "避碰转弯半径与舵角可行域分析",
+   "groupName": null,
+   "textChars": 857,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "MASS 自动化等级与责任边界",
+   "groupName": null,
+   "textChars": 290,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "链路阅读的最小方法",
+   "groupName": null,
+   "textChars": 165,
+   "canonical": []
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "后测：链路诊断与可行性判断",
+   "groupName": null,
+   "textChars": 39,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "总结：MASS 链路责任边界",
+   "groupName": null,
+   "textChars": 367,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-复杂自主系统把单回路放进更长的责任链",
+   "order": 1,
+   "level": 2,
+   "title": "一、复杂自主系统把单回路放进更长的责任链",
+   "startLine": 11,
+   "endLine": 22,
+   "bodyChars": 661,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-学习目标",
+   "order": 2,
+   "level": 2,
+   "title": "二、学习目标",
+   "startLine": 23,
+   "endLine": 32,
+   "bodyChars": 225,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-单回路控制仍然承担运动落地任务",
+   "order": 3,
+   "level": 2,
+   "title": "三、单回路控制仍然承担运动落地任务",
+   "startLine": 33,
+   "endLine": 48,
+   "bodyChars": 565,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-感知和估计决定控制器看到的对象状态",
+   "order": 4,
+   "level": 2,
+   "title": "四、感知和估计决定控制器看到的对象状态",
+   "startLine": 49,
+   "endLine": 77,
+   "bodyChars": 1567,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 30,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-规划把任务约束翻译为控制参考",
+   "order": 5,
+   "level": 2,
+   "title": "五、规划把任务约束翻译为控制参考",
+   "startLine": 78,
+   "endLine": 91,
+   "bodyChars": 915,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-执行约束让控制指令必须经过可实现性检查",
+   "order": 6,
+   "level": 2,
+   "title": "六、执行约束让控制指令必须经过可实现性检查",
+   "startLine": 92,
+   "endLine": 107,
+   "bodyChars": 722,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-链路责任边界决定故障诊断顺序",
+   "order": 7,
+   "level": 2,
+   "title": "七、链路责任边界决定故障诊断顺序",
+   "startLine": 108,
+   "endLine": 128,
+   "bodyChars": 870,
+   "canonical": []
+  },
+  {
+   "headingId": "h8-避碰机动中的链路偏差传播场景",
+   "order": 8,
+   "level": 2,
+   "title": "八、避碰机动中的链路偏差传播场景",
+   "startLine": 129,
+   "endLine": 144,
+   "bodyChars": 676,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-避碰转向过急的链路定位分析",
+   "order": 9,
+   "level": 2,
+   "title": "九、避碰转向过急的链路定位分析",
+   "startLine": 145,
+   "endLine": 206,
+   "bodyChars": 2356,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-MASS-自动化等级与责任边界案例",
+   "order": 10,
+   "level": 2,
+   "title": "十、MASS 自动化等级与责任边界案例",
+   "startLine": 207,
+   "endLine": 218,
+   "bodyChars": 768,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-链路阅读的最小方法",
+   "order": 11,
+   "level": 2,
+   "title": "十一、链路阅读的最小方法",
+   "startLine": 219,
+   "endLine": 230,
+   "bodyChars": 334,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-分层练习",
+   "order": 12,
+   "level": 2,
+   "title": "十二、分层练习",
+   "startLine": 231,
+   "endLine": 232,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-练习-1-链路角色识别",
+   "order": 13,
+   "level": 3,
+   "title": "练习 1：链路角色识别",
+   "startLine": 233,
+   "endLine": 242,
+   "bodyChars": 158,
+   "canonical": []
+  },
+  {
+   "headingId": "h14-练习-2-链路故障定位",
+   "order": 14,
+   "level": 3,
+   "title": "练习 2：链路故障定位",
+   "startLine": 243,
+   "endLine": 246,
+   "bodyChars": 102,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-练习-3-可行性约束计算",
+   "order": 15,
+   "level": 3,
+   "title": "练习 3：可行性约束计算",
+   "startLine": 247,
+   "endLine": 255,
+   "bodyChars": 215,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-本节小结",
+   "order": 16,
+   "level": 2,
+   "title": "十三、本节小结",
+   "startLine": 256,
+   "endLine": 263,
+   "bodyChars": 354,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-参考资料",
+   "order": 17,
+   "level": 2,
+   "title": "参考资料",
+   "startLine": 264,
+   "endLine": 266,
+   "bodyChars": 139,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "5-3-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/5-3/media/5-3-audio.m4a",
+   "sha256": "545146c6cefc9ed9700f2a7ec9da3419fa199e39578f7d64106699ac65beefc1",
+   "durationSeconds": 1011.089705,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/5-3.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.12,
+     "textPreview": "想象一下这样一个场景啊呃你正站在一艘三万吨级满载货轮的舰桥上嗯正前方是一片致命的",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.16,
+     "textPreview": "秒内这艘造价数千万的庞然大物将直接撞向暗交彻底撕裂传体哇哦这就翻车了没错而且导致",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.16,
+     "endSeconds": 75.32,
+     "textPreview": "真实了大家好我是洛嘉欢迎来到咱们闲聊自控的一期特别深度解析这是专门为正在呃疯狂死",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.32,
+     "endSeconds": 100.36,
+     "textPreview": "一个完美的传递函数现实世界就会乖乖听话理想很丰满对但我们今天的主角mas也就是海",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.44,
+     "endSeconds": 125.44,
+     "textPreview": "傲的理想数学公式一头撞上冷冰冰的甚至有些迟钝的物理硬件是这个系统到底是怎么崩溃的",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.76,
+     "endSeconds": 150.88,
+     "textPreview": "其实藏着一个庞大而且呃极其脆弱的协同链条这个链条有多长非常长起点是环境与任务比如",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.88,
+     "endSeconds": 175.96,
+     "textPreview": "高的海浪里锁定一个行标传回来的数据恐怕全都是造电吧不仅仅是噪点那么简单传体在剧烈",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.96,
+     "endSeconds": 201.08,
+     "textPreview": "数据漂移的烂摊子里去疯狂猜测这艘三万吨的巨轮此刻到底在哪儿我的天这听起来太绝望了",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.08,
+     "endSeconds": 226.32,
+     "textPreview": "在几毫秒前的精确姿态没错它只是基于一个滞后的猜测在下达指令这太容易给出一个极其离",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.32,
+     "endSeconds": 251.44,
+     "textPreview": "指令下发给船体底部的物理执行器嗯嗯走完这漫长的一遭传博在海浪中做出了一个动作这个",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.84,
+     "endSeconds": 277.32,
+     "textPreview": "感知和规划是大脑和眼睛负责看入定目标但他们视力不好还经常换视对然后我们学的经典控",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 279.4,
+     "endSeconds": 304.52,
+     "textPreview": "体是个瘸子呀他在冰面上根本做不出大脑想象中那种极其飘逸的动作确实是这样这个冰面的",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 305.0,
+     "endSeconds": 330.0,
+     "textPreview": "第二是最大变化率限制哎我觉得很多同学其实对这种物理限制没有直观的感受怎么说就大家",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.28,
+     "textPreview": "样甚至像游戏手柄的摇感大拇指一推咔就到底了哼想的太简单了但我们面对的是一艘船呐几",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.28,
+     "endSeconds": 385.0,
+     "textPreview": "度有些大型货轮甚至只有可怜的呃正负16度哇这就叫幅度限制不仅如此打满这16度还需",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.12,
+     "textPreview": "打满16度得3秒多呢没错这就叫速率限制其实我以前刚学自控的时候有个巨大的误区什么",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+       "matchedLabel": "闭环系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.2,
+     "endSeconds": 440.0,
+     "textPreview": "物理切断你仔细想想那个ET等于RT减YT当误差急剧增大你的控制器输出一个巨大的指",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 465.12,
+     "textPreview": "死在二十度了多一点都给不出来那这个时候积分器里会发生什么积分器啊积分器会疯狂累积",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.12,
+     "endSeconds": 495.0,
+     "textPreview": "烈的系统震荡甚至可能直接翻船很有可能所以记住一句话软件在无限的数学空间里运行但硬",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "力死死焊在物理世界代码如果不尊重质量质量就会把代码碾碎哇这句话太硬核了那既然话都",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.2,
+     "endSeconds": 550.0,
+     "textPreview": "有一个经典的闭账启动距离计算对得提前保方向这里的核心逻辑其实很简单完",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.23,
+     "textPreview": "全取决于这艘船能画出多小的圈如果转半径很小动作极其干脆传就可以贴近障碍物再来个极",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.68,
+     "endSeconds": 600.75,
+     "textPreview": "划大脑是一个平时只在电脑上跑模拟完全没下过海的初级算法缺乏社会毒打的算法对他看了",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 601.0,
+     "endSeconds": 629.08,
+     "textPreview": "脑觉得这在数学上无好瑕疵啊按照35米的转换半径计算闭账启动距离非常短只需要675",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 629.16,
+     "endSeconds": 660.0,
+     "textPreview": "实的物理极限反向推导一下这",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.0,
+     "endSeconds": 715.0,
+     "textPreview": "艘船的命运好反推一下如果跺脚死死卡在最大的18度也就是34除以18度的正切值这艘",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 715.0,
+     "endSeconds": 793.96,
+     "textPreview": "的惯性眼睁睁的沿着那条105米的死亡弧线节级实实的撞碎在案交上碰哎等下如果这种因",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 793.96,
+     "endSeconds": 825.0,
+     "textPreview": "在2026年5月发布的而且到了2032年就要全面强制执行了强制执行的话里面总得有",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 825.0,
+     "endSeconds": 880.0,
+     "textPreview": "正的跨越出现在等级三这就变成真正的幽灵船了船上空无一人了没错了所有的监视和干预全",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 880.0,
+     "endSeconds": 905.28,
+     "textPreview": "担法律后果的主体就完完全全是这套控制系统背后的设计者和运营方了没错所以在系统责任",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 905.68,
+     "endSeconds": 930.88,
+     "textPreview": "不能闭门造车嚯今天脑细胞燃烧的有点儿厉害啊各位还在和拉不拉丝变换较劲儿的同学们我",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 930.88,
+     "endSeconds": 956.08,
+     "textPreview": "中的数字游戏一个简单的18度舵机误离撒火限制就能在毫秒间掀翻算法精心勾勒的闭账轨",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 956.08,
+     "endSeconds": 981.08,
+     "textPreview": "里画框图的时候试着在脑子里感受一下那个方块背后数万吨钢铁和液压泵的重量没错为了把",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 981.08,
+     "endSeconds": 1006.16,
+     "textPreview": "是你的工程执决各位算错了可是要引发海难的啊最后呢既然我们聊到了法律责任的转移我想",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 1006.16,
+     "endSeconds": 1010.88,
+     "textPreview": "控的特别深度解析我们下次见再见祝大家逢考必过",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "545146c6cefc9ed9700f2a7ec9da3419fa199e39578f7d64106699ac65beefc1",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-3-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/5-3/media/5-3-intro-video.mp4",
+   "sha256": "75f1ab01aa6e285bc6e094f19e59f4ef715b8dac07e124f9bb7bb31c60bacf55",
+   "durationSeconds": 263.914667,
+   "transcriptSource": "videos-project:lesson-5-3/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 241.867,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 263.867,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 61,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 19.98,
+     "textPreview": "大家好，欢迎来到闲聊自控。普通闭环，讲的是参考、控制器、对象和测量。误差送进控制",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 19.98,
+     "endSeconds": 31.62,
+     "textPreview": "这套语言适合航向保持、平台稳定、速度调节。海上自主水面船面对的问题更长。它要感知",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.62,
+     "endSeconds": 45.74,
+     "textPreview": "还要规划行动意图，再变成舵角和推进指令。控制仍然重要，但它不再独自定义整个系统。",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 45.74,
+     "endSeconds": 56.8,
+     "textPreview": "感知回答：系统到底看到了什么。估计回答：这些不完整观测对应什么状态。规划回答：在",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 57.22,
+     "endSeconds": 65.38,
+     "textPreview": "控制回答：怎样把意图变成可执行的运动。执行器和船体把指令变成真实运动。",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 65.38,
+     "endSeconds": 78.77,
+     "textPreview": "运行结果再回到感知和估计，形成闭环。船偏了航迹，原因不一定出在控制器。经典闭环仍",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 78.77,
+     "endSeconds": 86.95,
+     "textPreview": "规划可能给出参考航迹、航向或速度剖面。控制层负责跟踪参考，并处理局部扰动。",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 86.95,
+     "endSeconds": 96.25,
+     "textPreview": "它还要尊重执行器和船体约束。它不直接决定感知是否完整。也不直接保证规划目标本身合",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 96.25,
+     "endSeconds": 109.36,
+     "textPreview": "控制器数学形式可能没错，输入却可能已经偏了。先分清责任，再决定要不要拧参数。控制",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 109.36,
+     "endSeconds": 119.87,
+     "textPreview": "传感器有噪声、遮挡、延迟和失效风险。估计层把观测整理成状态和不确定性。若估计偏移",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 120.29,
+     "endSeconds": 130.05,
+     "textPreview": "噪声会让误差抖动，执行器跟着频繁小动。测量延迟更隐蔽：比较的是几秒前的航向。看起",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 130.05,
+     "endSeconds": 138.73,
+     "textPreview": "反馈量是否可信，本身就是控制判断的一部分。规划面对的不是一个传递函数。",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 138.73,
+     "endSeconds": 147.39,
+     "textPreview": "它是带目标、规则、障碍和安全余量的任务空间。参考轨迹过急，控制器局部稳定也跟不上",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 147.39,
+     "endSeconds": 158.37,
+     "textPreview": "折线拐点会变成航向阶跃，舵角容易贴边。控制语言可以给规划提供可行域。最大舵角、舵",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 158.37,
+     "endSeconds": 171.39,
+     "textPreview": "不要先规划出不可执行的轨迹，再强行跟踪。规划越早吸收约束，控制越少用极端动作补救",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 171.39,
+     "endSeconds": 182.74,
+     "textPreview": "幅值和变化率限制，已经足以改变闭环表现。理想指令越限，实际控制量被截断，响应变慢",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 183.16,
+     "endSeconds": 195.7,
+     "textPreview": "五之一和五之二里的饱和死区，这里仍然在。只是它们被放进了更长的系统链路。诊断时不",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 195.7,
+     "endSeconds": 207.43,
+     "textPreview": "偏差不一定来自控制器。复杂系统的偏差，要按链路分层定位。先问原始观测是否可靠，再",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 207.43,
+     "endSeconds": 218.15,
+     "textPreview": "然后检查规划参考是否可执行。信息和参考都成立后，才轮到控制器参数。执行层看指令有",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 218.15,
+     "endSeconds": 227.86,
+     "textPreview": "监督层判断要不要降级或远程接管。日志里同时出现丢帧、急转和饱和时，直接调增益解释",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 229.87,
+     "endSeconds": 241.98,
+     "textPreview": "MASS 把经典控制放进更长的系统链路。感知、估计、规划、控制、执行，各有责任边",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 241.98,
+     "endSeconds": 250.97,
+     "textPreview": "还要把可行域和执行边界，明确反馈给整条链路。船偏了，先沿链路找原因，再决定动哪一",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "75f1ab01aa6e285bc6e094f19e59f4ef715b8dac07e124f9bb7bb31c60bacf55",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-3-course",
+   "kind": "video",
+   "runtimePath": "lessons/5-3/media/5-3-course.mp4",
+   "sha256": "02efd6a83d36487a1e2f112af67c6fca772c691f46a02c13ca18f64878e26e20",
+   "durationSeconds": 532.27102,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/5-3.json",
+   "transcriptSourceSha256": "02efd6a83d36487a1e2f112af67c6fca772c691f46a02c13ca18f64878e26e20",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 11.12,
+     "textPreview": "哈喽，同学们，欢迎来到本期的硬核技术解读。今天我们要把枯燥的控制理论和冲男孩研为",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 11.12,
+     "endSeconds": 20.0,
+     "textPreview": "如果你平时就对自动驾驶特别感兴趣，那你绝对不能错过今天的内容。你想想看，把那些在",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.0,
+     "endSeconds": 34.88,
+     "textPreview": "被直接搬到波涛汹涌、完全没有固定车道的大海上，那是个什么概念？准备好你们的好奇心",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 34.88,
+     "endSeconds": 50.57,
+     "textPreview": "这次解读可不是跟大家随便聊聊科幻概念，而是一次生动活泼但绝对严谨的工程学深浅，我",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 50.57,
+     "endSeconds": 60.01,
+     "textPreview": "今天的航线图很清晰，一共四步，先走进MAS，了解一下全貌，接着揭秘它的自主大脑。",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 60.01,
+     "endSeconds": 69.05,
+     "textPreview": "好，然后死磕一下极限闭障的物理学。最后我们来看看行业的未来时间表，直接进入正题。",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 69.05,
+     "endSeconds": 82.41,
+     "textPreview": "第一站，走进MASS，也就是海上自主的大局观。让我们先搞清楚这个宏大的终极目标，",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 82.41,
+     "endSeconds": 92.39,
+     "textPreview": "在我们开始掉头发算数学题之前，必须先认识一下今天的主角。Mass，它的全称是海上",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 92.39,
+     "endSeconds": 103.91,
+     "textPreview": "作为专注的终身学习者，大家只需要记住一个核心点：它绝对不仅仅是一条没有水手的船，",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 103.91,
+     "endSeconds": 114.59,
+     "textPreview": "为什么非得搞这个？因为现代航运要处理的环境数据、洋流信息、气象变化，那个量级已经",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 114.59,
+     "endSeconds": 124.35,
+     "textPreview": "把大数据的处理权交给机器，这就是航运发展的必然趋势。咱们回想一下航海史，责任的边",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 124.35,
+     "endSeconds": 138.51,
+     "textPreview": "从以前人类船长亲自在驾驶台掌舵，到后来出现了岸上有人或者无人的远程遥控，再到现在",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 138.51,
+     "endSeconds": 150.11,
+     "textPreview": "人类的双手正在彻底离开方向盘。整艘船的命运最终将完全交到传在AI系统或底层安全监",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 150.11,
+     "endSeconds": 160.91,
+     "textPreview": "这个大脑必须做到绝对、绝对的可靠。好了，概念理清了，咱们进入第二部分，揭秘这个自",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 160.91,
+     "endSeconds": 170.24,
+     "textPreview": "既然人类船长下船了，那这艘船的硅基大脑到底长什么样？他是这么思考的。我们这儿就打",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 170.24,
+     "endSeconds": 185.2,
+     "textPreview": "其实呢，不管这系统听起来多复杂，它的认知循环都可以用四个极简的步骤来概括。第一步",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 185.2,
+     "endSeconds": 197.94,
+     "textPreview": "第二步估计就非常有意思了，因为海上的风浪是不可测的，sensor也会有噪点，所以",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 197.94,
+     "endSeconds": 209.86,
+     "textPreview": "认清现实后，第三步是规划，在大脑里画出未来的安全航线。最后一步控制就是把想法变成",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 209.86,
+     "endSeconds": 222.83,
+     "textPreview": "这四步本质上就是机器在模仿人类面对未知时的思考方式。当然这四个步骤可不是走走过场",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 222.83,
+     "endSeconds": 245.39,
+     "textPreview": "环境信息输入进来，一路经过感知、估计、规划和控制，最终变成指令传达给传体。而这里",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 245.39,
+     "endSeconds": 270.43,
+     "textPreview": "这就是自主传播能够在大海上不断自我修正、乘风破浪的底层逻辑。到了大家可能又爱又恨",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 270.43,
+     "endSeconds": 279.47,
+     "textPreview": "糕状态Y。整个庞大复杂的控制算法，不管是算推力还是追航向，本质上都在死磕这一件事",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 279.47,
+     "endSeconds": 295.55,
+     "textPreview": "拼命把这个误差往零里压，如果误差太大，比如遇到大浪偏横了，控制系统就会像踩死油门",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 295.55,
+     "endSeconds": 306.77,
+     "textPreview": "不过呢，代码写的再漂亮，理论再完美。也得经得起现实的毒打。这就到了我们的第三部分",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 306.77,
+     "endSeconds": 325.09,
+     "textPreview": "大家千万要记住，一艘几万吨的巨轮可不是你在赛道上开的卡丁车。大家脑补一下这个极其",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 325.09,
+     "endSeconds": 342.89,
+     "textPreview": "这时候会发生什么？这已经不仅仅是个高风险的数学题了，这是一个生死攸关的物理学挑战",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 342.89,
+     "endSeconds": 351.53,
+     "textPreview": "如果算法在规划避障轨迹时严重低估了这艘大船的转弯半径，那灾难就不可避免了。",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 351.53,
+     "endSeconds": 367.73,
+     "textPreview": "算法的规划模块可能觉得我能像小汽车一样一把方向绕过去，结果指令下达，跺脚直接打满",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 367.73,
+     "endSeconds": 379.46,
+     "textPreview": "这就是为什么纯粹的软件逻辑绝对不能无视海洋物理定律，大自然可是从来不跟你讲道理的",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 379.46,
+     "endSeconds": 388.02,
+     "textPreview": "假设这艘船的长度L是34米，而它在物理结构上能做到的最大舵角被死死卡在18度。",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 388.02,
+     "endSeconds": 398.74,
+     "textPreview": "这就是物理学给算法定下的铁律。利用基础的三角函数，系统的转弯半径R就等于船长L除",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 398.74,
+     "endSeconds": 407.16,
+     "textPreview": "这意味着什么？这意味着算法必须在毫秒级的时间内明白，无论它多想来个急转弯，避开障",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 407.16,
+     "endSeconds": 417.96,
+     "textPreview": "它的机动能力是有绝对物理下限。套入公式算出来是多少呢？一百零五米。这是一个绝对的",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 417.96,
+     "endSeconds": 426.2,
+     "textPreview": "如果系统发现障碍物时距离已经小于这个数字，或者规划出来的避让路线转弯半径不到一百",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 426.2,
+     "endSeconds": 437.09,
+     "textPreview": "无论CPU算得多快，AI多智能，神仙也就不会来这场碰撞。控治理论在物理极限面前必",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 437.09,
+     "endSeconds": 448.61,
+     "textPreview": "从硬核的物理公式里跳出来，我们进入最后一部分——行业未来时间表，一起掌握一下地平",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 448.61,
+     "endSeconds": 456.99,
+     "textPreview": "那这些听起来像是未来科幻的技术，究竟什么时候才会真正在国际海域上大展拳脚呢？看看",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 456.99,
+     "endSeconds": 469.15,
+     "textPreview": "也就是IMO给出的时间表吧，这绝对不是什么遥不可及的梦。预计在2026年，MAS",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 469.15,
+     "endSeconds": 478.35,
+     "textPreview": "到了2030年，将进入第二阶段的深入采用；而到2032年，完善的长期监管基准将全",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 478.35,
+     "endSeconds": 487.94,
+     "textPreview": "因为我们要把数百年来以人类传、为核心的海事法则彻底重写成以算法、代码和误差方程为",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 487.94,
+     "endSeconds": 498.18,
+     "textPreview": "这是一项极其庞大的全球性工程，也意味着我们今天探讨的这些硬核公式很快就会变成全球",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 498.18,
+     "endSeconds": 522.1,
+     "textPreview": "这真是一个不可思议的时代，控制方程正在变成法律，数学代码正在掌控数万吨的钢铁巨兽",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 522.1,
+     "endSeconds": 532.27,
+     "textPreview": "希望今天的深度剖析能给你带来全新的启发，也欢迎大家随时去发散思考。我们下期解读再",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "02efd6a83d36487a1e2f112af67c6fca772c691f46a02c13ca18f64878e26e20",
+   "status": "anchored"
+  }
+ ]
+}

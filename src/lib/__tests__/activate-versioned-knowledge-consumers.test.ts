@@ -43,6 +43,8 @@ import type { TeachingProjectionAuthoringInput } from '../teaching-projection/co
 import {
   CONSUMER_ACTIVATION_CONTRACT,
   CONSUMER_ACTIVATION_IDS,
+  combinationEqual,
+  emptyCombination,
   activateConsumerActivation,
   assertShadowNoWriteInvariants,
   buildStagedActivationManifest,
@@ -1741,6 +1743,22 @@ describe('Consumer wiring and scope guards (#1276)', () => {
       if (prev === undefined) delete process.env.ACT_CONSUMER_ACTIVATION_ROOT;
       else process.env.ACT_CONSUMER_ACTIVATION_ROOT = prev;
     }
+  });
+
+  it('treats omitted bindingRelease fields as compatible with sealed combinations', () => {
+    const sealed = {
+      ...emptyCombination(),
+      authorityReleaseId: 'ctr:release:eng-v0',
+      authoritySnapshotId: 'snap-old',
+      authoritySnapshotHash: hashF,
+      projectionId: 'proj-old',
+      projectionHash: hashE,
+    };
+    expect(combinationEqual(sealed, { ...sealed, bindingReleaseId: null, bindingHash: null })).toBe(true);
+    expect(combinationEqual(
+      { ...sealed, bindingReleaseId: 'control-theory-engineering-v0.37-r6-b2', bindingHash: hashA },
+      sealed,
+    )).toBe(false);
   });
 
   it('ships consumer-activation schema without remote deploy or legacy deletion hooks', () => {

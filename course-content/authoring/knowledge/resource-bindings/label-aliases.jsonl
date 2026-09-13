@@ -1,0 +1,9 @@
+# Manual label aliases for anchor matching (act-resource-binding label alias / v1).
+# Each row maps one canonical id to surface forms that the course materials use but the
+# v0.37-r6 label indexes do not carry (Latin names, colloquial short forms). Aliases are
+# exact substrings; they never create identity by similarity. Keep this list small and
+# unambiguous: one canonical id per alias.
+{"canonicalId":"ctkg:v3e-object-785280d429b7e1a5f2f5db53","language":"zh-CN","aliases":["Nyquist 判据","Nyquist判据","奈氏判据","Nyquist 稳定判据","Nyquist稳定判据"],"note":"奈奎斯特稳定判据 DomainConcept"}
+{"canonicalId":"ctkg:v3e-object-763fd65e573e7a65dfc4b79c","language":"zh-CN","aliases":["Nyquist 图","Nyquist图","奈氏图","Nyquist 曲线","Nyquist曲线","奈奎斯特曲线"],"note":"奈奎斯特图 DomainConcept"}
+{"canonicalId":"ctkg:v3e-canonical-504581e399675b9792ab8502","language":"zh-CN","aliases":["Bode 图","Bode图","波特图","Bode 曲线","Bode曲线"],"note":"伯德图 DomainConcept (canonical)"}
+{"canonicalId":"ctkg:v3e-object-cfdae92ada72d7710e7f1cee","language":"zh-CN","aliases":["劳斯判据","Routh 判据","Routh判据","劳斯稳定判据","劳斯-赫尔维茨判据"],"note":"劳斯-赫尔维茨稳定性判据 DomainConcept"}

@@ -1,0 +1,76 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "1-2",
+ "canonicalIds": [
+  "ctc:90af7a0497e616bbe6249c30",
+  "ctc:modeling-1a01abb71d037ed52c2bc394",
+  "ctc:modeling-34de45f2470f6c09c7d96698",
+  "ctc:modeling-70629af71e754aac8b740638",
+  "ctc:modeling-7734a0845c335f160395bac0",
+  "ctc:modeling-865eb1c8824e157c2f05a903",
+  "ctc:modeling-9121dc2c97afa77f52ce0220",
+  "ctc:modeling-aa10e4daa1e969c557f6ef83",
+  "ctc:modeling-bddaef2510e39cbb62d60df2",
+  "ctc:modeling-c26fddc50074ec84707d5950",
+  "ctc:modeling-v2r-split-0045791b9009bbe457f6e17a",
+  "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+  "ctc:v11g-13a9994c50acce777819aa2a",
+  "ctc:v11g-40ac1517fc1bfb398dd75afe",
+  "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+  "ctkg:v3e-canonical-47995819305793bf4c946953",
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d"
+ ],
+ "sources": {
+  "ctc:90af7a0497e616bbe6249c30": [
+   "topic:ode"
+  ],
+  "ctc:modeling-1a01abb71d037ed52c2bc394": [
+   "topic:block-diagram"
+  ],
+  "ctc:modeling-34de45f2470f6c09c7d96698": [
+   "topic:linearization"
+  ],
+  "ctc:modeling-70629af71e754aac8b740638": [
+   "topic:linearization"
+  ],
+  "ctc:modeling-7734a0845c335f160395bac0": [
+   "topic:model"
+  ],
+  "ctc:modeling-865eb1c8824e157c2f05a903": [
+   "topic:transfer"
+  ],
+  "ctc:modeling-9121dc2c97afa77f52ce0220": [
+   "topic:flow-graph"
+  ],
+  "ctc:modeling-aa10e4daa1e969c557f6ef83": [
+   "topic:transfer"
+  ],
+  "ctc:modeling-bddaef2510e39cbb62d60df2": [
+   "topic:block-diagram"
+  ],
+  "ctc:modeling-c26fddc50074ec84707d5950": [
+   "topic:lti"
+  ],
+  "ctc:modeling-v2r-split-0045791b9009bbe457f6e17a": [
+   "topic:laplace"
+  ],
+  "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb": [
+   "topic:poles"
+  ],
+  "ctc:v11g-13a9994c50acce777819aa2a": [
+   "topic:closed-poles"
+  ],
+  "ctc:v11g-40ac1517fc1bfb398dd75afe": [
+   "topic:characteristic"
+  ],
+  "ctkg:v3e-canonical-04fd7f69994f8821467462e5": [
+   "topic:laplace"
+  ],
+  "ctkg:v3e-canonical-47995819305793bf4c946953": [
+   "topic:poles"
+  ],
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": [
+   "topic:closed-poles"
+  ]
+ }
+}

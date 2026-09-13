@@ -1,0 +1,96 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "1-1",
+ "canonicalIds": [
+  "ctc:modeling-00d2998755974a1329049aac",
+  "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+  "ctc:modeling-7734a0845c335f160395bac0",
+  "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+  "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+  "ctc:v11g-5845390ded447e37f06ea222",
+  "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+  "ctkg:domainconcept:fef4835248def04a043183ee",
+  "ctkg:v3e-canonical-47995819305793bf4c946953",
+  "ctkg:v3e-canonical-504581e399675b9792ab8502",
+  "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+  "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+  "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+  "ctkg:v3e-object-8496155b16d82318d90949d0",
+  "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+  "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e"
+ ],
+ "sources": {
+  "ctc:modeling-00d2998755974a1329049aac": [
+   "topic:gain"
+  ],
+  "ctc:modeling-47e8eb68c1aa5cd068c72e54": [
+   "topic:feedback"
+  ],
+  "ctc:modeling-7734a0845c335f160395bac0": [
+   "topic:model"
+  ],
+  "ctc:modeling-8aa475ed6514adc11f9b5c8d": [
+   "topic:system"
+  ],
+  "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb": [
+   "topic:poles"
+  ],
+  "ctc:v11g-5845390ded447e37f06ea222": [
+   "topic:root-locus"
+  ],
+  "ctkg:domainconcept:cb7da716d9229f0af132e0c1": [
+   "topic:open-loop"
+  ],
+  "ctkg:domainconcept:fef4835248def04a043183ee": [
+   "topic:closed-loop"
+  ],
+  "ctkg:v3e-canonical-47995819305793bf4c946953": [
+   "topic:poles"
+  ],
+  "ctkg:v3e-canonical-504581e399675b9792ab8502": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71": [
+   "topic:error-signal"
+  ],
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b": [
+   "topic:stability"
+  ],
+  "ctkg:v3e-object-0a05ec9e84791b95d3794bc0": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede": [
+   "topic:performance"
+  ],
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7": [
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee": [
+   "topic:p-control"
+  ],
+  "ctkg:v3e-object-8496155b16d82318d90949d0": [
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-c437a7c8ef65d5677ad5c387": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085": [
+   "topic:stability"
+  ],
+  "ctkg:v3e-object-f1df5739a34bf55489aeeeeb": [
+   "topic:compensation"
+  ],
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e": [
+   "topic:bode"
+  ]
+ }
+}

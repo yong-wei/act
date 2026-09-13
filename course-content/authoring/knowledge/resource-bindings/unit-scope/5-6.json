@@ -1,0 +1,52 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "5-6",
+ "canonicalIds": [
+  "ctc:90af7a0497e616bbe6249c30",
+  "ctkg:domainconcept:42146fa04dc1459716346cc7",
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+  "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+  "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+  "ctkg:v3e-object-5104f48a9527029987e0519a",
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a"
+ ],
+ "sources": {
+  "ctc:90af7a0497e616bbe6249c30": [
+   "topic:ode"
+  ],
+  "ctkg:domainconcept:42146fa04dc1459716346cc7": [
+   "topic:disturbance-rejection"
+  ],
+  "ctkg:domainconcept:9e92915575b3e20ce84b58ab": [
+   "topic:feedforward"
+  ],
+  "ctkg:domainconcept:c2edca0b60ba1ce87eb78146": [
+   "topic:feedforward"
+  ],
+  "ctkg:domainconcept:d582399ff6cef0663ad4e2a7": [
+   "topic:measurement-noise"
+  ],
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c": [
+   "topic:first-order"
+  ],
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-object-5104f48a9527029987e0519a": [
+   "topic:feedforward"
+  ],
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81": [
+   "topic:pi"
+  ],
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a": [
+   "topic:pi"
+  ]
+ }
+}

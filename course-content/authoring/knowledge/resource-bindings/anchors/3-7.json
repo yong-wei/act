@@ -1,0 +1,1736 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-7",
+ "unitIndex": 15,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-7/3-7-handout.md",
+  "sha256": "bb91da00d74187bb85807d30d5db35e4347d489100cc289671e3b38c8266d9da"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图：为什么动态改善之后还可能不够准",
+   "groupName": "从动态改善切到误差通道",
+   "textChars": 211,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "学习目标与边界：本课先回答“为什么更准”",
+   "groupName": "从动态改善切到误差通道",
+   "textChars": 246,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 20,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测：给定、扰动、型别三类混淆",
+   "groupName": "从动态改善切到误差通道",
+   "textChars": 304,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "双通道骨架：四类传函分卡命名",
+   "groupName": "从动态改善切到误差通道",
+   "textChars": 638,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "终值定理直接求：原理模块与例题 1 分离",
+   "groupName": "直接求与快速判",
+   "textChars": 409,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "终值定理_3_be8fe1ad"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "系统型别_3_5573c2c3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "型别与静态误差系数：双表并排快判",
+   "groupName": "直接求与快速判",
+   "textChars": 653,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "终值定理_3_be8fe1ad"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 112,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "系统型别_3_5573c2c3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "复合例题：给定与扰动共同作用时为什么不能只套表",
+   "groupName": "直接求与快速判",
+   "textChars": 378,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "终值定理_3_be8fe1ad"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "系统型别_3_5573c2c3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "增益变大 vs 型别提高：哪一种会改变误差阶次",
+   "groupName": "直接求与快速判",
+   "textChars": 309,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "终值定理_3_be8fe1ad"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "静态误差系数_3_7080d9f8"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "系统型别_3_5573c2c3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "低频补偿总览：PI、滞后与超前的结构差别",
+   "groupName": "低频补偿与稳态改善路径",
+   "textChars": 574,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "比例-积分控制器_3_2d540516"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "时域 PI 设计：先证明纯增益不够，再改结构",
+   "groupName": "低频补偿与稳态改善路径",
+   "textChars": 427,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "比例-积分控制器_3_2d540516"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-f1592d0294e49b97a717c2f0",
+     "matchedLabel": "斜坡输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "时域滞后设计：型别不变时怎样抬高低频增益",
+   "groupName": "低频补偿与稳态改善路径",
+   "textChars": 447,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "比例-积分控制器_3_2d540516"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "时域两法比较：收益、代价与适用场景",
+   "groupName": "低频补偿与稳态改善路径",
+   "textChars": 165,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "比例-积分控制器_3_2d540516"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "频域 PI 设计：纯增益为何不能两头兼顾",
+   "groupName": "频域设计与速度优先方案",
+   "textChars": 405,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "比例-积分控制器_3_2d540516"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "频域 PD 方案读取：速度优先方案的核验结果",
+   "groupName": "频域设计与速度优先方案",
+   "textChars": 453,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "比例-积分控制器_3_2d540516"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "频域两法比较：低频精度优先 vs 动态速度优先",
+   "groupName": "频域设计与速度优先方案",
+   "textChars": 179,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-2624e6b30f6178715ae3b198",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "比例-积分控制器_3_2d540516"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "后测：路径选择与方法判断",
+   "groupName": "后测与频域收束",
+   "textChars": 528,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "收束与去向：规则表、信息图与 3-8 入口",
+   "groupName": "后测与频域收束",
+   "textChars": 423,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-系统已经稳定了-为什么还可能不够准",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：系统已经稳定了，为什么还可能不够准",
+   "startLine": 14,
+   "endLine": 28,
+   "bodyChars": 265,
+   "canonical": []
+  },
+  {
+   "headingId": "h2-误差分析主线-先分通道-再谈型别",
+   "order": 2,
+   "level": 2,
+   "title": "二、误差分析主线：先分通道，再谈型别",
+   "startLine": 29,
+   "endLine": 30,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-误差先从两类来源理解",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 误差先从两类来源理解",
+   "startLine": 31,
+   "endLine": 46,
+   "bodyChars": 323,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "matchedLabel": "终值定理",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-给定与扰动为何必须分通道",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 给定与扰动为何必须分通道",
+   "startLine": 47,
+   "endLine": 111,
+   "bodyChars": 1130,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-终值定理-稳态误差的直接求法",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 终值定理：稳态误差的直接求法",
+   "startLine": 112,
+   "endLine": 189,
+   "bodyChars": 905,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "matchedLabel": "终值定理",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-型别与静态误差系数-稳态误差的快速判断",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 型别与静态误差系数：稳态误差的快速判断",
+   "startLine": 190,
+   "endLine": 267,
+   "bodyChars": 1408,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "matchedLabel": "终值定理",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+     "matchedLabel": "开环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-给定与扰动共同作用下如何求稳态误差",
+   "order": 7,
+   "level": 3,
+   "title": "2.5 给定与扰动共同作用下如何求稳态误差",
+   "startLine": 268,
+   "endLine": 335,
+   "bodyChars": 1325,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "matchedLabel": "终值定理",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-为什么结构性误差不能靠纯调增益消除",
+   "order": 8,
+   "level": 3,
+   "title": "2.6 为什么结构性误差不能靠纯调增益消除",
+   "startLine": 336,
+   "endLine": 361,
+   "bodyChars": 405,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-`PI`-与滞后校正-同属低频补偿-但设计逻辑不同",
+   "order": 9,
+   "level": 2,
+   "title": "三、`PI` 与滞后校正：同属低频补偿，但设计逻辑不同",
+   "startLine": 362,
+   "endLine": 363,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-两种低频补偿的结构差别",
+   "order": 10,
+   "level": 3,
+   "title": "3.1 两种低频补偿的结构差别",
+   "startLine": 364,
+   "endLine": 398,
+   "bodyChars": 887,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+     "matchedLabel": "系统型别",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-基于时域指标的-`PI`-设计-先证明纯增益不够-再改结构",
+   "order": 11,
+   "level": 3,
+   "title": "3.2 基于时域指标的 `PI` 设计：先证明纯增益不够，再改结构",
+   "startLine": 399,
+   "endLine": 505,
+   "bodyChars": 1894,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+     "matchedLabel": "斜坡稳态误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+     "matchedLabel": "系统型别",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-基于时域指标的滞后校正-同样要先画可行域",
+   "order": 12,
+   "level": 3,
+   "title": "3.3 基于时域指标的滞后校正：同样要先画可行域",
+   "startLine": 506,
+   "endLine": 557,
+   "bodyChars": 976,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+     "matchedLabel": "速度误差",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-基于频域指标的-`PI`-设计-先说明纯增益为什么不可能两头兼顾",
+   "order": 13,
+   "level": 3,
+   "title": "3.4 基于频域指标的 `PI` 设计：先说明纯增益为什么不可能两头兼顾",
+   "startLine": 558,
+   "endLine": 653,
+   "bodyChars": 1440,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+     "matchedLabel": "速度误差",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+     "matchedLabel": "系统型别",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-频域设计下-`PI`-与-`PD`-的性能差异",
+   "order": 14,
+   "level": 3,
+   "title": "3.5 频域设计下 `PI` 与 `PD` 的性能差异",
+   "startLine": 654,
+   "endLine": 692,
+   "bodyChars": 789,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1ca93c10f7b87df4cc16b696",
+     "matchedLabel": "频域设计",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-收束-为什么这会自然过渡到-3-8",
+   "order": 15,
+   "level": 3,
+   "title": "3.6 收束：为什么这会自然过渡到 3-8",
+   "startLine": 693,
+   "endLine": 705,
+   "bodyChars": 241,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-工程视角-长期偏一点-整段航程都在付代价",
+   "order": 16,
+   "level": 2,
+   "title": "四、工程视角：长期偏一点，整段航程都在付代价",
+   "startLine": 706,
+   "endLine": 717,
+   "bodyChars": 162,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-本节小结与前后衔接",
+   "order": 17,
+   "level": 2,
+   "title": "五、本节小结与前后衔接",
+   "startLine": 718,
+   "endLine": 732,
+   "bodyChars": 377,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "matchedLabel": "终值定理",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-附录-A-稳态误差求解路径判断表",
+   "order": 18,
+   "level": 2,
+   "title": "附录 A：稳态误差求解路径判断表",
+   "startLine": 733,
+   "endLine": 745,
+   "bodyChars": 268,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+     "matchedLabel": "终值定理",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-附录-B-本讲用到的复现脚本",
+   "order": 19,
+   "level": 2,
+   "title": "附录 B：本讲用到的复现脚本",
+   "startLine": 746,
+   "endLine": 754,
+   "bodyChars": 169,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-7-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-7/media/3-7-audio.m4a",
+   "sha256": "95fe81de36ce0485eeb6a30d07b85fc8c7a1e2da1d87a2d0e39d622915f6a382",
+   "durationSeconds": 1149.225215,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-7.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.04,
+     "textPreview": "想象一下各位同学呃就是你正开着一辆带有定速巡航的汽车在高速上疾驰你把速度完美的设",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.04,
+     "endSeconds": 50.08,
+     "textPreview": "死死的卡在九十八公里每小时它就是不肯往上走哇差着两公里这简直让人抓狂真的特别抓狂",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.24,
+     "endSeconds": 75.4,
+     "textPreview": "我是女主持人思稳在今天的自控原理闲聊中我们要把那些平时在课本上看起来冰冷枯燥的控",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.4,
+     "endSeconds": 100.44,
+     "textPreview": "一期深度探讨将要拆解的是自动控制原理的单元三杠七也就是那个刑别积分环节与稳态改善",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.44,
+     "endSeconds": 125.44,
+     "textPreview": "第一步得先弄明白一个最基础的物理现实即就是既然我们的控制系统如此智能误差到底是从",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.44,
+     "endSeconds": 165.0,
+     "textPreview": "生在我们的闭环控制系统中你要消灭误差得先认清你的敌人是从哪几个门进来的没错系统里",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 165.0,
+     "endSeconds": 191.88,
+     "textPreview": "传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 191.88,
+     "endSeconds": 220.0,
+     "textPreview": "传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传传",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 220.0,
+     "endSeconds": 275.0,
+     "textPreview": "通道也就是我们数学上常写的R还有一个就是扰动通道也就是那个d各位同学都是学自动化",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 275.0,
+     "endSeconds": 330.0,
+     "textPreview": "理世界里的这阵狂风它是结结实实的吹在了汽车的车身上而不是吹在你那个高端的定速循环",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 330.0,
+     "endSeconds": 385.0,
+     "textPreview": "差资料里给了我们两条截然不同的路径哪两条一条是直接求法就是利用那个终值定理另一条",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+       "matchedLabel": "终值定理",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 385.0,
+     "endSeconds": 410.6,
+     "textPreview": "为工程设计要求的不仅仅是算的准他更要求直觉和率你说的忠实定理确实是个极其强大的万",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 410.6,
+     "endSeconds": 435.69,
+     "textPreview": "上终之定理对吧对的因为在这个极限运算的过程中终值定理其实扮演了一个物理学上的稳态",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+       "matchedLabel": "终值定理",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 435.81,
+     "endSeconds": 465.52,
+     "textPreview": "里的S给约掉这就相当于过滤器直接把所有代",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 476.66,
+     "endSeconds": 502.36,
+     "textPreview": "表动态变化的震荡的频率成分全给抹平了哇大浪淘沙最后只留下那个静止状态下的常数没错",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+       "matchedLabel": "终值定理",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 48,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 502.84,
+     "endSeconds": 531.88,
+     "textPreview": "的一种追踪能力等级是的针对标准的单位反馈系统我们面对的输入通常不是一成不变的我们",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+       "matchedLabel": "单位反馈系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 531.88,
+     "endSeconds": 557.34,
+     "textPreview": "奔的目标刨无线信号系统开环传对函数里包含的积分环节的数量也就是分母里那个独立S的",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 557.6,
+     "endSeconds": 583.64,
+     "textPreview": "用来接漏水的塑料桶这个比喻太形象了只要系统",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 584.64,
+     "endSeconds": 615.44,
+     "textPreview": "里存在一丁点像水滴一样的微小误差这个积分统就会把这些误差一滴一滴的收积累加起来水",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 605.0,
+     "endSeconds": 660.0,
+     "textPreview": "标准系根等不需要去求复杂的极限举个例子比如你面对一个复杂的输入信号它同时包含静止",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+       "matchedLabel": "二型系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+       "matchedLabel": "稳态精度",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 660.0,
+     "endSeconds": 750.64,
+     "textPreview": "咱们的老熟人了但各位同学请在脑子里浮现出我们刚才那个接水桶的画面PI小郑它的全称",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+       "matchedLabel": "零型系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+       "matchedLabel": "积分控制",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 750.64,
+     "endSeconds": 775.91,
+     "textPreview": "低的频率开始呈现一条斜率朝下的斜线然后再被零点拉平它本质上赋予了系统在极低频率下",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 776.09,
+     "endSeconds": 825.0,
+     "textPreview": "现在在系同眼里看起来就像一米那么巨大系统会拼了命的去纠正他是这样的但是无论信费多",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+       "matchedLabel": "PI控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 825.0,
+     "endSeconds": 880.0,
+     "textPreview": "剧烈摇甚至直接一头栽下来这就是我们今天要探讨的最后一块儿核心动态与稳态的终极拉扯",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 880.0,
+     "endSeconds": 935.0,
+     "textPreview": "机为了看清远处极小的路标死盯着前方结果却来不及躲开眼前突然窜出来的一条狗如果在课",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+       "matchedLabel": "速度误差",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 935.0,
+     "endSeconds": 960.2,
+     "textPreview": "头PD就一巴掌拍回去对它在曲线上展现出了极快的阶与响系统像风暴一样迅速达到稳定值",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 960.2,
+     "endSeconds": 990.16,
+     "textPreview": "得容易",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 990.16,
+     "endSeconds": 1015.44,
+     "textPreview": "振你想让系统动作极快阻尼极大就得加V分代价就是你必须容忍稳态下那无法消除的一丝遗",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 1015.44,
+     "endSeconds": 1040.48,
+     "textPreview": "里当大家面对真实的工程项旅计计这种妥协每天都在发生如果你的项目是一个精密的数数机",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 1040.8,
+     "endSeconds": 1065.88,
+     "textPreview": "障的高速无人机那你宁可让它偏离行十厘米也绝对要求他在发现数之的零点几秒内瞬间做出",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 1065.88,
+     "endSeconds": 1100.16,
+     "textPreview": "体了没错那么在今天的节目的最后我要面向各位一直听到这里热爱硬核知识的同学们抛出一",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 1100.16,
+     "endSeconds": 1125.36,
+     "textPreview": "学既然我们自动化人最擅长的就是掌控和折宠你有没有想过如果我不妥协呢哇这么狠就是如",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 1125.36,
+     "endSeconds": 1148.96,
+     "textPreview": "草稿纸上或者在M地好好推演一番相信我当你亲手调出那条既兼顾了速度又消灭了误差的曲",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "95fe81de36ce0485eeb6a30d07b85fc8c7a1e2da1d87a2d0e39d622915f6a382",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-7-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-7/media/3-7-intro-video.mp4",
+   "sha256": "ba4bdfab812083ed206466932abe9eb8714e495fddc37db3b5cb7188b47527c5",
+   "durationSeconds": 150.421333,
+   "transcriptSource": "videos-project:lesson-3-7/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 128.367,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 150.367,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 35,
+   "segments": [],
+   "activeReleaseSha256": "e3273cf3d1f074603d3a9017176e160b0959df3e2a1b36cb791d06219f2e08a5",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-7-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-7/media/3-7-course.mp4",
+   "sha256": "dfa4f7abe44a83907dc291ec95da71ad33a675d6dbb94dcf0e599bcd1f062630",
+   "durationSeconds": 436.140408,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-7.json",
+   "transcriptSourceSha256": "dfa4f7abe44a83907dc291ec95da71ad33a675d6dbb94dcf0e599bcd1f062630",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 8.88,
+     "textPreview": "嘿，同学们好。今天咱们来聊一个控制系统里头特别经典也特别让人头疼的问题——稳态误",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 8.88,
+     "endSeconds": 19.04,
+     "textPreview": "它就像个幽灵，明明你的系统已经稳定下来了，它却还赖着不走。那么今天咱们就来看看怎",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 19.04,
+     "endSeconds": 44.57,
+     "textPreview": "OK，这儿制咱们今天的路线图，首先呢，咱们得搞清楚为啥稳定了还会不完美，然后当一",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 44.57,
+     "endSeconds": 54.57,
+     "textPreview": "好，我们先进入第一个环节，您有没有过这种感觉？你辛辛苦苦搭了个系统，仿真跑出来，",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 54.57,
+     "endSeconds": 68.25,
+     "textPreview": "但是就是感觉哪儿不对劲，总差那么一点。这个问题可以说是很多同学的意难平了，系统明",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 68.25,
+     "endSeconds": 83.93,
+     "textPreview": "这到底是为什么呢？难道是系统懒了吗？别急，要想解决问题，咱们得先找到根源。现在咱",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 83.93,
+     "endSeconds": 101.07,
+     "textPreview": "好，大家看这张图。这个可以说是所有反馈控制系统的一张通用地图了。我们的误差ES就",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+       "matchedLabel": "反馈控制系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 101.07,
+     "endSeconds": 109.79,
+     "textPreview": "咱们的任务就是顺着信号的流动，把造成这个差值的元凶给揪出来。所以到底啥是稳态误差",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 109.79,
+     "endSeconds": 118.55,
+     "textPreview": "说白了就是系统在经历了开头的各种手忙脚乱、上窜下跳之后，终于佛系了，稳定下来了。",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 118.55,
+     "endSeconds": 128.55,
+     "textPreview": "可就在这个时候，你一看，嘿，实际值和目标值之间还差着一截呢。这一节永远存在的差距",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 128.55,
+     "endSeconds": 137.99,
+     "textPreview": "经过我们侦探的一番调查，发现元凶不止一个，主要有两个。第一个是你自己给的指令。",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 137.99,
+     "endSeconds": 159.91,
+     "textPreview": "也就是参考输入RS，第二个呢是外部的腰封，也就是扰动DS。咱们一个一个来看，先看",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+       "matchedLabel": "参考输入",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 159.91,
+     "endSeconds": 170.49,
+     "textPreview": "比如你让一个系统去跟踪一个斜坡型号。它可能就像一个总比别人慢半拍的人，永远都差那",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 170.49,
+     "endSeconds": 183.61,
+     "textPreview": "再来看第二个元凶——扰动，这个就更好理解了。你想象一下，一架无人机正在稳稳地飞行",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 183.61,
+     "endSeconds": 193.29,
+     "textPreview": "在这个抵抗的过程中，它的位置就不可避免地会产生偏差。所以你看不光要自己跑得对，还",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 193.29,
+     "endSeconds": 203.61,
+     "textPreview": "好了，既然元、熊都找到了，那我们的武器在哪儿呢？别急，接下来咱们就请出能够彻底消",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 203.61,
+     "endSeconds": 218.61,
+     "textPreview": "没错，这个秘密武器就是积分环节，也就是我们常说的PI控制里的那个I。你可以把它想",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 218.61,
+     "endSeconds": 233.49,
+     "textPreview": "那这个计筹小本本是怎么工作的呢？你看啊，他特别执着。首先他会一直盯着误差看，只要",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 233.49,
+     "endSeconds": 245.15,
+     "textPreview": "只要这个累加值不等于零，他就会一直加大控制力度，推着系图往前走。什么时候停呢？只",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 245.15,
+     "endSeconds": 259.07,
+     "textPreview": "是不是特别杠呢？不过呢，有英雄自然就有对手。咱们这个追求极致精度的极分控制器PI",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 259.07,
+     "endSeconds": 269.57,
+     "textPreview": "那么当精度遇上速度，到底谁更胜一筹？来，让他俩上台比划比划。哇，这张对比图简直是",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 269.57,
+     "endSeconds": 278.77,
+     "textPreview": "大家看左边是系统响应，橙色线是P，紫色线是P，你看紫色的P确是快嗖的一下就上去了",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 278.77,
+     "endSeconds": 287.01,
+     "textPreview": "但是你再看右边的误差曲线，紫色的P虽然很快稳定了，但它的误差始终大于零。而橙色的",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 287.01,
+     "endSeconds": 297.29,
+     "textPreview": "虽然启动慢了半拍，但你看它的误差稳稳的、坚定的最终归零了。所以结论就很清楚了，这",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 297.29,
+     "endSeconds": 307.13,
+     "textPreview": "你是想要PI控制器带来的那种分号不差的完美精度呢？还是要PD控制器那种天下武功唯",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+       "matchedLabel": "PI控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 307.13,
+     "endSeconds": 319.61,
+     "textPreview": "在很多时候，这两者你只能选一个。这就引出了一个更深层的问题：PI控制为了达到完美",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 319.61,
+     "endSeconds": 330.01,
+     "textPreview": "这就是他为高精度买的单，因为他需要时间去累积误差，去记忆历史。所以他不可能像PD",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 330.01,
+     "endSeconds": 340.73,
+     "textPreview": "好了，理论说了这么多，回到现实世界，当你在做项目的时候，到底该怎么决策呢？别慌，",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 340.73,
+     "endSeconds": 355.93,
+     "textPreview": "这张图就是咱们的决策制，你看。从分析误差开始，我们就有两条路可以走。一条路就是我",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 355.93,
+     "endSeconds": 365.77,
+     "textPreview": "另一条路呢，叫滞后效证。你可以把它看成是PI的一个近亲，它也能减少误差，但效果和",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 365.77,
+     "endSeconds": 378.5,
+     "textPreview": "具体怎么选，就看你对精度的要求到底有多苛刻了。所以最核心的策略就三步：第一步，永",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 378.5,
+     "endSeconds": 394.34,
+     "textPreview": "第二步，选择武器，如果你的老板说我要求误差必须是零，那别犹豫，直接上PI；第三步",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 394.34,
+     "endSeconds": 406.33,
+     "textPreview": "这句话说的真的太好了。他完美的总结了控制系统设计的两个维度：动态性能，关心的是快",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 406.33,
+     "endSeconds": 420.21,
+     "textPreview": "而稳态性能呢，关心的是准不准，以及为了这个准，你付出了什么代价。哎，说到这，你肯",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 420.21,
+     "endSeconds": 429.09,
+     "textPreview": "如果咱们把PID的执着和PD的训诫结合起来，搞一个全能的PID控制器，又会发生什",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 429.09,
+     "endSeconds": 436.14,
+     "textPreview": "嗯，这就是我们下一次要聊的故事了。感谢大家的收听。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "dfa4f7abe44a83907dc291ec95da71ad33a675d6dbb94dcf0e599bcd1f062630",
+   "status": "anchored"
+  }
+ ]
+}

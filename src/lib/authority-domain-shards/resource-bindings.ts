@@ -9,8 +9,18 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { buildTeachingResourceLaunchMaps } from '@/lib/layered-graph/teaching-resource-launch-maps';
-import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
+import {
+  anchorDisplayLabel,
+  buildTeachingResourceLaunchMaps,
+  resolveAnchoredLaunchHref,
+  type LaunchableResource,
+} from '@/lib/layered-graph/teaching-resource-launch-maps';
+import type { AnchoredBindingRuntime, AnchoredResourceRuntime } from '@/lib/resource-binding-release/contracts';
+import { loadResourceBindingRelease } from '@/lib/resource-binding-release/store';
+import {
+  readAgreedLiveResourceBindingRelease,
+  resolveConfiguredTeachingProjectionRoot,
+} from '@/lib/teaching-projection/live-course-pointer';
 import { humanTitleFromResourceId } from '@/lib/teaching-projection/resource-title';
 import {
   loadStagedTeachingProjection,
@@ -92,13 +102,21 @@ function isHiddenFromViewer(href: string, role: KnowledgeRole | undefined): bool
   return /^(?:\/teacher|\/admin|\/api\/teacher|\/api\/admin)(?:\/|$)/.test(href);
 }
 
+/** Either a course-projection binding (legacy B′) or an anchored binding-release binding. */
+export type ProjectableBinding = TeachingBindingRuntime | AnchoredBindingRuntime;
+export type ProjectableResource = LaunchableResource & Pick<TeachingResourceRuntime, 'title' | 'sourcePath'>;
+
+function isAnchoredBinding(binding: ProjectableBinding): binding is AnchoredBindingRuntime {
+  return 'anchor' in binding && typeof binding.anchor === 'object' && binding.anchor !== null;
+}
+
 export function projectAuthorityNodeResourceBindings(input: {
   nodeId: string;
-  bindings: readonly TeachingBindingRuntime[];
-  resources: readonly TeachingResourceRuntime[];
+  bindings: readonly ProjectableBinding[];
+  resources: readonly ProjectableResource[];
   viewerRole?: KnowledgeRole;
   resolveViewerContent?: (
-    resource: TeachingResourceRuntime,
+    resource: ProjectableResource,
   ) => ActiveResourceViewerContent | null;
 }): ActiveNodeResourceBindings {
   const matched = input.bindings.filter((binding) => binding.canonicalId === input.nodeId);
@@ -115,7 +133,11 @@ export function projectAuthorityNodeResourceBindings(input: {
     const title = resource?.title?.trim()
       || (resource ? humanTitleFromResourceId(resource.resourceId) : null);
     if (!title) continue;
-    const candidateHref = launchMaps.resourceLaunchTargets[binding.resourceId] ?? null;
+    const baseHref = launchMaps.resourceLaunchTargets[binding.resourceId] ?? null;
+    const anchored = isAnchoredBinding(binding) ? binding : null;
+    const candidateHref = anchored && resource
+      ? resolveAnchoredLaunchHref(resource, anchored.anchor, baseHref)
+      : baseHref;
     const resolved = resource?.resourceType === 'textbook-section' && candidateHref
       ? { href: candidateHref }
       : resolveSafeLaunchTarget(candidateHref);
@@ -132,6 +154,7 @@ export function projectAuthorityNodeResourceBindings(input: {
       ? (launchMaps.resourceRegistryIds[binding.resourceId] ? 'registry-resource' : 'direct-route')
       : 'unavailable';
     const item: ActiveResourceBinding = {
+      resourceId: binding.resourceId,
       title,
       bindingRole: ROLE_LABEL[binding.role],
       resourceKind: resourceKindLabel(resource?.resourceType ?? null),
@@ -139,14 +162,24 @@ export function projectAuthorityNodeResourceBindings(input: {
       launch: { kind, href: viewerShell ? null : href },
     };
     if (viewer) item.viewer = viewer;
+    if (anchored) {
+      item.anchorLabel = anchorDisplayLabel(anchored.anchor);
+      item.appearance = anchored.appearance;
+      item.unitId = anchored.teachingOrder?.unitId ?? null;
+    }
     items.push(item);
   }
   if (items.length === 0) {
     return { state: 'empty', message: '暂无已授权系统资源。' };
   }
+  const appearanceRank = (item: ActiveResourceBinding) =>
+    item.appearance === 'first' ? 0 : item.appearance === 'revisit' ? 1 : 2;
   items.sort((left, right) =>
-    ROLE_ORDER.indexOf(left.bindingRole) - ROLE_ORDER.indexOf(right.bindingRole)
-    || left.title.localeCompare(right.title, 'zh-CN'));
+    appearanceRank(left) - appearanceRank(right)
+    || (left.unitId ?? '').localeCompare(right.unitId ?? '')
+    || ROLE_ORDER.indexOf(left.bindingRole) - ROLE_ORDER.indexOf(right.bindingRole)
+    || left.title.localeCompare(right.title, 'zh-CN')
+    || (left.anchorLabel ?? '').localeCompare(right.anchorLabel ?? '', 'zh-CN'));
   return { state: 'available', items };
 }
 
@@ -156,8 +189,11 @@ type TeachingProjectionMatch = {
   projectionId?: string;
   projectionHash?: string;
   scopeId?: string;
-  bindings?: readonly TeachingBindingRuntime[];
-  resources?: readonly TeachingResourceRuntime[];
+  /** Anchored resource binding release the resources came from; null when falling back to B′ bindings. */
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
+  bindings?: readonly ProjectableBinding[];
+  resources?: readonly ProjectableResource[];
 };
 
 const availableTeachingProjectionMatch = new Map<string, TeachingProjectionMatch>();
@@ -172,7 +208,9 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
   ) {
     return { status: 'unavailable', authoringRevision: null };
   }
-  const cached = availableTeachingProjectionMatch.get(`${teaching.projectionId}:${teaching.projectionHash}`);
+  const liveBinding = readAgreedLiveResourceBindingRelease();
+  const cacheKey = `${teaching.projectionId}:${teaching.projectionHash}:${liveBinding?.bindingReleaseId ?? '-'}:${liveBinding?.bindingHash ?? '-'}`;
+  const cached = availableTeachingProjectionMatch.get(cacheKey);
   if (cached) return cached;
   const overlay = resolveDomainTeachingRuntimePaths(process.cwd(), DEFAULT_DOMAIN_TEACHING_RUNTIME_RELATIVE);
   const sidecarPath = join(overlay.releasesDir, teaching.projectionId, 'inspector-sidecar.json');
@@ -228,17 +266,36 @@ export function matchActiveTeachingProjection(shard: Pick<AuthorityNodeDetailSha
   ) {
     return { status: 'mismatch', authoringRevision: null };
   }
-  const boundIds = new Set(staged.artifacts.bindings.map((binding) => binding.resourceId));
+  let bindings: readonly ProjectableBinding[] = staged.artifacts.bindings;
+  let resources: readonly ProjectableResource[] = staged.artifacts.resources;
+  let bindingReleaseId: string | null = null;
+  let bindingHash: string | null = null;
+  if (liveBinding && liveBinding.authorityReleaseId === authority.releaseId) {
+    try {
+      const release = loadResourceBindingRelease(process.cwd(), liveBinding.bindingReleaseId);
+      if (release.manifest.bindingHash === liveBinding.bindingHash && release.gate.passed) {
+        bindings = release.bindings;
+        resources = release.resources.filter((resource: AnchoredResourceRuntime) => resource.bindingStatus === 'BOUND');
+        bindingReleaseId = release.manifest.bindingReleaseId;
+        bindingHash = release.manifest.bindingHash;
+      }
+    } catch {
+      // A broken staged release must not take the drawer down; B′ bindings remain the fallback.
+    }
+  }
+  const boundIds = new Set(bindings.map((binding) => binding.resourceId));
   const matched: TeachingProjectionMatch = {
     status: 'available',
     projectionId: staged.projectionId,
     projectionHash: staged.projectionHash,
     scopeId: staged.artifacts.manifest.scopeId,
     authoringRevision: staged.artifacts.manifest.authoringRevision,
-    bindings: staged.artifacts.bindings,
-    resources: staged.artifacts.resources.filter((resource) => boundIds.has(resource.resourceId)),
+    bindingReleaseId,
+    bindingHash,
+    bindings,
+    resources: resources.filter((resource) => boundIds.has(resource.resourceId)),
   };
-  availableTeachingProjectionMatch.set(`${teaching.projectionId}:${teaching.projectionHash}`, matched);
+  availableTeachingProjectionMatch.set(cacheKey, matched);
   return matched;
 }
 

@@ -1,0 +1,1886 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-9",
+ "unitIndex": 17,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-9/3-9-handout.md",
+  "sha256": "480de2e0f2503045739717a024e93e088588896f8286d353cbcf6ff02e2783fb"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "导入：同一艘船的三种改进诉求",
+   "groupName": "统一对象与多版本映射入口",
+   "textChars": 192,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "根轨迹_4_c19f8854"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "课程目标：跨域证据与任务标签",
+   "groupName": "统一对象与多版本映射入口",
+   "textChars": 183,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "根轨迹_4_c19f8854"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测：任务标签与机制线判断",
+   "groupName": "统一对象与多版本映射入口",
+   "textChars": 100,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "根轨迹_4_c19f8854"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "控制对象：本次课比较的同一艘船",
+   "groupName": "动态改善线与稳态改善线对照",
+   "textChars": 217,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "基准版本：从四联图读出性能指标",
+   "groupName": "动态改善线与稳态改善线对照",
+   "textChars": 211,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "超前校正的动态改善调节",
+   "groupName": "动态改善线与稳态改善线对照",
+   "textChars": 86,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "积分校正的稳态误差调节",
+   "groupName": "动态改善线与稳态改善线对照",
+   "textChars": 53,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "积分补偿后的中频相位整理",
+   "groupName": "综合映射与模块4入口",
+   "textChars": 156,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+     "matchedLabel": "积分控制器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+     "matchedLabel": "积分控制",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "滞后校正的低频收益调节",
+   "groupName": "综合映射与模块4入口",
+   "textChars": 144,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:98fd8fbe7aa3340c7fe6bc08",
+     "matchedLabel": "校正后根轨迹",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 6,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "后测：填写四个版本的综合映射表",
+   "groupName": "综合映射与模块4入口",
+   "textChars": 128,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "总结：从读图比较走向设计任务表达",
+   "groupName": null,
+   "textChars": 187,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-为什么模块-3-结束前要整合三种语言",
+   "order": 1,
+   "level": 2,
+   "title": "一、为什么模块 3 结束前要整合三种语言",
+   "startLine": 14,
+   "endLine": 68,
+   "bodyChars": 1005,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-统一对象与统一读图口径",
+   "order": 2,
+   "level": 2,
+   "title": "二、统一对象与统一读图口径",
+   "startLine": 69,
+   "endLine": 98,
+   "bodyChars": 458,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+     "matchedLabel": "开环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-本课实践任务与提交物",
+   "order": 3,
+   "level": 2,
+   "title": "本课实践任务与提交物",
+   "startLine": 99,
+   "endLine": 124,
+   "bodyChars": 588,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-任务一-基准版本给出哪一类基线",
+   "order": 4,
+   "level": 2,
+   "title": "三、任务一：基准版本给出哪一类基线",
+   "startLine": 125,
+   "endLine": 126,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-控制器与关键指标",
+   "order": 5,
+   "level": 3,
+   "title": "3.1 控制器与关键指标",
+   "startLine": 127,
+   "endLine": 151,
+   "bodyChars": 432,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+     "matchedLabel": "斜坡稳态误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-四个象限怎么读",
+   "order": 6,
+   "level": 3,
+   "title": "3.2 四个象限怎么读",
+   "startLine": 152,
+   "endLine": 181,
+   "bodyChars": 478,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-基准结论",
+   "order": 7,
+   "level": 3,
+   "title": "3.3 基准结论",
+   "startLine": 182,
+   "endLine": 192,
+   "bodyChars": 160,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-任务二-零点线补强如何优先改善动态",
+   "order": 8,
+   "level": 2,
+   "title": "四、任务二：零点线补强如何优先改善动态",
+   "startLine": 193,
+   "endLine": 194,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-控制器与关键指标",
+   "order": 9,
+   "level": 3,
+   "title": "4.1 控制器与关键指标",
+   "startLine": 195,
+   "endLine": 222,
+   "bodyChars": 688,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-四个象限怎么读",
+   "order": 10,
+   "level": 3,
+   "title": "4.2 四个象限怎么读",
+   "startLine": 223,
+   "endLine": 240,
+   "bodyChars": 436,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-零点线补强的任务标签",
+   "order": 11,
+   "level": 3,
+   "title": "4.3 零点线补强的任务标签",
+   "startLine": 241,
+   "endLine": 246,
+   "bodyChars": 96,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-任务三-积分家族如何把低频收益和中频代价同时暴露出来",
+   "order": 12,
+   "level": 2,
+   "title": "五、任务三：积分家族如何把低频收益和中频代价同时暴露出来",
+   "startLine": 247,
+   "endLine": 248,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-为什么这一组要改看斜坡跟踪",
+   "order": 13,
+   "level": 3,
+   "title": "5.1 为什么这一组要改看斜坡跟踪",
+   "startLine": 249,
+   "endLine": 272,
+   "bodyChars": 730,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+     "matchedLabel": "斜坡稳态误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-弱积分-先看到收益-再看到慢极点",
+   "order": 14,
+   "level": 3,
+   "title": "5.2 弱积分：先看到收益，再看到慢极点",
+   "startLine": 273,
+   "endLine": 295,
+   "bodyChars": 712,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+     "matchedLabel": "积分控制器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-强积分-低频收益更彻底-动态代价也被彻底放大",
+   "order": 15,
+   "level": 3,
+   "title": "5.3 强积分：低频收益更彻底，动态代价也被彻底放大",
+   "startLine": 296,
+   "endLine": 322,
+   "bodyChars": 663,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+     "matchedLabel": "积分控制器",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-积分校正-保留积分任务-同时把动态和裕度拉回可用区",
+   "order": 16,
+   "level": 3,
+   "title": "5.4 积分校正：保留积分任务，同时把动态和裕度拉回可用区",
+   "startLine": 323,
+   "endLine": 347,
+   "bodyChars": 818,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-滞后对照-稳态改善还有另一条路径",
+   "order": 17,
+   "level": 3,
+   "title": "5.5 滞后对照：稳态改善还有另一条路径",
+   "startLine": 348,
+   "endLine": 371,
+   "bodyChars": 656,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-91ad9d6426185f59dea4a418",
+     "matchedLabel": "斜坡稳态误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-积分家族的统一结论",
+   "order": 18,
+   "level": 3,
+   "title": "5.6 积分家族的统一结论",
+   "startLine": 372,
+   "endLine": 389,
+   "bodyChars": 299,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-综合映射-同一对象上的三条典型路线怎样分工",
+   "order": 19,
+   "level": 2,
+   "title": "六、综合映射：同一对象上的三条典型路线怎样分工",
+   "startLine": 390,
+   "endLine": 411,
+   "bodyChars": 746,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-课堂实践提交单",
+   "order": 20,
+   "level": 2,
+   "title": "课堂实践提交单",
+   "startLine": 412,
+   "endLine": 432,
+   "bodyChars": 682,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-通向-4-1-的入口判断",
+   "order": 21,
+   "level": 2,
+   "title": "七、通向 4-1 的入口判断",
+   "startLine": 433,
+   "endLine": 446,
+   "bodyChars": 313,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-本讲小结",
+   "order": 22,
+   "level": 2,
+   "title": "本讲小结",
+   "startLine": 447,
+   "endLine": 456,
+   "bodyChars": 319,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-9-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-9/media/3-9-audio.m4a",
+   "sha256": "ec791b6a895aad911508de079549426ae594b386da3d2a8d7315dd21e040340d",
+   "durationSeconds": 1466.386576,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-9.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.24,
+     "endSeconds": 25.6,
+     "textPreview": "呃想象一下啊你手里现在有一艘刚刚能下水航行的旧船嗯一艘普通的基准小船对就是那种非",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.6,
+     "endSeconds": 50.8,
+     "textPreview": "错面对这个需求我们普通人最本能的反应是什么通常就是简单粗暴地给它换上一台呃推力最",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.8,
+     "endSeconds": 75.8,
+     "textPreview": "弯太急直接就反腐了翻车了要么呢就是因为压长石太重惯性极大结果就在水面上疯狂摇摆根",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.8,
+     "endSeconds": 101.16,
+     "textPreview": "将在这里帮你理清控制理论中那些看似反直觉实则极其严密的底层物理与数学逻辑如果此刻",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "波特图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 6,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 101.24,
+     "endSeconds": 126.4,
+     "textPreview": "对的今天我们要进行一次硬核但绝对生动的深度拆解我们要对付的核心议题就是自动控治理",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 126.64,
+     "endSeconds": 151.68,
+     "textPreview": "其实就是我们的被控对象也就是很多资料里写的你的职务模型那个plant对吧没错我们",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.68,
+     "endSeconds": 176.84,
+     "textPreview": "个说法太透彻了所以今天咱们这次深度拆解的目标绝不是让你去死记硬背那一长串的控制器",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.84,
+     "endSeconds": 201.88,
+     "textPreview": "光投向我们手里的这艘呃基准版小传我看了下资料这艘船现在的状态可以说非常尴尬是的数",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.88,
+     "endSeconds": 226.96,
+     "textPreview": "了让大家有个直观的感受啊我们可以把这个相角余度理解为这艘船在面对风浪时的安全缓冲",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.96,
+     "endSeconds": 252.0,
+     "textPreview": "的窜过码头大概三分之一的距离吧然后还得再倒车退回来走得动但绝对不够从容用咱们工程",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.0,
+     "endSeconds": 277.08,
+     "textPreview": "我必须要提一下数据了因为真的太神奇了当我们给系统加入一个零点之后效果简直是立竿见",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 277.28,
+     "endSeconds": 302.28,
+     "textPreview": "调节时间从原来慢吞吞的20多秒骤降到了仅零六点八二秒速度和阻尼瞬间就被整理得明明",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.28,
+     "endSeconds": 330.08,
+     "textPreview": "大增益也就是你说的加大马力确实能让传起步更快但代价是什么冲得更猛对它会让传冲得更",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.16,
+     "endSeconds": 355.36,
+     "textPreview": "零点本质上其实是引入了微分控制作用微分就是求导那个维分吗没错V分意味着什么意味着",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.36,
+     "endSeconds": 385.0,
+     "textPreview": "方向了わ绝了因为有了预测能力所以不仅到达中等的时间变短了仅仅用了不到7秒而且整个",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.12,
+     "textPreview": "果我们切回到根轨迹的视角来解释这个现象你会觉得更加直观根轨迹怎么说在副品上系统的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 36,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+       "matchedLabel": "瞬态响应",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.12,
+     "endSeconds": 440.0,
+     "textPreview": "快的数学本质我的天加上这块儿磁铁调节时间热降系统还稳如泰山既然这条这么完美那我简",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 465.04,
+     "textPreview": "直接无脑拍一个零点上去不就行了无脑加零点对啊这简直就是万能解药嘛既快又稳我们今天",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.36,
+     "endSeconds": 495.0,
+     "textPreview": "停住啦哪怕他停在了一个完全错误的位置它的变化率依然是零这时候微分",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "控制器就会觉得哎我的工作完成了现在一切都很好也就是他是个瞎子只管速度不管位置可以",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.12,
+     "endSeconds": 550.0,
+     "textPreview": "进去了个什么怪物我们先来看看资料里的弱积分测试对这里进行了两个级别的测试第一个是",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-6bc695e4ba1784407e920056",
+       "matchedLabel": "积分时间常数",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 6,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.36,
+     "textPreview": "为40的弱积分引入积分环节在学术上叫做提高系统的型别如果还用传长来打比方你可以把",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.36,
+     "endSeconds": 605.08,
+     "textPreview": "一下刚才我们说的零点是向前看预测未来那积分就是向后看记住过去嗯向后看你的传现在不",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.08,
+     "endSeconds": 630.2,
+     "textPreview": "看眼前的马头还要不断翻看过去几分钟的GPS航行日志只要过去有任何一点偏离航线的误",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 630.2,
+     "endSeconds": 660.0,
+     "textPreview": "下降了原来如此就是反应慢半拍但显然弱积分这副药的药效不够误差并没有完全清零面对依",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.0,
+     "endSeconds": 685.04,
+     "textPreview": "动你说拉满参数对啊既然弱积分有用说明方向绝对是对的大力出奇迹嘛我们直接把积分强度",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-6bc695e4ba1784407e920056",
+       "matchedLabel": "积分时间常数",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 6,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 685.68,
+     "endSeconds": 715.32,
+     "textPreview": "度25度这是一个极其危险的临界状态了这意味着系统几乎失去了抵御波动的缓冲能力稍微",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 715.32,
+     "endSeconds": 740.44,
+     "textPreview": "调量直接飙升到了百分之五十六点六九原本加了零点后只需要六秒多就能停稳的调节时间现",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 740.44,
+     "endSeconds": 770.0,
+     "textPreview": "整晃了两个多小时也就是这一百三十四秒才彻底安静下来如果你造出这种船乘客早就吐晕过",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.0,
+     "endSeconds": 795.6,
+     "textPreview": "绝对会被当场开除吧这个画面感非常真实其实也就是控制理论一直在试图告诉我们的宇宙真",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+       "matchedLabel": "瞬态响应",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 795.6,
+     "endSeconds": 825.24,
+     "textPreview": "魂拷问来了难道我们这帮搞自动化的就只能在这两种痛苦中二选一吗你觉得呢我觉得不行要",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 825.24,
+     "endSeconds": 850.28,
+     "textPreview": "长积分这简直是责母成年人的世界我们表示我全都要既要快又要准这种全都要的工程野心其",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 850.28,
+     "endSeconds": 880.0,
+     "textPreview": "变系统的型别给低频争议加上无穷大的倍数对吧对无穷大而滞后校正它只是在低频段把争议",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 880.0,
+     "endSeconds": 905.12,
+     "textPreview": "有那么激进所以它的结果也是不温不火的误差虽然降了但没降到零动态性能虽然差了一点但",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 905.12,
+     "endSeconds": 935.0,
+     "textPreview": "角域度那么我们为什么把它们组合起来强强联手没错他的操作逻辑非常清晰第一我依然保留",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 935.0,
+     "endSeconds": 960.6,
+     "textPreview": "频段的任务保证最终的稳态误差绝对为零嗯低频量坞保留那被破坏的象角怎么办这就是第二",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 960.6,
+     "endSeconds": 990.0,
+     "textPreview": "起来这个综合方案就像是一个游刃有余的魔术师即用积分锁死了低频的绝对精准又用零点救",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 990.0,
+     "endSeconds": 1015.12,
+     "textPreview": "过看到这里我有一个深深的疑惑不知道同学们有没有同样的感觉你说既然有这种完美的最终",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1015.12,
+     "endSeconds": 1045.0,
+     "textPreview": "确指出综合折中的核心心法叫做低频任务保留中频重新整理重点在于重新这两个字对吧是的",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1045.0,
+     "endSeconds": 1070.12,
+     "textPreview": "果你不先通过强积分的例子亲眼看到并且从物理意义上理解向后看的积分是如何残暴的吃掉",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1070.12,
+     "endSeconds": 1101.52,
+     "textPreview": "把各种参数变化对系统的影响完整的走了一遍适合整理了现在让我们把所有的线索收束到本",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1101.52,
+     "endSeconds": 1126.56,
+     "textPreview": "图上这张图可不止是零散的知识点拼凑他是帮你建立起一条非常严谨的黄金五步逻辑链路大",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 1126.56,
+     "endSeconds": 1155.0,
+     "textPreview": "之后进入第三步验证时域结果几点移动系统在现实世界里到底是变快了还是变慢了超调是收",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1155.0,
+     "endSeconds": 1180.12,
+     "textPreview": "那艘重载小船一样摇摆不定了稳态误差到底清零了没有接着是第四步用频域解释来进行交叉",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 44,
+     "startSeconds": 1180.12,
+     "endSeconds": 1210.0,
+     "textPreview": "美的闭环我特别注意到材料最底部有一句极其霸气的话真的是醍醐灌顶哪一句就是那句进入",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 1210.0,
+     "endSeconds": 1235.12,
+     "textPreview": "控制器设计之前不要先猜控制器名称这句话真的太提神了这是很多新手的通病这就像是老中",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 46,
+     "startSeconds": 1235.12,
+     "endSeconds": 1265.0,
+     "textPreview": "的劣当你看到需求是更准时你要马上问自己需不需要加",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 1265.0,
+     "endSeconds": 1290.84,
+     "textPreview": "入积分去改变系统的形别给他增加记忆那如果遇到了那种极其贪婪的加放需求既要又要直接",
+     "canonical": []
+    },
+    {
+     "index": 48,
+     "startSeconds": 1290.84,
+     "endSeconds": 1321.12,
+     "textPreview": "这里我脑子里原本那些像乱麻一样纠缠在一起的舶途跟轨计积分和零点终于被一条极其清晰",
+     "canonical": []
+    },
+    {
+     "index": 49,
+     "startSeconds": 1321.12,
+     "endSeconds": 1346.24,
+     "textPreview": "能够串联起来这就说明你真正理解了好了让我们来总结一下今天的深度之旅我们从一艘晃晃",
+     "canonical": []
+    },
+    {
+     "index": 50,
+     "startSeconds": 1346.24,
+     "endSeconds": 1375.0,
+     "textPreview": "到频域最终回归到任务的本质这就是控制理温的魅力他教你如何在严苛的物理约束",
+     "canonical": []
+    },
+    {
+     "index": 51,
+     "startSeconds": 1375.0,
+     "endSeconds": 1400.2,
+     "textPreview": "下条件下寻找那个最优雅的最优解没错不过在结束这次深度谈导前针对今天这满满的硬核逻",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 52,
+     "startSeconds": 1400.2,
+     "endSeconds": 1430.0,
+     "textPreview": "的汹涌海域呢如果水流突然变了或者传递长满了藤导致阻力大增模型本身发生了意料之外",
+     "canonical": []
+    },
+    {
+     "index": 53,
+     "startSeconds": 1430.0,
+     "endSeconds": 1455.28,
+     "textPreview": "的巨大改变呢思那之前的参数不就全废了吗这就是留给你们的问题我们今天在纸面上精心计",
+     "canonical": []
+    },
+    {
+     "index": 54,
+     "startSeconds": 1455.36,
+     "endSeconds": 1466.24,
+     "textPreview": "便在期末拿个高分祝大家期末顺利感谢大家的收听如果你觉得今天帮渤理清了失路别忘了带",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "ec791b6a895aad911508de079549426ae594b386da3d2a8d7315dd21e040340d",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-9-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-9/media/3-9-intro-video.mp4",
+   "sha256": "a9ba7011ec695a2593fe55b5cf454ef93edfe6ebbe794b828530577c3ce137a1",
+   "durationSeconds": 130.624,
+   "transcriptSource": "videos-project:lesson-3-9/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 108.567,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 130.567,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 29,
+   "segments": [],
+   "activeReleaseSha256": "d016196414b70a092da1fe343cd9ea6df92ce98ea859f569dde5ef3a9266b153",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-9-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-9/media/3-9-course.mp4",
+   "sha256": "30dbd95e478918fd4911f9ccaef46f6cc05a2f287bab13a95dd246b4271dd079",
+   "durationSeconds": 466.512109,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-9.json",
+   "transcriptSourceSha256": "30dbd95e478918fd4911f9ccaef46f6cc05a2f287bab13a95dd246b4271dd079",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.16,
+     "endSeconds": 9.12,
+     "textPreview": "嘿，各位同学大家好啊，今天咱们来聊一个控制系统里头可以说是最核心也最实用的一个话",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 9.12,
+     "endSeconds": 18.08,
+     "textPreview": "咱们今天不说那些枯燥的理论，直接来点硬核的，看看怎么把一个不听话的系统给它盘活。",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 18.08,
+     "endSeconds": 30.48,
+     "textPreview": "就是你辛辛苦苦搭好一个系。一同结果呢，他要么就是晃晃悠悠的跟喝醉了似的，要么就是",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 30.48,
+     "endSeconds": 40.01,
+     "textPreview": "别急，今天咱们就来给他做个大手术，这些问题啊其实都是可以调的。好，来想象一下，你",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 40.01,
+     "endSeconds": 50.41,
+     "textPreview": "排前面屏幕上套出来六个升级选项，什么超前校、滞后校、正哇，听起来就很酷炫对吧？每",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 50.41,
+     "endSeconds": 64.41,
+     "textPreview": "但是注意了，要是选错了，那情况可能比原来还要糟糕。所以咱们今天的任务就是当一回策",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 64.41,
+     "endSeconds": 75.29,
+     "textPreview": "要解决问题，首先得知道问题在哪儿，对吧？来，让我们认识一下今天的主角，一个性能真",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 75.29,
+     "endSeconds": 87.99,
+     "textPreview": "咱们就把这个系统想象成一艘船，现在我们给船长下达指令，匀速前进。结果呢，这艘船确",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 87.99,
+     "endSeconds": 96.39,
+     "textPreview": "晃得特别厉害，好不容易快到地方了，嗖一下就冲过了头，然后又得慢慢悠悠的晃回来。最",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 96.39,
+     "endSeconds": 104.95,
+     "textPreview": "它永远也跟不上咱们的指令，那个差距啊会随着时间越来越大。这个在专业上就叫做稳态误",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 104.95,
+     "endSeconds": 113.91,
+     "textPreview": "咱们来看第一个具体的性能指标，超调量，你猜多少？三十一点九五percent，将近",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 113.91,
+     "endSeconds": 129.24,
+     "textPreview": "这是什么概念？就是说咱们这艘船在抵达目标港口的时候，会一下子冲过头将近三分之一的",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 129.24,
+     "endSeconds": 142.49,
+     "textPreview": "再来看另一个核心数据，向位域度只有多少呢？三十七点四三度。这个数字你可能觉得有点",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 142.49,
+     "endSeconds": 154.81,
+     "textPreview": "所以啊，咱们这艘船现在就处在一个晕船的边缘，稳定性可以说是非常差了。行，现在问题",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 154.81,
+     "endSeconds": 164.65,
+     "textPreview": "既然问题已经诊断清楚了，那接下来就该打开咱们工程师的专属工具箱，看看里面都有哪些",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 164.65,
+     "endSeconds": 177.38,
+     "textPreview": "在动手之前有一个核心概念，大家一定要记住。系统效证它本质上就是一门权衡的艺术。你",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 177.38,
+     "endSeconds": 188.58,
+     "textPreview": "你想让它精确到不行，那可能速度就得上不来。所以啊，咱们做工程师的魅力就在于这里，",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 188.58,
+     "endSeconds": 204.88,
+     "textPreview": "好了好了，最激动人心的部分来了，咱们现在就要开始六种方案大比拼。我们可以把这六种",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 204.88,
+     "endSeconds": 221.71,
+     "textPreview": "当然了，为了突出重点，咱们会详细对比其中最有代表性的那么几种，看它效果到底怎么样",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 221.71,
+     "endSeconds": 233.79,
+     "textPreview": "通过这种预判来让过弯更顺滑，那效果怎么样呢？可以说是立竿见影。你看，相位预度直接",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 233.79,
+     "endSeconds": 243.68,
+     "textPreview": "意味着咱们那艘晕乎乎的船，咚一下就变得又稳又快，性能直接拉满。好，我们再来看第二",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 243.68,
+     "endSeconds": 259.76,
+     "textPreview": "这家伙的优点怎么说呢？非常极端，它的稳态误差几乎能降到零，精度高到离谱。但是你再",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 259.76,
+     "endSeconds": 273.12,
+     "textPreview": "呢达到了恐怖的5669趴，这就像什么？就像你给船装上了一个火箭推进器，结果方向盘",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 273.12,
+     "endSeconds": 298.33,
+     "textPreview": "接下来登场的是PI校正，这位选手啊可以说是非常均衡了，你看他把相位阈度提升到了一",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 298.33,
+     "endSeconds": 308.73,
+     "textPreview": "常可靠。经在比较了这么多方案之后呢，有一个看起来好像嗯平平无奇的方案，最后居然脱",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 308.73,
+     "endSeconds": 321.69,
+     "textPreview": "这还挺让人意外的。那咱们就来看看为什么滞后效证会成为咱们这次任务的最终答案。哇，",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 321.69,
+     "endSeconds": 330.88,
+     "textPreview": "咱们重点看左上角这个阶跃响应图。看到那条上下疯狂震荡的蓝色曲线了吗？对，那就是咱",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 330.88,
+     "endSeconds": 342.0,
+     "textPreview": "再看看那条平滑的橙色曲线，这就是校正之后的结果。虽然它启动的时候慢了那么一丢丢，",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 342.0,
+     "endSeconds": 351.55,
+     "textPreview": "然后咱们再看右边的博德图，校正后的橙色线在低频段的增益明显更高了，这说明什么？说",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+       "matchedLabel": "稳态精度",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 351.55,
+     "endSeconds": 371.94,
+     "textPreview": "可以说就是从混乱到有序，数据已经说明了一切。那这个方案具体的成绩单怎么样呢？咱们",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 371.94,
+     "endSeconds": 383.86,
+     "textPreview": "虽然你可能也注意到了，它的超调量和相位阈度跟前面一些方案比并不是最优的，但是它做",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 383.86,
+     "endSeconds": 399.06,
+     "textPreview": "这恰恰就是咱们这次任务最核心的目标。OK，分析了这么多案例，是时候来点干货总结了",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 399.06,
+     "endSeconds": 414.27,
+     "textPreview": "就是这张图。哇，这张流程图可以说是咱们这次所有内容的一个精华总结。你就把它当成一",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 414.27,
+     "endSeconds": 425.15,
+     "textPreview": "如果你想提升稳态性能，减少误差，那就选稳态改善那条路。它特特别清晰的把你的目标和",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 425.15,
+     "endSeconds": 433.79,
+     "textPreview": "所以你看，关键点就在于这儿，你拿到一个系统之后，首先又问自己：我到底最想改善的是",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 433.79,
+     "endSeconds": 445.09,
+     "textPreview": "是要它更快，还是要它更准，还是要它更稳？当你把这个问题想清楚了，再回头来看这张地",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 445.09,
+     "endSeconds": 454.85,
+     "textPreview": "今天呢，咱们通过改造一艘船，一起探索了一下系统校正这个奇妙的世界。希望今天讲的这",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 454.85,
+     "endSeconds": 466.51,
+     "textPreview": "现在你看，工具箱和藏宝图都在你手上了。那么接下来你准备去打造一个什么样的属于你自",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "30dbd95e478918fd4911f9ccaef46f6cc05a2f287bab13a95dd246b4271dd079",
+   "status": "anchored"
+  }
+ ]
+}

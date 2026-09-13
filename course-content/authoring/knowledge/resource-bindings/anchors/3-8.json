@@ -1,0 +1,1947 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-8",
+ "unitIndex": 16,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-8/3-8-handout.md",
+  "sha256": "183cfc40d71b05c0ac01046a837e5f88c62d51d87248557f08fbf91dc7e738a2"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "导入：三类结构变化为什么需要统一频域语言",
+   "groupName": "从结构变化回到统一频域问题",
+   "textChars": 249,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "课程目标：用频域语言解释结构变化与稳定边界",
+   "groupName": "从结构变化回到统一频域问题",
+   "textChars": 445,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 40,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测：四类典型误判先暴露出来",
+   "groupName": "从结构变化回到统一频域问题",
+   "textChars": 234,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 20,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "四类结构变化总表：先给开环传函与频率响应，再看频域指纹",
+   "groupName": "从结构变化回到统一频域问题",
+   "textChars": 476,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+     "matchedLabel": "开环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "2.2.1 增益提升：整条曲线一起被抬高",
+   "groupName": "从结构变化回到统一频域问题",
+   "textChars": 490,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "2.2.2 左半平面零点：重点改写中频",
+   "groupName": "Nyquist 与 Bode 统一判稳链",
+   "textChars": 383,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "截止频率_5_c7d09ff7"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "奈奎斯特稳定判据_5_a1b34560"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "幅值裕度_5_73af26a5"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "2.2.3 极点增加与积分环节：先给精度，再收紧余量",
+   "groupName": "Nyquist 与 Bode 统一判稳链",
+   "textChars": 371,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "截止频率_5_c7d09ff7"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "奈奎斯特稳定判据_5_a1b34560"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "幅值裕度_5_73af26a5"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "2.2.4 右半平面零点：为什么“看起来更强”却可能更难控制",
+   "groupName": "Nyquist 与 Bode 统一判稳链",
+   "textChars": 434,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "截止频率_5_c7d09ff7"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "奈奎斯特稳定判据_5_a1b34560"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "幅值裕度_5_73af26a5"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "例题 1：先从哪一段频带开始判断结构变化",
+   "groupName": "三频段分工与工程案例读回",
+   "textChars": 716,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "从幅角原理到 Nyquist 判据：为什么要研究 F(s)=1+G(s)H(s)",
+   "groupName": "三频段分工与工程案例读回",
+   "textChars": 1567,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 曲线",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 30,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 60,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "例题 2：第一组 Nyquist 快速判稳题",
+   "groupName": "三频段分工与工程案例读回",
+   "textChars": 582,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 曲线",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 30,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "例题 3：靠近边界与越过边界有什么本质不同",
+   "groupName": "后测与模块出口收束",
+   "textChars": 425,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+     "matchedLabel": "开环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 曲线",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 20,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "Bode 判稳：截止频率、相角裕度和增益裕度",
+   "groupName": null,
+   "textChars": 703,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "例题 4：由 Bode 图直接判断系统在边界哪一侧",
+   "groupName": null,
+   "textChars": 240,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "三频段分工：精度、速度与代价不能混读",
+   "groupName": null,
+   "textChars": 381,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "例题 5：目标切换时，先改哪一段频带",
+   "groupName": null,
+   "textChars": 250,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "航向控制案例：先把基线方案的问题读清楚",
+   "groupName": null,
+   "textChars": 215,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-18",
+   "index": 17,
+   "title": "航向控制案例：把时域指标翻译成频域目标，再看超前校正",
+   "groupName": null,
+   "textChars": 532,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-19",
+   "index": 18,
+   "title": "稳定平台案例：为什么“只改增益”会左右为难",
+   "groupName": null,
+   "textChars": 132,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-20",
+   "index": 19,
+   "title": "稳定平台案例：超前校正怎样兼顾速度和平稳",
+   "groupName": null,
+   "textChars": 560,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-21",
+   "index": 20,
+   "title": "后测：把完整判断链独立走一遍",
+   "groupName": null,
+   "textChars": 58,
+   "canonical": []
+  },
+  {
+   "stepId": "step-22",
+   "index": 21,
+   "title": "总结与去向：`3-9` 和模块 4 从哪里接走本课",
+   "groupName": null,
+   "textChars": 215,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-为什么同样是结构变了-频域图上的反应却完全不同",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：为什么同样是结构变了，频域图上的反应却完全不同",
+   "startLine": 14,
+   "endLine": 32,
+   "bodyChars": 391,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-核心内容",
+   "order": 2,
+   "level": 2,
+   "title": "二、核心内容",
+   "startLine": 33,
+   "endLine": 34,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-频域是统一翻译器",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 频域是统一翻译器",
+   "startLine": 35,
+   "endLine": 60,
+   "bodyChars": 619,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-四类结构变化的频域指纹",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 四类结构变化的频域指纹",
+   "startLine": 61,
+   "endLine": 173,
+   "bodyChars": 2037,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 104,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-从幅角原理到-Nyquist-判据",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 从幅角原理到 Nyquist 判据",
+   "startLine": 174,
+   "endLine": 365,
+   "bodyChars": 2884,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 曲线",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-Bode-判稳与稳定裕度",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 Bode 判稳与稳定裕度",
+   "startLine": 366,
+   "endLine": 452,
+   "bodyChars": 1690,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 208,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 144,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 128,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-三频段分工-谁负责精度-谁负责速度-谁负责代价",
+   "order": 7,
+   "level": 3,
+   "title": "2.5 三频段分工：谁负责精度，谁负责速度，谁负责代价",
+   "startLine": 453,
+   "endLine": 487,
+   "bodyChars": 712,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-综合案例-把判据-裕度和三频段真正用起来",
+   "order": 8,
+   "level": 3,
+   "title": "2.6 综合案例：把判据、裕度和三频段真正用起来",
+   "startLine": 488,
+   "endLine": 741,
+   "bodyChars": 5706,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 320,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 288,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 200,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 104,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-本节小结",
+   "order": 9,
+   "level": 2,
+   "title": "三、本节小结",
+   "startLine": 742,
+   "endLine": 753,
+   "bodyChars": 378,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-8-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-8/media/3-8-audio.m4a",
+   "sha256": "dc958e12d5b4a7c5936a24a3aaa8c01a19db553bfa9158f2683edba5a179cf23",
+   "durationSeconds": 978.628209,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-8.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.28,
+     "textPreview": "想象一下哈呃这样一个场景嗯你呢正站在工厂的流水线旁边面前是一台正在运转的巨大的工",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.28,
+     "endSeconds": 50.4,
+     "textPreview": "的你仅仅是把系统的那个增益稍微调大了一点点你以为他会像你预期的那样特别轻快的加速",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.4,
+     "endSeconds": 75.48,
+     "textPreview": "个极其惨烈的车祸现场了绝对的灾难欢迎来到咱们这期闲聊自控如果你是那个正在为自动控",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.48,
+     "endSeconds": 100.6,
+     "textPreview": "百科全书我们的专家斯吻嘿同学你好呀真的很高兴能和你一起在这个节目里探索控制理论的",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.68,
+     "endSeconds": 125.76,
+     "textPreview": "数转了几圈但其实这里最迷人的地方在于控制系统中的每一次结构变化它都会改写开环粉劣",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.76,
+     "endSeconds": 150.8,
+     "textPreview": "界里引发的惊套浪好那我们来拆解一下刚才我说的那个机械臂失控的例子可不是我在危言耸",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.8,
+     "endSeconds": 175.8,
+     "textPreview": "给系统乘上一个大于1的系数阿尔法资料里举了个例子放大了四倍嗯从开环频率特性的角度",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+       "matchedLabel": "频率特性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.8,
+     "endSeconds": 200.84,
+     "textPreview": "法就变成了加法是的所以当二法大于一整个报的浮平均取就像是被一只无形的大手原封不动",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 200.84,
+     "endSeconds": 226.48,
+     "textPreview": "更猛了但是代价是什么呢资料上说中频余量会先变紧这个变紧到底在图上是怎么体现出来的",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.64,
+     "endSeconds": 251.68,
+     "textPreview": "才是真正致命的地方快绝对不等于好当截止频率被强行推高到右边的勾频区域时你必须低头",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+       "matchedLabel": "截止频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.68,
+     "endSeconds": 276.76,
+     "textPreview": "负一百八十度这个深渊还有多远的安全距离对的既然焦点被推到了右边高频区那里的香味本",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 276.76,
+     "endSeconds": 301.88,
+     "textPreview": "掉得很厉害了所以安全距离瞬间就被压缩了解释的非常完美我们来看看资料里的具体数据可",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+       "matchedLabel": "截止频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 301.88,
+     "endSeconds": 330.0,
+     "textPreview": "向了目标但它根本刹不住车就会产生巨大的超调是的巨大的超调然后伴随着",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.04,
+     "textPreview": "持续的来回的震荡系统变得极其神经质所以下次你在实验室想去拧那个增益旋钮的时候想象",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.04,
+     "endSeconds": 385.0,
+     "textPreview": "是典型的PD控制比例为分公式止一加上S除以Z这玩意是怎么救场的它的重点在于他能改",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.12,
+     "textPreview": "能为系统提供非常宝贵的正向位正向位也就是把向位往上提对这就好比给系统吃了一颗定心",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.44,
+     "endSeconds": 440.0,
+     "textPreview": "当频率越来越高的时候嗯那个一加上S除以Z的幅值也会跟着无限变大在波的途上这就意味",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.48,
+     "endSeconds": 465.76,
+     "textPreview": "价极这意味着系统对高频挪仓变得极为敏感工厂里的电磁干扰机械的高频振动原本是很微弱",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.76,
+     "endSeconds": 495.0,
+     "textPreview": "扶贫特性它的幅值计算包含了平那个负号被抵消了所以它的幅频曲线和刚才说的左半平面零",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "对也是高频上翘这就极具欺骗性你可能会误以为它也能帮你加快系统响应但是又是这个但是",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.12,
+     "endSeconds": 550.0,
+     "textPreview": "门因为水流的惯性功率反而会先掉一下没错这就是典型的非最小相位系统的物理表现初始逆",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5322cdb3c781cb7b9828732a",
+       "matchedLabel": "非最小相位系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 28,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.12,
+     "textPreview": "咱们刚才解决的都是动态响应的问题也就是速度啊稳定性啊但还有一个现实问题嗯稳态误差",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.6,
+     "endSeconds": 605.0,
+     "textPreview": "也就是说只要有哪怕一丝一毫的误差时间",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.0,
+     "endSeconds": 631.24,
+     "textPreview": "一长这个无穷大的增益会推着系统强行消除偏差理论上确实把稳态误差彻底消灭了但是我看",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 631.96,
+     "endSeconds": 657.72,
+     "textPreview": "了吧简直不忍直视加入了积分极点之后原本145度的相角域度直接被极限压缩到了仅仅1",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 657.96,
+     "endSeconds": 682.96,
+     "textPreview": "后我的天等于直接扣了九十度的穴调没错在使域里闭环节约响应图上这就导致系统变成了一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+       "matchedLabel": "积分器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 682.96,
+     "endSeconds": 708.48,
+     "textPreview": "震荡最后才勉强稳定下来鱼与熊掌不可兼得的工程哲学在这里体现得淋漓尽致啊唉听你这么",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+       "matchedLabel": "截止频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 708.48,
+     "endSeconds": 737.56,
+     "textPreview": "实快但向角余度只有397度了对极点逼近低阻尼区域十分危险但如果你用保守方案比如0",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+       "matchedLabel": "频率特性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 737.96,
+     "endSeconds": 770.0,
+     "textPreview": "你说咱们现在的目标是让系统在截止频率等于24的地方也",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+       "matchedLabel": "截止频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.0,
+     "endSeconds": 795.04,
+     "textPreview": "就是速度足够快的前提下还要保证充足的相角余度那我们就像侦探一样行先去剖析一下原系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+       "matchedLabel": "截止频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 795.04,
+     "endSeconds": 825.0,
+     "textPreview": "效证网络就必须隆重登场了就是资料里那个CPS等于一加上S除以三再除以一加上S",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 825.0,
+     "endSeconds": 850.04,
+     "textPreview": "除以十二对我们来看看这个补偿器是怎么工作的里面既有零点又有极点是的它不是那种傻瓜",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 850.04,
+     "endSeconds": 880.0,
+     "textPreview": "次精准的定向爆破最终的全新开环传递函数完美达标了不仅速度提上去了达成了极速响应还",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+       "matchedLabel": "开环传递函数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 880.0,
+     "endSeconds": 905.28,
+     "textPreview": "我是真的觉得热血沸腾是吧所以同学你看自动控制到底是什么你觉觉得呢它绝对不是在黑板",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 905.28,
+     "endSeconds": 935.0,
+     "textPreview": "年在户外风吹日晒的工业机械臂上嗯真实的物理环境对五年之后系统里的电容老化了机械齿",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 935.0,
+     "endSeconds": 960.28,
+     "textPreview": "者在左半平面极其乖巧的极点和零点他们怎么了他们在物理世界中悄悄地发生了偏移我们叫",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 960.28,
+     "endSeconds": 978.44,
+     "textPreview": "位同学强烈建议大家带着这个震撼的思考回到你们自动控制原理的课堂上去重新审视书本上",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "dc958e12d5b4a7c5936a24a3aaa8c01a19db553bfa9158f2683edba5a179cf23",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-8-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-8/media/3-8-intro-video.mp4",
+   "sha256": "58b400749e3e7335d48e999203185e5e70c003fb78b85ce1bde96ebb4e23e3e0",
+   "durationSeconds": 121.685333,
+   "transcriptSource": "videos-project:lesson-3-8/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 99.633,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 121.633,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 29,
+   "segments": [],
+   "activeReleaseSha256": "ec31080063bab44e1a1aa92d8b2749833ce15fdb6ed98a8f4cc3cc64e1ff3982",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-8-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-8/media/3-8-course.mp4",
+   "sha256": "e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+   "durationSeconds": 486.41161,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-8.json",
+   "transcriptSourceSha256": "e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 10.24,
+     "textPreview": "嘿，同学们，欢迎回来。今天啊，咱们来当一回侦探，要破解一个控制系统里头最核心的谜",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 10.24,
+     "endSeconds": 20.0,
+     "textPreview": "你想啊，不管你设计的是个超乎的机器人，还是能送快递的无人机，你咋能保证它一通电不",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.0,
+     "endSeconds": 40.01,
+     "textPreview": "彻底失控的，这可是个大问题。OK，这是咱们今天的探案计划，先搞清楚到底什么是稳定",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.01,
+     "endSeconds": 49.45,
+     "textPreview": "好，那咱们就正式开案。所有侦探破案都得从最关键的证据入手，对吧？",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 49.45,
+     "endSeconds": 68.73,
+     "textPreview": "在咱们这儿，这个关键证据就是一个数学表达式。喏，就是这个东西，开环传递函数LS，",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+       "matchedLabel": "开环传递函数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 68.73,
+     "endSeconds": 84.14,
+     "textPreview": "我们后面所有的分析都得靠它。首先登场的是我们的奈亏斯侦探，这位老兄啊是个彻头彻尾",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 84.14,
+     "endSeconds": 97.66,
+     "textPreview": "它会把整个案发现场画成一张巨细靡遗的地图。没错，它的独门绝技就是画图。这张图呢，",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 97.66,
+     "endSeconds": 108.22,
+     "textPreview": "它能告诉我们，系统在面对从低到高各种不同频率的信号时，会做出什么样的反应。那么这",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 108.22,
+     "endSeconds": 121.37,
+     "textPreview": "就是这个点，负一零。你可以把它看作是案发现场的震中。我们画出的内调曲线到底有没有",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 121.37,
+     "endSeconds": 138.95,
+     "textPreview": "有了地图和关键地点，奈奎斯特侦探就要掏出他的破案法宝了。一个超级简单的公式，咱们",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 138.95,
+     "endSeconds": 151.03,
+     "textPreview": "听起来很简单对吧？咱们一步步拆解。首先，P代表系统本身有多少个不稳定因子，你可以",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 151.03,
+     "endSeconds": 162.15,
+     "textPreview": "然后是N，这个就是我们刚才说的，看地图数一数那条曲线顺时针绕了负一零这个点几圈，",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 162.15,
+     "endSeconds": 173.37,
+     "textPreview": "这个Z就是最终的判决结果。它代表加上反馈控制之后，系统里还剩下多少不稳定因子。我",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 173.37,
+     "endSeconds": 189.21,
+     "textPreview": "来看第一个案子，这个系统本身很安分，没有任何前科，所以P等于零。再看它的耐试图，",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 189.21,
+     "endSeconds": 204.86,
+     "textPreview": "那么Z等于零减零还是零？结论：系统稳定，结案好。第二个案子情况变了，这个系统本身",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 204.86,
+     "endSeconds": 224.67,
+     "textPreview": "但是呢，你看它的曲线还是没有包尾关键点，所以N就等于零，结果Z就等于1减0等于1",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 224.67,
+     "endSeconds": 240.59,
+     "textPreview": "哇，这个案子就有意思了，简直是神操作。你看，系统开局不利，p等于一本身是不稳定的",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 240.59,
+     "endSeconds": 252.06,
+     "textPreview": "这么一来，z等于一减一等于零，奇迹出现了。一个原本不稳定的系统，通过反馈控制居然",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 252.06,
+     "endSeconds": 264.7,
+     "textPreview": "最后一个案例，你看这个曲线长得有点放荡不羁，对吧？但别被它的外表给骗了。咱们的破",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 264.7,
+     "endSeconds": 276.97,
+     "textPreview": "没有。P等于零，曲线有没有包围关键点？也没有。N等于零。所以Z等于零，结论非常清",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 276.97,
+     "endSeconds": 289.21,
+     "textPreview": "这就告诉我们，不管曲线长啥样，奈奎斯特的法则永远好事。这么看下来，奈奎斯特侦犯的",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 289.21,
+     "endSeconds": 298.64,
+     "textPreview": "但说实话，每次都画这么复杂的地图也挺累的。有没有一种更快、更直观的破案方法呢？当",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 298.64,
+     "endSeconds": 315.6,
+     "textPreview": "下面就请出我们的第二位侦探，伯德。这位侦探的风格就完全不同了，他更像个现代的犯罪",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 315.6,
+     "endSeconds": 324.66,
+     "textPreview": "他的方法是把奈奎斯特侦探的那张复杂图拆解成两张更简单的图，一张叫辅值图。",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 324.66,
+     "endSeconds": 335.94,
+     "textPreview": "告诉你系统把信号放大了多少倍。另一张叫相位图，告诉你系统让信号延迟了多少。这么一",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 335.94,
+     "endSeconds": 348.98,
+     "textPreview": "而且呢，伯的氮闭震不关心什么包围不包围，他关心的是另一个概念，叫做阈度。说白了就",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 348.98,
+     "endSeconds": 359.22,
+     "textPreview": "先看第一个阈度，叫增益阈度。你得先找到一个非常危险的时刻，就是相位延迟刚好达到负",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 359.22,
+     "endSeconds": 373.14,
+     "textPreview": "这差不多就是系统快要造反的临界点了。就在这个时刻，你抬头去看复值图，如果这个时候",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 373.14,
+     "endSeconds": 386.18,
+     "textPreview": "这个空间就是增益欲度，另一个呢叫相位欲度。这次反过来，我们先找另一个危险时刻，就",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 386.18,
+     "endSeconds": 401.22,
+     "textPreview": "在这个点上，我们再低头去看相位图，看看此时的相位离那个危险的负一百八十度还有多远",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 401.22,
+     "endSeconds": 411.18,
+     "textPreview": "所以博德侦探的结论就特别直白。只要增益阈和向外阈都是正数，就说明系统有足够的安全",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 411.18,
+     "endSeconds": 430.78,
+     "textPreview": "如果任何一个变成了负数，那就意味着已经越过危险线了，系统不稳定。是不是很简单？好",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 430.78,
+     "endSeconds": 445.57,
+     "textPreview": "那么问题来了。日常办案，我们到底该请谁呢？其实啊，奈奎斯侦探更像是理论基石，他是",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 445.57,
+     "endSeconds": 455.81,
+     "textPreview": "而博德侦探呢，更像是我们日常工作中的得力干将，他快速、直观，不仅能告诉你系统稳不",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 455.81,
+     "endSeconds": 469.08,
+     "textPreview": "这对于我们去设计和优化系统来说，简直太有用了。好了，今天的案子就分析到这里。但大",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 469.08,
+     "endSeconds": 480.52,
+     "textPreview": "真正的艺术和挑战，其实在于如何去调整和设计、去塑造这些曲线，让我们的系统不仅稳定",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 480.52,
+     "endSeconds": 486.41,
+     "textPreview": "那么你准备好设计你的第一个完美系统了吗？",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "e747ec7b43d4d16782ada5b60f9e7deec450c6048424c6f9ba0d02173a95308a",
+   "status": "anchored"
+  }
+ ]
+}

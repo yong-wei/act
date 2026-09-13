@@ -1,0 +1,1994 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "2-1",
+ "unitIndex": 5,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/2-1/2-1-handout.md",
+  "sha256": "6186945f611c9f7e31e11037c9eb4a915e6c42b5119f862b42a4543f5fca5165"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图——为什么模块 2 先从建模语言开始",
+   "groupName": "问题引入与语言切换",
+   "textChars": 294,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "微分方程_2_775c96a3"
+    },
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "情境引入——为什么光有微分方程还不够",
+   "groupName": "问题引入与语言切换",
+   "textChars": 501,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "微分方程_2_775c96a3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "学习目标——今天要建哪条对象链",
+   "groupName": "问题引入与语言切换",
+   "textChars": 492,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "微分方程_2_775c96a3"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉氏变换",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "前测——对象、初值与结构的三个误区",
+   "groupName": "问题引入与语言切换",
+   "textChars": 650,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "微分方程_2_775c96a3"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "拉氏变换的工程动机",
+   "groupName": "问题引入与语言切换",
+   "textChars": 262,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "微分方程_2_775c96a3"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉氏变换",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "零初值下传递函数怎样形成",
+   "groupName": "传递函数与对象识别",
+   "textChars": 336,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "非零初值为什么不能混进对象定义",
+   "groupName": "传递函数与对象识别",
+   "textChars": 221,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "典型环节对象库：先看清对象由什么组成",
+   "groupName": "传递函数与对象识别",
+   "textChars": 825,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "结构图三类基本连接",
+   "groupName": "结构图与闭环对象",
+   "textChars": 240,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "结构图_2_3f312ccc"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环传递函数_2_5399c369"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "船舶航向系统：把对象真正连成系统",
+   "groupName": "结构图与闭环对象",
+   "textChars": 227,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "结构图_2_3f312ccc"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环传递函数_2_5399c369"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "方框图为什么还不够：信号流图补位",
+   "groupName": "信号流图与梅森公式",
+   "textChars": 111,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "梅森增益公式_2_419eab0c"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "信号流图_2_372d4084"
+    },
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "梅森公式的最小使用集",
+   "groupName": "信号流图与梅森公式",
+   "textChars": 370,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "梅森增益公式_2_419eab0c"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "信号流图_2_372d4084"
+    },
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "例题一：单回路闭环对象如何收束",
+   "groupName": "信号流图与梅森公式",
+   "textChars": 418,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "梅森增益公式_2_419eab0c"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "信号流图_2_372d4084"
+    },
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "补充辨析：余子式为什么不一定等于 1",
+   "groupName": "信号流图与梅森公式",
+   "textChars": 322,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "梅森增益公式_2_419eab0c"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "信号流图_2_372d4084"
+    },
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "回路_2_e1adbdfa"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "后测——会不会用对象语言复述本课",
+   "groupName": "后测与收束",
+   "textChars": 215,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "总结——对象语言已建立，下一课进入响应分析",
+   "groupName": "后测与收束",
+   "textChars": 158,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-为何仅有微分方程尚不足够",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：为何仅有微分方程尚不足够",
+   "startLine": 14,
+   "endLine": 50,
+   "bodyChars": 868,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-核心内容",
+   "order": 2,
+   "level": 2,
+   "title": "二、核心内容",
+   "startLine": 51,
+   "endLine": 52,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-为何课程需从微分方程转向变换域分析",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 为何课程需从微分方程转向变换域分析",
+   "startLine": 53,
+   "endLine": 110,
+   "bodyChars": 1225,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+     "matchedLabel": "线性定常系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉氏变换",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-零初值条件下传递函数的形成",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 零初值条件下传递函数的形成",
+   "startLine": 111,
+   "endLine": 216,
+   "bodyChars": 1904,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 144,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-典型环节为何构成后续全课的\"标准对象库\"",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 典型环节为何构成后续全课的\"标准对象库\"",
+   "startLine": 217,
+   "endLine": 305,
+   "bodyChars": 1979,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "m1r-v1d:formula:b17852cfb0df6eb9a9f6dd2f",
+     "matchedLabel": "G(s)=\\frac{1}{s}",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-方框图如何将多个对象连接为系统",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 方框图如何将多个对象连接为系统",
+   "startLine": 306,
+   "endLine": 429,
+   "bodyChars": 2316,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 144,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-为何方框图尚不充分-信号流图与梅森公式的补充作用",
+   "order": 7,
+   "level": 3,
+   "title": "2.5 为何方框图尚不充分：信号流图与梅森公式的补充作用",
+   "startLine": 430,
+   "endLine": 543,
+   "bodyChars": 2406,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 304,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 128,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "matchedLabel": "回路",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 128,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "matchedLabel": "梅森公式",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-例题精解",
+   "order": 8,
+   "level": 2,
+   "title": "三、例题精解",
+   "startLine": 544,
+   "endLine": 545,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-例题一-将一个简化的航向控制系统完整化为总体对象",
+   "order": 9,
+   "level": 3,
+   "title": "3.1 例题一：将一个简化的航向控制系统完整化为总体对象",
+   "startLine": 546,
+   "endLine": 749,
+   "bodyChars": 3529,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 128,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 128,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "matchedLabel": "回路",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-工程视角-为何真实系统必先厘清结构-再论性能",
+   "order": 10,
+   "level": 2,
+   "title": "四、工程视角：为何真实系统必先厘清结构，再论性能",
+   "startLine": 750,
+   "endLine": 759,
+   "bodyChars": 255,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "matchedLabel": "梅森公式",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+     "matchedLabel": "结构图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 6,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-本讲小结与前后衔接",
+   "order": 11,
+   "level": 2,
+   "title": "五、本讲小结与前后衔接",
+   "startLine": 760,
+   "endLine": 761,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-应掌握的五个核心结论",
+   "order": 12,
+   "level": 3,
+   "title": "5.1 应掌握的五个核心结论",
+   "startLine": 762,
+   "endLine": 769,
+   "bodyChars": 248,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-与前后课程的衔接关系",
+   "order": 13,
+   "level": 3,
+   "title": "5.2 与前后课程的衔接关系",
+   "startLine": 770,
+   "endLine": 785,
+   "bodyChars": 320,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 9,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 6,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-附录A｜为何传递函数必须强调\"零初值\"",
+   "order": 14,
+   "level": 2,
+   "title": "附录A｜为何传递函数必须强调\"零初值\"",
+   "startLine": 786,
+   "endLine": 837,
+   "bodyChars": 600,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-附录B｜梅森公式速查-真正应按何种顺序操作",
+   "order": 15,
+   "level": 2,
+   "title": "附录B｜梅森公式速查：真正应按何种顺序操作",
+   "startLine": 838,
+   "endLine": 841,
+   "bodyChars": 81,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "matchedLabel": "梅森公式",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-B-1-梅森公式主体",
+   "order": 16,
+   "level": 3,
+   "title": "B.1 梅森公式主体",
+   "startLine": 842,
+   "endLine": 853,
+   "bodyChars": 152,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "matchedLabel": "梅森公式",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-4c7dc86c0398fc75d578b1e4",
+     "matchedLabel": "图特征式",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-B-2-实际操作的推荐顺序",
+   "order": 17,
+   "level": 3,
+   "title": "B.2 实际操作的推荐顺序",
+   "startLine": 854,
+   "endLine": 869,
+   "bodyChars": 273,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "matchedLabel": "回路",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-B-3-本课仅额外提醒一个易错点",
+   "order": 18,
+   "level": 3,
+   "title": "B.3 本课仅额外提醒一个易错点",
+   "startLine": 870,
+   "endLine": 883,
+   "bodyChars": 164,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+     "matchedLabel": "回路",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+     "matchedLabel": "支路",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+     "matchedLabel": "不接触回路",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a0578e35574b6bf2399d6a93",
+     "matchedLabel": "接触回路",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-附录C｜本课至少需记忆的拉普拉斯对应关系",
+   "order": 19,
+   "level": 2,
+   "title": "附录C｜本课至少需记忆的拉普拉斯对应关系",
+   "startLine": 884,
+   "endLine": 906,
+   "bodyChars": 490,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉氏变换",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-附录D｜本讲关键概念层级梳理",
+   "order": 20,
+   "level": 2,
+   "title": "附录D｜本讲关键概念层级梳理",
+   "startLine": 907,
+   "endLine": 910,
+   "bodyChars": 33,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-D-1-基础转换层级-对象建立",
+   "order": 21,
+   "level": 3,
+   "title": "D.1 基础转换层级（对象建立）",
+   "startLine": 911,
+   "endLine": 915,
+   "bodyChars": 56,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉氏变换",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-D-2-对象识别层级-标准库建设",
+   "order": 22,
+   "level": 3,
+   "title": "D.2 对象识别层级（标准库建设）",
+   "startLine": 916,
+   "endLine": 920,
+   "bodyChars": 59,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-D-3-结构表达层级-系统连接",
+   "order": 23,
+   "level": 3,
+   "title": "D.3 结构表达层级（系统连接）",
+   "startLine": 921,
+   "endLine": 925,
+   "bodyChars": 58,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-D-4-路径分析层级-复杂连接求解",
+   "order": 24,
+   "level": 3,
+   "title": "D.4 路径分析层级（复杂连接求解）",
+   "startLine": 926,
+   "endLine": 930,
+   "bodyChars": 64,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+     "matchedLabel": "不接触回路",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "matchedLabel": "梅森公式",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a0578e35574b6bf2399d6a93",
+     "matchedLabel": "接触回路",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-D-5-学习习惯层级-工程思维",
+   "order": 25,
+   "level": 3,
+   "title": "D.5 学习习惯层级（工程思维）",
+   "startLine": 931,
+   "endLine": 934,
+   "bodyChars": 50,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "2-1-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/2-1/media/2-1-audio.m4a",
+   "sha256": "8bc57993aca6de149304381e609f3a18a3632cb1718889a8b911cffb4ebee7ff",
+   "durationSeconds": 937.691429,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/2-1.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.04,
+     "textPreview": "想象一下呃一架几百吨重的波音777客机正在狂风骤雨中准备降落嗯这绝对是个让人手心",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.04,
+     "endSeconds": 50.08,
+     "textPreview": "飞机就会在测风中彻底失控没错所以今天我们要拆拆解的就是赋予这架飞机或者说你实验室",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.08,
+     "endSeconds": 75.24,
+     "textPreview": "业大学生估计现在正盯着讲义呃为了各种公式挠头呢哈哈绝对的满屏幕的维分方程拉布拉斯",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.48,
+     "endSeconds": 100.52,
+     "textPreview": "去看看这些数学工具是怎么在真实的物理世界里大杀四方的去是工程学从来都不是纯粹的数",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.52,
+     "endSeconds": 125.52,
+     "textPreview": "取啊当你打开讲义的第一节那种感觉真的像是被当头棒喝怎么说就是满纸都是带点的字母啊",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.52,
+     "endSeconds": 151.04,
+     "textPreview": "有各种高阶导数的维分方程简直就是在看天书现实世界因为有质量带来的惯性有摩擦带来的",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.12,
+     "endSeconds": 176.12,
+     "textPreview": "瞬时抖动瞬时抖动这个词很形象对当你深陷在时间轴里看着变量每一毫秒都在疯狂变化的时",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.12,
+     "endSeconds": 201.4,
+     "textPreview": "的复脾欲我们常说的S欲很多初学者包括我以前都把它当成一个超级翻译APP凡也PP对",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.4,
+     "endSeconds": 226.56,
+     "textPreview": "步理解是可以的但这个翻译APP能完美运作其实有一个极其苛刻的前提条件啊什么条件零",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.64,
+     "endSeconds": 251.68,
+     "textPreview": "除以输入的拉式变换对吧对但我们要理解的不仅仅是它是什么更要理解它为什么重为什么呢",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.68,
+     "endSeconds": 276.9,
+     "textPreview": "的特征哇所以不论我是轻轻推一下这个转子还是给它持续通电它的基烟永远是那个公式这听",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 278.8,
+     "endSeconds": 303.8,
+     "textPreview": "如果我们把这和宏观图景联系起来这就意味着控制工程师不需要每次都重新发明轮子怎么说",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 303.88,
+     "endSeconds": 330.56,
+     "textPreview": "能用同一套数学工具去控制天下所有的机器太牛了那我们来具体看看这些积木比如比例环节",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.88,
+     "endSeconds": 355.92,
+     "textPreview": "传递函数就是一个常数K嗯最简单的环节我觉得他就像是一个无脑的肌肉男系统误差有多大",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.92,
+     "endSeconds": 385.0,
+     "textPreview": "节可能放弃了但积分缓会把每一秒的一毫米累加起来也就是他有一个账本去计酬对吧对他有",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.2,
+     "textPreview": "记忆时间一长账本上的误差总和变得极其巨大最终闭控制器输出足够的能量彻底消灭那个死",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.2,
+     "endSeconds": 440.24,
+     "textPreview": "那里还有二阶震荡环节能量在动能和势能之间来回转换真是把物理现实完美的模块化了",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.24,
+     "endSeconds": 465.44,
+     "textPreview": "而且你注意到没有资料里有一张拉式变换表嗯有单位拍充揭阅指数正弦输入对这就说明不仅",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+       "matchedLabel": "反馈连接",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.84,
+     "endSeconds": 495.0,
+     "textPreview": "为什么它的等效传递函数会变成分式你是说G1除以1加上GH这个公式吗对而且",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.0,
+     "textPreview": "最让我抓狂的是如果是负反馈也就是把输出减去期望值分母为什么是一plusgh而不是",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.08,
+     "endSeconds": 550.16,
+     "textPreview": "大的结果所以Y等于GE然后呢把他们带入进去对你把b等于hy",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 551.28,
+     "endSeconds": 576.32,
+     "textPreview": "带入第一个式子误差e就等于rhy然后再把这个e代入到第三个式子y等于ggrhy中",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 576.32,
+     "endSeconds": 605.0,
+     "textPreview": "有个很经典的例子传播航向控制",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.32,
+     "endSeconds": 630.8,
+     "textPreview": "这个例子我看过但还是有点懵我们巧妙地套用一下刚才的公式输入就是我们期望的航向对设",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 631.06,
+     "endSeconds": 656.13,
+     "textPreview": "三个串联在一起构成了我们强大的前向通道距船在海中转向产生实际航向最后也是最关键的",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 656.42,
+     "endSeconds": 681.44,
+     "textPreview": "纠正直到误差变成零这就是复反汇在抵抗风浪这种外部干扰时的强大之处非常稳定但是呃我",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 682.48,
+     "endSeconds": 707.66,
+     "textPreview": "串并联的规则一步步挪动节点非常容易出错不仅容易算错简直让人头秃这到底意味着什么呢",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 707.76,
+     "endSeconds": 732.92,
+     "textPreview": "回路的化简痛点我们引入了信号流图和媒森公式它的核心就是gs等于p呢pkdelta",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+       "matchedLabel": "回路",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 40,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9b8a43928af77103270d5f9c",
+       "matchedLabel": "不接触回路",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 733.24,
+     "endSeconds": 771.12,
+     "textPreview": "对那个巨长无比的delta",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 771.12,
+     "endSeconds": 796.48,
+     "textPreview": "怎么算它等于1减去所有单科回路的增益之和加上所有互不接触的两个回路增益乘积之和在",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+       "matchedLabel": "回路",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+       "matchedLabel": "回路增益",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 796.48,
+     "endSeconds": 821.55,
+     "textPreview": "察那个特征是delta怎么考察把delta里面跟这条前上通道有接触的回路全部剔除",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 821.66,
+     "endSeconds": 847.42,
+     "textPreview": "彻底告别了那些移来易去的代数化件这简直是终极通关秘籍呀听完你这么一梳理我感觉第二",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 847.43,
+     "endSeconds": 876.28,
+     "textPreview": "域的平移宇宙在这个宇宙里我们把复杂的物理系统拆解成了乐高积木般的典型环节比例积分",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 876.36,
+     "endSeconds": 901.41,
+     "textPreview": "感觉期中考试稳了呃可能我得泼点冷水了就就引出了一个重要问题啊还要反转你还记得我们",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 901.52,
+     "endSeconds": 926.96,
+     "textPreview": "就是说机器在开机的那一刻必须是完全静止的没有残余能量的对但如果在现实中开机的那一",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 926.96,
+     "endSeconds": 935.0,
+     "textPreview": "释了这一点如果初始条件不等于零你的微分方程在做拉普拉斯变换的时候就会多一个恼人的",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "8bc57993aca6de149304381e609f3a18a3632cb1718889a8b911cffb4ebee7ff",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "2-1-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/2-1/media/2-1-intro-video.mp4",
+   "sha256": "6d05aee93be5f19bdcfd43898455b5fe8ab022bcc5be643097cfeed1687c7b3b",
+   "durationSeconds": 297.216,
+   "transcriptSource": "videos-project:lesson-2-1/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 275.167,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 297.167,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 62,
+   "segments": [],
+   "activeReleaseSha256": "f6d6931988f7c16601a17b16a9c5d3059f56b18d354f39215f21cab087c20e35",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "2-1-course",
+   "kind": "video",
+   "runtimePath": "lessons/2-1/media/2-1-course.mp4",
+   "sha256": "fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+   "durationSeconds": 484.345034,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/2-1.json",
+   "transcriptSourceSha256": "fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 11.52,
+     "textPreview": "嘿，各位工程师，还有未来的工程师们，欢迎回来。今天啊，咱们要解锁一个超酷的技能，",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 11.52,
+     "endSeconds": 20.0,
+     "textPreview": "横着走的强大工具，它就叫传递函数。怎么样，准备好给你的大脑来一次大升级了吗？",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.0,
+     "endSeconds": 31.28,
+     "textPreview": "行，咱们这就开始。哎，看看我们今天的游戏计划，咱们先聊聊为啥微积分这么难，得想办",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 31.28,
+     "endSeconds": 40.01,
+     "textPreview": "然后呢，我们会进入一个神奇的地方，叫s域。在这里学三个基本招式，学完之后就得去挑",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 40.01,
+     "endSeconds": 48.97,
+     "textPreview": "一个怪手级的系统，最后嘛我还给你们准备了一个终极高手秘籍，是不是听着就觉得特带劲",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 48.97,
+     "endSeconds": 60.01,
+     "textPreview": "好，那我们先从第一点开始说，真的咱们当工程师或者学工程的，在分析那些会动的系统，",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 60.01,
+     "endSeconds": 69.77,
+     "textPreview": "呀，或者无人机啊，最头疼的是啥？没错，就是解那些该死的微分方程。你肯定有过这种经",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 69.77,
+     "endSeconds": 79.05,
+     "textPreview": "就盯着屏幕上一大堆复杂的微分方程，感觉脑子都快烧了，心里就在想：天呐，肯定有更简",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 79.05,
+     "endSeconds": 94.6,
+     "textPreview": "别担心，你不是一个人，我敢说每个学工科的都这么想过。对，就是这种东西。什么高阶线",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 94.6,
+     "endSeconds": 109.64,
+     "textPreview": "但是，但是你要是想直接去解它，特别是在分析一个复杂的系统的时候，那简直就是噩梦。",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 109.64,
+     "endSeconds": 119.16,
+     "textPreview": "那么欢迎来到我们的作弊天堂S域。在这个神奇的地方，微积分什么的我们不聊。在这里，",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 119.16,
+     "endSeconds": 130.52,
+     "textPreview": "可以说，这就是一个能让我们的工作量瞬间减半的魔法空间。那这个魔法是怎么实现的呢？",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 130.52,
+     "endSeconds": 140.44,
+     "textPreview": "你听着，你完全不需要去死磕它背后那些复杂的数学证明。你只要记住它能干嘛就行了，它",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 140.44,
+     "endSeconds": 154.2,
+     "textPreview": "能把那些让你头疼的微分运算，biu的一下就变成了简单的乘法。你看，在十域里求一次",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 154.2,
+     "endSeconds": 167.59,
+     "textPreview": "怎么样？是不是感觉世界瞬间就清爽了？好，到了四域这个新世界之后呢，每个系统或者说",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 167.59,
+     "endSeconds": 179.94,
+     "textPreview": "这个身份证就叫传递函数，我们一般用GS来表示。说白了，它就是系统输出除以输入，一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 179.94,
+     "endSeconds": 190.98,
+     "textPreview": "这个系统是干嘛的？给他一个信号，他会怎么反应？特别直接行。既然我们已经懂了S域和",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 190.98,
+     "endSeconds": 205.06,
+     "textPreview": "用方框图把整个系统画出来。那接下来呢，咱们就要学简化这些图的三大基本招式。我跟你",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 205.06,
+     "endSeconds": 214.5,
+     "textPreview": "来，第一招：串联。你看这个图，两个方块一前一后的连着，信号先进G1出来，再进G2",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 214.5,
+     "endSeconds": 225.95,
+     "textPreview": "这种情况怎么办？简单到不行，直接把它们俩的传递函数乘起来就行了。总的计就等于计一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 225.95,
+     "endSeconds": 236.03,
+     "textPreview": "多好好，第二招并联这种情况呢，就是两个模块同时在干活，最后把结果汇总到一块。",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 236.03,
+     "endSeconds": 246.67,
+     "textPreview": "那总的传递函数是啥？你可能都猜到了，直接把它们俩加起来G等于G一加G二，是不是也",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 246.67,
+     "endSeconds": 258.91,
+     "textPreview": "OK，注意了啊，接下来是重头戏，第三招也是最最重要的一招——反馈回路。我跟你说啊",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 258.91,
+     "endSeconds": 271.47,
+     "textPreview": "你看它把输的一部分通过一个叫H的环节，又给绕回了输入端。用来干嘛呢？用来比较，用",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 271.47,
+     "endSeconds": 279.96,
+     "textPreview": "这个公式大家一定要记牢了，画重点要考的，所有稳定智能的系统都靠它了。好了，理论知",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 279.96,
+     "endSeconds": 288.52,
+     "textPreview": "讲完了，是时候上战场了。来，咱们就用刚学的这三招去挑战一个看起来特别吓人的怪兽级",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 288.52,
+     "endSeconds": 297.8,
+     "textPreview": "别怕，我们的目标很简单，把这一大坨东西最后变成一个干干净净的方框。好，咱们来一步",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 297.8,
+     "endSeconds": 306.28,
+     "textPreview": "对付这种复杂的系统要从从里到外，先看最里面。你看到G二和H一组成的这个小圈圈了吗",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 306.28,
+     "endSeconds": 317.88,
+     "textPreview": "这不就是咱们的第三招——反馈回路吗？直接套公式，把它变成一个新方框。这个方框里面",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 317.88,
+     "endSeconds": 327.8,
+     "textPreview": "搞定一个好，再看。我们刚得到的这个新方框跟它下面的G三是什么关系？哎，是并联。能",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 327.8,
+     "endSeconds": 342.21,
+     "textPreview": "加完之后，这个合并起来的大块儿头又跟最前面的G一是什么关系？串联。第一招直接乘。",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 342.21,
+     "endSeconds": 352.61,
+     "textPreview": "现在整个系统是不是就变成了一个由H2构成的大号反馈回路？没错吧？那还等什么？再用",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 32,
+     "startSeconds": 352.61,
+     "endSeconds": 364.61,
+     "textPreview": "最终的答案就出来了，一个唯一的传递函数。所以你看，所谓的怪兽系统，拆开来不就是我",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 364.61,
+     "endSeconds": 375.49,
+     "textPreview": "不过说实话，要是系统再复杂一点，这么一步一步来还是挺烦的。所以接下来我给你们看看",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 375.49,
+     "endSeconds": 387.27,
+     "textPreview": "大家看啊，除了用方框图，我们还能用另一种方式来画这个系统，叫信号流图。你看右边这",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 387.27,
+     "endSeconds": 397.03,
+     "textPreview": "其实它俩说的是一回事儿，只是长得不一样而已。用点和带箭头的线来表示信号怎么走、怎",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 397.03,
+     "endSeconds": 413.34,
+     "textPreview": "那为什么要换种画法呢？因为信号流图它有一个终极作弊码叫梅森增益公式。这个公式牛在",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+       "matchedLabel": "梅森增益公式",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+       "matchedLabel": "信号流图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 413.34,
+     "endSeconds": 423.42,
+     "textPreview": "不管这个系统有多复杂，唰的一下就能直接算出总的传递行数，一步到位，这绝对是控治理",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 423.42,
+     "endSeconds": 435.18,
+     "textPreview": "所以咱们折腾了半天，又是s与又是方框图的，这玩意到底有啥用？我跟你说，用处可太大",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 435.18,
+     "endSeconds": 445.2,
+     "textPreview": "工厂里那些机械人胳膊怎么能那么准的抓取东西？你车上的自动巡航功能是怎么实现的？甚",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 445.2,
+     "endSeconds": 454.72,
+     "textPreview": "所有这些东西的核心都离不开咱们今天聊的控制理论。所以你今天学的可不是什么枯燥的公",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 454.72,
+     "endSeconds": 463.35,
+     "textPreview": "好了，今天的升级攻略就到这儿了。现在你的工具箱里已经有了分析和简化控制系统的基本",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 463.35,
+     "endSeconds": 473.11,
+     "textPreview": "那么不妨大胆赏一下，如果你能用今天学的这些知识去创造点什么，你最想搞定的第一个真",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 473.11,
+     "endSeconds": 484.35,
+     "textPreview": "是做一个能自动浇花的装置，还是设计一个更牛的游戏手柄？在下面留言告诉我你的想法吧",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "fa3d8c0c53ec53e5a04ab6972fb6e71bed64cc9a5ea7c7c5096955753736ce75",
+   "status": "anchored"
+  }
+ ]
+}

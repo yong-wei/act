@@ -1,0 +1,90 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "3-4",
+ "canonicalIds": [
+  "ctc:v11g-2628d227495a3860151a16c1",
+  "ctc:v11g-462227b4794133f894bdd0a8",
+  "ctc:v11g-5845390ded447e37f06ea222",
+  "ctc:v11g-95859dcad651c20058bf8726",
+  "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+  "ctc:v11g-bde559972a3c77718ce84d2e",
+  "ctc:v11g-c3abeee0067f823ed190d79e",
+  "ctc:v11g-e73425ff41e0f022a641c4cd",
+  "ctc:v11g-f0a551cbfb667c38018a1aa9",
+  "ctc:v12g-15b7fb1d68889848e3c50c46",
+  "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+  "ctc:v12g-e3580535c0a12b79e0509f97",
+  "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+  "ctkg:v3e-canonical-504581e399675b9792ab8502",
+  "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+  "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+  "ctkg:v3e-object-327cafd07ac8956536bab418",
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e"
+ ],
+ "sources": {
+  "ctc:v11g-2628d227495a3860151a16c1": [
+   "topic:imaginary-crossing"
+  ],
+  "ctc:v11g-462227b4794133f894bdd0a8": [
+   "topic:breakaway"
+  ],
+  "ctc:v11g-5845390ded447e37f06ea222": [
+   "reuse_node_ids:根轨迹_4_c19f8854",
+   "topic:root-locus"
+  ],
+  "ctc:v11g-95859dcad651c20058bf8726": [
+   "topic:open-zeros"
+  ],
+  "ctc:v11g-a3d09e397d88f3ae13bc9d89": [
+   "topic:generalized-locus"
+  ],
+  "ctc:v11g-bde559972a3c77718ce84d2e": [
+   "topic:generalized-locus"
+  ],
+  "ctc:v11g-c3abeee0067f823ed190d79e": [
+   "topic:open-gain"
+  ],
+  "ctc:v11g-e73425ff41e0f022a641c4cd": [
+   "topic:root-gain"
+  ],
+  "ctc:v11g-f0a551cbfb667c38018a1aa9": [
+   "topic:open-poles"
+  ],
+  "ctc:v12g-15b7fb1d68889848e3c50c46": [
+   "topic:root-gain"
+  ],
+  "ctc:v12g-d1e6f12e1e95f6477c66bdc1": [
+   "topic:breakin"
+  ],
+  "ctc:v12g-e3580535c0a12b79e0509f97": [
+   "topic:zero-degree"
+  ],
+  "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b": [
+   "topic:non-dominant"
+  ],
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253": [
+   "topic:step-response"
+  ],
+  "ctkg:v3e-canonical-504581e399675b9792ab8502": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-canonical-7147bc2427dae1863e06ef77": [
+   "reuse_node_ids:闭环主导极点_3_de941720",
+   "topic:dominant-poles"
+  ],
+  "ctkg:v3e-canonical-cc82e137f42aa09df514e615": [
+   "topic:dominant-approximation"
+  ],
+  "ctkg:v3e-object-327cafd07ac8956536bab418": [
+   "topic:stability-range"
+  ],
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e": [
+   "topic:bode"
+  ]
+ }
+}

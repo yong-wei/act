@@ -1,0 +1,1727 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-1",
+ "unitIndex": 9,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-1/3-1-handout.md",
+  "sha256": "3ac67089852c0ea0695ecf014b2f8c8c7c1ad59f372f6bb9f53bf0a7b0e04dfd"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到路径：从模块 2 的低阶直觉走向模块 3 的极点语言",
+   "groupName": "引入与稳定底线",
+   "textChars": 142,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环特征方程_3_87c88e19"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "情境引入：同主导极点，为什么响应仍会分家",
+   "groupName": "引入与稳定底线",
+   "textChars": 231,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环特征方程_3_87c88e19"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "学习目标与课堂边界：本课负责什么，不负责什么",
+   "groupName": "引入与稳定底线",
+   "textChars": 114,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环特征方程_3_87c88e19"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "前测：稳定、主导极点与“可忽略”直觉判断",
+   "groupName": "引入与稳定底线",
+   "textChars": 213,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环特征方程_3_87c88e19"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "稳定底线：先回答“能不能谈近似”",
+   "groupName": "引入与稳定底线",
+   "textChars": 208,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环特征方程_3_87c88e19"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "稳定性_3_72d04fbd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "从极点到模态：极点为什么会直接写进响应",
+   "groupName": "极点到模态",
+   "textChars": 223,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "三类极点与重根：响应形态为什么不止一种",
+   "groupName": "极点到模态",
+   "textChars": 223,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "最小例题：三模型时域对照与主导模态近似",
+   "groupName": "时域主导极点近似",
+   "textChars": 253,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "时域筛选：更靠左为什么只是第一轮判断",
+   "groupName": "时域主导极点近似",
+   "textChars": 214,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "转向频域：时域相近为什么还不够",
+   "groupName": "频域主导极点近似",
+   "textChars": 226,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "Bode 对照：附加极点何时侵入主要带宽",
+   "groupName": "频域主导极点近似",
+   "textChars": 244,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "双域判断表：先自判，再问 AI，再回到图上核验",
+   "groupName": "频域主导极点近似",
+   "textChars": 259,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "卷积与模态叠加：输入激发模态，但不改写极点结构",
+   "groupName": "卷积、后测与收束",
+   "textChars": 245,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+     "matchedLabel": "卷积",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "后测：会不会发散、能不能近似、为什么能解释",
+   "groupName": "卷积、后测与收束",
+   "textChars": 236,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "总结与去向：先守底线，再谈模态，再谈后续方法",
+   "groupName": "卷积、后测与收束",
+   "textChars": 123,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环主导极点_3_de941720"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-问题从哪里来-高阶系统为什么没有推翻低阶直觉",
+   "order": 1,
+   "level": 2,
+   "title": "一、问题从哪里来：高阶系统为什么没有推翻低阶直觉",
+   "startLine": 12,
+   "endLine": 39,
+   "bodyChars": 653,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+     "matchedLabel": "二阶系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-闭环极点先回答稳定性",
+   "order": 2,
+   "level": 2,
+   "title": "二、闭环极点先回答稳定性",
+   "startLine": 40,
+   "endLine": 63,
+   "bodyChars": 372,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "stability",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36.0,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+     "matchedLabel": "临界稳定",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-从坐标点到运动模态-极点为什么能解释系统动态",
+   "order": 3,
+   "level": 2,
+   "title": "三、从坐标点到运动模态：极点为什么能解释系统动态",
+   "startLine": 64,
+   "endLine": 65,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h4-一般自由响应告诉我们-极点直接写进了响应式",
+   "order": 4,
+   "level": 3,
+   "title": "3.1 一般自由响应告诉我们：极点直接写进了响应式",
+   "startLine": 66,
+   "endLine": 88,
+   "bodyChars": 414,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+     "matchedLabel": "部分分式展开",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-三类典型极点-三种典型响应",
+   "order": 5,
+   "level": 3,
+   "title": "3.2 三类典型极点，三种典型响应",
+   "startLine": 89,
+   "endLine": 100,
+   "bodyChars": 332,
+   "canonical": []
+  },
+  {
+   "headingId": "h6-重根为什么不能被忽略",
+   "order": 6,
+   "level": 3,
+   "title": "3.3 重根为什么不能被忽略",
+   "startLine": 101,
+   "endLine": 117,
+   "bodyChars": 254,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-主导极点为何仍能借用低阶语言",
+   "order": 7,
+   "level": 2,
+   "title": "四、主导极点为何仍能借用低阶语言",
+   "startLine": 118,
+   "endLine": 119,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-主导极点决定主要动态",
+   "order": 8,
+   "level": 3,
+   "title": "4.1 主导极点决定主要动态",
+   "startLine": 120,
+   "endLine": 129,
+   "bodyChars": 236,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-最小例题-附加极点什么时候还能忽略",
+   "order": 9,
+   "level": 3,
+   "title": "4.2 最小例题：附加极点什么时候还能忽略",
+   "startLine": 130,
+   "endLine": 228,
+   "bodyChars": 2138,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+     "matchedLabel": "直流增益",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-时域里怎样判断“忽略是否还算合理”",
+   "order": 10,
+   "level": 3,
+   "title": "4.3 时域里怎样判断“忽略是否还算合理”",
+   "startLine": 229,
+   "endLine": 237,
+   "bodyChars": 165,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-为什么还要做频域检查",
+   "order": 11,
+   "level": 2,
+   "title": "五、为什么还要做频域检查",
+   "startLine": 238,
+   "endLine": 239,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-时域相近-不等于频域也相近",
+   "order": 12,
+   "level": 3,
+   "title": "5.1 时域相近，不等于频域也相近",
+   "startLine": 240,
+   "endLine": 248,
+   "bodyChars": 146,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-频域证据-附加极点有没有侵入主要带宽",
+   "order": 13,
+   "level": 3,
+   "title": "5.2 频域证据：附加极点有没有侵入主要带宽",
+   "startLine": 249,
+   "endLine": 312,
+   "bodyChars": 1473,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-双域判断表",
+   "order": 14,
+   "level": 3,
+   "title": "5.3 双域判断表",
+   "startLine": 313,
+   "endLine": 324,
+   "bodyChars": 310,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-卷积如何把“极点语言”带到输入响应里",
+   "order": 15,
+   "level": 2,
+   "title": "六、卷积如何把“极点语言”带到输入响应里",
+   "startLine": 325,
+   "endLine": 326,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-阶跃响应不是凭空出现的",
+   "order": 16,
+   "level": 3,
+   "title": "6.1 阶跃响应不是凭空出现的",
+   "startLine": 327,
+   "endLine": 344,
+   "bodyChars": 285,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-f1592d0294e49b97a717c2f0",
+     "matchedLabel": "斜坡输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-数值图像-我们真的能看见这种叠加",
+   "order": 17,
+   "level": 3,
+   "title": "6.2 数值图像：我们真的能看见这种叠加",
+   "startLine": 345,
+   "endLine": 356,
+   "bodyChars": 304,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+     "matchedLabel": "convolution",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 44.0,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-一个更具体的模态叠加例子",
+   "order": 18,
+   "level": 3,
+   "title": "6.3 一个更具体的模态叠加例子",
+   "startLine": 357,
+   "endLine": 385,
+   "bodyChars": 456,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+     "matchedLabel": "部分分式展开",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-70cc30805daade6a77025d7b",
+     "matchedLabel": "系统模型",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-何时可以借用低阶模型",
+   "order": 19,
+   "level": 2,
+   "title": "七、何时可以借用低阶模型",
+   "startLine": 386,
+   "endLine": 402,
+   "bodyChars": 342,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-练习与自查",
+   "order": 20,
+   "level": 2,
+   "title": "八、练习与自查",
+   "startLine": 403,
+   "endLine": 404,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-基础题",
+   "order": 21,
+   "level": 3,
+   "title": "8.1 基础题",
+   "startLine": 405,
+   "endLine": 410,
+   "bodyChars": 110,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-例题回看",
+   "order": 22,
+   "level": 3,
+   "title": "8.2 例题回看",
+   "startLine": 411,
+   "endLine": 418,
+   "bodyChars": 101,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-迁移题",
+   "order": 23,
+   "level": 3,
+   "title": "8.3 迁移题",
+   "startLine": 419,
+   "endLine": 426,
+   "bodyChars": 160,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-AI-练习",
+   "order": 24,
+   "level": 3,
+   "title": "8.4 AI 练习",
+   "startLine": 427,
+   "endLine": 436,
+   "bodyChars": 258,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-1-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-1/media/3-1-audio.m4a",
+   "sha256": "b5a6ea9544788a2a2177ebcb007195619cf38d79b918fd296f2f592a1c872656",
+   "durationSeconds": 1025.346757,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-1.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.32,
+     "endSeconds": 25.68,
+     "textPreview": "闭上眼睛设想这么一个画面就是你刚刚在极其痛苦的期中考试里好不容易从一阶还有二阶系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+       "matchedLabel": "二阶系统",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.68,
+     "endSeconds": 50.96,
+     "textPreview": "杂系统分析入口估计看到这几个字很多同学其实就凉了半截简直了然后你往下看讲义上特别",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.96,
+     "endSeconds": 76.12,
+     "textPreview": "内心的崩溃绝对是震耳欲聋呃简直想立刻抢过时光机逃回达意哈逃避了没有用的啊确实没用",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 76.2,
+     "endSeconds": 101.24,
+     "textPreview": "也就是本次深度解析的最终目的就是帮大家解除这种信息过载的恐慌别慌对千万别慌我们要",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 101.24,
+     "endSeconds": 126.32,
+     "textPreview": "你们学过的低阶语言对对对它其实就是一场多重奏嗯只要你掌握了那几个基础的单音节是怎",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:e125c73a1fa9700b183695ce",
+       "matchedLabel": "闭环特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 126.56,
+     "endSeconds": 151.68,
+     "textPreview": "生成了一张图咱们天天拿着笔在复平面上画叉到底是在画什么其实那是在划定一条生死界线",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.68,
+     "endSeconds": 176.92,
+     "textPreview": "床这个床的设定很有空间感你具体展开说说这张床的正中间有一条极其明显的缝隙那就是复",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.92,
+     "endSeconds": 202.04,
+     "textPreview": "腾最多就是在床垫上弹跳几下最后总会因为摩擦力停下来安安稳稳的陷入床垫儿里这就叫系",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 202.2,
+     "endSeconds": 227.28,
+     "textPreview": "对整个系统就会像你睡觉翻身滚下床一样直接自由落体彻底失控发散你用十头牛都拉不回来",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 227.28,
+     "endSeconds": 252.4,
+     "textPreview": "指数项的力量源泉如果时不小于零也就是在你说的那个左边的床垫儿上指数函数就是E的复",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.4,
+     "endSeconds": 278.4,
+     "textPreview": "量啊就是这样每一秒都在成倍放大最终冲破天极实部看衰减的快慢虚部看震荡的节奏也就是",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 278.8,
+     "endSeconds": 303.8,
+     "textPreview": "体举的三个例子嗯讲义上得了几点ABC平时大家做题诶在复平面画个叉就完事儿了很容易",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 303.8,
+     "endSeconds": 328.92,
+     "textPreview": "级链没错也就是说他只有十步那他在时域里长什么样是不是就像一个沉重的保龄球砸在泥地",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 328.92,
+     "endSeconds": 354.16,
+     "textPreview": "进稳态没有任何拖泥带水这就是复食极点的性格标签那那个极点闭就很有意思了我看到蒋一",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 354.16,
+     "endSeconds": 379.28,
+     "textPreview": "是变成了一根挂着重物的弹簧他会在床垫上上上弹跳你的直觉非常敏锐那个虚部J185在",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 379.28,
+     "endSeconds": 404.84,
+     "textPreview": "尼也就是摩擦力所以他俩结合在一起响应形态就变成了震荡衰减没错而且讲义在这里并不是",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 404.88,
+     "endSeconds": 430.04,
+     "textPreview": "strong20点79趴仙可不是随便才抓的确实这就说明复平面上那个毫不起眼的叉坐",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 430.04,
+     "endSeconds": 455.04,
+     "textPreview": "的物理形态至于极点C吗极点C在P等于Plus零点四五掉下深渊了持续发散系统原地爆",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 455.04,
+     "endSeconds": 480.56,
+     "textPreview": "要替所有做题做到眼花的同学们问一个极其容易掉坑脸的问题你发现什么盲点啊我在看讲义",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 480.56,
+     "endSeconds": 506.28,
+     "textPreview": "负号是不是意味着系统出现了右半平面的极点赶紧停住这是一个极其经典每年都有无数学生",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 506.28,
+     "endSeconds": 531.64,
+     "textPreview": "数前面的符号仅仅决定了这个模态在参与总响应叠加时的起始方向起始方上也就是说它在总",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 531.64,
+     "endSeconds": 556.72,
+     "textPreview": "错在这个例子里极点是P等于负二因为负二是个复数稳稳的落在左半平面的安全床垫上所以",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 556.72,
+     "endSeconds": 582.08,
+     "textPreview": "出衰减节奏吗太透彻了也就是说流数是权重极点极并生死那面对十几个混在一起的极点我们",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 23,
+     "startSeconds": 582.16,
+     "endSeconds": 609.64,
+     "textPreview": "他们就是这支乐队的主唱没错讲义里教他们主导几点那其他的几点呢比如讲义里那个对应e",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 609.8,
+     "endSeconds": 635.24,
+     "textPreview": "决定了主要动态咱们听这首交响乐的时候绝大多数时间其实只需要听主唱就行了确实如此也",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+       "matchedLabel": "非主导极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 635.24,
+     "endSeconds": 660.4,
+     "textPreview": "着是一秒钟就没声的伴唱吗并非如此如果你真的闭着眼睛乱砍系统很可能会在现实中给你一",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 660.4,
+     "endSeconds": 685.92,
+     "textPreview": "教训单从时域上看确实容易产生伴唱无所谓的错觉那什么时候办唱会突然抢卖导及系统翻车",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 685.92,
+     "endSeconds": 715.0,
+     "textPreview": "的半场被安排在负14的位置呃我看看复平面啊负14离主导极点比较近但是等负一点四明",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 715.0,
+     "endSeconds": 740.44,
+     "textPreview": "就需要我们引导听众戴上频域的眼镜了从包的图的视角来看看在讲义的三杠一PP零五那个",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 740.44,
+     "endSeconds": 770.0,
+     "textPreview": "点四直接落入了主系统二点零四的主要带宽内部还有这就不对了他不是在舞台边上老老实实",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 770.0,
+     "endSeconds": 795.04,
+     "textPreview": "常形象在包的图上最直观的表现就是如果附加极点侵入了主要带宽原本平滑的相品许现会提",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+       "matchedLabel": "非主导极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 795.36,
+     "endSeconds": 825.0,
+     "textPreview": "绝不能凭感觉必须看附加极点的转折频率有没有侵入你的主要贷款没错这是科学严谨性好的",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 825.0,
+     "endSeconds": 850.12,
+     "textPreview": "平域里的降阶陷阱在咱们这次深度解析的最后我要拉着大家回到食欲的基本面要面对那个终",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 33,
+     "startSeconds": 850.12,
+     "endSeconds": 880.0,
+     "textPreview": "大雨递上积水的过程去魅卷积的话这个大雨积水的比喻非常巧妙我们可以结合讲义里的离慢",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 880.08,
+     "endSeconds": 905.2,
+     "textPreview": "下大雨了因为接月输入又掏等于一就相当于一场持续不断余量恒定的大雨你可以把这场大雨",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 905.2,
+     "endSeconds": 935.0,
+     "textPreview": "无数个小的岩石破双响应在时间轴上连续叠加起来我起鸡皮疙瘩了也就是说那个积分号其实",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 935.0,
+     "endSeconds": 960.04,
+     "textPreview": "荡漾的涟漪一帧一帧的累加起来完全正确最终堆积成的宏观水位变化就是我们看到的完整阶",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+       "matchedLabel": "闭环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 960.2,
+     "endSeconds": 990.0,
+     "textPreview": "还原为你们熟悉的低阶语言高阶系统并不可怕万变不离其宗嘛不过在节目彻底结束之前我",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 990.0,
+     "endSeconds": 1015.04,
+     "textPreview": "要给咱们自动化专业的同学们留下一个稍微有点复黑的课后悬念哦启发性思考来了咱们今天",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 39,
+     "startSeconds": 1015.04,
+     "endSeconds": 1025.12,
+     "textPreview": "这个可能会让你背后发凉的悬念去上你的下一次实验课吧感谢收听这次的深度解析咱们闲聊",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "b5a6ea9544788a2a2177ebcb007195619cf38d79b918fd296f2f592a1c872656",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-1-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-1/media/3-1-intro-video.mp4",
+   "sha256": "8da1c10dc6044cdbd191dbf70ccb398cf8c88ea2d7a401be40a6c562650ad118",
+   "durationSeconds": 234.624,
+   "transcriptSource": "videos-project:lesson-3-1/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 212.567,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 234.567,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 63,
+   "segments": [],
+   "activeReleaseSha256": "ab079e59d13941ec461919606251dc3047b0f177431c6193cac4b8803c649be4",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-1-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-1/media/3-1-course.mp4",
+   "sha256": "ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+   "durationSeconds": 440.877279,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-1.json",
+   "transcriptSourceSha256": "ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 10.4,
+     "textPreview": "嘿，各位同学，欢迎回来。今天呢，咱们来聊一个自动控制理论里头可以说是最核心、最强",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 10.4,
+     "endSeconds": 20.0,
+     "textPreview": "准备好了吗？咱们这就来揭开它的神秘面纱。哎，我相信大家看到这种又是框图又是公式的",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.0,
+     "endSeconds": 34.64,
+     "textPreview": "第一反应是不是都觉得哇，头都大了？别慌，你不是一个人。但这里就藏着一个特别有意思",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 34.64,
+     "endSeconds": 48.81,
+     "textPreview": "还是会像一匹脱缰的野马，彻底跑偏失控呢？不如啊，咱们把今天这堂课当成一场侦探游，",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 48.81,
+     "endSeconds": 60.57,
+     "textPreview": "而这一场游戏里头最最关键的线索就是我们今天要讲的系统的极点，你可以把它想象成决定",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 60.57,
+     "endSeconds": 70.01,
+     "textPreview": "那到底什么是系统极点呢？嗯，书本上的定义是系统传递函数，它那个分母多项式的根。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-42e60317a7f829d9743436fb",
+       "matchedLabel": "系统极点",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 70.01,
+     "endSeconds": 84.33,
+     "textPreview": "我知道传递函数这词儿啊，听起来挺吓人的，但你其实完全可以把它理解成一个系统输入和",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 84.33,
+     "endSeconds": 96.14,
+     "textPreview": "说白了，极点就像是藏在系统内部的秘密指纹，只要我们找到了它们，这个系统是慢性子还",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 96.14,
+     "endSeconds": 107.74,
+     "textPreview": "好，既然咱们是侦探，那总得有个案发现场，对吧？这个现场在控制系统里就是复平面，我",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 107.74,
+     "endSeconds": 116.71,
+     "textPreview": "你可以把它看成是一张地图，一张能精确标出所有极点藏身之处的地图。来，大家看，这就",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 116.71,
+     "endSeconds": 127.51,
+     "textPreview": "注意了，中间这条垂直的序轴是关键中的关键，它就像一条楚河汉界，把整个地图划分成了",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 127.51,
+     "endSeconds": 144.2,
+     "textPreview": "左边的是安全区，而右边的呢，就是危险区。所以各位记住，控制系统稳定性分析的第一条",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 144.2,
+     "endSeconds": 157.32,
+     "textPreview": "那这个系统就是稳定的，它早晚会自己安分下来，但是哪怕只有一个极点不小心溜到了右半",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 157.32,
+     "endSeconds": 177.08,
+     "textPreview": "对，就是这么简单，这么粗暴。好了，现在我们知道该去哪儿找这些线索了。那接下来咱们",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 177.08,
+     "endSeconds": 191.87,
+     "textPreview": "首先登场的这位呢，是咱们的稳重可靠型选手，复时极点。当一个系统里只有这样一个极点",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 191.87,
+     "endSeconds": 202.35,
+     "textPreview": "就是这么单调的、稳稳的奔向他的最终目标。接下来出场的是这对形影不离的好搭档，共轭",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 202.35,
+     "endSeconds": 212.11,
+     "textPreview": "记住啊，他们总是成双成对的出现，当他们出现在左半平面的时候，就会制造出一种特别常",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 212.11,
+     "endSeconds": 221.81,
+     "textPreview": "你想想看，就好像荡秋千或者敲一下钟，它会嗡的一下来回震荡。但这个震荡会越来越小，",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 221.81,
+     "endSeconds": 234.69,
+     "textPreview": "对，就是这种感觉，在咱们现实世界的机械和电器系统里，这种现象简直太普遍了。最后咱",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 234.69,
+     "endSeconds": 243.02,
+     "textPreview": "只要有这么一个家伙出现，那系统就像一辆刹车失灵的跑车，响应会呈指数级无限的增长。",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 243.02,
+     "endSeconds": 252.62,
+     "textPreview": "只会朝着失控的深渊一路狂奔，这毫无疑问就是系统要崩溃的信号。有时候后果甚至是灾难",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 252.62,
+     "endSeconds": 265.42,
+     "textPreview": "没错，这句话总结得太到位了。极点的位置和类型，它真的不是什么抽象的数学游戏，它们",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 265.42,
+     "endSeconds": 274.73,
+     "textPreview": "只要你学会了看极点图，你就等于拥有了一个水晶球。能完美地预测出系统响应曲线会是什",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 274.73,
+     "endSeconds": 286.65,
+     "textPreview": "讲到这儿啊，你可能会问，在现实世界里，一个复杂的系统它往往有很多很多个极点啊。那",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 286.65,
+     "endSeconds": 296.53,
+     "textPreview": "其实啊，答案是非秉如此，在极点的世界里也是有江湖地位之分的，在这一群极点里头啊。",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 296.53,
+     "endSeconds": 306.77,
+     "textPreview": "总有那么一个或者一对儿大佬，我们管他们叫主导极点。他们是谁呢？就是那些离虚轴最近",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 306.77,
+     "endSeconds": 320.69,
+     "textPreview": "为什么是他们说了算呢？你想啊，那些离虚轴特别远的极点，他们对应的响应分量会衰减得",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 320.69,
+     "endSeconds": 338.79,
+     "textPreview": "最后舞台上就只剩下主导极点。继续唱主角，这张图就是最好的证明。大家看，蓝色的线代",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+       "matchedLabel": "非主导极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 338.79,
+     "endSeconds": 355.87,
+     "textPreview": "你看它们仨的曲线是不是几乎完全重合了？这就告诉我们一个超级有用的技巧，我们常常可",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 355.87,
+     "endSeconds": 365.87,
+     "textPreview": "那么刚才说的离得足够远，到底多远才算远呢？来给大伙分享一个工程师们都在用的经验法",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 365.87,
+     "endSeconds": 378.29,
+     "textPreview": "如果其他的那些非主导极点，他们离虚轴的距离是主导极点离虚轴距离的五倍以上，那么你",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+       "matchedLabel": "非主导极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 378.29,
+     "endSeconds": 387.17,
+     "textPreview": "这在做工程估算的时候，能帮你大大简化分析过程。好了，各位侦探，我们今天的探案工作",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 387.17,
+     "endSeconds": 398.77,
+     "textPreview": "咱们一起追踪线索，分析了各位嫌疑人，最终成功破解了系统行为的密码。所以恭喜你，你",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 398.77,
+     "endSeconds": 413.38,
+     "textPreview": "来，最后啊，咱们用几句口诀。快速的把今天的核心要点串一下，大家一定要记住喽。极点",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 413.38,
+     "endSeconds": 422.5,
+     "textPreview": "掌握了几点的知识，其实就意味着你拥有了预测，甚至去设计一个系统动态行为的能力。",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 422.5,
+     "endSeconds": 436.3,
+     "textPreview": "这就是一种真正的工程超能力，你可以用今天学到的知识去设计一个让无人机在狂风中也能",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 436.3,
+     "endSeconds": 440.88,
+     "textPreview": "未来就在你们的手中。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "ab91810580fefde6a44bde32abe676ac9165520107ef8887bdfc10dffdae7f8d",
+   "status": "anchored"
+  }
+ ]
+}

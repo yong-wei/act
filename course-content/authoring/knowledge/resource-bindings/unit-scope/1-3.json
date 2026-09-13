@@ -1,0 +1,52 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "1-3",
+ "canonicalIds": [
+  "ctc:modeling-00d2998755974a1329049aac",
+  "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+  "ctc:v11g-13a9994c50acce777819aa2a",
+  "ctc:v11g-40ac1517fc1bfb398dd75afe",
+  "ctc:v11g-5845390ded447e37f06ea222",
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+  "ctc:v11g-c3abeee0067f823ed190d79e",
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+  "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+  "ctkg:v3e-canonical-772065f42947b660c72584f3",
+  "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98"
+ ],
+ "sources": {
+  "ctc:modeling-00d2998755974a1329049aac": [
+   "topic:gain"
+  ],
+  "ctc:modeling-c5b0f0ad36036b531f6bcdec": [
+   "topic:open-transfer"
+  ],
+  "ctc:v11g-13a9994c50acce777819aa2a": [
+   "topic:closed-poles"
+  ],
+  "ctc:v11g-40ac1517fc1bfb398dd75afe": [
+   "topic:characteristic"
+  ],
+  "ctc:v11g-5845390ded447e37f06ea222": [
+   "topic:root-locus"
+  ],
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02": [
+   "topic:damping"
+  ],
+  "ctc:v11g-c3abeee0067f823ed190d79e": [
+   "topic:open-gain"
+  ],
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": [
+   "topic:closed-poles"
+  ],
+  "ctkg:v3e-canonical-6bb580c242f908566ab53b18": [
+   "topic:critical-damping"
+  ],
+  "ctkg:v3e-canonical-772065f42947b660c72584f3": [
+   "topic:second-order"
+  ],
+  "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98": [
+   "topic:underdamped"
+  ]
+ }
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   ExternalLink,
   FileAudio2,
@@ -14,6 +15,13 @@ import { useResourceInteractionTracking } from '@/features/interactive/hooks/use
 import { LessonEntryHandoutPanel } from '@/features/interactive/shared/lesson-entry-handout-panel';
 import { LessonEntryHandoutDialog } from '@/features/interactive/shared/lesson-entry-runtime-sections';
 import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib/course-bundle';
+
+import {
+  matchLessonMediaDeepLink,
+  parseLessonMediaDeepLink,
+  type LessonMediaDeepLink,
+  type MediaDeepLinkMatch,
+} from './lesson-media-deep-link';
 
 type LessonEntryMediaSlot = 'introVideo' | 'courseVideo' | 'audio' | 'slides';
 type ReadyLessonEntryResource = RuntimeLessonMediaResource & { status: 'ready'; url: string };
@@ -147,6 +155,7 @@ function TrackedMediaElement({
   mediaType,
   src,
   className,
+  seekSeconds = null,
   onPlay,
   onProgress,
   onComplete,
@@ -155,6 +164,8 @@ function TrackedMediaElement({
   mediaType: 'video' | 'audio';
   src: string;
   className: string;
+  /** Deep-link start position; applied once metadata is available. */
+  seekSeconds?: number | null;
   onPlay: (resource: RuntimeLessonMediaResource) => void;
   onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
   onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
@@ -163,11 +174,42 @@ function TrackedMediaElement({
   const mediaCoordinator = useNativeMediaCoordinator();
   const emittedThresholdsRef = useRef<Set<number>>(new Set());
   const hasCompletedRef = useRef(false);
+  const appliedSeekRef = useRef<string | null>(null);
 
   useEffect(() => {
     emittedThresholdsRef.current.clear();
     hasCompletedRef.current = false;
   }, [resource.id, src]);
+
+  useEffect(() => {
+    const element = mediaRef.current;
+    if (!element || seekSeconds === null || seekSeconds <= 0) return undefined;
+    const seekKey = `${resource.id}:${src}:${seekSeconds}`;
+    if (appliedSeekRef.current === seekKey) return undefined;
+    const applySeek = () => {
+      if (appliedSeekRef.current === seekKey) return;
+      const duration = Number.isFinite(element.duration) ? element.duration : null;
+      const target = duration !== null ? Math.min(seekSeconds, Math.max(0, duration - 1)) : seekSeconds;
+      try {
+        element.currentTime = target;
+        appliedSeekRef.current = seekKey;
+        element.dataset.deepLinkSeeked = String(Math.floor(target));
+        element.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch {
+        // Seeking before the range is known fails silently; loadedmetadata retries.
+      }
+    };
+    if (element.readyState >= 1) {
+      applySeek();
+      return undefined;
+    }
+    element.addEventListener('loadedmetadata', applySeek);
+    // preload="none" audio never fires loadedmetadata until asked to load.
+    if (element.preload === 'none') element.load();
+    return () => {
+      element.removeEventListener('loadedmetadata', applySeek);
+    };
+  }, [resource.id, seekSeconds, src]);
 
   useEffect(() => {
     const element = mediaRef.current;
@@ -264,6 +306,7 @@ function InlineMediaPreview({
   resource,
   wrapperClassName,
   innerClassName,
+  seekSeconds = null,
   onOpen,
   onPlay,
   onProgress,
@@ -272,6 +315,7 @@ function InlineMediaPreview({
   resource: ReadyLessonEntryResource;
   wrapperClassName: string;
   innerClassName?: string;
+  seekSeconds?: number | null;
   onOpen: (resource: RuntimeLessonMediaResource) => void;
   onPlay: (resource: RuntimeLessonMediaResource) => void;
   onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
@@ -290,6 +334,7 @@ function InlineMediaPreview({
           mediaType="video"
           src={resource.url}
           className={`${frameClassName} ${innerClassName ?? ''}`}
+          seekSeconds={seekSeconds}
           onPlay={onPlay}
           onProgress={onProgress}
           onComplete={onComplete}
@@ -307,6 +352,7 @@ function InlineMediaPreview({
             mediaType="audio"
             src={resource.url}
             className="w-full max-w-full"
+            seekSeconds={seekSeconds}
             onPlay={onPlay}
             onProgress={onProgress}
             onComplete={onComplete}
@@ -336,11 +382,13 @@ function InlineMediaPreview({
 
 function ResolvedAudioPlayer({
   resource,
+  seekSeconds = null,
   onPlay,
   onProgress,
   onComplete,
 }: {
   resource: ReadyLessonEntryResource | null;
+  seekSeconds?: number | null;
   onPlay: (resource: RuntimeLessonMediaResource) => void;
   onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
   onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
@@ -418,6 +466,7 @@ function ResolvedAudioPlayer({
               mediaType="audio"
               src={audioState.resolvedUrl}
               className="w-full max-w-full"
+              seekSeconds={seekSeconds}
               onPlay={onPlay}
               onProgress={onProgress}
               onComplete={onComplete}
@@ -445,6 +494,31 @@ function ResolvedAudioPlayer({
   );
 }
 
+function formatClock(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function MediaDeepLinkNotice({ match }: { match: MediaDeepLinkMatch }) {
+  if (match.state === 'seek' && match.seconds > 0) {
+    return (
+      <p className="premium-lesson-muted mb-3 text-sm" data-media-deep-link-notice="seek">
+        已按知识点定位到 {formatClock(match.seconds)}，播放将从该位置开始。
+      </p>
+    );
+  }
+  if (match.state === 'drift') {
+    return (
+      <p className="premium-lesson-muted mb-3 text-sm" data-media-deep-link-notice="drift">
+        该媒体已更新，知识点定位待重建，本次从头播放。
+      </p>
+    );
+  }
+  return null;
+}
+
 export function LessonEntryMediaHub({
   lessonRuntime,
   courseLabel,
@@ -454,6 +528,9 @@ export function LessonEntryMediaHub({
 }: LessonEntryMediaHubProps) {
   const [isDownloadingHandout, setIsDownloadingHandout] = useState(false);
   const [isHandoutOpen, setIsHandoutOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const deepLink = useMemo<LessonMediaDeepLink | null>(() => parseLessonMediaDeepLink(searchParams), [searchParams]);
+  const deepLinkFor = (resource: ReadyLessonEntryResource): MediaDeepLinkMatch => matchLessonMediaDeepLink(deepLink, resource);
   const nativeMediaCoordinator = useMemo(() => createNativeMediaCoordinator(), []);
   const handoutCompletionTrackedRef = useRef(false);
   const lessonId = lessonRuntime.lesson.lesson_id;
@@ -596,8 +673,13 @@ export function LessonEntryMediaHub({
         <div className="mt-6 space-y-4">
           {primaryMediaItems.map(({ resource, slot }) => {
             const copy = SLOT_COPY[slot];
+            const link = deepLinkFor(resource);
             return (
-              <section key={resource.filename} className="premium-lesson-panel-soft rounded-[28px] border border-border/70 p-4 sm:p-5">
+              <section
+                key={resource.filename}
+                data-media-deep-link={link.state === 'none' ? undefined : link.state}
+                className="premium-lesson-panel-soft rounded-[28px] border border-border/70 p-4 sm:p-5"
+              >
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <div className="premium-lesson-kicker">{copy.kicker}</div>
@@ -612,9 +694,11 @@ export function LessonEntryMediaHub({
                     可播放
                   </span>
                 </div>
+                <MediaDeepLinkNotice match={link} />
                 <InlineMediaPreview
                   resource={resource}
                   wrapperClassName="aspect-[16/9] min-h-[240px] w-full sm:min-h-[320px] lg:min-h-[420px]"
+                  seekSeconds={link.state === 'seek' ? link.seconds : null}
                   onOpen={trackMediaOpen}
                   onPlay={trackMediaPlay}
                   onProgress={trackMediaProgress}
@@ -650,10 +734,12 @@ export function LessonEntryMediaHub({
                   title: isAudio ? audioCardTitle : SLOT_COPY.slides.title,
                 };
                 const Icon = getResourceIcon(resource);
+                const link = isAudio ? deepLinkFor(resource) : { state: 'none' as const };
 
                 return (
                   <section
                     key={resource.filename}
+                    data-media-deep-link={link.state === 'none' ? undefined : link.state}
                     className={`premium-lesson-panel-soft rounded-[24px] border border-border/70 p-4 ${isAudio ? 'lg:col-span-2' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -677,8 +763,10 @@ export function LessonEntryMediaHub({
                     </p>
                     {isAudio ? (
                       <div className="mt-4">
+                        <MediaDeepLinkNotice match={link} />
                         <ResolvedAudioPlayer
                           resource={resource}
+                          seekSeconds={link.state === 'seek' ? link.seconds : null}
                           onPlay={trackMediaPlay}
                           onProgress={trackMediaProgress}
                           onComplete={trackMediaComplete}

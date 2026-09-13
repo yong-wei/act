@@ -1,0 +1,109 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "3-9",
+ "canonicalIds": [
+  "ctc:modeling-b2fd214ec64665147e16ff9d",
+  "ctc:v11g-5845390ded447e37f06ea222",
+  "ctc:v11g-c8c8aef0d010e68842be7236",
+  "ctc:v11g-e85c0145d63244c46853c9cf",
+  "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+  "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd",
+  "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+  "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+  "ctkg:v3e-canonical-504581e399675b9792ab8502",
+  "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+  "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b",
+  "ctkg:v3e-object-2805a69722f0a741c2479d22",
+  "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+  "ctkg:v3e-object-b73224087c9c0475612e8635",
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085",
+  "ctkg:v3e-object-f9ac171d68c8622f62106397",
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e"
+ ],
+ "sources": {
+  "ctc:modeling-b2fd214ec64665147e16ff9d": [
+   "topic:integrator"
+  ],
+  "ctc:v11g-5845390ded447e37f06ea222": [
+   "reuse_node_ids:根轨迹_4_c19f8854"
+  ],
+  "ctc:v11g-c8c8aef0d010e68842be7236": [
+   "topic:integrator"
+  ],
+  "ctc:v11g-e85c0145d63244c46853c9cf": [
+   "topic:lead"
+  ],
+  "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e": [
+   "topic:gain-margin"
+  ],
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": [
+   "topic:phase-margin"
+  ],
+  "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd": [
+   "topic:steady-error"
+  ],
+  "ctkg:v3e-canonical-1647a1b078950a5b81783825": [
+   "topic:velocity-feedback"
+  ],
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253": [
+   "topic:step-response"
+  ],
+  "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b": [
+   "topic:velocity-feedback"
+  ],
+  "ctkg:v3e-canonical-504581e399675b9792ab8502": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-canonical-8d214840417a4c3b5780c715": [
+   "topic:steady-error"
+  ],
+  "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b": [
+   "topic:stability"
+  ],
+  "ctkg:v3e-object-17cae71babbbfe193c0124a4": [
+   "topic:integrator"
+  ],
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837": [
+   "reuse_node_ids:相角裕度_5_5a74b451",
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b": [
+   "topic:lead"
+  ],
+  "ctkg:v3e-object-2805a69722f0a741c2479d22": [
+   "topic:pd"
+  ],
+  "ctkg:v3e-object-3bf89181c7be53ac268d5785": [
+   "reuse_node_ids:带宽_5_6730fda4"
+  ],
+  "ctkg:v3e-object-68d64f3444ac7af6336f1f81": [
+   "topic:pi"
+  ],
+  "ctkg:v3e-object-7d20806108956a0f52c08f3a": [
+   "topic:pi"
+  ],
+  "ctkg:v3e-object-b73224087c9c0475612e8635": [
+   "topic:lag"
+  ],
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-object-d09d1eba56a786a96d39d085": [
+   "topic:stability"
+  ],
+  "ctkg:v3e-object-f9ac171d68c8622f62106397": [
+   "topic:lag"
+  ],
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e": [
+   "topic:bode"
+  ]
+ }
+}

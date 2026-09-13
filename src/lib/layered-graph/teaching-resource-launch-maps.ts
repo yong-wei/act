@@ -9,8 +9,15 @@ import { getRegisteredResourceMetadata } from '@/lib/resource-registry-metadata'
 import { unitTokenFromResourceId } from '@/lib/teaching-projection/runtime-full-binding';
 import { fromResourceIdToken } from '@/lib/teaching-projection/textbook-locators/identity';
 import type { TeachingResourceRuntime } from '@/lib/teaching-projection/contracts';
+import type { BindingAnchor } from '@/lib/resource-binding-release/contracts';
+import { buildLessonMediaDeepLinkQuery } from '@/features/interactive/shared/lesson-media-deep-link';
 
 import { resolveExerciseStepMapping } from './exercise-step-map';
+
+/** The identity fields launch mapping needs; satisfied by both projection and anchored resources. */
+export type LaunchableResource = Pick<TeachingResourceRuntime, 'resourceId' | 'resourceType'> & {
+  unitId?: string | null;
+};
 
 function resolveLessonIdentityFromToken(
   token: string,
@@ -38,8 +45,9 @@ function mediaOrExerciseLessonToken(resourceId: string): string | null {
 }
 
 function extractLessonKeyFromResource(
-  resource: TeachingResourceRuntime,
+  resource: LaunchableResource,
 ): string | null {
+  if (resource.unitId) return resource.unitId;
   const parts = resource.resourceId.split(':');
   if (parts.length < 3 || parts[0] !== 'act') return null;
   if (resource.resourceType === 'step' || resource.resourceType === 'lesson' || resource.resourceType === 'handout') {
@@ -49,7 +57,7 @@ function extractLessonKeyFromResource(
 }
 
 function extractStepIdFromResource(
-  resource: TeachingResourceRuntime,
+  resource: LaunchableResource,
 ): string | null {
   if (resource.resourceType !== 'step') return null;
   const parts = resource.resourceId.split(':');
@@ -91,7 +99,7 @@ function resolveSimulationRegistryId(key: string): string | null {
  * Never invents routes from Canonical node IDs.
  */
 export function buildTeachingResourceLaunchMaps(
-  resources: readonly TeachingResourceRuntime[],
+  resources: readonly LaunchableResource[],
   options?: {
     exerciseStepByResourceId?: Readonly<Record<string, {
       lessonKey: string;
@@ -115,7 +123,7 @@ export function buildTeachingResourceLaunchMaps(
     }
     const lessonToken = extractLessonKeyFromResource(resource)
       ?? (['video', 'audio', 'podcast', 'exercise'].includes(resource.resourceType)
-        ? mediaOrExerciseLessonToken(resource.resourceId)
+        ? mediaOrExerciseLessonToken(resource.resourceId) ?? unitTokenFromResourceId(resource.resourceId)
         : null);
     const identity = lessonToken
       ? resolveLessonIdentityFromToken(lessonToken)
@@ -210,4 +218,59 @@ export function buildTeachingResourceLaunchMaps(
   }
 
   return { resourceLaunchTargets, resourceRegistryIds };
+}
+
+/**
+ * Launch address for one anchored binding: the same application route as the
+ * resource, plus the position parameter the anchor names. Delivery URLs (OSS,
+ * gateway, ESA) never appear here; the lesson entry page resolves media itself.
+ */
+export function resolveAnchoredLaunchHref(
+  resource: LaunchableResource,
+  anchor: BindingAnchor,
+  baseHref: string | null,
+): string | null {
+  const lessonToken = extractLessonKeyFromResource(resource)
+    ?? (['video', 'audio', 'podcast'].includes(resource.resourceType)
+      ? mediaOrExerciseLessonToken(resource.resourceId) ?? unitTokenFromResourceId(resource.resourceId)
+      : null);
+  const identity = lessonToken ? resolveLessonIdentityFromToken(lessonToken) : null;
+  const routeSegment = identity?.routeSegments[0] ?? null;
+  const runtimeLessonDir = identity?.runtimeLessonDir ?? lessonToken;
+  switch (anchor.kind) {
+    case 'step':
+      return routeSegment
+        ? `/interactive-learning/courses/${routeSegment}/student/demo?step=${encodeURIComponent(anchor.stepId)}`
+        : baseHref;
+    case 'heading':
+      return runtimeLessonDir
+        ? `${buildLessonHandoutPrintPath(runtimeLessonDir)}#${encodeURIComponent(anchor.headingId)}`
+        : baseHref;
+    case 'time': {
+      if (!routeSegment) return baseHref;
+      const query = buildLessonMediaDeepLinkQuery({
+        mediaId: anchor.mediaId,
+        startSeconds: anchor.startSeconds,
+        mediaSha256: anchor.mediaSha256,
+      });
+      return `/interactive-learning/courses/${routeSegment}?${query}`;
+    }
+    case 'section':
+    case 'whole':
+    default:
+      return baseHref;
+  }
+}
+
+/** Learner-facing anchor label (step number, section title, time range, textbook section). */
+export function anchorDisplayLabel(anchor: BindingAnchor): string | null {
+  switch (anchor.kind) {
+    case 'step':
+    case 'heading':
+    case 'time':
+    case 'section':
+      return anchor.label;
+    default:
+      return null;
+  }
 }

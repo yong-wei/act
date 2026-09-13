@@ -1,0 +1,2094 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "3-5",
+ "unitIndex": 13,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/3-5/3-5-handout.md",
+  "sha256": "97b33ccac87703bfea35dbcef7311ba45f3c4a6d5cfde6c207a5e96470cbd4ad"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图：从沿轨迹读图转向结构改变",
+   "groupName": "从 3-4 的边界进入结构改变",
+   "textChars": 220,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "统一对象与观察框架：四个版本、三项产出、四个观察量",
+   "groupName": "从 3-4 的边界进入结构改变",
+   "textChars": 261,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测：三类起点误判先落地",
+   "groupName": "从 3-4 的边界进入结构改变",
+   "textChars": 387,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "闭环极点_3_f9432bf3"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "二阶对象接入零点：先看哪条分支被拉走",
+   "groupName": "左半平面零点与轨迹重排",
+   "textChars": 425,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 56,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "三阶对象接入零点：零点位置怎样改写主导分支",
+   "groupName": "左半平面零点与轨迹重排",
+   "textChars": 405,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "第一收束：左半平面零点常改善动态，右半平面零点需另看边界",
+   "groupName": "左半平面零点与轨迹重排",
+   "textChars": 250,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "结构辨认：PD 与测速反馈不靠名字判断",
+   "groupName": "PD 与测速反馈的结构辨认与三域对照",
+   "textChars": 629,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "阻尼比_3_b849784e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "自然频率_10_51a8b7d0"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "阻尼工作区：由目标阻尼反求 $K_d$ 与 $K_t$",
+   "groupName": "PD 与测速反馈的结构辨认与三域对照",
+   "textChars": 499,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "阻尼比_3_b849784e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "自然频率_10_51a8b7d0"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "PD 与测速反馈的三域对照：同样提阻尼，不等于结构相同",
+   "groupName": "PD 与测速反馈的结构辨认与三域对照",
+   "textChars": 366,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "阻尼比_3_b849784e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "自然频率_10_51a8b7d0"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "PD 单独装置的频域指纹：中高频抬升与高频代价",
+   "groupName": "PD 与超前的频域整形",
+   "textChars": 397,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "超前单独装置的频域指纹：相位峰、补角与作用频带",
+   "groupName": "PD 与超前的频域整形",
+   "textChars": 859,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "频域对照：什么时候优先想 PD，什么时候优先想超前",
+   "groupName": "PD 与超前的频域整形",
+   "textChars": 434,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "带宽_5_6730fda4"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "非最小相入口：镜像零点、逆响应与“先反向动”",
+   "groupName": "非最小相边界与 3-6 入口",
+   "textChars": 309,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "频域边界：右半平面零点为何限制带宽",
+   "groupName": "非最小相边界与 3-6 入口",
+   "textChars": 214,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "matchedLabel": "带宽",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "后测与收束：四个观察量、风险边界与 3-6 入口",
+   "groupName": "非最小相边界与 3-6 入口",
+   "textChars": 227,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-开场-为什么只调增益很快不够",
+   "order": 1,
+   "level": 2,
+   "title": "一、开场：为什么只调增益很快不够",
+   "startLine": 14,
+   "endLine": 15,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h2-从-`3-4`-的结论继续往前走",
+   "order": 2,
+   "level": 3,
+   "title": "1.1 从 `3-4` 的结论继续往前走",
+   "startLine": 16,
+   "endLine": 23,
+   "bodyChars": 225,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-本课要解决的核心问题",
+   "order": 3,
+   "level": 3,
+   "title": "1.2 本课要解决的核心问题",
+   "startLine": 24,
+   "endLine": 40,
+   "bodyChars": 257,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-统一对象与四个版本",
+   "order": 4,
+   "level": 3,
+   "title": "1.3 统一对象与四个版本",
+   "startLine": 41,
+   "endLine": 55,
+   "bodyChars": 369,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-三项学习产出",
+   "order": 5,
+   "level": 3,
+   "title": "1.4 三项学习产出",
+   "startLine": 56,
+   "endLine": 67,
+   "bodyChars": 296,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 56,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-先看根轨迹实例-零点一旦出现-轨迹骨架就变了",
+   "order": 6,
+   "level": 2,
+   "title": "二、先看根轨迹实例：零点一旦出现，轨迹骨架就变了",
+   "startLine": 68,
+   "endLine": 69,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-例-1-二阶对象最适合用来建立第一印象",
+   "order": 7,
+   "level": 3,
+   "title": "2.1 例 1：二阶对象最适合用来建立第一印象",
+   "startLine": 70,
+   "endLine": 103,
+   "bodyChars": 701,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-例-2-三阶纯极点对象-零点位置不同-主导分支被“拉走”的方式也",
+   "order": 8,
+   "level": 3,
+   "title": "2.2 例 2：三阶纯极点对象，零点位置不同，主导分支被“拉走”的方式也不同",
+   "startLine": 104,
+   "endLine": 132,
+   "bodyChars": 596,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-从这两组图立住第一组对照",
+   "order": 9,
+   "level": 3,
+   "title": "2.3 从这两组图立住第一组对照",
+   "startLine": 133,
+   "endLine": 145,
+   "bodyChars": 251,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-如果把零点加到右半平面-会发生什么",
+   "order": 10,
+   "level": 3,
+   "title": "2.4 如果把零点加到右半平面，会发生什么",
+   "startLine": 146,
+   "endLine": 151,
+   "bodyChars": 168,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-实例-1-`PD`-与测速反馈都能增大阻尼-但零点副作用不同",
+   "order": 11,
+   "level": 2,
+   "title": "三、实例 1：`PD` 与测速反馈都能增大阻尼，但零点副作用不同",
+   "startLine": 152,
+   "endLine": 153,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-先固定同一个对象-再并列比较两种结构",
+   "order": 12,
+   "level": 3,
+   "title": "3.1 先固定同一个对象，再并列比较两种结构",
+   "startLine": 154,
+   "endLine": 223,
+   "bodyChars": 1328,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-42946f0d5ec8b73ea7158b0d",
+     "matchedLabel": "测速发电机",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-不先看名字-先看“等效阻尼相同”的后果",
+   "order": 13,
+   "level": 3,
+   "title": "3.2 不先看名字，先看“等效阻尼相同”的后果",
+   "startLine": 224,
+   "endLine": 253,
+   "bodyChars": 948,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-在根轨迹上看见的-是“同样增加阻尼”但轨迹骨架不同",
+   "order": 14,
+   "level": 3,
+   "title": "3.3 在根轨迹上看见的，是“同样增加阻尼”但轨迹骨架不同",
+   "startLine": 254,
+   "endLine": 270,
+   "bodyChars": 412,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-这一组实例的结论",
+   "order": 15,
+   "level": 3,
+   "title": "3.4 这一组实例的结论",
+   "startLine": 271,
+   "endLine": 278,
+   "bodyChars": 197,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+     "matchedLabel": "阻尼比",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-实例-2-先看-`PD`-与超前校正装置的频域原理-再回头比较结",
+   "order": 16,
+   "level": 2,
+   "title": "四、实例 2：先看 `PD` 与超前校正装置的频域原理，再回头比较结构差异",
+   "startLine": 279,
+   "endLine": 280,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "m1r-v1d:object:142ec6737ccd7385205d8628",
+     "matchedLabel": "超前校正装置",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-`PD`-为什么会让系统更快-它先抬的是中高频幅值",
+   "order": 17,
+   "level": 3,
+   "title": "4.1 `PD` 为什么会让系统更快：它先抬的是中高频幅值",
+   "startLine": 281,
+   "endLine": 316,
+   "bodyChars": 751,
+   "canonical": []
+  },
+  {
+   "headingId": "h18-超前为什么更像“在关键位置补角”-它的相位提升只集中在一段频带",
+   "order": 18,
+   "level": 3,
+   "title": "4.2 超前为什么更像“在关键位置补角”：它的相位提升只集中在一段频带",
+   "startLine": 317,
+   "endLine": 366,
+   "bodyChars": 876,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-频域下的一般设计原则-`PD`-看“抬交叉”-超前看“补相角”",
+   "order": 19,
+   "level": 3,
+   "title": "4.3 频域下的一般设计原则：`PD` 看“抬交叉”，超前看“补相角”",
+   "startLine": 367,
+   "endLine": 399,
+   "bodyChars": 951,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 96,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-频域设计下的适用规律-什么时候优先想-`PD`-什么时候优先想超",
+   "order": 20,
+   "level": 3,
+   "title": "4.4 频域设计下的适用规律：什么时候优先想 `PD`，什么时候优先想超前",
+   "startLine": 400,
+   "endLine": 426,
+   "bodyChars": 799,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-右半平面零点第一次正式进入主线-这就是非最小相",
+   "order": 21,
+   "level": 2,
+   "title": "五、右半平面零点第一次正式进入主线：这就是非最小相",
+   "startLine": 427,
+   "endLine": 428,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-先把最小相与非最小相写成一对镜像对象",
+   "order": 22,
+   "level": 3,
+   "title": "5.1 先把最小相与非最小相写成一对镜像对象",
+   "startLine": 429,
+   "endLine": 447,
+   "bodyChars": 412,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-非最小相最先暴露出来的-不是慢-而是“先往反方向动”",
+   "order": 23,
+   "level": 3,
+   "title": "5.2 非最小相最先暴露出来的，不是慢，而是“先往反方向动”",
+   "startLine": 448,
+   "endLine": 462,
+   "bodyChars": 354,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+     "matchedLabel": "稳定系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-频域里为什么更难控制",
+   "order": 24,
+   "level": 3,
+   "title": "5.3 频域里为什么更难控制",
+   "startLine": 463,
+   "endLine": 472,
+   "bodyChars": 162,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-“如何控制”不能只说原则-先看一个保守带宽实例",
+   "order": 25,
+   "level": 3,
+   "title": "5.4 “如何控制”不能只说原则，先看一个保守带宽实例",
+   "startLine": 473,
+   "endLine": 488,
+   "bodyChars": 431,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "matchedLabel": "带宽",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-课末收束-动态改善线到此为止",
+   "order": 26,
+   "level": 2,
+   "title": "六、课末收束：动态改善线到此为止",
+   "startLine": 489,
+   "endLine": 490,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-本课到底建立了什么",
+   "order": 27,
+   "level": 3,
+   "title": "6.1 本课到底建立了什么",
+   "startLine": 491,
+   "endLine": 501,
+   "bodyChars": 209,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h28-和前后课程怎么接",
+   "order": 28,
+   "level": 3,
+   "title": "6.2 和前后课程怎么接",
+   "startLine": 502,
+   "endLine": 511,
+   "bodyChars": 250,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-小结",
+   "order": 29,
+   "level": 3,
+   "title": "6.3 小结",
+   "startLine": 512,
+   "endLine": 520,
+   "bodyChars": 312,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h30-课后思考",
+   "order": 30,
+   "level": 2,
+   "title": "七、课后思考",
+   "startLine": 521,
+   "endLine": 522,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h31-用一句话解释这组核心对照",
+   "order": 31,
+   "level": 3,
+   "title": "7.1 用一句话解释这组核心对照",
+   "startLine": 523,
+   "endLine": 530,
+   "bodyChars": 113,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h32-用-AI-做一次误判校准",
+   "order": 32,
+   "level": 3,
+   "title": "7.2 用 AI 做一次误判校准",
+   "startLine": 531,
+   "endLine": 540,
+   "bodyChars": 226,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+     "matchedLabel": "零点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h33-附录-A-统一比较时应盯住哪四个量",
+   "order": 33,
+   "level": 2,
+   "title": "附录 A：统一比较时应盯住哪四个量",
+   "startLine": 541,
+   "endLine": 544,
+   "bodyChars": 43,
+   "canonical": []
+  },
+  {
+   "headingId": "h34-A-1-根轨迹观察量",
+   "order": 34,
+   "level": 3,
+   "title": "A.1 根轨迹观察量",
+   "startLine": 545,
+   "endLine": 550,
+   "bodyChars": 58,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h35-A-2-时域观察量",
+   "order": 35,
+   "level": 3,
+   "title": "A.2 时域观察量",
+   "startLine": 551,
+   "endLine": 556,
+   "bodyChars": 55,
+   "canonical": []
+  },
+  {
+   "headingId": "h36-A-3-频域观察量",
+   "order": 36,
+   "level": 3,
+   "title": "A.3 频域观察量",
+   "startLine": 557,
+   "endLine": 562,
+   "bodyChars": 60,
+   "canonical": []
+  },
+  {
+   "headingId": "h37-A-4-结构判断量",
+   "order": 37,
+   "level": 3,
+   "title": "A.4 结构判断量",
+   "startLine": 563,
+   "endLine": 567,
+   "bodyChars": 64,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "3-5-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/3-5/media/3-5-audio.m4a",
+   "sha256": "25818859b3b09ec4166aeb12a1a495b31b16a744e532443b62ae0f2f296955c4",
+   "durationSeconds": 1335.426032,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/3-5.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.12,
+     "textPreview": "屏幕前的你是不是刚从自动控制原理的期中考场里爬出来估计脑子已经变成一团乱麻了绝对",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.16,
+     "textPreview": "呀而且你们肯定有这种感觉就是系统稍微有一点毛病不够稳或者不够快老师的口头禅永远是",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.16,
+     "endSeconds": 75.24,
+     "textPreview": "公式转化成直觉的思稳呃说实话啊在初学自控的时候这个调K值就像是大家手中的一把万能",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.24,
+     "endSeconds": 100.36,
+     "textPreview": "限的所以咱们今天的核心任务就是要带你跳出只调增益的新手村咱们去看看高端局的操作我",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.44,
+     "endSeconds": 125.44,
+     "textPreview": "以然没错如果我们把调增E和更大的工程图景联系起来看你单纯去调节增益其实并没有改变",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.44,
+     "endSeconds": 150.48,
+     "textPreview": "脚点哎这就有点治标不治本了啊这就好像呃你开着一辆老掉亚的劳特勒代步车它那个底盘本",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.48,
+     "endSeconds": 175.64,
+     "textPreview": "得越来越小系统越来越震荡最后直接发散不稳定了砰的一下翻沟里了就是这样所以要想彻底",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.64,
+     "endSeconds": 200.84,
+     "textPreview": "了这可是大手术是的在复品面上零点项是一个拥有巨大吸引力的呃引力远或者你可以把它当",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 200.84,
+     "endSeconds": 225.84,
+     "textPreview": "有一个极点然后在负一的位置还有一个极点对这种系统的根轨迹简直可以说是闭着眼都能画",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.16,
+     "endSeconds": 251.2,
+     "textPreview": "他们永远都在那条垂直的线上诶队友他们永远不可能再深入左半平面去获得更好的稳定性了",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.2,
+     "endSeconds": 276.92,
+     "textPreview": "了因为那个磁铁放进去了没错那两条原本要直奔外太空的根轨迹会受到这个零点的强烈吸引",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 276.92,
+     "endSeconds": 301.96,
+     "textPreview": "头扎进这个零点里面那如果这个磁铁放得更近一点呢比如放在负零点五那根轨迹的变化就更",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.2,
+     "endSeconds": 330.0,
+     "textPreview": "路都修平了底盘也稳了车当然好开了啊从物理机制上来说确实是这样我们在时域里看引入左",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.04,
+     "textPreview": "表着对误差变化趋势的预测哦预测未来对他不是等误差已经变得很大了才去补救而是看到误",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.04,
+     "endSeconds": 385.24,
+     "textPreview": "做大题的时候最容易丢分的两个冤家了你是说PD控和测速等快对呀比例微分控制还有测速",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.24,
+     "endSeconds": 410.52,
+     "textPreview": "哥俩好像都在试图提高系统的等效阻尼吧对我们手头的数据显示在特定参数下比如把微分时",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.52,
+     "endSeconds": 440.32,
+     "textPreview": "对这就相当于在闭环系统的分子上硬生生砸进去一个位置在负三点三三的零点那测出反馈呢",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+       "matchedLabel": "闭环系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.32,
+     "endSeconds": 465.36,
+     "textPreview": "文章啊居然他也改变了特征方程也移动了几点但是它的闭环传递函数的分子上并没有多出这",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+       "matchedLabel": "闭环传递函数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.36,
+     "endSeconds": 495.0,
+     "textPreview": "加持速度够快那他肯定付出了什么代价吧你看得很准你看看数据里的超调量我看看呃哇PD",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "点五了对而测速反馈只有百分之十六点三这个差却不小啊而且如果我们把视角切换到平域去",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.12,
+     "endSeconds": 550.0,
+     "textPreview": "多毛刺PD控制呢因为那个零点的存在对这种高频信号极其敏感这是号比你给系统灌了三杯",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.28,
+     "textPreview": "式浓缩咖啡哈哈这个比喻绝了那反应确实变快了但也亢奋过头了吧手都开始疯狂发抖了对有",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.28,
+     "endSeconds": 605.0,
+     "textPreview": "在电脑里敲两行代码就能凭空变出来的你必须得在电机",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.0,
+     "endSeconds": 630.04,
+     "textPreview": "的轴上额外再去安装一个物理声设比如测速闭计验或者光电编码器你才能把速度信号儿提取",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 630.04,
+     "endSeconds": 660.0,
+     "textPreview": "简去做出妥协那既然喝了咖啡手会发抖我们总得治治这个手抖吧工程师们非常聪明他们发明",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+       "matchedLabel": "超前校正",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.0,
+     "endSeconds": 685.28,
+     "textPreview": "为最完美的折中方案哦我看了一下传递函数超前校正好像是把原点纯粹的PD分子一plu",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 40,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+       "matchedLabel": "超前校正",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 685.28,
+     "endSeconds": 715.0,
+     "textPreview": "供提速对第一瓶的时候分母那个零点零六S太小了可以忽略但是当频率越来越高那些讨厌的",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 715.0,
+     "endSeconds": 740.12,
+     "textPreview": "母上的极点就开始发挥作用了他把增益拉下来了没错当频率趋于无穷大的时候这个传递函数",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 740.12,
+     "endSeconds": 770.16,
+     "textPreview": "我们主动去给系统加零点的对吧是的但是如果我们在工程中遇到一个物理对象它本身自",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.16,
+     "endSeconds": 795.28,
+     "textPreview": "带一个零点而且这个零点是个叛逆分子你是说它不在左半平面待着对他跑到了序轴的边也就",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 795.28,
+     "endSeconds": 825.0,
+     "textPreview": "会搞出什么幺蛾子食欲里最典型的现象叫做逆响应逆响应怎么个逆",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 825.0,
+     "endSeconds": 851.8,
+     "textPreview": "法用通俗的话说你想象一下你现在挂着钱进导一脚油门踩到底然后车往前窜了不这辆车居然",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 851.8,
+     "endSeconds": 876.84,
+     "textPreview": "向走啊这确实很反直觉但是如果你把传递函数拆解开来就能看清它的物理本质了怎么拆带有",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 876.85,
+     "endSeconds": 905.04,
+     "textPreview": "的另一个通道响应比较慢但增益是正的而且最终的稳态能量更大哦这就像是拔河比赛呀非常",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 905.28,
+     "endSeconds": 935.0,
+     "textPreview": "居然是这样等冷水慢慢被加热了水的总提",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 935.0,
+     "endSeconds": 960.04,
+     "textPreview": "及增加了水位才开始真正上升这就是典型的物理逆相应现象这个例子简直绝了也太坑了吧如",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 960.12,
+     "endSeconds": 990.0,
+     "textPreview": "八十度的滞后他在疯狂的吞噬系统的",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 990.0,
+     "endSeconds": 1045.0,
+     "textPreview": "项为欲度哎呦这就引出了一个非常危险的操作陷阱了没错如果我们还按照常规思路看到系统",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1045.0,
+     "endSeconds": 1100.0,
+     "textPreview": "不就行了吗怎么个对轰法我在控制器里串联一个正好位于S等于plus1的极点然后在传",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1100.0,
+     "endSeconds": 1155.0,
+     "textPreview": "入到输出的外部传递函数看起来确实把那个S眼one消掉了外部看风平浪静完全稳定但是",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1155.0,
+     "endSeconds": 1210.0,
+     "textPreview": "须接受现实必须接受物理事实老老实实的去限制贷款做出妥协这就是控制系统评估的最后一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 41,
+     "startSeconds": 1210.0,
+     "endSeconds": 1265.0,
+     "textPreview": "种改善的代价和风险边界落在了哪里所以下次当你在期末考试的试卷上拿到一道占了整整二",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 1265.0,
+     "endSeconds": 1320.0,
+     "textPreview": "清晰了把局部的公式推导放在全局的系统结构评估之后这才是真正的工程式思维而不是单纯",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1320.0,
+     "endSeconds": 1335.28,
+     "textPreview": "操纵杆准备让机头爬升的时候极尾的升降舵其实会先产生一个向下的力这导致整个飞机的总",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+       "matchedLabel": "状态空间",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "25818859b3b09ec4166aeb12a1a495b31b16a744e532443b62ae0f2f296955c4",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "3-5-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/3-5/media/3-5-intro-video.mp4",
+   "sha256": "96475414188e8619f4784803d41cd34b1d7068e24a46617460e6c4344ec8ad0d",
+   "durationSeconds": 247.722667,
+   "transcriptSource": "videos-project:lesson-3-5/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 225.667,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 247.667,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 67,
+   "segments": [],
+   "activeReleaseSha256": "f503201fa875fe524559f847af7a7c74446b796d13bbb7e5a14ba153b0d4243e",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "3-5-course",
+   "kind": "video",
+   "runtimePath": "lessons/3-5/media/3-5-course.mp4",
+   "sha256": "ffd1facb155c34f874e9ccc34e6135ce7156de28c29585f5337381ed082d8c21",
+   "durationSeconds": 435.884989,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/3-5.json",
+   "transcriptSourceSha256": "ffd1facb155c34f874e9ccc34e6135ce7156de28c29585f5337381ed082d8c21",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.35,
+     "endSeconds": 10.75,
+     "textPreview": "诶，各位同学大家好啊。不知道你们在做课设或者实验的时候有没有遇到过那种特别不听话",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 10.75,
+     "endSeconds": 20.03,
+     "textPreview": "别急，今天咱们就来聊聊怎么用一个超厉害的工程技巧，把这种混乱的场面给收拾得明明白",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.03,
+     "endSeconds": 37.95,
+     "textPreview": "这张图瞧见这条蓝色的线了吗？这个就是我们还没动手的系统。你看他这个表现啊，是不是",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 37.95,
+     "endSeconds": 51.24,
+     "textPreview": "对，咱们今天要制的就是这个。病对问题就是这么个问题，你想想啊。如果这是你的毕业设",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 51.24,
+     "endSeconds": 63.24,
+     "textPreview": "是吧？总不能直接跟老师说他就是这样了吧？肯定得想个办法，而且得是个高明的办法。好",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 63.24,
+     "endSeconds": 75.64,
+     "textPreview": "看看他到底病得多重。咱们用数据来说话，这样才够科学。首先啊，咱们来看这个超屌量，",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 75.64,
+     "endSeconds": 89.11,
+     "textPreview": "就是说他一下子冲过去的高度比我们想让他停的地方高了整整一半还多。你想想要是让你去",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 89.11,
+     "endSeconds": 98.07,
+     "textPreview": "然后呢，看它晃有多久才停下来，要足足992秒，快10秒了。我的天！",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 98.07,
+     "endSeconds": 111.51,
+     "textPreview": "你想想，如果你的电脑每点一下鼠标都要等10秒钟才有反应，你是不是想砸了它？效率太",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 111.51,
+     "endSeconds": 119.84,
+     "textPreview": "那到底用什么神药才能解决这个问题呢？这个秘密武器啊，听起来可能有点玄乎，但其实非",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 119.84,
+     "endSeconds": 130.16,
+     "textPreview": "它就是在系统里加一个零点，大家注意啊，这可不是简单的调调参数，咱们这是要从根本上",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 130.16,
+     "endSeconds": 138.96,
+     "textPreview": "好，现在咱们面前有两条路，第一条路就是猛踩油门，也就是单纯的调大增益；",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 138.96,
+     "endSeconds": 157.63,
+     "textPreview": "第二条路呢，就是引入我们刚才说的那个。零点咱们先看第一种方案，大家看左边这张图啊",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 157.63,
+     "endSeconds": 170.36,
+     "textPreview": "我们顶多就是在这条已经定死的路线上找一个稍微不那么差的点，这说白了治标不治本。好",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 170.36,
+     "endSeconds": 179.88,
+     "textPreview": "一旦我们加入了一个零点，你再看哇，整个根轨迹的形状完全被扭转了。这个零点呢，就好",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 179.88,
+     "endSeconds": 188.76,
+     "textPreview": "把原来那条快要跑偏的路线硬生生的给吸了过来，给我们开了一条全新的通往稳定区域的高",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 188.76,
+     "endSeconds": 203.56,
+     "textPreview": "OK，理论讲了这么多，那在实际工程里，我们工程师到底是怎么变出这个零点魔法的呢？",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 203.56,
+     "endSeconds": 215.8,
+     "textPreview": "简单回顾一下啊，P就是proportional比例，它看的是现在的误差有多大；D",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 215.8,
+     "endSeconds": 226.69,
+     "textPreview": "这个D就特别聪明，它能预测误差的趋势，提前采刹车，所以对付超调和震荡特别有效。具",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 226.69,
+     "endSeconds": 238.85,
+     "textPreview": "你看这个GS等于加上零点三S，很简单吧？我们怎么找到那个零点呢？就是让它等于零，",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 238.85,
+     "endSeconds": 248.29,
+     "textPreview": "看咱们前面说的那个磁铁啊，就被我们精确的放在了S平面上，负三点三三这个位置。理论",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 248.29,
+     "endSeconds": 259.57,
+     "textPreview": "行了，前面铺垫了这么多，时候揭晓答案了。咱们来看看加了这个PD控制器之后，原来那",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+       "matchedLabel": "PD控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 259.57,
+     "endSeconds": 273.11,
+     "textPreview": "数据最有说服力，大家看这个表，超调量从之前那个吓人的523%之比直接降到了205",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 273.11,
+     "endSeconds": 283.83,
+     "textPreview": "更关键的是调整时间，从将近10秒一下子缩短到了382秒，这性能提升了不止一倍呀！",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 283.83,
+     "endSeconds": 294.3,
+     "textPreview": "咱们再从根轨迹图上直观地感受一下，左边是校正前的，你看那个轨迹奔着不稳定的方向就",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+       "matchedLabel": "根轨迹图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 294.3,
+     "endSeconds": 305.18,
+     "textPreview": "加上PD之后，轨迹被那个零点掰弯了，对吧？形成了一个很漂亮的圆弧，把系统的闭环极",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+       "matchedLabel": "闭环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 305.18,
+     "endSeconds": 319.94,
+     "textPreview": "最后这张图就是我们的毕业作品了，看看这对比，下面那条抖得不行的蓝色线就是过去式了",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 319.94,
+     "endSeconds": 331.22,
+     "textPreview": "用简单的智慧驯服复杂的系统。诶，等一下，先别急着庆祝。在我结束之前，还有一个特别",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 331.22,
+     "endSeconds": 345.68,
+     "textPreview": "这个零点的力量虽然大，但它是一把双刃剑，如果用错了，后果可能很严重。你想啊，咱们",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 345.68,
+     "endSeconds": 360.64,
+     "textPreview": "那如果我们不小心把那个磁铁，也就是零点扔到右边的危险区里去了，会发生什么呢？这种",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+       "matchedLabel": "零点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 360.64,
+     "endSeconds": 369.79,
+     "textPreview": "你只要记住，这玩意儿是每个控制工程师都不想遇到的东西，因为它会让系统变得特别诡异",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 369.79,
+     "endSeconds": 380.35,
+     "textPreview": "大家看左边这个绿色的是我们之前说的好零点，响应很正常。现在关键来了，看右边这条红",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 380.35,
+     "endSeconds": 393.71,
+     "textPreview": "你发现没，系统在往上走之前，它居然先往下掉了一下，这个叫初始下冲。这就好比你让机",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 393.71,
+     "endSeconds": 405.49,
+     "textPreview": "所以啊，今天咱们最核心的takeaway是什么呢？就是零点确实能给你重塑系统命运",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 405.49,
+     "endSeconds": 417.41,
+     "textPreview": "好了，今天的内容差不多就到这儿了，最后留个思考题给大家。这种通过加入一个简单的小",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 417.41,
+     "endSeconds": 431.05,
+     "textPreview": "那你觉得在工程设计的其他领域，比如电路设计、软件架构，甚至是项目管理里……有没有",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 431.05,
+     "endSeconds": 435.88,
+     "textPreview": "好好想想吧，咱们下次再聊。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "ffd1facb155c34f874e9ccc34e6135ce7156de28c29585f5337381ed082d8c21",
+   "status": "anchored"
+  }
+ ]
+}

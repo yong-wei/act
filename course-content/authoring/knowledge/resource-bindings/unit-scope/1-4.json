@@ -1,0 +1,48 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "1-4",
+ "canonicalIds": [
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+  "ctkg:v3e-canonical-504581e399675b9792ab8502",
+  "ctkg:v3e-object-232e387ed53e92abee078346",
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+  "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+  "ctkg:v3e-object-7761615701fb4915a76924ff",
+  "ctkg:v3e-object-8496155b16d82318d90949d0",
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38",
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e"
+ ],
+ "sources": {
+  "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33": [
+   "topic:bandwidth"
+  ],
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253": [
+   "topic:step-response"
+  ],
+  "ctkg:v3e-canonical-504581e399675b9792ab8502": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-object-232e387ed53e92abee078346": [
+   "topic:gain-crossover"
+  ],
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7": [
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-763fd65e573e7a65dfc4b79c": [
+   "topic:nyquist-plot"
+  ],
+  "ctkg:v3e-object-7761615701fb4915a76924ff": [
+   "topic:gain-crossover"
+  ],
+  "ctkg:v3e-object-8496155b16d82318d90949d0": [
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-ca9a0f1d11f07f2bbd471a38": [
+   "topic:bode"
+  ],
+  "ctkg:v3e-object-fb97ed4cffee0e2317af990e": [
+   "topic:bode"
+  ]
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "5-3",
+ "canonicalIds": [
+  "ctc:modeling-7734a0845c335f160395bac0",
+  "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+  "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+  "ctkg:domainconcept:fef4835248def04a043183ee",
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68"
+ ],
+ "sources": {
+  "ctc:modeling-7734a0845c335f160395bac0": [
+   "topic:model"
+  ],
+  "ctc:modeling-8aa475ed6514adc11f9b5c8d": [
+   "topic:system"
+  ],
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117": [
+   "topic:uncertainty"
+  ],
+  "ctkg:domainconcept:d582399ff6cef0663ad4e2a7": [
+   "topic:measurement-noise"
+  ],
+  "ctkg:domainconcept:fef4835248def04a043183ee": [
+   "topic:closed-loop"
+  ],
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68": [
+   "topic:saturation"
+  ]
+ }
+}
