@@ -7,6 +7,7 @@ import {
   loadPlanningAssertionKnowledgeIds,
   loadPlanningKnowledgeLabels,
   resetPlanningKnowledgeLabelsForTest,
+  resolvePlanningAuthoringReleaseDir,
   resolvePlanningResourceTitle,
 } from '@/features/personalization/path-planning/planning-resource-titles';
 
@@ -50,5 +51,17 @@ describe('planning resource titles', () => {
     const assertionIds = loadPlanningAssertionKnowledgeIds();
     expect(assertionIds.size).toBeGreaterThan(100);
     expect([...assertionIds].some((id) => id.includes('knowledgestatement'))).toBe(true);
+  });
+
+  it('resolves labels from the live authority release set instead of a hardcoded r6 path', () => {
+    resetPlanningKnowledgeLabelsForTest();
+    const live = resolvePlanningAuthoringReleaseDir();
+    expect(live).toMatch(/control-theory-engineering-v0\.37-r6$/u);
+    expect(loadPlanningKnowledgeLabels(process.cwd(), {
+      authorityReleaseSetId: 'actkg-authoritative-candidate-control-theory-engineering-v9.99-r1',
+    }).size).toBe(0);
+    expect(resolvePlanningAuthoringReleaseDir(process.cwd(), {
+      authorityReleaseSetId: 'actkg-authoritative-candidate-control-theory-engineering-v9.99-r1',
+    })).toBeNull();
   });
 });

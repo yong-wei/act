@@ -60,7 +60,11 @@ describe.skipIf(!hasLiveProjection())('knowledge path quality on live projection
   it('skips a mastered live prefix and keeps courses out of the cold-start head', () => {
     const loaded = loadGoalPlanningRegistry('control-correction');
     const head = loaded.universe.knowledgeIds.slice(0, 6);
-    const mastery = Object.fromEntries(head.map((id) => [id, { posteriorMastery: 0.92 }]));
+    const mastery = Object.fromEntries(head.map((id) => [id, {
+      posteriorMastery: 0.92,
+      confidence: 0.8,
+      evidenceCount: 3,
+    }]));
     const advanced = assembleKnowledgePathPlan({
       studentId: 'student-seeded',
       goal: { id: 'control-correction', title: '控制系统校正设计', knowledgeTargets: [] },
@@ -89,7 +93,11 @@ describe.skipIf(!hasLiveProjection())('knowledge path quality on live projection
       !isAssertionLikeKnowledge(id, { label: labels.get(id), assertionIds }),
     );
     const head = conceptual.slice(0, 6);
-    const mastery = Object.fromEntries(head.map((id) => [id, { posteriorMastery: 0.92 }]));
+    const mastery = Object.fromEntries(head.map((id) => [id, {
+      posteriorMastery: 0.92,
+      confidence: 0.8,
+      evidenceCount: 3,
+    }]));
     const plan = assembleKnowledgePathPlan({
       studentId: 'student-seeded',
       goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
@@ -105,7 +113,6 @@ describe.skipIf(!hasLiveProjection())('knowledge path quality on live projection
       heuristicTimeoutMs: 80,
     });
 
-    expect(plan.explanations.fallbackReasons).toContain('assertion-knowledge-skipped');
     const paths = [plan.mainPath, ...(plan.policyBundle?.paths.map((path) => path.planNodes ?? []) ?? [])];
     for (const nodes of paths) {
       const knowledgeIds = nodes.map(mountedKnowledgeId).filter((id): id is string => Boolean(id));

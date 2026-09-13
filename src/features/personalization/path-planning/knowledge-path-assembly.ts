@@ -4,13 +4,15 @@ import type { KnowledgeExpansionMode } from './knowledge-scope';
 import { expandKnowledgeOrder } from './knowledge-scope';
 import type { TeachingPrerequisiteEdge } from './live-teaching-prerequisites';
 import {
+  KNOWLEDGE_MASTERY_MIN_CONFIDENCE,
+  KNOWLEDGE_MASTERY_MIN_EVIDENCE_COUNT,
   KNOWLEDGE_MASTERY_SKIP_THRESHOLD,
   KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS,
   KNOWLEDGE_PATH_MAX_STEPS,
   resolveKnowledgePathPolicy,
   type KnowledgePathPolicy,
 } from './knowledge-path-policy';
-import { isAssertionLikeKnowledgeLabel } from './planning-resource-titles';
+import { isAssertionLikeKnowledgeLabel, resolvePlanningResourceTitle } from './planning-resource-titles';
 
 export {
   KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS,
@@ -186,12 +188,24 @@ export function fillKnowledgeSkeleton(context: SkeletonFillContext): SkeletonFil
     : deterministic;
 }
 
+export function isTrustedKnowledgeMastery(
+  tag: { posteriorMastery?: number; confidence?: number; evidenceCount?: number } | undefined,
+): tag is { posteriorMastery: number; confidence: number; evidenceCount: number } {
+  return typeof tag?.posteriorMastery === 'number'
+    && (tag.confidence ?? 0) >= KNOWLEDGE_MASTERY_MIN_CONFIDENCE
+    && (tag.evidenceCount ?? 0) >= KNOWLEDGE_MASTERY_MIN_EVIDENCE_COUNT;
+}
+
 export function masteryByCanonicalId(
-  tags: Record<string, { posteriorMastery?: number } | undefined> | undefined,
+  tags: Record<string, {
+    posteriorMastery?: number;
+    confidence?: number;
+    evidenceCount?: number;
+  } | undefined> | undefined,
 ): Record<string, number> {
   const mastery: Record<string, number> = {};
   for (const [id, tag] of Object.entries(tags ?? {})) {
-    if (typeof tag?.posteriorMastery === 'number') mastery[id] = tag.posteriorMastery;
+    if (isTrustedKnowledgeMastery(tag)) mastery[id] = tag.posteriorMastery;
   }
   return mastery;
 }
@@ -307,8 +321,11 @@ export function planningResourceIdentity(node: ResourceNode): string {
 }
 
 function planningResourceTitleKey(node: ResourceNode): string {
-  const title = (node.publishedResource?.title ?? node.title).trim().toLowerCase();
-  return `${node.type}:${title}`;
+  const raw = (node.publishedResource?.title ?? node.title).trim();
+  return resolvePlanningResourceTitle(raw, {
+    canonicalIds: node.publishedResource?.canonicalIds,
+    resourceId: node.publishedResource?.identity.resourceId,
+  }).trim().toLowerCase();
 }
 
 function isUsed(used: ReadonlySet<string>, node: ResourceNode): boolean {

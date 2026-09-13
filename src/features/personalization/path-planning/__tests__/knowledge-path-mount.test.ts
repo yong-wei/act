@@ -153,7 +153,9 @@ describe('knowledge path mount', () => {
       studentId: 'student-1',
       goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
       learnerState: {
-        knowledgeMastery: { tags: { [prior]: { posteriorMastery: 0.9 } } },
+        knowledgeMastery: {
+          tags: { [prior]: { posteriorMastery: 0.9, confidence: 0.8, evidenceCount: 3 } },
+        },
       },
       registry,
       constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
@@ -167,6 +169,62 @@ describe('knowledge path mount', () => {
     });
     expect(advanced.explanations.fallbackReasons).toContain('mastered-knowledge-skipped');
     expect(advanced.mainPath.map((node) => node.resourceFeatureRef?.resourceId)).toEqual([
+      'act:card:card-locus',
+    ]);
+
+    const untrusted = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: {
+        knowledgeMastery: { tags: { [prior]: { posteriorMastery: 0.9, confidence: 0.2, evidenceCount: 1 } } },
+      },
+      registry,
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, {
+      prerequisiteEdges: [{
+        id: 'edge-1',
+        sourceCanonicalId: prior,
+        targetCanonicalId: rootLocus,
+        strength: 'REQUIRED',
+      }],
+    });
+    expect(untrusted.explanations.fallbackReasons ?? []).not.toContain('mastered-knowledge-skipped');
+    expect(untrusted.mainPath[0]?.resourceFeatureRef?.resourceId).toBe('act:card:card-prior');
+  });
+
+  it('does not put recommended-only ancestors on the executable path', () => {
+    const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
+    const prior = 'ctc:prior-root-locus';
+    const advised = 'ctc:advised-only';
+    const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
+      feature('card-prior', [prior], 'card'),
+      feature('card-advised', [advised], 'card'),
+      feature('card-locus', [rootLocus], 'card'),
+    ]));
+    const plan = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: null,
+      registry,
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, {
+      prerequisiteEdges: [
+        {
+          id: 'edge-required',
+          sourceCanonicalId: prior,
+          targetCanonicalId: rootLocus,
+          strength: 'REQUIRED',
+        },
+        {
+          id: 'edge-advised',
+          sourceCanonicalId: advised,
+          targetCanonicalId: rootLocus,
+          strength: 'RECOMMENDED',
+        },
+      ],
+    });
+    expect(plan.mainPath.map((node) => node.resourceFeatureRef?.resourceId)).toEqual([
+      'act:card:card-prior',
       'act:card:card-locus',
     ]);
   });

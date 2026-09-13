@@ -12,6 +12,7 @@ import {
   indexResourcesByKnowledge,
   isAssertionLikeKnowledge,
   isCourseLikeResource,
+  masteryByCanonicalId,
   planningResourceIdentity,
   rankBoundResources,
   scoreFilledPath,
@@ -40,6 +41,38 @@ describe('knowledge path assembly', () => {
     expect([...index.keys()]).toEqual([PRIOR, TARGET]);
     expect(index.get(PRIOR)?.map((node) => node.publishedResource?.identity.resourceId)).toEqual(['act:card:card-prior']);
     expect(index.get(TARGET)?.map((node) => node.publishedResource?.identity.resourceId)).toEqual(['act:card:card-target']);
+  });
+
+  it('keeps recommended ancestors out of the executable required skeleton', () => {
+    const advised = 'ctc:advised-only';
+    const required = buildKnowledgeSkeleton(
+      [TARGET],
+      [
+        { id: 'e-required', sourceCanonicalId: PRIOR, targetCanonicalId: TARGET, strength: 'REQUIRED' },
+        { id: 'e-advised', sourceCanonicalId: advised, targetCanonicalId: TARGET, strength: 'RECOMMENDED' },
+      ],
+      'required',
+    );
+    expect(required.knowledgeIds).toEqual([PRIOR, TARGET]);
+    expect(required.knowledgeIds).not.toContain(advised);
+
+    const pool = buildKnowledgeSkeleton(
+      [TARGET],
+      [
+        { id: 'e-required', sourceCanonicalId: PRIOR, targetCanonicalId: TARGET, strength: 'REQUIRED' },
+        { id: 'e-advised', sourceCanonicalId: advised, targetCanonicalId: TARGET, strength: 'RECOMMENDED' },
+      ],
+      'required-recommended',
+    );
+    expect(pool.knowledgeIds).toContain(advised);
+  });
+
+  it('only maps mastery that has trusted confidence and evidence', () => {
+    expect(masteryByCanonicalId({
+      [PRIOR]: { posteriorMastery: 0.92, confidence: 0.8, evidenceCount: 3 },
+      [TARGET]: { posteriorMastery: 0.99, confidence: 0.2, evidenceCount: 4 },
+      [OUTSIDER]: { posteriorMastery: 0.99, confidence: 0.9, evidenceCount: 0 },
+    })).toEqual({ [PRIOR]: 0.92 });
   });
 
   it('fills every skeleton node from its bound pool and falls back when the heuristic has no time', () => {

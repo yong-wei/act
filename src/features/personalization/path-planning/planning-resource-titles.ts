@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projection/live-course-pointer';
+
 const INTERNAL_TITLE = /^(ctc|ctkg|ctk)[:\s]/u;
 const DUPLICATE_LESSON_SIM = /^(lesson\d+-[a-z0-9-]+)-\1(?:\s+仿真)?$/iu;
 const HASH_SLUG = /[a-f0-9]{16,}/u;
@@ -61,22 +63,44 @@ export function resolvePlanningResourceTitle(
   return humanizeLessonSimulationTitle(title) ?? title;
 }
 
-let cachedLabels: Map<string, string> | null = null;
-let cachedAssertionIds: Set<string> | null = null;
+const AUTHORING_RELEASE_NAME = /control-theory-engineering-v\d+(?:\.\d+)*-r\d+/u;
+const EMPTY_CACHE_KEY = 'none';
 
-function ensurePlanningKnowledgeCaches(repoRoot = process.cwd()): {
+type PlanningKnowledgeCache = {
   labels: Map<string, string>;
   assertionIds: Set<string>;
-} {
-  if (cachedLabels && cachedAssertionIds) {
-    return { labels: cachedLabels, assertionIds: cachedAssertionIds };
-  }
-  const release = join(
-    repoRoot,
-    'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r6',
-  );
+};
+
+const caches = new Map<string, PlanningKnowledgeCache>();
+
+export function resolvePlanningAuthoringReleaseDir(
+  repoRoot = process.cwd(),
+  options: { authorityReleaseSetId?: string | null } = {},
+): string | null {
+  const setId = options.authorityReleaseSetId === undefined
+    ? readLiveAuthorityReleaseSetId(repoRoot)
+    : options.authorityReleaseSetId;
+  const match = AUTHORING_RELEASE_NAME.exec(setId ?? '');
+  if (!match) return null;
+  const dir = join(repoRoot, 'course-content/authoring/knowledge/releases', match[0]);
+  return existsSync(dir) ? dir : null;
+}
+
+function ensurePlanningKnowledgeCaches(
+  repoRoot = process.cwd(),
+  options: { authorityReleaseSetId?: string | null } = {},
+): PlanningKnowledgeCache {
+  const release = resolvePlanningAuthoringReleaseDir(repoRoot, options);
+  const cacheKey = release ?? EMPTY_CACHE_KEY;
+  const hit = caches.get(cacheKey);
+  if (hit) return hit;
   const labels = new Map<string, string>();
   const assertionIds = new Set<string>();
+  if (!release) {
+    const empty = { labels, assertionIds };
+    caches.set(cacheKey, empty);
+    return empty;
+  }
   const remember = (id: string, label: string, overwrite: boolean) => {
     if (isAssertionLikeKnowledgeLabel(label) || id.toLowerCase().includes('knowledgestatement')) {
       assertionIds.add(id);
@@ -95,17 +119,23 @@ function ensurePlanningKnowledgeCaches(repoRoot = process.cwd()): {
     const label = stringField(row.value);
     if (id && label) remember(id, label, false);
   });
-  cachedLabels = labels;
-  cachedAssertionIds = assertionIds;
-  return { labels, assertionIds };
+  const loaded = { labels, assertionIds };
+  caches.set(cacheKey, loaded);
+  return loaded;
 }
 
-export function loadPlanningKnowledgeLabels(repoRoot = process.cwd()): Map<string, string> {
-  return ensurePlanningKnowledgeCaches(repoRoot).labels;
+export function loadPlanningKnowledgeLabels(
+  repoRoot = process.cwd(),
+  options: { authorityReleaseSetId?: string | null } = {},
+): Map<string, string> {
+  return ensurePlanningKnowledgeCaches(repoRoot, options).labels;
 }
 
-export function loadPlanningAssertionKnowledgeIds(repoRoot = process.cwd()): Set<string> {
-  return ensurePlanningKnowledgeCaches(repoRoot).assertionIds;
+export function loadPlanningAssertionKnowledgeIds(
+  repoRoot = process.cwd(),
+  options: { authorityReleaseSetId?: string | null } = {},
+): Set<string> {
+  return ensurePlanningKnowledgeCaches(repoRoot, options).assertionIds;
 }
 
 function readJsonl(filePath: string, visit: (row: Record<string, unknown>) => void): void {
@@ -125,9 +155,29 @@ function stringField(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
+function readLiveAuthorityReleaseSetId(repoRoot: string): string | null {
+  try {
+    const root = resolveConfiguredTeachingProjectionRoot(repoRoot);
+    const current = JSON.parse(readFileSync(join(root, 'current.json'), 'utf8')) as {
+      projectionId?: string;
+    };
+    const projectionId = current.projectionId?.trim();
+    if (!projectionId || projectionId.includes('..') || projectionId.includes('/') || projectionId.includes('\\')) {
+      return null;
+    }
+    const manifest = JSON.parse(
+      readFileSync(join(root, 'releases', projectionId, 'projection-manifest.json'), 'utf8'),
+    ) as { authorityReleaseSetId?: string };
+    return typeof manifest.authorityReleaseSetId === 'string' && manifest.authorityReleaseSetId.trim()
+      ? manifest.authorityReleaseSetId
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function resetPlanningKnowledgeLabelsForTest(): void {
-  cachedLabels = null;
-  cachedAssertionIds = null;
+  caches.clear();
 }
 
 function entityIdFromResourceId(resourceId: string | undefined): string | null {

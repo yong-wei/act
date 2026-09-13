@@ -110,7 +110,7 @@ export function assembleKnowledgePathPlan(
   const masteryById = masteryByCanonicalId(input.learnerState?.knowledgeMastery?.tags);
   const deadline = Date.now() + (options.heuristicTimeoutMs ?? policy.heuristicTimeoutMs);
   const byKnowledge = indexResourcesByKnowledge([...feasibleKnowledge], candidates, scopedIds);
-  const expandedIds = buildKnowledgeSkeleton(targets, edges, 'required-recommended')
+  const expandedIds = buildKnowledgeSkeleton(targets, edges, 'required')
     .knowledgeIds
     .filter((id) => feasibleKnowledge.has(id));
   const labels = loadPlanningKnowledgeLabels();

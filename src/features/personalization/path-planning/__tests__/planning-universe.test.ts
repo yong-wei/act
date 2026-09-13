@@ -147,9 +147,6 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     expect(paths.every((path) => (path.planNodes?.length ?? 0) <= KNOWLEDGE_PATH_MAX_STEPS)).toBe(true);
     expect(plan.mainPath.length).toBeLessThanOrEqual(KNOWLEDGE_PATH_MAX_STEPS);
     expect(plan.policyFamily).toBe('foundation-remediation');
-    if (loaded.universe.knowledgeIds.length > KNOWLEDGE_PATH_MAX_STEPS) {
-      expect(plan.explanations.fallbackReasons).toContain('path-length-capped');
-    }
     const simulation = paths.find((path) => path.policyFamily === 'simulation-driven');
     const foundation = paths.find((path) => path.policyFamily === 'foundation-remediation');
     const simShare = shareOf(simulation?.planNodes ?? [], ['simulation', 'control_workbench', 'arena_task']);
