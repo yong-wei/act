@@ -2,7 +2,7 @@
 
 状态: active
 最后更新: 2026-09-12
-摘要: 生产应用 `v0.7.15-cf73522`（main `cf73522720…`，app-only）已发布。路径规划班级准入与知识路径挂载在 `simplify-runtime-cas-publish-activate`，正合入 `integration`。现网旧生成器一次 generate 会把 Node 堆打到约 2GB 后 OOM。应用与课程 Runtime 仍是两条独立发布线。生产知识面维持 Authority v0.37。OpenSpec `simplify-runtime-cas-publish-activate` 尚未 archive。
+摘要: 生产应用 `v0.7.16-2e34c18`（`origin/main` `2e34c18f32…`，tar SHA256 `3e0d2dfe…`）已 `deploy:app --skip-build`。路径规划按目标知识切片生成并挂载绑定资源，不再要求班级/教师绑定。现网 Runtime 身份是 `runtime-6ed6cfe8…`（app-only 未切换）。`origin/integration` 现为 `79c73f5`（开发机网关对齐已激活 manifest），尚未合入 `main`。OpenSpec `simplify-runtime-cas-publish-activate` 尚未 archive。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-09-12 生产应用 `v0.7.16-2e34c18` 已 `deploy:app --skip-build`：冻结 `origin/main` `2e34c18f32cd855b6e624358742363045d89e09a`，镜像 `localhost/act-obe-platform:0.7.16-2e34c18`，tar SHA256 `3e0d2dfeb795828ae62bda301516102f6223c22b56c4e7d6a9bcfbfa974a24ca`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.16。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；知识图谱 838 节点 / 16571 关系。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 身份为 `runtime-6ed6cfe8…`。
 - 2026-09-12 生产应用 `v0.7.15-cf73522` 已 `deploy:app` 恢复运行。路径生成仍走旧混池，会 OOM。
 - 2026-09-11 生产应用 `v0.7.8-60a6e28` 已 `deploy:app --skip-build`：冻结 `origin/main` `60a6e28a59da6af16e5f244a3783ca123841ae32`，镜像 `localhost/act-obe-platform:0.7.8-60a6e28`，tar SHA256 `178b781df288f0c501271d0e8d9dbddb4cc169f3a040880222909b8d899665a0`。公网 `/`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；`RUNTIME_DELIVERY_MODE=ossfs-blob-view`；Runtime 身份仍为 `runtime-150a505a…`。未执行 `runtime:activate`。
 
