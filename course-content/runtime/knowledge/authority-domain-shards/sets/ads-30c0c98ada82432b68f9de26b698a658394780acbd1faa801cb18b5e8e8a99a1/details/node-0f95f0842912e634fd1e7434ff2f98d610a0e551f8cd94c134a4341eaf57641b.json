@@ -1,0 +1,64 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+    "canonicalType": "DomainConcept",
+    "label": "切线局部线性化法",
+    "aliases": [
+      "切线线性化"
+    ],
+    "description": "一种线性化方法，特别适合于具有连续变化的非线性特性函数，其实质是在一个很小的范围内，将非线性特性用一段直线来代替。",
+    "teachingFields": {
+      "concept_kind": "analysis_method"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-02/chapter-2/section-2.1/example-2.7",
+        "label": "自动控制原理（胡寿松，第8版） · 设铁心线圈电路如图2－7（a）所示，其磁通 $\\phi$ 与线圈中电流 $i$ 之间关系如图2－7（b）所示。试列写以 $u_{r}$ 为输入量，$i$ 为输出量的电路微分方程。"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

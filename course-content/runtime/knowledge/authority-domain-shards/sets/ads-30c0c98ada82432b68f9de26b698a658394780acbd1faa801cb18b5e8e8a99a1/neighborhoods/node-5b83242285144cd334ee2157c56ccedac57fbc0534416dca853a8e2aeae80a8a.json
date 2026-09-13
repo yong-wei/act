@@ -1,0 +1,150 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+      "canonicalType": "DomainConcept",
+      "label": "二型系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "canonicalType": "DomainConcept",
+      "label": "零型系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8c7f429f18a1001dfef7ffab",
+      "canonicalType": "KnowledgeStatement",
+      "label": "一个设计示例，其中向 II 型系统 G(s)=10/s^2 中加入超前校正装置，以实现调节时间 ≤4 s 且阻尼比 ζ≥0.45，由此得到的校正装置为 G_c(s)=K/6 (1+s/2.0)/(1+s/12.0)，其中 K=6，使得 P.O.=34%，T_s=1.3 s，ω_B=8.4 rad/s，且 P.M.=45.6°。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-d1:association:4d6df6e6f061fa727bee128a",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-84d4e25a62819cdb7ccb6caf",
+      "targetId": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-f76a06a2a7592fe49c7d21cf",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-8c7f429f18a1001dfef7ffab",
+      "targetId": "ctkg:v3e-object-055bf5ba7d4fe5f6a75cdd79",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    }
+  ],
+  "boundaries": []
+}

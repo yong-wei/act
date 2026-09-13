@@ -1,0 +1,62 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-canonical-1a2d4a0c24432e7ebd8475c5",
+    "canonicalType": "KnowledgeStatement",
+    "label": "考虑三阶系统 G_H(s)=6/(s^3+6s^2+11s+6)=1/(1+(11/6)s+s^2+(1/6)s^3)。采用二阶模型 G_L(s)=1/(1+d1 s+d2 s^2)，可确定... 求解式 (5.61) 与式 (5.62) 得 d1=1.615 及 d2=0.624。降阶系统的传递函数为 G_L(s)=1/(1+1.615s+0.624s^2)=1.60/(s^2+2.590s+1.60)。",
+    "aliases": [],
+    "description": "Consider the third-order system G_H(s)=6/(s^3+6s^2+11s+6)=1/(1+(11/6)s+s^2+(1/6)s^3). Using the second-order model G_L(s)=1/(1+d1 s+d2 s^2), we determine that ... Solving Equations (5.61) and (5.62) yields d1=1.615 and d2=0.624. The lower-order system transfer function is G_L(s)=1/(1+1.615s+0.624s^2)=1.60/(s^2+2.590s+1.60).",
+    "teachingFields": {
+      "statement_type": "property_assertion"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-05/section-5.8/example-5.7",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · A simplified model"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

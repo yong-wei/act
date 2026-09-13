@@ -1,0 +1,43 @@
+{
+  "contract": "act-domain-teaching-fragment/v1",
+  "builderVersion": "act-domain-teaching-fragment-builder/v1",
+  "fragmentId": "dtf-03241367e2926993ddd42eb7fb959a6c764218e82c2aa71d0971765855484dea",
+  "fragmentKey": "cross-domain-v1",
+  "fragmentVersion": "1",
+  "fragmentDigest": "03241367e2926993ddd42eb7fb959a6c764218e82c2aa71d0971765855484dea",
+  "domainKeys": [
+    "classical-control-design",
+    "discrete-time-control-analysis",
+    "frequency-domain-analysis",
+    "root-locus",
+    "stability-analysis",
+    "state-space-control-analysis-and-design",
+    "system-modeling",
+    "time-domain-analysis"
+  ],
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+    },
+    "sourceDatasetHash": "3fae71d853e695f2896e1154d45b767c048ae7e740377e170991b91254a94451",
+    "captureRevision": "18e0b2238a2b30fef071ec6af980f9dd4b3bbeda",
+    "nodeIndexDigest": "b648860192eb19107358869c61ede1e3efcc0a29b53915022686ac8c00e66844"
+  },
+  "authoringRevision": "18e0b2238a2b30fef071ec6af980f9dd4b3bbeda",
+  "sourceInventoryDigest": "3e15353f1af379e4291ef79a4a2ed581dc523d39ce385a0d05d89b70e4993368",
+  "authorityDigest": "fe7aebb39c59bf9b3e97706ab954184ee6a50be3a5f7650372324a55d6cd51c2",
+  "evidenceRefs": [],
+  "coreNodes": [],
+  "relations": [],
+  "coreNodeCount": 0,
+  "relationCount": 0
+}

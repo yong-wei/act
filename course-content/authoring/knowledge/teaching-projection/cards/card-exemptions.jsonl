@@ -548,3 +548,10 @@
 {"cardId": "鲁棒性_10_f5336265", "name": "鲁棒性", "exemptionReason": "no-overlay-equivalent"}
 {"cardId": "鲁棒控制_3_a7fa1491", "name": "鲁棒控制", "exemptionReason": "no-overlay-equivalent"}
 {"cardId": "鲁棒最优系统_10_763bdd82", "name": "鲁棒最优系统", "exemptionReason": "no-overlay-equivalent"}
+{"cardId": "Bode图_1_1", "name": "Bode图", "exemptionReason": "no-overlay-equivalent"}
+{"cardId": "带宽频率_5_6996a44a", "name": "带宽频率", "exemptionReason": "no-overlay-equivalent"}
+{"cardId": "描述函数法_8_849fa8a1", "name": "描述函数法", "exemptionReason": "no-overlay-equivalent"}
+{"cardId": "根轨迹_1_1", "name": "根轨迹", "exemptionReason": "no-overlay-equivalent"}
+{"cardId": "根轨迹_4_c19f8854", "name": "根轨迹", "exemptionReason": "no-overlay-equivalent"}
+{"cardId": "穿越频率_5_c4c2b93c", "name": "穿越频率", "exemptionReason": "no-overlay-equivalent"}
+{"cardId": "频域响应_1_1", "name": "频域响应", "exemptionReason": "no-overlay-equivalent"}

@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-78b080a6511445b11aa5e6e9",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1. 确定增益 K 以满足误差或带宽要求。2. 计算未校正系统的相角裕度 PM。3. 考虑额外裕量（约 10°）并确定所需的最大相位超前角 φmax。4. 根据式 (6.40) 或图 6.53 确定 α。5. 选取截止频率处的 ωmax；零点位于 ωmax√α，极点位于 ωmax/√α。6. 绘制校正后的频率响应曲线并检验相角裕度 PM。7. 迭代设计；必要时采用双超前校正。",
+    "aliases": [],
+    "description": "1. Determine gain K to satisfy error or bandwidth requirements. 2. Evaluate PM of uncompensated system. 3. Allow for extra margin (~10°) and determine needed phase lead φmax. 4. Determine α from Eq. (6.40) or Fig. 6.53. 5. Pick ωmax at crossover frequency; zero at ωmax√α, pole at ωmax/√α. 6. Draw compensated frequency response and check PM. 7. Iterate on design; add double-lead if necessary.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "franklin-feedback-control-7th",
+        "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-06/unnumbered-003/unnumbered-034",
+        "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Lead Compensation for a DC Motor"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

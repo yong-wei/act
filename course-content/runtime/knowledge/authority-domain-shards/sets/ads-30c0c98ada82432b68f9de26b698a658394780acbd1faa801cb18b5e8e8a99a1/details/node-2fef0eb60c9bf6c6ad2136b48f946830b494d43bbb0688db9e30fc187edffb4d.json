@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-cc27a70e11d80e523a389eff",
+    "canonicalType": "KnowledgeStatement",
+    "label": "在给定增益下，K_v=2 sec^{-1}，但需要 K_v=10 sec^{-1}。自主估计器不改变 K_v；误差控制法会在未知位置引入零点；结合 Truxal 公式的零点配置法可同时满足动态和稳态要求。",
+    "aliases": [],
+    "description": "With the given gain, K_v=2 sec^{-1}, but K_v=10 sec^{-1} is needed. The autonomous estimator does not change K_v; the error-control method introduces a zero at an unknown location; the zero-placement method with Truxal's formula can satisfy both dynamic and steady-state requirements.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "franklin-feedback-control-7th",
+        "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-07/unnumbered-051",
+        "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Servomechanism: Increasing the Velocity Constant through Zero Assignment"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

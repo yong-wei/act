@@ -1,0 +1,281 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctc:v11g-91ad9d6426185f59dea4a418",
+      "canonicalType": "DomainConcept",
+      "label": "斜坡输入稳态误差",
+      "aliases": [
+        "速度误差"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "performance_metric"
+    },
+    {
+      "id": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "canonicalType": "DomainConcept",
+      "label": "速度误差系数 (K_v)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-88d9e641e70caac92a383362",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于带有测速发电机反馈的电动机位置控制系统（G(s)=1/(s(τs+1))，D_c(s)=k_P，H(s)=1+k_t s），系统为 1 型系统，速度误差常数为 K_v = k_P/(1+k_t k_P)。利用测速发电机反馈改善动态响应通常会增大稳态误差。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-a0dfb9088ef25ed170ade8e7",
+      "canonicalType": "Formula",
+      "label": "K_{v}=\\lim _{s \\rightarrow 0} s G_{c}(s) G(s) .",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-d510dc60d0922c1ec40e6df2",
+      "canonicalType": "DomainConcept",
+      "label": "特鲁克萨尔公式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-e708253d85c5caf6dc8ad0a3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于采用比例加积分控制 (D_c = k_P + k_I/s) 且被控对象为 G = A/(τs+1) 的速度控制示例，回路传递函数为 G D_cl(s) = A(k_P s + k_I) / (s(τs+1))。该系统为 1 型系统，速度常数为 K_v = A k_I。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-d1:association:00df2c054e013e69249393f1",
+      "predicate": "association",
+      "sourceId": "ctc:v11g-91ad9d6426185f59dea4a418",
+      "targetId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:c76d9ce5f05904257ea01926",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-canonical-d510dc60d0922c1ec40e6df2",
+      "targetId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-54395aa8b9b565b32b51218a",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "targetId": "ctkg:v3e-canonical-a0dfb9088ef25ed170ade8e7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-d19b6458f19a132dbabf28d8",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-canonical-88d9e641e70caac92a383362",
+      "targetId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctr:m1f-v3e-relation-f36e674f1bbad92ee964fdb6",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-canonical-e708253d85c5caf6dc8ad0a3",
+      "targetId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    }
+  ],
+  "boundaries": []
+}

@@ -1,0 +1,283 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-44cb1e7bc11dcd58156876b7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当增广系统可控时，总可以找到反馈信号使系统渐近稳定，从而跟踪误差渐近收敛。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4f050a1dd9ee29fe0988036d",
+      "canonicalType": "DomainConcept",
+      "label": "增广系统可控性",
+      "aliases": [
+        "增广系统可控性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-90f55bd235e7f4c205fb387c",
+      "canonicalType": "Formula",
+      "label": "\\left[\\begin{array}{l}\\dot{e} \\\\ \\dot{z}\\end{array}\\right]=\\left[\\begin{array}{rr}0 & -c \\\\ 0 & A\\end{array}\\right]\\left[\\begin{array}{l}e \\\\ z\\end{array}\\right]+\\left[\\begin{array}{l}0 \\\\ b\\end{array}\\right] w",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-972522f80fa3f7a8994ba286",
+      "canonicalType": "Formula",
+      "label": "\\left[\\begin{array}{c}\\dot{e} \\\\ \\ddot{e} \\\\ \\dot{z}\\end{array}\\right]=\\left[\\begin{array}{ccc}0 & 1 & 0 \\\\ 0 & 0 & -\\boldsymbol{c} \\\\ 0 & 0 & \\boldsymbol{A}\\end{array}\\right]\\left[\\begin{array}{l}e \\\\ \\dot{e} \\\\ \\boldsymbol{z}\\end{array}\\right]+\\left[\\begin{array}{l}0 \\\\ 0 \\\\ \\boldsymbol{b}\\end{array}\\right] w",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-aa4fc65cb4ad2161609d44b6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1） 定义跟踪误差 e=r-y；2） 引入中间变量 z=ẋ, w=ů；3） 构造增广系统；4） 检验可控性；5） 设计状态反馈 w=-k1 e - k2 z；6） 积分得到控制律 u（t）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "canonicalType": "DomainConcept",
+      "label": "增广系统",
+      "aliases": [
+        "增广系统"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1l:relation-5ff1816f58bde8cd9ac2857b",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "targetId": "ctkg:v3e-object-972522f80fa3f7a8994ba286",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-7ef4c999b3a96201cfcdd2ed",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-4f050a1dd9ee29fe0988036d",
+      "targetId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-7f52ba0dedcdeb1d39ce0c25",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "targetId": "ctkg:v3e-object-90f55bd235e7f4c205fb387c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-b5f89b6b55c9b7e27e7f414e",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-44cb1e7bc11dcd58156876b7",
+      "targetId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-cbb07459873fbe743bda4297",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-cd935c229d64107e30b8c1a7",
+      "targetId": "ctkg:v3e-object-aa4fc65cb4ad2161609d44b6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": []
+}

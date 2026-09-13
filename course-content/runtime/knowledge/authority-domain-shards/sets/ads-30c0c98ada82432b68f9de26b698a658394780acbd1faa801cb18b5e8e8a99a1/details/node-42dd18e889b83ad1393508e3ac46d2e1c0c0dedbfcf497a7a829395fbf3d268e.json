@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-ba4d90e2b2f1447a2ab89e88",
+    "canonicalType": "KnowledgeStatement",
+    "label": "假设前置滤波器设计良好，使得频率大于 ω_s/2 的噪声几乎不产生混叠，则采样率的选择基本遵循与跟踪有效性相同的经验法则；即采样率通常在 ω_BW 的 25 倍或更高数量级。",
+    "aliases": [],
+    "description": "Assuming the prefilter is well designed so that there is little or no aliasing of noise with a frequency greater than ω_s/2, the sample rate selection pretty much follows the same rule of thumb as Tracking Effectiveness; that is, sample rates on the order of 25 times ω_BW or higher are typical.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "franklin-feedback-control-7th",
+        "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-08/section-8.5/section-8.5.3",
+        "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Effect of Anti-Alias Prefilter"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

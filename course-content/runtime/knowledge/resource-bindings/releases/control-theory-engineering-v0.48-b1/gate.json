@@ -1,0 +1,3098 @@
+{
+  "contract": "act-resource-binding-release-gate/v1",
+  "status": "passed",
+  "passed": true,
+  "findings": [
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:textbook:dorf-modern-control-systems-14th"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:textbook:hu-shousong-auto-control-8th"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-1"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:textbook:franklin-feedback-control-7th"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:2-3"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:4-1"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-4"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:4-5"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-6"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-3"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:2-4"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:4-2"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:4-7"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:2-2"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:1-1"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-5"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:4-6"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:1-3"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:1-5"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-9"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:2-1"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:5-2"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:1-4"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:5-3"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:5-1"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-2"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:4-3"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-7"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:5-4"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:1-2"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:5-5"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:3-8"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:5-6"
+    },
+    {
+      "code": "entry-excluded",
+      "severity": "info",
+      "message": "lesson entry or whole-book resource excluded from the binding release",
+      "resourceId": "act:lesson:4-4"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "2-1-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "2-2-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "2-3-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "2-4-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-1-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-2-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-3-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-4-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-5-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-6-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-7-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-8-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "3-9-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "4-1-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "4-2-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "4-3-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "4-4-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "4-5-intro-video"
+    },
+    {
+      "code": "media-drift",
+      "severity": "warning",
+      "message": "local media differs from the activated runtime release; no time anchors emitted",
+      "resourceId": "4-6-intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-1:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-1:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-1:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-2:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-2:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-2:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-3:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-3:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-4:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-5:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:1-5:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-1:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-1:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-2:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-2:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-3:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-3:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-05"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:2-4:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-2:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-05"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-3:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-4:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-6:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-6:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-6:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-6:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-7:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-7:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-8:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-8:step-21"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:3-8:step-22"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-1:step-05"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-1:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-1:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-1:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-1:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-1:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-2:step-19"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-05"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-18"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-3:step-19"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-4:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-4:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-4:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-4:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-4:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-4:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-4:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-5:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-5:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-5:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-5:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-5:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-6:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-7:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-7:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-7:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:4-7:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-2:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-2:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-2:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-05"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-3:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-05"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-4:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-06"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-07"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-08"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-5:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-01"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-02"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-03"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-04"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-05"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-09"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-10"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-11"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-12"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-13"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-14"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-15"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-16"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-17"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:step:5-6:step-18"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:2-1:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:2-2:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:2-3:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:2-4:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-1:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-2:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-3:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-4:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-5:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-6:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-7:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-8:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:3-9:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:4-1:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:4-2:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:4-3:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:4-4:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:4-5:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:4-6:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:4-7:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:5-3:course"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:5-3:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:5-4:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:5-5:intro-video"
+    },
+    {
+      "code": "no-anchor",
+      "severity": "info",
+      "message": "resource has no anchored canonical binding",
+      "resourceId": "act:video:5-6:intro-video"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "Bode首轮骨架_5_1e07d9da"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "MASS协同链路_5_53001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "MASS自动化等级责任边界_5_53008"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "MPC再定位_5_54002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "PD与测速反馈的等效阻尼对比_3_35003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "PD与超前的频域整形差异_3_35004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "RL调度PID_5_55006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "三域直觉联动_5_L2c005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "三域联动操作体验_5_L2d001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "三路线控制比较_5_54008"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "三频段闭环性能回读_3_38003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "上游信息质量_5_53003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "串联无源滞后校正_6_2a52e865"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "临界增益体验_5_L2d002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "主导极点_3_4c4c6bbd"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "主矛盾到频段职责映射_4_42003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "二阶系统标准型_3_L2a"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "交接频率_转折频率__5_8bca814b"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "任务标签与机制标签匹配_3_39002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "任务通道变化下的自由目标改写_4_44007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "优化前后证据比较表_4_45005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "优化起点与归一化来源_4_44003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "传统控制结构局限_4_47008"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "传统设计四联图校正_4_47004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "伯德图_6_1a069614"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "低频补偿稳态改善路径_3_37003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "余因子式_2_1da0d7e8"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "余子式接触判定_2_21003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "关键节点读图_3_8b2f0d12"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "典型环节对象库_2_21002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "典型非线性边界环节_5_51002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "分段辨识模型组合_4_47002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "前向通路_1_7d1c792e"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "剩余风险说明_4_45006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "劳斯表特殊情况_3_f787433f"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "单结构与复合结构分流条件_4_43002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "单结构首轮起步卡_4_42001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "参数方向表达卡_4_43003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "参数窗口判断_3_7c3e318f"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "参数约束翻译表_4_45002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "反馈保底与前馈补偿边界_4_42005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "可行域-满意域-最优域分层_4_41004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "右半平面零点可行性边界_3_36005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "周期信号频谱_5_2d1b006d"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "四种响应家族_3_L2a"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "四类方案比较矩阵_4_46006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "四路线策略评价_5_55008"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "固定结构自由目标项选择_4_44002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "固定结构迁移失配信号_4_46002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "在线辨识与模型更新_5_54006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "复平面可行域_4_Lsum001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "奈奎斯特与Bode统一判稳链_3_38002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "对数幅频曲线_5_f86ba11b"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "对数频率坐标_5_5e366881"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "对象分析回收到设计入口_4_43001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "对象化三域验证_3_56cb3a4e"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "局部线性化工作点_5_52002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "局部线性化边界判断_5_51003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "展示解与Pareto最小取舍_4_44006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "工程指标代价函数翻译_4_47003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "左半平面零点的动态改善机理_3_35002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "带宽频率_5_6996a44a"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "幅值条件_3_2d5b92ac"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "幅值裕度直觉_5_L2c004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "幅角原理_5_f843970e"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "开环传递函数定义_2_12002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "开环幅相特性曲线_5_fd86e289"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "强化学习控制回报_5_55003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "微分环节_2_11006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "惯性环节_2_11007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "截止频率直觉_5_L2c002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "执行约束反馈_5_53005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "扰动作用下的稳态误差_3_5c9fcfe1"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "扰动噪声设计边界_4_47007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "扰动抑制中的通道重写边界_4_43006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "拉氏变换工程动机_2_11001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "指标角色重组_4_41002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "按扰动补偿前馈的对消条件_4_42007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "按输入补偿前馈的无差度提升_4_42006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "振荡环节_5_d677d1e6"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "控制在自主系统链路中的位置_5_53002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "描述函数法_8_849fa8a1"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "描述函数适用条件_5_52003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "数据覆盖与泛化边界_5_54005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "数据驱动控制_5_54003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "数据驱动进入条件_5_54004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "方法迁移前边界说明_5_51005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "无约束加权目标表达_4_44004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "时域分析_2_1874cdb9"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "时域响应包络_3_Lsum002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "时域指标到极点参数映射_3_13003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "时域指标到目标极点区域_3_36001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "时间常数_2_68356eae"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "显式控制律与学习策略_5_55001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "最佳阻尼比_3_L2b002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "权重偏好与无约束候选解_4_44005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "极点迁移_4_L2b001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "根轨迹增益换算_3_4b1d9e6c"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "根轨迹完整法则_3_0f2e7b11"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "根轨迹法_2_e3f6c0c1"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "根轨迹绘制规则_3_2f9e8cb3"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "模块4入口的首轮任务判断_3_39004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "模型依赖松动_5_54001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "模型数据责任分配_5_54007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "模态_2_d586e1e6"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "欠阻尼响应_3_c2d57b37"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "比例环节_2_11004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "求解记录单_4_45004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "目标驱动PD校正_3_36002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "目标驱动测速反馈校正_3_36003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "目标驱动超前校正_3_36004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "相位裕度直觉_5_L2c003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "相角条件_4_597a8cf7"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "硬约束-软目标-观察指标分类_4_41003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "积分与滞后的稳态改善分工_3_39003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "积分环节_2_11005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "稳定_动态_稳态综合映射框架_3_39001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "稳定可行域_3_7eed0929"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "稳态误差双路径判断_3_37002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "穿越频率_5_c4c2b93c"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "策略学习安全外壳_5_55005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "策略学习进入条件_5_55002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "系统结构图_2_5d3751f8"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "线性主干边界识别_5_51001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "线性预测失真对比_5_51004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "组合结构专项验证边界判断_4_46007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "经典试凑中的多目标拉扯_4_44001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "结构作用点与代价来源对照_4_42004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "结构参数联合搜索解码_4_47005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "结构变化的频域指纹_3_38001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "结构图简化_2_6d86a775"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "结构工具箱最小语义_4_42002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "结构搜索引入条件_4_46004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "给定-扰动双通道误差分析_3_37001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "统一结构编码与解码_4_46005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "罚函数表达表_4_45003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "自振微小扰动判断_5_52004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "航向控制RL环境_5_55004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "舵机死区饱和自振风险_5_52005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "船舶航向控制对象_2_21004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "规划参考可实现性_5_53004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "训练覆盖与部署验证_5_55007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "设计任务表达卡_4_41001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "设计可行域_4_Lsum004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "误差传递函数_2_1d55824d"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "谐振峰值Mr_5_b3a87785"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "越界证据记录单_4_45001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "跨域联读任务重排_4_41005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "跨模型验证比较_4_47006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "辅助方程_3_ed86f1f0"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "迁移场景任务重排_4_46001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "避碰转弯半径可行域_5_53007"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "链路责任诊断_5_53006"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "问题清单移交表_4_43005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "阻尼振荡频率_3_13002"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "零初值传递函数_2_21001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "零度与一百八十度根轨迹_3_c1bb7dbe"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "零点引入与根轨迹重排_3_35001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "静态速度误差系数_3_ba8e28bb"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "非周期信号频谱_5_e2fff926"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "非最小相与右半平面零点_3_35005"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "非线性微分方程的线性化_2_caa86ba6"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "非线性边界工具选择_5_52001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "频域分析_2_2e257d89"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "频域可行带_5_Lsum003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "频域综合判断与工程读回_3_38004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "频率分量重构_5_42082c97"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "频率响应直觉_5_L2c001"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "首轮验证最小读数逻辑_4_43004"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "驱逐舰专用代价函数改写_4_46003"
+    },
+    {
+      "code": "unmapped-course-node",
+      "severity": "info",
+      "message": "course node has no canonical crosswalk row",
+      "canonicalId": "高保真任务降阶辨识_4_47001"
+    },
+    {
+      "code": "ambiguous-labels",
+      "severity": "info",
+      "message": "80 labels resolve to several authority entities and were skipped"
+    }
+  ],
+  "excludedResourceIds": [
+    "act:lesson:1-1",
+    "act:lesson:1-2",
+    "act:lesson:1-3",
+    "act:lesson:1-4",
+    "act:lesson:1-5",
+    "act:lesson:2-1",
+    "act:lesson:2-2",
+    "act:lesson:2-3",
+    "act:lesson:2-4",
+    "act:lesson:3-1",
+    "act:lesson:3-2",
+    "act:lesson:3-3",
+    "act:lesson:3-4",
+    "act:lesson:3-5",
+    "act:lesson:3-6",
+    "act:lesson:3-7",
+    "act:lesson:3-8",
+    "act:lesson:3-9",
+    "act:lesson:4-1",
+    "act:lesson:4-2",
+    "act:lesson:4-3",
+    "act:lesson:4-4",
+    "act:lesson:4-5",
+    "act:lesson:4-6",
+    "act:lesson:4-7",
+    "act:lesson:5-1",
+    "act:lesson:5-2",
+    "act:lesson:5-3",
+    "act:lesson:5-4",
+    "act:lesson:5-5",
+    "act:lesson:5-6",
+    "act:textbook:dorf-modern-control-systems-14th",
+    "act:textbook:franklin-feedback-control-7th",
+    "act:textbook:hu-shousong-auto-control-8th"
+  ],
+  "noAnchorResourceIds": [
+    "act:step:1-1:step-02",
+    "act:step:1-1:step-03",
+    "act:step:1-1:step-14",
+    "act:step:1-2:step-01",
+    "act:step:1-2:step-03",
+    "act:step:1-2:step-13",
+    "act:step:1-3:step-08",
+    "act:step:1-3:step-10",
+    "act:step:1-4:step-01",
+    "act:step:1-5:step-03",
+    "act:step:1-5:step-13",
+    "act:step:2-1:step-15",
+    "act:step:2-1:step-16",
+    "act:step:2-2:step-16",
+    "act:step:2-2:step-17",
+    "act:step:2-3:step-16",
+    "act:step:2-3:step-17",
+    "act:step:2-4:step-04",
+    "act:step:2-4:step-05",
+    "act:step:2-4:step-06",
+    "act:step:2-4:step-09",
+    "act:step:2-4:step-10",
+    "act:step:2-4:step-14",
+    "act:step:2-4:step-15",
+    "act:step:2-4:step-16",
+    "act:step:2-4:step-17",
+    "act:step:3-2:step-02",
+    "act:step:3-2:step-03",
+    "act:step:3-2:step-06",
+    "act:step:3-2:step-07",
+    "act:step:3-2:step-08",
+    "act:step:3-2:step-09",
+    "act:step:3-2:step-10",
+    "act:step:3-2:step-11",
+    "act:step:3-2:step-12",
+    "act:step:3-2:step-13",
+    "act:step:3-3:step-01",
+    "act:step:3-3:step-02",
+    "act:step:3-3:step-03",
+    "act:step:3-3:step-05",
+    "act:step:3-3:step-07",
+    "act:step:3-3:step-12",
+    "act:step:3-3:step-14",
+    "act:step:3-3:step-15",
+    "act:step:3-4:step-01",
+    "act:step:3-4:step-02",
+    "act:step:3-4:step-03",
+    "act:step:3-4:step-04",
+    "act:step:3-4:step-06",
+    "act:step:3-4:step-07",
+    "act:step:3-4:step-08",
+    "act:step:3-4:step-09",
+    "act:step:3-4:step-10",
+    "act:step:3-4:step-11",
+    "act:step:3-4:step-12",
+    "act:step:3-4:step-15",
+    "act:step:3-4:step-16",
+    "act:step:3-6:step-07",
+    "act:step:3-6:step-08",
+    "act:step:3-6:step-09",
+    "act:step:3-6:step-14",
+    "act:step:3-7:step-03",
+    "act:step:3-7:step-04",
+    "act:step:3-8:step-01",
+    "act:step:3-8:step-21",
+    "act:step:3-8:step-22",
+    "act:step:4-1:step-05",
+    "act:step:4-1:step-06",
+    "act:step:4-1:step-10",
+    "act:step:4-1:step-11",
+    "act:step:4-1:step-12",
+    "act:step:4-1:step-13",
+    "act:step:4-2:step-02",
+    "act:step:4-2:step-03",
+    "act:step:4-2:step-06",
+    "act:step:4-2:step-07",
+    "act:step:4-2:step-10",
+    "act:step:4-2:step-14",
+    "act:step:4-2:step-15",
+    "act:step:4-2:step-16",
+    "act:step:4-2:step-19",
+    "act:step:4-3:step-01",
+    "act:step:4-3:step-02",
+    "act:step:4-3:step-03",
+    "act:step:4-3:step-05",
+    "act:step:4-3:step-06",
+    "act:step:4-3:step-07",
+    "act:step:4-3:step-10",
+    "act:step:4-3:step-11",
+    "act:step:4-3:step-12",
+    "act:step:4-3:step-13",
+    "act:step:4-3:step-15",
+    "act:step:4-3:step-16",
+    "act:step:4-3:step-17",
+    "act:step:4-3:step-18",
+    "act:step:4-3:step-19",
+    "act:step:4-4:step-01",
+    "act:step:4-4:step-02",
+    "act:step:4-4:step-06",
+    "act:step:4-4:step-07",
+    "act:step:4-4:step-12",
+    "act:step:4-4:step-13",
+    "act:step:4-4:step-14",
+    "act:step:4-5:step-04",
+    "act:step:4-5:step-06",
+    "act:step:4-5:step-07",
+    "act:step:4-5:step-12",
+    "act:step:4-5:step-13",
+    "act:step:4-6:step-02",
+    "act:step:4-6:step-03",
+    "act:step:4-6:step-04",
+    "act:step:4-6:step-06",
+    "act:step:4-6:step-08",
+    "act:step:4-6:step-09",
+    "act:step:4-6:step-10",
+    "act:step:4-6:step-11",
+    "act:step:4-7:step-02",
+    "act:step:4-7:step-07",
+    "act:step:4-7:step-08",
+    "act:step:4-7:step-11",
+    "act:step:5-2:step-03",
+    "act:step:5-2:step-16",
+    "act:step:5-2:step-17",
+    "act:step:5-3:step-01",
+    "act:step:5-3:step-02",
+    "act:step:5-3:step-03",
+    "act:step:5-3:step-04",
+    "act:step:5-3:step-05",
+    "act:step:5-3:step-09",
+    "act:step:5-3:step-10",
+    "act:step:5-3:step-11",
+    "act:step:5-3:step-12",
+    "act:step:5-3:step-13",
+    "act:step:5-3:step-14",
+    "act:step:5-3:step-15",
+    "act:step:5-4:step-01",
+    "act:step:5-4:step-02",
+    "act:step:5-4:step-03",
+    "act:step:5-4:step-04",
+    "act:step:5-4:step-05",
+    "act:step:5-4:step-06",
+    "act:step:5-4:step-08",
+    "act:step:5-4:step-11",
+    "act:step:5-4:step-12",
+    "act:step:5-4:step-13",
+    "act:step:5-4:step-14",
+    "act:step:5-4:step-15",
+    "act:step:5-4:step-16",
+    "act:step:5-4:step-17",
+    "act:step:5-5:step-02",
+    "act:step:5-5:step-03",
+    "act:step:5-5:step-04",
+    "act:step:5-5:step-06",
+    "act:step:5-5:step-07",
+    "act:step:5-5:step-08",
+    "act:step:5-5:step-09",
+    "act:step:5-5:step-10",
+    "act:step:5-5:step-11",
+    "act:step:5-5:step-12",
+    "act:step:5-5:step-13",
+    "act:step:5-5:step-14",
+    "act:step:5-5:step-15",
+    "act:step:5-5:step-16",
+    "act:step:5-5:step-17",
+    "act:step:5-6:step-01",
+    "act:step:5-6:step-02",
+    "act:step:5-6:step-03",
+    "act:step:5-6:step-04",
+    "act:step:5-6:step-05",
+    "act:step:5-6:step-09",
+    "act:step:5-6:step-10",
+    "act:step:5-6:step-11",
+    "act:step:5-6:step-12",
+    "act:step:5-6:step-13",
+    "act:step:5-6:step-14",
+    "act:step:5-6:step-15",
+    "act:step:5-6:step-16",
+    "act:step:5-6:step-17",
+    "act:step:5-6:step-18",
+    "act:video:2-1:intro-video",
+    "act:video:2-2:intro-video",
+    "act:video:2-3:intro-video",
+    "act:video:2-4:intro-video",
+    "act:video:3-1:intro-video",
+    "act:video:3-2:intro-video",
+    "act:video:3-3:intro-video",
+    "act:video:3-4:intro-video",
+    "act:video:3-5:intro-video",
+    "act:video:3-6:intro-video",
+    "act:video:3-7:intro-video",
+    "act:video:3-8:intro-video",
+    "act:video:3-9:intro-video",
+    "act:video:4-1:intro-video",
+    "act:video:4-2:intro-video",
+    "act:video:4-3:intro-video",
+    "act:video:4-4:intro-video",
+    "act:video:4-5:intro-video",
+    "act:video:4-6:intro-video",
+    "act:video:4-7:intro-video",
+    "act:video:5-3:course",
+    "act:video:5-3:intro-video",
+    "act:video:5-4:intro-video",
+    "act:video:5-5:intro-video",
+    "act:video:5-6:intro-video"
+  ],
+  "unmappedCourseNodes": [
+    "Bode首轮骨架_5_1e07d9da",
+    "MASS协同链路_5_53001",
+    "MASS自动化等级责任边界_5_53008",
+    "MPC再定位_5_54002",
+    "PD与测速反馈的等效阻尼对比_3_35003",
+    "PD与超前的频域整形差异_3_35004",
+    "RL调度PID_5_55006",
+    "三域直觉联动_5_L2c005",
+    "三域联动操作体验_5_L2d001",
+    "三路线控制比较_5_54008",
+    "三频段闭环性能回读_3_38003",
+    "上游信息质量_5_53003",
+    "串联无源滞后校正_6_2a52e865",
+    "临界增益体验_5_L2d002",
+    "主导极点_3_4c4c6bbd",
+    "主矛盾到频段职责映射_4_42003",
+    "二阶系统标准型_3_L2a",
+    "交接频率_转折频率__5_8bca814b",
+    "任务标签与机制标签匹配_3_39002",
+    "任务通道变化下的自由目标改写_4_44007",
+    "优化前后证据比较表_4_45005",
+    "优化起点与归一化来源_4_44003",
+    "传统控制结构局限_4_47008",
+    "传统设计四联图校正_4_47004",
+    "伯德图_6_1a069614",
+    "低频补偿稳态改善路径_3_37003",
+    "余因子式_2_1da0d7e8",
+    "余子式接触判定_2_21003",
+    "关键节点读图_3_8b2f0d12",
+    "典型环节对象库_2_21002",
+    "典型非线性边界环节_5_51002",
+    "分段辨识模型组合_4_47002",
+    "前向通路_1_7d1c792e",
+    "剩余风险说明_4_45006",
+    "劳斯表特殊情况_3_f787433f",
+    "单结构与复合结构分流条件_4_43002",
+    "单结构首轮起步卡_4_42001",
+    "参数方向表达卡_4_43003",
+    "参数窗口判断_3_7c3e318f",
+    "参数约束翻译表_4_45002",
+    "反馈保底与前馈补偿边界_4_42005",
+    "可行域-满意域-最优域分层_4_41004",
+    "右半平面零点可行性边界_3_36005",
+    "周期信号频谱_5_2d1b006d",
+    "四种响应家族_3_L2a",
+    "四类方案比较矩阵_4_46006",
+    "四路线策略评价_5_55008",
+    "固定结构自由目标项选择_4_44002",
+    "固定结构迁移失配信号_4_46002",
+    "在线辨识与模型更新_5_54006",
+    "复平面可行域_4_Lsum001",
+    "奈奎斯特与Bode统一判稳链_3_38002",
+    "对数幅频曲线_5_f86ba11b",
+    "对数频率坐标_5_5e366881",
+    "对象分析回收到设计入口_4_43001",
+    "对象化三域验证_3_56cb3a4e",
+    "局部线性化工作点_5_52002",
+    "局部线性化边界判断_5_51003",
+    "展示解与Pareto最小取舍_4_44006",
+    "工程指标代价函数翻译_4_47003",
+    "左半平面零点的动态改善机理_3_35002",
+    "带宽频率_5_6996a44a",
+    "幅值条件_3_2d5b92ac",
+    "幅值裕度直觉_5_L2c004",
+    "幅角原理_5_f843970e",
+    "开环传递函数定义_2_12002",
+    "开环幅相特性曲线_5_fd86e289",
+    "强化学习控制回报_5_55003",
+    "微分环节_2_11006",
+    "惯性环节_2_11007",
+    "截止频率直觉_5_L2c002",
+    "执行约束反馈_5_53005",
+    "扰动作用下的稳态误差_3_5c9fcfe1",
+    "扰动噪声设计边界_4_47007",
+    "扰动抑制中的通道重写边界_4_43006",
+    "拉氏变换工程动机_2_11001",
+    "指标角色重组_4_41002",
+    "按扰动补偿前馈的对消条件_4_42007",
+    "按输入补偿前馈的无差度提升_4_42006",
+    "振荡环节_5_d677d1e6",
+    "控制在自主系统链路中的位置_5_53002",
+    "描述函数法_8_849fa8a1",
+    "描述函数适用条件_5_52003",
+    "数据覆盖与泛化边界_5_54005",
+    "数据驱动控制_5_54003",
+    "数据驱动进入条件_5_54004",
+    "方法迁移前边界说明_5_51005",
+    "无约束加权目标表达_4_44004",
+    "时域分析_2_1874cdb9",
+    "时域响应包络_3_Lsum002",
+    "时域指标到极点参数映射_3_13003",
+    "时域指标到目标极点区域_3_36001",
+    "时间常数_2_68356eae",
+    "显式控制律与学习策略_5_55001",
+    "最佳阻尼比_3_L2b002",
+    "权重偏好与无约束候选解_4_44005",
+    "极点迁移_4_L2b001",
+    "根轨迹增益换算_3_4b1d9e6c",
+    "根轨迹完整法则_3_0f2e7b11",
+    "根轨迹法_2_e3f6c0c1",
+    "根轨迹绘制规则_3_2f9e8cb3",
+    "模块4入口的首轮任务判断_3_39004",
+    "模型依赖松动_5_54001",
+    "模型数据责任分配_5_54007",
+    "模态_2_d586e1e6",
+    "欠阻尼响应_3_c2d57b37",
+    "比例环节_2_11004",
+    "求解记录单_4_45004",
+    "目标驱动PD校正_3_36002",
+    "目标驱动测速反馈校正_3_36003",
+    "目标驱动超前校正_3_36004",
+    "相位裕度直觉_5_L2c003",
+    "相角条件_4_597a8cf7",
+    "硬约束-软目标-观察指标分类_4_41003",
+    "积分与滞后的稳态改善分工_3_39003",
+    "积分环节_2_11005",
+    "稳定_动态_稳态综合映射框架_3_39001",
+    "稳定可行域_3_7eed0929",
+    "稳态误差双路径判断_3_37002",
+    "穿越频率_5_c4c2b93c",
+    "策略学习安全外壳_5_55005",
+    "策略学习进入条件_5_55002",
+    "系统结构图_2_5d3751f8",
+    "线性主干边界识别_5_51001",
+    "线性预测失真对比_5_51004",
+    "组合结构专项验证边界判断_4_46007",
+    "经典试凑中的多目标拉扯_4_44001",
+    "结构作用点与代价来源对照_4_42004",
+    "结构参数联合搜索解码_4_47005",
+    "结构变化的频域指纹_3_38001",
+    "结构图简化_2_6d86a775",
+    "结构工具箱最小语义_4_42002",
+    "结构搜索引入条件_4_46004",
+    "给定-扰动双通道误差分析_3_37001",
+    "统一结构编码与解码_4_46005",
+    "罚函数表达表_4_45003",
+    "自振微小扰动判断_5_52004",
+    "航向控制RL环境_5_55004",
+    "舵机死区饱和自振风险_5_52005",
+    "船舶航向控制对象_2_21004",
+    "规划参考可实现性_5_53004",
+    "训练覆盖与部署验证_5_55007",
+    "设计任务表达卡_4_41001",
+    "设计可行域_4_Lsum004",
+    "误差传递函数_2_1d55824d",
+    "谐振峰值Mr_5_b3a87785",
+    "越界证据记录单_4_45001",
+    "跨域联读任务重排_4_41005",
+    "跨模型验证比较_4_47006",
+    "辅助方程_3_ed86f1f0",
+    "迁移场景任务重排_4_46001",
+    "避碰转弯半径可行域_5_53007",
+    "链路责任诊断_5_53006",
+    "问题清单移交表_4_43005",
+    "阻尼振荡频率_3_13002",
+    "零初值传递函数_2_21001",
+    "零度与一百八十度根轨迹_3_c1bb7dbe",
+    "零点引入与根轨迹重排_3_35001",
+    "静态速度误差系数_3_ba8e28bb",
+    "非周期信号频谱_5_e2fff926",
+    "非最小相与右半平面零点_3_35005",
+    "非线性微分方程的线性化_2_caa86ba6",
+    "非线性边界工具选择_5_52001",
+    "频域分析_2_2e257d89",
+    "频域可行带_5_Lsum003",
+    "频域综合判断与工程读回_3_38004",
+    "频率分量重构_5_42082c97",
+    "频率响应直觉_5_L2c001",
+    "首轮验证最小读数逻辑_4_43004",
+    "驱逐舰专用代价函数改写_4_46003",
+    "高保真任务降阶辨识_4_47001"
+  ],
+  "driftedMediaIds": [
+    "2-1-intro-video",
+    "2-2-intro-video",
+    "2-3-intro-video",
+    "2-4-intro-video",
+    "3-1-intro-video",
+    "3-2-intro-video",
+    "3-3-intro-video",
+    "3-4-intro-video",
+    "3-5-intro-video",
+    "3-6-intro-video",
+    "3-7-intro-video",
+    "3-8-intro-video",
+    "3-9-intro-video",
+    "4-1-intro-video",
+    "4-2-intro-video",
+    "4-3-intro-video",
+    "4-4-intro-video",
+    "4-5-intro-video",
+    "4-6-intro-video"
+  ],
+  "ambiguousLabels": [
+    "I控制器",
+    "PD控制器",
+    "PID 控制器",
+    "PID控制器",
+    "definition",
+    "f(0)=0",
+    "modeling",
+    "overshoot",
+    "y=f(x)",
+    "一阶系统",
+    "一阶系统的单位阶跃响应",
+    "上升时间",
+    "不稳定极限环",
+    "临界阻尼",
+    "二阶系统",
+    "交接频率",
+    "传递函数",
+    "典型输入",
+    "典型输入信号",
+    "前馈信号",
+    "前馈通路",
+    "动态性能",
+    "动态性能指标",
+    "动态过程",
+    "单位阶跃响应",
+    "参数变化",
+    "反馈校正",
+    "固有频率",
+    "复合控制",
+    "峰值时间",
+    "带宽频率",
+    "幅值裕度",
+    "幅频特性",
+    "平衡状态",
+    "延迟环节",
+    "开环增益",
+    "开环极点",
+    "性能指标",
+    "截止频率",
+    "扰动信号",
+    "振荡周期",
+    "描述函数",
+    "数字信号",
+    "时间常数",
+    "最优控制",
+    "最大超前角",
+    "最小相位系统",
+    "极点配置",
+    "校正装置",
+    "比例系数",
+    "渐近稳定性",
+    "状态变量",
+    "环路增益",
+    "相角裕度",
+    "相频特性",
+    "稳定极限环",
+    "稳态性能",
+    "稳态误差",
+    "穿越频率",
+    "等效增益",
+    "系统型别",
+    "线性定常系统",
+    "脉冲响应",
+    "自然频率",
+    "误差信号",
+    "误差响应",
+    "调节时间",
+    "谐振峰值",
+    "谐振频率",
+    "运动稳定性",
+    "速度反馈",
+    "速度误差系数",
+    "采样周期",
+    "闭环主导极点",
+    "闭环极点",
+    "闭环特征方程",
+    "闭环零点",
+    "阻尼系数",
+    "非线性系统",
+    "频率特性"
+  ]
+}

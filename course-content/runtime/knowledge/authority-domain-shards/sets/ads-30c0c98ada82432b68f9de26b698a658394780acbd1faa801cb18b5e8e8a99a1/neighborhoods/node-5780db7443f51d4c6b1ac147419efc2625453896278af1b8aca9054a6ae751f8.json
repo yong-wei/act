@@ -1,0 +1,915 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "canonicalType": "DomainConcept",
+      "label": "极限环",
+      "aliases": [
+        "极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-12a2d825bf2495cb5b66f740",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于根轨迹的极限环分析与设计步骤",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1e913b06ea40a43d332f6b14",
+      "canonicalType": "KnowledgeStatement",
+      "label": "考虑图9.14中的反馈系统。利用奈奎斯特图求极限环的幅值与频率。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-34858238cf62e9a84e3ac4de",
+      "canonicalType": "KnowledgeStatement",
+      "label": "考虑图 9.34 所示具有滞环非线性的系统。判断系统是否稳定，并求极限环的振幅与频率。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "canonicalType": "DomainConcept",
+      "label": "半稳定极限环",
+      "aliases": [
+        "半稳定极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-62d6aa2c8f87f857dde6838d",
+      "canonicalType": "KnowledgeStatement",
+      "label": "求解两个方程以确定极限环频率和幅值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-76ec808ec89014325ba72d75",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若系统增益使得根位于右半平面（RHP），响应会由于不稳定而逐渐增大，直到幅值足够大以使等效增益降低到临界稳定点，从而产生极限环。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数法",
+      "aliases": [
+        "描述函数法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+      "canonicalType": "DomainConcept",
+      "label": "稳定极限环",
+      "aliases": [
+        "稳定极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "canonicalType": "DomainConcept",
+      "label": "相平面",
+      "aliases": [
+        "相平面"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+      "canonicalType": "DomainConcept",
+      "label": "分隔线",
+      "aliases": [
+        "分隔线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+      "canonicalType": "DomainConcept",
+      "label": "奇线",
+      "aliases": [
+        "奇线"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b14dc4b73279e65d06ea97b7",
+      "canonicalType": "KnowledgeStatement",
+      "label": "极限环是随时间趋于无穷大而趋近的具有固定振幅的周期解",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b16306052cbaea0119b5b760",
+      "canonicalType": "KnowledgeStatement",
+      "label": "然后我们可以求解这两个方程，得到极限环频率 ω_l 及其对应振幅 a_l 这两个可能的未知量，正如随后的例题所示。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "canonicalType": "DomainConcept",
+      "label": "自振荡",
+      "aliases": [
+        "自振荡"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+      "canonicalType": "DomainConcept",
+      "label": "不稳定极限环",
+      "aliases": [
+        "不稳定极限环"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "canonicalType": "DomainConcept",
+      "label": "描述函数",
+      "aliases": [
+        "描述函数"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ec5c814d08e046bef4d598e8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "描述函数有助于确定导致不稳定的条件，甚至可以为消除不稳定提供改进措施，正如接下来的例子所示：图中叠加绘制了线性回路增益 L 的奈奎斯特图以及描述函数的负倒数 -1/K_eq(a)。两者的交点对应于极限环。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-efa6233fdfef7c4cc084a8ec",
+      "canonicalType": "KnowledgeStatement",
+      "label": "该曲线与奈奎斯特图的交点给出了稳定极限环的频率以及相应的幅值。我们也可以通过解析法确定极限环的信息：",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m4-u2u5:prerequisite:078c8b27d202d7eb37059e68",
+      "predicate": "prerequisite",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "direction": "earlier_to_later",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "prerequisite-order"
+    },
+    {
+      "id": "ctkg:m4-u2u5:prerequisite:08fcab956c83430c3b6c96e9",
+      "predicate": "prerequisite",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+      "direction": "earlier_to_later",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "prerequisite-order"
+    },
+    {
+      "id": "ctkg:m4-u2u5:prerequisite:7f0c4160148c2030569e5bc5",
+      "predicate": "prerequisite",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+      "direction": "earlier_to_later",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "prerequisite-order"
+    },
+    {
+      "id": "m1m:relation-05d9b8ba993ac4664ea15c70",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1m:relation-0c9f86a4090149266dc921ff",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-ec5c814d08e046bef4d598e8",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-0e55f2e93ad279bc096c4c83",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-1e8713f7fda970f57a2731bb",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-4475176684c232ef2f0593ba",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-1e913b06ea40a43d332f6b14",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-521dd28e7e165f9893104302",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1m:relation-554982202c6f8aab6e1f1b58",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1m:relation-71717063af3608a67c4d97de",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-62d6aa2c8f87f857dde6838d",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-73c079d2b487577582e2eaa5",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-12a2d825bf2495cb5b66f740",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-74384f954c11f2f65452f1b3",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-efa6233fdfef7c4cc084a8ec",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-9c5ffccd8b6dcb327570f0fb",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1m:relation-9e585be6717d807ef5d77266",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-b14dc4b73279e65d06ea97b7",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1m:relation-d5473dc45d24e9fec02ba552",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-76ec808ec89014325ba72d75",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1m:relation-e34c4d8c0f53567d9ea4af9d",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-e350d8ab514a8cae3036619f",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1m:relation-ee769faa82f13439e4537515",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-bda94d95d799211be70fabf9",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1m:relation-f103bd49ed7cd903dcba08a5",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-34858238cf62e9a84e3ac4de",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1m:relation-ff172e822495971821657ab0",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-object-b16306052cbaea0119b5b760",
+      "targetId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    }
+  ],
+  "boundaries": []
+}

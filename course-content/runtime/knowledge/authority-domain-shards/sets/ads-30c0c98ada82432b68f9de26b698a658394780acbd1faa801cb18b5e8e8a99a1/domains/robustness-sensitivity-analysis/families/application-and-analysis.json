@@ -1,0 +1,564 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "robustness-sensitivity-analysis",
+  "family": "application-and-analysis",
+  "objects": [
+    {
+      "id": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "canonicalType": "DomainConcept",
+      "label": "伯德图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "canonicalType": "DomainConcept",
+      "label": "瞬态响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "canonicalType": "DomainConcept",
+      "label": "参考输入",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-286de6fe83ce30c5ae79d8a0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "高频随机扰动对采样率选择影响最大；其影响受抗混叠滤波器和采样率的制约。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-35264ec175b811e30fa55aab",
+      "canonicalType": "DomainConcept",
+      "label": "跟踪误差驱动补偿器",
+      "aliases": [
+        "误差输入补偿"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "canonicalType": "DomainConcept",
+      "label": "渐近跟踪",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-aa63b646337a280cc8ee8d22",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在该形式中，观测器由跟踪误差 y(t)-r(t) 驱动。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "canonicalType": "DomainConcept",
+      "label": "采样率选择",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-analysis",
+          "visualRole": "discrete",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d564eeb57b51d635721c5e78",
+      "canonicalType": "DomainConcept",
+      "label": "跟踪误差估计器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1k:relation-4cb30316099821b172caa480",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+      "targetId": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1k:relation-cb391094731210be5bc737c3",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-286de6fe83ce30c5ae79d8a0",
+      "targetId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-01847603265fec1edeae1adf",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-35264ec175b811e30fa55aab",
+      "targetId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-81c186ccc5644b6889fbdf9a",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "targetId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-98b5aca4a5d640822806e921",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-d564eeb57b51d635721c5e78",
+      "targetId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-c4e8c884113ceb5551d9a13b",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-aa63b646337a280cc8ee8d22",
+      "targetId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-e9310f307a17882753eef563",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:domainconcept:481adaa12fcb7e31a3b67683",
+      "targetId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1p:v7r-rel-baf41320ff117e82ea6aec88",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "targetId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1p:v7r-rel-e7cde70f20a177833407d9f6",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "targetId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1p:v7r-rel-f273aabe532a08776c89c897",
+      "predicate": "used_to_analyze",
+      "sourceId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "targetId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "label": "伯德图",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "label": "频率响应",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-bd871a5da052c90d142e285a",
+      "label": "瞬态响应",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+      "label": "参考输入",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-286de6fe83ce30c5ae79d8a0",
+      "label": "高频随机扰动对采样率选择影响最大；其影响受抗混叠滤波器和采样率的制约。",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "discrete-time-control-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-35264ec175b811e30fa55aab",
+      "label": "跟踪误差驱动补偿器",
+      "aliases": [
+        "误差输入补偿"
+      ],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-710cc7b05bccac04bdf10d66",
+      "label": "渐近跟踪",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-aa63b646337a280cc8ee8d22",
+      "label": "在该形式中，观测器由跟踪误差 y(t)-r(t) 驱动。",
+      "aliases": [],
+      "canonicalType": "KnowledgeStatement",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-cd2b9611c4934fe067e8786a",
+      "label": "采样率选择",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "discrete-time-control-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d564eeb57b51d635721c5e78",
+      "label": "跟踪误差估计器",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "state-space-control-analysis-and-design"
+      ]
+    }
+  ]
+}

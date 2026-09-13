@@ -1,0 +1,65 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:statement-argument:f80186ee6c03d998fdc49342",
+    "canonicalType": "StatementArgument",
+    "label": "1) A necessary and sufficient condition for every equilibrium state of the system to be stable in the sense of Lyapunov is that all eigenvalues of A have non-positive (negative or zero) real parts, and any eigenvalue with zero real part is a simple root of the minimal polynomial of A. 2) A necessary and sufficient condition for the unique equilibrium state xₑ=0 of the system to be asymptotically stable is that all eigenvalues of A have negative real parts.",
+    "aliases": [],
+    "description": null,
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.5/item-2",
+        "label": "自动控制原理（胡寿松，第8版） · 线性系统稳定的充分必要条件"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.3/item-2",
+        "label": "自动控制原理（胡寿松，第8版） · 李雅普诺夫第一法（间接法）"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": false,
+      "readOnly": true
+    }
+  }
+}

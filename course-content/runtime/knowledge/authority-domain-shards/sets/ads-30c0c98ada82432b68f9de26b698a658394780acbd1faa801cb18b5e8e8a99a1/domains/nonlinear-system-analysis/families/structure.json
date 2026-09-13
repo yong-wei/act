@@ -1,0 +1,877 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "nonlinear-system-analysis",
+  "family": "structure",
+  "objects": [
+    {
+      "id": "ctkg:m5-v047:domainconcept:79db1d6ec8321e217c1dbe84",
+      "canonicalType": "DomainConcept",
+      "label": "磁悬浮小球（设计案例）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "task_kind"
+    },
+    {
+      "id": "ctkg:v3e-object-110c156932e90fe902935cb1",
+      "canonicalType": "DomainConcept",
+      "label": "相位稳定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-28a4483d79410aadb04da482",
+      "canonicalType": "SystemModel",
+      "label": "含死区非线性一阶惯性积分控制系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2ab1cdbf70eb9a0efc39449b",
+      "canonicalType": "SystemModel",
+      "label": "含饱和特性分段线性二阶控制系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-53d71370dc7c98dc11b24a37",
+      "canonicalType": "DomainConcept",
+      "label": "陷波补偿",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-598d3c7f304d1f01d5d4d200",
+      "canonicalType": "SystemModel",
+      "label": "单自由度电磁悬浮动力学模型",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9839bd8d2d36d69d853b1d46",
+      "canonicalType": "KnowledgeStatement",
+      "label": "1. 用等效增益 K 替代无记忆非线性环节。2. 绘制随该增益变化的根轨迹。3. 对于一定范围内的输入信号幅值，等效增益将取相应范围内的值。4. 将增益视作固定值，考察该范围内的闭环根。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-a64429cb824a7c3aa444a8b4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对于磁悬浮小球系统，在平衡状态下磁力 f_m 恰好与重力 mg 相抵消。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d465ab41f01196926d0f7673",
+      "canonicalType": "SystemModel",
+      "label": "陷波校正非线性二阶振荡反馈系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-fd8702be24517299dfde6b3b",
+      "canonicalType": "SystemModel",
+      "label": "滞环继电特性非线性分段系统模型",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "nonlinear-system-analysis",
+          "visualRole": "nonlinear-analysis",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-v047:part_of:4939db18b24a1e637f6b212a",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-598d3c7f304d1f01d5d4d200",
+      "targetId": "ctkg:m5-v047:domainconcept:79db1d6ec8321e217c1dbe84",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:56d2bda7653b9a9aeff713de",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-a64429cb824a7c3aa444a8b4",
+      "targetId": "ctkg:m5-v047:domainconcept:79db1d6ec8321e217c1dbe84",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-08dde0e1b69242112b3ec2e0",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-fd8702be24517299dfde6b3b",
+      "targetId": "ctkg:v3e-object-563729def6c074a2e1ae6d1d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-1425b1368c1c779e103070fb",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-159b66abc649a7bb218a03dc",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-2b3daca16f4fb57b9da083bd",
+      "targetId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-18d6e488c69166b558f8aacc",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-23e9c7da0aa588c0601d442b",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-d465ab41f01196926d0f7673",
+      "targetId": "ctkg:v3e-object-53d71370dc7c98dc11b24a37",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-304e31f1eed42f7279731bb9",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "targetId": "ctkg:v3e-object-edc0d1a17b9cbb23167788e0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-379eddcc0f4b817cca4307ce",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-5ed5fc7d05f77452e100406b",
+      "targetId": "ctkg:v3e-object-c866a4872c0f99bf61bb4859",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-397616d8893f941f97ee897f",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-4001a0e2a7a4d7a9d4216de8",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+      "targetId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-447e326ce1c8c82eb432010b",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-62a332248d330f6aa087a476",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-d5867ef3a2e3dc60bcbeeec5",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-74e3fc54280b0efcabf7cc47",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-01daeca5c38811f6a58fcb01",
+      "targetId": "ctkg:v3e-object-3d704911971a572aac4e975e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-7596642b3a87ef018e081786",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "targetId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-7dc5837603a125b44286831b",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-80b836e636775916830b5a21",
+      "targetId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-815dac2e658c14101eccf2f7",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+      "targetId": "ctkg:v3e-object-9e5c7acbf973dd58acd749ef",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-81e6a121b3faedb016877a66",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-fc2e0621725b902101011b9d",
+      "targetId": "ctkg:v3e-object-44abb05a48944f9fee9a9d01",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-8222d9a448028f7a9d429162",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-8a3c314c47ad84ae14ce5cb8",
+      "targetId": "ctkg:v3e-object-110c156932e90fe902935cb1",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-85420d4ad7dd36b8284867d7",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "targetId": "ctkg:v3e-object-d5867ef3a2e3dc60bcbeeec5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-89fa67a1253ec07a9ed95fe4",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-21637e32df41e433f01db54b",
+      "targetId": "ctkg:v3e-object-2b6644abd74af728f92d1b25",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-8ce97dcfdcbc796cc48fa4f2",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-a20d4b8eab718e1261ba5442",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-92f3f5705b259d822ed17ae1",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-28a4483d79410aadb04da482",
+      "targetId": "ctkg:v3e-object-d881210ed83df13e00d2e095",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-a44c512823c3ec56985fc019",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "targetId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-aa1688c5a57ef09d05e6ffa2",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-5ed5fc7d05f77452e100406b",
+      "targetId": "ctkg:v3e-object-821d0c6dd9fb62ae909fb60f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-b7f0af8778b2aa3e26392903",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "targetId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-e34c4d8c0f53567d9ea4af9d",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-e3a0348cdfeb4b0159e09139",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-2ab1cdbf70eb9a0efc39449b",
+      "targetId": "ctkg:v3e-object-cc99ebc4a8c2b5b89c7f02d0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-e6e90b8d93b52f31a5964812",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-9839bd8d2d36d69d853b1d46",
+      "targetId": "ctkg:v3e-object-01daeca5c38811f6a58fcb01",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1m:relation-f29e62d490c43c065d8ed611",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+      "targetId": "ctkg:v3e-object-953374e261302cfdff02144d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctkg:m5-v047:domainconcept:79db1d6ec8321e217c1dbe84",
+      "label": "磁悬浮小球（设计案例）",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "classical-control-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-110c156932e90fe902935cb1",
+      "label": "相位稳定",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "classical-control-design"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-53d71370dc7c98dc11b24a37",
+      "label": "陷波补偿",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "classical-control-design"
+      ]
+    }
+  ]
+}

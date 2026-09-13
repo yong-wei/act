@@ -1,0 +1,411 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "stability-analysis",
+  "family": "structure",
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "给定稳定度概念",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-74126f64d18203f6c6cea13b",
+      "canonicalType": "KnowledgeStatement",
+      "label": "平移纵轴所需的正确幅值必须通过试凑法确定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+      "canonicalType": "KnowledgeStatement",
+      "label": "劳斯-赫尔维茨判据基于将特征方程的系数排列成阵列",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e0e2f067633af75045da2e5e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "反馈系统稳定的充要条件是系统传递函数的所有极点都具有负实部。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e50bb87ac88b352b972ffd9c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "虚轴上具有单极点且其余所有极点均位于左半平面的系统是临界稳定的；对于有界输入，系统会出现持续振荡，除非输入频率与极点频率相重合。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-e58bcbfaf82964bf587444a0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "基于试凑法将 s 平面的垂直轴平移至 -σ1，然后对平移后的多项式应用劳斯-赫尔维茨判据，无需直接求解原多项式即可确定主导根的实部。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctr:m1g-0b355a34a113f57d419c9f09",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-c981a095fc7926fc253a6765",
+      "targetId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-262682f9478ff830586a3bd3",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "targetId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-2d6a3842f4d7aeb4692a4bab",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+      "targetId": "ctkg:v3e-object-e50bb87ac88b352b972ffd9c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-38c5705348831888eebc52f7",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "targetId": "ctkg:v3e-object-526906541f641018cd576367",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-3a88faed8d30b697399acb35",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "targetId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-44f18a79039bba89ed1f51df",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+      "targetId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-46f4c99a0e35bc01b675a349",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-fb437f813c7792e130b8a3df",
+      "targetId": "ctkg:v3e-object-7104d2151516114cbeeceee3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-5027d3ed99cea32bedad835e",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "targetId": "ctkg:v3e-object-e58bcbfaf82964bf587444a0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-6335b923659bd5c405bb7270",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+      "targetId": "ctkg:v3e-object-74126f64d18203f6c6cea13b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-7869dcef52eb6af68073a6ce",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+      "targetId": "ctkg:v3e-object-2eb64f744b929432a6394ee5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-a760ee1c232d6cb19d657692",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+      "targetId": "ctkg:v3e-object-e0e2f067633af75045da2e5e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctr:m1g-e51720b91b4eabe6314e8e10",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+      "targetId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": []
+}

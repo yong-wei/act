@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-faa7941b90bdbaaaa47255ee",
+    "canonicalType": "KnowledgeStatement",
+    "label": "在控制器的一处设置滞后环节（模拟预滤波器），而在控制器的另一处设置起抵消作用的超前环节［D_d(z) 中的额外超前环节］，却能对整个系统产生净正向效益，这看似反直觉。这种综合增益源于以下事实：滞后环节位于可能存在高频成分的系统模拟部分，而抵消性的超前环节则位于不存在高于奈奎斯特频率成分的系统数字部分。",
+    "aliases": [],
+    "description": "It may seem counterintuitive that placing a lag (the analog prefilter) in one portion of the controller and a counteracting lead [extra lead in D_d(z)] in another portion of the controller provides a net positive effect on the overall system. The net gain is a result of the fact that the lag is in the analog part of the system where high frequencies can exist. The counteracting lead is in the digital part of the system where frequencies above the Nyquist rate do not exist.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "franklin-feedback-control-7th",
+        "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-08/section-8.5/section-8.5.3",
+        "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Effect of Anti-Alias Prefilter"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

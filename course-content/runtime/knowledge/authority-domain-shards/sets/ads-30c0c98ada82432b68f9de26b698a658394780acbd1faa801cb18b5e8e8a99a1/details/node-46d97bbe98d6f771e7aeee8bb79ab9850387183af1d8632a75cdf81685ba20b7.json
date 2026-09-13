@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-ec5c814d08e046bef4d598e8",
+    "canonicalType": "KnowledgeStatement",
+    "label": "描述函数有助于确定导致不稳定的条件，甚至可以为消除不稳定提供改进措施，正如接下来的例子所示：图中叠加绘制了线性回路增益 L 的奈奎斯特图以及描述函数的负倒数 -1/K_eq(a)。两者的交点对应于极限环。",
+    "aliases": [],
+    "description": "The describing function can be beneficial in determining the conditions under which instability results and can even suggest remedies in eliminating instability, as illustrated in the next example, in which the Nyquist plot of the linear loop gain, L, as well as the negative reciprocal of the describing function, -1/K_eq(a), are superimposed. The point at which they cross corresponds to the limit cycle.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "franklin-feedback-control-7th",
+        "sectionId": "textbook-unit:feedback-control-of-dynamic-systems@7th-edition/chapter-chapter-09/unnumbered-019/section-9.4.1",
+        "label": "Feedback Control of Dynamic Systems (Franklin, 7th) · Stability Analysis Using Describing Functions"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

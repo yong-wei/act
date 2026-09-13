@@ -1,0 +1,48 @@
+{
+  "contract": "act-resource-binding-release-manifest/v1",
+  "builderVersion": "act-resource-binding-release-builder/v1",
+  "scopeId": "act-control-theory",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
+  "authorityReleaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+  "authoritySnapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "authoritySnapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "authorityRevisionLabel": "control-theory-engineering-v0.48",
+  "bindingRevision": 1,
+  "prerequisitePublicationId": "proj-d8e4ebf1ff24cb1df658b48a5ef429e0a440c0c5601d2d1a1779353b6dbd01f3",
+  "carryForwardProjectionId": "proj-700a378f44ce9d422ec9b27cff3247d1864d0e732c4c91befd66a2e67db4b248",
+  "carryForwardProjectionHash": "700a378f44ce9d422ec9b27cff3247d1864d0e732c4c91befd66a2e67db4b248",
+  "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+  "sourceHashes": {
+    "anchors": "25b9fb29a3ed0fce344339e98c33388d334cfe44e4e4f20773eb1308dcf255c1",
+    "unitScopes": "8cd04f59199eebb19869d249aa786345d57b168479c297256b8379a4585fcf85",
+    "crosswalk": "cb556d7e1cf29f1a22bd7b08fd6f0fd533302c3b1de01dfc315a235705e1c79b",
+    "review": "8fb4f160b12d0725df28926df89f535805cffdac7e0e66b300c2b52d9c5da4c7",
+    "courseOrder": "ee0085dba621ec194125e353984509af383892e06f33206e682c1bc0a50059a3",
+    "activeRuntimeMediaIndex": "e1bc045dc748b374860c5ac42c5d45d3eb8689878ba95b0b3212221cd0ac8ff1",
+    "carryForwardResources": "78ef216132652157915006c495befaca4e70f4652c57eebfd707a8fe76128318",
+    "carryForwardBindings": "e6cecfbac44951e541bb74265bb52ddc6295ece7939b746802ee2f1589c1a43e",
+    "resources": "3cf36807fb008419fa19dc4eea6e2c9b8773093d18aff4f628dd0b50d47cea8b",
+    "bindings": "5abb552bd94a4f48bc634a59bf3dab0dddbc300713f0fc416a31f847e5c47b31",
+    "gate": "0997fa7bc5d0b143765f478cecbc372201919aefd6af68fe8fabdaca2736223b"
+  },
+  "resourceCount": 2462,
+  "bindingCount": 9433,
+  "canonicalCount": 3356,
+  "unitCount": 31,
+  "appearanceCounts": {
+    "first": 1000,
+    "revisit": 1932,
+    "reference": 6501
+  },
+  "anchorKindCounts": {
+    "step": 783,
+    "heading": 1363,
+    "time": 786,
+    "section": 4551,
+    "whole": 1950
+  },
+  "gateStatus": "passed",
+  "gatePassed": true,
+  "bindingReleaseId": "control-theory-engineering-v0.48-b1",
+  "bindingHash": "550df6275050477502da38a71dc3733007cc43e19c5373261bc2600e9aeffa8d"
+}

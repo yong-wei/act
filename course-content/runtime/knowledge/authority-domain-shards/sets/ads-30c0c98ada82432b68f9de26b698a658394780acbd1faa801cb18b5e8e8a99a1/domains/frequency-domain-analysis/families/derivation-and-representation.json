@@ -1,0 +1,3231 @@
+{
+  "shardClass": "relation-family",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "frequency-domain-analysis",
+  "family": "derivation-and-representation",
+  "objects": [
+    {
+      "id": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "canonicalType": "Formula",
+      "label": "\\Phi(s)=\\frac{G(s)}{1+G(s) H(s)}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "root-locus",
+          "visualRole": "root-locus",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:44ed262ae0d74fcd4b3ad5d2",
+      "canonicalType": "Formula",
+      "label": "二阶系统穿越频率方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:5589c4e1d8216653ec6dda17",
+      "canonicalType": "Formula",
+      "label": "函数F(s)定义",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:canonical-object:e66fed879e0e1bb074b52d5c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "柯西辐角原理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:0a41ec8059bfb7c2c9808ac8",
+      "canonicalType": "Formula",
+      "label": "u轴交点公式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:17c008e37fb800f73c4c6b8f",
+      "canonicalType": "Formula",
+      "label": "实轴交点频率公式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:2ccb5efb2ab848e71c6cb76b",
+      "canonicalType": "Formula",
+      "label": "正虚轴映射",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:32d7fd20403b76e694113e0d",
+      "canonicalType": "Formula",
+      "label": "ω_c²/ω_n² 解",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:32f06fb2949271cab4d05814",
+      "canonicalType": "Formula",
+      "label": "交点实部值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:3dce9bc01b0e55a650353808",
+      "canonicalType": "Formula",
+      "label": "稳定性条件（K ≤ (τ₁+τ₂)/(τ₁τ₂)）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:449eee60f76695438cae7711",
+      "canonicalType": "Formula",
+      "label": "虚轴根条件",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:5e37c7227fe7137b687d1cb4",
+      "canonicalType": "Formula",
+      "label": "实轴交点幅值 u 表达式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:67be5892597d8c85d1511254",
+      "canonicalType": "Formula",
+      "label": "稳定性条件不等式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:6cb809f83b30cda85254059b",
+      "canonicalType": "Formula",
+      "label": "L(jω)在ω→+∞时的渐近行为",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:7adeb0e03dec40edc043eb5f",
+      "canonicalType": "ModelRepresentation",
+      "label": "奈奎斯特图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:7de00c56a503589814a5cce0",
+      "canonicalType": "Formula",
+      "label": "大圆弧上L(s)的极限（s=re^(jφ), r→∞）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:8172e10eb994a2689b698664",
+      "canonicalType": "ModelRepresentation",
+      "label": "奈奎斯特图（L(s)平面）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:95bd69935ed07d71f3c9fc8f",
+      "canonicalType": "Formula",
+      "label": "三极点系统L(jω)表达式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:9dbbf3fc61a6fb0870b608fb",
+      "canonicalType": "Formula",
+      "label": "频率响应表达式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:a3f9fe3dfd2bf3f7d4196d3b",
+      "canonicalType": "Formula",
+      "label": "L(s)=K₁/(s(s-1))的频率响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:a9d1be363c48deb85ed926cd",
+      "canonicalType": "Formula",
+      "label": "虚部为零条件",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:b7303df7e0f22687e3c31f5c",
+      "canonicalType": "Formula",
+      "label": "F'(s) 等于回路传递函数 L(s)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:c028a7dc9f117301a0eb1c56",
+      "canonicalType": "Formula",
+      "label": "L(jω)虚部v表达式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:d28f717bdebf4e3859b1e6ca",
+      "canonicalType": "Formula",
+      "label": "L(jω)表达式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:e3d5f7350151aa3b2a5fc270",
+      "canonicalType": "Formula",
+      "label": "L(jω)在ω→0+时的极限",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:e824c0f459b5384e5e0df1c3",
+      "canonicalType": "Formula",
+      "label": "实轴交点处L(jω)实部u",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:eef69105fee1ce5079f9f40c",
+      "canonicalType": "Formula",
+      "label": "L(jω)高频渐近行为（ω→∞）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:f321766da073433a897ec218",
+      "canonicalType": "Formula",
+      "label": "Z=N+P关系式（Z=N+P=2）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1i:source-object:f5fedc78d1ffab72bac7d0aa",
+      "canonicalType": "Formula",
+      "label": "重排后的穿越频率方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1k:canonical-object:0afb07f025ba35cf5979d332",
+      "canonicalType": "Formula",
+      "label": "纯时延传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1k:canonical-object:13a498eacc1208a6a6511c62",
+      "canonicalType": "KnowledgeStatement",
+      "label": "纯时延相位滞后随频率增长",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1k:canonical-object:65b1a16a65775a8037305769",
+      "canonicalType": "Formula",
+      "label": "纯时延频率响应的幅值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1k:canonical-object:b36a0cecee2ff56394ebfc5d",
+      "canonicalType": "Formula",
+      "label": "纯时延频率响应的相位",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:0fe6155260a10d0af099f4b5",
+      "canonicalType": "Formula",
+      "label": "时延引起的相位偏移",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:13d83bbb2d75bdb62a1af8a0",
+      "canonicalType": "Formula",
+      "label": "一阶帕德近似的级数展开",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:66b3015c18e264d2ef3efdcd",
+      "canonicalType": "Formula",
+      "label": "M_{pω}与二阶系统阻尼比ζ的关系",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:ab595ab23ab088f809f972d8",
+      "canonicalType": "Formula",
+      "label": "闭环传递函数幅值M(ω)表达式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:f44768e1f84501fbecc47553",
+      "canonicalType": "Formula",
+      "label": "一阶Padé近似e^{-sT}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:canonical-object:f838b609986f207cc1d9fb34",
+      "canonicalType": "Formula",
+      "label": "含时延的回路传递函数频率响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:97f3199698832139739d90c2",
+      "canonicalType": "Formula",
+      "label": "等M圆方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v1l:source-object:f73a04099fadcc316f834906",
+      "canonicalType": "Formula",
+      "label": "轧钢机控制系统时延公式T=d/v",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:47135793ceff06bcbb3846d9",
+      "canonicalType": "Formula",
+      "label": "闭环传递函数幅值（由Nichols图获得）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2l:source-object:ec3c4df3eaf64ada1b279c0f",
+      "canonicalType": "Formula",
+      "label": "灵敏度幅值（由闭环传递函数与回路增益计算）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m3-v2m:source-object:1705e6ba04d3c3e36ada2d64",
+      "canonicalType": "Formula",
+      "label": "灵敏度函数幅值",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "robustness-sensitivity-analysis",
+          "visualRole": "robustness",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "canonicalType": "DomainConcept",
+      "label": "频率响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-object-040277935066b9a476420f1f",
+      "canonicalType": "Formula",
+      "label": "20 \\\\log \\\\left|\\\\frac{1}{(j \\\\omega)^{N}}\\\\right|=-20 N \\\\log \\\\omega",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-0ba04591e34f0a696e408382",
+      "canonicalType": "KnowledgeStatement",
+      "label": "omega=46 处的相角计算",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-12adc6c4a5cec1500fbecee9",
+      "canonicalType": "Formula",
+      "label": "N=Z-P关系式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1c1f12952303eb325e55b8c4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "(jω)^n的相角为φ = n × 90°，与频率无关，因此为一条水平线。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1d9b6871bb9589637a3ce999",
+      "canonicalType": "KnowledgeStatement",
+      "label": "项 K_o(jω)^n 是唯一影响最低频段斜率的环节类型；其幅频特性为斜率等于 n × (20 dB/十倍频程) 的直线，其相角为 n × 90°，与频率无关。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2a15f4c81ac8cf502f00a8df",
+      "canonicalType": "KnowledgeStatement",
+      "label": "一阶传递函数的渐近线斜率为 -20 dB/十倍频程。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2cc7d616f72bee54f3e845f2",
+      "canonicalType": "KnowledgeStatement",
+      "label": "Ko(jω)^n 是唯一影响最低频段斜率的一类项，因为在该频段所有其他项均为常数。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-2cd06848295b2c9c2a33b129",
+      "canonicalType": "KnowledgeStatement",
+      "label": "闭环带宽通常略大于截止频率 ω_c，但通常小于 2ω_c。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-35af6839e82a784d4db48cf8",
+      "canonicalType": "KnowledgeStatement",
+      "label": "对大多数系统而言，增大增益会导致不稳定；在 ∠G(jω) = -180° 的频率处，稳定的 K 值满足 |KG(jω)| < 1，而不稳定的 K 值满足 |KG(jω)| > 1。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-35fc6cfad00e51855cd920f4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "任何代表物理系统的 KG(s) 在无穷大频率下的响应均为零（即极点数多于零点数）。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3873b19373ec0bb46fe0dc4e",
+      "canonicalType": "Formula",
+      "label": "\\phi(\\omega)=-90^{\\circ}-\\tan ^{-1} \\omega \\tau_{1}+\\tan ^{-1} \\omega \\tau_{2}-\\tan ^{-1} \\frac{2 \\zeta u}{1-u^{2}}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-41b6f78e607e9f921a8d141d",
+      "canonicalType": "Formula",
+      "label": "f(t)=\\sum_{k=-\\infty}^{\\infty} c_{k} \\mathrm{e}^{\\mathrm{j} \\frac{2 \\pi k}{T} t}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4bd700342fd42e5919246020",
+      "canonicalType": "KnowledgeStatement",
+      "label": "G(s)=1/(s+1)^2 的奈奎斯特图形状为一条心形（心脏线）平面曲线。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4e5f0004ade29324d02eb0a7",
+      "canonicalType": "Formula",
+      "label": "\\omega_{c} \\leq \\omega_{B W} \\leq 2 \\omega_{c}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5043b3a1329e79d53866939a",
+      "canonicalType": "Formula",
+      "label": "G(j \\omega)=\\left.G(s)\\right|_{s=j \\omega}=R(\\omega)+j X(\\omega) \\tag{8.8}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-55f56029f67e0371cd6762d4",
+      "canonicalType": "KnowledgeStatement",
+      "label": "例 8.3：RC 滤波器的伯德图",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5882652dbfc83bfc5eadccda",
+      "canonicalType": "KnowledgeStatement",
+      "label": "闭环带宽 ω_BW 通常在 ω_c 与 2ω_c 之间。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-5f860b15b743792da7412382",
+      "canonicalType": "KnowledgeStatement",
+      "label": "原点处重极点的斜率为 -20N dB/dec",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6421bf38e7bc199e91cf229b",
+      "canonicalType": "Formula",
+      "label": "Z=N+P",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-658b7e09139e427b3e553a00",
+      "canonicalType": "Formula",
+      "label": "\\omega_{r}=\\omega_{n} \\sqrt{1-2 \\zeta^{2}}, \\quad \\zeta<0.707",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-71cdeabdbe86253f44520f2e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 K>1 时系统稳定（N=-1, P=1, Z=0）；当 K 较小时有两个不稳定根；当 K<0 时有一个不稳定根。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-726c4f43cd5152391e4cb1fa",
+      "canonicalType": "KnowledgeStatement",
+      "label": "当 K>2 时，系统有两个不稳定根；当 K<2 时，所有根均稳定；当 K<0 时，有一个不稳定根。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7c0cf2fafbd662b73cbc0997",
+      "canonicalType": "Formula",
+      "label": "\\begin{align*}\n20 \\log \\left|G\\left(j \\omega_{1}\\right)\\right|-20 \\log \\left|G\\left(j \\omega_{2}\\right)\\right| & =-20 \\log \\left(\\omega_{1} \\tau\\right)-\\left(-20 \\log \\left(\\omega_{2} \\tau\\right)\\right) \\\\\n& =-20 \\log \\frac{\\omega_{1} \\tau}{\\omega_{2} \\tau}  \\tag{8.24}\\\\\n& =-20 \\log \\frac{1}{10}=+20 \\mathrm{~dB} ;\n\\end{align*}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+      "canonicalType": "DomainConcept",
+      "label": "中性稳定",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "stability-analysis",
+          "visualRole": "stability",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7d2376cf9d1762828b930938",
+      "canonicalType": "Formula",
+      "label": "\\\\phi(\\\\omega)=-90^{\\\\circ} N",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-94dbb316821e2fbe1a97eb45",
+      "canonicalType": "KnowledgeStatement",
+      "label": "由于奈奎斯特曲线不穿过负实轴，闭环系统对任意正 K 恒稳定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9f4fd0bb37d73917a08c25e0",
+      "canonicalType": "Formula",
+      "label": "Z=P-R=P-2 N",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b1b4033e6ebea4962e8359b3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "因为 G(-jω) 是 G(jω) 的复共轭，所以将 0 ≤ s ≤ +j∞ 部分关于实轴作镜像即可得到 KG(s) 的完整曲线。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "canonicalType": "KnowledgeStatement",
+      "label": "若降阶传递函数的极点数与零点数相等，则需要考虑 C1 在无穷远处的大圆弧。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-b87e68463140e1eef6f96f0e",
+      "canonicalType": "Formula",
+      "label": "L_{a}(\\omega)= \\begin{cases}0, & \\omega<\\frac{1}{T}  \\\\ -20 \\lg \\omega T, & \\omega>\\frac{1}{T}\\end{cases}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ce3d93e5599e6eabe171b14e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在所有情况下，均可通过在极坐标图上考察开环传递函数的频率响应来确定闭环稳定性。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d1a976f2b192e84c6f51714e",
+      "canonicalType": "Formula",
+      "label": "\\\\phi(\\\\omega)=-90^{\\\\circ}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d9859f5b359b55ed39e33da9",
+      "canonicalType": "KnowledgeStatement",
+      "label": "改变增益 K 会增大或减小奈奎斯特图的幅值，但曲线绝不会穿过负实轴，因此对于正的 K，闭环系统始终稳定。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f30daee6e2771214763c8437",
+      "canonicalType": "KnowledgeStatement",
+      "label": "传递函数 G(s) = 1/(s(s+1)^2)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f597728539ad1bb13892ffcf",
+      "canonicalType": "KnowledgeStatement",
+      "label": "通过令 s 沿虚轴从 -j∞ 遍历至 +j∞，实现对物理系统 KG(s) 的完整评估。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f9230cd9c655ce677ea33da3",
+      "canonicalType": "KnowledgeStatement",
+      "label": "zeta < 0.707 时的谐振频率公式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-faecc2044313bc812634e26e",
+      "canonicalType": "Formula",
+      "label": "20 \\log |G(j \\omega)|=20 \\log \\left(\\frac{1}{1+(\\omega \\tau)^{2}}\\right)^{1 / 2}=-10 \\log \\left(1+(\\omega \\tau)^{2}\\right) \\tag{8.19}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "frequency-domain-analysis",
+          "visualRole": "frequency",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m3-v1i:relation:0201591e51d2fca7a9cd3e5d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:f321766da073433a897ec218",
+      "targetId": "ctkg:m3-v1i:source-object:7de00c56a503589814a5cce0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:247eacfacf4879bea3a7fd8c",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:8172e10eb994a2689b698664",
+      "targetId": "ctkg:m3-v1i:source-object:d28f717bdebf4e3859b1e6ca",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:3c551f4b2713cf78c7fa5fd0",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:a9d1be363c48deb85ed926cd",
+      "targetId": "ctkg:m3-v1i:source-object:d28f717bdebf4e3859b1e6ca",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:408d41f7addea2f1f6519a3a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:67be5892597d8c85d1511254",
+      "targetId": "ctkg:m3-v1i:source-object:5e37c7227fe7137b687d1cb4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:42eb1ef53b75dd81d954bea6",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:0a41ec8059bfb7c2c9808ac8",
+      "targetId": "ctkg:m3-v1i:source-object:449eee60f76695438cae7711",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:4f7bd629577db6a3b589fd74",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:e3d5f7350151aa3b2a5fc270",
+      "targetId": "ctkg:m3-v1i:source-object:9dbbf3fc61a6fb0870b608fb",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:52251548c4a20d385fc31887",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:5e37c7227fe7137b687d1cb4",
+      "targetId": "ctkg:m3-v1i:source-object:c028a7dc9f117301a0eb1c56",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:58785b8ac38f240a55bf7444",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:67be5892597d8c85d1511254",
+      "targetId": "ctkg:m3-v1i:source-object:e824c0f459b5384e5e0df1c3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:6826e1d9ffb911d74828b50d",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:f5fedc78d1ffab72bac7d0aa",
+      "targetId": "ctkg:m3-v1i:source-object:32d7fd20403b76e694113e0d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:6a4a0fa93492cb17328de053",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:17c008e37fb800f73c4c6b8f",
+      "targetId": "ctkg:m3-v1i:source-object:c028a7dc9f117301a0eb1c56",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:70b66c80f1a3417e5db84a7a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:3dce9bc01b0e55a650353808",
+      "targetId": "ctkg:m3-v1i:source-object:67be5892597d8c85d1511254",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:83d1fd0ea451ea76868ad57b",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:b7303df7e0f22687e3c31f5c",
+      "targetId": "ctkg:m3-v1i:canonical-object:5589c4e1d8216653ec6dda17",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:87ca4e6be94be6d0d7d5ca88",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:6cb809f83b30cda85254059b",
+      "targetId": "ctkg:m3-v1i:source-object:2ccb5efb2ab848e71c6cb76b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:97be6d3a5746cbe795c5159a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:7adeb0e03dec40edc043eb5f",
+      "targetId": "ctkg:m3-v1i:source-object:a3f9fe3dfd2bf3f7d4196d3b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:af7b0dbb9a0a268ee6010522",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:canonical-object:44ed262ae0d74fcd4b3ad5d2",
+      "targetId": "ctkg:m3-v1i:source-object:f5fedc78d1ffab72bac7d0aa",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:cf76109c0a34e95c8e9649ac",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:32f06fb2949271cab4d05814",
+      "targetId": "ctkg:m3-v1i:source-object:a9d1be363c48deb85ed926cd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:dd3c984a72d5b60de0787c95",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:3dce9bc01b0e55a650353808",
+      "targetId": "ctkg:m3-v1i:source-object:e824c0f459b5384e5e0df1c3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:dd523f804774ce587128dcc3",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:3dce9bc01b0e55a650353808",
+      "targetId": "ctkg:m3-v1i:source-object:5e37c7227fe7137b687d1cb4",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:relation:fd265d3a592b896a501972a5",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1i:source-object:eef69105fee1ce5079f9f40c",
+      "targetId": "ctkg:m3-v1i:source-object:95bd69935ed07d71f3c9fc8f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1i:statement-formula-link:835639842ad440b3cf938a4b",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:m3-v1i:canonical-object:e66fed879e0e1bb074b52d5c",
+      "targetId": "ctkg:v3e-object-12adc6c4a5cec1500fbecee9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1k:relation:4ed7d21d6d0332689ddb0631",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1k:canonical-object:65b1a16a65775a8037305769",
+      "targetId": "ctkg:m3-v1k:canonical-object:0afb07f025ba35cf5979d332",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1k:statement-formula-link:5506dca1a7bd87283599f62d",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:m3-v1k:canonical-object:13a498eacc1208a6a6511c62",
+      "targetId": "ctkg:m3-v1k:canonical-object:b36a0cecee2ff56394ebfc5d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1l:relation:3140e62c50f508a22b4901d4",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1l:canonical-object:0fe6155260a10d0af099f4b5",
+      "targetId": "ctkg:m3-v1l:canonical-object:f838b609986f207cc1d9fb34",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1l:relation:3556eb15ef3f65bf41c2a1d6",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1l:source-object:97f3199698832139739d90c2",
+      "targetId": "ctkg:m3-v1l:canonical-object:ab595ab23ab088f809f972d8",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1l:relation:4a817de8992dcd6d8e3165a0",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+      "targetId": "ctkg:m3-v1k:canonical-object:0afb07f025ba35cf5979d332",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1l:relation:b1bbffb39488c0dec0bf487f",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:m3-v1l:source-object:8371ec05a8583bc4c3804379",
+      "targetId": "ctkg:m3-v1l:source-object:f73a04099fadcc316f834906",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1l:relation:c99c7f2b781124eb31271e10",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:m3-v1l:canonical-object:ef0b844542631dd52de75ff9",
+      "targetId": "ctkg:m3-v1l:canonical-object:66b3015c18e264d2ef3efdcd",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v1l:relation:f43a6e92e42ef5e6e0a2f7d8",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v1l:canonical-object:13d83bbb2d75bdb62a1af8a0",
+      "targetId": "ctkg:m3-v1l:canonical-object:f44768e1f84501fbecc47553",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2l:relation:baba10bd6f3490e64d7afad5",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2l:source-object:ec3c4df3eaf64ada1b279c0f",
+      "targetId": "ctkg:m3-v2l:source-object:47135793ceff06bcbb3846d9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctkg:m3-v2m:relation:0ce14fbbde6253ef1aa2f481",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:m3-v2m:source-object:1705e6ba04d3c3e36ada2d64",
+      "targetId": "ctkg:m3-v2l:source-object:47135793ceff06bcbb3846d9",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "ctr:m1e-bridge-relation-3f542c35aaee6bc8c9682b8a",
+      "predicate": "derived_from",
+      "sourceId": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "targetId": "ctkg:m3-v1l:canonical-object:c5f7d0ab3bb3d165d6bbe99e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-02b481ab6bd9094115590481",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-1c1f12952303eb325e55b8c4",
+      "targetId": "ctkg:v3e-object-1d9b6871bb9589637a3ce999",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-0a1802894cfeb69b6e9de6fe",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+      "targetId": "ctkg:v3e-object-b87e68463140e1eef6f96f0e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-0af6b99db66641f5f4b291d5",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-3847cfa432063f1287f51ce5",
+      "targetId": "ctkg:v3e-object-35af6839e82a784d4db48cf8",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-14ee89e6e3984bcb067fbdd5",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-f597728539ad1bb13892ffcf",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-1f635fc2dd4c366fa94758e0",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-5882652dbfc83bfc5eadccda",
+      "targetId": "ctkg:v3e-object-4e5f0004ade29324d02eb0a7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-23bc968e0ca878ee8c066da0",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-35af6839e82a784d4db48cf8",
+      "targetId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-2682e2e7ca6bb4949ef132cd",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-f30daee6e2771214763c8437",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-2ff8ba8dc3b16b0cd851846e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-d9859f5b359b55ed39e33da9",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-365cc33c7fbbdc91c335d961",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-object-4bd700342fd42e5919246020",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-3bf08494857ba4c23812fcd8",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "targetId": "ctkg:v3e-object-62bfe5336223892d2ee2592a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-41fe736fbf310369d785589e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-35fc6cfad00e51855cd920f4",
+      "targetId": "ctkg:v3e-object-f597728539ad1bb13892ffcf",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-568be0f3b363ace45a605029",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-2f3ebf66b229bd1917da4b41",
+      "targetId": "ctkg:v3e-object-0bfd48327659b66aa7d95f32",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-6ff7caf30ea2aa03c11e190a",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+      "targetId": "ctkg:v3e-object-9f4fd0bb37d73917a08c25e0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-72b273de60cec8292f493850",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-94dbb316821e2fbe1a97eb45",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-7f1fed3c0057b01f449da12e",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-b1b4033e6ebea4962e8359b3",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-7f28ca54894a7743097adaac",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f9230cd9c655ce677ea33da3",
+      "targetId": "ctkg:v3e-object-658b7e09139e427b3e553a00",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-91eadd1c91d3bdab9f1b05af",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7055a0e2be50abb18ea92c6a",
+      "targetId": "ctkg:v3e-object-fe85b0f6dfed46e36c9f87a0",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-99f7db88d965c2efd7be8ecc",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2cd06848295b2c9c2a33b129",
+      "targetId": "ctkg:v3e-object-4e5f0004ade29324d02eb0a7",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-b4bb5ab9de1860110e1b15ee",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-2cc7d616f72bee54f3e845f2",
+      "targetId": "ctkg:v3e-object-1d9b6871bb9589637a3ce999",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-bc4f3b225ba269af948e79ee",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-78558546607d8234fb2ce368",
+      "targetId": "ctkg:v3e-object-41b6f78e607e9f921a8d141d",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-c3b55090f1fdb76651e28691",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-71cdeabdbe86253f44520f2e",
+      "targetId": "ctkg:v3e-object-6421bf38e7bc199e91cf229b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-cb4192f371f1cd89ee3b0a28",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-0ba04591e34f0a696e408382",
+      "targetId": "ctkg:v3e-object-3873b19373ec0bb46fe0dc4e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-cb491c4fab9079e58a3a028a",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-b5dd94d1ac76b204b8985b38",
+      "targetId": "ctkg:v3e-object-f597728539ad1bb13892ffcf",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-d8c3f8d0359b347981c7e67a",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-9acaab765d45527c6988c564",
+      "targetId": "ctkg:v3e-object-5043b3a1329e79d53866939a",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-d9192e0b808ad2533344818a",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-2a15f4c81ac8cf502f00a8df",
+      "targetId": "ctkg:v3e-object-7c0cf2fafbd662b73cbc0997",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-ee067f6a73e974a83ee0e2de",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-55f56029f67e0371cd6762d4",
+      "targetId": "ctkg:v3e-object-faecc2044313bc812634e26e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-f1d23629e642ea6f8ba8c2a3",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-ce3d93e5599e6eabe171b14e",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-f5bf40534eb195e968fa45b0",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-726c4f43cd5152391e4cb1fa",
+      "targetId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-f70cae13613cac9256568e0d",
+      "predicate": "has_representation",
+      "sourceId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "targetId": "ctkg:v3e-object-9acaab765d45527c6988c564",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-f80a7f900570fc2f963138e7",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-5f860b15b743792da7412382",
+      "targetId": "ctkg:v3e-object-040277935066b9a476420f1f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1h:relation-ffd2378e89ee8e5158588ffb",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-7d2376cf9d1762828b930938",
+      "targetId": "ctkg:v3e-object-d1a976f2b192e84c6f51714e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": [
+    {
+      "canonicalId": "ctf:v11g-6826fb07390eb229d7ee6726",
+      "label": "\\Phi(s)=\\frac{G(s)}{1+G(s) H(s)}",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "root-locus"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2l:source-object:ec3c4df3eaf64ada1b279c0f",
+      "label": "灵敏度幅值（由闭环传递函数与回路增益计算）",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "robustness-sensitivity-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:m3-v2m:source-object:1705e6ba04d3c3e36ada2d64",
+      "label": "灵敏度函数幅值",
+      "aliases": [],
+      "canonicalType": "Formula",
+      "adjacentDomainIds": [
+        "robustness-sensitivity-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-7e46e083227dc119d597d82b",
+      "label": "频率响应",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "time-domain-analysis"
+      ]
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-7cae3d7feb631906644f0fad",
+      "label": "中性稳定",
+      "aliases": [],
+      "canonicalType": "DomainConcept",
+      "adjacentDomainIds": [
+        "stability-analysis"
+      ]
+    }
+  ]
+}

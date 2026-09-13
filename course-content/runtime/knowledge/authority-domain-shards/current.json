@@ -1,13 +1,13 @@
 {
   "contract": "act-authority-domain-shard-current/v1",
-  "shardSetId": "ads-14138b6c85e83b7259c64cebcde3f95baa96828002ea18db31ec738d610a0e63",
-  "shardSetHash": "14138b6c85e83b7259c64cebcde3f95baa96828002ea18db31ec738d610a0e63",
-  "snapshotId": "snap-0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
-  "snapshotHash": "0253d66d892905fd508904a306cf5c6c7968d28ec7b5277f4ab5fb5f1b09f85a",
-  "releaseId": "ctr:release:control-theory-engineering-v0.37",
-  "catalogId": "adc-570b38da268fd125ddbdd3f74c0eb50bc77052133b463ddc15156e41db270a52",
-  "catalogHash": "570b38da268fd125ddbdd3f74c0eb50bc77052133b463ddc15156e41db270a52",
-  "teachingProjectionId": "proj-0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
-  "teachingProjectionHash": "0260a81c1b6a2c8622a2da17417aba40cd12786f7f09c5cc183123c551132e5a",
+  "shardSetId": "ads-30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+  "shardSetHash": "30c0c98ada82432b68f9de26b698a658394780acbd1faa801cb18b5e8e8a99a1",
+  "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+  "releaseId": "ctr:release:control-theory-engineering-v0.48",
+  "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+  "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+  "teachingProjectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+  "teachingProjectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
   "activatedAt": "2026-08-13T00:00:00.000Z"
 }

@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-ceab0b56a84ecb791ea193d5",
+    "canonicalType": "KnowledgeStatement",
+    "label": "对于 T=1 s 的闭环系统，闭环传递函数为 Y(z)/R(z) = (0.3678z + 0.2644)/(z^2 - z + 0.6322)。单位阶跃响应得到 Y(z) = 0.3678z^{-1} + z^{-2} + 1.4z^{-3} + 1.4z^{-4} + 1.147z^{-5} ...。超调量为 45%，调节时间为连续系统的两倍。",
+    "aliases": [],
+    "description": "For a closed-loop system with T=1 s, the closed-loop transfer function is Y(z)/R(z) = (0.3678z + 0.2644)/(z^2 - z + 0.6322). The unit step response yields Y(z) = 0.3678z^{-1} + z^{-2} + 1.4z^{-3} + 1.4z^{-4} + 1.147z^{-5} ... The overshoot is 45% and settling time is twice that of the continuous system.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-13/section-13.5/example-13.4",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · Response of a closed-loop system"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

@@ -1,0 +1,330 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctc:modeling-2175d5717ff3333e7780bba0",
+      "canonicalType": "DomainConcept",
+      "label": "线性定常微分方程解法",
+      "aliases": [
+        "定常微分方程求解"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:modeling-86c3ed202ffa91dda515b737",
+      "canonicalType": "DomainConcept",
+      "label": "线性定常微分方程拉氏变换分析法",
+      "aliases": [
+        "拉氏变换求解"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:modeling-8d1b0642d97aee74f32e4376",
+      "canonicalType": "DomainConcept",
+      "label": "含初始条件微分方程拉氏解法",
+      "aliases": [
+        "初值拉氏变换法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctc:modeling-c26fddc50074ec84707d5950",
+      "canonicalType": "DomainConcept",
+      "label": "常系数线性定常系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-caf967347827c5f93ed59795",
+      "canonicalType": "DomainConcept",
+      "label": "零输入响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "canonicalType": "DomainConcept",
+      "label": "齐次状态方程拉氏变换解法",
+      "aliases": [
+        "预解矩阵解法"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "analysis_method"
+    },
+    {
+      "id": "ctk:c1a1b07b18731a97ae408246",
+      "canonicalType": "KnowledgeStatement",
+      "label": "齐次状态方程的解为 $\\boldsymbol{x}(t)=\\mathrm{e}^{A t} \\boldsymbol{x}(0)$，其中矩阵指数 $\\mathrm{e}^{A t}$ 定义为幂级数 $\\mathrm{e}^{A t}=\\boldsymbol{I}+\\boldsymbol{A} t+\\frac{1}{2} \\boldsymbol{A}^{2} t^{2}+\\cdots+\\frac{1}{k!} \\boldsymbol{A}^{k} t^{k}+\\cdots$，也可通过拉普拉斯反变换 $\\mathrm{e}^{A t}=\\mathscr{S}^{-1}\\left[(s \\boldsymbol{I}-\\boldsymbol{A})^{-1}\\right]$ 求得闭合形式。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-d1:association:5a0861e23e0aa5c3e342440d",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-c26fddc50074ec84707d5950",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:857ee75111c57a8bd872baf7",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-86c3ed202ffa91dda515b737",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:b08cf2b9577040c713836d85",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-2175d5717ff3333e7780bba0",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:c753de8bd28ef09b7c9f6d17",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-caf967347827c5f93ed59795",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:f5cc61f19c0d9c45a2c4b6bb",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-8d1b0642d97aee74f32e4376",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:ee85fdaa4af0781879cd7b5c",
+      "predicate": "derived_from",
+      "sourceId": "ctk:c1a1b07b18731a97ae408246",
+      "targetId": "ctc:modeling-fc65ded76a1e17c5fddcbd66",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

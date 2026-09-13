@@ -1,0 +1,3863 @@
+[
+  {
+    "prerequisiteId": "prereq-01512619ca732b1f2877fde8b06e0c92",
+    "sourceCanonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+    "targetCanonicalId": "ctc:modeling-385c515b4d8dbb550b664072",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程从结构图的变量和方框引出流图节点及有向支路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-01e834fee2d5f02a9441bfcae60dd922",
+    "sourceCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "targetCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "频率特性从同频输出与输入的幅相比得到。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-01eb763cc750074a9b6394cc1c230981",
+    "sourceCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "targetCanonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "临界稳定的课程条件由虚轴单根及其他闭环极点位置判定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-026286c11e93731726eab6a535f2a892",
+    "sourceCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "targetCanonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "峰值时间从响应首次超调峰值的位置定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-02f210c29468f0f0e9c195f62ba131f8",
+    "sourceCanonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+    "targetCanonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "区分模型参数与实际对象可能出现的变化。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-042a5bce9580a0fe7b81f4f655bd93ed",
+    "sourceCanonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-043f78449fc6223d4bf3e3faef345cfe",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "零点从传递函数的零值结构定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-044ac27b7bbce35729c1e8979f26399e",
+    "sourceCanonicalId": "ctc:modeling-385c515b4d8dbb550b664072",
+    "targetCanonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "理解信号流图需区分变量节点与有向增益支路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0471607d78c967d841fe106d50ed33db",
+    "sourceCanonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-048459a0e7ec5c58f0cb26bd65a6cc17",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctc:modeling-c64dfb875b6343ff32d0acb2",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用摩擦说明起动与低速条件下线性预测的边界。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-05a4a301b15a301603f051266f133542",
+    "sourceCanonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "targetCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:36df9d0845cb229a22f51f61",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0634da09c94aaf8718ec31a596b83d9b",
+    "sourceCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "targetCanonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过极点相对虚轴的距离解释平移判稳的目标。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0685269bf18fee52fcf227b44af06369",
+    "sourceCanonicalId": "ctkg:knowledgestatement:4a783aa3008956f074bb2c91",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-06de47e74daf6d279b1871dacc1f3a34",
+    "sourceCanonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+    "targetCanonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "斜坡输入对应速度误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-07645646e8b1118b3cf9c6fde116210b",
+    "sourceCanonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "targetCanonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "当仅调增益不足以满足指标时，课程引入校正结构选择。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0812731fe90ffa83c168bb9809ebd76b",
+    "sourceCanonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+    "targetCanonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "灵敏度衡量参数摄动对传递函数的相对影响。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-08326521833d43cc3f91a65baedc0677",
+    "sourceCanonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+    "targetCanonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "必须先指定前向路径才能判断哪些回路与其接触。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-084c7857fdc9e4e31834c0fcf294effe",
+    "sourceCanonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+    "targetCanonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "劳斯表是执行劳斯判据的系数阵列。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-084e7f923dec9cce1637fb438bc33946",
+    "sourceCanonicalId": "ctkg:v3e-object-5a7582dcb72b1d33d09ca641",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-08b29ddfa07caba0d28adc03d5ec5f6b",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "targetCanonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "阶跃输入对应位置误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-094bce223448ff8bb039d0e48fca825f",
+    "sourceCanonicalId": "ctkg:v3e-canonical-45043b8933ab8fcb71969904",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0a3f44156a560185a5eda65b58f670a7",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先理解稳定条件，再用劳斯法避免显式求根。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0a91412b62401f01414c6df4dd8921be",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "把频域判据结果读回闭环右半平面极点数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0add624cc6dca5be910ffb111b6ee9d1",
+    "sourceCanonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+    "targetCanonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "劳斯表是执行劳斯判据的系数阵列。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0bdbdab907a264e0c137ec5b6ac6a6a1",
+    "sourceCanonicalId": "ctkg:v3e-canonical-bc4ff6668a7e4eed69404826",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0c9b4e92558fcf314c62e838a72e94a4",
+    "sourceCanonicalId": "ctkg:v3e-object-098bda907dad6f5e7b697506",
+    "targetCanonicalId": "ctkg:v3e-object-591e649bbeef70e3da154910",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:078c8b27d202d7eb37059e68",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:078c8b27d202d7eb37059e68",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0cb25e444794790b1c881ce4dee18cc2",
+    "sourceCanonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "targetCanonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先掌握一般极点含义再限定为开环对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0cb860b84364fe842330158ca4194288",
+    "sourceCanonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "targetCanonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过对照PI说明滞后网络的低频改善与截止频率变化。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0d31e30e293b7ae97afbeeeada02d0c1",
+    "sourceCanonicalId": "ctkg:v3e-canonical-af52bd97e7b277a781f1e7ef",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0d5f22e69f8b667581fabc709237d74d",
+    "sourceCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "targetCanonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "临界稳定的课程条件由虚轴单根及其他闭环极点位置判定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0dbe98a4f184521833962ec5a36a1a27",
+    "sourceCanonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+    "targetCanonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "临界稳定条件用于解释虚轴交点的工程含义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0de5d2656f7f9a85c492088c51b16208",
+    "sourceCanonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+    "targetCanonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0e25586137cff82d55291acb33adeb7c",
+    "sourceCanonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+    "targetCanonicalId": "ctkg:domainconcept:293e9989d6bd31c84819cbee",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:3eb9b4f086fcd001ce5793ef",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:3eb9b4f086fcd001ce5793ef",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0ee41a8771c39868e6a9d1f3dc7d202c",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "极点从传递函数分母根定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0f48097294aaad89fec024f0f5bb5917",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "典型环节通过 K/s 的传递函数表达积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-0fdc102866f663097871a91e865367fe",
+    "sourceCanonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+    "targetCanonicalId": "ctc:modeling-70629af71e754aac8b740638",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "局部线性化必须明确展开工作点。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-105cab1c86f49f2446b01421373ac8d4",
+    "sourceCanonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+    "targetCanonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用饱和环节校验基波近似的适用条件和局限。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-114df12ce61983cfa96f391cb5121519",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "把频域判据结果读回闭环右半平面极点数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-11548450ddd94515340af4c1f87e569c",
+    "sourceCanonicalId": "ctc:v12g-d1e6f12e1e95f6477c66bdc1",
+    "targetCanonicalId": "ctc:v12g-b6ec19cda5342874277159e7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-14380cad18fc2cfd82f564cc5d61696b",
+    "sourceCanonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "targetCanonicalId": "ctc:modeling-00d2998755974a1329049aac",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在输入输出关系明确后引入放大倍数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-14764758039a85660dac9865da50abaf",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "典型环节通过 K/s 的传递函数表达积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-147eae71c63371c7d763c204abc7ee5c",
+    "sourceCanonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+    "targetCanonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构包含积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-15c2551092164c918591428f2d4485a9",
+    "sourceCanonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+    "targetCanonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "前向路径是在信号流图中从输入到输出不重复节点的路径。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-160643d3685f3f5661f5374ff1050c66",
+    "sourceCanonicalId": "ctkg:v3e-canonical-aa1dece70208ff2fe929e715",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-161eab984d55998846384caedcc3afa7",
+    "sourceCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-165d05dad9f9e6ba2761bd01b9e35f2f",
+    "sourceCanonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+    "targetCanonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "标准欠阻尼二阶阶跃响应以 π/ω_d 计算峰值时间。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-17876672bc46547af2560493f9bb8d6f",
+    "sourceCanonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "targetCanonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先掌握一般零点含义再限定为开环对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-186d1ceeec4e54e240e9f04cf93b0848",
+    "sourceCanonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+    "targetCanonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/lessons/4-7/design/4-7-boppps.md",
+    "rationale": "Bode 幅相读图用于解释相位不足为何需要超前支路；它是传统结构定型的直接但非唯一学习入口。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-18c82928b393a38fc96ec21309cdee1f",
+    "sourceCanonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+    "targetCanonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "奈氏判据需要频率映射轨迹与临界点包围关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-194ca930e2565cffc9011cfea0d0b262",
+    "sourceCanonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+    "targetCanonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "周期输入的谐波分量经线性系统分别响应后重构。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-195370c44a1e7893e78482771f8a362b",
+    "sourceCanonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+    "targetCanonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "阻尼振荡频率由无阻尼自然频率折算。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-1b00ad2f8fcbc7c9728c418ce486c5ac",
+    "sourceCanonicalId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+    "targetCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "部分分式方法用于一二阶阶跃响应的解析推导。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-1b45d07b99327433c55358b0ce7d1712",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用传递函数填充结构图方框以表达变量间变换。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-1bb683d168d9795ff8ef5ee85d3a9b35",
+    "sourceCanonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+    "targetCanonicalId": "ctkg:domainconcept:0363df7227c5cb1dff5b1bf0",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "给定前馈是作用于指令输入的具体补偿通道。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-1dfb58af2c440c88fbe925e4936bc62a",
+    "sourceCanonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "targetCanonicalId": "ctkg:v3e-canonical-3cdfb3f6b1edd3c75bb9b69b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "测速反馈是指定速度量的局部反馈结构。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-1f5ef87cfd6b539897ca0ee7c3a713d9",
+    "sourceCanonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+    "targetCanonicalId": "ctc:v11g-2628d227495a3860151a16c1",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "临界稳定条件用于解释虚轴交点的工程含义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-1f6c8ee9dc65dbb16c1b7d8bb2d7c79f",
+    "sourceCanonicalId": "ctc:modeling-5727d74e4587f60fe7b011ae",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-20699bcce84edde60ecf4665eb0bf8ff",
+    "sourceCanonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+    "targetCanonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "测量噪声从输出反馈测量位置进入闭环。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2198486c7fc14ca4eebab4533154d520",
+    "sourceCanonicalId": "ctkg:v3e-canonical-9be29f3ad2006d157a5360b5",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-22346bb1c8937a0f846c37f03073dd95",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "描述函数用于满足适用条件的非线性元件近似。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-22ca5d91e0c36e3b96671d714a1e78ca",
+    "sourceCanonicalId": "ctc:modeling-f6875bd8fd4ad1250d8980d8",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-22fc628350567a8566740b394928fd27",
+    "sourceCanonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-23777c4d93d8f0174bb5164e9d43a40f",
+    "sourceCanonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+    "targetCanonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程通过PD作用对照有零点与无零点的二阶对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-23856c30fd1ec970476f13122ae08fa4",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-eacdf5b7407bac89d24540ed",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用分级输出说明连续幅值假设在数字实现中的边界。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-23a39f408f35a5c095b9471f202497d5",
+    "sourceCanonicalId": "ctkg:v3e-canonical-f08a86bd6385c786c529ef21",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-24993a857f6b2865a5cdcbe2576e10b8",
+    "sourceCanonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "targetCanonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "一阶系统的定义依赖动态方程阶次。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-24ba52e59f734fb2c08aead370ed87d1",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "零点从传递函数的零值结构定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-250302df88f3658b48cf7fab66393c2a",
+    "sourceCanonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+    "targetCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "传递函数使用输入输出的拉普拉斯变换比。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2568729532b5db845641e3400b8427cc",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "targetCanonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "静态误差系数法使用各输入类型的系数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-268d1f16d008a45b4cc902a151c635cf",
+    "sourceCanonicalId": "ctkg:v3e-canonical-851a158dcbe62a71c788bda3",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-26ca176822ed148bb3bd64549ae75449",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctc:modeling-70629af71e754aac8b740638",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "线性化是对非线性模型作局部近似而非全局等价替换。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-26fcd812155a31839216fadaeacfab0b",
+    "sourceCanonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "targetCanonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "灵敏度需要明确被比较的闭环传递关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-277e2ac43f078aa1319bbf5170633c7a",
+    "sourceCanonicalId": "ctc:v11g-1ebbddfa13931f700f437271",
+    "targetCanonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-28c8556872c3eeb78329ad5d042e8690",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "targetCanonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "阶跃输入对应位置误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-28e353a92383ec52e84dacddd9a87259",
+    "sourceCanonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+    "targetCanonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构同时包含比例作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2a2016f68dd717d1fe54773bb32e42e4",
+    "sourceCanonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "targetCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "系统受到扰动后的响应行为引出稳定性的基本问题。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2ab70b2746a4832dbb271b520df309a4",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:70a7516808c321dfcb06aa70",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:70a7516808c321dfcb06aa70",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2b44b3951d7805dbff745efbb25d4ab8",
+    "sourceCanonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+    "targetCanonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "渐近线近似服务于已经定义的对数幅频曲线。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2c6a84b1dbecb8d3cf4b8cec08e0b2c2",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:1164084ae03d7795c40a90de",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:1164084ae03d7795c40a90de",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2cfe5bbf64a229168eddb1c21d8618f0",
+    "sourceCanonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+    "targetCanonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "增益裕度在相位穿越频率处读取。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2d87f1ee14c1ac4932ede72fbb84c7a4",
+    "sourceCanonicalId": "ctkg:v3e-object-ab4dc18aac53ac6636d05ca5",
+    "targetCanonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2d8a416df7aa0079683fd5746fe918ee",
+    "sourceCanonicalId": "ctkg:knowledgestatement:6764bb8e32aad3eb13aa9a2b",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2dd5a8c870895a19c908a0819c18eba8",
+    "sourceCanonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+    "targetCanonicalId": "ctkg:domainconcept:4ecbee25dbf52616b5613e8b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "扰动前馈要求补偿通道作用于可测扰动。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2ded7db04e500de18d52202658d977db",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "闭环关系由环节传递函数经反馈代数组合得到。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2def145f80e1a72b21df0d8bbef91257",
+    "sourceCanonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+    "targetCanonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "特征式由回路增益及互不接触回路乘积构成。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2ec49473532c80247ab9890450c154c2",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:ccb5acec3157456299b69ddf",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-2fb822825fbdaf96305f50140135c406",
+    "sourceCanonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+    "targetCanonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相位裕度在增益穿越频率处读取。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3016e3b0d1d9c17bdcf811f0f037c0da",
+    "sourceCanonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+    "targetCanonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用标准二阶响应解释一对主导共轭极点的近似结果。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3058eb764f702a93e9d696ba71e08734",
+    "sourceCanonicalId": "ctkg:v3e-object-58d24ff14a6b0b0cab5d393f",
+    "targetCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程以频率分量的作用解释频率响应的用途。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3414152983a1d5cee30f576914d93da2",
+    "sourceCanonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+    "targetCanonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "梅森公式需要各条前向路径的余子式。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-35d15779f057508f4b5b1f2c6edf2d25",
+    "sourceCanonicalId": "ctkg:v3e-canonical-55fca34fcd2e39da4be3dc23",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-36010ca076e59f66ad2993d2bd75e7d5",
+    "sourceCanonicalId": "ctkg:domainconcept:11a8f8224c4c836f89b164de",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3755d5982d0495bb6419897cd119aa92",
+    "sourceCanonicalId": "ctkg:v3e-object-4acaa9cd561fa2c6178265f9",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3a92d9d3c81ae392b3aa59071e9f38a5",
+    "sourceCanonicalId": "ctkg:domainconcept:b4b55ece4a9aa3709e50f25c",
+    "targetCanonicalId": "ctkg:domainconcept:72d64287614ba07da65b3adf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3b04bb972cb5c2ab5f2e0772b414f753",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ff87028e0a7bcda2c586a550",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3f7c1802feb176da17139bad6c286df1",
+    "sourceCanonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+    "targetCanonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "线性复合控制用叠加区分给定与扰动贡献。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-3fc6bc4dbd8a145b07b1a42d1d30853c",
+    "sourceCanonicalId": "ctk:0c105ab10af8292335522f90",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-40dd794a799ddebc91e5930f28bcf5ba",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+    "targetCanonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "比较超前改善动态时同时检查带宽及高频代价。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4183bbbcf1dd56a58ecd1a304f59160b",
+    "sourceCanonicalId": "ctkg:v3e-object-ba51f9dd280fa844cebe297d",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-422d6d2005938880d563131d022e6895",
+    "sourceCanonicalId": "ctkg:v3e-object-975104325de56502a2faf011",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-424d380bf5682478ea89079c02654c2c",
+    "sourceCanonicalId": "ctkg:v3e-canonical-d36c1349ce7b90a16e2d6d12",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-438bce06bb3ff537ced2c3fb6d8c0148",
+    "sourceCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "targetCanonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "Nyquist图把同一频率响应映射为复平面轨迹。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-43f5cfc1dc80095ce462dd1979d675ce",
+    "sourceCanonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+    "targetCanonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "全零行处理从上一行系数构造辅助多项式。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-44278f3ae6f870081a0717c57a9f06bd",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "targetCanonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "以低频误差需求解释引入PI的目的和代价。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-443119b149c1be8c20b2b6f48fb0a402",
+    "sourceCanonicalId": "ctkg:v3e-canonical-86852f5270a37631267f6b50",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-444930d12554efb9d24f043dc025e37c",
+    "sourceCanonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+    "targetCanonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先用一阶时间尺度解释进入误差带的速度，再讨论二阶估算。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-44e5e2a46ec5bd09c7e8fee6358e3d26",
+    "sourceCanonicalId": "ctkg:knowledgestatement:16974af4f0f5af56f7026c4d",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-45aba6b85f0b0caa6c33eb985f6d8118",
+    "sourceCanonicalId": "ctc:modeling-c499b71d908bd8fe4124c533",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-45cfc5ac99084429c0010b6ee43dc989",
+    "sourceCanonicalId": "ctkg:v3e-object-4560252fd8979f3d44aed7bf",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4615f8dc48272bc7d1d2d6fdf3f69d36",
+    "sourceCanonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+    "targetCanonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "梅森公式的分子需要每条前向路径的增益。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-46b46089404f367b41498191fd2fa2a5",
+    "sourceCanonicalId": "ctkg:v3e-canonical-5d7dffbbd218f48f41c0cc6a",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4842cf3d1bef9fd87790faa033a53b8d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+    "targetCanonicalId": "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "无阻尼自然频率是标准二阶模型的固有参数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-48c78220c959bee75b0d7afcf8d39c20",
+    "sourceCanonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "targetCanonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过对照PI说明滞后网络的低频改善与截止频率变化。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-48da5ef2a63a562cd1d72666e662f118",
+    "sourceCanonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "targetCanonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "叠加计算只对满足线性条件的模型成立。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-49e449de7a1707eff5e2766b73331eb5",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4a033c23de4c87ed53e02b846fcdde70",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "极点从传递函数分母根定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4a837a1f21eb2a49cbd21eb14fb9789e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "targetCanonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "将短时作用与持续阶跃作用区分，建立另一类典型输入。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4b25c78f319c178e37c8272f69b366ba",
+    "sourceCanonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+    "targetCanonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相轨迹是在已定义状态平面上的运动曲线。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4b60a7211c5e15b30888c846aa5f664e",
+    "sourceCanonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+    "targetCanonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "必须先指定前向路径才能判断哪些回路与其接触。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4c27c0b6be1de76c321c6988cf4570ad",
+    "sourceCanonicalId": "ctkg:domainconcept:0ad2a338a492e954d3fc5429",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4ce10ead44b2fece32fc2c9ebd4f0927",
+    "sourceCanonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "targetCanonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "当仅调增益不足以满足指标时，课程引入校正结构选择。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4d6c382c2cfd755a0d000a8b461040a7",
+    "sourceCanonicalId": "ctkg:v3e-canonical-7d2ba18dbf550046f8683e0d",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4ee28f28e628d622f7ffa0b5612a7fbc",
+    "sourceCanonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+    "targetCanonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "判断主导极点需要比较不同模态的衰减速度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4f5b50df2fe62e77fa1f9f5f995b9696",
+    "sourceCanonicalId": "ctkg:v3e-object-dc0fa52ddfaabaca13395678",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4f7c3c88eefe90cf790a64c51789e97c",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:ae84642eb0750cfa27a1c828",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-4fd50ffbf1e3f819bca3788f45ba7d19",
+    "sourceCanonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+    "targetCanonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "反变换以已经建立的拉普拉斯域表达为输入。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5042575a7e1fad431569b0e508f1fa88",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:31f8a3f2feef56daedb6f9a6",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-50b87298947821fb69ebb5b35b7dece7",
+    "sourceCanonicalId": "ctkg:v3e-canonical-5fe5f2b25ce2e3dcb200be7f",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-50d0a5bba9464cfea0960b0ed0e77297",
+    "sourceCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相频特性是频率响应的相位差部分。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-511152cc1e8464408e9496272669b58d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-e0a76371093ca8d4b5c46a22",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-516f4509e500a208683756f88517999f",
+    "sourceCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "targetCanonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "位置速度加速度误差系数需要识别对应型别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-51ced420cfe409517259b42cea4f9349",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "闭环关系由环节传递函数经反馈代数组合得到。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-52b0813a111bea473a1d2e712d3ec4c6",
+    "sourceCanonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetCanonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:1c23746e0c61931034e8b2fb",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:1c23746e0c61931034e8b2fb",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-549f78c64471b26d36c77c5b1d4340e2",
+    "sourceCanonicalId": "ctkg:v3e-canonical-7147bc2427dae1863e06ef77",
+    "targetCanonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "主导极点近似需要先判断哪些模态主导响应。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-55c46a4b33d5e6d898ec9d54c3093b67",
+    "sourceCanonicalId": "ctkg:v3e-canonical-01549ef9b34888b89b55f224",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-566b945c852926edaeb095af22d4225b",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "targetCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "单位阶跃响应必须明确单位阶跃激励。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5710462b48143353adf2f9ee96258270",
+    "sourceCanonicalId": "ctkg:v3e-canonical-e0f8b5b944d35f3734b18b73",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-576463f3c390bdcf2c5c8539bcc51e06",
+    "sourceCanonicalId": "ctkg:v3e-object-f04f82217525c5c412d0d180",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-57c94aa16753352263d9cf7836fb274f",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在满足频域取值条件时用 G(jω) 连接变换域与频域。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-57d71b809fd3de617d2d69352b8b110f",
+    "sourceCanonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "targetCanonicalId": "ctc:modeling-e442dacbfef4a0d7ea3c4c15",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/lessons/2-1/design/2-1-boppps.md",
+    "rationale": "方框图化简使学生能够建立并分析反馈连接。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5911829763e0c9a3c74911d4f99e84ea",
+    "sourceCanonicalId": "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+    "targetCanonicalId": "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "标准欠阻尼二阶阶跃响应以 π/ω_d 计算峰值时间。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5a596a317bd54b9db5b8ad1141de62c5",
+    "sourceCanonicalId": "ctkg:v3e-canonical-9271b97eacc626af5c1b2e88",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5ab7efd01459f61442cd24c4a31733ce",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在满足频域取值条件时用 G(jω) 连接变换域与频域。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5b62e61eb087ecf39213c7ac943d4b76",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用传递函数与输入相乘后求反变换得到响应。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5c1be8dada17bfcfc1f7cfc67e20c1da",
+    "sourceCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "targetCanonicalId": "ctkg:v3e-object-6aab5205709de2fd044b4024",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "把频域判据结果读回闭环右半平面极点数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5c27c05e639f3e04097cf3324e038375",
+    "sourceCanonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetCanonicalId": "ctkg:domainconcept:39c18e7134f77be5c51cf41b",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:6d116a7d590b482fbc1805df",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:6d116a7d590b482fbc1805df",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-5de1b619b7ab2fe6ed2e48f7d2aa4f4b",
+    "sourceCanonicalId": "ctkg:v3e-object-e80f5d56ce06409842363584",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-601c79ab25624ba0d722fab4cfc10ad6",
+    "sourceCanonicalId": "ctkg:v3e-object-b0cbf122498bca9269e55406",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6095b9e941158ed57811a24f29195023",
+    "sourceCanonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-614b2bbb068c131262310c7f780f1ec0",
+    "sourceCanonicalId": "ctc:v11g-bc5c0019cf8dd79ee47861ea",
+    "targetCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6194d43278be11665974f4ee0ef4351e",
+    "sourceCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "targetCanonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "负增益参数的零度轨迹是广义参数情形的一个入口。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-62bf7dd2be75a3430ac2cedc72187ba5",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+    "targetCanonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "一阶时间常数是其标准动态方程中的参数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-635e98779d059e08fff29dabea682063",
+    "sourceCanonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+    "targetCanonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:1b6ea3bb8ed116cb01043817",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:1b6ea3bb8ed116cb01043817",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-65a1090155123fce71dd5aa3eee70046",
+    "sourceCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "targetCanonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "位置速度加速度误差系数需要识别对应型别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-65c89a29d69b18037f7db4c6edf8db14",
+    "sourceCanonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+    "targetCanonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "有理复域函数的反变换以部分分式展开分解为可求解项。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-660c76dcf3041181b4f5afac00d2baf5",
+    "sourceCanonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+    "targetCanonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构包含积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-671f6a615d7dc16984ec2825416f0775",
+    "sourceCanonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+    "targetCanonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "局部线性化必须明确展开工作点。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6763948dfb41b418fef7f84bb635a4de",
+    "sourceCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "targetCanonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "超前校正必须理解其相位提前作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-677321fe5710e84ac7c6faa6169b066a",
+    "sourceCanonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+    "targetCanonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "灵敏度衡量参数摄动对传递函数的相对影响。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-67a5842d08917fcb3cd3203434b37e86",
+    "sourceCanonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "targetCanonicalId": "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先理解系统状态，再定义可保持不变的平衡点。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6832b7aa8e5bb75380b8e2b87c70318a",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用传递函数填充结构图方框以表达变量间变换。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-693c6e6122e5812e008ac44a979c9d2f",
+    "sourceCanonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetCanonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "识别局部反馈布置与串联、前馈布置的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-69510d9707ae83a21b879dbf26e96456",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:53d87e756f397e73b6739eea",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-697c7393b40d75f64b75cb62c28122a2",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:b810a9c95ee221ddcdc4fa74",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6bcfda0751d47905514cfce39049b0d8",
+    "sourceCanonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetCanonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "识别局部反馈布置与串联、前馈布置的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6bdfe381814b9fd35ae333de65227118",
+    "sourceCanonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+    "targetCanonicalId": "ctc:modeling-239e401e0fcc8485f3a0533d",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "等效变换必须保持既有结构图的变量关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6d383f2e46c09fc322d372355a4dbea2",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6e4fa47ae1750e99afde97d17a910337",
+    "sourceCanonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+    "targetCanonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "扰动抑制的效果由指定误差通道评价。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-6ec43f2b0d5bf4ef97800824f11b5337",
+    "sourceCanonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+    "targetCanonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "奈氏判据需要频率映射轨迹与临界点包围关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7048bbb50dfa90fa441d5c561c692dd9",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用传递函数填充结构图方框以表达变量间变换。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-704fcc24a05eb35ef11367963d5e15e2",
+    "sourceCanonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetCanonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般校正目的下识别前向通道中的串联布置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7106d76156a777b79d9781b9b45f8518",
+    "sourceCanonicalId": "ctkg:v3e-canonical-98fc8b71b67b8cf3f3266d2b",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7205003f9fb92d2bdd25e01dd6ea98f4",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-72da75ff646d920478e9679318028204",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-c36a6e957077c474e91e17ab",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:0b69afc5586262357770c214",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:0b69afc5586262357770c214",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-73c19268b8d4a8858b7f6dc74fafaaf2",
+    "sourceCanonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+    "targetCanonicalId": "ctc:modeling-7aef273143199795496abedb",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "等效变换必须保持既有结构图的变量关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-73c46b58c951d6760b832b49e1a9e668",
+    "sourceCanonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+    "targetCanonicalId": "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "有理复域函数的反变换以部分分式展开分解为可求解项。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-742ed4f1c7e145d7a7c62ad1e4085ddf",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-b0896b071da350e2cc6ca186",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用间隙说明回程路径和静态死区的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-749ab294d5d2c54e356e46b090bc95c6",
+    "sourceCanonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+    "targetCanonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "余子式从流图特征式中删除与指定前向通路接触的回路项。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-751507b324af4b7e9e7042f20fe9e777",
+    "sourceCanonicalId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetCanonicalId": "ctc:v12g-15b7fb1d68889848e3c50c46",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:5af4b1e896a8f803e561548b",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:5af4b1e896a8f803e561548b",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-756acd49ed09e130394fec52260aaa2f",
+    "sourceCanonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+    "targetCanonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "参数范围由劳斯表第一列的符号条件反推。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7600c5261815e92212a076b6f8de9854",
+    "sourceCanonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "targetCanonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "带宽必须明确是哪个闭环通道的幅频范围。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-761aacb1d6b50530524d849bbc619be6",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-2c2f917a06c974fda55b52fd",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用分级输出说明连续幅值假设在数字实现中的边界。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7697c543e0de367e0c676d8ca75ff44e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "targetCanonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "阶跃输入对应位置误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-76d0e8612399890518f2ae4f7be0c086",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:2797d3aa913c9ee0950a3794",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-76f43b8cc791d182775418356201645a",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-0bec8a41b344fe9a1e16c5e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "把迟滞作为依赖历史路径的非线性现象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-76f44ff913af58a3e26d41b027aed7d7",
+    "sourceCanonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+    "targetCanonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:fe1bd08e67e2e45c4ee32914",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:fe1bd08e67e2e45c4ee32914",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-77a283af414ccb37e90113487857066b",
+    "sourceCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "targetCanonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "超调量比较响应最大值与终值。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-77b9f4a2950dfacffef14604c5785c1e",
+    "sourceCanonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "targetCanonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先明确系统边界，再选择表达其动态的数学模型。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-79cf187fd63e81c0cb2092993d9f1230",
+    "sourceCanonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+    "targetCanonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "必须先指定前向路径才能判断哪些回路与其接触。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-79e8c622941a34c5408ed95a02ebdab0",
+    "sourceCanonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "targetCanonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过对照PI说明滞后网络的低频改善与截止频率变化。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7b1dfaf515cdad09db39d44daca277a9",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:304f9ab2e355cfe88da137b3",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7c0193ad71b8f64ec61da9cfea6f06d2",
+    "sourceCanonicalId": "ctkg:v3e-object-5963fddc1b8b31af98ba44bd",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7c1e26f3c0678354f6783c5051b7d2a6",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:0fe6155260a10d0af099f4b5",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7c8972cb022b624e3bac0cb45b39b434",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-object-570b74ec5294ac993add9b5f",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "临界稳定的课程条件由虚轴单根及其他闭环极点位置判定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7d164f894113bad272cb47709ba76514",
+    "sourceCanonicalId": "ctkg:v3e-object-0ca481aed329f4e6c74c8d30",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7da8a70fa07740eab5f3f92057458b61",
+    "sourceCanonicalId": "ctk:eec4fcc124511436f12c5a2b",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7e658a7f4a13e7ce6e3a68b2f4eb575a",
+    "sourceCanonicalId": "ctkg:domainconcept:b57ab6aa6e17654d63b792e1",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7e70579e2c1b32eef713662bc40e50c3",
+    "sourceCanonicalId": "ctc:v11g-991f1cc82c973b44856c40f1",
+    "targetCanonicalId": "ctc:v11g-95859dcad651c20058bf8726",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7e801aa8a63883417c5526e00732358c",
+    "sourceCanonicalId": "ctkg:v3e-canonical-3b13b6a4e2f356794270639c",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7ec6db82f3c97d114da8d3334bce9606",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "典型环节通过 K/s 的传递函数表达积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-7fbe0e6438c6a4cb25fc4466374964a0",
+    "sourceCanonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "区分一般传递函数极点与闭环极点所指对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-80e7cd760b75025b87391b434c8713f4",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8a3d45ec41cfb63af9253e89",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8134ea05c873d0dfec34c7d3016f1e5f",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用传递函数填充结构图方框以表达变量间变换。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-81609897835a187c68436591e01918b1",
+    "sourceCanonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+    "targetCanonicalId": "ctc:modeling-7aef273143199795496abedb",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "等效变换必须保持既有结构图的变量关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8174d342342305ad1571359ab9a26226",
+    "sourceCanonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "targetCanonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在动态方程中识别线性及系数定常条件。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-81e7e316e47a564843ddd9b76af452a5",
+    "sourceCanonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "targetCanonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在闭环通道明确后讨论附加前馈补偿的作用位置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-82594ba2ece1e37165ef16c522907dbe",
+    "sourceCanonicalId": "ctkg:v3e-canonical-551c764f95f34a26e428f397",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-829b292156e8f9072882ccf61c63165e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-dba237257bd95d0ab0c5de53",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-847945e9a10f56bd1bed5e7ac3fb0e11",
+    "sourceCanonicalId": "ctkg:knowledgestatement:51c2eb1ebf6aa438469726f3",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-865a17b02a08291784df775e08a01bb9",
+    "sourceCanonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetCanonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "识别局部反馈布置与串联、前馈布置的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-86c03dfe2f9a05125c3d0b4fef119941",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先理解稳定条件，再用劳斯法避免显式求根。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-86fca731e13d19a9973fce79203fb614",
+    "sourceCanonicalId": "ctkg:v3e-canonical-3e670eae83dcdd8c322cd8f3",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-87473b950084ea577ca7189e71f7850a",
+    "sourceCanonicalId": "ctkg:knowledgestatement:6b1a36c727d1eb7d885cb127",
+    "targetCanonicalId": "ctkg:domainconcept:8d64003bec180e77672bfd72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-88d478e42cb7a524f5c6dc10f3c0eafa",
+    "sourceCanonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "targetCanonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "误差信号的课程定义使用给定信号与反馈信号之差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8920f63594325e7215566e3c048c0fc8",
+    "sourceCanonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+    "targetCanonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "梅森公式的分子需要每条前向路径的增益。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-89a78d04bd9b73f98b17ba19a71737b6",
+    "sourceCanonicalId": "ctc:v11g-843da2b954f4e9b0d550f09a",
+    "targetCanonicalId": "ctc:v11g-4bb347d0f2aa8859a18073de",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-89f4cb94d39d1bdf8e083da993352c19",
+    "sourceCanonicalId": "ctkg:v3e-object-7aa500461c5109b7cffd9b19",
+    "targetCanonicalId": "ctkg:v3e-object-327cafd07ac8956536bab418",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "参数范围由劳斯表第一列的符号条件反推。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8acbc390328bd4cbfaf13295fc6c52ba",
+    "sourceCanonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+    "targetCanonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过有界频段的近似联系说明超前网络与理想PD的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8b85378c339fbe1b023468361f293d66",
+    "sourceCanonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetCanonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般校正目的下识别前向通道中的串联布置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8b8fcefb3e8af5b017bf5845ad01b41b",
+    "sourceCanonicalId": "ctkg:v3e-canonical-59d77ba1b394f063dcdb3ccf",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8b98f4131c6c669b54f94aa57379942a",
+    "sourceCanonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "targetCanonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "同频正弦稳态响应结论依赖稳定线性系统条件。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8b9d7c7be44bd20264feff2d7defa9dc",
+    "sourceCanonicalId": "ctkg:v3e-canonical-854230c9b89910d971d8ccd6",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8be45a524357f7781cf19178a55047ba",
+    "sourceCanonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+    "targetCanonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相位裕度在增益穿越频率处读取。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8c11b5d2b9dc6c491a539253e12c5b6a",
+    "sourceCanonicalId": "ctkg:v3e-canonical-76aa807571663d71e7bb5979",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8d321761350703d0b420e3e2f2d57ffa",
+    "sourceCanonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+    "targetCanonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "斜坡输入对应速度误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8d3bc98d9091754c82eeaeecbd4e6da2",
+    "sourceCanonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "targetCanonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "Bode图需要幅频部分的对数表达。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8d587d67b6acba3ceb09d8f232ed1daf",
+    "sourceCanonicalId": "ctkg:m3-v2h:canonical-object:4f950081fe58a82e7fdd42aa",
+    "targetCanonicalId": "ctkg:m3-v2b:canonical-object:09dfb13238acef515a20720e",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8d588ba9f3a7aaa2e2944f8021788f39",
+    "sourceCanonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+    "targetCanonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "理解信号流图需区分变量节点与有向增益支路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8d96fbd7fbff3b24dcc1201f6ff6cdaa",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "targetCanonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "静态误差系数法使用各输入类型的系数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8e675b3c8443bf31896f9d0ec0bcda0b",
+    "sourceCanonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+    "targetCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "部分分式方法用于一二阶阶跃响应的解析推导。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8e9fd16cf18d2b1ff8150d8ed675cc85",
+    "sourceCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "targetCanonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "描述函数以正弦输入和输出基波的幅相比定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8ebfd12ddb2b1e363ab37501a2dc8c53",
+    "sourceCanonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+    "targetCanonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "输入分解并叠加响应构成卷积视角的基础。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8f0c588adb1b3bbe61340b046e1e2c04",
+    "sourceCanonicalId": "ctkg:v3e-canonical-bfcd15f043984b100be886fe",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8fb8600a1c4a4a68f19ade5ede323f8d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:aea6294364be3cccf4bda889",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:aea6294364be3cccf4bda889",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-8fe49396413e20c3cff3cde9925b9574",
+    "sourceCanonicalId": "ctc:modeling-70b08efcf6bb085e05de94cd",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-909ca54be1c08e6121d4256918f4456d",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-aa79b6fedda690cfd68855aa",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用继电器通断说明非线性切换不能按比例斜率解释。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-910081cb3e4ccf2a2776dd581901e27f",
+    "sourceCanonicalId": "ctc:v11g-076d3bf7d03f4a7a06d5371a",
+    "targetCanonicalId": "ctc:v11g-4aec82cd79a002c70fb185b3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-91394c170c1cfce9fad915e1da17d382",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "典型环节通过 K/s 的传递函数表达积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-91409fc86758ef44644fcd0629127cd1",
+    "sourceCanonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "targetCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过对照线性叠加条件识别主干模型的非线性边界。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-916c8ffe8231250ebc341db53b393355",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+    "targetCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "区分一般传递函数极点与闭环极点所指对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-91cd4825db8c76e8341a8a26a167f72c",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ed3a4babf006b2fd746765e8",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9203926e7b3bc4295782e2bd59c87815",
+    "sourceCanonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+    "targetCanonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相位裕度在增益穿越频率处读取。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-92c87c2663bc5703ee4fedbdfa7f5615",
+    "sourceCanonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "targetCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "系统型别按所分析回路包含的原点极点数区分。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-93ad16cf001358f0585540c39d09cd5a",
+    "sourceCanonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "targetCanonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先明确系统受激输入，再采用阶跃作为统一比较信号。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9411623138058821f3b95f1b8e358c51",
+    "sourceCanonicalId": "ctc:modeling-afa39b57a646673e84b55f09",
+    "targetCanonicalId": "ctc:modeling-ebf5a771fd114720de11f6e3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-945492fb956b8a234e4c3d53775ec631",
+    "sourceCanonicalId": "ctc:modeling-1b36aff609b370e792d9dee6",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-952f2d8531eaf355f4f61095f9288d1c",
+    "sourceCanonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetCanonicalId": "ctkg:domainconcept:f43cea262e16b94cb63c8b5a",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:0c88d500416231a3d1a7b5ee",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:0c88d500416231a3d1a7b5ee",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-95a085d98902e3f5d085d460952b8227",
+    "sourceCanonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+    "targetCanonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构同时包含比例作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-96f10d504bbd4cc1920343dbfbe0084c",
+    "sourceCanonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "targetCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "区分一般传递函数极点与闭环极点所指对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-985afbd118c50f79179fd221f89e4a17",
+    "sourceCanonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetCanonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "识别局部反馈布置与串联、前馈布置的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-985c6e907496f7a6ebb75d79dc302204",
+    "sourceCanonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+    "targetCanonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "检查滞后校正后的相位裕度而不只检查误差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-98bf3ec524530980d33521b60e3c4182",
+    "sourceCanonicalId": "ctc:0f418dc24d2aacaaafdcdcc0",
+    "targetCanonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "必须先指定前向路径才能判断哪些回路与其接触。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-991de00d5ca59e09a6eefc466ea37941",
+    "sourceCanonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+    "targetCanonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "回路及其增益需要在有向信号流图中识别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-996858ff0dc9edc590c2714c47148b40",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8faec57bdc84832ad60e5a1f",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-99bdf12b5c5c965158321b1f91e43054",
+    "sourceCanonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "targetCanonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "拉氏变换在本课程用于将微分方程变为复域代数关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-99bfed96a107abf47b68addcc3d2dff3",
+    "sourceCanonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+    "targetCanonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在斜坡输入之后比较二次增长输入对应的跟踪要求。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-99e167e079a1ac57c6db9d2c06661713",
+    "sourceCanonicalId": "ctc:modeling-3abaeb7a2cbf8d77276bf23c",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9c08c4546c86a6e0fa0b55c4bfe1eed1",
+    "sourceCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "targetCanonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "模态分解按系统特征根组织响应分量。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9c5669ca64079216993b317a5f26b436",
+    "sourceCanonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+    "targetCanonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "变量平移后仍使用同一劳斯判据检查指定稳定度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9d4ff73920358317b970089af001d00a",
+    "sourceCanonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+    "targetCanonicalId": "ctkg:v3e-object-23665070dce851fbb0ebda8b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "全零行处理从上一行系数构造辅助多项式。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9dde90212ce61f4d03e3b7fb5aa190ec",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:65b1a16a65775a8037305769",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9e8fcc04e9bd3fcd76022eeb5760a9cd",
+    "sourceCanonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "targetCanonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "闭环结构依赖输出反馈形成闭合通路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9f5714dadbe5f5f044e81d9438f8c7f6",
+    "sourceCanonicalId": "ctc:modeling-4fe8840f2c796861bf5d2dae",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-9fda69bc5c5c5e3d405d3dcf883e6b63",
+    "sourceCanonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+    "targetCanonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "加速度输入对应加速度误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a07d4e61f0ae7bfa713d7518fdb0dc39",
+    "sourceCanonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+    "targetCanonicalId": "ctc:v11g-5a7e22337cb506e673b9affe",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a11e0ce30564568733057743149276ab",
+    "sourceCanonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+    "targetCanonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "一阶环节的转折频率由时间常数的倒数确定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a2d22fee25654e3df6826fc90739f956",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "极点从传递函数分母根定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a35360cf6947a797fff52aa6cd0ae939",
+    "sourceCanonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+    "targetCanonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "含零点二阶系统以二阶动态模型为基础。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a47e30194e7c92b35f81810a85dff5ef",
+    "sourceCanonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "targetCanonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构包含积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a66e274feb187bd49ad0a73f62731792",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "模态分解按系统特征根组织响应分量。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a6a6ce61f53d1c2fa056041f39396772",
+    "sourceCanonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetCanonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般校正目的下识别前向通道中的串联布置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a6eb88435cbc5212cb1b992c0a39b294",
+    "sourceCanonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+    "targetCanonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构包含积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a6f8db6dbba946ab47767814d13d90b4",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6f6471247adcf055ff64569a",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a8b82f77d8f4d41d0cf38188144ecc7e",
+    "sourceCanonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "targetCanonicalId": "ctkg:v3e-canonical-772065f42947b660c72584f3",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "二阶系统的定义依赖动态方程阶次。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a8eceea338b8d9d414ffc051c57922f9",
+    "sourceCanonicalId": "ctc:modeling-05fbe60f54c183c4e3ded892",
+    "targetCanonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "有理复域函数的反变换以部分分式展开分解为可求解项。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-a9b6d588f025faffb632487661301ea2",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:78740004842c245ca3b0aefd",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-aa2376e1685a75c594f471fa7d4377df",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:b36a0cecee2ff56394ebfc5d",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ab4de089079a7accfee828221594acf6",
+    "sourceCanonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+    "targetCanonicalId": "ctc:modeling-a2b2e4c67cee79eef87f3b81",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "前向路径是在信号流图中从输入到输出不重复节点的路径。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ac32abfdbf397a449c6f44b7e3e87cf6",
+    "sourceCanonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+    "targetCanonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "闭环传递函数需要先确定反馈连接和所选输入输出。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ac3c05a8b43085aea4a04687fad81a6e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "应用终值定理之前检查终值存在的极点前提。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-adfb5ff7091820324b46ad84d27cba8c",
+    "sourceCanonicalId": "ctkg:v3e-canonical-cb8b7f85d00d8e2dd1a5e38b",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ae7b05b4a4b7767adc392382e7564364",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "targetCanonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "该方法计算的是指定误差通道的稳态值。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-aeddd000ea5e9a11b19a1e6b1451a6e4",
+    "sourceCanonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+    "targetCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程以频率分量的作用解释频率响应的用途。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-aef6465619ea3dc7932ca7ecee8225e6",
+    "sourceCanonicalId": "ctkg:v3e-canonical-299c52f97e423f68b4ac6093",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-af7ca3b2658be99e3bd31221611aafc7",
+    "sourceCanonicalId": "ctc:modeling-c343400ab0cc996416d5a18a",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b017a9c0638b9488376ca253d1a683a8",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-object-863069c1389e01dcca80138a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "临界稳定的课程条件由虚轴单根及其他闭环极点位置判定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b05defecb384666ec0405b30495bd823",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:modeling-v2r-split-8f6ccd6e0cf66fa155c20aeb",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "极点从传递函数分母根定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b1cd7fec8ab0f2f29e495afbf6533617",
+    "sourceCanonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+    "targetCanonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "加速度输入对应加速度误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b26b15a2f85d420b6b697a87081812dc",
+    "sourceCanonicalId": "ctkg:v3e-object-797bab2e3f6333e28dccf1c6",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b2a0cbb57731c7f66b98c1c00f764c5e",
+    "sourceCanonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+    "targetCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "系统型别按所分析回路包含的原点极点数区分。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b2d55869851a4f5eae30addb8f84954d",
+    "sourceCanonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "targetCanonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "增益穿越按开环幅值等于一确定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b31278a1e0316afe2b829c6227fd1964",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "线性化是对非线性模型作局部近似而非全局等价替换。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b345428e7e0664267441fa6f0fd1c556",
+    "sourceCanonicalId": "ctkg:v3e-canonical-d5ecd8a503bab6ad1e14ea25",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b3766515ef902dea1559a06e1c9681c8",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "targetCanonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过极点相对虚轴的距离解释平移判稳的目标。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b455183ccfe137f7979e5f721d44069a",
+    "sourceCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "targetCanonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相位穿越按开环相角达到约定角度确定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b475316ee30d45a73d86e98f95e0584c",
+    "sourceCanonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+    "targetCanonicalId": "ctkg:domainconcept:42146fa04dc1459716346cc7",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先理解反馈误差修正，再比较扰动抑制能力。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b4950882d3441f9937993ce0f070f7e4",
+    "sourceCanonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "targetCanonicalId": "ctkg:m3-v1l:canonical-object:563362810a1baa53567a9d33",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "闭环带宽以低频增益基准下的幅值下降定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b55fb1667e16e30f2c8c4c5e54ceb354",
+    "sourceCanonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "targetCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "本课程传递函数模型以线性定常系统及零初值为前提。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b577c2a1d91e2e3274ff561cb3e50c8e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+    "targetCanonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先用一阶时间尺度解释进入误差带的速度，再讨论二阶估算。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b6445b550b02e5f5c2d972759af7755e",
+    "sourceCanonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+    "targetCanonicalId": "ctc:modeling-e8a0502ecb67f574a5cb6c1b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "余子式从流图特征式中删除与指定前向通路接触的回路项。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b6b6a1a97bf3b01e986c060677f46da9",
+    "sourceCanonicalId": "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+    "targetCanonicalId": "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "卷积表达需要单位脉冲响应作为系统核。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b73947f1e00f65dca83828267d357aec",
+    "sourceCanonicalId": "ctkg:v3e-canonical-da95a03f3b851fcd7239eac2",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b7c703d2543751c1733e87e2e21d6e53",
+    "sourceCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "targetCanonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "2-2 以单位阶跃响应为入口，随后定义调节时间等动态性能指标，属于同一教学主线中的直接依赖。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b824dc2ff96183459614f6679dafcd89",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-51cfdcf1f943a39dfc550be1",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般稳定性主题下单列有界输入输出的严格判定口径。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b8632ecff111aa8bc466bb67bc7be569",
+    "sourceCanonicalId": "ctc:modeling-1897336a3fe60360d9fea3aa",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-b906ee830bf0f6ee2d90da5fa6e99110",
+    "sourceCanonicalId": "ctc:modeling-50ed406e4478b481d868adfb",
+    "targetCanonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "梅森公式需要各条前向路径的余子式。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-baedc1a62cd59137075dd4efd179fc1e",
+    "sourceCanonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetCanonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "识别局部反馈布置与串联、前馈布置的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-bbe800a4cd080be6f65ce137ac44da19",
+    "sourceCanonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetCanonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般校正目的下识别前向通道中的串联布置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-bd18dc9f618a85f919629994c56e087c",
+    "sourceCanonicalId": "ctc:modeling-b2fd214ec64665147e16ff9d",
+    "targetCanonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构包含积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-bd4b77065a1ee3843359b5e4b850ee49",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:39ac7c77fc6c62d14466a017",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-bd53e9b21496323f5904e2d67d3d37e2",
+    "sourceCanonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+    "targetCanonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:975cdbbc1cc5cb2fb66e9926",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:975cdbbc1cc5cb2fb66e9926",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-bd62a66f6cffcec1a97f5b705aa3e08f",
+    "sourceCanonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+    "targetCanonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "检查滞后校正后的相位裕度而不只检查误差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-be7557998b0ea4e1c27f74d72acea38b",
+    "sourceCanonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+    "targetCanonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "灵敏度需要明确被比较的闭环传递关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-beb1f1510572a4ad0609d09fd1d7975f",
+    "sourceCanonicalId": "ctc:v11g-40aced4eb1298f7db801690b",
+    "targetCanonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c0196dde0e9e23eedea21be8c15bba5d",
+    "sourceCanonicalId": "ctkg:v3e-object-e16a21bf52b0d6a12485f477",
+    "targetCanonicalId": "ctkg:v3e-object-5a821f717b644300ab32cf21",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "手绘渐近线需要识别各转折位置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c0ebfd9ea405a7620bd3321aae2029bc",
+    "sourceCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "targetCanonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相位裕度比较相角与临界相角的差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c10f4cc35d57650d1bcb29be02f72648",
+    "sourceCanonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "targetCanonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先识别系统输入输出，再理解把测量送回比较的回路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c1167cec4f9ff518a1900c0456186d1d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+    "targetCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "传递函数使用输入输出的拉普拉斯变换比。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c1211002f270c040fa98ab7541195f2f",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用分级输出说明连续幅值假设在数字实现中的边界。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c1aa2468d1d2711d5d228629646fa768",
+    "sourceCanonicalId": "ctc:modeling-e4d5dedd058631068d41b452",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c223efaf5dd1375d9ba89928427bac8f",
+    "sourceCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "targetCanonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "调节时间依赖响应进入并保持在指定误差带内的定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c2a2480b9353b9fc7738980e5b7b1b70",
+    "sourceCanonicalId": "ctkg:domainconcept:476f9c2afd87ac51ab2159d3",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c2d0322622b9b2ddd037b06c21a94957",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "描述函数用于满足适用条件的非线性元件近似。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c388205164ee4d385df3fb14f1f588e6",
+    "sourceCanonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c41e89d5d94cc610ebe6b4bd04b66792",
+    "sourceCanonicalId": "ctc:modeling-70629af71e754aac8b740638",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c4583928754ad006dcbe39a275a1eee9",
+    "sourceCanonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "targetCanonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "反馈校正必须先明确局部反馈回路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c469e847ea5328b6a430a8b920a11aa1",
+    "sourceCanonicalId": "ctkg:v3e-canonical-23c4127cb1ffab795d290351",
+    "targetCanonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "非主导判断需要比较各模态的衰减速度和贡献。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c4c1f10033ffcae47ba8e95ccaa1f96d",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:13a498eacc1208a6a6511c62",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c515602a32fdded29715981b45b31fd4",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:03e84e6868be470e89d7b189",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c555e4c04c0c159a93e074d7c507054a",
+    "sourceCanonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+    "targetCanonicalId": "ctc:modeling-4c7a0114a15c9e4039f6d193",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "回路及其增益需要在有向信号流图中识别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c595e09a963fd6998ddf5f3bf3f6d54d",
+    "sourceCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "targetCanonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "描述函数以正弦输入和输出基波的幅相比定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c66f7ca9bc6c07d9ce6c3d6b4b20ae56",
+    "sourceCanonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+    "targetCanonicalId": "ctkg:v3e-canonical-6f26ed3a4175ff1a87158ec5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "斜坡输入对应速度误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c6b31a00e8d1db17a05112914d5f21c1",
+    "sourceCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c731146c49d596b54f1668caaf175dc1",
+    "sourceCanonicalId": "ctc:v11g-bde559972a3c77718ce84d2e",
+    "targetCanonicalId": "ctc:v12g-e3580535c0a12b79e0509f97",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "负增益参数的零度轨迹是广义参数情形的一个入口。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c7df2fefb235a393bc302cca2e8cd615",
+    "sourceCanonicalId": "ctkg:v3e-canonical-74b29ecc40c6189d1377bff8",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c7f53f40a6b181d22bbba5af6f2cb419",
+    "sourceCanonicalId": "ctkg:v3e-object-0a05ec9e84791b95d3794bc0",
+    "targetCanonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "识别局部反馈布置与串联、前馈布置的区别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c881de62453f2ae0e04449c5c28758fc",
+    "sourceCanonicalId": "ctkg:domainconcept:d582399ff6cef0663ad4e2a7",
+    "targetCanonicalId": "m1r-v1d:object:2ed1de38a2cdae7a9f98e0b4",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用测量噪声通道说明互补灵敏度的工程用途。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c8aae74925a005907bd8872c48f05af7",
+    "sourceCanonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "targetCanonicalId": "ctkg:v3e-canonical-09e1c3e14609b082a4501ead",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "静态误差系数法使用各输入类型的系数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-c9c4537e8dfb3e49400669d02254bcff",
+    "sourceCanonicalId": "ctkg:v3e-object-64dfc92ef15f84903e6cdd8a",
+    "targetCanonicalId": "ctkg:v3e-object-133c90435f61b9a83b7d4aaf",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cb59aa36972d8d0092c4eb3e39ff46ce",
+    "sourceCanonicalId": "ctc:modeling-c26fddc50074ec84707d5950",
+    "targetCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "本课程传递函数模型以线性定常系统及零初值为前提。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cb913957069ace1c58dd4f9f07a10204",
+    "sourceCanonicalId": "ctkg:v3e-object-b542152b1fb2cbb25d81dbb2",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cb9423e51cd9b6bd87ee10a7bfaef66d",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-865b301177a623225344064f",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般稳定性主题下单列有界输入输出的严格判定口径。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cba84e33d153a50589b89cd9e937f59b",
+    "sourceCanonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "targetCanonicalId": "ctkg:v3e-object-b51bc504a48917b2c5ec25c3",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "反馈校正必须先明确局部反馈回路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cbbc794dcd5eb4fb8c48ba9671324191",
+    "sourceCanonicalId": "ctkg:v3e-object-a7074b9889f65949ecaf5fe6",
+    "targetCanonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ce05b8206eec2ff19d32c5780eea89ab",
+    "sourceCanonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "targetCanonicalId": "ctkg:v3e-object-42f4fff2329a29d38cbcd4bc",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:968ea144dd83e967d31bd2d8",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:968ea144dd83e967d31bd2d8",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ce303414ceb081eba2275e0399241f4f",
+    "sourceCanonicalId": "ctkg:v3e-canonical-78695c721c91aa330f0e5865",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cebd94ed7413e197f49dcd81ce4d09ca",
+    "sourceCanonicalId": "ctkg:v3e-canonical-e22de9c6670a15c39d8e6b71",
+    "targetCanonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "稳态误差是指定误差信号暂态消失后的值。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cf2a23328eec5c714ff75c65ad659c2f",
+    "sourceCanonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "targetCanonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程用比例微分引入零点解释动态改善。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-cfe5115d2b63419aab4fa402f21bc097",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-d537d542fc83f3d91e2f6d72",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用摩擦说明起动与低速条件下线性预测的边界。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d118a970635be953f46b662a4b3baecf",
+    "sourceCanonicalId": "ctkg:v3e-canonical-368d65c22b394c81a41d3889",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d15056a96e6625bc86221e24589cb56f",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:451d032cc728cc7b2d78777d",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d1554e8647c10cf75cd7a2bce32aff06",
+    "sourceCanonicalId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetCanonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "比例控制以可调增益为作用规律。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d19deba261d0b6736f8c67cc107b550f",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/lessons/3-1/design/3-1-boppps.md",
+    "rationale": "稳定性分析以传递函数和极点语言为先行理解基础。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d1e0125e476da57601b7b8c4de72144e",
+    "sourceCanonicalId": "ctc:v11g-13a9994c50acce777819aa2a",
+    "targetCanonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "把频域判据结果读回闭环右半平面极点数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d23b4cbd101539db14cb39741aeb6d32",
+    "sourceCanonicalId": "ctkg:m3-v2h:canonical-object:0c5c3925013d2cbf3cb6419b",
+    "targetCanonicalId": "ctkg:m3-v2h:source-object:552dae0908d9e549e2e5603d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d312d3e45eed3e895b4b72b233d06690",
+    "sourceCanonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "targetCanonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "当仅调增益不足以满足指标时，课程引入校正结构选择。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d36240a117c565e0dca52263120957c5",
+    "sourceCanonicalId": "ctkg:v3e-object-a3766ceadc2ea4fc53517bc2",
+    "targetCanonicalId": "ctkg:v3e-object-5592624b3ec200b86f7b744d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d3658c606446b9c2eda426e69178c23a",
+    "sourceCanonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+    "targetCanonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "劳斯表是执行劳斯判据的系数阵列。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d467c95bdd1f58cf8a32c2dacb03e2ac",
+    "sourceCanonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+    "targetCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "部分分式方法用于一二阶阶跃响应的解析推导。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d61c50e642651205dcb494ad4b26cb4b",
+    "sourceCanonicalId": "ctc:modeling-1a01abb71d037ed52c2bc394",
+    "targetCanonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程从结构图的变量和方框引出流图节点及有向支路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d6f0730b01b12551eac77aa5b4486e2f",
+    "sourceCanonicalId": "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+    "targetCanonicalId": "ctkg:v3e-canonical-6461b91e08c647ceff0ceeee",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "加速度输入对应加速度误差系数的应用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d7793eaf1597f09b9a5434003fb8d981",
+    "sourceCanonicalId": "ctkg:v3e-canonical-259e4d04c7f9211c6b29d16e",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d79dfa8e97b707cbeedf90d48471c85e",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先满足稳定底线，再按任务比较动态、稳态与控制代价指标。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d7ab280529637eca834b8223bb95066e",
+    "sourceCanonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+    "targetCanonicalId": "ctc:modeling-5e62391de61ac1af304601cb",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程从结构图的变量和方框引出流图节点及有向支路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d7c2b4ef93b16f9dc99cafacafa95352",
+    "sourceCanonicalId": "ctkg:v3e-object-68d64f3444ac7af6336f1f81",
+    "targetCanonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "通过对照PI说明滞后网络的低频改善与截止频率变化。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d7e366f4130250d20fa31e5173ed3b3e",
+    "sourceCanonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+    "targetCanonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般校正目的下识别前向通道中的串联布置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d8dd71b58f2d029f693797d3ab31c7a6",
+    "sourceCanonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "targetCanonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "增益穿越按开环幅值等于一确定。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d9002edd39a403fc104e786829ac0640",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "把饱和作为线性规律失效的典型元件现象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-d90bfc65765e657b1586996cbdf248cf",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "典型环节通过 K/s 的传递函数表达积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-da37d8c4750f70531292037b02b5cb95",
+    "sourceCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "targetCanonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "上升时间是阶跃响应曲线上按约定定义的时间量。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-db18b6257057ec3cc3c9f44158356809",
+    "sourceCanonicalId": "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+    "targetCanonicalId": "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "从定值指令扩展到匀速变化指令，比较不同输入要求。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-dca4acdf47f73c4fd111fad8eb32e6c3",
+    "sourceCanonicalId": "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+    "targetCanonicalId": "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:e5539adad2a6dd21b5892b39",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:e5539adad2a6dd21b5892b39",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-dda8c17225f118d1196f45de65746f95",
+    "sourceCanonicalId": "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+    "targetCanonicalId": "ctkg:v3e-object-69aaaef625010f7755f253e8",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "把死区作为小信号输入不引起输出变化的典型现象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e01459f0ea566fcc952fe9de3af5f627",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+    "targetCanonicalId": "ctc:v11g-f0a551cbfb667c38018a1aa9",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "先掌握一般极点含义再限定为开环对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e142f1ba721a97b5b71373fb4a9e1807",
+    "sourceCanonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+    "targetCanonicalId": "ctc:modeling-385c515b4d8dbb550b664072",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "课程从结构图的变量和方框引出流图节点及有向支路。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e197b5ccc424bc71f4f3b06556dc7170",
+    "sourceCanonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "targetCanonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "PI结构包含积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e2b5965e0cac0f12ae67e304ca8e5bc8",
+    "sourceCanonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "targetCanonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相平面使用状态及其导数描述低阶动态。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e37b1ac6415cf4c2964112a6424be8e1",
+    "sourceCanonicalId": "ctkg:v3e-canonical-56682e1afa9b66eaf1f2d1c6",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e3c4e99f31b17264263bc9ad2d815a59",
+    "sourceCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "targetCanonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "Bode图同时表达相角随对数频率的变化。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e4023f65b13808ef2c50582de9c12333",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:035444f94f4424d5970ede61",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e4e13046700b9291235b3c0e8113c049",
+    "sourceCanonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "targetCanonicalId": "ctkg:v3e-object-953374e261302cfdff02144d",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相平面使用状态及其导数描述低阶动态。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e5ba1ece2cc2b8afada3db322dc03915",
+    "sourceCanonicalId": "ctkg:domainconcept:8f8da4642639723728daa0b5",
+    "targetCanonicalId": "m1r-v1d:object:2ed1de38a2cdae7a9f98e0b4",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在灵敏度通道旁建立互补灵敏度的噪声与跟踪解释。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e5f6ab056f922f04c55553302add4742",
+    "sourceCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "targetCanonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相位裕度比较相角与临界相角的差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e60f59f7d39014f1f76be45e25c7aec1",
+    "sourceCanonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "targetCanonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "增益裕度使用该频率处幅值的倒数。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e69fdbeb914b3347acf5e5c75eaaf0bf",
+    "sourceCanonicalId": "ctc:v11g-c8c8aef0d010e68842be7236",
+    "targetCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "系统型别按所分析回路包含的原点极点数区分。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e80469723a2a3c73021e14e512f4d1e9",
+    "sourceCanonicalId": "ctc:v11g-546566f01ae374379ec78c1e",
+    "targetCanonicalId": "ctc:v11g-a3d09e397d88f3ae13bc9d89",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e80aa0692c3240d81a28a29f3bd607d7",
+    "sourceCanonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+    "targetCanonicalId": "ctkg:v3e-object-f9ac171d68c8622f62106397",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "检查滞后校正后的相位裕度而不只检查误差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e81c70ee196fa0694eef5f97082fad95",
+    "sourceCanonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+    "targetCanonicalId": "ctkg:v3e-object-b3c5cdff9a0cefd89c42db14",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:ee1d2d9d5a53208cf91395dc",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:ee1d2d9d5a53208cf91395dc",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e83aa6bf3fbe53fa58eb880bb5491365",
+    "sourceCanonicalId": "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+    "targetCanonicalId": "ctkg:v3e-object-80b836e636775916830b5a21",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相轨迹是在已定义状态平面上的运动曲线。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e8ca346cceea42c58ae64df242b570e1",
+    "sourceCanonicalId": "ctkg:m3-v1l:canonical-object:9536bb480a03e3193e6e88d2",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e9c0b889409ba58ebc9e2c2f57904e7e",
+    "sourceCanonicalId": "ctk:bf0f5469bda82070fe86211a",
+    "targetCanonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-e9d26861d34669ff13754687f737a85c",
+    "sourceCanonicalId": "ctkg:v3e-object-1b720d82e3de003a38fa57f6",
+    "targetCanonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:d064decbaa3696873b3a39ab",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:d064decbaa3696873b3a39ab",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ebe9414acfe2615eb96122bcc1e703ad",
+    "sourceCanonicalId": "ctc:modeling-00d2998755974a1329049aac",
+    "targetCanonicalId": "ctc:v11g-e73425ff41e0f022a641c4cd",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:7c27a386da6cd4689718b344",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:7c27a386da6cd4689718b344",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f0aa123c6dbd4af40cf6af463d7b8289",
+    "sourceCanonicalId": "ctkg:v3e-object-6432b546cffc7431c0043607",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f1193f5a8ee007ea93552e3392e0657d",
+    "sourceCanonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+    "targetCanonicalId": "ctkg:v3e-canonical-1647a1b078950a5b81783825",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "测速反馈是指定速度量的局部反馈结构。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f1e326db02a5dae55efe4ea9657d79e6",
+    "sourceCanonicalId": "ctkg:v3e-object-8c4354096b719a1d5e090da4",
+    "targetCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/lessons/1-2/design/1-2-boppps.md",
+    "rationale": "当前建模蓝图先以拉普拉斯变换建立传递函数，再进入统一分析对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f26b83f8264015bfbf1ae457c7bf59fb",
+    "sourceCanonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+    "targetCanonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "从一般系统区分不使用输出反馈的开环结构。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f38e937d38de6d427b34456042803522",
+    "sourceCanonicalId": "ctkg:m3-v1i:canonical-object:b119bbd291671093ed77e284",
+    "targetCanonicalId": "ctkg:v3e-object-c7feed1b76e5a176381fc5e5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f3d4902c81941430b0c317d9f72d0ca0",
+    "sourceCanonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetCanonicalId": "ctkg:v3e-object-e281edb0bf991d873b515ce3",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:7943fb22cfd4aa58d62eb08f",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:7943fb22cfd4aa58d62eb08f",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f42e0fee6b7a3b79e76f7960f268b5f5",
+    "sourceCanonicalId": "ctkg:v3e-object-3fe181aa7c0967f58d1dbfee",
+    "targetCanonicalId": "ctkg:v3e-object-2805a69722f0a741c2479d22",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "从比例作用扩展到比例与微分的组合。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f4738921b055557fca576003fbcb896f",
+    "sourceCanonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+    "targetCanonicalId": "ctc:90af7a0497e616bbe6249c30",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "从数学模型转到描述动态的微分方程。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f5dd89b37e9fb326b2fbfba82e7959cb",
+    "sourceCanonicalId": "ctkg:v3e-canonical-a781b2b377529226a4c5d077",
+    "targetCanonicalId": "ctkg:v3e-canonical-416fc2acf005a7da54f9fce3",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "位置速度加速度误差系数需要识别对应型别。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f5f4f4416141455e05b089bd517bb7cb",
+    "sourceCanonicalId": "ctkg:v3e-object-ba8cd00d72479d23476d2061",
+    "targetCanonicalId": "ctkg:v3e-object-d5145d73b0cb5535eac9e81b",
+    "strength": "REQUIRED",
+    "evidenceRef": "engineering-relation:ctkg:m4-u2u5:prerequisite:0bedcdf97a62df3223b67ffc",
+    "rationale": "Adopted engineering learning-order ctkg:m4-u2u5:prerequisite:0bedcdf97a62df3223b67ffc",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f7b5259a495754728cccd3401e823e3e",
+    "sourceCanonicalId": "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+    "targetCanonicalId": "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用饱和环节校验基波近似的适用条件和局限。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f8643f2c1a33cd885b291fa58499d729",
+    "sourceCanonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "targetCanonicalId": "ctkg:v3e-object-7d20806108956a0f52c08f3a",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "以低频误差需求解释引入PI的目的和代价。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f8da4a5cf8f003d9b9b93d868981ae33",
+    "sourceCanonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+    "targetCanonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "区分一般传递函数极点与闭环极点所指对象。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f9226cff80fe83c516d2268823e23e72",
+    "sourceCanonicalId": "ctc:v11g-29bcae62e44c52ed219e6687",
+    "targetCanonicalId": "m1r-v1d:object:2ed1de38a2cdae7a9f98e0b4",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在灵敏度通道旁建立互补灵敏度的噪声与跟踪解释。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-f94a57923c97616cf2dd9507cd0a0983",
+    "sourceCanonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+    "targetCanonicalId": "ctkg:v3e-object-a5bc9701adc27b91f6da074b",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "劳斯表是执行劳斯判据的系数阵列。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fa030dd476e1caf10366eb9a9230ede8",
+    "sourceCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "targetCanonicalId": "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "峰值时间从响应首次超调峰值的位置定义。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fa2d4d2138e6dc15735afa7d9ad346e8",
+    "sourceCanonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+    "targetCanonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "用传递函数与输入相乘后求反变换得到响应。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fa453b284e2d1df9361802a1459412d4",
+    "sourceCanonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+    "targetCanonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在一般校正目的下识别前向通道中的串联布置。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-faea5c964ea7b587879f848e79d5fd0e",
+    "sourceCanonicalId": "ctc:modeling-8010502b57930c3dcb915af9",
+    "targetCanonicalId": "ctkg:v3e-canonical-4ce9b77cff23117a65f42588",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "需要明确引入零点改变了响应结构。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fb0598b7498828cd9a5d75e6710111cc",
+    "sourceCanonicalId": "ctkg:v3e-canonical-de9cd255c7e8770506442de0",
+    "targetCanonicalId": "ctkg:v3e-object-3af39a858b2949296df5387f",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "周期输入的谐波分量经线性系统分别响应后重构。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fb32a1e964f5190670fdaaf4e9992ed5",
+    "sourceCanonicalId": "ctkg:v3e-object-c6fd3f071d7b3ea64acf9760",
+    "targetCanonicalId": "ctkg:v3e-object-bc4ed78c68c59c9b4ab42d4d",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "变量平移后仍使用同一劳斯判据检查指定稳定度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fbe7ccbf72c14587accd5d658c32f83e",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctc:modeling-2088bbde171b2e9ef66070d5",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/lessons/2-1/design/2-1-boppps.md",
+    "rationale": "当前互动课程以传递函数之间的方框图化简推进闭环分析。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fc0c2c60fc12dbb5fb7c99a5e1640fab",
+    "sourceCanonicalId": "ctkg:v3e-canonical-0f7959abbcc9c7170d23770b",
+    "targetCanonicalId": "ctkg:v3e-canonical-cc82e137f42aa09df514e615",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "作主导近似时同时验证被忽略的快模态是否确实次要。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fd12229c4d8c1e69adf7ff87d3df0807",
+    "sourceCanonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+    "targetCanonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "相位裕度在增益穿越频率处读取。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fd340ead2f3852c4de46b2dfdeaef79c",
+    "sourceCanonicalId": "ctkg:m3-v1k:canonical-object:0afb07f025ba35cf5979d332",
+    "targetCanonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fd56f6357197a7ddd14b9d5f5960c587",
+    "sourceCanonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+    "targetCanonicalId": "ctc:modeling-239e401e0fcc8485f3a0533d",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "等效变换必须保持既有结构图的变量关系。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fd67a059ae79dfb963344346e4684d89",
+    "sourceCanonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+    "targetCanonicalId": "ctkg:v3e-object-b73224087c9c0475612e8635",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "检查滞后校正后的相位裕度而不只检查误差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fdead03fd619aed7e94fca572b096839",
+    "sourceCanonicalId": "ctc:modeling-v2r-5585bf06f0e579bc1c362ac2",
+    "targetCanonicalId": "ctc:modeling-07799c3f876317e36fe669f8",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "特征式由回路增益及互不接触回路乘积构成。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fe1676e59f8baf3df8aa15041ac64be6",
+    "sourceCanonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+    "targetCanonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "幅频特性是频率响应的幅值比部分。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fe5ad970dbd10c27d1b84a328f54b530",
+    "sourceCanonicalId": "ctkg:v3e-object-c4299241b84b2202369102e2",
+    "targetCanonicalId": "ctkg:v3e-object-4356a0ef2b2cdad7e94fd5ca",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-fefc2243862e1bd873f01a4c6e1984f9",
+    "sourceCanonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+    "targetCanonicalId": "ctkg:v3e-object-17cae71babbbfe193c0124a4",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "典型环节通过 K/s 的传递函数表达积分作用。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ff15ecbdac01c844673de498b635a85a",
+    "sourceCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "targetCanonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "在合法前提下使用终值定理计算稳态误差。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ff54192df1c069b03de36bbc1634e183",
+    "sourceCanonicalId": "ctkg:v3e-canonical-04fd7f69994f8821467462e5",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "REQUIRED",
+    "evidenceRef": "course-content/authoring/knowledge/teaching-projection/course-order/dependencies.jsonl",
+    "rationale": "终值定理通过拉普拉斯变换的极限求时间终值。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ff766c790dd3fa70fe6e3bd45b21b77d",
+    "sourceCanonicalId": "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+    "targetCanonicalId": "ctkg:domainconcept:27b69e7f2e837fd62dc31379",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ffa5bd7e5a99d87e90a377b4dccacc97",
+    "sourceCanonicalId": "ctkg:domainconcept:0604292c26e5cf53196f390d",
+    "targetCanonicalId": "ctkg:domainconcept:02e5b960f076b42478c001d9",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  },
+  {
+    "prerequisiteId": "prereq-ffb9fcd3ce8bdc2ed1d45415e871c13d",
+    "sourceCanonicalId": "ctkg:m3-v1j:canonical-object:48edbd2340e55d1762acc5c3",
+    "targetCanonicalId": "ctkg:v3e-canonical-115de5ef0289a778cf5b69c6",
+    "strength": "RECOMMENDED",
+    "evidenceRef": "course-content/runtime/knowledge/prerequisites/releases/proj-02667031961e9ea6a04b82edecb02546b1048f935661c605557a1d7f708bce53/edges.json",
+    "rationale": "保留已发布课程先后修及其原始强度。",
+    "scopeId": "act-control-theory"
+  }
+]

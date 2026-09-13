@@ -1,0 +1,1127 @@
+{
+  "shardClass": "domain-default",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+  "visualRole": "optimal",
+  "objects": [
+    {
+      "id": "ctkg:m1q:phase-g:source:0be203d44c747533f24ec7bc",
+      "canonicalType": "DomainConcept",
+      "label": "有约束梯度法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:0fa61871cf1a878696ffc0f4",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器理论",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:3e1369beccedd1c9a3b32e67",
+      "canonicalType": "DomainConcept",
+      "label": "控制域",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:4e39f1797ea3333fc99d507f",
+      "canonicalType": "DomainConcept",
+      "label": "最小时间控制",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:73c1edbf0eb92724a55d5ef1",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:86329e8f2b6c184747154a69",
+      "canonicalType": "DomainConcept",
+      "label": "目标集",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:8d975cac8d57b653810aae40",
+      "canonicalType": "DomainConcept",
+      "label": "极小值原理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:8f3eb818adacfb4bbd1403b4",
+      "canonicalType": "DomainConcept",
+      "label": "变分法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:98bdda41cc01fcf999ef1cc0",
+      "canonicalType": "DomainConcept",
+      "label": "数值计算法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:a2ebd484fa91012aaed92210",
+      "canonicalType": "DomainConcept",
+      "label": "区间消去法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:adcdf916ae61935ca913d006",
+      "canonicalType": "DomainConcept",
+      "label": "最少燃耗控制",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:b178d24007ea1db95507dc15",
+      "canonicalType": "DomainConcept",
+      "label": "解析法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:b7aaaf4975cb12371130f69b",
+      "canonicalType": "DomainConcept",
+      "label": "动态规划",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:b92bf373f4070c1fdd42e820",
+      "canonicalType": "DomainConcept",
+      "label": "线性二次型最优控制法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:c14dc59187664d8a36099266",
+      "canonicalType": "DomainConcept",
+      "label": "末值项",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:c5b9d4343933c86a327e9dc1",
+      "canonicalType": "DomainConcept",
+      "label": "梯度型法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:d5d1a4a8623ebd675fa4fec4",
+      "canonicalType": "DomainConcept",
+      "label": "经典变分法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:d94071a161cf88039949ca97",
+      "canonicalType": "DomainConcept",
+      "label": "输出跟踪系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:dc7bd0679d5954c66a8a35be",
+      "canonicalType": "DomainConcept",
+      "label": "经典微分法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:f310ff6dd591a2c2f23060c3",
+      "canonicalType": "DomainConcept",
+      "label": "无约束梯度法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:phase-g:source:fa4ec22e9cd6aa9278b34b17",
+      "canonicalType": "DomainConcept",
+      "label": "过程项",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:2fbc75456dfe61e6933cd4ee",
+      "canonicalType": "DomainConcept",
+      "label": "权阵 R(t)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:7f1c2a4b7defdf180cd358a9",
+      "canonicalType": "DomainConcept",
+      "label": "权阵 F",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:sol-supplement:source:dab96b1e6e02733852005d63",
+      "canonicalType": "DomainConcept",
+      "label": "权阵 Q(t)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:02524c34447741a6819893b3",
+      "canonicalType": "DomainConcept",
+      "label": "线性连续泛函",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:22cd74c562ea7736ffebec77",
+      "canonicalType": "DomainConcept",
+      "label": "有限时间时变状态调节器问题",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:27b2aecb99a117dacd1ef9a3",
+      "canonicalType": "DomainConcept",
+      "label": "最优控制",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:44f4ee302c194bdf70d2e5cd",
+      "canonicalType": "DomainConcept",
+      "label": "泛函的变分",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:7ba804183502bcdcd1d05448",
+      "canonicalType": "DomainConcept",
+      "label": "线性泛函算子",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:87ca8d72ee0483ae88a6957f",
+      "canonicalType": "DomainConcept",
+      "label": "输出跟踪系统问题",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:8b4a21b5389de93b1cf56221",
+      "canonicalType": "DomainConcept",
+      "label": "拉格朗日乘子法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:93f9cb978a744de81099410b",
+      "canonicalType": "DomainConcept",
+      "label": "线性二次型问题",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:97e97630ea05992f4d3e7e54",
+      "canonicalType": "DomainConcept",
+      "label": "线性二次型调节器 (LQR)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:98c3a9bfecf5e620d7a47117",
+      "canonicalType": "DomainConcept",
+      "label": "输出误差向量",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:a1aba833d74dcd167511bb1d",
+      "canonicalType": "DomainConcept",
+      "label": "输出跟踪控制",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:a767e4fec7db44fc62573ac5",
+      "canonicalType": "DomainConcept",
+      "label": "爬山法",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:ac2b8a5f58a6a086b769ae81",
+      "canonicalType": "DomainConcept",
+      "label": "泛函",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:b3348e63f6c3f02324406434",
+      "canonicalType": "DomainConcept",
+      "label": "横截条件",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:b79c58bbd1fa8f35cd308507",
+      "canonicalType": "DomainConcept",
+      "label": "宗量变分",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:bdeea9b30e840f4c163ebb5d",
+      "canonicalType": "DomainConcept",
+      "label": "ITAE方法PID控制器设计过程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:d4af18e4c03952083f079b4f",
+      "canonicalType": "DomainConcept",
+      "label": "变分法解最优控制问题",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:e2c11ca62ef17c8f439c9b0b",
+      "canonicalType": "DomainConcept",
+      "label": "最优控制系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:e9eff7ed1eeb2a176f409df3",
+      "canonicalType": "DomainConcept",
+      "label": "状态调节器问题",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m1q:source:fab542813621f896367d33f8",
+      "canonicalType": "DomainConcept",
+      "label": "连续泛函",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "m1q:sol-supplement:concept:finite-horizon-optimal-state-feedback-law",
+      "canonicalType": "DomainConcept",
+      "label": "有限时域最优状态反馈律",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+          "visualRole": "optimal",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "teachingRelations": [],
+  "teachingBoundaryObjects": [],
+  "teachingBoundaries": [],
+  "teachingCoverage": {
+    "status": "unavailable",
+    "domainId": "optimal-control-foundations-and-linear-quadratic-design",
+    "relationCount": 0,
+    "coreNodeCount": 0,
+    "uncoveredCoreNodeCount": 0,
+    "note": "教学关系暂不可用"
+  }
+}

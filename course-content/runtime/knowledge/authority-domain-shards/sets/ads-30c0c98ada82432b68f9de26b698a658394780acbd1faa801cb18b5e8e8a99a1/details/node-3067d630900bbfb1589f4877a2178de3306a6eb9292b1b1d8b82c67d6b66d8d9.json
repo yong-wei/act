@@ -1,0 +1,70 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:m3-v2p:canonical-object:64f6e66a201f62a98db0ee79",
+    "canonicalType": "KnowledgeStatement",
+    "label": "相交时自振稳定性判据",
+    "aliases": [],
+    "description": "当G(jω)曲线与负倒描述函数曲线相交时，若负倒描述函数沿振幅增加方向由不稳定区域进入稳定区域，则自振稳定；反之不稳定。自振振幅由交点处负倒描述函数确定，频率由G曲线确定。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-08/chapter-8/section-8.4/item-4/item-3",
+        "label": "自动控制原理（胡寿松，第8版） · 非线性系统存在周期运动时的稳定性分析"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-08/chapter-8/section-8.4/example-8.6",
+        "label": "自动控制原理（胡寿松，第8版） · 设具有饱和非线性特性的控制系统如图 8－48 所示，试分析："
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-08/chapter-8/section-8.6/example-8.11/item-2",
+        "label": "自动控制原理（胡寿松，第8版） · 稳定性分析基础"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

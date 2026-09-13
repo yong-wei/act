@@ -1,0 +1,65 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-0005c17b837d3fc1abc69c23",
+    "canonicalType": "KnowledgeStatement",
+    "label": "系统的稳态误差取决于 L(s)=G_c(s)G(s)H(s) 在原点处的极点数。原点处的极点可视为积分环节，因此系统的稳态精度最终取决于回路传递函数中积分环节的个数。",
+    "aliases": [],
+    "description": "The steady-state error of a system depends on the number of poles at the origin for L(s)=G_c(s)G(s)H(s). A pole at the origin can be considered an integration, and therefore the steady-state accuracy of a system ultimately depends on the number of integrations in the loop transfer function.",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-04/section-4.6",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · STEADY-STATE ERROR"
+      },
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-05/section-5.6",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · THE STEADY-STATE ERROR OF FEEDBACK CONTROL SYSTEMS"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

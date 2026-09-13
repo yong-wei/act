@@ -116,9 +116,38 @@ function main(): void {
   const authorings = collectAuthoringPaths().map((filePath) => (
     readJson<DomainTeachingFragmentAuthoring>(filePath)
   ));
+  const dropMissing = hasFlag('--drop-missing-endpoints');
+  const liveIds = new Set(
+    engineering.objects
+      .filter((object) => (
+        object.reviewStatus === 'approved'
+        && object.publicationStatus === 'published'
+        && (object.lifecycleStatus == null || object.lifecycleStatus === 'active')
+        && typeof object.canonicalId === 'string'
+      ))
+      .map((object) => object.canonicalId as string),
+  );
+  const droppedEndpoints: string[] = [];
+  const successorAuthorings = authorings.map((authoring) => {
+    if (!dropMissing) return authoring;
+    const dropped = new Set<string>();
+    const coreNodes = authoring.coreNodes.filter((node) => {
+      if (liveIds.has(node.canonicalId)) return true;
+      dropped.add(node.canonicalId);
+      return false;
+    });
+    const relations = authoring.relations.filter((relation) => {
+      if (liveIds.has(relation.sourceNodeId) && liveIds.has(relation.targetNodeId)) return true;
+      if (!liveIds.has(relation.sourceNodeId)) dropped.add(relation.sourceNodeId);
+      if (!liveIds.has(relation.targetNodeId)) dropped.add(relation.targetNodeId);
+      return false;
+    });
+    droppedEndpoints.push(...dropped);
+    return { ...authoring, coreNodes, relations };
+  });
   const artifacts = composeSuccessorDomainTeachingProjection({
     manifest: successorManifest,
-    authorings,
+    authorings: successorAuthorings,
     objects: engineering.objects,
   });
 
@@ -176,6 +205,7 @@ function main(): void {
       domainFragmentSetHash: artifacts.manifest.sourceHashes.fragments,
       snapshotId: artifacts.manifest.authorityBinding.snapshotId,
       fragmentIds: artifacts.fragments.map((fragment) => fragment.fragmentId),
+      droppedEndpoints: [...new Set(droppedEndpoints)].sort(),
     }, null, 2)}\n`,
   );
 }

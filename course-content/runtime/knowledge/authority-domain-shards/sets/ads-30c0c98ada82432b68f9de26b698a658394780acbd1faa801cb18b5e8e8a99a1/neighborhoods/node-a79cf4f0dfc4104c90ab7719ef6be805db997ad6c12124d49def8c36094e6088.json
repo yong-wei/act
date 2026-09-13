@@ -1,0 +1,498 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "canonicalType": "DomainConcept",
+      "label": "比例-微分控制",
+      "aliases": [
+        "比例-微分控制"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "time-domain-analysis",
+          "visualRole": "time",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "canonicalType": "DomainConcept",
+      "label": "比例-积分-微分控制规律",
+      "aliases": [
+        "比例-积分-微分控制规律"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4227f9f81472b4598986da7c",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=\\frac{K_{p}}{T_{i}} \\cdot \\frac{\\left(\\tau_{1} s+1\\right)\\left(\\tau_{2} s+1\\right)}{s}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-4bbfe0c9b47eeb4afcec5e9b",
+      "canonicalType": "Formula",
+      "label": "G_{c}(\\mathrm{j} \\omega)=\\frac{K_{2}\\left[1+\\left(2 \\zeta / \\omega_{n}\\right) \\mathrm{j} \\omega-\\left(\\omega / \\omega_{n}\\right)^{2}\\right]}{\\mathrm{j} \\omega}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-601af5c5a5653611324f4192",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID控制器在频域中的带阻滤波器特性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7f3c011f94ad894d0d0ab4a5",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=K_{p}\\left(1+\\frac{1}{T_{i} s}+T_{d} s\\right)=\\frac{K_{p}}{T_{i}} \\cdot \\frac{T_{i} T_{d} s^{2}+T_{i} s+1}{s}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-877184b13ee2ec45b6f157f8",
+      "canonicalType": "Formula",
+      "label": "G_{c}(s)=\\frac{K_{2}\\left(\\frac{K_{3}}{K_{2}} s^{2}+\\frac{K_{1}}{K_{2}} s+1\\right)}{s}=\\frac{K_{2}\\left(T_{d} s+1\\right)\\left(\\frac{T_{d}}{a} s+1\\right)}{s}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8bc79b76c8f4b4da96795268",
+      "canonicalType": "Formula",
+      "label": "\\tau_{1}=\\frac{1}{2} T_{i}\\left(1+\\sqrt{1-\\frac{4 T_{d}}{T_{i}}}\\right) ; \\tau_{2}=\\frac{1}{2} T_{i}\\left(1-\\sqrt{1-\\frac{4 T_{d}}{T_{i}}}\\right)",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-9040f7fd9681b81cefb63f71",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID控制器I部分和D部分在频域中的作用",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cc1ecbf4e18b36e4a64eaaa6",
+      "canonicalType": "Formula",
+      "label": "K_{1}^{2}>4 K_{2} K_{3} ; T_{d}>\\frac{1}{2 K_{2}}\\left(K_{1}-\\sqrt{K_{1}^{2}-4 K_{2} K_{3}}\\right) ; a=\\frac{K_{2} T_{d}^{2}}{K_{3}}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-d9df90f4a85055a1fe76b870",
+      "canonicalType": "KnowledgeStatement",
+      "label": "PID控制器对一阶或二阶被控对象效果明显",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-d1:association:14512d794fe9e9f2a858c7cd",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-canonical-6db84c73a9b0e833400e64fc",
+      "targetId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1i:relation-10d871a6f5275ea41a3289c3",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-601af5c5a5653611324f4192",
+      "targetId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1i:relation-1acc2a9ed5f982072f85cf54",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-9040f7fd9681b81cefb63f71",
+      "targetId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1i:relation-41a52a238dbed9dbb13b8280",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "targetId": "ctkg:v3e-object-4227f9f81472b4598986da7c",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1i:relation-a7cdebbf487d61e662adffaa",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "targetId": "ctkg:v3e-object-877184b13ee2ec45b6f157f8",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1i:relation-aee1036f3475cd42aa730082",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "targetId": "ctkg:v3e-object-8bc79b76c8f4b4da96795268",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1i:relation-c09b123c963e88ddfb449675",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "targetId": "ctkg:v3e-object-7f3c011f94ad894d0d0ab4a5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1i:relation-cef49e59cc0b76bc69672dae",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-d9df90f4a85055a1fe76b870",
+      "targetId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1i:relation-dac031afabd09cc232a2d89f",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "targetId": "ctkg:v3e-object-4bbfe0c9b47eeb4afcec5e9b",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1i:relation-f0249d0285e59e6181d52775",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-1ed9bb587fbb95c4e2057ba8",
+      "targetId": "ctkg:v3e-object-cc1ecbf4e18b36e4a64eaaa6",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

@@ -1,0 +1,62 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctk:6016065eff82a1155e7b2248",
+    "canonicalType": "KnowledgeStatement",
+    "label": "线性定常（LTI）系统对频率为 ω 的正弦信号的响应是同频率的正弦信号，其幅值比等于传递函数在输入频率处的幅值，相位差等于传递函数在输入频率处的相角。",
+    "aliases": [],
+    "description": "The response of an LTI system to a sinusoid of frequency ω is a sinusoid with the same frequency, with an amplitude ratio equal to the magnitude of the transfer function evaluated at the input frequency, and a phase difference equal to the phase of the transfer function evaluated at the input frequency.",
+    "teachingFields": {
+      "statement_type": "property_assertion"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "dorf-modern-control-systems-14th",
+        "sectionId": "textbook-unit:dorf-modern-control-systems@14th-global-edition/chapter-chapter-08/section-8.1",
+        "label": "Modern Control Systems (Dorf/Bishop, 14th) · INTRODUCTION"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+      "canonicalType": "DomainConcept",
+      "label": "一致稳定性",
+      "aliases": [
+        "一致稳定性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "canonicalType": "DomainConcept",
+      "label": "渐近稳定性",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "canonicalType": "DomainConcept",
+      "label": "一致渐近稳定性",
+      "aliases": [
+        "一致渐近稳定性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "canonicalType": "DomainConcept",
+      "label": "李雅普诺夫意义下的稳定性",
+      "aliases": [
+        "李雅普诺夫意义下的稳定性"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:0059627bd7923b648a35c66e",
+      "canonicalType": "Formula",
+      "label": "线性定常系统状态方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:0d8e6acaad93a69c7277e444",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫意义下稳定性的轨迹约束不等式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:3a4a907df98fa7b5625bdcd8",
+      "canonicalType": "Formula",
+      "label": "李雅普诺夫意义下稳定性的初始条件不等式",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:eaa4c189029c2356c5717699",
+      "canonicalType": "Formula",
+      "label": "线性定常系统平衡状态方程",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "lyapunov-stability",
+          "visualRole": "lyapunov",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-d1:association:02c8dcee2b7abf5f8d9fa6c3",
+      "predicate": "association",
+      "sourceId": "ctkg:domainconcept:ce5faebdf847052fdb481b31",
+      "targetId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:5cd72ec3081cc936d3d1247c",
+      "predicate": "association",
+      "sourceId": "ctkg:domainconcept:d071dec567505ce641aa9b15",
+      "targetId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:de3b390b021b6fa21d1af4a8",
+      "predicate": "association",
+      "sourceId": "ctkg:domainconcept:5f49b022cd74414f3b342231",
+      "targetId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:relation:0a21cf5769c7cd41e6bcb0d0",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:formula:0059627bd7923b648a35c66e",
+      "targetId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctkg:relation:29faedb8c6e99019079a70eb",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:formula:3a4a907df98fa7b5625bdcd8",
+      "targetId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctkg:relation:8138a2eb0c8c405d503426d2",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:formula:eaa4c189029c2356c5717699",
+      "targetId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctkg:relation:c457b48677ab35a10da7a852",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:formula:0d8e6acaad93a69c7277e444",
+      "targetId": "ctkg:domainconcept:d5c2a895fabd5e94f4be1d92",
+      "direction": "forward",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    }
+  ],
+  "boundaries": []
+}
