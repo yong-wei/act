@@ -1,0 +1,10 @@
+{
+  "contract": "act-authority-domain-display-catalog-stage/v1",
+  "stagedAt": "2026-09-13T14:40:00.000Z",
+  "predecessorCatalogSha256": "cbf6fb3676b30300e0eda6bb0bc1e6fb6fc854a47fc2ae80b5ca996e17ea6a5c",
+  "predecessorAuthoringSha256": "5dd6e9447f271c80742112783f08551238a41406b5e9fe82acf4cf4db2a4c504",
+  "snapshotManifestSha256": "39e0a79a6c4f1e4a792c59bceba2324495c8b38ec8d3e5faec5aeb2a2fa4d906",
+  "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+  "scopeHash": "6171cc3e5eecd1baab797c3a8ef84544072be886ca420fb3622f40d3657fe2e8",
+  "catalogStageHash": "a33e200d5cb039dc55aad218ea342e90e0b22210796bd1a2ebe22bd207dcf8b9"
+}

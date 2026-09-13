@@ -1,0 +1,928 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:formula:2da9d0f8555adf5e05d4af3f",
+      "canonicalType": "Formula",
+      "label": "磁盘驱动广义对象脉冲传递函数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:formula:6eeee023eee220db0edb4be2",
+      "canonicalType": "Formula",
+      "label": "磁盘驱动数字控制器",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "canonicalType": "DomainConcept",
+      "label": "磁盘驱动读取系统（Dorf 贯穿设计例）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "task_kind"
+    },
+    {
+      "id": "ctkg:m5-v047:knowledge-statement:20e0f066d58bf69c387fcc66",
+      "canonicalType": "KnowledgeStatement",
+      "label": "磁盘驱动 PID：斜坡与阶跃零稳态误差（Dorf §12.11）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "robust-control-analysis-and-design",
+          "visualRole": "robust-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:modelrepresentation:56f1adca244fd06087afe3ea",
+      "canonicalType": "ModelRepresentation",
+      "label": "磁盘驱动采样读取系统结构图",
+      "aliases": [
+        "磁盘驱动采样读取系统结构图"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:systemmodel:703096466a75f6381acd9faa",
+      "canonicalType": "SystemModel",
+      "label": "磁盘驱动采样读取系统模型",
+      "aliases": [
+        "磁盘驱动采样读取系统模型"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "discrete-time-control-design",
+          "visualRole": "discrete-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-3795477149fdfecdd45cea51",
+      "canonicalType": "KnowledgeStatement",
+      "label": "预期闭环特征方程（磁盘驱动）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-40731e5c0bda9b08552afe2f",
+      "canonicalType": "KnowledgeStatement",
+      "label": "取定的阻尼比和自然频率（磁盘驱动）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-51d7e44615308a876a8ef5e6",
+      "canonicalType": "KnowledgeStatement",
+      "label": "三阶闭环系统同样满足设计要求，其动态性能与二阶闭环系统性能相近，这说明二阶开环模型足以精确地描述磁盘驱动读取系统。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-64603cebe7ad39ae27863c19",
+      "canonicalType": "SystemModel",
+      "label": "PD控制二阶磁盘磁头驱动系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-655e2882d848ce9297d66c72",
+      "canonicalType": "KnowledgeStatement",
+      "label": "调节时间公式（磁盘驱动）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-6bd2b487c274c19317b8a082",
+      "canonicalType": "KnowledgeStatement",
+      "label": "使用Python control库对磁盘驱动控制系统进行仿真，计算无前置滤波器和有前置滤波器的闭环传递函数及扰动闭环传递函数。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-7dcc634caf0e08a7a56c1246",
+      "canonicalType": "KnowledgeStatement",
+      "label": "磁盘驱动读取系统的设计指标包括：单位阶跃响应超调量 σ% < 5%，单位阶跃响应调节时间 t_s < 50 ms （Δ=2%），单位阶跃扰动作用下的最大响应 < 5×10^{-3}。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-898e586fd62f675788888916",
+      "canonicalType": "KnowledgeStatement",
+      "label": "闭环特征方程（磁盘驱动）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-8abaebaa590e6fc412afd8f1",
+      "canonicalType": "KnowledgeStatement",
+      "label": "在磁盘驱动读取系统设计中，PD控制器引入的零点（s+z）会对闭环动态性能产生不利影响，通过配置前置滤波器Gp（s）可以消除该零点的影响，从而改善系统动态性能。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ba9b4a58b13bea068dd2083a",
+      "canonicalType": "KnowledgeStatement",
+      "label": "磁盘驱动控制系统要求超调量＜5%，调节时间＜50 ms，单位阶跃扰动响应峰值≤5.2×10^{-3}。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-c3f8b1df418f676cd7bd6381",
+      "canonicalType": "KnowledgeStatement",
+      "label": "用于仿真测试所设计的磁盘驱动控制系统，包括无前置滤波器和有前置滤波器的单位阶跃响应以及扰动响应。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "classical-control-design",
+          "visualRole": "design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-ca05d48e55e6e828acbf5224",
+      "canonicalType": "KnowledgeStatement",
+      "label": "系数相等方程组（磁盘驱动）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f9aa2612ff93336dda9b67e0",
+      "canonicalType": "KnowledgeStatement",
+      "label": "超调量公式（磁盘驱动）",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "m1r-v1d:object:55935b73a5eee453058daa99",
+      "canonicalType": "KnowledgeStatement",
+      "label": "磁盘驱动控制系统性能指标与实际性能",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "robust-control-analysis-and-design",
+          "visualRole": "robust-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "m1r-v1d:object:fdd2d84445c8dd297e1a2346",
+      "canonicalType": "ModelRepresentation",
+      "label": "带PID控制器的磁盘驱动反馈系统",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "robust-control-analysis-and-design",
+          "visualRole": "robust-design",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-v047:applies_to:207c0a0071c94a850b7d138c",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:formula:2da9d0f8555adf5e05d4af3f",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctkg:m5-v047:applies_to:36e197e69afe702228cde860",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:modelrepresentation:56f1adca244fd06087afe3ea",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctkg:m5-v047:applies_to:bc11752bad82b06949ba0a42",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:formula:6eeee023eee220db0edb4be2",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctkg:m5-v047:applies_to:da7295013c44ad7864a52ccb",
+      "predicate": "applies_to",
+      "sourceId": "m1r-v1d:object:fdd2d84445c8dd297e1a2346",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:0820d418112b4a90be552d2d",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-40731e5c0bda9b08552afe2f",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:0c176b42bcb8ea811ec1db7e",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-3795477149fdfecdd45cea51",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:1099a7691f6a86a56abaa790",
+      "predicate": "part_of",
+      "sourceId": "ctkg:m5-v047:knowledge-statement:20e0f066d58bf69c387fcc66",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:39f85b096feed4f792a73488",
+      "predicate": "part_of",
+      "sourceId": "m1r-v1d:object:55935b73a5eee453058daa99",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:42297cc0fd6359e1242b52ca",
+      "predicate": "part_of",
+      "sourceId": "ctkg:systemmodel:703096466a75f6381acd9faa",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:495e21b354b69111bfe37c6a",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-c3f8b1df418f676cd7bd6381",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:6d79940ebe24d5721d19b3c7",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-7dcc634caf0e08a7a56c1246",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:6f657c3c85cc1fcc6d9ae1a4",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-f9aa2612ff93336dda9b67e0",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:75ccc1dae7074cfe351660fe",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-898e586fd62f675788888916",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:9ce4a548195923e7d9f0fcd0",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-6bd2b487c274c19317b8a082",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:ae78f796076fd9c4451630c3",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-ca05d48e55e6e828acbf5224",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:c3eb1c02e64cc123d2e91df5",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-64603cebe7ad39ae27863c19",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:c76cf1095254dae1cd317751",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-655e2882d848ce9297d66c72",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:ddadae6f5b69ee115ef1ad13",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-51d7e44615308a876a8ef5e6",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:e9b73e46f11d508bc870801a",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-ba9b4a58b13bea068dd2083a",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "ctkg:m5-v047:part_of:ebdaa2648d695941630d1323",
+      "predicate": "part_of",
+      "sourceId": "ctkg:v3e-object-8abaebaa590e6fc412afd8f1",
+      "targetId": "ctkg:m5-v047:domainconcept:625cc62826ed9e5977d359fe",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    }
+  ],
+  "boundaries": []
+}

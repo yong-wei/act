@@ -7,6 +7,7 @@ import { loadLessonRuntimeEntry } from '@/lib/course-bundle';
 import { resolveHandoutAssetUrl } from '@/lib/handout-pdf';
 import { handoutHeadingIdByLine } from '@/lib/handout-heading-anchors';
 import { readReadableContentText } from '@/lib/runtime-content-path';
+import { HandoutHashScroll } from './handout-hash-scroll';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,7 @@ export default async function LessonHandoutPrintPage(
 
     return (
       <main className="min-h-screen bg-white text-slate-900" data-handout-print-ready="true">
+        <HandoutHashScroll />
         <style suppressHydrationWarning>{PRINT_PAGE_CSS}</style>
         <div className="mx-auto max-w-[820px] px-8 py-10">
           <header className="mb-8 border-b border-slate-200 pb-5">

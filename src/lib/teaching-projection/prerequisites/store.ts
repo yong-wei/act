@@ -306,7 +306,13 @@ export function stagePrerequisitePublication(
       artifacts: prior,
       reused: true,
       priorPreserved: true,
-      findings: result.findings,
+      findings: result.findings.length > 0
+        ? result.findings
+        : [{
+          code: result.errorCode ?? 'build-failed',
+          severity: 'error',
+          message: result.errorMessage ?? 'unknown failure',
+        }],
     };
   }
 

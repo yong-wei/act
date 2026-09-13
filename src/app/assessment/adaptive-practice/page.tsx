@@ -1258,6 +1258,51 @@ const DEMO_ARENA_JOURNEY_PATH_ROUND = {
   interventions: [],
 } satisfies LearningPathRoundView;
 
+const DEMO_ANCHORED_LAUNCH_NODE = {
+  ...DEMO_CONTROL_CORRECTION_PATH_NODES[1],
+  nodeId: 'demo-anchored-audio',
+  title: '1-1 讲解音频',
+  type: 'audio',
+  pathNodeType: 'resource',
+  displayName: '音频',
+  iconKey: 'audio',
+  sourceKind: 'teaching_projection',
+  sourceRef: 'act:audio:1-1',
+  target: '/interactive-learning/courses/unit-1-1-see-the-full-picture?media=1-1-audio&t=220',
+  appearance: 'first',
+  anchorLabel: '3:40–4:05',
+  status: 'current',
+  prerequisiteNodeIds: [],
+} as unknown as AdaptiveLearningPathPlan['mainPath'][number];
+
+const DEMO_ANCHORED_LAUNCH_PATH_PLAN = {
+  ...DEMO_CONTROL_CORRECTION_PATH_PLAN,
+  id: 'path-anchored-launch',
+  currentNodeId: DEMO_ANCHORED_LAUNCH_NODE.nodeId,
+  mainPath: [DEMO_ANCHORED_LAUNCH_NODE],
+  pathOptions: [{
+    optionId: 'path-option-1',
+    nodeIds: [DEMO_ANCHORED_LAUNCH_NODE.nodeId],
+    recommendationProvenance: DEMO_RECOMMENDATION_PROVENANCE,
+  }],
+  executionStatus: {
+    ...DEMO_CONTROL_CORRECTION_PATH_PLAN.executionStatus,
+    completedNodeIds: [],
+    activeNodeId: DEMO_ANCHORED_LAUNCH_NODE.nodeId,
+  },
+} as unknown as AdaptiveLearningPathPlan;
+
+const DEMO_ANCHORED_LAUNCH_PATH_ROUND = {
+  ...DEMO_CONTROL_CORRECTION_PATH_ROUND,
+  id: 'path-anchored-launch',
+  title: '锚定资源启动路径',
+  currentNodeId: DEMO_ANCHORED_LAUNCH_NODE.nodeId,
+  lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [] },
+  executions: [],
+  deviations: [],
+  interventions: [],
+} satisfies LearningPathRoundView;
+
 const learnerDataShell = buildLearnerDataRouteShell('/assessment/adaptive-practice');
 
 const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = {
@@ -3116,6 +3161,7 @@ export default function AdaptivePracticePage() {
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
   const isArenaJourneyDemo = isDemoMode && searchParams.get('arenaJourneyFixture') === '1';
+  const isAnchoredLaunchDemo = isDemoMode && searchParams.get('anchoredLaunchFixture') === '1';
   const isUnlockChainDemo = isDemoMode && searchParams.get('unlockChainScene') === '1';
   const recommendationProvenanceFixture = resolveRecommendationProvenanceFixture(
     searchParams.get('provenanceFixture'),
@@ -3873,26 +3919,31 @@ export default function AdaptivePracticePage() {
     setSelectedOption(demoData.defaultSelectedOption);
     setFeedback(demoData.feedback);
     setActivePathPlan(activeGoal === 'control-correction'
-      ? (isArenaJourneyDemo
-          ? DEMO_ARENA_JOURNEY_PATH_PLAN
-          : isUnlockChainDemo
-            ? DEMO_UNLOCK_CHAIN_PATH_PLAN
-            : demoRecommendationProvenancePlan(recommendationProvenanceFixture))
+      ? (isAnchoredLaunchDemo
+          ? DEMO_ANCHORED_LAUNCH_PATH_PLAN
+          : isArenaJourneyDemo
+            ? DEMO_ARENA_JOURNEY_PATH_PLAN
+            : isUnlockChainDemo
+              ? DEMO_UNLOCK_CHAIN_PATH_PLAN
+              : demoRecommendationProvenancePlan(recommendationProvenanceFixture))
       : null);
     setActivePathRound(activeGoal === 'control-correction'
-      ? (isArenaJourneyDemo
-          ? DEMO_ARENA_JOURNEY_PATH_ROUND
-          : isUnlockChainDemo
-            ? null
-          : useLockedNodeDecisionFixture
-            ? DEMO_LOCKED_NODE_PATH_ROUND
-            : DEMO_CONTROL_CORRECTION_PATH_ROUND)
+      ? (isAnchoredLaunchDemo
+          ? DEMO_ANCHORED_LAUNCH_PATH_ROUND
+          : isArenaJourneyDemo
+            ? DEMO_ARENA_JOURNEY_PATH_ROUND
+            : isUnlockChainDemo
+              ? null
+            : useLockedNodeDecisionFixture
+              ? DEMO_LOCKED_NODE_PATH_ROUND
+              : DEMO_CONTROL_CORRECTION_PATH_ROUND)
       : null);
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
   }, [
     activeGoal,
+    isAnchoredLaunchDemo,
     isArenaJourneyDemo,
     isUnlockChainDemo,
     recommendationProvenanceFixture,

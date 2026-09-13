@@ -1,6 +1,6 @@
 {
   "contract": "teaching-projection-ledger-governance-report/v1",
-  "generatedAt": "2026-09-09T15:11:21.232Z",
+  "generatedAt": "2026-09-13T14:57:39.341Z",
   "ledgerPath": "course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl",
   "quotas": {
     "contract": "teaching-projection-ledger-quotas/v1",
@@ -11,9 +11,10 @@
     "out-of-round-textbook": 0,
     "explicit-exemption": 1689
   },
-  "total": 1606,
+  "total": 1863,
   "countsByReason": {
-    "explicit-exemption": 1606
+    "explicit-exemption": 1656,
+    "unknown-canonical": 207
   },
   "entries": [
     {
@@ -368,6 +369,11 @@
     },
     {
       "resourceId": "act:infographic:ctc_modeling-56a9fb0159828d74278483da",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctc_modeling-57fe9fb7d5fdd731b82b9408",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -832,6 +838,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctc_modeling-c5b0f0ad36036b531f6bcdec",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctc_modeling-c7e02ad3e9eb1c529a54d16a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -1042,6 +1053,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctc_modeling-v2r-split-0045791b9009bbe457f6e17a",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctc_v11g-01781c7700bbf33340d39614",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -1087,12 +1103,27 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctc_v11g-40ac1517fc1bfb398dd75afe",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctc_v11g-44d931dcd9405d845e782f87",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctc_v11g-485febfa90a27cfcedd997ff",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctc_v11g-5322cdb3c781cb7b9828732a",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctc_v11g-5845390ded447e37f06ea222",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -1147,6 +1178,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctc_v11g-9c541f3aa2bc9db1fe6a6c02",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctc_v11g-a066f5e5a1852fcde776a250",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -1182,12 +1218,22 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctc_v11g-c3abeee0067f823ed190d79e",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctc_v11g-ca75f7e80d0a7ffd93fcbae5",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
     {
       "resourceId": "act:infographic:ctc_v11g-cd72ae39f59955a649bff662",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctc_v11g-d20816e0005b7c325c7f4477",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2137,6 +2183,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-canonical-3f9a17723cabd4ab7d19c3da",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-423faabaff2ff11b70399228",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -2168,6 +2219,16 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-canonical-503d2c6683ea029b37af79d3",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-canonical-55743366373a5197b074831b",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-canonical-5feb0e2f507966e1ca9ac627",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2217,7 +2278,17 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-canonical-8d347fba98e0aff074800c8e",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-9cfc0f6b382440f46c1f3302",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-canonical-a2746b2f0c88f376c4d86e7a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2228,6 +2299,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-canonical-ac9111bcfe5798a35bf92638",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-canonical-ade112ca8305a54c0b76a828",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2342,6 +2418,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-canonical-eaee7091900b796af8d937c1",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-canonical-ef5630b5a74449df22ea0222",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -2373,6 +2454,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-001f3d1e666624493091691f",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-003aff0599f6e3790bfdb93a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2507,6 +2593,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-1010934a92a0dacb1caec1e2",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-10392ceace3daf30af90f6e7",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -2528,6 +2619,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-11feec6295c98da3e56a7832",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-13e696ca025028445460f1df",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2567,7 +2663,17 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-16f7c2fa5fc07204ca43c086",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-17f97568592a217c1d332948",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-1814aa5f9d6ef8ed0ef75dfa",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2632,7 +2738,17 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-224a99f37dc359e50c070e54",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-22b4d8381af61f295e88100e",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-22c09bec3824e6b6d0e4d83b",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2643,6 +2759,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-232cff230e48397cf46cb944",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-2352b539ff08187f42885709",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2713,6 +2834,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-2b6644abd74af728f92d1b25",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-2be71df1c8c0152ac5f69c1b",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -2827,6 +2953,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-376c29d091d24239e88fc4c4",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-3784992e294bb2f120cdc0df",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -2873,6 +3004,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-3dcfcc93901edd979be43f5c",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-3e15ed6ae20f1d1e4d170e57",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3007,6 +3143,16 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-4f3c574bf5cd52ae72e30600",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-5104f48a9527029987e0519a",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-51398ddba323aa3beeb5d89a",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3032,6 +3178,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-5353a18bed51a9273ba59709",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-53d71370dc7c98dc11b24a37",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3043,6 +3194,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-542c371afb4374a5f7b7be5f",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-548b056b7b4bc0e10290af72",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3093,6 +3249,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-58cea2373f68416e096759a9",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-58de4bcc9bc42be0ce31abb7",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3213,6 +3374,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-64e8b62fbd0bb7ae801304db",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-655c25a7c9e926bc0004b983",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3432,6 +3598,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-7e274b7e5ef258bd54400783",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-7eb703ff92835fa45948a0bf",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3527,6 +3698,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-8496155b16d82318d90949d0",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-868cdcdd22cf6d7b46ac2aa8",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3538,6 +3714,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-86d5f30d2f3bbb90aaccb759",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-87119ed807a83a53c1444215",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -3852,6 +4033,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-ac5da367d445afc46b4baca3",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-ad9dd2d6032f3c150c03fc49",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -3893,6 +4079,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-b0da8811ce5c0b404585f821",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-b1568607de5e6fd3cba5663f",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4077,6 +4268,11 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-ca9a0f1d11f07f2bbd471a38",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-cb18c47f552c6b128f9b52c8",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -4128,6 +4324,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-cfee5cc12bf4f8da26e41ff1",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-d09d1eba56a786a96d39d085",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4218,6 +4419,11 @@
     },
     {
       "resourceId": "act:infographic:ctkg_v3e-object-dc824b634d98afec12f44ff1",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-dcb227bd6a2bb08a122e52d0",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
     },
@@ -4472,6 +4678,16 @@
       "detail": "authority-infograph-outside-overlay"
     },
     {
+      "resourceId": "act:infographic:ctkg_v3e-object-fb97ed4cffee0e2317af990e",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:ctkg_v3e-object-fbebd7b09546031f82f974ed",
+      "reason": "explicit-exemption",
+      "detail": "authority-infograph-outside-overlay"
+    },
+    {
       "resourceId": "act:infographic:ctkg_v3e-object-fc04597b173e68c152f0c971",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
@@ -4480,6 +4696,11 @@
       "resourceId": "act:infographic:ctkg_v3e-object-fe85b0f6dfed46e36c9f87a0",
       "reason": "explicit-exemption",
       "detail": "authority-infograph-outside-overlay"
+    },
+    {
+      "resourceId": "act:infographic:Bode图_1_1",
+      "reason": "explicit-exemption",
+      "detail": "legacy-infograph-card-exempt"
     },
     {
       "resourceId": "act:infographic:IMC_SIMC与模型匹配整定_4_42013",
@@ -4732,6 +4953,11 @@
       "detail": "legacy-infograph-card-exempt"
     },
     {
+      "resourceId": "act:infographic:带宽频率_5_6996a44a",
+      "reason": "explicit-exemption",
+      "detail": "legacy-infograph-card-exempt"
+    },
+    {
       "resourceId": "act:infographic:幅角原理_5_f843970e",
       "reason": "explicit-exemption",
       "detail": "legacy-infograph-card-exempt"
@@ -4797,6 +5023,11 @@
       "detail": "legacy-infograph-card-exempt"
     },
     {
+      "resourceId": "act:infographic:描述函数法_8_849fa8a1",
+      "reason": "explicit-exemption",
+      "detail": "legacy-infograph-card-exempt"
+    },
+    {
       "resourceId": "act:infographic:描述函数适用条件_5_52003",
       "reason": "explicit-exemption",
       "detail": "legacy-infograph-card-exempt"
@@ -4848,6 +5079,16 @@
     },
     {
       "resourceId": "act:infographic:校正_1_1",
+      "reason": "explicit-exemption",
+      "detail": "legacy-infograph-card-exempt"
+    },
+    {
+      "resourceId": "act:infographic:根轨迹_1_1",
+      "reason": "explicit-exemption",
+      "detail": "legacy-infograph-card-exempt"
+    },
+    {
+      "resourceId": "act:infographic:根轨迹_4_c19f8854",
       "reason": "explicit-exemption",
       "detail": "legacy-infograph-card-exempt"
     },
@@ -4918,6 +5159,11 @@
     },
     {
       "resourceId": "act:infographic:稳态误差双路径判断_3_37002",
+      "reason": "explicit-exemption",
+      "detail": "legacy-infograph-card-exempt"
+    },
+    {
+      "resourceId": "act:infographic:穿越频率_5_c4c2b93c",
       "reason": "explicit-exemption",
       "detail": "legacy-infograph-card-exempt"
     },
@@ -5113,6 +5359,11 @@
     },
     {
       "resourceId": "act:infographic:频域PI与滞后整定_4_42010",
+      "reason": "explicit-exemption",
+      "detail": "legacy-infograph-card-exempt"
+    },
+    {
+      "resourceId": "act:infographic:频域响应_1_1",
       "reason": "explicit-exemption",
       "detail": "legacy-infograph-card-exempt"
     },
@@ -7960,6 +8211,1041 @@
       "resourceId": "act:textbook-section:cts.section-9e70c036da5b849ca5d64784",
       "reason": "explicit-exemption",
       "detail": "franklin-feedback-control-7th"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-01:unnumbered-009",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:75bb9455b7033d0d7856decc"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-03:section-3.3",
+      "reason": "unknown-canonical",
+      "detail": "ctc:modeling-8a0ff75844bf161eeea3c542"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-03:unnumbered-004",
+      "reason": "unknown-canonical",
+      "detail": "ctc:modeling-8a0ff75844bf161eeea3c542"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-04:section-4.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:c4223390d01343ed903a1de4"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-04:section-4.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:d59701f04ecd244e0d27dc18"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-04:section-4.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2k:canonical-object:c917b49a88e4aea2003ea698"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-04:unnumbered-005",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:75bb9455b7033d0d7856decc"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-05:section-5.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-05:section-5.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-05:section-5.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-58cea2373f68416e096759a9"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-05:section-5.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-06:section-6.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2b:canonical-object:12f9f8b6f6fcb55e6fda7f84"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-06:section-6.3:example-6.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2b:canonical-object:12f9f8b6f6fcb55e6fda7f84"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.3",
+      "reason": "unknown-canonical",
+      "detail": "ctc:v11g-5845390ded447e37f06ea222"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:f46dccc18d7347d61bb2aff8"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.3:example-7.1",
+      "reason": "unknown-canonical",
+      "detail": "ctc:v11g-5845390ded447e37f06ea222"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.3:example-7.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:f46dccc18d7347d61bb2aff8"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2i:source-object:0796a0bb402f027b8eedc089"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-07:section-7.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2m:source-object:e2f7eea06f8edf062d2c828a"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-08:unnumbered-008",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-02ce94d02ad32ee9bc5528e9"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-08:unnumbered-008",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-5856b2f2fd4c962c52631609"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.3:example-9.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1i:canonical-object:ab407319fd4c0bb03a7ac22f"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1l:canonical-object:0288016a76137a098bdb289a"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1l:canonical-object:e4aa1efbfab8c99ea3092757"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1l:source-object:d869815552dccc11bd9f2c54"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.5:example-9.7",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1l:canonical-object:e4aa1efbfab8c99ea3092757"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-09:section-9.5:example-9.7",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1l:source-object:d869815552dccc11bd9f2c54"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-10:section-10.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-84350edf4a87ec7d0552e03e"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-10:section-10.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-003aff0599f6e3790bfdb93a"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-10:section-10.5:example-10.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-003aff0599f6e3790bfdb93a"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-10:section-10.7:example-10.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-003aff0599f6e3790bfdb93a"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-10:section-10.9",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-d80da04d9d355b4af6fec9f9"
+    },
+    {
+      "resourceId": "act:textbook-section:dorf-modern-control-systems:chapter-chapter-12:section-12.7:example-12.8",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2m:canonical-object:ed9e310c8366ebba4c13be8f"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-03:section-3.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-03:section-3.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-03:section-3.4:section-3.4.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-ade112ca8305a54c0b76a828"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-03:unnumbered-036:section-3.1.8",
+      "reason": "unknown-canonical",
+      "detail": "ctc:modeling-e4b326508cc8d382de9da525"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-04:unnumbered-022",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-04:unnumbered-022:example-4.10",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctc:v11g-5845390ded447e37f06ea222"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:3e1544faa0fa9cbb609d84ae"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:6cc8a5752304d09f4fc76cb7"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:7b850ca36e27774e4ac4c1c3"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:84469768912b5a0d1175c8c7"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:cb2689ede46ff97ca478d053"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2:section-5.2.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:7b850ca36e27774e4ac4c1c3"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2:section-5.2.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:cb2689ede46ff97ca478d053"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.2:section-5.2.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:f46dccc18d7347d61bb2aff8"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:section-5.6:section-5.6.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:6cc8a5752304d09f4fc76cb7"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-05:unnumbered-019",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:3e1544faa0fa9cbb609d84ae"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-06:unnumbered-003:unnumbered-002",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-8496155b16d82318d90949d0"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-06:unnumbered-003:unnumbered-011",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-02ce94d02ad32ee9bc5528e9"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-08:section-8.5:section-8.5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:7fe6f3265399479fdcf4f742"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-08:section-8.5:section-8.5.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-89a95ab28be324dc6d7040c5"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-08:section-8.7",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:0ff64a35d001e2c9393df2ca"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-09:section-9.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-09:section-9.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-09:section-9.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-5353a18bed51a9273ba59709"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-09:unnumbered-011:example-9.7",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57"
+    },
+    {
+      "resourceId": "act:textbook-section:feedback-control-of-dynamic-systems:chapter-chapter-09:unnumbered-012",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3e15ed6ae20f1d1e4d170e57"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-02:chapter-2:section-2.2:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctc:modeling-cd450f490c2d0e12795560a9"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.1:item-2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1j:canonical-object:a917ed3f93905afc7ffab697"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.2:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.2:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:f51115d2ed968014f4f4b3e9"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.3:example-3.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.3:item-2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.3:item-2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3eecf8e1bd7a80cd6b11646d"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.3:item-2:second-order-analysis-3:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:c7cc2f616bfb2c6cdd6333bc"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.3:item-2:second-order-analysis-3:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:ea66b99fa9c8cac1f149c856"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.3:item-2:second-order-analysis-3:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-beda4f489d31d479ad0b3c6d"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.3:item-5:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:f51115d2ed968014f4f4b3e9"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.4:example-3.7",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:1574c7db84468964721bb443"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.4:example-3.7",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.4:example-3.7:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:1574c7db84468964721bb443"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-d09d1eba56a786a96d39d085"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.5:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-d09d1eba56a786a96d39d085"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-58de4bcc9bc42be0ce31abb7"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-c429eb75a78f367236589b27"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.5:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-64e8b62fbd0bb7ae801304db"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.12",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2f:source-object:3bafca95ac7466898d2033f8"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.14",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.14:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:275296ae58e9a926faac7ae3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.14:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:be726bac049cf9cd8b4c2324"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.14:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.14:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2f:source-object:3bafca95ac7466898d2033f8"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.14:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2be71df1c8c0152ac5f69c1b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.15",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:be726bac049cf9cd8b4c2324"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.15",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:example-3.15",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2f:source-object:3bafca95ac7466898d2033f8"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:be726bac049cf9cd8b4c2324"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-552526e2ba53ccbf629d1cd8"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-03:chapter-3:section-3.6:item-6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1j:canonical-object:c08c249b4c0953e21905b2fd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.1:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctc:v11g-c3abeee0067f823ed190d79e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.2:example-4.3:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3efb972a33b0a45162a5d04a"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.3",
+      "reason": "unknown-canonical",
+      "detail": "ctc:v11g-d20816e0005b7c325c7f4477"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.3:example-4.6",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3efb972a33b0a45162a5d04a"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.3:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctc:v11g-d20816e0005b7c325c7f4477"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:1574c7db84468964721bb443"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.4:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.4:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:1574c7db84468964721bb443"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-04:chapter-4:section-4.4:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-canonical-8d347fba98e0aff074800c8e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.1:item-2:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-24049f89f0fc4303e892fc37"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.2:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-1814aa5f9d6ef8ed0ef75dfa"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.2:item-2:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-ac5da367d445afc46b4baca3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.4:example-5.14-occurrence-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:d39faa7168016a381956c62d"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.4:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:d39faa7168016a381956c62d"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.4:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:d39faa7168016a381956c62d"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-13e696ca025028445460f1df"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-531c51135a4903c618a0fc8b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.5:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1l:canonical-object:0288016a76137a098bdb289a"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.5:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-13e696ca025028445460f1df"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v1l:canonical-object:0288016a76137a098bdb289a"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-05:chapter-5:section-5.5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-13e696ca025028445460f1df"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.1:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-5104f48a9527029987e0519a"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-84350edf4a87ec7d0552e03e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.2:item-1:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-22c09bec3824e6b6d0e4d83b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.2:item-1:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2352b539ff08187f42885709"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.2:item-1:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2352b539ff08187f42885709"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.3:item-2:item-5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2j:source-object:1dd4d74722ed7a9bb2d17e0b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.3:item-2:item-5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.3:item-2:item-5",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.4:example-6.4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-84350edf4a87ec7d0552e03e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.6:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.6:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-dcb227bd6a2bb08a122e52d0"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-06:chapter-6:section-6.6:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:6b32986633be2c4347fa679c"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-9c2c202d7940f9cd4af8fae8"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.1:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2c60af6bdfb932de8cc33ca5"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.1:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-30cb7d43e8cbe99fe69e5e39"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.1:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-a71a5210c13aa5d476ee8044"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3d75878fdf803ba103376aab"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-dc50b3677e3701df866374cd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.2:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-7f8322d930ad015c80e143ed"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.2:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:59058addd30398485c529e9f"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.2:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-3d75878fdf803ba103376aab"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.1:example-7.2:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-7f8322d930ad015c80e143ed"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2c60af6bdfb932de8cc33ca5"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-ecc6832589e61331293846d6"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:b6aa705c3bcc3630a4c1962b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-0648b4124cfb8bb86fb66bd1"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-30cb7d43e8cbe99fe69e5e39"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-9c2c202d7940f9cd4af8fae8"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:ce58ea6e6a7dad56e9b4a8cd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:d896c1f43c2ff7a05c1543b4"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-241ca37a0246525596c75694"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-2f12669555aed67867c3b7cd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.2:item-5:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-381b2e1644e5dcb97bdc790b"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.4:example-7.19",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:ce58ea6e6a7dad56e9b4a8cd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.4:example-7.19",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:d896c1f43c2ff7a05c1543b4"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.4:item-3:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctc:modeling-f6fc65484fb95cf89b67364f"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.5:example-7.27",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:be726bac049cf9cd8b4c2324"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.5:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-683669a4b467dc55ddcf5d48"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:236ec108cc45299398bac0b8"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-c48ceeda1ba4dc2b7714e367"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:36950d29dd27bdca0a483237"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:492c3f3c5e6d3c57cc074391"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:a240f21a63737d5ac0361daa"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-2:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:492c3f3c5e6d3c57cc074391"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:83e1bbae1654f73fec3c77f3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:adbc098775012a91ff4207e3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:83e1bbae1654f73fec3c77f3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:adbc098775012a91ff4207e3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:83e1bbae1654f73fec3c77f3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:adbc098775012a91ff4207e3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:36950d29dd27bdca0a483237"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:83e1bbae1654f73fec3c77f3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-3:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:adbc098775012a91ff4207e3"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.7:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2i:source-object:0796a0bb402f027b8eedc089"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-07:chapter-7:section-7.8:example-7.31",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:knowledgestatement:b83f440b480ad27ab355f116"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-08:chapter-8:section-8.1:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-655c25a7c9e926bc0004b983"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-08:chapter-8:section-8.1:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-655c25a7c9e926bc0004b983"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-08:chapter-8:section-8.3:item-3:item-2-occurrence-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-376c29d091d24239e88fc4c4"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-08:chapter-8:section-8.4:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-4f3c574bf5cd52ae72e30600"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-08:chapter-8:section-8.4:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-5353a18bed51a9273ba59709"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.1:item-4:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctc:modeling-f7f31cc3da9f59e28b9239f5"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.1:item-6:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-a0b267c5121ab0aea33b99e0"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-f1582fd7cc28d16eb111854d"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-fc04597b173e68c152f0c971"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.2:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-f1582fd7cc28d16eb111854d"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.2:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:v3e-object-fc04597b173e68c152f0c971"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.2:item-3:solution-occurrence-4",
+      "reason": "unknown-canonical",
+      "detail": "ctc:modeling-f7f31cc3da9f59e28b9239f5"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:b4aa88340e051572c027eb23"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:b7fc2ba69b902e77c74aea53"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:dbcf19cd7faa70a7b71ba715"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:fe96c44d0bc1b877a573201e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:b7fc2ba69b902e77c74aea53"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-1:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-1:item-2",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:34a8b4f81f0f5b8cf9f04107"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-1:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-1:item-4",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:e5a2fdfc7f92f0f96dd773fd"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-2:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:b4aa88340e051572c027eb23"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-2:solution",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:b7fc2ba69b902e77c74aea53"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:9a8a7e75e47dc5117ebb7adc"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:a09e623edf21b6aaa676b0a5"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-3",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:fe96c44d0bc1b877a573201e"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.3:item-4:item-1",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:domainconcept:b7fc2ba69b902e77c74aea53"
+    },
+    {
+      "resourceId": "act:textbook-section:hu-shousong-auto-control-8th:chapter-chapter-09:chapter-9:section-9.5:example-9.27",
+      "reason": "unknown-canonical",
+      "detail": "ctkg:m3-v2f:source-object:1ae85e46efb099cb60daed3c"
     },
     {
       "resourceId": "act:simulation:arena-task-cruise-roll-blackbox-identification",

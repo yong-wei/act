@@ -39,6 +39,15 @@ function readJson<T>(filePath: string): T {
   return JSON.parse(readFileSync(filePath, 'utf8')) as T;
 }
 
+function option(name: string): string | undefined {
+  const index = process.argv.indexOf(name);
+  const value = index < 0 ? undefined : process.argv[index + 1];
+  if (value !== undefined && (!value || value.startsWith('--'))) {
+    throw new Error(`missing ${name}`);
+  }
+  return value;
+}
+
 function main(): void {
   const pointer = readJson<{
     publicationId: string;
@@ -60,23 +69,52 @@ function main(): void {
     relations: { id: string; sourceId: string; targetId: string; predicate: string }[];
     snapshot: string;
   }>(FIXTURE);
-  const authorityDir = path.join(AUTHORITY_RELEASES, fixture.snapshot);
+  const snapshotId = option('--snapshot') ?? fixture.snapshot;
+  const authorityDir = path.join(AUTHORITY_RELEASES, snapshotId);
   const authorityManifest = readJson<{
     releaseId: string;
     snapshotId: string;
     snapshotHash: string;
   }>(path.join(authorityDir, 'manifest.json'));
+  const authorityReleaseId = option('--authority-release-id') ?? manifest.authorityReleaseId;
+  const projectionCaptureId = option('--projection-capture-id') ?? manifest.projectionCaptureId;
   assertAdoptedSnapshotMatchesAuthority({
-    publicationAuthorityReleaseId: manifest.authorityReleaseId,
+    publicationAuthorityReleaseId: authorityReleaseId,
     authoritySnapshotReleaseId: authorityManifest.releaseId,
-    fixtureSnapshotId: fixture.snapshot,
+    fixtureSnapshotId: snapshotId,
     authoritySnapshotId: authorityManifest.snapshotId,
   });
   const engineering = readJson<{
     objects: { canonicalId: string; lifecycleStatus?: string | null }[];
+    relations: {
+      relationId: string;
+      sourceId: string;
+      targetId: string;
+      relationType: string;
+      direct?: boolean;
+    }[];
   }>(path.join(authorityDir, 'engineering.json'));
+  const liveAuthorityIds = new Set(engineering.objects.map((object) => object.canonicalId));
+  const livePriorCore = priorCore.filter((node) => liveAuthorityIds.has(node.canonicalId));
+  const livePriorEdges = priorEdges.filter((edge) => (
+    liveAuthorityIds.has(edge.sourceNodeId)
+    && liveAuthorityIds.has(edge.targetNodeId)
+    && edge.candidateOrigin !== 'ENGINEERING_RELATION'
+  ));
+  const liveFixtureRelations = option('--snapshot')
+    ? engineering.relations
+      .filter((relation) => relation.relationType === 'prerequisite' && relation.direct === true)
+      .map((relation) => ({
+        id: relation.relationId,
+        sourceId: relation.sourceId,
+        targetId: relation.targetId,
+        predicate: relation.relationType,
+      }))
+    : fixture.relations.filter((relation) => (
+      liveAuthorityIds.has(relation.sourceId) && liveAuthorityIds.has(relation.targetId)
+    ));
 
-  const teachingEdges: PrerequisiteEdgeAuthoring[] = priorEdges.map((edge) => ({
+  const teachingEdges: PrerequisiteEdgeAuthoring[] = livePriorEdges.map((edge) => ({
     edgeId: edge.edgeId,
     sourceNodeId: edge.sourceNodeId,
     targetNodeId: edge.targetNodeId,
@@ -89,7 +127,7 @@ function main(): void {
     authorDecisionId: edge.authorDecisionId,
     candidateOrigin: edge.candidateOrigin,
   }));
-  const teachingDecisions = priorEdges
+  const teachingDecisions = livePriorEdges
     .filter((edge) => edge.status === 'PUBLISHED' && edge.authorDecisionId)
     .map((edge) => decisionFromPublishedEdge({
       sourceNodeId: edge.sourceNodeId,
@@ -99,29 +137,29 @@ function main(): void {
       evidenceRefs: edge.evidenceRefs,
       curatorRationale: edge.curatorRationale,
       authorDecisionId: edge.authorDecisionId as string,
-      authorityReleaseId: manifest.authorityReleaseId,
-      projectionCaptureId: manifest.projectionCaptureId,
+      authorityReleaseId,
+      projectionCaptureId,
       authoringRevision: manifest.authoringRevision,
     }));
 
   const merged = applyEngineeringLearningOrderToBuildInput({
     scopeId: manifest.scopeId,
-    authorityReleaseId: manifest.authorityReleaseId,
-    projectionCaptureId: manifest.projectionCaptureId,
+    authorityReleaseId,
+    projectionCaptureId,
     authoringRevision: manifest.authoringRevision,
     snapshotHash: authorityManifest.snapshotHash,
-    coreNodeIds: priorCore.map((n) => n.canonicalId),
+    coreNodeIds: livePriorCore.map((n) => n.canonicalId),
     authorityIds: engineering.objects.map((o) => o.canonicalId),
     teachingEdges,
     teachingDecisions,
-    relations: fixture.relations,
+    relations: liveFixtureRelations,
   });
 
   const authorityNodes: AuthorityNodeIndexEntry[] = engineering.objects.map((object) => ({
     canonicalId: object.canonicalId,
     lifecycleStatus: object.lifecycleStatus || 'active',
   }));
-  publishCoreNodes(priorCore, {
+  publishCoreNodes(livePriorCore, {
     scopeId: manifest.scopeId,
     authorityNodes,
   });
@@ -131,10 +169,10 @@ function main(): void {
     useCurrentAsPrior: true,
     scopeId: manifest.scopeId,
     authoringRevision: manifest.authoringRevision,
-    authorityReleaseId: manifest.authorityReleaseId,
-    projectionCaptureId: manifest.projectionCaptureId,
+    authorityReleaseId,
+    projectionCaptureId,
     authorityNodes,
-    coreNodes: priorCore,
+    coreNodes: livePriorCore,
     edges: merged.edges,
     decisions: merged.decisions,
     candidates: merged.candidates,

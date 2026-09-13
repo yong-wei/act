@@ -1,0 +1,768 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctc:modeling-1740c61b0819b8d938fbd13c",
+      "canonicalType": "DomainConcept",
+      "label": "复频域预解矩阵",
+      "aliases": [
+        "预解阵"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-1d8759ac1188e2de38f75ed3",
+      "canonicalType": "DomainConcept",
+      "label": "状态空间轨迹",
+      "aliases": [
+        "状态轨迹"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-50096472169ff29f3d25b2d1",
+      "canonicalType": "DomainConcept",
+      "label": "位置速度相平面",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-6ed1719a7e3ec5719fba4276",
+      "canonicalType": "DomainConcept",
+      "label": "状态系数方阵",
+      "aliases": [
+        "系数方阵"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-88803865ceb9957c00782479",
+      "canonicalType": "DomainConcept",
+      "label": "离散化状态转移矩阵",
+      "aliases": [
+        "离散状态转移阵"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-921bc3037657731382363bae",
+      "canonicalType": "DomainConcept",
+      "label": "系统固有自由响应",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-d558fb5e651ada9ab0cf60e9",
+      "canonicalType": "DomainConcept",
+      "label": "离散状态转移矩阵",
+      "aliases": [
+        "离散转移阵"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctc:modeling-d978f6c1e3903da5373e65e3",
+      "canonicalType": "DomainConcept",
+      "label": "状态确定性原理",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctk:c1a1b07b18731a97ae408246",
+      "canonicalType": "KnowledgeStatement",
+      "label": "齐次状态方程的解为 $\\boldsymbol{x}(t)=\\mathrm{e}^{A t} \\boldsymbol{x}(0)$，其中矩阵指数 $\\mathrm{e}^{A t}$ 定义为幂级数 $\\mathrm{e}^{A t}=\\boldsymbol{I}+\\boldsymbol{A} t+\\frac{1}{2} \\boldsymbol{A}^{2} t^{2}+\\cdots+\\frac{1}{k!} \\boldsymbol{A}^{k} t^{k}+\\cdots$，也可通过拉普拉斯反变换 $\\mathrm{e}^{A t}=\\mathscr{S}^{-1}\\left[(s \\boldsymbol{I}-\\boldsymbol{A})^{-1}\\right]$ 求得闭合形式。",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "system-modeling",
+          "visualRole": "modeling",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-16d35cf9a09cf73d01ad8dc3",
+      "canonicalType": "Formula",
+      "label": "\\Phi(t)=\\exp (\\mathbf{A} t)=\\sum_{k=0}^{\\infty} \\frac{\\mathbf{A}^{k} t^{k}}{k!}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1896e5cd148f068edf96750c",
+      "canonicalType": "KnowledgeStatement",
+      "label": "\\Phi(0)=I",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1b1db15aba960871e6d48747",
+      "canonicalType": "Formula",
+      "label": "\\Phi(t)=\\mathrm{e}^{A t}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-323b0f92c9d06305abae2eaa",
+      "canonicalType": "Formula",
+      "label": "\\dot{\\boldsymbol{\\Phi}}(t)=\\boldsymbol{A} \\boldsymbol{\\Phi}(t), \\quad \\boldsymbol{\\Phi}(0)=\\boldsymbol{I}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "canonicalType": "DomainConcept",
+      "label": "矩阵指数函数",
+      "aliases": [
+        "矩阵指数",
+        "矩阵指数函数"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    },
+    {
+      "id": "ctkg:v3e-object-a1d3ebe12a90c2bf346948ab",
+      "canonicalType": "DomainConcept",
+      "label": "矩阵指数",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cffbab13351771b1ce25a86e",
+      "canonicalType": "KnowledgeStatement",
+      "label": "\\dot{\\Phi}(t)=A \\Phi(t)=\\Phi(t) A",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "canonicalType": "DomainConcept",
+      "label": "状态转移矩阵",
+      "aliases": [
+        "状态转移矩阵",
+        "矩阵指数"
+      ],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": "theoretical_construct"
+    }
+  ],
+  "relations": [
+    {
+      "id": "ctkg:m5-d1:association:0ee48eef2a37e065a2b115a9",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-a1d3ebe12a90c2bf346948ab",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:310149f65bf10c13f6fdbe1e",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-6ed1719a7e3ec5719fba4276",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:4248f751cf60aff50e413634",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-1740c61b0819b8d938fbd13c",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:5354f40b84c6d5e451b068a4",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-88803865ceb9957c00782479",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:84952e765be5051bd39fc79a",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-1d8759ac1188e2de38f75ed3",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:930a7f7d501496659d66e919",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-921bc3037657731382363bae",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:9ea61af1a2caa4c7585fb5de",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-50096472169ff29f3d25b2d1",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:e644ee0fcef00ca2be9a31f0",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-d558fb5e651ada9ab0cf60e9",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctkg:m5-d1:association:f7319274447a9492660757e2",
+      "predicate": "association",
+      "sourceId": "ctc:modeling-d978f6c1e3903da5373e65e3",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "ctr:3548728592cd2de773e49c06",
+      "predicate": "association",
+      "sourceId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "targetId": "ctk:c1a1b07b18731a97ae408246",
+      "direction": "unordered",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "association"
+    },
+    {
+      "id": "m1l:relation-197294bb13377d2a6fd25934",
+      "predicate": "is_a",
+      "sourceId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "targetId": "ctkg:v3e-object-542c371afb4374a5f7b7be5f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": null
+    },
+    {
+      "id": "m1l:relation-1fdc70e4ec46be87dcae3439",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "targetId": "ctkg:v3e-object-323b0f92c9d06305abae2eaa",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-a18590952d429dd05b54f714",
+      "predicate": "has_component",
+      "sourceId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "targetId": "ctkg:v3e-object-16d35cf9a09cf73d01ad8dc3",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "structure"
+    },
+    {
+      "id": "m1l:relation-d274a13b2bd942eb103bbfef",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-cffbab13351771b1ce25a86e",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    },
+    {
+      "id": "m1l:relation-d7598b4ece17f8efc1dd2ffc",
+      "predicate": "has_formula",
+      "sourceId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "targetId": "ctkg:v3e-object-1b1db15aba960871e6d48747",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-ee23de8fe8df77991d70cd9f",
+      "predicate": "applies_to",
+      "sourceId": "ctkg:v3e-object-1896e5cd148f068edf96750c",
+      "targetId": "ctkg:v3e-object-f5e744188b4f574f567a1a8e",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "application-and-analysis"
+    }
+  ],
+  "boundaries": []
+}

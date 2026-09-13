@@ -64,8 +64,8 @@ const OVERLAY_REL = 'course-content/runtime/knowledge/teaching-projection/domain
 const PROJECTION_REL = 'course-content/runtime/knowledge/projection';
 const PREREQ_REL = 'course-content/runtime/knowledge/prerequisites';
 const LEDGER_REL = 'course-content/authoring/knowledge/teaching-projection/runtime-binding-exception-ledger.jsonl';
-const BUNDLE_MANIFEST_REL =
-  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.37-r6/bundle-manifest.json';
+const DEFAULT_BUNDLE_MANIFEST_REL =
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.48/bundle-manifest.json';
 const QUOTAS_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-quotas.json';
 const GOVERNANCE_REPORT_REL = 'course-content/authoring/knowledge/teaching-projection/ledger-governance-report.json';
 
@@ -174,11 +174,13 @@ function loadTaskSims(): TaskSimInput[] {
   ];
 }
 
-function loadAuthorityCanonicalIds(): string[] {
-  const current = readJson<{
-    releaseId: string;
-    snapshotId: string;
-  }>('course-content/authoring/knowledge/authority/current.json');
+function loadAuthorityCanonicalIds(snapshotId?: string): string[] {
+  const current = snapshotId
+    ? { snapshotId }
+    : readJson<{
+      releaseId: string;
+      snapshotId: string;
+    }>('course-content/authoring/knowledge/authority/current.json');
   const authorityPaths = resolveAuthorityStorePaths(resolveConfiguredAuthorityRoot(ROOT));
   const engineering = JSON.parse(
     readFileSync(join(authorityPaths.releasesDir, current.snapshotId, 'engineering.json'), 'utf8'),
@@ -186,12 +188,12 @@ function loadAuthorityCanonicalIds(): string[] {
   return engineering.objects.map((object) => object.canonicalId);
 }
 
-function loadAuthorityIdentityPin(): AuthorityIdentityPin {
+function loadAuthorityIdentityPin(bundleManifestRel: string): AuthorityIdentityPin {
   const bundle = readJson<{
     release: { release_id: string; release_hash: string };
     bundle_digest: string;
     source_revision: { commit: string };
-  }>(BUNDLE_MANIFEST_REL);
+  }>(bundleManifestRel);
   return {
     authorityReleaseId: bundle.release.release_id,
     authorityReleaseHash: bundle.release.release_hash,
@@ -292,12 +294,14 @@ function loadInfographsLegacy(): InfographLegacyInput[] {
  * Core nodes feed back from the prerequisite publication (#2042 task 3.2).
  * The publication identity must match the projection Authority release or the restage fails closed.
  */
-function loadPublicationCoreNodes(projectionAuthorityReleaseId: string): {
+function loadPublicationCoreNodes(projectionAuthorityReleaseId: string, options?: {
+  allowPredecessor?: boolean;
+}): {
   publicationId: string;
   coreNodes: TeachingCoreNodeAuthoring[];
 } {
   const pointer = readJson<{ publicationId: string; authorityReleaseId: string }>(`${PREREQ_REL}/current.json`);
-  if (pointer.authorityReleaseId !== projectionAuthorityReleaseId) {
+  if (pointer.authorityReleaseId !== projectionAuthorityReleaseId && !options?.allowPredecessor) {
     throw new Error(
       `prerequisite publication ${pointer.publicationId} authority ${pointer.authorityReleaseId} does not match projection authority ${projectionAuthorityReleaseId}`,
     );
@@ -369,10 +373,7 @@ async function main(): Promise<void> {
     }>(authorityManifestRel)
     : null;
   if (successorAuthority) {
-    if (
-      manifest.authorityReleaseId !== successorAuthority.releaseId
-      || successorAuthority.snapshotId !== `snap-${successorAuthority.snapshotHash}`
-    ) {
+    if (successorAuthority.snapshotId !== `snap-${successorAuthority.snapshotHash}`) {
       throw new Error(`successor authority manifest does not form a sealed identity: ${successorAuthority.snapshotId}`);
     }
     Object.assign(manifest, {
@@ -382,6 +383,7 @@ async function main(): Promise<void> {
       authoritySnapshotHash: successorAuthority.snapshotHash,
     });
   }
+  const bundleManifestRel = option('--bundle-manifest') ?? DEFAULT_BUNDLE_MANIFEST_REL;
   const retiredLesson02 = readJsonl<{ resourceId: string }>(
     'course-content/authoring/knowledge/teaching-projection/simulations/retired-sim-exclusions.jsonl',
   );
@@ -401,7 +403,7 @@ async function main(): Promise<void> {
     .filter((row) => row.resourceType !== 'infographic');
   const bindings = readJsonl<RuntimeBindingRow>(`${releaseDir}/bindings.jsonl`);
   const prerequisitePointer = readJson<{ publicationId: string }>(`${PREREQ_REL}/current.json`);
-  const prerequisites = readJson<TeachingPrerequisiteAuthoring[]>(`${PREREQ_REL}/releases/${prerequisitePointer.publicationId}/projection-prerequisites.json`);
+  const predecessorPrerequisites = readJson<TeachingPrerequisiteAuthoring[]>(`${PREREQ_REL}/releases/${prerequisitePointer.publicationId}/projection-prerequisites.json`);
   const cardsIndex = readJson<{ cards: RuntimeCardRow[] }>(`${releaseDir}/cards-index.json`);
   const overlayCores = loadOverlayCores();
   const textbookLocators = loadTextbookLocators();
@@ -415,7 +417,19 @@ async function main(): Promise<void> {
     projectionHash: string;
   }>(`${OVERLAY_REL}/current.json`);
 
-  const { publicationId, coreNodes } = loadPublicationCoreNodes(manifest.authorityReleaseId);
+  const authorityCanonicalIds = loadAuthorityCanonicalIds(successorAuthority?.snapshotId);
+  const admittedCanonical = new Set(authorityCanonicalIds);
+  const { publicationId, coreNodes } = loadPublicationCoreNodes(manifest.authorityReleaseId, {
+    allowPredecessor: Boolean(successorAuthority),
+  });
+  const liveCoreNodes = successorAuthority
+    ? coreNodes.filter((node) => admittedCanonical.has(node.canonicalId))
+    : coreNodes;
+  const prerequisites = successorAuthority
+    ? predecessorPrerequisites.filter((row) => (
+      admittedCanonical.has(row.sourceCanonicalId) && admittedCanonical.has(row.targetCanonicalId)
+    ))
+    : predecessorPrerequisites;
   const cardCrosswalk = readJsonl<CardCrosswalkInput>(
     'course-content/authoring/knowledge/teaching-projection/cards/card-crosswalk.jsonl',
   );
@@ -474,8 +488,8 @@ async function main(): Promise<void> {
     authorityCardCanonicalIds: loadAuthorityCardCanonicalIds(),
     textbookLocators: textbookLocators.v1,
     textbookLocatorsV2: textbookLocators.v2,
-    authorityCanonicalIds: loadAuthorityCanonicalIds(),
-    authorityIdentityPin: loadAuthorityIdentityPin(),
+    authorityCanonicalIds,
+    authorityIdentityPin: loadAuthorityIdentityPin(bundleManifestRel),
     textbookCoordinateCheck: (locator) => {
       try {
         const unit = resolveStructuralUnit(structuralUnits, {
@@ -501,7 +515,7 @@ async function main(): Promise<void> {
     infographsAuthority: loadInfographsAuthority(),
     infographsLegacy: loadInfographsLegacy(),
     lessonStepInventory,
-    coreNodes,
+    coreNodes: liveCoreNodes,
     exemptTextbookSections,
   });
 

@@ -1,0 +1,236 @@
+{
+  "shardClass": "node-neighborhood",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "nodeId": "ctkg:v3e-object-32dcb3ab5169b1088d46d632",
+  "limit": 32,
+  "truncated": false,
+  "objects": [
+    {
+      "id": "ctkg:v3e-object-0a11d803d3ef90759bab9d9f",
+      "canonicalType": "Formula",
+      "label": "\\dot{\\mathbf{x}}=\\mathbf{A x}-\\mathbf{B K}(\\mathbf{x}-\\tilde{\\mathbf{x}})",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-1ab7d3e90229cbda897e48f5",
+      "canonicalType": "Formula",
+      "label": "\\dot{\\mathbf{x}}=\\mathbf{A} \\mathbf{x}-\\mathbf{B K} \\hat{\\mathbf{x}}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-32dcb3ab5169b1088d46d632",
+      "canonicalType": "Formula",
+      "label": "\\left[\\begin{array}{c}\n\\dot{\\mathbf{x}}  \\tag{7.167}\\\\\n\\dot{\\tilde{\\mathbf{x}}}\n\\end{array}\\right]=\\left[\\begin{array}{cc}\n\\mathbf{A}-\\mathbf{B K} & \\mathbf{B K} \\\\\n\\mathbf{0} & \\mathbf{A}-\\mathbf{L C}\n\\end{array}\\right]\\left[\\begin{array}{c}\n\\mathbf{x} \\\\\n\\tilde{\\mathbf{x}}\n\\end{array}\\right] .",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-586c6c175bd1e7279c8cd61e",
+      "canonicalType": "Formula",
+      "label": "\\operatorname{det}\\left[\\begin{array}{cc}\ns \\mathbf{I}-\\mathbf{A}+\\mathbf{B K} & -\\mathbf{B K}  \\tag{7.168}\\\\\n\\mathbf{0} & s \\mathbf{I}-\\mathbf{A}+\\mathbf{L C}\n\\end{array}\\right]=0 .",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    },
+    {
+      "id": "ctkg:v3e-object-cef232eb2e5e0c99a7e1216a",
+      "canonicalType": "Formula",
+      "label": "\\begin{align*}\n\\dot{\\hat{\\mathbf{x}}} & =(\\mathbf{A}-\\mathbf{B K}-\\mathbf{L} \\mathbf{C}) \\hat{\\mathbf{x}}+\\mathbf{L} y,  \\tag{7.170a}\\\\\nu & =-\\mathbf{K} \\hat{\\mathbf{x}} . \\tag{7.170b}\n\\end{align*}",
+      "aliases": [],
+      "description": null,
+      "governance": {
+        "reviewStatus": "approved",
+        "publicationStatus": "published",
+        "lifecycleStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "memberships": [
+        {
+          "domainId": "state-space-control-analysis-and-design",
+          "visualRole": "state-space",
+          "preferred": true
+        }
+      ],
+      "conceptKind": null
+    }
+  ],
+  "relations": [
+    {
+      "id": "m1l:relation-2ada45cc1cdc0f0a74c6747f",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-32dcb3ab5169b1088d46d632",
+      "targetId": "ctkg:v3e-object-0a11d803d3ef90759bab9d9f",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-a477ef2cf4f682f76e0b9031",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-32dcb3ab5169b1088d46d632",
+      "targetId": "ctkg:v3e-object-1ab7d3e90229cbda897e48f5",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-aec4d52f905ba1d6095b08d1",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-cef232eb2e5e0c99a7e1216a",
+      "targetId": "ctkg:v3e-object-32dcb3ab5169b1088d46d632",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    },
+    {
+      "id": "m1l:relation-e127b7973fda56bcdcbf6aba",
+      "predicate": "derived_from",
+      "sourceId": "ctkg:v3e-object-586c6c175bd1e7279c8cd61e",
+      "targetId": "ctkg:v3e-object-32dcb3ab5169b1088d46d632",
+      "direction": "source_to_target",
+      "direct": true,
+      "qualityTier": "GOLD",
+      "governance": {
+        "reviewStatus": null,
+        "publicationStatus": null
+      },
+      "semanticSupport": {
+        "supported": true,
+        "readOnly": true
+      },
+      "layer": "ENGINEERING",
+      "relationFamily": "derivation-and-representation"
+    }
+  ],
+  "boundaries": []
+}

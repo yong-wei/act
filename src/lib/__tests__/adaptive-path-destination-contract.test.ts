@@ -88,6 +88,21 @@ describe('adaptive path destination contract', () => {
     expect(readGovernedCourseStudentDemoStep('/simulations/cruise')).toBeNull();
   });
 
+  it('permits anchored handout print and course demo step launches', () => {
+    expect(resolveAdaptivePathDestinationContract(
+      'handout',
+      '/interactive-learning/lessons/1-3/handout-print#h1-mo-kuai',
+    )).toMatchObject({ disposition: 'destination-control', reason: null });
+    expect(resolveAdaptivePathDestinationContract(
+      'lesson_step',
+      '/interactive-learning/courses/unit-1-3-parameter-pole-migration/student/demo?step=step-04',
+    )).toMatchObject({ disposition: 'destination-control', reason: null });
+    expect(resolveAdaptivePathDestinationContract(
+      'audio',
+      '/interactive-learning/courses/unit-1-1-see-the-full-picture?media=1-1-audio&t=220',
+    )).toMatchObject({ disposition: 'destination-control', reason: null });
+  });
+
   it('permits reviewed video, audio, and exercise destinations on student courses', () => {
     expect(resolveAdaptivePathDestinationContract(
       'video',

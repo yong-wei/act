@@ -1,0 +1,67 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-canonical-ed8b914969f9209675f1816b",
+    "canonicalType": "KnowledgeStatement",
+    "label": "由于控制器中包含积分控制作用，只要稳态误差不为零，控制器就一定会产生一个继续增长的输出转矩来抵消阶跃扰动转矩的作用，力图减小这个误差，直到稳态误差为零，系统取得平衡而进入稳态。",
+    "aliases": [],
+    "description": "由于控制器中包含积分控制作用，只要稳态误差不为零，控制器就一定会产生一个继续增长的输出转矩来抵消阶跃扰动转矩的作用，力图减小这个误差，直到稳态误差为零，系统取得平衡而进入稳态。",
+    "teachingFields": {
+      "statement_type": "property_assertion"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.17",
+        "label": "自动控制原理（胡寿松，第8版） · 如果在例3－16系统中采用比例－积分控制器，如图3－42所示，试分别计算系统在阶跃转矩扰动和斜坡转矩扰动作用下的稳态误差。"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-03/chapter-3/section-3.6/example-3.17/solution",
+        "label": "自动控制原理（胡寿松，第8版） · 由图 3－42 可知，在扰动作用点之前的积分环节数 $v_{1}=1$ ，而 $v_{3}=0$ ，故该比例－积分控制系统对扰动作用为 I 型系统，在阶跃扰动作用下不存在稳态误差，而在斜坡扰动作用下存在常值稳态误差。"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

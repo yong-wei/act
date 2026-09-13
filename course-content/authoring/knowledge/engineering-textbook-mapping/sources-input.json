@@ -1,6 +1,6 @@
 {
   "contract": "engineering-textbook-mapping-sources-input/v1",
-  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.37",
+  "authorityReleaseId": "ctr:release:control-theory-engineering-v0.48",
   "coverageDigest": "0a2088bb24ab574f62c09766c0dcabfea15258ce356efdda171dd9bcc97ebdb9",
   "nodeLimit": 6,
   "entries": [

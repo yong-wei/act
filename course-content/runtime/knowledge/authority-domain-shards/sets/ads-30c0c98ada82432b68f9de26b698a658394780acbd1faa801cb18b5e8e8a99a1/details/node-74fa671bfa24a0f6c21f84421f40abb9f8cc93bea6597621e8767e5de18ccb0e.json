@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-83d3703d9e28de095a84b17b",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1. 以RC滤波网络为例，施加正弦输入信号u_i=Asinωt；2. 记录输出响应u_o，观察稳态输出仍为正弦信号，频率相同，幅值衰减，相位延迟；3. 由微分方程T（du_o/dt）+u_o=u_i推导输出稳态分量；4. 得到幅值比A（ω）=1/√（1+T^2ω^2）和相位差φ（ω）=-arctanωT；5. 与传递函数G（jω）比较，得出A（ω）=|G（jω）|，φ（ω）=∠G（jω）。",
+    "aliases": [],
+    "description": "1. 以RC滤波网络为例，施加正弦输入信号u_i=Asinωt；2. 记录输出响应u_o，观察稳态输出仍为正弦信号，频率相同，幅值衰减，相位延迟；3. 由微分方程T(du_o/dt)+u_o=u_i推导输出稳态分量；4. 得到幅值比A(ω)=1/√(1+T^2ω^2)和相位差φ(ω)=-arctanωT；5. 与传递函数G(jω)比较，得出A(ω)=|G(jω)|，φ(ω)=∠G(jω)。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-05/chapter-5/section-5.1/item-1",
+        "label": "自动控制原理（胡寿松，第8版） · 频率特性的基本概念"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

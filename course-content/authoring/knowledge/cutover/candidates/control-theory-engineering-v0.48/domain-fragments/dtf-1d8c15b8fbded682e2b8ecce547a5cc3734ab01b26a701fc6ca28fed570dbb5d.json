@@ -1,0 +1,124 @@
+{
+  "contract": "act-domain-teaching-fragment/v1",
+  "builderVersion": "act-domain-teaching-fragment-builder/v1",
+  "fragmentId": "dtf-1d8c15b8fbded682e2b8ecce547a5cc3734ab01b26a701fc6ca28fed570dbb5d",
+  "fragmentKey": "foundation-three-domain-published-v3",
+  "fragmentVersion": "1",
+  "fragmentDigest": "1d8c15b8fbded682e2b8ecce547a5cc3734ab01b26a701fc6ca28fed570dbb5d",
+  "domainKeys": [
+    "stability-analysis",
+    "system-modeling",
+    "time-domain-analysis"
+  ],
+  "authorityBinding": {
+    "releaseId": "ctr:release:control-theory-engineering-v0.48",
+    "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+    "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+    "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+  },
+  "authoritySelection": {
+    "authorityBinding": {
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731"
+    },
+    "sourceDatasetHash": "3fae71d853e695f2896e1154d45b767c048ae7e740377e170991b91254a94451",
+    "captureRevision": "18e0b2238a2b30fef071ec6af980f9dd4b3bbeda",
+    "nodeIndexDigest": "b648860192eb19107358869c61ede1e3efcc0a29b53915022686ac8c00e66844"
+  },
+  "authoringRevision": "18e0b2238a2b30fef071ec6af980f9dd4b3bbeda",
+  "sourceInventoryDigest": "ad454416452ae8a0fc663a3812158416355b081bd6049ecbd23ecd0ccf5a1677",
+  "authorityDigest": "fe7aebb39c59bf9b3e97706ab954184ee6a50be3a5f7650372324a55d6cd51c2",
+  "evidenceRefs": [
+    "course-content/authoring/lessons/1-5/design/1-5-boppps.md",
+    "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+  ],
+  "coreNodes": [
+    {
+      "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+      "domainKeys": [
+        "system-modeling"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-1-modeling",
+      "rationale": "1-5 课程目标要求学生调节增益并以同一对象读取闭环行为。",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/1-5/design/1-5-boppps.md"
+      ],
+      "nodeDigest": "0e93782d5aa6502718c7f72d660f35f4ecacb623e740e546b866e34a02c98433"
+    },
+    {
+      "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "domainKeys": [
+        "stability-analysis",
+        "time-domain-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-3-time",
+      "rationale": "2-2 将调节时间定义为单位阶跃响应的动态性能指标。",
+      "sourceKind": "PRIMARY_COVERS",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "nodeDigest": "26385e48b7b5aba4acf58a7833e5103f1791498022995040fcd86fb5ffe03c1c"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "domainKeys": [
+        "time-domain-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "REQUIRED",
+      "moduleId": "module-3-time",
+      "rationale": "2-2 教学主线从单位阶跃响应开始建立时域指标语言。",
+      "sourceKind": "OBJECTIVE",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "nodeDigest": "dde3a44f29ca5010e919d0256420882cd13c09f42f2a1f1d1d2866976b139dbe"
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "domainKeys": [
+        "stability-analysis"
+      ],
+      "pathEligible": true,
+      "cardPolicy": "OPTIONAL",
+      "moduleId": "module-2-stability",
+      "rationale": "当前 3-1 蓝图将稳定性作为极点、模态与双域近似的先行概念。",
+      "sourceKind": "PREREQUISITE_ENDPOINT",
+      "sourceEvidence": [
+        "course-content/authoring/lessons/3-1/design/3-1-boppps.md"
+      ],
+      "nodeDigest": "5f8d97be628bcdf68b6eaaba4a75402d83ff55470c6c9e9415bcbd772c3f4e9e"
+    }
+  ],
+  "relations": [
+    {
+      "edgeId": "dt-edge-00e52fde282924eca7ad0ee9",
+      "sourceNodeId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+      "targetNodeId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+      "layer": "ACT_TEACHING",
+      "relationType": "PREREQUISITE",
+      "strength": "REQUIRED",
+      "domainKeys": [
+        "stability-analysis",
+        "time-domain-analysis"
+      ],
+      "evidenceRefs": [
+        "course-content/authoring/lessons/2-2/design/2-2-boppps.md"
+      ],
+      "curatorId": "act.foundation.domain-review",
+      "curatorRationale": "2-2 以单位阶跃响应为入口，随后定义调节时间等动态性能指标，属于同一教学主线中的直接依赖。",
+      "authorDecisionId": "foundation-1371-step-response-settling-time",
+      "presentationFamily": "teaching-prerequisite",
+      "edgeDigest": "840efca2b78f546af668180f14f3b027346aaba505a6a747188e533255bdec1f"
+    }
+  ],
+  "coreNodeCount": 4,
+  "relationCount": 1
+}

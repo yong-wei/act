@@ -1,0 +1,214 @@
+{
+  "contract": "act-resource-binding-release-audit/v1",
+  "bindingReleaseId": "control-theory-engineering-v0.48-b1",
+  "resourceCount": 2462,
+  "bindingCount": 9433,
+  "canonicalCount": 3356,
+  "perNodeBindingCount": {
+    "min": 1,
+    "p50": 1,
+    "p90": 4,
+    "max": 210,
+    "nodesAtOrAbove50": 19,
+    "nodesAtOrAbove100": 4
+  },
+  "topFanoutResources": [
+    {
+      "resourceId": "act:handout:3-3",
+      "resourceType": "handout",
+      "bindingCount": 100
+    },
+    {
+      "resourceId": "act:handout:1-5",
+      "resourceType": "handout",
+      "bindingCount": 89
+    },
+    {
+      "resourceId": "act:handout:3-4",
+      "resourceType": "handout",
+      "bindingCount": 87
+    },
+    {
+      "resourceId": "act:handout:5-2",
+      "resourceType": "handout",
+      "bindingCount": 78
+    },
+    {
+      "resourceId": "act:handout:2-2",
+      "resourceType": "handout",
+      "bindingCount": 76
+    },
+    {
+      "resourceId": "act:handout:3-2",
+      "resourceType": "handout",
+      "bindingCount": 72
+    },
+    {
+      "resourceId": "act:handout:1-1",
+      "resourceType": "handout",
+      "bindingCount": 68
+    },
+    {
+      "resourceId": "act:handout:2-4",
+      "resourceType": "handout",
+      "bindingCount": 62
+    },
+    {
+      "resourceId": "act:handout:1-3",
+      "resourceType": "handout",
+      "bindingCount": 59
+    },
+    {
+      "resourceId": "act:handout:1-4",
+      "resourceType": "handout",
+      "bindingCount": 58
+    },
+    {
+      "resourceId": "act:handout:3-9",
+      "resourceType": "handout",
+      "bindingCount": 54
+    },
+    {
+      "resourceId": "act:handout:2-1",
+      "resourceType": "handout",
+      "bindingCount": 51
+    },
+    {
+      "resourceId": "act:handout:3-5",
+      "resourceType": "handout",
+      "bindingCount": 51
+    },
+    {
+      "resourceId": "act:handout:3-6",
+      "resourceType": "handout",
+      "bindingCount": 51
+    },
+    {
+      "resourceId": "act:handout:2-3",
+      "resourceType": "handout",
+      "bindingCount": 49
+    }
+  ],
+  "topBoundNodes": [
+    {
+      "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+      "bindingCount": 210,
+      "unitCount": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+      "bindingCount": 133,
+      "unitCount": 9
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+      "bindingCount": 126,
+      "unitCount": 6
+    },
+    {
+      "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+      "bindingCount": 124,
+      "unitCount": 6
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+      "bindingCount": 84,
+      "unitCount": 10
+    },
+    {
+      "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+      "bindingCount": 77,
+      "unitCount": 13
+    },
+    {
+      "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+      "bindingCount": 76,
+      "unitCount": 19
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+      "bindingCount": 72,
+      "unitCount": 4
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+      "bindingCount": 71,
+      "unitCount": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+      "bindingCount": 71,
+      "unitCount": 13
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+      "bindingCount": 67,
+      "unitCount": 4
+    },
+    {
+      "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+      "bindingCount": 63,
+      "unitCount": 8
+    },
+    {
+      "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+      "bindingCount": 60,
+      "unitCount": 7
+    },
+    {
+      "canonicalId": "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+      "bindingCount": 59,
+      "unitCount": 1
+    },
+    {
+      "canonicalId": "ctc:modeling-34de45f2470f6c09c7d96698",
+      "bindingCount": 57,
+      "unitCount": 2
+    }
+  ],
+  "roleCounts": {
+    "ASSESSES": 37,
+    "COVERS": 205,
+    "EXPLAINS": 8076,
+    "PRACTICES": 1115
+  },
+  "provenanceCounts": {
+    "asr-terminology": 705,
+    "caption-terminology": 81,
+    "carry-forward-exact": 6501,
+    "heading-terminology": 1363,
+    "sequence-crosswalk": 332,
+    "step-terminology": 451
+  },
+  "appearanceCounts": {
+    "first": 1000,
+    "reference": 6501,
+    "revisit": 1932
+  },
+  "anchorKindCounts": {
+    "heading": 1363,
+    "section": 4551,
+    "step": 783,
+    "time": 786,
+    "whole": 1950
+  },
+  "resourceTypeCounts": {
+    "audio": 28,
+    "card": 504,
+    "handout": 31,
+    "infographic": 370,
+    "simulation": 80,
+    "step": 473,
+    "textbook-chapter": 4,
+    "textbook-section": 913,
+    "video": 59
+  },
+  "baseline": {
+    "kind": "course-projection",
+    "id": "proj-700a378f44ce9d422ec9b27cff3247d1864d0e732c4c91befd66a2e67db4b248",
+    "resourceCount": 4117,
+    "bindingCount": 21633,
+    "canonicalCount": 3362,
+    "maxPerNode": 361
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-a5c335dac658221700dd220f",
+    "canonicalType": "KnowledgeStatement",
+    "label": "1） 根据稳态性能要求确定开环增益K。2） 绘制待校正系统的开环对数幅频渐近特性，求出截止频率ωc'、相角裕度γ及幅值裕度h。3） 选择斜率从-20dB/dec变为-40dB/dec的交接频率作为校正网络超前部分的交接频率ωb。4） 根据响应速度要求，选择系统的截止频率ωc''和校正网络衰减因子1/α。5） 根据相角裕度要求，估算校正网络滞后部分的交接频率ωa。6） 校验已校正系统的各项性能指标。",
+    "aliases": [],
+    "description": "1) 根据稳态性能要求确定开环增益K。2) 绘制待校正系统的开环对数幅频渐近特性，求出截止频率ωc'、相角裕度γ及幅值裕度h。3) 选择斜率从-20dB/dec变为-40dB/dec的交接频率作为校正网络超前部分的交接频率ωb。4) 根据响应速度要求，选择系统的截止频率ωc''和校正网络衰减因子1/α。5) 根据相角裕度要求，估算校正网络滞后部分的交接频率ωa。6) 校验已校正系统的各项性能指标。",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-06/chapter-6/section-6.4/item-4",
+        "label": "自动控制原理（胡寿松，第8版） · 串联滞后－超前校正"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

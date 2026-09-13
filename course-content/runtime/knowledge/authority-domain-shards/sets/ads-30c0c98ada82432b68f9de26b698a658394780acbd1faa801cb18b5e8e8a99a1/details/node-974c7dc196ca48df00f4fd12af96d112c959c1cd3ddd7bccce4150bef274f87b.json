@@ -1,0 +1,80 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:domainconcept:b59579e9d355b2e2d44352b0",
+    "canonicalType": "DomainConcept",
+    "label": "根轨迹（单参数）",
+    "aliases": [
+      "根轨迹",
+      "根轨迹（单参数）"
+    ],
+    "description": "The locus of roots of the characteristic equation in the s-plane as a parameter is varied.",
+    "teachingFields": {
+      "concept_kind": "representation_kind"
+    },
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-2",
+        "label": "自动控制原理（胡寿松，第8版） · 闭环极点的确定"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-2",
+        "label": "自动控制原理（胡寿松，第8版） · 按定义，根轨迹是开环系统某一参数从零变到无穷时，闭环特征方程式的根在 $s$ 平面上的变化轨迹，因此根轨迹的分支数必与闭环特征方程式根的数目相一致。由特征方程（4－11）可见，闭环特征方程根的数目就等于 $m$ 和 $n$ 中的大者，所以根轨迹"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.2/item-1/solution-occurrence-3",
+        "label": "自动控制原理（胡寿松，第8版） · 渐近线就是 $s$ 值很大时的根轨迹，因此渐近线也一定对称于实轴。将开环传递函数写成多项式形式"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-04/chapter-4/section-4.3/example-4.6",
+        "label": "自动控制原理（胡寿松，第8版） · 设正反馈系统结构图如图4－19中的内回路所示，其中"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

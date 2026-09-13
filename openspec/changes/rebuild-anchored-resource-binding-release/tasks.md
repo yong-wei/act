@@ -42,5 +42,5 @@
 - [x] 5.1 新增 `scripts/db/seed-path-mastery-test-learners.mjs`：本地写入三个测试学习者的 `AdaptiveMasteryUpdate`（零掌握 / 部分 ≥0.5 / 已掌握 ≥0.85 且 confidence ≥0.6），只允许 loopback 数据库
 - [x] 5.2 单测：launch maps 深链、mastery 门控与排序、抽屉锚点标签、媒体定位 hook、活指针与激活锁
 - [x] 5.3 三档学习者对同一目标切片生成路径（`path-advisor-tool`），断言资源池与顺序差异并写入 `docs/reports/`
-- [ ] 5.4 Playwright：抽屉点击音频跳到时间戳、讲义跳到章节、step 参数定位、路径节点启动带锚点；控制台无错误
+- [x] 5.4 Playwright：抽屉点击音频跳到时间戳、讲义跳到章节、step 参数定位、路径节点启动带锚点；控制台无错误
 - [x] 5.5 `npm run typecheck`、`npm run lint`、`npm run test:unit`、限域脚本测试；更新 `docs/ProjectDescription.md` 与 `.wolf/STATUS.md`

@@ -88,6 +88,7 @@ function parseArgs(argv: readonly string[]): {
   stagedAt: string;
   catalogVersion: string;
   assignmentsPath: string;
+  crosswalkPath: string;
   retiredMembers: readonly string[];
 } {
   const values = new Map<string, string>();
@@ -110,7 +111,7 @@ function parseArgs(argv: readonly string[]): {
   }
   const required = (key: string): string => values.get(key) ?? fail(`missing ${key}`);
   for (const key of values.keys()) {
-    if (!['--snapshot-dir', '--predecessor-catalog', '--predecessor-authoring', '--out', '--staged-at', '--catalog-version', '--assignments'].includes(key)) {
+    if (!['--snapshot-dir', '--predecessor-catalog', '--predecessor-authoring', '--out', '--staged-at', '--catalog-version', '--assignments', '--crosswalk', '--retired-members-file'].includes(key)) {
       fail(`unknown option ${key}`);
     }
   }
@@ -118,8 +119,13 @@ function parseArgs(argv: readonly string[]): {
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(stagedAt)) {
     fail('--staged-at must be a millisecond RFC3339 UTC timestamp');
   }
-  if (new Set(retiredMembers).size !== retiredMembers.length) {
-    fail('--retired-member repeats a canonical id');
+  const retiredFromFile = values.get('--retired-members-file');
+  const resolvedRetired = retiredFromFile ? readJson<string[]>(retiredFromFile) : retiredMembers;
+  if (!Array.isArray(resolvedRetired) || resolvedRetired.some((id) => typeof id !== 'string' || !id)) {
+    fail('--retired-members-file must be a JSON array of canonical ids');
+  }
+  if (new Set(resolvedRetired).size !== resolvedRetired.length) {
+    fail('retired members repeat a canonical id');
   }
   return {
     snapshotDir: required('--snapshot-dir'),
@@ -129,7 +135,8 @@ function parseArgs(argv: readonly string[]): {
     stagedAt,
     catalogVersion: required('--catalog-version'),
     assignmentsPath: values.get('--assignments') ?? ASSIGNMENTS_PATH,
-    retiredMembers,
+    crosswalkPath: values.get('--crosswalk') ?? CROSSWALK_PATH,
+    retiredMembers: resolvedRetired,
   };
 }
 
@@ -139,17 +146,17 @@ function main(): void {
   const engineering = readJson<Engineering>(path.join(args.snapshotDir, 'engineering.json'));
   const predecessorRuntime = readJson<AuthorityDomainCatalogRuntime>(args.predecessorCatalog);
   const predecessor = readJson<AuthorityDomainCatalogAuthoring>(args.predecessorAuthoring);
-  const crosswalk = readJson<Crosswalk>(CROSSWALK_PATH);
+  const crosswalk = readJson<Crosswalk>(args.crosswalkPath);
   const assignments = readFileSync(absolute(args.assignmentsPath), 'utf8')
     .split('\n')
     .filter((line) => line.trim().length > 0)
     .map((line) => JSON.parse(line) as Assignment);
 
-  if (manifest.releaseId !== 'ctr:release:control-theory-engineering-v0.37'
+  if (!/^ctr:release:control-theory-engineering-v0\.\d+$/u.test(manifest.releaseId)
     || !/^snap-[a-f0-9]{64}$/u.test(manifest.snapshotId)
     || manifest.snapshotId !== `snap-${manifest.snapshotHash}`
     || !/^[a-f0-9]{40}$/u.test(manifest.captureRevision)) {
-    fail('snapshot manifest is not a sealed v0.37 Authority capture');
+    fail('snapshot manifest is not a sealed control-theory-engineering Authority capture');
   }
   const rebuiltPredecessor = buildAuthorityDomainCatalog(
     predecessor,
@@ -174,7 +181,7 @@ function main(): void {
     }
   }
   const repinnedCrosswalkEntries = Object.fromEntries(
-    Object.entries(crosswalk.entries).filter(([canonicalId]) => !retiredSet.has(canonicalId)),
+    Object.entries(crosswalk.entries).filter(([canonicalId]) => authorityIds.has(canonicalId)),
   );
   const repinnedIds = new Set(Object.keys(repinnedCrosswalkEntries));
   if (repinnedIds.size !== authorityIds.size || [...authorityIds].some((canonicalId) => !repinnedIds.has(canonicalId))) {
@@ -300,7 +307,7 @@ function main(): void {
       contract: 'act-authority-domain-catalog-retirement-ruling/v1',
       stagedAt: args.stagedAt,
       retiredMembers: declaredRetired,
-      sourceCrosswalkSha256: sha256File(absolute(CROSSWALK_PATH)),
+      sourceCrosswalkSha256: sha256File(absolute(args.crosswalkPath)),
       snapshotId: manifest.snapshotId,
     });
   }

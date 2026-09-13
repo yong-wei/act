@@ -1,0 +1,65 @@
+{
+  "shardClass": "node-detail",
+  "envelope": {
+    "contract": "act-authority-shard-envelope/v1",
+    "authority": {
+      "snapshotId": "snap-7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "snapshotHash": "7f1549103098d6efcc8a3989a344c047af682df7d8b4bddd7a28101dee04e731",
+      "releaseId": "ctr:release:control-theory-engineering-v0.48",
+      "releaseSetId": "actkg-authoritative-candidate-control-theory-engineering-v0.48",
+      "activationId": "activation-496129c057621ffa53d9debe",
+      "activationHash": "99939af321dfb3ca10597df292c52ee01a4e4d92c3ad302c55c44d70fe1c5781",
+      "projectionId": null,
+      "projectionHash": null
+    },
+    "catalog": {
+      "catalogId": "adc-b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogHash": "b04d72519f53806fad47f1a7de09d4b7dd45248bcc93994444f545eeb353c679",
+      "catalogVersion": "v0.48-candidate"
+    },
+    "teaching": {
+      "status": "available",
+      "projectionId": "proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "projectionHash": "0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc",
+      "teachingCacheFamily": "teaching-domain-proj:proj-0734e5358355555b469aa054df5e0aacfcce6471454d107af7a3ef2e110e08dc:0734e5358355555b"
+    },
+    "match": {
+      "authority": true,
+      "catalog": true,
+      "teaching": true
+    }
+  },
+  "node": {
+    "id": "ctkg:v3e-object-e9a442784c871743f9a63640",
+    "canonicalType": "Formula",
+    "label": "\\boldsymbol{\\Lambda}=\\boldsymbol{P}^{-1} \\boldsymbol{A} \\boldsymbol{P}=\\left[\\begin{array}{cccc} \\lambda_{1} & & & 0 \\\\ & \\lambda_{2} & & \\\\ & & \\ddots & \\\\ 0 & & & \\lambda_{n} \\end{array}\\right] \\quad \\boldsymbol{P}=\\left[\\begin{array}{llll} p_{1} & p_{2} & \\cdots & p_{n} \\end{array}\\right]",
+    "aliases": [],
+    "description": "化A为对角型(9-167)(9-168)",
+    "teachingFields": {},
+    "governance": {
+      "reviewStatus": "approved",
+      "publicationStatus": "published",
+      "lifecycleStatus": null
+    },
+    "sources": [
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/state-transform-topic-7/item-2",
+        "label": "自动控制原理（胡寿松，第8版） · 若 $\\boldsymbol{A}$ 阵为友矩阵，且有 $n$ 个互异实数特征值 $\\lambda_{1}, \\lambda_{2}, \\cdots, \\lambda_{n}$ ，则下列的范德蒙德（Vandermonde）矩阵 $\\boldsy"
+      },
+      {
+        "sourceEditionId": "hu-shousong-auto-control-8th",
+        "sectionId": "textbook-unit:hu-shousong-auto-control-8th@第八版/chapter-chapter-09/chapter-9/section-9.2/state-transform-topic-7/item-1-occurrence-2",
+        "label": "自动控制原理（胡寿松，第8版） · 设 $\\boldsymbol{A}$ 阵为任意形式的方阵，且有 $n$ 个互异实数特征值 $\\lambda_{1}, \\lambda_{2}, \\cdots, \\lambda_{n}$ ，则可由非奇异线性变换化为对角阵 $\\Lambda$ 。"
+      }
+    ],
+    "media": {
+      "cardAvailable": false,
+      "infographAvailable": false
+    },
+    "semanticSupport": {
+      "supported": true,
+      "readOnly": true
+    }
+  }
+}

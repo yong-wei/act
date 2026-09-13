@@ -111,15 +111,15 @@ function readJsonl<T>(repoRoot: string, relative: string): T[] {
   return rows;
 }
 
-function verifyBundleSeal(repoRoot: string): { localeManifest: UpstreamLocaleManifest } {
+function verifyBundleSeal(repoRoot: string, bundleRelative: string = V037_BILINGUAL_BUNDLE_RELATIVE): { localeManifest: UpstreamLocaleManifest } {
   const bundleManifest = JSON.parse(
-    readFileSync(join(repoRoot, V037_BILINGUAL_BUNDLE_RELATIVE, 'bundle-manifest.json'), 'utf8'),
+    readFileSync(join(repoRoot, bundleRelative, 'bundle-manifest.json'), 'utf8'),
   ) as { bundle_contract_version?: string; artifacts?: Array<{ path: string; sha256: string }> };
   if (bundleManifest.bundle_contract_version !== 'actkg-public-bundle/3') {
     throw new V037AdapterError('bundle-contract', 'upstream bundle contract is not admitted');
   }
   const localeManifest = JSON.parse(
-    readFileSync(join(repoRoot, V037_BILINGUAL_BUNDLE_RELATIVE, 'locale-manifest.json'), 'utf8'),
+    readFileSync(join(repoRoot, bundleRelative, 'locale-manifest.json'), 'utf8'),
   ) as UpstreamLocaleManifest;
   if (localeManifest.contract !== UPSTREAM_LOCALE_MANIFEST_CONTRACT) {
     throw new V037AdapterError('locale-manifest-contract', 'upstream locale manifest contract is not admitted');
@@ -140,7 +140,7 @@ function verifyBundleSeal(repoRoot: string): { localeManifest: UpstreamLocaleMan
     'entity-type-locale-lexicon.jsonl',
     'relation-locale-lexicon.jsonl',
   ] as const) {
-    const relative = `${V037_BILINGUAL_BUNDLE_RELATIVE}/${file}`;
+    const relative = `${bundleRelative}/${file}`;
     const digest = sha256File(repoRoot, relative);
     const expected = declared.get(file);
     if (!expected) {
@@ -162,20 +162,22 @@ export function adaptV037LocaleManifest(input: {
   repoRoot: string;
   envelope: V037EnvelopeIdentityInput;
   inventory: LocalePresentationInventory;
+  bundleRelative?: string;
 }): { manifest: AuthorityLocaleManifest; uncovered: V037UncoveredReport } {
-  const { localeManifest } = verifyBundleSeal(input.repoRoot);
+  const bundleRelative = input.bundleRelative ?? V037_BILINGUAL_BUNDLE_RELATIVE;
+  const { localeManifest } = verifyBundleSeal(input.repoRoot, bundleRelative);
 
   const contentRows = readJsonl<UpstreamLocalizedContentRow>(
     input.repoRoot,
-    `${V037_BILINGUAL_BUNDLE_RELATIVE}/localized-content-index.jsonl`,
+    `${bundleRelative}/localized-content-index.jsonl`,
   ).filter((row) => row.review_status === 'approved' && row.value.length > 0);
   const typeRows = readJsonl<UpstreamTypeTermRow>(
     input.repoRoot,
-    `${V037_BILINGUAL_BUNDLE_RELATIVE}/entity-type-locale-lexicon.jsonl`,
+    `${bundleRelative}/entity-type-locale-lexicon.jsonl`,
   ).filter((row) => row.review_status === 'approved');
   const relationRows = readJsonl<UpstreamRelationTermRow>(
     input.repoRoot,
-    `${V037_BILINGUAL_BUNDLE_RELATIVE}/relation-locale-lexicon.jsonl`,
+    `${bundleRelative}/relation-locale-lexicon.jsonl`,
   ).filter((row) => row.review_status === 'approved');
 
   const upstreamByName = new Map<string, Map<AdmittedLocale, string>>();

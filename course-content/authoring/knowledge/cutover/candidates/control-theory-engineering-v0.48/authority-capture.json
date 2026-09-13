@@ -1,0 +1,102 @@
+{
+  "contract": "authority-capture-receipt/v2",
+  "captureId": "cap-8edf0db2-37b5-4d85-ac67-8d4fda7793e1",
+  "capturedAt": "2026-09-13T14:32:59.668Z",
+  "actkgMainCommit": "d9e2b7c27a0235a97bbaeeb48b83e9316e978117",
+  "sourceCommit": "2ef97fedb8ae3fd308f67c8a087ee840ed73afe1",
+  "sourceTag": "control-theory-engineering-v0.48-source-r1",
+  "packagingCommit": "d9e2b7c27a0235a97bbaeeb48b83e9316e978117",
+  "stableTag": "control-theory-engineering-v0.48",
+  "releaseId": "ctr:release:control-theory-engineering-v0.48",
+  "releaseVersion": "control-theory-engineering-v0.48",
+  "bundleId": "ctb:control-theory-engineering-v0.48:r1",
+  "bundleDigest": "f131721062625cdf6157e95d4131da4eba429af1eb0d257fef1bf89f336854de",
+  "manifestSha256": "b1d055983ac351805977cc3f5444d6d2316b49f62031c843026717ba2aed464c",
+  "sha256sumsSha256": "2a86e26a3df90ff95f16c5bf2ff409741736d45d38ca9c0fed1c8f26a8ffe220",
+  "validationReportSha256": "cef146985f8a23fff38e76228e849f5a2468b880f10a7792beca10213c9303a4",
+  "publicationState": "PUBLISHED_COMPLETE",
+  "componentIdentities": [
+    {
+      "kind": "coverage",
+      "componentId": "control-theory-chapter-coverage-v0.34",
+      "version": "control-theory-chapter-coverage-v0.34",
+      "sha256": "983f82a0efff1ba7a1044118f5c53f85c75aea87772348aea1a2569b1dac5bb0"
+    },
+    {
+      "kind": "integration",
+      "componentId": "ctr:release:control-theory-integration-v0.35",
+      "version": "control-theory-integration-v0.35",
+      "sha256": "d5cbcfadb5cdc64c7a539d39d27f04de599539e9e7af2c2ef14bd4f203cdffce"
+    },
+    {
+      "kind": "module",
+      "componentId": "actkg-module-set",
+      "version": "control-theory-engineering-v0.48",
+      "sha256": "3683376e9eb8abbb8ef2bad981c3595c80f31ed840f819813815e4bce4b8f20a"
+    },
+    {
+      "kind": "overlay",
+      "componentId": "m3-v2a-successor-status-v23",
+      "version": "m3-v2a-successor-status-v23",
+      "sha256": "dbd6a9f6374fc8e0f73228531c44c0391dabd3d9cba18dcd6e8eb954e6d179f0"
+    },
+    {
+      "kind": "registry",
+      "componentId": "ResidualSuccessorRegistryPublicSummary",
+      "version": "v14",
+      "sha256": "6244746e494e89947c1f2abdc1957d8e572d1b87ce194522e78caadf1ccf5633"
+    },
+    {
+      "kind": "terminology",
+      "componentId": "ctr:release:control-theory-zh-cn-terminology-v0.22",
+      "version": "control-theory-zh-cn-terminology-v0.22",
+      "sha256": "b0c9a17cd3248728847bc03f3d147969c5ac6eec411c28222a9d8d0a2887aaac"
+    }
+  ],
+  "predecessorBundleId": null,
+  "candidateChain": [
+    "ctb:control-theory-engineering-v0.48:r1"
+  ],
+  "compatibility": {
+    "contract": "authority-adapter-compatibility/v1",
+    "adapterContractVersion": "actkg-public-bundle/2",
+    "classification": "COMPATIBLE",
+    "incompatibleReasons": [],
+    "captured": {
+      "schemaVersion": "0.3.0",
+      "schemaSha256": "4850ed2e4887f7b6a4f2a08f3eb786f82ef757170befef0f3f2dbf6dc9f6cb28",
+      "contractVersion": "actkg-public-bundle/3",
+      "requiredMembers": [
+        "release",
+        "ctkg_schema",
+        "component_manifest",
+        "multilingual_label_index",
+        "projection",
+        "projection",
+        "projection",
+        "projection_profiles",
+        "projection_link_metadata",
+        "rag_crosswalk",
+        "release_diff",
+        "release_notes",
+        "validation_report",
+        "localized_content",
+        "formula_render",
+        "relation_locale_lexicon",
+        "entity_type_locale_lexicon",
+        "locale_manifest",
+        "math_presence",
+        "typed_math_fragment",
+        "localized_rich_text",
+        "rich_text_readiness"
+      ],
+      "profiles": [
+        "runtime",
+        "domain",
+        "review"
+      ],
+      "representativeParse": "COMPLETE"
+    }
+  },
+  "captureHash": "c963d609f8a2cb1c9c2d8b6d61d00d5f63ddb2983398a11f8a4c85db62375f72"
+}

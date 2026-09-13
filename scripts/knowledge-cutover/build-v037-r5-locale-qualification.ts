@@ -17,7 +17,6 @@ import { loadActivePresentationInventory } from '@/lib/authority-locale-readines
 import { loadCompositeEnvelopeRegistry } from '@/lib/actkg-envelope/composite-envelope-registry';
 import {
   adaptV037LocaleManifest,
-  V037_BILINGUAL_BUNDLE_RELATIVE,
 } from '@/lib/authority-locale-readiness/v037-adapter';
 import { qualifyReleaseLocales } from '@/lib/authority-locale-readiness/qualify';
 import {
@@ -28,7 +27,19 @@ import {
 } from '@/lib/authority-locale-readiness/qualification-package';
 
 const ROOT = process.cwd();
-const COMPOSITE_NAME = 'control-theory-engineering-v0.37';
+function option(name: string, fallback: string): string {
+  const index = process.argv.indexOf(name);
+  const value = index < 0 ? undefined : process.argv[index + 1];
+  if (value !== undefined && (!value || value.startsWith('--'))) {
+    throw new Error(`missing ${name}`);
+  }
+  return value ?? fallback;
+}
+const COMPOSITE_NAME = option('--composite-name', 'control-theory-engineering-v0.48');
+const BUNDLE_RELATIVE = option(
+  '--bundle-dir',
+  'course-content/authoring/knowledge/releases/control-theory-engineering-v0.48',
+);
 
 const active = resolveActiveShardIdentity({ repoRoot: ROOT });
 const registry = loadCompositeEnvelopeRegistry(ROOT).find((row) => row.name === COMPOSITE_NAME);
@@ -47,6 +58,7 @@ const { manifest, uncovered } = adaptV037LocaleManifest({
     authoritySnapshotHash: active.envelope.authority.snapshotHash,
   },
   inventory,
+  bundleRelative: BUNDLE_RELATIVE,
 });
 
 const envelope = {
@@ -62,7 +74,7 @@ if (!qualification.chineseReady || !qualification.bilingualReady || !qualificati
 }
 
 const upstreamManifest = JSON.parse(readFileSync(
-  path.join(ROOT, V037_BILINGUAL_BUNDLE_RELATIVE, 'locale-manifest.json'),
+  path.join(ROOT, BUNDLE_RELATIVE, 'locale-manifest.json'),
   'utf8',
 )) as { release: { hash: string }; bundle_id?: string; release_id?: string };
 
@@ -80,10 +92,10 @@ const pkg = {
   },
   shardSet: { shardSetId: pointer.shardSetId, shardSetHash: pointer.shardSetHash },
   sourceBundle: {
-    relativePath: V037_BILINGUAL_BUNDLE_RELATIVE,
-    bundleId: upstreamManifest.bundle_id ?? 'ctb:control-theory-engineering-v0.37:r6',
+    relativePath: BUNDLE_RELATIVE,
+    bundleId: upstreamManifest.bundle_id ?? 'ctb:control-theory-engineering-v0.48:r1',
     releaseHash: upstreamManifest.release.hash,
-    sourceTag: 'control-theory-engineering-v0.37-source-r7',
+    sourceTag: 'control-theory-engineering-v0.48-source-r1',
   },
   manifest,
   qualification,
