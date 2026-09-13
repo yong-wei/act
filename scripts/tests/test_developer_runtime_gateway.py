@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import threading
+import types
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from http.server import ThreadingHTTPServer
@@ -133,6 +134,34 @@ class Clock:
 
 
 class DeveloperRuntimeGatewayTests(unittest.TestCase):
+    def test_fuse_attributes_are_stable_across_time_without_fetching_blobs(self):
+        import gateway_fuse
+
+        fuse = types.ModuleType("fuse")
+        fuse.FUSE = mock.Mock()
+        fuse.FuseOSError = OSError
+        fuse.Operations = object
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            argv = ["gateway_fuse", "--mount", str(root / "mount"),
+                    "--session", str(root / "session"), "--cache-dir", str(root / "cache")]
+            with mock.patch.dict(sys.modules, {"fuse": fuse}), mock.patch.object(sys, "argv", argv):
+                self.assertEqual(gateway_fuse.main(), 0)
+            adapter = fuse.FUSE.call_args.args[0]
+            with mock.patch.object(gateway_fuse, "declared_blob_size", return_value=128), \
+                    mock.patch.object(gateway_fuse, "ensure_cached_blob") as fetch:
+                for path in ("/", "/" + "a" * 64):
+                    with mock.patch.object(gateway_fuse.time, "time", return_value=1000):
+                        before = adapter.getattr(path)
+                    with mock.patch.object(gateway_fuse.time, "time", return_value=1089):
+                        after = adapter.getattr(path)
+                    self.assertEqual(before, after)
+                self.assertEqual(after["st_size"], 128)
+                fetch.assert_not_called()
+            with mock.patch.object(gateway_fuse, "declared_blob_size", return_value=None):
+                with self.assertRaises(OSError):
+                    adapter.getattr("/" + "b" * 64)
+
     def test_matching_active_identity_issues_lease_and_reads_allowlisted_blob(self):
         host, identity_a, _, _, a_only, _, shared, extra = bind_host(b"shared", b"a-only", b"b-only", b"extra")
         service = GatewayService(TOKEN, host)

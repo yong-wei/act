@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import {
-  createReadStream, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync,
+  createReadStream, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, renameSync, statSync, writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
@@ -71,7 +71,10 @@ function sourceStamp(paths: readonly string[]): string {
   return digest(paths.map((file) => {
     try {
       const stat = statSync(file);
-      return [file, stat.size, stat.mtimeMs];
+      // CAS Blobs can share size and timestamps; a new link target is still
+      // a different publication. Retain metadata checks for mutable files.
+      const target = lstatSync(file).isSymbolicLink() ? readlinkSync(file) : null;
+      return [file, stat.size, stat.mtimeMs, target];
     } catch {
       return [file, null];
     }
