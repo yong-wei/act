@@ -205,6 +205,15 @@ function isGovernedCourseStudentDemoStep(target: string): boolean {
   return readGovernedCourseStudentDemoStep(target) !== null;
 }
 
+export function isGovernedHandoutPrintTarget(target: string): boolean {
+  try {
+    const parsed = new URL(target, 'https://act.local');
+    return /^\/interactive-learning\/lessons\/[A-Za-z0-9][A-Za-z0-9._-]{0,127}\/handout-print$/.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function hasIntegratedJourneyDestination(
   resourceType: string,
   target: string,
@@ -220,7 +229,9 @@ function hasIntegratedJourneyDestination(
   }
   if (['lesson_step', 'slides', 'handout', 'quiz', 'textbook_section'].includes(resourceType)) {
     return pathname.startsWith('/interactive-learning/resources/')
-      || (resourceType === 'quiz' && pathname === '/assessment/adaptive-practice');
+      || (resourceType === 'quiz' && pathname === '/assessment/adaptive-practice')
+      || (resourceType === 'lesson_step' && isGovernedCourseStudentDemoStep(target))
+      || (resourceType === 'handout' && isGovernedHandoutPrintTarget(target));
   }
   if (resourceType === 'video' || resourceType === 'audio') {
     const courseSegment = pathname.split('/')[3];
