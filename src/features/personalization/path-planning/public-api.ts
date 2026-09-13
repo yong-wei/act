@@ -56,15 +56,32 @@ export {
   tryLoadGoalPlanningRegistry,
 } from './planning-projection-index';
 export {
+  KNOWLEDGE_MASTERY_SKIP_THRESHOLD,
   KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS,
   KNOWLEDGE_PATH_MAX_STEPS,
   buildKnowledgeSkeleton,
   clipKnowledgeSkeleton,
   fillKnowledgeSkeleton,
   indexResourcesByKnowledge,
+  isAssertionLikeKnowledge,
+  isCourseLikeResource,
+  masteryByCanonicalId,
+  planningResourceIdentity,
   rankBoundResources,
   scoreFilledPath,
+  selectPriorityKnowledgeSkeleton,
 } from './knowledge-path-assembly';
+export {
+  DEFAULT_KNOWLEDGE_PATH_POLICY,
+  resolveKnowledgePathPolicy,
+  type KnowledgePathPolicy,
+} from './knowledge-path-policy';
+export {
+  isAssertionLikeKnowledgeLabel,
+  isInternalPlanningTitle,
+  loadPlanningAssertionKnowledgeIds,
+  resolvePlanningResourceTitle,
+} from './planning-resource-titles';
 export * from './adaptive-cold-start-detection';
 export * from './adaptive-generation-readiness';
 export * from './adaptive-learning-optimization-experiments';

@@ -13,13 +13,24 @@ import {
 } from './assemble-plan';
 import { goalCanonicalIds, isPresetAdaptiveLearningGoal } from '../goal-canonical-knowledge';
 import {
-  KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS,
   buildKnowledgeSkeleton,
-  clipKnowledgeSkeleton,
   fillKnowledgeSkeleton,
   indexResourcesByKnowledge,
+  isAssertionLikeKnowledge,
+  masteryByCanonicalId,
   scoreFilledPath,
+  selectPriorityKnowledgeSkeleton,
 } from '../knowledge-path-assembly';
+import {
+  resolveKnowledgePathPolicy,
+  type KnowledgePathPolicy,
+} from '../knowledge-path-policy';
+import {
+  loadPlanningAssertionKnowledgeIds,
+  loadPlanningKnowledgeLabels,
+  planningAuthorityReleaseStatus,
+  resolvePlanningResourceTitle,
+} from '../planning-resource-titles';
 import { expandFeasibleKnowledgeIds } from '../knowledge-scope';
 import {
   loadLiveTeachingPrerequisiteEdges,
@@ -41,28 +52,24 @@ const STYLE_META: Array<{
   styleId: AdaptiveLearningPathStyleId;
   label: string;
   kinds: ResourceNodeType[];
-  knowledgeMode: 'required' | 'required-recommended' | 'targets';
 }> = [
   {
     family: 'foundation-remediation',
     styleId: 'foundation-remediation',
     label: '基础补救',
     kinds: FOUNDATION_TYPES,
-    knowledgeMode: 'required',
   },
   {
     family: 'simulation-driven',
     styleId: 'arena-simulation-sprint',
     label: '仿真冲刺',
     kinds: SIMULATION_TYPES,
-    knowledgeMode: 'required-recommended',
   },
   {
     family: 'preference-matched',
     styleId: 'preference-matched-route',
     label: '偏好匹配',
     kinds: DEFAULT_PREFERENCE_TYPES,
-    knowledgeMode: 'targets',
   },
 ];
 
@@ -70,6 +77,8 @@ export interface KnowledgePathMountOptions {
   prerequisiteEdges?: TeachingPrerequisiteEdge[];
   heuristicTimeoutMs?: number;
   now?: Date;
+  policy?: Partial<KnowledgePathPolicy>;
+  authorityReleaseSetId?: string | null;
 }
 
 export function shouldAssembleByKnowledgePath(input: AdaptiveLearningPathPlannerInput): boolean {
@@ -81,7 +90,14 @@ export function assembleKnowledgePathPlan(
   options: KnowledgePathMountOptions = {},
 ): AdaptiveLearningPathPlan {
   const now = (options.now ?? input.now ?? new Date()).toISOString();
+  const policy = resolveKnowledgePathPolicy(options.policy);
   const targets = goalCanonicalIds(input.goal.id);
+  const authority = planningAuthorityReleaseStatus(process.cwd(), {
+    authorityReleaseSetId: options.authorityReleaseSetId,
+  });
+  if (authority.status !== 'ready') {
+    return failClosedKnowledgePathPlan(input, now, targets, ['authority-release-unavailable']);
+  }
   const edges = options.prerequisiteEdges
     ?? input.planningScope?.edges
     ?? loadLiveTeachingPrerequisiteEdges();
@@ -98,16 +114,33 @@ export function assembleKnowledgePathPlan(
     isBoundCandidate(node, input, excluded) && scopedIds(node).length > 0,
   );
   const preferredTypes = preferredResourceTypes(input);
-  const deadline = Date.now() + (options.heuristicTimeoutMs ?? KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS);
+  const hasPortrait = preferredTypes.length > 0;
+  const masteryById = masteryByCanonicalId(input.learnerState?.knowledgeMastery?.tags);
+  const deadline = Date.now() + (options.heuristicTimeoutMs ?? policy.heuristicTimeoutMs);
   const byKnowledge = indexResourcesByKnowledge([...feasibleKnowledge], candidates, scopedIds);
+  const expandedIds = buildKnowledgeSkeleton(targets, edges, 'required')
+    .knowledgeIds
+    .filter((id) => feasibleKnowledge.has(id));
+  const labels = loadPlanningKnowledgeLabels(process.cwd(), {
+    authorityReleaseSetId: options.authorityReleaseSetId,
+  });
+  const assertionIds = loadPlanningAssertionKnowledgeIds(process.cwd(), {
+    authorityReleaseSetId: options.authorityReleaseSetId,
+  });
+  const knowledgeIds = selectPriorityKnowledgeSkeleton(expandedIds, masteryById, {
+    policy,
+    labels,
+    assertionIds,
+    keepIds: targets,
+  });
+  const droppedAssertions = expandedIds.some((id) =>
+    !targets.includes(id)
+    && isAssertionLikeKnowledge(id, { label: labels.get(id), assertionIds }),
+  );
   const styles = STYLE_META.map((style) => {
     const kinds = style.family === 'preference-matched' && preferredTypes.length
       ? preferredTypes
       : style.kinds;
-    const expandedIds = buildKnowledgeSkeleton(targets, edges, style.knowledgeMode)
-      .knowledgeIds
-      .filter((id) => feasibleKnowledge.has(id));
-    const knowledgeIds = clipKnowledgeSkeleton(expandedIds, targets);
     const fill = fillKnowledgeSkeleton({
       knowledgeIds,
       targetIds: targets,
@@ -116,12 +149,16 @@ export function assembleKnowledgePathPlan(
       preferredTypes,
       timeBudgetMinutes: input.constraints.timeBudgetMinutes,
       difficultyRhythm: input.difficultyRhythm,
+      masteryById,
       deadline,
+      policy,
     });
     return {
       style,
       knowledgeIds,
       clipped: expandedIds.length > knowledgeIds.length,
+      masteredDropped: expandedIds.some((id) => (masteryById[id] ?? 0) >= policy.masterySkipThreshold)
+        && knowledgeIds[0] !== expandedIds[0],
       mounted: fill.mounted,
       fill,
       pathScore: scoreFilledPath(fill.mounted, {
@@ -129,6 +166,7 @@ export function assembleKnowledgePathPlan(
         styleKinds: kinds,
         preferredTypes,
         timeBudgetMinutes: input.constraints.timeBudgetMinutes,
+        policy,
       }) + (input.preferredStyleId === style.styleId ? 10 : 0),
     };
   });
@@ -137,7 +175,10 @@ export function assembleKnowledgePathPlan(
     right.pathScore - left.pathScore
     || left.style.styleId.localeCompare(right.style.styleId),
   );
-  const nonEmpty = rankedStyles.find((entry) => entry.mounted.length > 0) ?? styles[0]!;
+  const nonEmpty = pickMainStyle(styles, rankedStyles, {
+    hasPortrait,
+    preferredStyleId: input.preferredStyleId,
+  });
   const mainPath = toPlanNodes(nonEmpty.mounted, completed, input.constraints.currentNodeId ?? null, feasibleKnowledge);
   const policyBundle = buildBundle(styles, completed, input, targets, preferredTypes.length > 0, feasibleKnowledge);
   const fallbackReasons = [
@@ -146,6 +187,8 @@ export function assembleKnowledgePathPlan(
     ...(preferredTypes.length === 0 ? ['trusted-portrait-unavailable'] : []),
     ...(nonEmpty.fill.method === 'deterministic-timeout' ? ['heuristic-timeout'] : []),
     ...(styles.some((entry) => entry.clipped) ? ['path-length-capped'] : []),
+    ...(styles.some((entry) => entry.masteredDropped) ? ['mastered-knowledge-skipped'] : []),
+    ...(droppedAssertions ? ['assertion-knowledge-skipped'] : []),
   ];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
   const policyFamily = nonEmpty.style.family;
@@ -242,6 +285,114 @@ export function assembleKnowledgePathPlan(
   };
 }
 
+function failClosedKnowledgePathPlan(
+  input: AdaptiveLearningPathPlannerInput,
+  now: string,
+  targets: string[],
+  fallbackReasons: string[],
+): AdaptiveLearningPathPlan {
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const policyFamily = STYLE_META[0]!.family;
+  return {
+    id: `adaptive-path:${input.studentId}:${input.goal.id}`,
+    userId: input.studentId,
+    goal: {
+      ...input.goal,
+      knowledgeTargets: targets,
+      learningGoal: registeredGoal?.learningGoal,
+      learningGoalPackage: registeredGoal?.learningGoal,
+    },
+    stage: 'stage-1-rules-graph',
+    policyFamily,
+    policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily],
+    policyBundle: {
+      families: STYLE_META.map((style) => style.family),
+      overlapThreshold: 1,
+      status: 'low-resource-fallback',
+      paths: [],
+      diversity: {
+        maxResourceOverlap: 0,
+        minModalityDistance: 0,
+        minEstimatedEffortDifference: 0,
+        minTerminalValidationDifference: 0,
+        pairwiseResourceOverlap: [],
+        pairwiseModalityDistance: [],
+        pairwiseEstimatedEffortDifference: [],
+        pairwiseTerminalValidationDifference: [],
+        modalityMixByPolicy: {},
+        estimatedEffortByPolicy: {},
+        terminalValidationDifference: 0,
+      },
+      fallbackReasons,
+    },
+    excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
+    status: 'fallback',
+    currentNodeId: null,
+    mainPath: [],
+    alternatives: [],
+    score: {
+      total: 0,
+      objectives: {
+        learningGain: 0,
+        engagement: 0,
+        constraintSatisfaction: 1,
+        diversity: 0,
+        fatigue: 0,
+        dropoutRisk: 0,
+      },
+    },
+    confidence: {
+      level: 'low',
+      score: 0,
+      sourceCoverage: 0,
+    },
+    explanations: {
+      selectedReasons: ['goal-knowledge-path'],
+      rejectedAlternatives: [],
+      fallbackReasons,
+      configurationFulfillment: [],
+    },
+    executionStatus: {
+      adopted: false,
+      completedNodeIds: input.constraints.completedNodeIds ?? [],
+      activeNodeId: null,
+      updatedAt: now,
+    },
+    deviations: [],
+    corrections: [],
+    feedbackEvents: [],
+    visualization: {
+      map: {
+        mainPathNodeIds: [],
+        branchPaths: [],
+        currentNodeId: null,
+        completedNodeIds: input.constraints.completedNodeIds ?? [],
+        riskNodeIds: [],
+        blockedNodes: [],
+        alternatives: [],
+      },
+      timeline: {
+        generatedAt: now,
+        windows: [{
+          days: input.constraints.timelineWindowDays ?? 7,
+          nodeIds: [],
+          estimatedMinutes: 0,
+        }],
+      },
+      evidence: {
+        evidenceBasis: 'fallback',
+        confidence: { level: 'low', score: 0, sourceCoverage: 0 },
+        sourceCoverage: {},
+        learnerStateDeficits: [],
+        capabilityEvidence: [],
+        prerequisiteReasons: [],
+        teacherPolicy: [],
+        alternatives: [],
+      },
+    },
+  };
+}
+
 function isBoundCandidate(
   node: ResourceNode,
   input: AdaptiveLearningPathPlannerInput,
@@ -262,6 +413,29 @@ function nodeCanonicalIds(node: ResourceNode, input: AdaptiveLearningPathPlanner
     ? resolvePublishedGoalCanonicalIds(input.registry.featureIndex, coverage)
     : [];
   return unique([...published, ...coverage.filter((id) => id.startsWith('ctc:') || id.startsWith('ctkg:')), ...mapped]);
+}
+
+function pickMainStyle<T extends {
+  style: (typeof STYLE_META)[number];
+  mounted: unknown[];
+}>(
+  styles: T[],
+  ranked: T[],
+  input: { hasPortrait: boolean; preferredStyleId?: string },
+): T {
+  if (input.preferredStyleId) {
+    const preferred = styles.find((entry) =>
+      entry.style.styleId === input.preferredStyleId && entry.mounted.length > 0,
+    );
+    if (preferred) return preferred;
+  }
+  if (!input.hasPortrait) {
+    const foundation = styles.find((entry) =>
+      entry.style.family === 'foundation-remediation' && entry.mounted.length > 0,
+    );
+    if (foundation) return foundation;
+  }
+  return ranked.find((entry) => entry.mounted.length > 0) ?? styles[0]!;
 }
 
 function preferredResourceTypes(input: AdaptiveLearningPathPlannerInput): ResourceNodeType[] {
@@ -292,7 +466,14 @@ function toPlanNodes(
       planningUnitId: `planning-unit:${node.id}`,
       resourceId: published?.identity.resourceId ?? `resource:${node.id}`,
       resourceNodeId: node.id,
-      title: node.title,
+      title: resolvePlanningResourceTitle(node.title, {
+        canonicalIds: unique([
+          entry.canonicalId,
+          ...node.planningMetadata.knowledgeCoverage,
+          ...(published?.canonicalIds ?? []),
+        ]),
+        resourceId: published?.identity.resourceId ?? node.sourceRef,
+      }),
       type: node.type,
       pathNodeType: node.pathSemantics.type,
       displayName: node.pathSemantics.displayName,
