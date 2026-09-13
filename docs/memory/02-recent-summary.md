@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-12
-摘要: 生产应用 `v0.7.16-2e34c18`（`origin/main` `2e34c18f32…`，tar SHA256 `3e0d2dfe…`）已 `deploy:app --skip-build`。路径规划按目标知识切片生成并挂载绑定资源，不再要求班级/教师绑定。现网 Runtime 身份是 `runtime-6ed6cfe8…`（app-only 未切换）。`origin/integration` 现为 `79c73f5`（开发机网关对齐已激活 manifest），尚未合入 `main`。OpenSpec `simplify-runtime-cas-publish-activate` 尚未 archive。
+最后更新: 2026-09-13
+摘要: 生产应用 `v0.7.17-f852a00`（`origin/main` `f852a0089…`，tar SHA256 `2e0ce4d6…`）已 `deploy:app --skip-build`。路径规划标题可读、课次作收官、控灵生成回路径页。现网 Runtime 身份仍是 `runtime-6ed6cfe8…`（app-only 未切换）。`origin/integration` 现为 `18e0b2238`（深链启动，晚于本次冻结，未进 main）。OpenSpec `simplify-runtime-cas-publish-activate` 尚未 archive。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,6 +16,7 @@
 
 ## 最近最重要的稳定变化
 
+- 2026-09-13 生产应用 `v0.7.17-f852a00` 已 `deploy:app --skip-build`：冻结 `origin/main` `f852a0089ec7ac56e68451d28fc6d75cfb5011a5`，镜像 `localhost/act-obe-platform:0.7.17-f852a00`，tar SHA256 `2e0ce4d6f95a6670548a6ec3d579166e2fb0b757f9aa824c4b96ad8fec2116d7`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.17。路径质量：可读中文标题、课次/讲义作收官、掌握度对齐活骨架、方案去重、控灵 `generate_learning_path` 把 `batchId` 回路径页。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；知识图谱 838 节点 / 16571 关系。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 身份仍为 `runtime-6ed6cfe8…`。`origin/integration` 随后快进到 `18e0b2238`（锚定讲义/步骤/路径节点深链），不要追进本次已发布的 `main`。
 - 2026-09-12 生产应用 `v0.7.16-2e34c18` 已 `deploy:app --skip-build`：冻结 `origin/main` `2e34c18f32cd855b6e624358742363045d89e09a`，镜像 `localhost/act-obe-platform:0.7.16-2e34c18`，tar SHA256 `3e0d2dfeb795828ae62bda301516102f6223c22b56c4e7d6a9bcfbfa974a24ca`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.16。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；知识图谱 838 节点 / 16571 关系。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 身份为 `runtime-6ed6cfe8…`。
 - 2026-09-12 生产应用 `v0.7.15-cf73522` 已 `deploy:app` 恢复运行。路径生成仍走旧混池，会 OOM。
 - 2026-09-12 路径规划质量裁决已写入 [ADR-2026-09-12-path-planning-quality.md](50-decisions/ADR-2026-09-12-path-planning-quality.md)：风格是倾向不是互斥；目标是远期目标，从头部截有限骨架；掌握度高的点不进骨架；课程作收官；冷启动补基础不是缺陷。
