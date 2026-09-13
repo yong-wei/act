@@ -10,15 +10,11 @@ import { parseAnyRuntimeReleaseManifest, type AnyActRuntimeReleaseManifest } fro
 
 const manifests = new Map<string, Promise<AnyActRuntimeReleaseManifest>>();
 
-/** Planning needs the locked inventory, not a local copy of every Blob. */
+/** Planning reads the activated Runtime pointer. Write-time binding stamps are provenance only. */
 export async function readPlanningRuntimeManifest(expectedReleaseId?: string | null) {
   const mounted = await readActiveRuntimeReleaseManifest();
-  if (mounted || !expectedReleaseId) {
-    if (mounted && expectedReleaseId && mounted.releaseId !== expectedReleaseId) {
-      throw new Error('Planning Runtime lock differs from the mounted release');
-    }
-    return mounted;
-  }
+  if (mounted) return mounted;
+  if (!expectedReleaseId) return mounted;
   const existing = manifests.get(expectedReleaseId);
   if (existing) return existing;
   const promise = readGatewayManifest(expectedReleaseId);

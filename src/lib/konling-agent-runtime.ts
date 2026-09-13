@@ -4780,8 +4780,8 @@ export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPa
   limitationCodes: string[];
   release: RuntimeReleaseFileIndex | null;
 }> {
-  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex(index?.runtimeReleaseId)];
-  if (index && ((projection?.projectionId ?? null) !== index.projectionId || (release?.releaseId ?? null) !== index.runtimeReleaseId)) {
+  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
+  if (index && (projection?.projectionId ?? null) !== index.projectionId) {
     throw new KonlingRuntimeScopeError(409, '资源版本正在更新，请重新生成路径。');
   }
   const nodeTypeById = new Map<string, string>();

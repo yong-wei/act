@@ -69,9 +69,9 @@ it('rejects modified manifest bytes, releases the lease, and retries failed read
   expect(fetcher).toHaveBeenCalledTimes(8);
 });
 
-it('does not hide a mismatched mounted release behind the gateway', async () => {
+it('uses the mounted release when a write-time lock names a predecessor', async () => {
   const { readPlanningRuntimeManifest, manifest, fetcher } = await setup();
   mounted.mockResolvedValue(manifest);
-  await expect(readPlanningRuntimeManifest('runtime-other')).rejects.toThrow('differs from the mounted release');
+  expect(await readPlanningRuntimeManifest('runtime-other')).toEqual(manifest);
   expect(fetcher).not.toHaveBeenCalled();
 });
