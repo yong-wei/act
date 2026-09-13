@@ -87,6 +87,8 @@ export {
   type KnowledgePathPolicy,
 } from './knowledge-path-policy';
 export {
+  collapseDuplicatePlanningTitle,
+  composePlanningNodeTitle,
   isAssertionLikeKnowledgeLabel,
   isInternalPlanningTitle,
   loadPlanningAssertionKnowledgeIds,

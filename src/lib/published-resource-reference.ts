@@ -23,6 +23,8 @@ export interface PublishedResourceIdentity {
   snapshotId: string;
   snapshotHash: string;
   runtimeReleaseId?: string | null;
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
   /** Optional content version used to keep a generated resource target exact. */
   resourceVersion?: string;
 }
@@ -164,11 +166,24 @@ export function publishedResourceNodeId(resourceId: string, resourceVersion: str
 export function hasPublishedPlanNodeIdentity(node: {
   nodeId: string; type: string; sourceKind?: string; sourceRef?: string; target: string;
   resourceFeatureRef?: ResourceFeatureReference;
-}): boolean {
+}, feature?: PublishedResourceFeature): boolean {
   const ref = node.resourceFeatureRef;
   if (!ref || !isPublishedResourceIdentity(ref) || !SHA256.test(ref.resourceVersion) || !SHA256.test(ref.indexId)) return false;
   const type = ref.resourceId.split(':')[1] as TeachingResourceType;
   const target = parsePublishedResourceHref(node.target);
+  if (feature && (ref.bindingReleaseId || ref.bindingHash)
+    && (feature.identity.bindingReleaseId !== ref.bindingReleaseId || feature.identity.bindingHash !== ref.bindingHash)) return false;
+  if (feature && ref.bindingReleaseId && ref.bindingHash
+    && feature.identity.bindingReleaseId === ref.bindingReleaseId && feature.identity.bindingHash === ref.bindingHash
+    && feature.identity.resourceId === ref.resourceId && feature.version === ref.resourceVersion
+    && feature.identity.projectionId === ref.projectionId && feature.identity.projectionHash === ref.projectionHash
+    && feature.identity.snapshotId === ref.snapshotId && feature.identity.snapshotHash === ref.snapshotHash
+    && (feature.identity.runtimeReleaseId ?? null) === (ref.runtimeReleaseId ?? null)
+    && feature.backend.kind === 'route' && node.target === feature.backend.href) {
+    return publishedResourcePathType(feature.type) === node.type
+      && node.sourceKind === 'teaching_projection' && node.sourceRef === ref.resourceId
+      && node.nodeId === publishedResourceNodeId(ref.resourceId, ref.resourceVersion);
+  }
   return type in PUBLISHED_RESOURCE_LABELS && publishedResourcePathType(type) === node.type
     && node.sourceKind === 'teaching_projection' && node.sourceRef === ref.resourceId
     && node.nodeId === publishedResourceNodeId(ref.resourceId, ref.resourceVersion)

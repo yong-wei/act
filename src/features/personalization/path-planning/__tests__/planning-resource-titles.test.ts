@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  collapseDuplicatePlanningTitle,
+  composePlanningNodeTitle,
   entityIdFromInternalTitle,
   isAssertionLikeKnowledgeLabel,
   isInternalPlanningTitle,
@@ -26,6 +28,23 @@ describe('planning resource titles', () => {
     expect(resolvePlanningResourceTitle('根轨迹分析', { labels })).toBe('根轨迹分析');
     expect(resolvePlanningResourceTitle('lesson02-root-locus-lesson02-root-locus 仿真', { labels }))
       .toBe('root locus仿真');
+    expect(isInternalPlanningTitle('lesson06-judge-bench-cmkax0s1s0005ence448uv49j 仿真')).toBe(true);
+    expect(resolvePlanningResourceTitle('lesson06-judge-bench-cmkax0s1s0005ence448uv49j 仿真', {
+      labels,
+      canonicalIds: ['ctc:v11g-5845390ded447e37f06ea222'],
+    })).toBe('根轨迹仿真');
+    expect(resolvePlanningResourceTitle('THE LAPLACE TRANSFORM · THE LAPLACE TRANSFORM', {
+      labels,
+      canonicalIds: ['ctc:modeling-865eb1c8824e157c2f05a903'],
+    })).toBe('传递函数（教材）');
+    expect(composePlanningNodeTitle(
+      '系统状态空间描述常用的基本概念',
+      '系统状态空间描述常用的基本概念',
+    )).toBe('系统状态空间描述常用的基本概念');
+    expect(composePlanningNodeTitle('反馈与校正——从开环到闭环', '第 9 步')).toBe('反馈与校正——从开环到闭环');
+    expect(collapseDuplicatePlanningTitle('Poles and Zeros · Poles and Zeros')).toBe('Poles and Zeros');
+    expect(resolvePlanningResourceTitle('在例2－2中已求得电枢控制直流电动机简化后的微分方程为', { labels }))
+      .toBe('教材节');
     expect(resolvePlanningResourceTitle('ctc unknown-id', {
       labels,
       canonicalIds: ['ctc:v11g-5845390ded447e37f06ea222'],

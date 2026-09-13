@@ -11,18 +11,18 @@ export function buildIndexedCandidateResourceRecords(
   index?: PublishedResourceFeatureIndex,
   checkedAt = new Date().toISOString(),
 ): AdaptivePathObjectKeyReadRecord[] {
-  const features = new Map(index?.resources.map((resource) => [resource.identity.resourceId, resource]) ?? []);
+  const features = new Map(index?.resources.map((resource) => [JSON.stringify([resource.identity.resourceId, resource.version]), resource]) ?? []);
   const records: AdaptivePathObjectKeyReadRecord[] = [];
   for (const option of options) {
     for (const node of option.planNodes ?? []) {
       const ref = node.resourceFeatureRef;
       if (ref) {
-        const feature = features.get(ref.resourceId);
+        const feature = features.get(JSON.stringify([ref.resourceId, ref.resourceVersion]));
         const valid = Boolean(
           feature
           && feature.canonicalIds.length > 0
           && isPublishedResourceIdentity(ref)
-          && (node.sourceKind === 'teaching_projection' ? hasPublishedPlanNodeIdentity(node)
+          && (node.sourceKind === 'teaching_projection' ? hasPublishedPlanNodeIdentity(node, feature)
             : deriveTeachingProjectionResourceIdentity(node.nodeId)?.resourceId === ref.resourceId)
           && ref.indexId === index?.indexId && ref.resourceVersion === feature.version
           && ref.projectionId === index.projectionId && ref.projectionHash === index.projectionHash

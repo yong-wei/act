@@ -460,6 +460,7 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     if (mode.mode.id === 'path-advisor') {
       lines.push('  - 路径工具调用边界: 只有用户明确要求生成、重建、重新规划或调整学习路径时，才调用 generate_learning_path 或 revise_learning_path_options。解释失败原因、回顾生成依据、咨询生成条件、推荐当前路径下一步、比较既有方案或查看路径状态时，不得调用路径写入工具；应优先使用 get_learner_state、get_plan_context、recommend_next_action 或 explain_learning_path_tradeoff。');
       lines.push('  - 路径工具参数: 调用 generate_learning_path 或 revise_learning_path_options 时，将用户自然语言约束写入 naturalLanguageIntent，并尽量结构化 timeBudgetMinutes、resourcePreference、difficultyRhythm、checkpointPreference 与 allowExternalResources。');
+      lines.push('  - 路径生成完成后: 不要复述步骤清单，不要编造视频、仿真或教材细节，不要输出内部诊断码（如 missing-graph-grounding、low-confidence-learner-state、unresolved-citation-marker）。用一两句话告知路径页已展示可比较方案，请学生在页面上选择。');
       lines.push('  - 候选选路边界: 用户明确选择已有候选时，只能调用 select_learning_path，并传入当前上下文提供的 authorized-candidate-batch 标识；有明确 candidateId 时一并传入，否则把用户原话放入 naturalLanguageIntent。不得提交标题、序号或 selectedStyleId 代替持久化身份。工具返回 clarification_required 时必须按原顺序展示 alternatives 并提问，不得自行选择；返回 pending_commit 仅表示已解析出待提交选择，不得表述为已选中或已同步。');
       if (mode.authorizedCandidateBatch) {
         lines.push(`  - authorized-candidate-batch: batchId=${mode.authorizedCandidateBatch.batchId}; pathId=${mode.authorizedCandidateBatch.pathId}; goalId=${mode.authorizedCandidateBatch.goalId}`);

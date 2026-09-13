@@ -5,9 +5,13 @@ import { resolveConfiguredTeachingProjectionRoot } from '@/lib/teaching-projecti
 
 const INTERNAL_TITLE = /^(ctc|ctkg|ctk)[:\s]/u;
 const DUPLICATE_LESSON_SIM = /^(lesson\d+-[a-z0-9-]+)-\1(?:\s+仿真)?$/iu;
+const LESSON_REGISTRY_TITLE = /^lesson\d+-[a-z0-9-]+(?:\s+仿真)?$/iu;
 const HASH_SLUG = /[a-f0-9]{16,}/u;
+const OPAQUE_SLUG = /(?:^|[\s-])[a-z]{2,}[a-z0-9]{18,}(?:$|[\s])/u;
 const ASSERTION_LABEL = /^(属性断言|知识命题)\s*[：:]/u;
 const LONG_ENGLISH_STATEMENT = /^[A-Za-z][\s\S]{79,}$/u;
+const STEP_ANCHOR = /^第\s*\d+\s*步/u;
+const LONG_EXCERPT = /[为的了在中已求得]/u;
 
 export function isAssertionLikeKnowledgeLabel(label: string): boolean {
   const trimmed = label.trim();
@@ -22,8 +26,8 @@ export function isInternalPlanningTitle(title: string): boolean {
   const trimmed = title.trim();
   if (!trimmed) return true;
   if (INTERNAL_TITLE.test(trimmed)) return true;
-  if (DUPLICATE_LESSON_SIM.test(trimmed)) return true;
-  if (HASH_SLUG.test(trimmed) && !/[\u4e00-\u9fff]/.test(trimmed)) return true;
+  if (DUPLICATE_LESSON_SIM.test(trimmed) || LESSON_REGISTRY_TITLE.test(trimmed)) return true;
+  if ((HASH_SLUG.test(trimmed) || OPAQUE_SLUG.test(trimmed)) && !/[\u4e00-\u9fff]/.test(trimmed)) return true;
   return false;
 }
 
@@ -36,10 +40,46 @@ export function entityIdFromInternalTitle(title: string): string | null {
 }
 
 export function humanizeLessonSimulationTitle(title: string): string | null {
-  const match = DUPLICATE_LESSON_SIM.exec(title.trim());
-  if (!match) return null;
-  const slug = match[1].replace(/^lesson\d+-/u, '').replace(/-/g, ' ').trim();
-  return slug ? `${slug}仿真` : null;
+  const trimmed = title.trim();
+  const duplicate = DUPLICATE_LESSON_SIM.exec(trimmed);
+  if (duplicate) {
+    const slug = duplicate[1].replace(/^lesson\d+-/u, '').replace(/-/g, ' ').trim();
+    return slug ? `${slug}仿真` : '仿真实验';
+  }
+  if (LESSON_REGISTRY_TITLE.test(trimmed) || OPAQUE_SLUG.test(trimmed)) {
+    return /仿真/u.test(trimmed) ? '仿真实验' : null;
+  }
+  return null;
+}
+
+export function collapseDuplicatePlanningTitle(title: string): string {
+  const parts = title.split(' · ').map((part) => part.trim()).filter(Boolean);
+  if (parts.length < 2) return title.trim();
+  const kept: string[] = [];
+  for (const part of parts) {
+    if (STEP_ANCHOR.test(part)) continue;
+    if (kept.some((existing) => normalizeTitle(existing) === normalizeTitle(part))) continue;
+    kept.push(part);
+  }
+  return (kept.join(' · ') || parts[0]!).trim();
+}
+
+export function composePlanningNodeTitle(
+  title: string,
+  anchorLabel?: string | null,
+  options: {
+    labels?: ReadonlyMap<string, string>;
+    canonicalIds?: readonly string[];
+    resourceId?: string;
+  } = {},
+): string {
+  const resolved = resolvePlanningResourceTitle(title, options);
+  const anchor = typeof anchorLabel === 'string' ? anchorLabel.trim() : '';
+  if (!anchor || STEP_ANCHOR.test(anchor)) return resolved;
+  const resolvedAnchor = resolvePlanningResourceTitle(anchor, options);
+  if (!resolvedAnchor || normalizeTitle(resolved) === normalizeTitle(resolvedAnchor)) return resolved;
+  if (resolved.includes(resolvedAnchor) || resolvedAnchor.includes(resolved)) return resolved;
+  return collapseDuplicatePlanningTitle(`${resolved} · ${resolvedAnchor}`);
 }
 
 export function resolvePlanningResourceTitle(
@@ -51,16 +91,26 @@ export function resolvePlanningResourceTitle(
   } = {},
 ): string {
   const labels = options.labels ?? loadPlanningKnowledgeLabels();
-  if (!isInternalPlanningTitle(title)) return title;
-  const fromTitle = labels.get(entityIdFromInternalTitle(title) ?? '');
-  if (fromTitle) return fromTitle;
-  for (const id of options.canonicalIds ?? []) {
-    const label = labels.get(id);
-    if (label) return label;
+  const collapsed = collapseDuplicatePlanningTitle(title);
+  const labeled = firstChineseLabel(options, labels);
+  if (
+    isInternalPlanningTitle(collapsed)
+    || isEnglishOnlyTitle(collapsed)
+    || isLongExcerptTitle(collapsed)
+  ) {
+    const fromTitle = labels.get(entityIdFromInternalTitle(collapsed) ?? '');
+    if (fromTitle) return withResourceHint(fromTitle, collapsed);
+    for (const id of options.canonicalIds ?? []) {
+      const label = labels.get(id);
+      if (label && /[\u4e00-\u9fff]/u.test(label)) return withResourceHint(label, collapsed);
+    }
+    const fromResource = entityIdFromResourceId(options.resourceId);
+    if (fromResource && labels.get(fromResource)) return withResourceHint(labels.get(fromResource)!, collapsed);
+    if (labeled) return withResourceHint(labeled, collapsed);
+    if (isLongExcerptTitle(collapsed)) return '教材节';
+    return humanizeLessonSimulationTitle(collapsed) ?? collapsed;
   }
-  const fromResource = entityIdFromResourceId(options.resourceId);
-  if (fromResource && labels.get(fromResource)) return labels.get(fromResource)!;
-  return humanizeLessonSimulationTitle(title) ?? title;
+  return collapsed;
 }
 
 const AUTHORING_RELEASE_NAME = /control-theory-engineering-v\d+(?:\.\d+)*-r\d+/u;
@@ -200,4 +250,42 @@ function entityIdFromResourceId(resourceId: string | undefined): string | null {
   const card = /^act:card:(.+)$/u.exec(resourceId);
   if (!card) return null;
   return entityIdFromInternalTitle(card[1].replace(/_/g, ' '));
+}
+
+function firstChineseLabel(
+  options: { canonicalIds?: readonly string[]; resourceId?: string },
+  labels: ReadonlyMap<string, string>,
+): string | null {
+  for (const id of options.canonicalIds ?? []) {
+    const label = labels.get(id);
+    if (label && /[\u4e00-\u9fff]/u.test(label)) return label;
+  }
+  const fromResource = entityIdFromResourceId(options.resourceId);
+  const resourceLabel = fromResource ? labels.get(fromResource) : null;
+  return resourceLabel && /[\u4e00-\u9fff]/u.test(resourceLabel) ? resourceLabel : null;
+}
+
+function withResourceHint(label: string, rawTitle: string): string {
+  if (/仿真/u.test(rawTitle) && !/仿真/u.test(label)) return `${label}仿真`;
+  if (
+    isEnglishOnlyTitle(rawTitle)
+    && !isInternalPlanningTitle(rawTitle)
+    && !LESSON_REGISTRY_TITLE.test(rawTitle.trim())
+    && !/（教材）/u.test(label)
+  ) {
+    return `${label}（教材）`;
+  }
+  return label;
+}
+
+function isEnglishOnlyTitle(title: string): boolean {
+  return /[A-Za-z]{4,}/u.test(title) && !/[\u4e00-\u9fff]/u.test(title);
+}
+
+function isLongExcerptTitle(title: string): boolean {
+  return title.length > 22 && LONG_EXCERPT.test(title);
+}
+
+function normalizeTitle(title: string): string {
+  return title.trim().toLowerCase().replace(/\s+/gu, '');
 }

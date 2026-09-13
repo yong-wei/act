@@ -10,6 +10,7 @@ import { consumeStream, createUIMessageStreamResponse, generateText, streamText,
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable } from '@/lib/ai/provider-runtime';
 import { SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai/lesson-prompts';
 import { resolveServerOwnedChatPageContext } from '@/lib/ai/chat-context-boundary';
+import { requestsLearningPathGeneration } from '@/lib/ai/path-generation-intent';
 import {
   getMessageContent,
   toLegacyMessage,
@@ -464,6 +465,7 @@ export async function POST(request: Request) {
     }
 
     let tools: any = aiTools;
+    let forcePathGenerationTool = false;
 
     // 构建系统提示词
     let systemPrompt: string;
@@ -905,6 +907,9 @@ export async function POST(request: Request) {
         'X-Konling-Assistant-Mode-Status': modeContract.status,
       };
       tools = buildScopedKonlingAiTools(toolRuntime);
+      forcePathGenerationTool = modeContract.mode.id === 'path-advisor'
+        && Boolean(tools.generate_learning_path)
+        && requestsLearningPathGeneration(requestedUserMessage?.content ?? '');
     } else if (pageContext) {
       governedCopilotProfile = session?.user?.id
         ? await resolveGovernedCopilotProfile({
@@ -1001,6 +1006,11 @@ export async function POST(request: Request) {
             activeTools: ['propose_smart_lesson_task_change'],
             toolChoice: { type: 'tool' as const, toolName: 'propose_smart_lesson_task_change' },
           }
+          : { activeTools: [], toolChoice: 'none' as const },
+      } : forcePathGenerationTool ? {
+        stopWhen: stepCountIs(2),
+        prepareStep: ({ stepNumber }: { stepNumber: number }) => stepNumber === 0
+          ? { activeTools: ['generate_learning_path'], toolChoice: { type: 'tool' as const, toolName: 'generate_learning_path' } }
           : { activeTools: [], toolChoice: 'none' as const },
       } : {
         stopWhen: stepCountIs(5), // 允许最多5轮工具调用

@@ -54,6 +54,7 @@ const MOBILE_HISTORY_QUERY = '(max-width: 767px)';
 const presentedContinuitySnapshotIds = new Set<string>();
 const handledPathSelectionKeys = new Set<string>();
 const inflightPathSelectionKeys = new Set<string>();
+const handledPathGenerationKeys = new Set<string>();
 
 function getFocusableElements(container: HTMLElement) {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
@@ -144,6 +145,8 @@ export function GlobalAISidebar() {
       : pageContext?.stepId || pageContext?.courseId;
   }, [pageContext?.courseId, pageContext?.stepId, pathname]);
   const isResourceCoachEntry = assistantEntryPoint?.mode === 'resource-coach';
+  const isPathAdvisorEntry = assistantEntryPoint?.mode === 'path-advisor'
+    || pageContext?.stepId === 'adaptive-path-center';
   const {
     conversations,
     activeConversationId,
@@ -173,7 +176,7 @@ export function GlobalAISidebar() {
     resourceId: effectiveServerContext?.resourceId,
     pathNodeId: effectiveServerContext?.pathNodeId,
     assistantBinding: requestedAssistantBinding,
-    autoSelectFirstConversation: !isResourceCoachEntry,
+    autoSelectFirstConversation: !isResourceCoachEntry && !isPathAdvisorEntry,
   });
   const agentSessionStorageKey = useMemo(() => {
     if (assistantEntryPoint?.mode !== 'prep-coauthor') return null;
@@ -278,7 +281,8 @@ export function GlobalAISidebar() {
     return { state: conflict ? 'conflict' : 'failed', message };
   }
 
-  const sendAssistantBinding = requestedAssistantBinding?.modeClientContextHints?.resourceKind === 'structured-textbook-unit'
+  const sendAssistantBinding = requestedAssistantBinding?.teachingAssistantModeId === 'path-advisor'
+    || requestedAssistantBinding?.modeClientContextHints?.resourceKind === 'structured-textbook-unit'
     ? requestedAssistantBinding
     : activeAssistantBinding;
   const chatBody = useMemo(() => ({
@@ -318,10 +322,10 @@ export function GlobalAISidebar() {
         refreshConversations(),
         refreshActiveConversation(),
       ]).catch(() => undefined);
-      if (activeAssistantBinding?.teachingAssistantModeId === 'path-advisor') {
+      if (sendAssistantBinding?.teachingAssistantModeId === 'path-advisor') {
         window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
           detail: {
-            mode: activeAssistantBinding.teachingAssistantModeId,
+            mode: sendAssistantBinding.teachingAssistantModeId,
             courseId: pageContext?.courseId ?? null,
             pageId: pageContext?.stepId ?? null,
           },
@@ -455,6 +459,36 @@ export function GlobalAISidebar() {
       ? { key: current.key, state: 'superseded' }
       : current);
   }, []);
+
+  useEffect(() => {
+    if (activeAssistantBinding?.teachingAssistantModeId !== 'path-advisor') return;
+    for (const message of messages) {
+      for (const invocation of message.toolInvocations ?? []) {
+        if (
+          (invocation.toolName !== 'generate_learning_path' && invocation.toolName !== 'revise_learning_path_options')
+          || invocation.state !== 'result'
+        ) continue;
+        const result = recordValue(invocation.result);
+        if (stringValue(result.generationStatus) !== 'persisted') continue;
+        const batchId = stringValue(recordValue(result.candidateBatch).id);
+        const pathId = stringValue(result.pathId);
+        if (!batchId) continue;
+        const key = `${message.id}:${invocation.toolName}:${batchId}`;
+        if (handledPathGenerationKeys.has(key)) continue;
+        handledPathGenerationKeys.add(key);
+        setIsMaximized(false);
+        window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
+          detail: {
+            mode: 'path-advisor',
+            batchId,
+            pathId,
+            source: 'path-generation',
+          },
+        }));
+        setActionStatus('学习路径已生成，请在路径页比较方案。');
+      }
+    }
+  }, [activeAssistantBinding?.teachingAssistantModeId, messages]);
 
   useEffect(() => {
     if (activeAssistantBinding?.teachingAssistantModeId !== 'path-advisor') return;
@@ -813,24 +847,29 @@ export function GlobalAISidebar() {
     }
     try {
       const conversation = await ensureConversation();
-      await handleSubmit(undefined, { ...chatBody, conversationId: conversation.id });
+      const binding = sendAssistantBinding ?? conversation.assistantBinding;
+      await handleSubmit(undefined, {
+        ...chatBody, conversationId: conversation.id,
+        teachingAssistantModeId: binding?.teachingAssistantModeId,
+        modeClientContextHints: binding?.modeClientContextHints,
+      });
       clearUnread();
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '无法发送控灵问题。');
     }
-  }, [chatBody, clearUnread, coachResolution, coachSubmissionBlocked, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading]);
+  }, [chatBody, clearUnread, coachResolution, coachSubmissionBlocked, ensureConversation, handleSubmit, isConversationLoading, isConversationMutating, isLoading, sendAssistantBinding]);
 
   const handleNewConversation = useCallback(async () => {
     supersedeCoachResolution();
     try {
-      await createConversation(null);
+      await createConversation(assistantEntryPoint?.mode === 'path-advisor' ? requestedAssistantBinding : null);
       setMessages([]);
       setEditingConversationId(null);
       setActionStatus('已新建空白对话。');
     } catch (cause) {
       setActionStatus(cause instanceof Error ? cause.message : '新建控灵会话失败。');
     }
-  }, [createConversation, setMessages, supersedeCoachResolution]);
+  }, [assistantEntryPoint?.mode, createConversation, requestedAssistantBinding, setMessages, supersedeCoachResolution]);
 
   const handleSelectConversation = useCallback((conversationId: string) => {
     if (isLoading) return;

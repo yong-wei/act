@@ -13,6 +13,8 @@ const testState = vi.hoisted(() => ({
   mediaListeners: new Set<() => void>(),
   isOpen: true,
   pathAdvisorMode: false,
+  requestedPathAdvisor: false,
+  submitChat: vi.fn(),
   chatMessages: [] as Array<Record<string, unknown>>,
   chatError: null as Error | null,
   closeSidebar: vi.fn(),
@@ -36,7 +38,7 @@ vi.mock('@/hooks/useLegacyChat', async () => {
         messages,
         input,
         handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => setInput(event.target.value),
-        handleSubmit: vi.fn(),
+        handleSubmit: testState.submitChat,
         isLoading: testState.chatLoading,
         error: testState.chatError,
         reload: vi.fn(),
@@ -108,7 +110,9 @@ vi.mock('@/components/providers/global-ai-provider', () => ({
     closeSidebar: testState.closeSidebar,
     tools: [],
     systemPromptExtension: undefined,
-    assistantEntryPoint: undefined,
+    assistantEntryPoint: testState.requestedPathAdvisor ? {
+      mode: 'path-advisor', serverContext: { goalId: 'goal-1', modeContextToken: 'signed-token' },
+    } : undefined,
     knowledgeWorkspaceHint: undefined,
     quickQuestions: [],
     clearUnread: vi.fn(),
@@ -195,6 +199,8 @@ describe('GlobalAISidebar presentation continuity', () => {
     testState.mediaListeners.clear();
     testState.isOpen = true;
     testState.pathAdvisorMode = false;
+    testState.requestedPathAdvisor = false;
+    testState.submitChat.mockReset();
     testState.chatError = null;
     testState.chatMessages = [
       { id: 'message-1', role: 'assistant', content: '保持连续的回答' },
@@ -232,6 +238,19 @@ describe('GlobalAISidebar presentation continuity', () => {
     await act(async () => root.unmount());
     container.remove();
     vi.unstubAllGlobals();
+  });
+
+  it('sends the signed path advisor context on the first turn before a conversation binding is persisted', async () => {
+    testState.requestedPathAdvisor = true;
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+    const input = getByRole(container, 'textbox', { name: '全局 AI 问题输入框' });
+    await act(async () => fireEvent.change(input, { target: { value: '请生成学习路径' } }));
+    await act(async () => fireEvent.submit(input.closest('form')!));
+    expect(testState.submitChat).toHaveBeenCalledWith(undefined, expect.objectContaining({
+      conversationId: 'conversation-1', teachingAssistantModeId: 'path-advisor',
+      modeClientContextHints: { goalId: 'goal-1', modeContextToken: 'signed-token' },
+    }));
   });
 
   it('keeps one hook instance and the same draft, messages, scroll container, and focus across mode changes', async () => {
@@ -328,6 +347,41 @@ describe('GlobalAISidebar presentation continuity', () => {
       source: 'candidate-selection',
     }]);
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/execute'))).toBe(false);
+  });
+
+  it('publishes a generated candidate batch onto the path page without selecting it', async () => {
+    testState.pathAdvisorMode = true;
+    testState.chatMessages = [{
+      id: 'message-generation',
+      role: 'assistant',
+      content: '',
+      toolInvocations: [{
+        toolName: 'generate_learning_path',
+        state: 'result',
+        result: {
+          operation: 'generated',
+          generationStatus: 'persisted',
+          pathId: 'path-generated-1',
+          candidateBatch: { id: 'batch-generated-1', candidateIds: ['candidate-a'] },
+        },
+      }],
+    }];
+    const refreshEvents: unknown[] = [];
+    window.addEventListener('konling:adaptive-path-updated', (event) => {
+      refreshEvents.push((event as CustomEvent).detail);
+    }, { once: true });
+
+    await act(async () => root.render(<GlobalAISidebar />));
+    await flush();
+
+    expect(refreshEvents).toEqual([{
+      mode: 'path-advisor',
+      batchId: 'batch-generated-1',
+      pathId: 'path-generated-1',
+      source: 'path-generation',
+    }]);
+    expect(container.querySelector('[data-konling-presentation-mode="side"]')).not.toBeNull();
+    expect(container.textContent).toContain('学习路径已生成，请在路径页比较方案。');
   });
 
   it('keeps a pending selection unconfirmed after a lost response and retries it after remount', async () => {

@@ -134,8 +134,10 @@ export function indexResourcesByKnowledge(
 
 export function isCourseLikeResource(node: ResourceNode): boolean {
   return node.type === 'lesson_step'
+    || node.type === 'handout'
     || node.publishedResource?.type === 'lesson'
-    || node.publishedResource?.type === 'step';
+    || node.publishedResource?.type === 'step'
+    || node.publishedResource?.type === 'handout';
 }
 
 export interface ResourceRankContext extends Pick<
@@ -144,6 +146,7 @@ export interface ResourceRankContext extends Pick<
 > {
   fillIndex?: number;
   currentCanonicalId?: string;
+  mounted?: readonly MountedKnowledgeResource[];
 }
 
 export function rankBoundResources(
@@ -228,11 +231,12 @@ function fillDeterministic(context: SkeletonFillContext): SkeletonFill {
   const used = new Set<string>();
   context.knowledgeIds.forEach((canonicalId, fillIndex) => {
     const picked = rankBoundResources(
-      available(context, canonicalId, used, mounted.at(-1)?.node),
+      available(context, canonicalId, used, mounted.at(-1)?.node, fillIndex),
       {
         ...context,
         fillIndex,
         currentCanonicalId: canonicalId,
+        mounted,
       },
     )[0];
     if (!picked) return;
@@ -255,11 +259,12 @@ function fillHeuristic(context: SkeletonFillContext): SkeletonFill | null {
     const next: Beam[] = [];
     for (const beam of beams) {
       const choices = rankBoundResources(
-        available(context, canonicalId, beam.used, beam.mounted.at(-1)?.node),
+        available(context, canonicalId, beam.used, beam.mounted.at(-1)?.node, fillIndex),
         {
           ...context,
           fillIndex,
           currentCanonicalId: canonicalId,
+          mounted: beam.mounted,
         },
       )
         .filter((node) => fitsBudget(beam.mounted, node, context.timeBudgetMinutes, isTarget(canonicalId, context)))
@@ -318,14 +323,28 @@ function available(
   canonicalId: string,
   used: ReadonlySet<string>,
   previous?: ResourceNode,
+  fillIndex = 0,
 ): ResourceNode[] {
   const previousTitle = previous ? planningResourceTitleKey(previous) : '';
   const admission = context.admissionOf?.(canonicalId) ?? 'first-and-revisit';
-  return (context.byKnowledge.get(canonicalId) ?? []).filter((node) => {
+  let pool = (context.byKnowledge.get(canonicalId) ?? []).filter((node) => {
     if (isUsed(used, node)) return false;
     if (previousTitle && planningResourceTitleKey(node) === previousTitle) return false;
     return isAppearanceAdmissible(node.publishedResource?.appearance, admission);
   });
+  const wantsSim = context.styleKinds.some((kind) => SIMULATION_KIND_HINT.has(kind));
+  if (!wantsSim) {
+    const withoutSim = pool.filter((node) => !SIMULATION_KIND_HINT.has(node.type));
+    if (withoutSim.length > 0) pool = withoutSim;
+  }
+  const policy = resolveKnowledgePathPolicy(context.policy);
+  const last = Math.max(context.knowledgeIds.length - 1, 1);
+  if (fillIndex / last < policy.courseCapstoneRatio) {
+    const withoutCourse = pool.filter((node) => !isCourseLikeResource(node));
+    if (withoutCourse.length > 0) return withoutCourse;
+    return [];
+  }
+  return pool;
 }
 
 export function planningResourceIdentity(node: ResourceNode): string {
@@ -368,6 +387,7 @@ function resourceFillScore(node: ResourceNode, context: ResourceRankContext): nu
     score += policy.rhythmBonus;
   }
   score += coursePositionAdjustment(node, context, policy);
+  score += courseSequenceAdjustment(node, context, policy);
   score -= unmetCoursePrerequisitePenalty(node, context, policy);
   return score;
 }
@@ -381,8 +401,28 @@ function coursePositionAdjustment(
   const last = Math.max(context.knowledgeIds.length - 1, 1);
   const ratio = context.fillIndex / last;
   if (ratio >= policy.courseCapstoneRatio) return policy.courseCapstoneBonus;
-  if (ratio < policy.courseEarlyRatio) return -policy.courseEarlyPenalty;
-  return 0;
+  return -policy.courseEarlyPenalty;
+}
+
+function courseSequenceAdjustment(
+  node: ResourceNode,
+  context: ResourceRankContext,
+  policy: KnowledgePathPolicy,
+): number {
+  if (!isCourseLikeResource(node)) return 0;
+  const previous = (context.mounted ?? []).map((entry) => entry.node).filter(isCourseLikeResource);
+  if (previous.length === 0) return 0;
+  const last = previous[previous.length - 1]!;
+  const lastOrder = last.publishedResource?.teachingOrder;
+  const nextOrder = node.publishedResource?.teachingOrder;
+  if (!lastOrder || !nextOrder) return -policy.courseUnmetPenalty;
+  if (lastOrder.unitId === nextOrder.unitId) {
+    const lastStep = lastOrder.stepIndex ?? -1;
+    const nextStep = nextOrder.stepIndex ?? lastStep + 1;
+    if (nextStep > lastStep) return policy.courseCapstoneBonus;
+    return -policy.courseEarlyPenalty * 2;
+  }
+  return -policy.courseUnmetPenalty * 4;
 }
 
 function unmetCoursePrerequisitePenalty(
@@ -418,7 +458,7 @@ function coursePlacementScore(
     if (!isCourseLikeResource(entry.node)) return;
     const ratio = mounted.length === 1 ? 1 : index / (mounted.length - 1);
     if (ratio >= policy.courseCapstoneRatio) score += 0.4;
-    if (ratio < policy.courseEarlyRatio) score -= 0.6;
+    else score -= 0.6;
   });
   return score;
 }
@@ -430,3 +470,49 @@ function mountedKey(mounted: readonly MountedKnowledgeResource[]): string {
 function unique(values: string[]): string[] {
   return [...new Set(values)];
 }
+
+export function diversifyMountedStyles(
+  styles: Array<{
+    kinds: readonly ResourceNodeType[];
+    mounted: MountedKnowledgeResource[];
+  }>,
+  context: SkeletonFillContext,
+): void {
+  if (styles.length < 2) return;
+  const foundation = styles[0];
+  for (const style of styles.slice(1)) {
+    if (!foundation) continue;
+    const wantsSim = style.kinds.some((kind) => SIMULATION_KIND_HINT.has(kind));
+    const length = Math.min(foundation.mounted.length, style.mounted.length);
+    for (let index = 0; index < length; index += 1) {
+      const current = style.mounted[index];
+      const baseline = foundation.mounted[index];
+      if (!current || !baseline) continue;
+      const shared = planningResourceIdentity(baseline.node);
+      if (planningResourceIdentity(current.node) !== shared) continue;
+      if (wantsSim && SIMULATION_KIND_HINT.has(current.node.type)) continue;
+      const used = new Set(
+        style.mounted.flatMap((entry) => [entry.node.id, planningResourceIdentity(entry.node)]),
+      );
+      used.delete(current.node.id);
+      used.delete(shared);
+      const ranked = rankBoundResources(
+        available(context, current.canonicalId, used, style.mounted[index - 1]?.node, index),
+        {
+          ...context,
+          styleKinds: style.kinds,
+          fillIndex: index,
+          currentCanonicalId: current.canonicalId,
+          mounted: style.mounted.slice(0, index),
+        },
+      ).filter((node) => {
+        if (planningResourceIdentity(node) === shared) return false;
+        if (!style.kinds.includes(node.type)) return false;
+        return wantsSim ? SIMULATION_KIND_HINT.has(node.type) : node.type !== current.node.type;
+      });
+      if (ranked[0]) style.mounted[index] = { node: ranked[0], canonicalId: current.canonicalId };
+    }
+  }
+}
+
+const SIMULATION_KIND_HINT = new Set<ResourceNodeType>(['simulation', 'control_workbench', 'arena_task']);

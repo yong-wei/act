@@ -509,8 +509,12 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("compareAllCandidateQuery.delete('candidate')");
     expect(source).toContain('data-learning-path-compare-all');
     expect(sidebarSource).toContain("detail: { mode: 'path-advisor', batchId, candidateId, pathId, source: 'candidate-selection' }");
+    expect(sidebarSource).toContain("source: 'path-generation'");
     expect(sidebarSource).toContain("/choices`");
     expect(source).toContain("setPathChoiceMessage('路径已选中，等待你开始学习。')");
+    expect(source).toContain("} else if (batchId && !candidateId && activeGoal) {");
+    expect(source).toContain("nextUrl.searchParams.set('intent', 'contextual-recommendation')");
+    expect(source).toContain("setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。')");
     expect(sidebarSource).not.toContain('/execute');
     expect(source).toContain('(showGenerationWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace)');
   });

@@ -95,7 +95,11 @@ export interface AdaptivePathOptionDisplay {
 
 const resourceLabels: Record<string, { kind: AdaptivePathResourceKind; label: string }> = {
   interactive_lesson: { kind: 'interactive_lesson', label: '互动课程' },
+  lesson_step: { kind: 'interactive_lesson', label: '互动课程' },
   knowledge_card: { kind: 'knowledge_card', label: '知识卡' },
+  handout: { kind: 'interactive_lesson', label: '讲义' },
+  audio: { kind: 'interactive_lesson', label: '讲解音频' },
+  video: { kind: 'interactive_lesson', label: '讲解视频' },
   textbook_section: { kind: 'external_resource', label: '教材节' },
   slides: { kind: 'external_resource', label: '课件' },
   adaptive_quiz: { kind: 'adaptive_quiz', label: '自适应练习' },
@@ -191,12 +195,17 @@ export function buildAdaptivePathOptionDisplays(
       );
       if (citedDeficits.length > 0) return `面向 ${citedDeficits.length} 个当前薄弱项安排资源。`;
       if (option.targetDeficits.length > 0) return '能力画像暂不可用，按通用学习路线安排资源。';
-      return '按当前学习证据安排资源组合。';
+      if (option.label.includes('仿真')) return '在同一知识骨架上优先安排仿真和实验。';
+      if (option.label.includes('补救') || option.label.includes('基础')) {
+        return '先用概念和教材把这条目标的知识骨架走通。';
+      }
+      if (option.label.includes('偏好')) return '按可用资源类型组合这条目标的知识骨架。';
+      return '按当前学习目标的知识骨架安排资源。';
     })(),
     outcome: option.terminalValidationNodeIds.length > 0
       ? '完成后进入检查节点并更新路径推荐。'
       : '完成后更新后续路径推荐。',
-    expectedAbilityImprovement: formatExpectedAbilityImprovement(option.expectedTargetLift),
+    expectedAbilityImprovement: formatExpectedAbilityImprovement(option),
     riskNote: option.limitations[0]
       ? (studentVisibleColdStartLimitation(option.limitations[0])
         ?? studentVisibleCandidateLimitation(option.limitations[0]))
@@ -333,8 +342,11 @@ function formatComparisonLabel(
   return undefined;
 }
 
-function formatExpectedAbilityImprovement(value?: number): string | undefined {
+function formatExpectedAbilityImprovement(option: AdaptivePathOptionWriteOption): string | undefined {
+  const value = option.expectedTargetLift;
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return undefined;
+  const stepCount = option.nodeIds?.length ?? option.nodeSummaries?.length ?? 0;
+  if (Number.isInteger(value) && value === stepCount) return undefined;
   return `约 +${value.toFixed(value % 1 === 0 ? 0 : 1)}`;
 }
 
@@ -357,7 +369,7 @@ function buildResourceDisplays(resourceMix: Record<string, number>): AdaptivePat
 
 function formatCheckpoints(option: AdaptivePathOptionWriteOption): string {
   const count = option.terminalValidationNodeIds.length;
-  return count > 0 ? `${count} 个检查节点` : '检查节点待确认';
+  return count > 0 ? `${count} 个检查节点` : '本路径暂无单独检查节点';
 }
 
 function formatReadiness(option: AdaptivePathOptionWriteOption): string {

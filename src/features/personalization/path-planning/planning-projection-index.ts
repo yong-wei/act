@@ -24,7 +24,7 @@ import {
 import { goalCanonicalIds } from './goal-canonical-knowledge';
 import { expandFeasibleKnowledgeIds } from './knowledge-scope';
 import type { TeachingPrerequisiteEdge } from './live-teaching-prerequisites';
-import { resolvePlanningResourceTitle } from './planning-resource-titles';
+import { composePlanningNodeTitle, resolvePlanningResourceTitle } from './planning-resource-titles';
 
 const ESTIMATED_MINUTES: Record<string, number> = {
   card: 8,
@@ -200,6 +200,8 @@ function toPlanningFeature(
     snapshotId: string;
     snapshotHash: string;
     runtimeReleaseId: string | null;
+    bindingReleaseId?: string | null;
+    bindingHash?: string | null;
   },
   baseHref: string | null,
 ): PublishedResourceFeature {
@@ -208,6 +210,8 @@ function toPlanningFeature(
     ? binding.bindingId
     : digest([binding.bindingId, row.resourceId, binding.canonicalId]);
   const featureIdentity = {
+    bindingReleaseId: identity.bindingReleaseId ?? null,
+    bindingHash: identity.bindingHash ?? null,
     resourceId: row.resourceId,
     projectionId: identity.projectionId,
     projectionHash: identity.projectionHash,
@@ -261,7 +265,10 @@ function toPlanningNode(feature: PublishedResourceFeature, indexId: string): Res
   const target = feature.backend.kind === 'route' ? feature.backend.href : published;
   return {
     id: publishedResourceNodeId(feature.identity.resourceId, feature.version),
-    title: feature.anchorLabel ? `${feature.title} · ${feature.anchorLabel}` : feature.title,
+    title: composePlanningNodeTitle(feature.title, feature.anchorLabel, {
+      canonicalIds: feature.canonicalIds,
+      resourceId: feature.identity.resourceId,
+    }),
     description: feature.summary,
     type,
     courseModule: null,

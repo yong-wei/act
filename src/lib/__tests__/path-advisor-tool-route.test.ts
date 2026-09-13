@@ -232,6 +232,7 @@ describe('path advisor tool route readiness', () => {
 
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toMatchObject({
+      readiness: { status: 'retryable', reason: 'retryable', studentAction: 'retry' },
       generationRequest: {
         id: 'generation-request-1',
         status: 'failed',

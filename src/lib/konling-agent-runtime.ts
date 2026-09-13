@@ -34,7 +34,7 @@ import {
   type AdaptiveLearnerStatePrivacyScope,
   type AdaptiveLearnerStateRole,
 } from '@/features/personalization/learner-state/public-api';
-import { readActiveRuntimeReleaseManifest } from '@/lib/runtime-active-release';
+import { readPlanningRuntimeManifest } from '@/lib/runtime-planning-manifest';
 import { parseAnyRuntimeReleaseManifest } from '@/lib/runtime-release';
 import {
   buildAdaptivePathBatchComparisonView,
@@ -4751,9 +4751,9 @@ function loadTeachingProjectionResourceIndex(): TeachingProjectionResourceIndex 
 }
 
 // #2055：活动 Runtime release 文件索引（manifest 是可绑定的唯一真源）。
-async function loadRuntimeReleaseFileIndex(): Promise<RuntimeReleaseFileIndex | null> {
+async function loadRuntimeReleaseFileIndex(expectedReleaseId?: string | null): Promise<RuntimeReleaseFileIndex | null> {
   try {
-    const manifestRaw = await readActiveRuntimeReleaseManifest();
+    const manifestRaw = await readPlanningRuntimeManifest(expectedReleaseId);
     if (!manifestRaw) return null;
     const manifest = parseAnyRuntimeReleaseManifest(manifestRaw);
     const filesByPath = new Map<string, { sha256: string; objectKey: string }>();
@@ -4766,6 +4766,7 @@ async function loadRuntimeReleaseFileIndex(): Promise<RuntimeReleaseFileIndex | 
     return { releaseId: manifest.releaseId, filesByPath, filesBySha256 };
   } catch (error) {
     console.error('[KonlingRuntime] active runtime release index load failed:', error);
+    if (expectedReleaseId) throw new KonlingRuntimeScopeError(503, '锁定的资源版本清单暂时不可用，请稍后重试。');
     return null;
   }
 }
@@ -4779,7 +4780,7 @@ export async function attachAdaptivePathRuntimeBindings(plan: AdaptiveLearningPa
   limitationCodes: string[];
   release: RuntimeReleaseFileIndex | null;
 }> {
-  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex()];
+  const [projection, release] = [loadTeachingProjectionResourceIndex(), await loadRuntimeReleaseFileIndex(index?.runtimeReleaseId)];
   if (index && ((projection?.projectionId ?? null) !== index.projectionId || (release?.releaseId ?? null) !== index.runtimeReleaseId)) {
     throw new KonlingRuntimeScopeError(409, '资源版本正在更新，请重新生成路径。');
   }

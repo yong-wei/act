@@ -14,12 +14,15 @@ import {
 import { goalCanonicalIds, isPresetAdaptiveLearningGoal } from '../goal-canonical-knowledge';
 import {
   buildKnowledgeSkeleton,
+  diversifyMountedStyles,
   fillKnowledgeSkeleton,
   indexResourcesByKnowledge,
   isAssertionLikeKnowledge,
   masteryByCanonicalId,
+  planningResourceIdentity,
   scoreFilledPath,
   selectPriorityKnowledgeSkeleton,
+  type MountedKnowledgeResource,
 } from '../knowledge-path-assembly';
 import { knowledgeResourceAdmission } from '../application/mastery-thresholds';
 import {
@@ -27,10 +30,10 @@ import {
   type KnowledgePathPolicy,
 } from '../knowledge-path-policy';
 import {
+  composePlanningNodeTitle,
   loadPlanningAssertionKnowledgeIds,
   loadPlanningKnowledgeLabels,
   planningAuthorityReleaseStatus,
-  resolvePlanningResourceTitle,
 } from '../planning-resource-titles';
 import { expandFeasibleKnowledgeIds } from '../knowledge-scope';
 import {
@@ -175,24 +178,46 @@ export function assembleKnowledgePathPlan(
       }) + (input.preferredStyleId === style.styleId ? 10 : 0),
     };
   });
+  diversifyMountedStyles(
+    styles.map((entry) => ({
+      kinds: entry.style.family === 'preference-matched' && preferredTypes.length
+        ? preferredTypes
+        : entry.style.kinds,
+      mounted: entry.mounted,
+    })),
+    {
+      knowledgeIds,
+      targetIds: targets,
+      byKnowledge,
+      styleKinds: FOUNDATION_TYPES,
+      preferredTypes,
+      timeBudgetMinutes: input.constraints.timeBudgetMinutes,
+      difficultyRhythm: input.difficultyRhythm,
+      masteryById,
+      deadline,
+      policy,
+      admissionOf,
+    },
+  );
+  const uniqueStyles = dedupeIdenticalMountedStyles(styles);
 
-  const rankedStyles = [...styles].sort((left, right) =>
+  const rankedStyles = [...uniqueStyles].sort((left, right) =>
     right.pathScore - left.pathScore
     || left.style.styleId.localeCompare(right.style.styleId),
   );
-  const nonEmpty = pickMainStyle(styles, rankedStyles, {
+  const nonEmpty = pickMainStyle(uniqueStyles, rankedStyles, {
     hasPortrait,
     preferredStyleId: input.preferredStyleId,
   });
   const mainPath = toPlanNodes(nonEmpty.mounted, completed, input.constraints.currentNodeId ?? null, feasibleKnowledge);
-  const policyBundle = buildBundle(styles, completed, input, targets, preferredTypes.length > 0, feasibleKnowledge);
+  const policyBundle = buildBundle(uniqueStyles, completed, input, targets, preferredTypes.length > 0, feasibleKnowledge);
   const fallbackReasons = [
     ...(targets.length === 0 ? ['goal-knowledge-unbound'] : []),
     ...(mainPath.length === 0 ? ['knowledge-path-empty'] : []),
     ...(preferredTypes.length === 0 ? ['trusted-portrait-unavailable'] : []),
     ...(nonEmpty.fill.method === 'deterministic-timeout' ? ['heuristic-timeout'] : []),
-    ...(styles.some((entry) => entry.clipped) ? ['path-length-capped'] : []),
-    ...(styles.some((entry) => entry.masteredDropped) || skippedMastered.length > 0
+    ...(uniqueStyles.some((entry) => entry.clipped) ? ['path-length-capped'] : []),
+    ...(uniqueStyles.some((entry) => entry.masteredDropped) || skippedMastered.length > 0
       ? ['mastered-knowledge-skipped']
       : []),
     ...(droppedAssertions ? ['assertion-knowledge-skipped'] : []),
@@ -401,6 +426,23 @@ function failClosedKnowledgePathPlan(
   };
 }
 
+function dedupeIdenticalMountedStyles<T extends {
+  style: { family: string };
+  mounted: MountedKnowledgeResource[];
+}>(styles: T[]): T[] {
+  const seen = new Set<string>();
+  return styles.filter((style) => {
+    const key = style.mounted.map((entry) => planningResourceIdentity(entry.node)).join('|');
+    if (style.style.family === 'simulation-driven' || style.style.family === 'foundation-remediation') {
+      seen.add(key);
+      return true;
+    }
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function isBoundCandidate(
   node: ResourceNode,
   input: AdaptiveLearningPathPlannerInput,
@@ -474,7 +516,7 @@ function toPlanNodes(
       planningUnitId: `planning-unit:${node.id}`,
       resourceId: published?.identity.resourceId ?? `resource:${node.id}`,
       resourceNodeId: node.id,
-      title: resolvePlanningResourceTitle(node.title, {
+      title: composePlanningNodeTitle(node.title, published?.anchorLabel, {
         canonicalIds: unique([
           entry.canonicalId,
           ...node.planningMetadata.knowledgeCoverage,
@@ -617,7 +659,7 @@ function buildBundle(
         estimatedMinutes: minutes,
         relative: minutes <= 30 ? 'short' : minutes <= 70 ? 'medium' : 'long',
       },
-      expectedTargetLift: planNodes.length,
+      expectedTargetLift: 0,
       terminalValidationNodeIds: [],
       terminalValidationStrategy: { nodeIds: [], summary: '按知识点路径挂载，不另加终点门禁。' },
       checkpointNodeIds: planNodes.filter((node) => node.type === 'checkpoint').map((node) => node.nodeId),

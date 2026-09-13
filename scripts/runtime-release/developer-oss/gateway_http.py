@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import os
 import sys
@@ -56,11 +57,17 @@ def make_handler(service: GatewayService, limiter: RateLimiter):
                 return
             sys.stderr.write("%s - %s\n" % (self.address_string(), message))
 
-        def _send(self, status: int, body: bytes, headers: dict[str, str] | None = None) -> None:
+        def _send(self, status: int, body: bytes, headers: dict[str, str] | None = None, compress: bool = False) -> None:
+            headers = dict(headers or {"Content-Type": "application/json"})
+            if compress:
+                headers["Vary"] = "Accept-Encoding"
+                if "gzip" in [value.strip().lower() for value in self.headers.get("Accept-Encoding", "").split(",")]:
+                    body = gzip.compress(body, compresslevel=1, mtime=0)
+                    headers["Content-Encoding"] = "gzip"
             self.send_response(status)
             self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body)))
-            for key, value in (headers or {"Content-Type": "application/json"}).items():
+            for key, value in headers.items():
                 if key.lower() in {"authorization", "x-act-runtime-transport"}:
                     continue
                 self.send_header(key, value)
@@ -100,7 +107,7 @@ def make_handler(service: GatewayService, limiter: RateLimiter):
                     return
                 if self.command == "GET" and len(parts) == 4 and parts[0] == "v1" and parts[1] == "leases" and parts[3] == "manifest":
                     body = service.get_manifest(parts[2], transport)
-                    self._send(200, body, {"Content-Type": "application/json"})
+                    self._send(200, body, {"Content-Type": "application/json"}, compress=True)
                     return
                 if self.command == "GET" and len(parts) == 4 and parts[0] == "v1" and parts[1] == "blobs" and parts[2] == "sha256":
                     body, status, headers = service.get_blob(lease_id or "", transport, parts[3], self.headers.get("Range"))

@@ -4274,7 +4274,7 @@ export default function AdaptivePracticePage() {
 
   useEffect(() => {
     const handleAdaptivePathUpdated = (event: Event) => {
-      const detail = (event as CustomEvent<{ batchId?: unknown; candidateId?: unknown }>).detail;
+      const detail = (event as CustomEvent<{ batchId?: unknown; candidateId?: unknown; source?: unknown }>).detail;
       const batchId = typeof detail?.batchId === 'string' ? detail.batchId : null;
       const candidateId = typeof detail?.candidateId === 'string' ? detail.candidateId : null;
       if (batchId && candidateId && activeGoal) {
@@ -4290,12 +4290,34 @@ export default function AdaptivePracticePage() {
           window.history.replaceState(window.history.state, '', nextUrl);
           setPathChoiceMessage('路径已选中，等待你开始学习。');
         });
+      } else if (batchId && !candidateId && activeGoal) {
+        void fetchCandidateBatch(activeGoal, batchId).then((result) => {
+          if (result.status !== 'loaded') return;
+          synchronizedCandidateBatchRef.current = {
+            goalId: activeGoal,
+            batchId,
+            candidateId: null,
+            batch: result.batch,
+          };
+          setActiveCandidateBatch(result.batch);
+          setCandidateBatchLoadState('ready');
+          setOpenPathModuleId('path-selection');
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set('goal', activeGoal);
+          if (workspaceIntent !== 'generation' && workspaceIntent !== 'selection') {
+            nextUrl.searchParams.set('intent', 'contextual-recommendation');
+          }
+          nextUrl.searchParams.set('batch', batchId);
+          nextUrl.searchParams.delete('candidate');
+          router.replace(`${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`, { scroll: false });
+          setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
+        });
       }
       void refreshLatestLearningPathAfterKonling();
     };
     window.addEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
     return () => window.removeEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
-  }, [activeGoal, refreshLatestLearningPathAfterKonling]);
+  }, [activeGoal, refreshLatestLearningPathAfterKonling, router, workspaceIntent]);
 
   const toggleGenerationResource = useCallback((resource: AdaptivePathResourceKind) => {
     setPathGenerationPanel((current) => {

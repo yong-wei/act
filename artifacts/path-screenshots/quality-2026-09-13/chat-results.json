@@ -1,0 +1,38 @@
+[
+  {
+    "student": "无掌握证据",
+    "goal": "反馈与闭环结构基础",
+    "file": "chat-1-zero.png",
+    "prompt": "请直接生成反馈与闭环结构基础的学习路径。我有180分钟，请根据我的学习记录安排，并给出可比较方案。",
+    "options": 2,
+    "generationStatus": "persisted",
+    "batchId": "path-candidate-batch_cb129a0635a2ac38bd9bc16b",
+    "elapsedMs": 6602,
+    "tool": "generate_learning_path",
+    "pageHasCards": true
+  },
+  {
+    "student": "部分掌握",
+    "goal": "根轨迹分析基础",
+    "file": "chat-2-partial.png",
+    "prompt": "请直接生成根轨迹分析基础的学习路径。我有180分钟，请根据我的学习记录安排，并给出可比较方案。",
+    "options": 3,
+    "generationStatus": "persisted",
+    "batchId": "path-candidate-batch_12276eda14f88b4ea49d02b5",
+    "elapsedMs": 7206,
+    "tool": "generate_learning_path",
+    "pageHasCards": true
+  },
+  {
+    "student": "前置基础较充分",
+    "goal": "频率响应基础",
+    "file": "chat-3-mastered.png",
+    "prompt": "请直接生成频率响应基础的学习路径。我有180分钟，请根据我的学习记录安排，并给出可比较方案。",
+    "options": 2,
+    "generationStatus": "persisted",
+    "batchId": "path-candidate-batch_5ce9780c0229adddcf8bbd05",
+    "elapsedMs": 10018,
+    "tool": "generate_learning_path",
+    "pageHasCards": true
+  }
+]

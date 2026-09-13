@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import hashlib
+import gzip
+import http.client
 import json
 import os
 import sys
@@ -134,6 +136,39 @@ class Clock:
 
 
 class DeveloperRuntimeGatewayTests(unittest.TestCase):
+    def test_manifest_gzip_preserves_bytes_and_uncompressed_clients(self):
+        host, identity, _, _, _, _, _, _ = bind_host(b"shared", b"a-only", b"b-only", b"extra")
+        service = GatewayService(TOKEN, host)
+        lease = service.issue_lease(identity, "manifest-compression")
+        server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(service, RateLimiter()))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            for encoding in ("gzip", "identity", "gzip;q=0"):
+                client = http.client.HTTPConnection(*server.server_address)
+                try:
+                    client.request("GET", "/v1/leases/%s/manifest" % lease["leaseId"], headers={
+                        "Authorization": "Bearer " + TOKEN,
+                        "X-Act-Runtime-Transport": lease["transport"]["token"],
+                        "Accept-Encoding": encoding,
+                    })
+                    response = client.getresponse()
+                    wire = response.read()
+                    self.assertEqual(response.status, 200)
+                    self.assertEqual(int(response.getheader("Content-Length")), len(wire))
+                    if encoding == "gzip":
+                        self.assertEqual(response.getheader("Content-Encoding"), "gzip")
+                        self.assertEqual(gzip.decompress(wire), host.manifest_bytes(identity))
+                    else:
+                        self.assertIsNone(response.getheader("Content-Encoding"))
+                        self.assertEqual(wire, host.manifest_bytes(identity))
+                finally:
+                    client.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
     def test_fuse_attributes_are_stable_across_time_without_fetching_blobs(self):
         import gateway_fuse
 

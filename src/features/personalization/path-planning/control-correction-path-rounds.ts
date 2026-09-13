@@ -22,7 +22,7 @@ import {
 import { resolveActiveKnowledgeRevision } from '@/lib/data-governance/knowledge-truth-revision';
 import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
 import { RESOURCE_NODE_TYPES } from '@/lib/resource-node-registry';
-import { hasPublishedPlanNodeIdentity } from '@/lib/published-resource-reference';
+import { hasPublishedPlanNodeIdentity, type PublishedResourceFeatureIndex } from '@/lib/published-resource-reference';
 import { buildIndexedCandidateResourceRecords } from './indexed-resource-verification';
 
 export { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
@@ -194,19 +194,25 @@ export async function persistLearningPathRound(
   db: ControlCorrectionPathRoundDb,
   input: PersistControlCorrectionPathRoundInput,
 ): Promise<any> {
-  validateLearningPathPlanForPersistence(input.plan);
   const publishedNodes = [
     ...input.plan.mainPath,
     ...(input.plan.policyBundle?.paths.flatMap((path) => path.planNodes ?? []) ?? []),
   ].filter((node) => node.resourceFeatureRef);
+  let index: PublishedResourceFeatureIndex | undefined;
   if (publishedNodes.length) {
-    const { loadPublishedResourceFeatureIndex } = await import('@/lib/published-resource-index');
-    const index = await loadPublishedResourceFeatureIndex();
+    if (publishedNodes.some((node) => node.resourceFeatureRef?.bindingReleaseId)) {
+      const { loadGoalPlanningUniverse } = await import('./planning-projection-index');
+      index = loadGoalPlanningUniverse(input.plan.goal.id).index;
+    } else {
+      const { loadPublishedResourceFeatureIndex } = await import('@/lib/published-resource-index');
+      index = await loadPublishedResourceFeatureIndex();
+    }
     const references = buildIndexedCandidateResourceRecords([{ styleId: 'persistence', planNodes: publishedNodes }], null, index);
     if (references.length !== publishedNodes.length || references.some((entry) => entry.state !== 'index-verified')) {
       throw new ControlCorrectionPathRoundValidationError('资源发布版本或资源身份已变化，请重新生成路径');
     }
   }
+  validateLearningPathPlanForPersistence(input.plan, index);
   const record = serializeLearningPathPlan(input.plan);
   const pathStatus = input.pathStatus ?? (input.plan.status === 'ready' ? 'active' : 'fallback');
 
@@ -390,7 +396,7 @@ function mergePathPayloadEntries(
   return merged;
 }
 
-export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
+export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPathPlan, index?: PublishedResourceFeatureIndex): void {
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(plan.goal.id);
   if (
     !plan.id ||
@@ -409,7 +415,9 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
       !node.nodeId ||
       seen.has(node.nodeId) ||
       !RESOURCE_NODE_TYPES.includes(node.type) ||
-      (!registeredGoal.allowedResourceMix.includes(node.type) && !hasPublishedPlanNodeIdentity(node)) ||
+      (!registeredGoal.allowedResourceMix.includes(node.type) && !hasPublishedPlanNodeIdentity(node,
+        index?.resources.find((feature) => feature.identity.resourceId === node.resourceFeatureRef?.resourceId
+          && feature.version === node.resourceFeatureRef?.resourceVersion))) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||
