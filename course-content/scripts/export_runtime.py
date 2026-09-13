@@ -43,6 +43,7 @@ from knowledge_card_coverage import (  # noqa: E402
     audit_knowledge_card_coverage,
 )
 from runtime_media_index import ensure_runtime_media_index  # noqa: E402
+from media_transcripts import export_media_transcripts  # noqa: E402
 from lesson_graph_order import (  # noqa: E402
     build_lesson_overlay_payload,
     build_lesson_overlay_revision,
@@ -954,6 +955,7 @@ def export_lesson_runtime(
     }
     export_handout(lesson_id)
     generate_runtime_media(lesson_id)
+    export_media_transcripts(lesson_id)
     interactive_manifest = build_interactive_runtime_manifest(lesson_id)
 
     graph_overlay = build_graph_overlay(

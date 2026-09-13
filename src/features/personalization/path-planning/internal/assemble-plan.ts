@@ -628,6 +628,8 @@ export interface AdaptiveLearningPathPlanNode {
   decisionExplanation?: AdaptivePathNodeDecisionExplanation;
   /** Runtime 资源绑定（#2055）：独立于导航 target，仅资产承载节点在批次定稿时携带。 */
   runtimeResourceBinding?: AdaptivePathNodeRuntimeBinding | null;
+  appearance?: 'first' | 'revisit' | 'reference' | null;
+  anchorLabel?: string | null;
 }
 
 export interface AdaptiveLearningPathAlternative {

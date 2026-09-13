@@ -12,6 +12,8 @@ export interface RuntimeMarkdownContentProps {
   markdown: string;
   resolveAssetHref: (href: string) => string;
   mode?: 'handout' | 'textbook-citation';
+  /** Stable ids for `##`/`###` headings keyed by 1-based source line (see handout-heading-anchors). */
+  headingIdsByLine?: ReadonlyMap<number, string>;
 }
 
 const textbookCitationAnchorMarkerPattern = new RegExp(
@@ -53,9 +55,18 @@ function renderChildrenWithCitationAnchors(children: React.ReactNode): React.Rea
   ));
 }
 
+function headingIdFor(
+  node: { position?: { start?: { line?: number } } } | undefined,
+  headingIdsByLine: ReadonlyMap<number, string> | undefined,
+): string | undefined {
+  const line = node?.position?.start?.line;
+  return typeof line === 'number' ? headingIdsByLine?.get(line) : undefined;
+}
+
 function createRuntimeMarkdownComponents(
   resolveAssetHref: (href: string) => string,
   mode: RuntimeMarkdownContentProps['mode'],
+  headingIdsByLine?: ReadonlyMap<number, string>,
 ): Components {
   const citationMode = mode === 'textbook-citation';
   const headingColor = citationMode ? 'text-zinc-950 dark:text-zinc-50' : 'text-slate-950';
@@ -87,12 +98,22 @@ function createRuntimeMarkdownComponents(
       </h1>
     ),
     h2: ({ node, children, ...props }) => (
-      <h2 className={`mt-8 text-[22px] font-semibold leading-snug ${headingColor}`} {...props}>
+      <h2
+        id={headingIdFor(node, headingIdsByLine)}
+        data-handout-heading={headingIdFor(node, headingIdsByLine)}
+        className={`mt-8 scroll-mt-24 text-[22px] font-semibold leading-snug ${headingColor}`}
+        {...props}
+      >
         {renderChildrenWithCitationAnchors(children)}
       </h2>
     ),
     h3: ({ node, children, ...props }) => (
-      <h3 className={`mt-6 text-[18px] font-semibold leading-snug ${headingColor}`} {...props}>
+      <h3
+        id={headingIdFor(node, headingIdsByLine)}
+        data-handout-heading={headingIdFor(node, headingIdsByLine)}
+        className={`mt-6 scroll-mt-24 text-[18px] font-semibold leading-snug ${headingColor}`}
+        {...props}
+      >
         {renderChildrenWithCitationAnchors(children)}
       </h3>
     ),
@@ -183,12 +204,13 @@ export function RuntimeMarkdownContent({
   markdown,
   resolveAssetHref,
   mode = 'handout',
+  headingIdsByLine,
 }: RuntimeMarkdownContentProps) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[[rehypeKatex, createGovernedRehypeKatexOptions()]]}
-      components={createRuntimeMarkdownComponents(resolveAssetHref, mode)}
+      components={createRuntimeMarkdownComponents(resolveAssetHref, mode, headingIdsByLine)}
     >
       {markdown}
     </ReactMarkdown>

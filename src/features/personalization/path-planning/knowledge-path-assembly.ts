@@ -1,5 +1,11 @@
 import type { ResourceNode, ResourceNodeType } from '@/lib/resource-node-registry';
 
+import {
+  appearanceRank,
+  isAppearanceAdmissible,
+  teachingOrderProximity,
+  type KnowledgeResourceAdmission,
+} from './application/mastery-thresholds';
 import type { KnowledgeExpansionMode } from './knowledge-scope';
 import { expandKnowledgeOrder } from './knowledge-scope';
 import type { TeachingPrerequisiteEdge } from './live-teaching-prerequisites';
@@ -44,6 +50,7 @@ export interface SkeletonFillContext {
   masteryById?: Readonly<Record<string, number>>;
   deadline: number;
   policy?: Partial<KnowledgePathPolicy>;
+  admissionOf?: (canonicalId: string) => KnowledgeResourceAdmission;
 }
 
 export interface SkeletonFill {
@@ -145,7 +152,13 @@ export function rankBoundResources(
 ): ResourceNode[] {
   return [...nodes].sort((left, right) => {
     const delta = resourceFillScore(right, context) - resourceFillScore(left, context);
-    return delta !== 0 ? delta : left.id.localeCompare(right.id);
+    if (delta !== 0) return delta;
+    const appearance = appearanceRank(left.publishedResource?.appearance)
+      - appearanceRank(right.publishedResource?.appearance);
+    if (appearance !== 0) return appearance;
+    const order = teachingOrderProximity(left.publishedResource?.teachingOrder ?? null)
+      - teachingOrderProximity(right.publishedResource?.teachingOrder ?? null);
+    return order !== 0 ? order : left.id.localeCompare(right.id);
   });
 }
 
@@ -307,10 +320,11 @@ function available(
   previous?: ResourceNode,
 ): ResourceNode[] {
   const previousTitle = previous ? planningResourceTitleKey(previous) : '';
+  const admission = context.admissionOf?.(canonicalId) ?? 'first-and-revisit';
   return (context.byKnowledge.get(canonicalId) ?? []).filter((node) => {
     if (isUsed(used, node)) return false;
     if (previousTitle && planningResourceTitleKey(node) === previousTitle) return false;
-    return true;
+    return isAppearanceAdmissible(node.publishedResource?.appearance, admission);
   });
 }
 

@@ -1,3 +1,13 @@
+export {
+  MASTERED_CONFIDENCE,
+  MASTERED_POSTERIOR_MASTERY,
+  REVISIT_POSTERIOR_MASTERY,
+  appearanceDisplayLabel,
+  appearanceRank,
+  isAppearanceAdmissible,
+  knowledgeResourceAdmission,
+  teachingOrderProximity,
+} from './application/mastery-thresholds';
 export { planLearningPath } from './application/plan-learning-path';
 export {
   createDefaultPlanLearningPathPorts,

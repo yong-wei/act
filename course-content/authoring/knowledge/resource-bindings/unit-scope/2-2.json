@@ -1,0 +1,164 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "2-2",
+ "canonicalIds": [
+  "ctc:v11g-13a9994c50acce777819aa2a",
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+  "ctkg:v3e-canonical-060bc33f21e93205ee271eda",
+  "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412",
+  "ctkg:v3e-canonical-15b23d588244f407f6ed4b35",
+  "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1",
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+  "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+  "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da",
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+  "ctkg:v3e-canonical-4f62334f630ea074128ec396",
+  "ctkg:v3e-canonical-55743366373a5197b074831b",
+  "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627",
+  "ctkg:v3e-canonical-62bea9217008b56901615d9a",
+  "ctkg:v3e-canonical-6bb580c242f908566ab53b18",
+  "ctkg:v3e-canonical-772065f42947b660c72584f3",
+  "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1",
+  "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c",
+  "ctkg:v3e-canonical-9988510f6127d3086f4aa265",
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+  "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a",
+  "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+  "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98",
+  "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7",
+  "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091",
+  "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa",
+  "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55",
+  "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc",
+  "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f",
+  "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde",
+  "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486",
+  "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+  "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+  "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3",
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede"
+ ],
+ "sources": {
+  "ctc:v11g-13a9994c50acce777819aa2a": [
+   "reuse_node_ids:闭环极点_3_f9432bf3"
+  ],
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6": [
+   "focus_node_ids:调节时间_10_fcbccf4e",
+   "topic:settling-time"
+  ],
+  "ctc:v11g-9c541f3aa2bc9db1fe6a6c02": [
+   "reuse_node_ids:阻尼比_3_b849784e",
+   "topic:damping"
+  ],
+  "ctkg:v3e-canonical-060bc33f21e93205ee271eda": [
+   "topic:partial-fractions"
+  ],
+  "ctkg:v3e-canonical-137c2c4e6fd2c142416cd412": [
+   "focus_node_ids:动态性能指标_3_a10733c1"
+  ],
+  "ctkg:v3e-canonical-15b23d588244f407f6ed4b35": [
+   "focus_node_ids:无阻尼自然频率_3_13001",
+   "topic:natural-frequency"
+  ],
+  "ctkg:v3e-canonical-2ec135b0a8506867adbe4bf1": [
+   "topic:convolution"
+  ],
+  "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253": [
+   "reuse_node_ids:单位阶跃响应_2_6a2a83b9",
+   "topic:step-response"
+  ],
+  "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830": [
+   "topic:time-constant"
+  ],
+  "ctkg:v3e-canonical-3f9a17723cabd4ab7d19c3da": [
+   "topic:impulse"
+  ],
+  "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d": [
+   "reuse_node_ids:闭环极点_3_f9432bf3"
+  ],
+  "ctkg:v3e-canonical-4f62334f630ea074128ec396": [
+   "topic:step"
+  ],
+  "ctkg:v3e-canonical-55743366373a5197b074831b": [
+   "topic:step"
+  ],
+  "ctkg:v3e-canonical-5feb0e2f507966e1ca9ac627": [
+   "topic:time-constant"
+  ],
+  "ctkg:v3e-canonical-62bea9217008b56901615d9a": [
+   "topic:ramp"
+  ],
+  "ctkg:v3e-canonical-6bb580c242f908566ab53b18": [
+   "topic:critical-damping"
+  ],
+  "ctkg:v3e-canonical-772065f42947b660c72584f3": [
+   "topic:second-order"
+  ],
+  "ctkg:v3e-canonical-7ee407860ee485f1e1b1f3d1": [
+   "reuse_node_ids:自然频率_10_51a8b7d0"
+  ],
+  "ctkg:v3e-canonical-8d825b96ea1a50aab0eb7e6c": [
+   "reuse_node_ids:一阶系统_3_4f3b29ce",
+   "topic:first-order"
+  ],
+  "ctkg:v3e-canonical-9988510f6127d3086f4aa265": [
+   "focus_node_ids:峰值时间_3_adc7ea95",
+   "topic:peak-time"
+  ],
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609": [
+   "focus_node_ids:调节时间_10_fcbccf4e",
+   "topic:settling-time"
+  ],
+  "ctkg:v3e-canonical-a2746b2f0c88f376c4d86e7a": [
+   "focus_node_ids:峰值时间_3_adc7ea95",
+   "topic:peak-time"
+  ],
+  "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67": [
+   "focus_node_ids:上升时间_3_6fa0ec00",
+   "topic:rise-time"
+  ],
+  "ctkg:v3e-canonical-ad988c74286cfcad2c3fdf98": [
+   "topic:underdamped"
+  ],
+  "ctkg:v3e-canonical-adb3110b78ea9d623101aaa7": [
+   "topic:partial-fractions"
+  ],
+  "ctkg:v3e-canonical-b1b7acfdda35086ace2d7091": [
+   "topic:partial-fractions"
+  ],
+  "ctkg:v3e-canonical-b1fa48122cb30019661f9eaa": [
+   "focus_node_ids:峰值时间_3_adc7ea95",
+   "topic:peak-time"
+  ],
+  "ctkg:v3e-canonical-b9fa7b3ae0d8d7044619ac55": [
+   "topic:overdamped"
+  ],
+  "ctkg:v3e-canonical-bf7bc53bf8286e07fa6035cc": [
+   "reuse_node_ids:临界阻尼响应_3_5839e0e4"
+  ],
+  "ctkg:v3e-canonical-c6fafdb175fcf88882f8b91f": [
+   "topic:damped-frequency"
+  ],
+  "ctkg:v3e-canonical-cd25e47d10ddfec280e82fde": [
+   "topic:acceleration"
+  ],
+  "ctkg:v3e-canonical-d1d8f9f3725b9a8440cdd486": [
+   "reuse_node_ids:过阻尼响应_3_adf3867e"
+  ],
+  "ctkg:v3e-canonical-df3167f36376f526f6ec5562": [
+   "focus_node_ids:超调量_3_fc3f5b17",
+   "topic:overshoot"
+  ],
+  "ctkg:v3e-canonical-eaee7091900b796af8d937c1": [
+   "focus_node_ids:超调量_3_fc3f5b17",
+   "topic:overshoot"
+  ],
+  "ctkg:v3e-canonical-f8bf6b65acbd8dc67f1032e3": [
+   "topic:impulse"
+  ],
+  "ctkg:v3e-object-10c37fd947ba55593ff03ede": [
+   "topic:performance"
+  ]
+ }
+}

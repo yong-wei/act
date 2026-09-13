@@ -1,0 +1,2191 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "1-1",
+ "unitIndex": 0,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/1-1/1-1-handout.md",
+  "sha256": "9852cdc9215b7e0c87b1fe456bd9e90e982f585332c71d4ccdd95b0d1f8eec99"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "看见整门课",
+   "groupName": null,
+   "textChars": 359,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": null,
+   "textChars": 359,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前测——基础概念与数学准备",
+   "groupName": null,
+   "textChars": 94,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "开环诊断的七个问题",
+   "groupName": "模型与三域诊断",
+   "textChars": 425,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "建模与结构表达",
+   "groupName": "模型与三域诊断",
+   "textChars": 663,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "时域响应与性能指标",
+   "groupName": "模型与三域诊断",
+   "textChars": 512,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "稳定性与根轨迹",
+   "groupName": "模型与三域诊断",
+   "textChars": 412,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 104,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "频域视角与诊断流程收束",
+   "groupName": "模型与三域诊断",
+   "textChars": 510,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "反馈与校正——从开环到闭环",
+   "groupName": "校正与课程总图",
+   "textChars": 751,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "三域对比与诊断循环",
+   "groupName": "校正与课程总图",
+   "textChars": 580,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "课程地图与学习习惯",
+   "groupName": "校正与课程总图",
+   "textChars": 657,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "完整代码走通——开环诊断",
+   "groupName": null,
+   "textChars": 703,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "闭环校正与里程碑",
+   "groupName": null,
+   "textChars": 1146,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 60,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "后测——核心概念检验",
+   "groupName": null,
+   "textChars": 75,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "总结——信息图与拓展思考",
+   "groupName": "校正与课程总图",
+   "textChars": 687,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-模块1-导论串讲-控制系统的完整图像",
+   "order": 1,
+   "level": 2,
+   "title": "模块1 导论串讲——控制系统的完整图像",
+   "startLine": 7,
+   "endLine": 19,
+   "bodyChars": 346,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-同样的问题-不同的面孔",
+   "order": 2,
+   "level": 2,
+   "title": "一、同样的问题，不同的面孔",
+   "startLine": 20,
+   "endLine": 33,
+   "bodyChars": 512,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-一条船-八个问题-90分钟遍历控制全貌",
+   "order": 3,
+   "level": 2,
+   "title": "二、一条船，八个问题——90分钟遍历控制全貌",
+   "startLine": 34,
+   "endLine": 37,
+   "bodyChars": 101,
+   "canonical": []
+  },
+  {
+   "headingId": "h4-问题一-怎样把这条船写成可以分析的对象？",
+   "order": 4,
+   "level": 3,
+   "title": "问题一：怎样把这条船写成可以分析的对象？",
+   "startLine": 38,
+   "endLine": 61,
+   "bodyChars": 817,
+   "canonical": [
+    {
+     "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+     "matchedLabel": "微分方程",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉普拉斯变换",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+     "matchedLabel": "动态系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-问题二-怎样表达这条船内部的信息流？",
+   "order": 5,
+   "level": 3,
+   "title": "问题二：怎样表达这条船内部的信息流？",
+   "startLine": 62,
+   "endLine": 74,
+   "bodyChars": 627,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-9121dc2c97afa77f52ce0220",
+     "matchedLabel": "信号流图",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-57c56ef58df2315f765a32dc",
+     "matchedLabel": "梅森公式",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-问题三-这条船被推了一下之后-会怎样运动？",
+   "order": 6,
+   "level": 3,
+   "title": "问题三：这条船被推了一下之后，会怎样运动？",
+   "startLine": 75,
+   "endLine": 93,
+   "bodyChars": 673,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-fc1c6377378e65e48e0f12fc",
+     "matchedLabel": "时间常数τ",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-问题四-怎么给系统的表现打个分？",
+   "order": 7,
+   "level": 3,
+   "title": "问题四：怎么给系统的表现打个分？",
+   "startLine": 94,
+   "endLine": 108,
+   "bodyChars": 433,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-问题五-这条船会不会失控？",
+   "order": 8,
+   "level": 3,
+   "title": "问题五：这条船会不会失控？",
+   "startLine": 109,
+   "endLine": 124,
+   "bodyChars": 596,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-问题六-如果拧大增益-极点会往哪儿跑？",
+   "order": 9,
+   "level": 3,
+   "title": "问题六：如果拧大增益，极点会往哪儿跑？",
+   "startLine": 125,
+   "endLine": 139,
+   "bodyChars": 525,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 40,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-问题七-这条船对不同节奏的扰动-态度一样吗？",
+   "order": 10,
+   "level": 3,
+   "title": "问题七：这条船对不同节奏的扰动，态度一样吗？",
+   "startLine": 140,
+   "endLine": 155,
+   "bodyChars": 590,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-前七个问题做完了什么",
+   "order": 11,
+   "level": 3,
+   "title": "前七个问题做完了什么",
+   "startLine": 156,
+   "endLine": 163,
+   "bodyChars": 177,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-反馈与校正-从诊断到干预",
+   "order": 12,
+   "level": 2,
+   "title": "三、反馈与校正：从诊断到干预",
+   "startLine": 164,
+   "endLine": 169,
+   "bodyChars": 103,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-反馈改写系统的行为逻辑",
+   "order": 13,
+   "level": 3,
+   "title": "3.1 反馈改写系统的行为逻辑",
+   "startLine": 170,
+   "endLine": 189,
+   "bodyChars": 828,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-校正-把诊断结果翻译成控制动作",
+   "order": 14,
+   "level": 3,
+   "title": "3.2 校正：把诊断结果翻译成控制动作",
+   "startLine": 190,
+   "endLine": 221,
+   "bodyChars": 1095,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-反馈改变了什么-一个直观对比",
+   "order": 15,
+   "level": 3,
+   "title": "3.3 反馈改变了什么——一个直观对比",
+   "startLine": 222,
+   "endLine": 239,
+   "bodyChars": 571,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-这门课的地图",
+   "order": 16,
+   "level": 2,
+   "title": "四、这门课的地图",
+   "startLine": 240,
+   "endLine": 261,
+   "bodyChars": 697,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-几个有用的学习习惯",
+   "order": 17,
+   "level": 2,
+   "title": "五、几个有用的学习习惯",
+   "startLine": 262,
+   "endLine": 275,
+   "bodyChars": 376,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-示例-从诊断到校正-一个完整的代码走通",
+   "order": 18,
+   "level": 2,
+   "title": "六、示例：从诊断到校正——一个完整的代码走通",
+   "startLine": 276,
+   "endLine": 281,
+   "bodyChars": 132,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-开环诊断",
+   "order": 19,
+   "level": 3,
+   "title": "6.1 开环诊断",
+   "startLine": 282,
+   "endLine": 328,
+   "bodyChars": 1577,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-47e8eb68c1aa5cd068c72e54",
+     "matchedLabel": "负反馈回路",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 20,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-闭环校正",
+   "order": 20,
+   "level": 3,
+   "title": "6.2 闭环校正",
+   "startLine": 329,
+   "endLine": 347,
+   "bodyChars": 812,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-00d2998755974a1329049aac",
+     "matchedLabel": "增益",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47995819305793bf4c946953",
+     "matchedLabel": "极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-e85c0145d63244c46853c9cf",
+     "matchedLabel": "超前校正",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-完整代码",
+   "order": 21,
+   "level": 3,
+   "title": "6.3 完整代码",
+   "startLine": 348,
+   "endLine": 380,
+   "bodyChars": 992,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "稳定性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-章末习题",
+   "order": 22,
+   "level": 2,
+   "title": "七、章末习题",
+   "startLine": 381,
+   "endLine": 382,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-基础题-•",
+   "order": 23,
+   "level": 3,
+   "title": "基础题 •",
+   "startLine": 383,
+   "endLine": 393,
+   "bodyChars": 304,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-进阶题-••",
+   "order": 24,
+   "level": 3,
+   "title": "进阶题 ••",
+   "startLine": 394,
+   "endLine": 402,
+   "bodyChars": 314,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-挑战题-•••",
+   "order": 25,
+   "level": 3,
+   "title": "挑战题 •••",
+   "startLine": 403,
+   "endLine": 410,
+   "bodyChars": 329,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2j:source-object:539b25fac314aba136f505cb",
+     "matchedLabel": "根轨迹图",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-总结与扩展思考",
+   "order": 26,
+   "level": 2,
+   "title": "八、总结与扩展思考",
+   "startLine": 411,
+   "endLine": 426,
+   "bodyChars": 561,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:cb7da716d9229f0af132e0c1",
+     "matchedLabel": "开环系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-附录-部分习题简答",
+   "order": 27,
+   "level": 2,
+   "title": "附录：部分习题简答",
+   "startLine": 427,
+   "endLine": 435,
+   "bodyChars": 451,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+     "matchedLabel": "根轨迹",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+     "matchedLabel": "性能指标",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-0cf99c642f502f5984fc4317",
+     "matchedLabel": "时域性能指标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+     "matchedLabel": "积分控制",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "1-1-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/1-1/media/1-1-audio.m4a",
+   "sha256": "4f2ea482eece6e3802edfcfb557b3dc3a6845049072f52b730130518e4661178",
+   "durationSeconds": 1273.219773,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/1-1.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.28,
+     "textPreview": "呃想象一下这样一个场景啊你现在正站在一艘那种极其巨大的万吨巨轮的驾驶舱里嗯手里死",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.28,
+     "endSeconds": 50.32,
+     "textPreview": "狠的撕扯哇这画面感一下子就来了而且最要命的是什么你知知道吗这种巨型的机械系统它真",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.32,
+     "endSeconds": 75.48,
+     "textPreview": "因为慌乱开始凭直觉拼命地左右狂转方向盘你才会发生什么肯定就是直接翻船了呗对你不仅",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.48,
+     "endSeconds": 110.0,
+     "textPreview": "节目一开始先定的规矩啊就刚才这句自我介绍之后呢我们俩在这个探讨里就直接切磋了不再",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 110.0,
+     "endSeconds": 135.12,
+     "textPreview": "引出我们今天这期深度探讨的核心呃不管你是刚翻开自动控制原理被那一竖的数学公式吓得",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 135.12,
+     "endSeconds": 165.0,
+     "textPreview": "实说到这种想要在动态的混乱的环境里维持秩序的渴望控治理论就是我们人类找到的终极武",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 165.0,
+     "endSeconds": 190.04,
+     "textPreview": "辈在他的那本神作工程控制论里已经把这个事给点透了中精准变轨最后落月的嫦娥探测器倒",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 190.04,
+     "endSeconds": 220.32,
+     "textPreview": "到底是在怎么工作的你会发现一个极其惊人的统一框架就是他们其实都在干同一件事儿对他",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 220.32,
+     "endSeconds": 245.36,
+     "textPreview": "测量比较然后修整他们都在死死咬住一个目标不放哇在测量和修正中咬住目标这就是自动控",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 245.36,
+     "endSeconds": 275.0,
+     "textPreview": "是微分方程比如就是书上经常见到的那个电机方程里面有什么时间程数也就是那个希腊字母",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 275.0,
+     "endSeconds": 301.48,
+     "textPreview": "有增异KG劣的嗯微分方程确实很直观他就像是在逐帧播放一部电影极其精确的告诉你前一",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 301.48,
+     "endSeconds": 330.0,
+     "textPreview": "几个环节串在一起比如电机连着齿轮齿轮又连着极其沉重的船舵对然后传逗还在水里跟海流",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 330.0,
+     "endSeconds": 355.2,
+     "textPreview": "滚很减但100个球每时每刻都在改变彼此的速度和方这时候你再用微分方程去推导整个系",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 355.2,
+     "endSeconds": 385.16,
+     "textPreview": "极其复杂的物理理理",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 385.16,
+     "endSeconds": 410.28,
+     "textPreview": "翻译成了一张清晰明了的乐谱望把时间抛弃了直接看旋律的本质极其准确他把让人头大的微",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 410.28,
+     "endSeconds": 440.0,
+     "textPreview": "是一个电动机或者是一",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 440.0,
+     "endSeconds": 465.12,
+     "textPreview": "条巨轮在传递函数眼里统统塞进一个黑盒子里你只要在软件里敲一行简单的代码比如输入g",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-bddaef2510e39cbb62d60df2",
+       "matchedLabel": "结构图方框",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 465.12,
+     "endSeconds": 495.0,
+     "textPreview": "吧这是控制器也",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 495.0,
+     "endSeconds": 520.04,
+     "textPreview": "就是大脑然后得有干苦力的执行部门比如咱们那条船的舵机对舵机然后是被操作的对象也就",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 520.04,
+     "endSeconds": 550.0,
+     "textPreview": "差E是驱动整个系统干活的唯一燃料控制器存在的全部意义就",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 550.0,
+     "endSeconds": 575.6,
+     "textPreview": "是为了让自己能够尽快的失业只要E变成零它就可以不干活了追求零误差的境界确实巧妙那",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 575.6,
+     "endSeconds": 605.0,
+     "textPreview": "如我们突然下达一个指令立刻向右转10度这在书上叫单位阶跃输入然后我们就盯着传是怎",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+       "matchedLabel": "阶跃输入",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 605.0,
+     "endSeconds": 630.04,
+     "textPreview": "么反应的哎这就像去4S店试驾一辆新车你一脚地板油踩到底看它窜出去多快对起步有多快",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 630.04,
+     "endSeconds": 660.0,
+     "textPreview": "晃个不停你知道他有病但你不知道病根在哪儿对就光看症状开不出药方是",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 660.0,
+     "endSeconds": 685.28,
+     "textPreview": "的所以我们需要第二把极度硬核的听诊器根轨基分析我们要去看系统的基因期因这个词儿有",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 685.28,
+     "endSeconds": 715.0,
+     "textPreview": "像脱缰的野马而那个纵容欧米伽呢决定了他在活着的过程中会发抖或者震",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 715.0,
+     "endSeconds": 759.56,
+     "textPreview": "荡的有多密集哦我懂了所以所谓的根轨迹就是说如果我们改了系统的某个参数比如换了一个",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 759.56,
+     "endSeconds": 784.64,
+     "textPreview": "度缓慢的涌浪或者是船底那台破柴油发动机发出的高频嗡嗡声对遇到这种感根轨迹能告诉你",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 784.64,
+     "endSeconds": 810.29,
+     "textPreview": "的图博的图波的图专门看频率的是的在这里我们不关心系统跑的快不快我们只关心它的节律",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 811.6,
+     "endSeconds": 846.6,
+     "textPreview": "图为非常直观的画出一条曲线告诉你面对低频的涌浪这艘船是会跟着一起剧烈摇摆还是能巧",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 846.92,
+     "endSeconds": 880.0,
+     "textPreview": "嗯闭",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 880.0,
+     "endSeconds": 935.0,
+     "textPreview": "着眼睛瞎走对啊你告诉他望前走止步他确实卖了10部但他根本不知道一阵风早把他吹偏了",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 935.0,
+     "endSeconds": 960.08,
+     "textPreview": "的非常大对啊我作为新手我就信奉大力出击我把KP拧到5甚至拧到100只要你敢偏我立",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 960.28,
+     "endSeconds": 985.52,
+     "textPreview": "当你把反馈力度调得这么极它确实会以最快速度冲向目标航线是的但就在船头精准对齐目标",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 985.9,
+     "endSeconds": 1045.0,
+     "textPreview": "蛋停不下来它会带着巨大的速度直接冲过界偏到另一边去没错然后大脑一看哎呀往右偏了立",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 1045.0,
+     "endSeconds": 1100.0,
+     "textPreview": "例控制的原理嘛它是误差乘以一个系数当误差缩小到只有零点二五的时候大脑输出的那股纠",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 1100.0,
+     "endSeconds": 1155.0,
+     "textPreview": "到足够轰开阻力硬生生把传推到完美的衣上面绝了从找病因到下猛药导致超掉再到发现稳态",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-b84a9a5a29d23a93ad44adc8",
+       "matchedLabel": "积分控制",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 1155.0,
+     "endSeconds": 1213.24,
+     "textPreview": "常赞同既然说到这儿了我得补充一个防坑指南现在的AI太发达了对吧你遇到一个画不出来",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1210.0,
+     "endSeconds": 1265.0,
+     "textPreview": "呃不知不觉我们这趟高速狂飙的旅程就要结束了今天我们用一条船带大家摸清了统一的模型",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1265.0,
+     "endSeconds": 1273.0,
+     "textPreview": "从天上到地里是的现在试着不写任何一行公式就用我们今天建立的思维框架为他们写下属于",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "4f2ea482eece6e3802edfcfb557b3dc3a6845049072f52b730130518e4661178",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "1-1-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/1-1/media/1-1-intro-video.mp4",
+   "sha256": "3bfa1234aa5a6a65fff19bd4a0e586da82f3c75b3f668b5d96dceff58beafb24",
+   "durationSeconds": 205.930667,
+   "transcriptSource": "videos-project:lesson-1-1/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 185.74,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 205.74,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 46,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 18.22,
+     "textPreview": "大家好，欢迎来到闲聊自控。今天我们先看一个问题：一艘船想保持航向，为什么还会慢慢",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 18.22,
+     "endSeconds": 29.5,
+     "textPreview": "目标航向已经设定，真实环境却会制造偏差。风、浪和海流一出现，控制问题就从偏差开始",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 29.5,
+     "endSeconds": 40.42,
+     "textPreview": "舵角按照预先设定的动作变化，外界扰动却不会被测量。偏差不会被自动纠正，实际航向就",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.84,
+     "endSeconds": 49.87,
+     "textPreview": "这艘船为什么适合当作整门课的地图？舵角是输入，航向角是输出。模型描述输入到输出的",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 49.87,
+     "endSeconds": 61.36,
+     "textPreview": "反馈把实际航向带回目标。时域、根轨迹和频域，会从三个角度检查同一个系统。现实对象",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 61.36,
+     "endSeconds": 71.62,
+     "textPreview": "船体动力学就是被控对象。传递函数描述舵角到航向角的动态关系。方框图再把信号怎样连",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 72.04,
+     "endSeconds": 86.7,
+     "textPreview": "模型是不是现实的复制品？不是。模型只保留对问题最重要的动态。响应快慢、惯性、阻尼",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 86.7,
+     "endSeconds": 97.07,
+     "textPreview": "这样，判断和设计才变得可计算。有了模型以后，先看什么？阶跃响应会告诉我们系统怎样",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 97.07,
+     "endSeconds": 105.7,
+     "textPreview": "它显示响应是否太慢，也显示是否冲过目标。超调量、调节时间和稳态误差，把直觉变成指",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 106.12,
+     "endSeconds": 114.71,
+     "textPreview": "如果想知道响应为什么会这样，就要看极点。根轨迹观察闭环极点怎样移动。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 114.71,
+     "endSeconds": 125.52,
+     "textPreview": "极点位置决定响应性格。有些位置带来更快响应，有些位置带来振荡，也有些位置会破坏稳",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 125.94,
+     "endSeconds": 136.87,
+     "textPreview": "如果扰动有不同节奏，又该怎么看？频域分析把慢变化、快变化和周期扰动分开观察。伯德",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "伯德图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 136.87,
+     "endSeconds": 145.35,
+     "textPreview": "同一个对象，会在三张图里呈现不同侧面。反馈到底多做了哪一步？它让系统看见自己的结",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 145.35,
+     "endSeconds": 154.56,
+     "textPreview": "实际航向被持续测量，实际值和目标值相减得到误差。误差再反过来修正舵角，闭合的信息",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 154.98,
+     "endSeconds": 163.7,
+     "textPreview": "那反馈是不是越强越好？也不是。反馈太弱，偏差修正很慢。反馈太强，系统可能振荡。",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 163.7,
+     "endSeconds": 172.23,
+     "textPreview": "控制设计要在速度、超调和稳定性之间找到平衡。这些概念能不能马上跑起来？可以。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 172.23,
+     "endSeconds": 180.72,
+     "textPreview": "几行代码就能建立模型、画阶跃响应、看根轨迹、观察伯德图。接入反馈以后，还能比较开",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "伯德图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 181.14,
+     "endSeconds": 190.21,
+     "textPreview": "本期我们把整门课的地图先搭起来：模型让对象可计算，图像让表现可判断，反馈让系统能",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 190.21,
+     "endSeconds": 195.74,
+     "textPreview": "你可以先想一个问题：如果测量本身有误差，闭环还能可靠吗？",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "3bfa1234aa5a6a65fff19bd4a0e586da82f3c75b3f668b5d96dceff58beafb24",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "1-1-course",
+   "kind": "video",
+   "runtimePath": "lessons/1-1/media/1-1-course.mp4",
+   "sha256": "f56b4adc46b2ed526f160a3a51f063b6587f9065f4685bfe4a9167016deaf2eb",
+   "durationSeconds": 413.733152,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/1-1.json",
+   "transcriptSourceSha256": "f56b4adc46b2ed526f160a3a51f063b6587f9065f4685bfe4a9167016deaf2eb",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.24,
+     "endSeconds": 16.56,
+     "textPreview": "hello各位理工科的大佬们，欢迎来到今天的核心图解。你看啊，如果你现在正盯着书",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 16.56,
+     "endSeconds": 27.12,
+     "textPreview": "今天我们要把这门让人头吐的硬核课直接压缩提炼成你的期末通关生存指南和最完美的作弊",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 27.12,
+     "endSeconds": 40.17,
+     "textPreview": "咱们先来开个脑洞，试想一下，在那种狂风暴雨、海浪滔天的极端环境里，你完全不去碰方",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.17,
+     "endSeconds": 51.05,
+     "textPreview": "抛出这个超级硬核的问题，其实就是想告诉大家，咱们学这门课绝对不是为了在纸上死磕数",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 51.05,
+     "endSeconds": 64.17,
+     "textPreview": "我们要的是掌握现实的超能力，这种掌控仪器的感觉其实就像是一个极其炫酷的控制台，你",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 64.17,
+     "endSeconds": 75.93,
+     "textPreview": "这学期你马上要面对的那些看起来吓人的理论大BOSS，管它是极点跟轨迹还是什么频域",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 75.93,
+     "endSeconds": 85.41,
+     "textPreview": "今天咱们就提前开个视野，把整个框架盘明白。OK，废话不多说，今天的通关路线非常明",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 85.41,
+     "endSeconds": 97.25,
+     "textPreview": "接着咱们解构一下系统的四大支柱，然后感受一下反馈纠错的魔法。在之后探绝对不能翻车",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 97.25,
+     "endSeconds": 111.71,
+     "textPreview": "走，几第一站马上开启我们的自控之旅，看看正门课的底层逻辑。说到这门课，咱们必须要",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 111.71,
+     "endSeconds": 121.31,
+     "textPreview": "1954年，他就一针见血地指出了核心，要把所有分散的控制问题放到一个统一的框架里",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 121.31,
+     "endSeconds": 131.63,
+     "textPreview": "你看，不管你是要让长源探测器精准落月，还是让巨轮在风浪里保持航向，在控制工程师眼",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 131.63,
+     "endSeconds": 141.6,
+     "textPreview": "这就是顶级思维的降维打击。既然是统一框架，那它到底是由什么组成的呢？进入第二站，",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 141.6,
+     "endSeconds": 151.04,
+     "textPreview": "咱们来认识一下控制团队里的核心角色，在认识角色之前有个贯穿全书你必须得习惯的概念",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 151.04,
+     "endSeconds": 159.52,
+     "textPreview": "千万别误会，它绝对不是那种满是电线、看的人头皮发麻的物理接线图，你得把它看作是一",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 159.52,
+     "endSeconds": 170.79,
+     "textPreview": "它完全不关心你的齿轮或者电路板长什么样，它只关心一件事。决策和信息是怎么互相传递",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 170.79,
+     "endSeconds": 180.47,
+     "textPreview": "好，在方框图里，这四位大脑就是绝对的核心了：第一是控制器，它是整个系统的大脑，负",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 180.47,
+     "endSeconds": 190.12,
+     "textPreview": "第二是执行器，相当于肌肉，比如转动方向舵的电机，它负责把大脑的想法变成干脆利落的",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 190.12,
+     "endSeconds": 202.92,
+     "textPreview": "也就是那艘在风浪中摇晃的巨轮本身了。最后就是sensor，它是系统的眼睛，死死盯",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 202.92,
+     "endSeconds": 211.64,
+     "textPreview": "那么问题来了，这四兄弟是怎么配合的呢？这就来到了第三部分，也是系统的灵魂反馈，纠",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 211.64,
+     "endSeconds": 221.72,
+     "textPreview": "闭环反馈到底神在哪里？其实它就是系统在进行一场无限循环的灵魂拷问。他会不停地问自",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 221.72,
+     "endSeconds": 238.68,
+     "textPreview": "先测出当前的实际航向，马上把数据传回控制台，算出个目标的偏差，然后瞬间命令肌肉去",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 238.68,
+     "endSeconds": 248.73,
+     "textPreview": "可是呢，纠错太猛也是会走火入魔的。所以第四部分咱们得聊聊稳定性。这可是绝对不能碰",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+       "matchedLabel": "稳定性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 248.73,
+     "endSeconds": 267.61,
+     "textPreview": "书上那些复杂的推导，其实全都在找一条生死分界线，关键就看系统的极点落在哪里。如果",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 267.61,
+     "endSeconds": 279.38,
+     "textPreview": "但如果你设计不当，哪怕只有一个极点溜到了右半平面。那就相当于赛车一脚油门踩到底失",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 279.38,
+     "endSeconds": 296.1,
+     "textPreview": "放大系统当场崩溃坠毁，左边活，右边死，就这么简单粗暴。明白了原理和底线，最后第五",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 296.1,
+     "endSeconds": 319.14,
+     "textPreview": "很多同学特别怕课本里那一长串的劳斯判据和代数运算。其实在现在的现代工程实战里，别",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-cfdae92ada72d7710e7f1cee",
+       "matchedLabel": "劳斯判据",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 319.14,
+     "endSeconds": 332.0,
+     "textPreview": "脏活累活交给代码，你只需要负责懂背后的逻辑就行。如果觉得刚才那个不够炫，那你绝对",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-5845390ded447e37f06ea222",
+       "matchedLabel": "根轨迹",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 27,
+     "startSeconds": 332.0,
+     "endSeconds": 345.68,
+     "textPreview": "这玩意儿简直就像是打游戏时开的外挂雷达，当你把控制器的马力，也就是增益K一点点往",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 345.68,
+     "endSeconds": 366.65,
+     "textPreview": "你是眼看它们走向深渊呢，还是平稳落地？靠这一行代码，你完全成了掌控全局的先知。划",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 366.65,
+     "endSeconds": 381.49,
+     "textPreview": "为什么？因为你的高级控制器其实就是个强迫症患者，他永远只死磕一件事，现在到底还差",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 381.49,
+     "endSeconds": 390.45,
+     "textPreview": "好了，各位未来的硬核工程师们，全景地图已经彻底为你解锁，神兵利器咱们也都盘明白了",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 390.45,
+     "endSeconds": 402.29,
+     "textPreview": "那么问题来了，下次当你面对那些像狂风巨浪一样复杂多变的工程挑战时，你打算怎么亲手",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 402.29,
+     "endSeconds": 413.73,
+     "textPreview": "带上今天这份通关指南，保持这份掌控现实的好奇心，去征服这学期的自动控制原理吧。期",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "f56b4adc46b2ed526f160a3a51f063b6587f9065f4685bfe4a9167016deaf2eb",
+   "status": "anchored"
+  }
+ ]
+}

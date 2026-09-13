@@ -5,7 +5,8 @@
  *   current.json
  *   releases/<projectionId>/
  *     resources.jsonl
- *     bindings.jsonl
+ *     bindings.jsonl   (historical B′ spray; live resource consumers read
+ *                       course-content/runtime/knowledge/resource-bindings/)
  *     prerequisites.jsonl
  *     core-nodes.json
  *     cards-index.json

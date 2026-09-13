@@ -1082,10 +1082,22 @@ function ActiveNodeDetail({
                               })}
                               data-active-resource-launch={item.launch.kind}
                               data-active-resource-title={item.title}
+                              data-active-resource-anchor={item.anchorLabel ?? undefined}
+                              data-active-resource-appearance={item.appearance ?? undefined}
                               className="block w-full rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-left text-xs text-platform-fg-primary hover:bg-platform-action-subtle"
                             >
-                              {item.title}
-                              <span className="ml-2 text-platform-fg-muted">{item.bindingRole}</span>
+                              <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                <span>{item.title}</span>
+                                {item.anchorLabel ? (
+                                  <span className="rounded bg-platform-surface px-1 text-[11px] text-platform-fg-secondary">{item.anchorLabel}</span>
+                                ) : null}
+                                {item.appearance === 'first' ? (
+                                  <span className="rounded bg-emerald-500/15 px-1 text-[11px] text-emerald-700 dark:text-emerald-300">首次</span>
+                                ) : item.appearance === 'revisit' ? (
+                                  <span className="rounded bg-amber-500/15 px-1 text-[11px] text-amber-700 dark:text-amber-300">复现</span>
+                                ) : null}
+                                <span className="text-platform-fg-muted">{item.bindingRole}</span>
+                              </span>
                             </button>
                           ) : (
                             <p

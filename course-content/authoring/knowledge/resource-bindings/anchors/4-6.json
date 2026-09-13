@@ -1,0 +1,1136 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "4-6",
+ "unitIndex": 23,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/4-6/4-6-handout.md",
+  "sha256": "c45b25102dbbb2b67d2542b8643938f95cf802a8ee97ff21467c624b71baf896"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "从场景配置对比到迁移问题：为什么这次不能只说“再调一调参数”",
+   "groupName": "迁移入口与任务重排",
+   "textChars": 735,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标：完成这轮迁移判断后应能做到什么",
+   "groupName": "迁移入口与任务重排",
+   "textChars": 219,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "迁移场景任务重排：客船与驱逐舰到底换了什么",
+   "groupName": "失配证据与目标重排",
+   "textChars": 471,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "固定结构迁移后的失配信号：拖尾、航迹偏离与职责过载如何同时出现",
+   "groupName": "失配证据与目标重排",
+   "textChars": 765,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "驱逐舰专用代价函数：为什么比较对象必须重写",
+   "groupName": "结构编码入口",
+   "textChars": 1545,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "何时把结构选择正式抬成问题本身",
+   "groupName": "结构编码入口",
+   "textChars": 1327,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "五类结构的统一编码：先判结构，再解释参数",
+   "groupName": "四类方案比较",
+   "textChars": 591,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-6bc695e4ba1784407e920056",
+     "matchedLabel": "积分时间常数",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 6,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "四类方案比较矩阵：先问目标是否对题，再问结构是否够用",
+   "groupName": "四类方案比较",
+   "textChars": 577,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "结构搜索证据与专项验证：总代价更低为什么仍不自动等于可交付",
+   "groupName": "四类方案比较",
+   "textChars": 631,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "后测：目标错位、结构边界与统一编码是否已经连成链",
+   "groupName": "专项验证与闭环移交",
+   "textChars": 87,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "总结：从任务重排到结构编码入口的完整判断链",
+   "groupName": "专项验证与闭环移交",
+   "textChars": 310,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-迁移场景中的任务重排",
+   "order": 1,
+   "level": 2,
+   "title": "一、迁移场景中的任务重排",
+   "startLine": 12,
+   "endLine": 29,
+   "bodyChars": 699,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-课程目标",
+   "order": 2,
+   "level": 2,
+   "title": "二、课程目标",
+   "startLine": 30,
+   "endLine": 39,
+   "bodyChars": 244,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-客船与驱逐舰航向任务的固定结构比较",
+   "order": 3,
+   "level": 2,
+   "title": "三、客船与驱逐舰航向任务的固定结构比较",
+   "startLine": 40,
+   "endLine": 41,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h4-客船航向保持的固定结构可用解",
+   "order": 4,
+   "level": 3,
+   "title": "3.1 客船航向保持的固定结构可用解",
+   "startLine": 42,
+   "endLine": 66,
+   "bodyChars": 456,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-驱逐舰快速机动任务的对象与约束",
+   "order": 5,
+   "level": 3,
+   "title": "3.2 驱逐舰快速机动任务的对象与约束",
+   "startLine": 67,
+   "endLine": 92,
+   "bodyChars": 609,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-固定结构迁移后的失配信号",
+   "order": 6,
+   "level": 3,
+   "title": "3.3 固定结构迁移后的失配信号",
+   "startLine": 93,
+   "endLine": 124,
+   "bodyChars": 964,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-目标重排与固定结构可用域收缩",
+   "order": 7,
+   "level": 3,
+   "title": "3.4 目标重排与固定结构可用域收缩",
+   "startLine": 125,
+   "endLine": 183,
+   "bodyChars": 1556,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-83b0bd3fc503270cb174a500",
+     "matchedLabel": "超前补偿",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-结构编码与混合编码搜索",
+   "order": 8,
+   "level": 2,
+   "title": "四、结构编码与混合编码搜索",
+   "startLine": 184,
+   "endLine": 185,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-结构搜索的引入条件",
+   "order": 9,
+   "level": 3,
+   "title": "4.1 结构搜索的引入条件",
+   "startLine": 186,
+   "endLine": 197,
+   "bodyChars": 248,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-五类控制结构的统一编码",
+   "order": 10,
+   "level": 3,
+   "title": "4.2 五类控制结构的统一编码",
+   "startLine": 198,
+   "endLine": 269,
+   "bodyChars": 2320,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-混合编码问题的求解入口",
+   "order": 11,
+   "level": 3,
+   "title": "4.3 混合编码问题的求解入口",
+   "startLine": 270,
+   "endLine": 294,
+   "bodyChars": 421,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-驱逐舰上的四类方案比较",
+   "order": 12,
+   "level": 2,
+   "title": "五、驱逐舰上的四类方案比较",
+   "startLine": 295,
+   "endLine": 296,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-四类方案为什么必须放在同一张图里",
+   "order": 13,
+   "level": 3,
+   "title": "5.1 四类方案为什么必须放在同一张图里",
+   "startLine": 297,
+   "endLine": 307,
+   "bodyChars": 257,
+   "canonical": []
+  },
+  {
+   "headingId": "h14-四类方案的方波跟踪与航迹证据",
+   "order": 14,
+   "level": 3,
+   "title": "5.2 四类方案的方波跟踪与航迹证据",
+   "startLine": 308,
+   "endLine": 327,
+   "bodyChars": 828,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-GA-PSO-的收敛图只承担结构选择证据",
+   "order": 15,
+   "level": 3,
+   "title": "5.3 GA/PSO 的收敛图只承担结构选择证据",
+   "startLine": 328,
+   "endLine": 381,
+   "bodyChars": 2205,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-小结",
+   "order": 16,
+   "level": 2,
+   "title": "六、小结",
+   "startLine": 382,
+   "endLine": 390,
+   "bodyChars": 174,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-分层练习",
+   "order": 17,
+   "level": 2,
+   "title": "七、分层练习",
+   "startLine": 391,
+   "endLine": 392,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h18-练习-1-根据场景配置判断任务重排",
+   "order": 18,
+   "level": 3,
+   "title": "练习 1：根据场景配置判断任务重排",
+   "startLine": 393,
+   "endLine": 400,
+   "bodyChars": 98,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-练习-2-根据失配信号判断固定结构边界",
+   "order": 19,
+   "level": 3,
+   "title": "练习 2：根据失配信号判断固定结构边界",
+   "startLine": 401,
+   "endLine": 408,
+   "bodyChars": 133,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-练习-3-把统一编码解码回工程语言",
+   "order": 20,
+   "level": 3,
+   "title": "练习 3：把统一编码解码回工程语言",
+   "startLine": 409,
+   "endLine": 422,
+   "bodyChars": 122,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-练习-4-解释四类方案比较的必要性",
+   "order": 21,
+   "level": 3,
+   "title": "练习 4：解释四类方案比较的必要性",
+   "startLine": 423,
+   "endLine": 432,
+   "bodyChars": 174,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-附录-A-遗传算法简述",
+   "order": 22,
+   "level": 2,
+   "title": "附录 A：遗传算法简述",
+   "startLine": 433,
+   "endLine": 458,
+   "bodyChars": 648,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-附录-B-粒子群优化简述",
+   "order": 23,
+   "level": 2,
+   "title": "附录 B：粒子群优化简述",
+   "startLine": 459,
+   "endLine": 477,
+   "bodyChars": 432,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "4-6-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/4-6/media/4-6-audio.m4a",
+   "sha256": "7fb63702a6d5d2b4a716f4b3c68b892eca939837fe12a3b97d73d47b6fdd8915",
+   "durationSeconds": 1302.662676,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/4-6.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.2,
+     "textPreview": "呃大家想象一下啊就你现在正驾驶着一艘几千吨重的钢制驱逐舰在波涛汹涌的大海上全速航",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.28,
+     "endSeconds": 50.88,
+     "textPreview": "左右满舵转向也就是咱们说的走一个极限的呃方波机动这个时候如果箭在计算机里运行的是",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.88,
+     "endSeconds": 76.04,
+     "textPreview": "绝不是危言耸听啊在现实的工程世界里很多理论上的所谓完美波形如果不考虑物理极限带来",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 76.04,
+     "endSeconds": 101.08,
+     "textPreview": "接震荡到飞起今天呢咱们不玩实验室里的吃咱们来搞点硬核的今天我们要为大家深度拆解一",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 101.08,
+     "endSeconds": 126.16,
+     "textPreview": "正在死磕自动控制原理的自动化专业大学生呃量身定制的考前脑部按摩大家好我是你们的开",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 126.16,
+     "endSeconds": 151.2,
+     "textPreview": "构搜索和智能算法让计算机自己去怎么说呢繁育出一个最优的控制器这听起来简直就像科幻",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 151.52,
+     "endSeconds": 176.68,
+     "textPreview": "也就是plant塞进公式里再精雕琢琢一下参数系宠就一定会乖乖听话这种错觉其实源于",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 176.76,
+     "endSeconds": 201.8,
+     "textPreview": "高大上但反应在物理直觉上到底意味着什么意味着它是一个纯积分环节串联着两个惯性延迟",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.8,
+     "endSeconds": 226.88,
+     "textPreview": "小车那样指哪儿打哪儿但是这两模型从结构上看明明很像啊为什么驱逐舰的任务就那么变态",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 227.04,
+     "endSeconds": 252.4,
+     "textPreview": "比如ITA1和ITS1让我想想啊这就像是呃开着一辆平稳的城市公交车你的核心目标是",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.4,
+     "endSeconds": 278.4,
+     "textPreview": "方波跟踪机动方波的特点就是瞬间的阶跃变化目标航向要在瞬间从左满按舵切换到右满舵我",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 278.4,
+     "endSeconds": 303.48,
+     "textPreview": "致命的约束是什么是峰值控制量以及控制能量的权重峰值控制量这就好比你开着拉里赛车躲",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 303.48,
+     "endSeconds": 328.92,
+     "textPreview": "示结果是直接未通过选上根本原因就在于如果在驱逐舰上盲目追求客船标准下那种快速的误",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 328.92,
+     "endSeconds": 353.92,
+     "textPreview": "们在课本上学的往往都是统一的性能指标比如超调量百分之多少以内调节时间几秒以内就是",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 353.92,
+     "endSeconds": 379.04,
+     "textPreview": "者机械结构直接断裂了你的数学推导哪怕再完美现实中方向盘拧断了那一切就是归零这其实",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 379.04,
+     "endSeconds": 404.2,
+     "textPreview": "能用客船的浪漫去要求驱逐舰的狂暴我们必须敬畏系统的物理极限哇这真的是给所有沉迷于",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 404.2,
+     "endSeconds": 429.32,
+     "textPreview": "脑子决定用一个PID然后P给一点儿I给一点儿D给一点儿慢慢儿试这就是我们常说的手",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 429.32,
+     "endSeconds": 454.56,
+     "textPreview": "调参数那研究人员把控制器的结构和参数打包在了一起变成了一个包含六个元素的向量也就",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 454.56,
+     "endSeconds": 479.68,
+     "textPreview": "零到一之间的小数硬生生映射成了五种不同的控制器类型对把连续空间映射到了离散的结构",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 479.68,
+     "endSeconds": 505.0,
+     "textPreview": "战士然后剩下的五个基因就是给你加力量敏捷智力这些具体的参数属性这种编码方式确实非",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 505.0,
+     "endSeconds": 530.04,
+     "textPreview": "升取整得到3那么这个控制器就被立刻确认为第三类职业也就是PI加超前网结果定下来了",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 530.04,
+     "endSeconds": 555.12,
+     "textPreview": "这个结构剩下的基因会线性映射为真实的比利系数积分时间超前时间常数等比如公式设定比",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 555.12,
+     "endSeconds": 580.32,
+     "textPreview": "最后算出来比例系数就是1336原来是这样这样一段纯粹的数字序列瞬间就变成了一个实",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 580.32,
+     "endSeconds": 613.0,
+     "textPreview": "于微积分的梯度项下法面对这种结构会突然发生跳跃的控绝对会立刻崩溃因为他根本找不到",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 613.0,
+     "endSeconds": 638.04,
+     "textPreview": "舰的虚拟仿真环境里去跑一圈方波机动跑完之后如果不符合物理约束或者误差太大你的得分",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 638.04,
+     "endSeconds": 668.4,
+     "textPreview": "准都已经建好了接下来就需要真正的智能算法进去淘金了资料里好像安排了一场荀攸算法的",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 668.4,
+     "endSeconds": 693.52,
+     "textPreview": "喊只要有人喊一句这儿线索所有人就会根据一个速度公式乌央乌央的调整方向扑过去哈哈这",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 693.52,
+     "endSeconds": 719.96,
+     "textPreview": "生存那套嘛对它的核心机制是交叉和变异把表现得分高",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 719.96,
+     "endSeconds": 745.24,
+     "textPreview": "的两组附带基因截断重新拼接生成子带偶尔还在某一个基因位上加上一点微小的随机扰动就",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 745.24,
+     "endSeconds": 770.96,
+     "textPreview": "结构搜索这个残酷的修罗场时ＰＳＯ直接拉卡了只有遗传算法GA把收敛方向稳定的",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 772.24,
+     "endSeconds": 797.28,
+     "textPreview": "压向了可交付的急动方案这到底是为什么难道是因为这群找番卡的大学生跑得太快冲过头了",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 797.28,
+     "endSeconds": 825.0,
+     "textPreview": "积累的那些往东走能找到饭卡的梯度信息和历史经验不仅毫无用处甚至可能是完全错误的对",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 825.0,
+     "endSeconds": 850.28,
+     "textPreview": "吧就就好像昨天往前走能吃到金币今天往前走直接掉下悬崖完全正确因为底层结构发生了根",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 850.28,
+     "endSeconds": 880.64,
+     "textPreview": "就能直接在不同的控制器结构之间进行随机控降而不是被局部的梯度死死困住不",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 880.64,
+     "endSeconds": 907.07,
+     "textPreview": "非线性的复杂空间里这种看似盲目的鲁帮性反而成了破局的关键这就是为什么GA最终能拿",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 907.8,
+     "endSeconds": 933.44,
+     "textPreview": "克刑组合简直让我大跌眼镜它竟然不是咱们最熟悉最常考的纯PID是一个极其复杂的缝合",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 933.92,
+     "endSeconds": 958.92,
+     "textPreview": "差比零点九七三行计误差比更是敌到了0911可以说他在速度精度和保护舵之间找到了完",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 958.92,
+     "endSeconds": 990.0,
+     "textPreview": "的地方他读懂了物理约束我们来猜解一下如果你保留前肺通道会发生什么前肺的作用是提前",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 990.0,
+     "endSeconds": 1015.2,
+     "textPreview": "令是一个方波瞬间产生巨大的阶跃变化时前肺通道会把这个巨大的阶跃信号毫无保留地瞬间",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1015.2,
+     "endSeconds": 1045.0,
+     "textPreview": "择把所有的精力都集中在反馈和超前网络上宁可牺牲哪怕零点几秒的响应速度也必须保证舵",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1045.0,
+     "endSeconds": 1070.04,
+     "textPreview": "觉得心里五味杂陈呐作为一个曾经在黑板上辛辛苦苦画根轨迹算几点配置的学生为了哪怕零",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1070.04,
+     "endSeconds": 1100.32,
+     "textPreview": "者他为什么用PI因为要消除稳态误差为什么加超前网络因为要改善动态响应增加向为欲度",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 1100.32,
+     "endSeconds": 1125.44,
+     "textPreview": "空发明一种魔法他用的依然是你课本里的那些积木换句话说算法只是个没有感情的积木组装",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1125.44,
+     "endSeconds": 1155.0,
+     "textPreview": "古典理论你连这个搜索池都建不起来懂理论你才能成为规则的制定者而不是被算法轻易淘汰",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 1155.0,
+     "endSeconds": 1180.2,
+     "textPreview": "到了硬核知识连作为自动化专业大学生的尊严都被你给守护住了让我们快速复盘一下今天的",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 1180.2,
+     "endSeconds": 1210.0,
+     "textPreview": "动自攻前馈通道的最优控制器这一切简直就是控制理论工程约束和智能询优的完美共舞",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 1210.0,
+     "endSeconds": 1235.12,
+     "textPreview": "但是在结束之前我想抛给所有听众一个更深层次的挑战嗯是什么今天我们聊的这口已馋串子",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 1235.12,
+     "endSeconds": 1265.64,
+     "textPreview": "变化的受损战舰我们能不能让这套遗传算法直接植入战舰内部的计算机中让它实时onli",
+     "canonical": []
+    },
+    {
+     "index": 48,
+     "startSeconds": 1265.8,
+     "endSeconds": 1290.84,
+     "textPreview": "控制基因在炮火连天的几秒钟内迅速根据当前的破损状态自我进化出一套保命的参数结构是",
+     "canonical": []
+    },
+    {
+     "index": 49,
+     "startSeconds": 1290.84,
+     "endSeconds": 1302.52,
+     "textPreview": "在今晚面对那一堆复杂的拉普拉斯变换时多一份看透本质的从容祝各位期末不挂科系统的闭",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+       "matchedLabel": "拉普拉斯变换",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "7fb63702a6d5d2b4a716f4b3c68b892eca939837fe12a3b97d73d47b6fdd8915",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "4-6-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/4-6/media/4-6-intro-video.mp4",
+   "sha256": "de99707b2ef656fc403718244adc5b6d7dde0876b7d09f2dc9faf8d9250d3aee",
+   "durationSeconds": 229.013333,
+   "transcriptSource": "videos-project:lesson-4-6/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 206.967,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 228.967,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 61,
+   "segments": [],
+   "activeReleaseSha256": "1ce07c54968651e4786b99a79c914e8974af4828514ab57b2a363f88e6eb0c78",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "4-6-course",
+   "kind": "video",
+   "runtimePath": "lessons/4-6/media/4-6-course.mp4",
+   "sha256": "5cd392c74a03a4c8799a94c358de0271b54786b55ade1b65492b09ef4eb9b349",
+   "durationSeconds": 459.406803,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/4-6.json",
+   "transcriptSourceSha256": "5cd392c74a03a4c8799a94c358de0271b54786b55ade1b65492b09ef4eb9b349",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.24,
+     "endSeconds": 11.36,
+     "textPreview": "嘿，大家好。你们有没有想过，天上的无人机是怎么做到精准悬停呢？还有那些自动驾驶汽",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 11.36,
+     "endSeconds": 20.0,
+     "textPreview": "今天呢，咱们就来揭开这个秘密，一起去寻找那个藏在机器背后最完美的大脑——也就是控",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 20.0,
+     "endSeconds": 30.88,
+     "textPreview": "错就是这样，不管是无人机在空中纹丝不动，还是火箭要精准的冲向它的目标轨道，这背后",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 30.88,
+     "endSeconds": 43.37,
+     "textPreview": "这个答案呢，就是我们今天要聊的核心，控制系统工程。说白了，这门学问干的就是一件事",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 43.37,
+     "endSeconds": 52.41,
+     "textPreview": "可以说它就是咱们现在这个自动化世界的地基。好，那咱们就来具体看看。首先我们要面对",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 52.41,
+     "endSeconds": 65.85,
+     "textPreview": "其实就是要驯服一个系统，在咱们这个领域，我们管想要控制的东西叫被控对象，英文叫p",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 65.85,
+     "endSeconds": 77.53,
+     "textPreview": "你让它转弯，它得半天才动。那我们的任务就是给它设计一个超级聪明的舵手，也就是控制",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 77.53,
+     "endSeconds": 87.35,
+     "textPreview": "行，咱们现在舵手有了，船也有了，但问题就来了，我们怎么知道这个舵手到底行不行？",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 87.35,
+     "endSeconds": 101.27,
+     "textPreview": "我们说的最好这个标准又是什么呢？这就需要一个能看得见摸得着的标准了。就好像咱们考",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 101.27,
+     "endSeconds": 109.99,
+     "textPreview": "在工程领域呢，这张成绩单就叫性能指标，我们一般用JC它来表示它。那这张成绩单上都",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 109.99,
+     "endSeconds": 118.51,
+     "textPreview": "首先是调节时间，说白了就是看系统多快能稳定下来。然后是总体误差，看它在整个过程里",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 118.51,
+     "endSeconds": 129.87,
+     "textPreview": "我们还有一个大误差惩罚项，意思就是如果系统犯了个大错，偏差特别大，那叫狠狠的扣分",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 129.87,
+     "endSeconds": 138.99,
+     "textPreview": "毕竟谁不想自己的机器人又能干活又省电呢？对吧？现在大家看这张图，它就是这次考试的",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 138.99,
+     "endSeconds": 151.04,
+     "textPreview": "你看不同的科目占的比重是不一样的，稳定速度和准确度各占了百分之三十，这是大头。而",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 151.04,
+     "endSeconds": 166.42,
+     "textPreview": "这就告诉我们，在这次的任务里，一个控制器就算再节能，如果它又慢又不准，那也绝对拿",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 166.42,
+     "endSeconds": 176.82,
+     "textPreview": "就像一个大厨的工具箱，我们有很多不同类型的控制器可以选。比方说最经典的PID控制",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+       "matchedLabel": "PID控制器",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 176.82,
+     "endSeconds": 194.1,
+     "textPreview": "而那些更复杂的组合控制器呢？就像是专门处理特定食材的特殊工具，每一种都有自己的看",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 194.1,
+     "endSeconds": 204.1,
+     "textPreview": "这么多参数排列组合起来，那个可能性简直就是天文数字。要是靠人一个一个去试，那可能",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 204.1,
+     "endSeconds": 213.7,
+     "textPreview": "那么面对这个几乎不可能完成的任务，我们该怎么办呢？别急，这时候就得请出咱们今天的",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 213.7,
+     "endSeconds": 226.68,
+     "textPreview": "这可是我们直接从大自然那里偷师学来的一件超级武器唉！你看这句话就特别精辟地概括了",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 226.68,
+     "endSeconds": 237.32,
+     "textPreview": "我们不直接去解一个复杂的数学题，而是去模拟生物进化的过程，优胜劣汰，适者生存，让",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 237.32,
+     "endSeconds": 247.22,
+     "textPreview": "那具体是怎么做的呢？你看这张幻灯片，过程特别清楚。第一步，我们先随机生成一大堆控",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 247.22,
+     "endSeconds": 258.02,
+     "textPreview": "第二步，用咱们之前定好的成绩单去挨个测试，看谁的分数高。第三步，把分数低的都淘汰",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 258.02,
+     "endSeconds": 268.1,
+     "textPreview": "第四步也是最关键的一步来了，我们让这些学霸两两配对，互相学习，把他们各自最优秀的",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 268.1,
+     "endSeconds": 280.68,
+     "textPreview": "偶尔呢，我们还给他们来点小小的变异，激发一些意想不到的潜力。这样就创造出了全新的",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 280.68,
+     "endSeconds": 298.84,
+     "textPreview": "在这场进化大赛里，得有一位一丝不苟的裁判才行，他就是我们的适应度函数。他的工作很",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 298.84,
+     "endSeconds": 308.6,
+     "textPreview": "分数越高，就说明这个控制器越适应我们的任务。它能活到下一代的机会也就越大。那计算",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 308.6,
+     "endSeconds": 317.56,
+     "textPreview": "我们用了一个很聪明的方法，把每个控制器的所有参数设置都编码成一长串数字，就像图里",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 317.56,
+     "endSeconds": 327.92,
+     "textPreview": "这串数字我们就叫它基因。这样一来，一个复杂的工程设计问题就变成了计算机最擅长的数",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 327.92,
+     "endSeconds": 338.24,
+     "textPreview": "好了，理论讲了这么多，经过了成百上千代的进化模拟，最终的结果到底怎么样呢？使骡子",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 338.24,
+     "endSeconds": 348.0,
+     "textPreview": "所以关键问题来了，咱们费了这么大劲儿搞的这场控制器进化大赛，真的找到了一个比原来",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 348.0,
+     "endSeconds": 360.91,
+     "textPreview": "答案就在这张图里，大家看好了，这是一场新旧控制器的终极对决。这条红线代表的就是我",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 360.91,
+     "endSeconds": 369.79,
+     "textPreview": "就是我们原来的基准方案。怎么样？谁更厉害？这结果可以说是一目了然。首先看总分，大",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 369.79,
+     "endSeconds": 378.83,
+     "textPreview": "在咱们的成绩单里，这个分数是越低越好。新方案拿到了0911分，完胜基准方案的09",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 378.83,
+     "endSeconds": 388.1,
+     "textPreview": "再看锯齿的曲线。看上面那张图，红线的波动明显比蓝线平滑得多。这就意味着它的控制动",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 388.1,
+     "endSeconds": 398.58,
+     "textPreview": "再看下面的响应曲线，红线能更快地达到稳定状态，而且几乎没有多余的抖动。所以毫无疑",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 398.58,
+     "endSeconds": 408.22,
+     "textPreview": "而这个就是我们冠军选手的庐山真面目了，一个由遗传算法自动为我们量身打造的数学公式",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 408.22,
+     "endSeconds": 419.1,
+     "textPreview": "但这背后凝聚了成百上千代进化的智慧，是这场竞赛最终捧起来的独一无二的奖杯。所以今",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 419.1,
+     "endSeconds": 432.3,
+     "textPreview": "那就是我们可以从大自然中汲取灵感，利用像遗传算法这样的人工智能去自动解决那些对咱",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 432.3,
+     "endSeconds": 444.37,
+     "textPreview": "这就给我们留下了一个非常酷的思考题。除了设计控制器，在其他领域还有哪些我们曾经认",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 444.37,
+     "endSeconds": 455.89,
+     "textPreview": "比如说寻找新药的完美分子结构，或者设计出最高效的城市交中网络。未来可能最好的答案",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 455.89,
+     "endSeconds": 459.41,
+     "textPreview": "你怎么看呢？",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "5cd392c74a03a4c8799a94c358de0271b54786b55ade1b65492b09ef4eb9b349",
+   "status": "anchored"
+  }
+ ]
+}

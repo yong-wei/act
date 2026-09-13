@@ -16,6 +16,7 @@ const envelope = (changed: boolean) => ({
 
 vi.mock('@/lib/teaching-projection/live-course-pointer', () => ({
   readAgreedLiveCourseProjection: () => ({ projectionId: 'proj-' + state.projectionHash, projectionHash: state.projectionHash }),
+  readAgreedLiveResourceBindingRelease: () => null,
   resolveConfiguredTeachingProjectionRoot: () => process.cwd(),
 }));
 vi.mock('@/lib/teaching-projection/store', () => ({

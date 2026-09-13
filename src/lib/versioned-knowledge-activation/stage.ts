@@ -528,6 +528,27 @@ export function validateStagedArtifactSet(
     }
   }
 
+  if (artifacts.bindingRelease?.present) {
+    if (!artifacts.bindingRelease.bindingReleaseId) reasons.push('binding-release-id-missing');
+    if (!isSha256Hex(artifacts.bindingRelease.bindingHash)) {
+      reasons.push('binding-hash-invalid');
+    }
+    if (!artifacts.bindingRelease.artifactHashes['binding-manifest.json']) {
+      reasons.push('binding-manifest-hash-missing');
+    }
+    if (
+      artifacts.authority?.present
+      && artifacts.authority.releaseId
+      && artifacts.bindingRelease.authorityReleaseId
+      && artifacts.authority.releaseId !== artifacts.bindingRelease.authorityReleaseId
+    ) {
+      reasons.push('authority-binding-release-mismatch');
+    }
+    if (artifacts.bindingRelease.mediaDriftReasons.length > 0) {
+      reasons.push('binding-media-drift');
+    }
+  }
+
   if (artifacts.identityDriftReasons && artifacts.identityDriftReasons.length > 0) {
     reasons.push(...artifacts.identityDriftReasons);
   }
@@ -771,6 +792,13 @@ function collectArtifactHashes(
       ? Object.fromEntries(
           Object.entries(artifacts.projection.artifactHashes).map(
             ([key, value]) => [`projection:${key}`, value],
+          ),
+        )
+      : {}),
+    ...(artifacts.bindingRelease?.artifactHashes
+      ? Object.fromEntries(
+          Object.entries(artifacts.bindingRelease.artifactHashes).map(
+            ([key, value]) => [`binding:${key}`, value],
           ),
         )
       : {}),

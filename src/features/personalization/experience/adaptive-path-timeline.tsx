@@ -39,6 +39,8 @@ export interface AdaptivePathTimelineNode {
   resourceLabel: string;
   status: AdaptivePathTimelineNodeStatus;
   estimatedMinutes: number;
+  appearance?: 'first' | 'revisit' | 'reference' | null;
+  anchorLabel?: string | null;
 }
 
 interface AdaptivePathResourceVisual {
@@ -236,6 +238,20 @@ export function AdaptivePathTimeline<TNode extends AdaptivePathTimelineNode>({
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs text-subtle">第 {index + 1} 步 · {visual.label}</span>
                   <span className="mt-1 block break-words text-sm font-semibold text-foreground" data-adaptive-path-node-title>{node.title}</span>
+                  {node.anchorLabel || node.appearance ? (
+                    <span className="mt-1 flex flex-wrap gap-1 text-[11px] text-subtle">
+                      {node.anchorLabel ? (
+                        <span className="rounded bg-background/80 px-1" data-adaptive-path-node-anchor={node.anchorLabel}>{node.anchorLabel}</span>
+                      ) : null}
+                      {node.appearance === 'first' ? (
+                        <span className="rounded bg-background/80 px-1" data-adaptive-path-node-appearance="first">首次</span>
+                      ) : node.appearance === 'revisit' ? (
+                        <span className="rounded bg-background/80 px-1" data-adaptive-path-node-appearance="revisit">复现</span>
+                      ) : node.appearance === 'reference' ? (
+                        <span className="rounded bg-background/80 px-1" data-adaptive-path-node-appearance="reference">参考</span>
+                      ) : null}
+                    </span>
+                  ) : null}
                 </span>
                 <span
                   className={`inline-flex shrink-0 self-start items-center gap-1 rounded-md border bg-background/75 px-2 py-1 text-xs ${status.className}`}

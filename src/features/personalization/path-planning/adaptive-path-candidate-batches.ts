@@ -76,11 +76,15 @@ export interface AdaptivePathPlanningResourceSnapshot {
   projectionId: string;
   projectionHash: string;
   runtimeReleaseId: string | null;
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
   recommendable: Array<{
     resourceId: string;
     resourceVersion: string;
     sourcePath: string | null;
     type: string;
+    appearance?: string | null;
+    anchorLabel?: string | null;
   }>;
 }
 

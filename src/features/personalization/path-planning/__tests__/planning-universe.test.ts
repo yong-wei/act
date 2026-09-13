@@ -57,10 +57,14 @@ describe('goal planning universe', () => {
     expect(universe.knowledgeIds).toEqual([prior, target]);
     expect(universe.resources.map((resource) => resource.identity.resourceId)).toEqual([
       'act:card:in-scope',
+      'act:card:in-scope',
       'act:card:mixed',
     ]);
-    expect(universe.resources.find((resource) => resource.identity.resourceId === 'act:card:mixed')?.canonicalIds)
-      .toEqual([target]);
+    expect(universe.resources.map((resource) => resource.canonicalIds)).toEqual([
+      [prior],
+      [target],
+      [target],
+    ]);
     expect(universe.edges).toEqual([{
       id: 'edge-1',
       sourceCanonicalId: prior,
@@ -94,7 +98,7 @@ describe.skipIf(!hasLiveProjection())('live teaching projection planning univers
     expect(knowledge.size).toBeLessThan(50);
     expect(loaded.registry.nodes.length).toBe(loaded.universe.resources.length);
     expect(loaded.registry.nodes.length).toBeGreaterThan(0);
-    expect(loaded.registry.nodes.length).toBeLessThan(1200);
+    expect(loaded.registry.nodes.length).toBeLessThan(8000);
     expect(loaded.universe.resources.every((resource) =>
       resource.canonicalIds.length > 0
       && resource.canonicalIds.every((id) => knowledge.has(id)),

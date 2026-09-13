@@ -1,0 +1,1760 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "4-1",
+ "unitIndex": 18,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/4-1/4-1-handout.md",
+  "sha256": "27b9c06f8b881148cfd2ff2a98a0f938a8e9ba9961fe1e12c47689d6c5ed2925"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "任务表达入口：从跨域证据写出设计任务",
+   "groupName": "入口回收与指标重组",
+   "textChars": 332,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": "入口回收与指标重组",
+   "textChars": 130,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "同图异读预判：为什么同一套证据会写出两张任务书",
+   "groupName": "入口回收与指标重组",
+   "textChars": 339,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "主场景 A：客船航向控制先保什么",
+   "groupName": "入口回收与指标重组",
+   "textChars": 385,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "对照案例 B：稳定平台为什么把速度排得更前",
+   "groupName": "任务分类与区域分层",
+   "textChars": 496,
+   "canonical": []
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "双案例对照：排序变化来自哪里",
+   "groupName": "任务分类与区域分层",
+   "textChars": 253,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "指标角色重组：时域、频域、积分误差各自回答什么",
+   "groupName": "主场景联读",
+   "textChars": 613,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "调节时间_10_fcbccf4e"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "超调量_3_fc3f5b17"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "任务分类：硬约束、软目标、观察指标",
+   "groupName": "对照案例与排序重排",
+   "textChars": 222,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "任务表达卡工作区：把后续设计输入写全",
+   "groupName": "对照案例与排序重排",
+   "textChars": 365,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 40,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "区域分层：可行域、满意域、最优域不是一步",
+   "groupName": "任务表达与收束",
+   "textChars": 381,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "误判检查：稳定不等于完成，可行不等于最优",
+   "groupName": "任务表达与收束",
+   "textChars": 338,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "后测：先写任务，再谈方法",
+   "groupName": "任务表达与收束",
+   "textChars": 81,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "总结：任务表达卡成为后续设计输入",
+   "groupName": null,
+   "textChars": 264,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-回到地图-同一套跨域证据-为什么会写出两张不同任务书",
+   "order": 1,
+   "level": 2,
+   "title": "一、回到地图：同一套跨域证据，为什么会写出两张不同任务书",
+   "startLine": 14,
+   "endLine": 46,
+   "bodyChars": 808,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+     "matchedLabel": "超调量",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-先做”同图异读”-再提炼最小指标语言",
+   "order": 2,
+   "level": 2,
+   "title": "二、先做”同图异读”，再提炼最小指标语言",
+   "startLine": 47,
+   "endLine": 50,
+   "bodyChars": 76,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-主场景-A-客船航向控制为什么先保平顺与储备",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 主场景 A：客船航向控制为什么先保平顺与储备",
+   "startLine": 51,
+   "endLine": 130,
+   "bodyChars": 1537,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-对照案例-B-为什么稳定平台会把速度与带宽排得更前",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 对照案例 B：为什么稳定平台会把速度与带宽排得更前",
+   "startLine": 131,
+   "endLine": 181,
+   "bodyChars": 1062,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+     "matchedLabel": "开环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-为什么同一套图-会读出两种任务排序",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 为什么同一套图，会读出两种任务排序",
+   "startLine": 182,
+   "endLine": 203,
+   "bodyChars": 521,
+   "canonical": []
+  },
+  {
+   "headingId": "h6-本章小结",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 本章小结",
+   "startLine": 204,
+   "endLine": 212,
+   "bodyChars": 131,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-指标不是并列名词-而是任务书的最小语言",
+   "order": 7,
+   "level": 2,
+   "title": "三、指标不是并列名词，而是任务书的最小语言",
+   "startLine": 213,
+   "endLine": 216,
+   "bodyChars": 76,
+   "canonical": []
+  },
+  {
+   "headingId": "h8-三类常用指标-各自回答不同问题",
+   "order": 8,
+   "level": 3,
+   "title": "3.1 三类常用指标，各自回答不同问题",
+   "startLine": 217,
+   "endLine": 260,
+   "bodyChars": 905,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+     "matchedLabel": "稳态误差",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-指标真正进入设计时-会变成三种角色",
+   "order": 9,
+   "level": 3,
+   "title": "3.2 指标真正进入设计时，会变成三种角色",
+   "startLine": 261,
+   "endLine": 279,
+   "bodyChars": 556,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "matchedLabel": "相角裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-为什么“所有指标都重要”不是合格任务书",
+   "order": 10,
+   "level": 3,
+   "title": "3.3 为什么“所有指标都重要”不是合格任务书",
+   "startLine": 280,
+   "endLine": 295,
+   "bodyChars": 264,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-本章小结",
+   "order": 11,
+   "level": 3,
+   "title": "3.4 本章小结",
+   "startLine": 296,
+   "endLine": 304,
+   "bodyChars": 157,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-把跨域证据提炼为任务表达卡",
+   "order": 12,
+   "level": 2,
+   "title": "四、把跨域证据提炼为任务表达卡",
+   "startLine": 305,
+   "endLine": 308,
+   "bodyChars": 69,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-一张合格的任务表达卡-至少要写清七项内容",
+   "order": 13,
+   "level": 3,
+   "title": "4.1 一张合格的任务表达卡，至少要写清七项内容",
+   "startLine": 309,
+   "endLine": 331,
+   "bodyChars": 567,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-主场景-A-客船航向控制的任务表达卡",
+   "order": 14,
+   "level": 3,
+   "title": "4.2 主场景 A：客船航向控制的任务表达卡",
+   "startLine": 332,
+   "endLine": 351,
+   "bodyChars": 471,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-对照案例-B-稳定平台的任务表达卡为什么会改写排序",
+   "order": 15,
+   "level": 3,
+   "title": "4.3 对照案例 B：稳定平台的任务表达卡为什么会改写排序",
+   "startLine": 352,
+   "endLine": 373,
+   "bodyChars": 503,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-89a95ab28be324dc6d7040c5",
+     "matchedLabel": "扰动抑制",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-4-1-写好的任务卡-要交给后面哪几课",
+   "order": 16,
+   "level": 3,
+   "title": "4.4 4-1 写好的任务卡，要交给后面哪几课",
+   "startLine": 374,
+   "endLine": 387,
+   "bodyChars": 282,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-本章小结",
+   "order": 17,
+   "level": 3,
+   "title": "4.5 本章小结",
+   "startLine": 388,
+   "endLine": 396,
+   "bodyChars": 158,
+   "canonical": []
+  },
+  {
+   "headingId": "h18-可行域-满意域与最优域必须分层",
+   "order": 18,
+   "level": 2,
+   "title": "五、可行域、满意域与最优域必须分层",
+   "startLine": 397,
+   "endLine": 404,
+   "bodyChars": 89,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-三层区域分别在回答什么",
+   "order": 19,
+   "level": 3,
+   "title": "5.1 三层区域分别在回答什么",
+   "startLine": 405,
+   "endLine": 424,
+   "bodyChars": 290,
+   "canonical": []
+  },
+  {
+   "headingId": "h20-为什么-4-1-只能把边界画到“可接受”-不能直接跳到“最优”",
+   "order": 20,
+   "level": 3,
+   "title": "5.2 为什么 4-1 只能把边界画到“可接受”，不能直接跳到“最优”",
+   "startLine": 425,
+   "endLine": 450,
+   "bodyChars": 503,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-“稳定”为什么不等于“可接受”-“可接受”又为什么不等于“最优”",
+   "order": 21,
+   "level": 3,
+   "title": "5.3 “稳定”为什么不等于“可接受”，“可接受”又为什么不等于“最优”",
+   "startLine": 451,
+   "endLine": 470,
+   "bodyChars": 382,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-本章小结",
+   "order": 22,
+   "level": 3,
+   "title": "5.4 本章小结",
+   "startLine": 471,
+   "endLine": 479,
+   "bodyChars": 141,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-常见误判与工程判断清单",
+   "order": 23,
+   "level": 2,
+   "title": "六、常见误判与工程判断清单",
+   "startLine": 480,
+   "endLine": 483,
+   "bodyChars": 94,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-常见误判一-把“系统稳定”等同于“任务已经完成”",
+   "order": 24,
+   "level": 3,
+   "title": "6.1 常见误判一：把“系统稳定”等同于“任务已经完成”",
+   "startLine": 484,
+   "endLine": 499,
+   "bodyChars": 184,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-常见误判二-把所有指标都写成同等重要",
+   "order": 25,
+   "level": 3,
+   "title": "6.2 常见误判二：把所有指标都写成同等重要",
+   "startLine": 500,
+   "endLine": 511,
+   "bodyChars": 173,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-常见误判三-只看一张图就下结论",
+   "order": 26,
+   "level": 3,
+   "title": "6.3 常见误判三：只看一张图就下结论",
+   "startLine": 512,
+   "endLine": 526,
+   "bodyChars": 266,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-工程判断清单-从跨域读图走到任务书",
+   "order": 27,
+   "level": 3,
+   "title": "6.4 工程判断清单：从跨域读图走到任务书",
+   "startLine": 527,
+   "endLine": 544,
+   "bodyChars": 345,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h28-本节小结与衔接",
+   "order": 28,
+   "level": 2,
+   "title": "七、本节小结与衔接",
+   "startLine": 545,
+   "endLine": 546,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-本节小结",
+   "order": 29,
+   "level": 3,
+   "title": "7.1 本节小结",
+   "startLine": 547,
+   "endLine": 554,
+   "bodyChars": 185,
+   "canonical": []
+  },
+  {
+   "headingId": "h30-本讲产出",
+   "order": 30,
+   "level": 3,
+   "title": "7.2 本讲产出",
+   "startLine": 555,
+   "endLine": 566,
+   "bodyChars": 138,
+   "canonical": []
+  },
+  {
+   "headingId": "h31-后续延伸",
+   "order": 31,
+   "level": 3,
+   "title": "7.3 后续延伸",
+   "startLine": 567,
+   "endLine": 578,
+   "bodyChars": 314,
+   "canonical": []
+  },
+  {
+   "headingId": "h32-一页带走",
+   "order": 32,
+   "level": 3,
+   "title": "7.4 一页带走",
+   "startLine": 579,
+   "endLine": 587,
+   "bodyChars": 146,
+   "canonical": []
+  },
+  {
+   "headingId": "h33-课后自检",
+   "order": 33,
+   "level": 3,
+   "title": "7.5 课后自检",
+   "startLine": 588,
+   "endLine": 600,
+   "bodyChars": 357,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "4-1-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/4-1/media/4-1-audio.m4a",
+   "sha256": "37932cea190e0fc19da383aaa9df46936a61212d2fda115cecdaedd5909587e0",
+   "durationSeconds": 1243.707211,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/4-1.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.2,
+     "textPreview": "想象一下这个画面凌晨两点呃你一个人坐在实验室或者宿舍的电脑前屏幕上还散发着仿真软",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.2,
+     "endSeconds": 50.24,
+     "textPreview": "后你下意识的双击了增益模块把那个K的数值从五改成了十点击运行对结果示波器里的曲线",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.24,
+     "endSeconds": 75.48,
+     "textPreview": "祈祷着能瞎猫碰上死耗子呃蒙出一个刚好能及格的波形这个绝望的调参画面你们是不是觉得",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.48,
+     "endSeconds": 100.6,
+     "textPreview": "经历过绝对的谁没被SMElink折磨过呢对这就是典型的无头苍蝇式工程设计也是我们",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.6,
+     "endSeconds": 125.6,
+     "textPreview": "心我们今天的核心任务呢只有一个带领你们跨越一道鸿沟也就是呃如何把你们脑子里固有的",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.6,
+     "endSeconds": 150.64,
+     "textPreview": "们学这门课绝对不仅仅是为了在期末转子上拿个学分更是为了在未来成为一名真正合格的不",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.64,
+     "endSeconds": 175.72,
+     "textPreview": "越到底卡在哪里了住之前你必须先用白纸黑字写清楚硬约束软目标和观察指标对如果不先把",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.72,
+     "endSeconds": 200.84,
+     "textPreview": "什么哇这句话切中的正是大家在做大作业时最容易犯的战略性错误怎么说在之前的模块里大",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 200.84,
+     "endSeconds": 225.92,
+     "textPreview": "行没错但在真实的工程设计中我们面对的是一个完全开放式的结局所有的性能指标都很重要",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+       "matchedLabel": "性能指标",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 225.92,
+     "endSeconds": 251.04,
+     "textPreview": "生的例子吧这就好比我们去买奶茶奶茶这个比喻有点儿意思对呀你走到柜台前绝不可能只对",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.04,
+     "endSeconds": 276.28,
+     "textPreview": "给出这个确切的边界店员根本没法儿动手回到控制系统上我们在仿真算法里疯狂试错那个K",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 276.28,
+     "endSeconds": 301.48,
+     "textPreview": "楚要求大不了做出一杯难喝的奶茶但在控制工程里如果你不明确边界就盲目转动增益旋钮就",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 301.48,
+     "endSeconds": 326.68,
+     "textPreview": "的地在哪门都没定义跑的再快也只是在原地打转甚至可能会冲下悬崖哎呦冲下悬崖就太可怕",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 326.68,
+     "endSeconds": 352.08,
+     "textPreview": "实说光看这些指标就足够让人眼花缭乱了时域里有时域的规矩什么上升时间t二啊峰值时间",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 352.08,
+     "endSeconds": 377.12,
+     "textPreview": "框停率欧米伽B甚至为了看整体表现还搞出了什么ISEIAEITAE这一堆误差积分指",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 377.6,
+     "endSeconds": 402.92,
+     "textPreview": "我的第一直觉肯定是噢我能不能把所有的属性点全部加满典型的玩家思维是啊我想要系统反",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-8d214840417a4c3b5780c715",
+       "matchedLabel": "稳态误差",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 403.08,
+     "endSeconds": 428.12,
+     "textPreview": "物理世界里既要又要还要是最大的笑话啊真的一点儿商量的余地都没有吗没有速度和稳定性",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 428.12,
+     "endSeconds": 453.12,
+     "textPreview": "号的跟随能力越强动作就越迅猛动作迅猛不是好事而吗天下武功唯快不破啊问题在于物理系",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 453.12,
+     "endSeconds": 478.4,
+     "textPreview": "项为欲赌干嘛当你盲目推高欧米伽C来追求数时如果不改变系统的本质结构系统的相位滞后",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 478.4,
+     "endSeconds": 503.4,
+     "textPreview": "严重的超调甚至开始来回振这在工程上是毁灭性的嗯我懂了所以这就像是冬天盖了一张太小",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 503.4,
+     "endSeconds": 528.44,
+     "textPreview": "少系统还是稳定的在控制系统里如果你为了追求极快的响应拼命放大增益试图把这块小毯子",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 528.44,
+     "endSeconds": 553.68,
+     "textPreview": "崩溃设备可能直接烧毁或者机械结构断裂难怪难怪讲义里要专门弄出三个极的概念最大的那",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 553.68,
+     "endSeconds": 578.72,
+     "textPreview": "错而在满意域里我们才去谈什么最犹豫哦最犹豫包含于满意域满意域包含于可行域逻辑非常",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 578.72,
+     "endSeconds": 605.0,
+     "textPreview": "全区里做取舍这就是工程判断的灵魂好既然聊到了具体的取舍我们来看看讲义里给出的两个",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 605.0,
+     "endSeconds": 630.12,
+     "textPreview": "先性是舒适与储备优先第一任务是让动态过程进入乘客和系统能接受的区域再去讨论打方向",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 25,
+     "startSeconds": 630.12,
+     "endSeconds": 655.24,
+     "textPreview": "量高达惊人的3201帕天呐百分之三十二而且调节时间拖延到了8324秒更危险的是从",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 655.24,
+     "endSeconds": 680.48,
+     "textPreview": "一下这个就像是你开的车载着极其容易晕车的奶去超市哈哈这个比喻很生动你的第一诉求绝",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 680.48,
+     "endSeconds": 705.76,
+     "textPreview": "汁都要吐在甲板上了绝对的所以在奶奶的胃口也就是平顺和储备边界面前速度必须五条进让",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 705.76,
+     "endSeconds": 730.76,
+     "textPreview": "且最要命的是时间约束没说它的调节时间TS被死死卡在零点二秒以内这就像是现在战斗机",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 29,
+     "startSeconds": 730.76,
+     "endSeconds": 755.8,
+     "textPreview": "先性是如何重塑系统的命的在案例B中我们需要极高的贷款这时候我们甚至愿意把系统逼近",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 755.8,
+     "endSeconds": 780.88,
+     "textPreview": "直觉肯定是呃超掉是因为冲的太猛了对吧嗯大部分人都会这么想那我直接把开环增益K调小",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 780.88,
+     "endSeconds": 805.92,
+     "textPreview": "移这看起来似乎能让系统温柔一点对啊呃曲线拉低了不就不那么猛烈了吗系统就温和了呀但",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 805.92,
+     "endSeconds": 831.04,
+     "textPreview": "变化几乎没有反应的迟钝木头对于一艘需要在复杂洋流和海风中保持航向的客船来说如果打",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 831.24,
+     "endSeconds": 856.44,
+     "textPreview": "交了没错我们设定的硬约数里ts要小于等于45秒你如果只降增亦调节时间可能会直接飙",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 34,
+     "startSeconds": 856.44,
+     "endSeconds": 881.68,
+     "textPreview": "断出病因37度的阈度对于有延时的物理系统来说太危险了既然增亦不能降我们就必须引入",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-f1df5739a34bf55489aeeeeb",
+       "matchedLabel": "校正装置",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 35,
+     "startSeconds": 881.92,
+     "endSeconds": 907.2,
+     "textPreview": "听起来有点违犯直觉啊系统的时间怎么可能超前呢难道能惯串越这里说的超前不是时间倒流",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 907.2,
+     "endSeconds": 935.32,
+     "textPreview": "前给出反向的控制信号在还没达到目标点之前就开始踩刹车哇预判了你的预判这样一来他在",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 935.64,
+     "endSeconds": 961.08,
+     "textPreview": "的边界以内哇原来公式里的微分和超前在物理世界里就是个会预判的导这个比喻很贴切听完",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 961.08,
+     "endSeconds": 990.56,
+     "textPreview": "十三开始起步调参最后一步四折四用实验结果检验断这个流程非常严密很多同学说这不就跟",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 991.44,
+     "endSeconds": 1016.48,
+     "textPreview": "然这个软件开发的类比很直观但在控制工程里我们要面对的现实要残酷的多怎么说软件出B",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1016.48,
+     "endSeconds": 1046.28,
+     "textPreview": "环这怎么理你想想看如果在最后四至四的实验检验阶段你发现结果很糟糕各项指标死活达不",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1046.44,
+     "endSeconds": 1071.56,
+     "textPreview": "试试运气对因为大家都觉得肯定是自己参数没调好难道不是吗这恰恰是最致命的狭隘视角如",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 42,
+     "startSeconds": 1071.56,
+     "endSeconds": 1100.0,
+     "textPreview": "的系统硬件结构执行器功率是不是存在根本性的天花板偶小麻拉大车参数怎么调都没有用没",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1100.0,
+     "endSeconds": 1125.28,
+     "textPreview": "至三里距微调参数把你的设计思维本身当做一个闭环系统来纠偏这才是顶级工程师的直觉太",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+       "matchedLabel": "闭环系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 44,
+     "startSeconds": 1125.44,
+     "endSeconds": 1155.0,
+     "textPreview": "没错最后我们还把四步法还原成了一个审视工程师自新的闭环希望大家以后在面对那些杂乱",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 1155.0,
+     "endSeconds": 1180.92,
+     "textPreview": "是先停下来问问自己我的边界在哪里确实如此今天带你们看透的不仅是讲义上的枯燥公式更",
+     "canonical": []
+    },
+    {
+     "index": 46,
+     "startSeconds": 1180.92,
+     "endSeconds": 1210.0,
+     "textPreview": "可以瞬间穷举千万种参数组合它甚至能在零点几秒内算出一个完美的ITA积分最优解算力",
+     "canonical": []
+    },
+    {
+     "index": 47,
+     "startSeconds": 1210.0,
+     "endSeconds": 1235.12,
+     "textPreview": "没有想过像案例A中舒适与储备优先这种带有强烈人类主观感受依赖老厂长数十年出海直觉",
+     "canonical": []
+    },
+    {
+     "index": 48,
+     "startSeconds": 1235.12,
+     "endSeconds": 1243.6,
+     "textPreview": "找到属于自己的答案感谢大家和我们一起完成今天的深度解析同学们咱们下次见下次见勇敢",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "37932cea190e0fc19da383aaa9df46936a61212d2fda115cecdaedd5909587e0",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "4-1-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/4-1/media/4-1-intro-video.mp4",
+   "sha256": "f7fc05bd74c976288b03276f4ba3b9d219c5c0f991ddeaa5aefd3c60cecfc299",
+   "durationSeconds": 167.957333,
+   "transcriptSource": "videos-project:lesson-4-1/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 145.9,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 167.9,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 51,
+   "segments": [],
+   "activeReleaseSha256": "74a541e911fe210a518c62b3ad3c80812545cf303ccb600365e3f3c80a5d63bc",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "4-1-course",
+   "kind": "video",
+   "runtimePath": "lessons/4-1/media/4-1-course.mp4",
+   "sha256": "4d2f982b6d771fcf2ade192a5102cf69136073d53c5444cbd4bb86ddce2b54a9",
+   "durationSeconds": 497.719728,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/4-1.json",
+   "transcriptSourceSha256": "4d2f982b6d771fcf2ade192a5102cf69136073d53c5444cbd4bb86ddce2b54a9",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 17.04,
+     "textPreview": "嘿，同学们好，欢迎来到我们的快速解析。今天我们来聊一个特别有意思的话题。你想想，",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 17.04,
+     "endSeconds": 28.64,
+     "textPreview": "这就像一门翻译的艺术，咱们今天就来深入聊聊这个，想象一下啊，你接了个项目，客户或",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 28.64,
+     "endSeconds": 40.01,
+     "textPreview": "听着是不是特简单？但问题就来了，对机器来说，快到底是有多快，稳又要怎么才算稳？所",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 40.01,
+     "endSeconds": 52.41,
+     "textPreview": "把有点模糊的人类语言变成非常严谨的数学语言。没错，这个过程其实就是咱们控制工程里",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 52.41,
+     "endSeconds": 64.89,
+     "textPreview": "你可别小看这个难题呀，它经常就决定了你做出来的东西到底是让人哇一声，还是让人直摇",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 64.89,
+     "endSeconds": 74.25,
+     "textPreview": "这种情况真的太常见了，比如客户跟你说：我想要一个体验很好的电梯，对，这很好，到底",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 74.25,
+     "endSeconds": 90.21,
+     "textPreview": "是说电梯启动要特别平稳，停靠要特别准呢？还是说上下楼速度要飞快？作为工程师我们干",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 90.21,
+     "endSeconds": 105.45,
+     "textPreview": "你看这张图，它就把我们整个设计流程的核心给点出来了。左边呢是我们的各种分析工具和",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 105.45,
+     "endSeconds": 118.01,
+     "textPreview": "整个设计的关键就是看你怎么在这两者之间搭起一座桥来，把分析语言给它切换成工程任务",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 118.01,
+     "endSeconds": 129.21,
+     "textPreview": "其实啊，我们主要用两种核心的语言来描述和设计一个系统。来，咱们看看他们到底是什么",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 129.21,
+     "endSeconds": 138.95,
+     "textPreview": "这么说吧，时域分析特别直观。就像你拿了个秒表，直接告诉你系统从A点到B点花了多长",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 138.95,
+     "endSeconds": 159.97,
+     "textPreview": "但它的缺点就是看不出系统背后有没有潜在的不稳定风险。这时候频域分析就得登场了，它",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 159.97,
+     "endSeconds": 168.77,
+     "textPreview": "看看它抗干扰能力强不强。所以你看，一个看表面，一个看内在，俩一结合才能给一个系统",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 168.77,
+     "endSeconds": 179.98,
+     "textPreview": "好了，既然咱们有了两种语言，那就得学几个最核心的单词了。别怕，咱们来个闪电速成，",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 179.98,
+     "endSeconds": 192.06,
+     "textPreview": "来，第一个词儿最大超调量MP。这指标说白了就是衡量系统有多极，如果超调量太小，系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 192.06,
+     "endSeconds": 202.86,
+     "textPreview": "可要是太大了呢？就跟你做那个过分热情的电梯似的，会有点不舒服。所以你看第一个选择",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 202.86,
+     "endSeconds": 224.87,
+     "textPreview": "第二个词调节时间，ts咱们还用电梯的例子啊，电梯到了楼层之后不是会上下晃两下吗？",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 32,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 224.87,
+     "endSeconds": 240.31,
+     "textPreview": "你想让调节时间特别短，往往就得接受一个比较大的超调量。好，现在我们换到频域这边来",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+       "matchedLabel": "超调量",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 240.31,
+     "endSeconds": 252.23,
+     "textPreview": "这个值越大，说明系统越皮实，离那种失控震荡的危险边缘就越远。这可是衡量一个系统稳",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 252.23,
+     "endSeconds": 261.83,
+     "textPreview": "最后一个速成词汇：穿越频率。欧米伽C这个指标可以说是频域里衡量快的代言人。",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 261.83,
+     "endSeconds": 281.67,
+     "textPreview": "一般来说，穿越频率越高，那系统的反应速度也就越快。但是这里头又有另一个关键的权衡",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 281.67,
+     "endSeconds": 294.75,
+     "textPreview": "好了，光说理论没意思，咱们得来点实际的。接下来看看在真实世界里，工程师到底是怎么",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 294.75,
+     "endSeconds": 307.31,
+     "textPreview": "咱们的第一个案例是一艘大型客船的航向控制系统。你想象一下，你正在一艘豪华游轮上度",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 307.31,
+     "endSeconds": 321.58,
+     "textPreview": "那还用说，肯定是舒适啊。你绝对不希望船转个弯跟赛车漂移似的，对吧？所以在这种场景",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 321.58,
+     "endSeconds": 331.02,
+     "textPreview": "但他自己调整的动作一定要特别柔和。换句话说，咱们追求的是极致的稳，而不是极致的快",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 331.02,
+     "endSeconds": 342.7,
+     "textPreview": "好，现在咱们把场景一下子切换到个完全相反的地方，一艘在惊涛骇浪里执行任务的军舰，",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 342.7,
+     "endSeconds": 351.71,
+     "textPreview": "这个平台上面呢，可能放的是特别精密的雷达或者武器，在这个场景下。设计的动点就完全",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 351.71,
+     "endSeconds": 366.43,
+     "textPreview": "你想，军舰在海上晃得那么厉害，这个平台就必须用极高的速度反向运动来抵消掉船体的晃",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 366.43,
+     "endSeconds": 375.14,
+     "textPreview": "所以这儿的核心要求就是极致的快和准。埋了来了，这张表最有意思的地方来了。",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 375.14,
+     "endSeconds": 389.62,
+     "textPreview": "他用数据清清楚楚地告诉我们，两种完全不同的需求翻译出来的结果是啥样的。你看看代表",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 389.62,
+     "endSeconds": 398.34,
+     "textPreview": "再看调节时间（TS），稳定平台只要零点零三秒就能稳住，而客船呢？得花差不多一分半",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 398.34,
+     "endSeconds": 411.65,
+     "textPreview": "但是你注意到没，他们的相位预度（伽）都保持在37度以上，这说明什么？说明工程师在",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 411.65,
+     "endSeconds": 420.21,
+     "textPreview": "所以说这就是设计的艺术啊，在一堆相互矛盾的指标里找到一个最适合当前任务的解决啊。",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 420.21,
+     "endSeconds": 430.03,
+     "textPreview": "聊到这儿，你可能会想，既然这个翻译工作这么重要又这么复杂，有没有什么更聪明的办法",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 430.03,
+     "endSeconds": 455.23,
+     "textPreview": "人工智能正在开始扮演这个角色。这句话可以说是完美总结了AI在咱们这个领域的潜力。",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 455.23,
+     "endSeconds": 464.02,
+     "textPreview": "的翻译官。所以说，未来的工作流程很可能是这样的。第一步，你就用大白话告诉AI你的",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 464.02,
+     "endSeconds": 474.1,
+     "textPreview": "第二步，AI自动帮你翻译成一套最优的性能指标；第三步，它甚至能根据这些指标直接帮",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-10c37fd947ba55593ff03ede",
+       "matchedLabel": "性能指标",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 474.1,
+     "endSeconds": 482.75,
+     "textPreview": "这能极大的解放我们工程师，让我们能更专注于创新和整个系统的顶层设计。好了，咱们今",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 482.75,
+     "endSeconds": 493.15,
+     "textPreview": "最后也给大家留一个开放的问题，要是你也有了这么一个智能翻译AI，你最想用它来设计",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 493.15,
+     "endSeconds": 497.72,
+     "textPreview": "期待听到你的奇思妙想。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "4d2f982b6d771fcf2ade192a5102cf69136073d53c5444cbd4bb86ddce2b54a9",
+   "status": "anchored"
+  }
+ ]
+}

@@ -496,6 +496,8 @@ interface PathExecutionNodeView {
   sourceKind: string | null;
   sourceRef: string | null;
   resourceLabel: string;
+  appearance?: 'first' | 'revisit' | 'reference' | null;
+  anchorLabel?: string | null;
   status: 'current' | 'completed' | 'skipped' | 'blocked' | 'locked' | 'next' | 'optional';
   target: string;
   estimatedMinutes: number;
@@ -2817,6 +2819,10 @@ function getPathExecutionNodes(
       sourceKind: typeof node.sourceKind === 'string' ? node.sourceKind : null,
       sourceRef: typeof node.sourceRef === 'string' ? node.sourceRef : null,
       resourceLabel: formatResourceType(type),
+      appearance: node.appearance === 'first' || node.appearance === 'revisit' || node.appearance === 'reference'
+        ? node.appearance
+        : null,
+      anchorLabel: typeof node.anchorLabel === 'string' ? node.anchorLabel : null,
       status,
       target: typeof node.target === 'string' ? node.target : '/assessment/adaptive-practice',
       estimatedMinutes: getEstimatedMinutes(node),

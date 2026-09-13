@@ -1,0 +1,1847 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "2-4",
+ "unitIndex": 8,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/2-4/2-4-handout.md",
+  "sha256": "66a10371a625c4ad38e91dd0403da328e87d07afa74c923337d3c1aae326c133"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图——从 Bode 骨架走向图形对象",
+   "groupName": "引入与双图统一",
+   "textChars": 124,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "情境引入——为什么同一条频率特性还要换一张图",
+   "groupName": "引入与双图统一",
+   "textChars": 249,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "学习目标与边界——本课负责什么、不负责什么",
+   "groupName": "引入与双图统一",
+   "textChars": 117,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "前测——起点、对象与指标三类误区",
+   "groupName": "Nyquist读图入口",
+   "textChars": 223,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "同一个 G(jω)：Bode 拆开看，Nyquist 合起来看",
+   "groupName": "Nyquist读图入口",
+   "textChars": 245,
+   "canonical": []
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "Nyquist 四步读法——起点、终点、方向、总转角",
+   "groupName": "Nyquist读图入口",
+   "textChars": 226,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "一阶惯性轨迹——从正实轴出发，向下收敛至原点",
+   "groupName": "频域指标入口",
+   "textChars": 246,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "截止频率_5_c7d09ff7"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "幅值裕度_5_73af26a5"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "纯极点系统比较——极点越多，轨迹通常转得更深",
+   "groupName": "频域指标入口",
+   "textChars": 227,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "截止频率_5_c7d09ff7"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c2881833cb4d8b1e415dc742",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "幅值裕度_5_73af26a5"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "频域指标入口——ωc、ωg、γ、Kg、ωb",
+   "groupName": "手工绘图与最小反识别",
+   "textChars": 223,
+   "canonical": []
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "双图对照——同一指标在 Bode 和 Nyquist 上怎样找",
+   "groupName": "手工绘图与最小反识别",
+   "textChars": 249,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "手工绘图入口一——Bode 基线、折点与斜率",
+   "groupName": "后测与收束",
+   "textChars": 234,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "手工绘图入口二——Nyquist 端点、过轴点与渐近线",
+   "groupName": "后测与收束",
+   "textChars": 249,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "例题一——含积分环节对象从 Bode 基线到 Nyquist 轨迹",
+   "groupName": "后测与收束",
+   "textChars": 293,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相角裕度_5_5a74b451"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "例题二——读取频域指标，暂不作闭环结论",
+   "groupName": null,
+   "textChars": 217,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "基础反向识别——先认对象轮廓，再估参数量级",
+   "groupName": null,
+   "textChars": 245,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "后测——图会看，更要会守边界",
+   "groupName": null,
+   "textChars": 205,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "总结与后续预告——从图形对象走向结构机理",
+   "groupName": null,
+   "textChars": 109,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-为什么已有-Bode-图-还需要-Nyquist-图",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：为什么已有 Bode 图，还需要 Nyquist 图",
+   "startLine": 14,
+   "endLine": 44,
+   "bodyChars": 632,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-明确本课程的学习边界",
+   "order": 2,
+   "level": 2,
+   "title": "二、明确本课程的学习边界",
+   "startLine": 45,
+   "endLine": 67,
+   "bodyChars": 557,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 54,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-Nyquist-图-将随频率变化的复数直接描绘为轨迹",
+   "order": 3,
+   "level": 2,
+   "title": "三、Nyquist 图：将随频率变化的复数直接描绘为轨迹",
+   "startLine": 68,
+   "endLine": 69,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-定义-它与-Bode-图观察的是同一对象",
+   "order": 4,
+   "level": 3,
+   "title": "3.1 定义：它与 Bode 图观察的是同一对象",
+   "startLine": 70,
+   "endLine": 105,
+   "bodyChars": 791,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 90,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-首次阅读-Nyquist-图-固定四个观察步骤",
+   "order": 5,
+   "level": 3,
+   "title": "3.2 首次阅读 Nyquist 图：固定四个观察步骤",
+   "startLine": 106,
+   "endLine": 127,
+   "bodyChars": 475,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 54,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-纯极点系统的-Nyquist-图-轨迹旋转规律",
+   "order": 6,
+   "level": 2,
+   "title": "四、纯极点系统的 Nyquist 图：轨迹旋转规律",
+   "startLine": 128,
+   "endLine": 129,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-一阶惯性环节-从正实轴出发-向下收敛至原点",
+   "order": 7,
+   "level": 3,
+   "title": "4.1 一阶惯性环节：从正实轴出发，向下收敛至原点",
+   "startLine": 130,
+   "endLine": 160,
+   "bodyChars": 588,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-极点越多-轨迹通常旋转越深",
+   "order": 8,
+   "level": 3,
+   "title": "4.2 极点越多，轨迹通常旋转越深",
+   "startLine": 161,
+   "endLine": 180,
+   "bodyChars": 552,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 稳定判据",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-从-Bode-图反向验证-Nyquist-图-两者应能相互印证",
+   "order": 9,
+   "level": 3,
+   "title": "4.3 从 Bode 图反向验证 Nyquist 图：两者应能相互印证",
+   "startLine": 181,
+   "endLine": 200,
+   "bodyChars": 198,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-频域指标的初步引入-先学会读图-暂不作稳定性判断",
+   "order": 10,
+   "level": 2,
+   "title": "五、频域指标的初步引入：先学会读图，暂不作稳定性判断",
+   "startLine": 201,
+   "endLine": 202,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-为何需要\"指标\"",
+   "order": 11,
+   "level": 3,
+   "title": "5.1 为何需要\"指标\"",
+   "startLine": 203,
+   "endLine": 215,
+   "bodyChars": 201,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-四个开环指标与一个闭环带宽入口",
+   "order": 12,
+   "level": 3,
+   "title": "5.2 四个开环指标与一个闭环带宽入口",
+   "startLine": 216,
+   "endLine": 260,
+   "bodyChars": 1093,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-同一指标在-Nyquist-图上的几何意义",
+   "order": 13,
+   "level": 3,
+   "title": "5.3 同一指标在 Nyquist 图上的几何意义",
+   "startLine": 261,
+   "endLine": 280,
+   "bodyChars": 499,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 54,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-简单组合对象的手工绘图入门",
+   "order": 14,
+   "level": 2,
+   "title": "六、简单组合对象的手工绘图入门",
+   "startLine": 281,
+   "endLine": 282,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-本课程的\"手工绘图\"涵盖范围",
+   "order": 15,
+   "level": 3,
+   "title": "6.1 本课程的\"手工绘图\"涵盖范围",
+   "startLine": 283,
+   "endLine": 293,
+   "bodyChars": 208,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-Bode-图绘图顺序-先定基线-再逐段调整斜率",
+   "order": 16,
+   "level": 3,
+   "title": "6.2 Bode 图绘图顺序：先定基线，再逐段调整斜率",
+   "startLine": 294,
+   "endLine": 314,
+   "bodyChars": 657,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-Nyquist-图绘图顺序-先画正频率支-再标注关键点与渐近线",
+   "order": 17,
+   "level": 3,
+   "title": "6.3 Nyquist 图绘图顺序：先画正频率支，再标注关键点与渐近线",
+   "startLine": 315,
+   "endLine": 337,
+   "bodyChars": 616,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-例题精解",
+   "order": 18,
+   "level": 2,
+   "title": "八、例题精解",
+   "startLine": 338,
+   "endLine": 339,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-例题一-含积分环节的-Bode-图基准线绘制与骨架构建",
+   "order": 19,
+   "level": 3,
+   "title": "8.1 例题一：含积分环节的 Bode 图基准线绘制与骨架构建",
+   "startLine": 340,
+   "endLine": 395,
+   "bodyChars": 896,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-例题二-含积分环节时-Nyquist-图的渐近线与关键点",
+   "order": 20,
+   "level": 3,
+   "title": "8.2 例题二：含积分环节时 Nyquist 图的渐近线与关键点",
+   "startLine": 396,
+   "endLine": 484,
+   "bodyChars": 1267,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-例题三-读取频域指标-暂不作闭环结论",
+   "order": 21,
+   "level": 3,
+   "title": "8.3 例题三：读取频域指标，暂不作闭环结论",
+   "startLine": 485,
+   "endLine": 539,
+   "bodyChars": 856,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-例题四-基础-Bode-图的最小化反向识别",
+   "order": 22,
+   "level": 3,
+   "title": "8.4 例题四：基础 Bode 图的最小化反向识别",
+   "startLine": 540,
+   "endLine": 580,
+   "bodyChars": 543,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-3311578f3f7796d3b9ff0830",
+     "matchedLabel": "时间常数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-工程视角-为何工程师需要同时掌握两种图形方法",
+   "order": 23,
+   "level": 2,
+   "title": "九、工程视角：为何工程师需要同时掌握两种图形方法",
+   "startLine": 581,
+   "endLine": 603,
+   "bodyChars": 463,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+     "matchedLabel": "稳定性边界",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-本节内容总结与课程衔接",
+   "order": 24,
+   "level": 2,
+   "title": "十、本节内容总结与课程衔接",
+   "startLine": 604,
+   "endLine": 605,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-主要知识点总结",
+   "order": 25,
+   "level": 3,
+   "title": "10.1 主要知识点总结",
+   "startLine": 606,
+   "endLine": 613,
+   "bodyChars": 270,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 54,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-课程内容衔接",
+   "order": 26,
+   "level": 3,
+   "title": "10.2 课程内容衔接",
+   "startLine": 614,
+   "endLine": 634,
+   "bodyChars": 318,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-e3d758f51052980656178128",
+     "matchedLabel": "系统类型",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-附录A｜本讲常用公式速查",
+   "order": 27,
+   "level": 2,
+   "title": "附录A｜本讲常用公式速查",
+   "startLine": 635,
+   "endLine": 636,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-A-1-开环频域指标基本公式",
+   "order": 28,
+   "level": 3,
+   "title": "A.1 开环频域指标基本公式",
+   "startLine": 637,
+   "endLine": 662,
+   "bodyChars": 287,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-1a1dd2df4f2e6bfba96c435c",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-232e387ed53e92abee078346",
+     "matchedLabel": "截止频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h29-A-2-闭环带宽频率的初步定义",
+   "order": 29,
+   "level": 3,
+   "title": "A.2 闭环带宽频率的初步定义",
+   "startLine": 663,
+   "endLine": 675,
+   "bodyChars": 157,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h30-附录B｜Bode-图手工绘图的详细步骤与特殊情况",
+   "order": 30,
+   "level": 2,
+   "title": "附录B｜Bode 图手工绘图的详细步骤与特殊情况",
+   "startLine": 676,
+   "endLine": 679,
+   "bodyChars": 44,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h31-B-1-标准绘图步骤",
+   "order": 31,
+   "level": 3,
+   "title": "B.1 标准绘图步骤",
+   "startLine": 680,
+   "endLine": 722,
+   "bodyChars": 1196,
+   "canonical": []
+  },
+  {
+   "headingId": "h32-B-2-特别容易出现错误的三种情况",
+   "order": 32,
+   "level": 3,
+   "title": "B.2 特别容易出现错误的三种情况",
+   "startLine": 723,
+   "endLine": 733,
+   "bodyChars": 175,
+   "canonical": []
+  },
+  {
+   "headingId": "h33-B-3-建议记忆的课堂口诀",
+   "order": 33,
+   "level": 3,
+   "title": "B.3 建议记忆的课堂口诀",
+   "startLine": 734,
+   "endLine": 739,
+   "bodyChars": 70,
+   "canonical": []
+  },
+  {
+   "headingId": "h34-附录C｜Nyquist-图手工绘图的详细步骤与特殊情况",
+   "order": 34,
+   "level": 2,
+   "title": "附录C｜Nyquist 图手工绘图的详细步骤与特殊情况",
+   "startLine": 740,
+   "endLine": 743,
+   "bodyChars": 56,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h35-C-1-标准绘图步骤",
+   "order": 35,
+   "level": 3,
+   "title": "C.1 标准绘图步骤",
+   "startLine": 744,
+   "endLine": 780,
+   "bodyChars": 634,
+   "canonical": []
+  },
+  {
+   "headingId": "h36-C-2-渐近线的处理方法",
+   "order": 36,
+   "level": 3,
+   "title": "C.2 渐近线的处理方法",
+   "startLine": 781,
+   "endLine": 809,
+   "bodyChars": 420,
+   "canonical": []
+  },
+  {
+   "headingId": "h37-C-3-特别容易出现错误的四种情况",
+   "order": 37,
+   "level": 3,
+   "title": "C.3 特别容易出现错误的四种情况",
+   "startLine": 810,
+   "endLine": 823,
+   "bodyChars": 260,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h38-C-4-建议记忆的课堂口诀",
+   "order": 38,
+   "level": 3,
+   "title": "C.4 建议记忆的课堂口诀",
+   "startLine": 824,
+   "endLine": 829,
+   "bodyChars": 56,
+   "canonical": []
+  },
+  {
+   "headingId": "h39-附录D｜学生可复现的最小验证代码",
+   "order": 39,
+   "level": 2,
+   "title": "附录D｜学生可复现的最小验证代码",
+   "startLine": 830,
+   "endLine": 858,
+   "bodyChars": 686,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "2-4-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/2-4/media/2-4-audio.m4a",
+   "sha256": "74631dfb24a9d4fdd4e6ce671ced97f9f7f10814297f029bafa7140c90398bcd",
+   "durationSeconds": 1222.623492,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/2-4.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.04,
+     "textPreview": "想象一下这样一个场景啊呃你正以大概每小时二十公里的速度开着一辆车然后速度挺慢的对",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.04,
+     "endSeconds": 50.08,
+     "textPreview": "的力度猛烈拉扯方向盘结果绝对是灾难性的车子直直接就飞出去了就是这样你看啊契合的机",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.08,
+     "endSeconds": 75.08,
+     "textPreview": "入下表现往往有着天壤之别呃这就触及到核心了对这就是所有动态系统最底层的物理逻辑大",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-227e674315b4da2f1a20ee31",
+       "matchedLabel": "动态系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.08,
+     "endSeconds": 100.12,
+     "textPreview": "单元四的核心讲义都翻出来了对今天我们案头上摆满了大家最头疼的包的图也就是渤的图还",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.12,
+     "endSeconds": 125.2,
+     "textPreview": "书上那个被称为传导函数的怪物就是那个GofJW你大概率会陷入一种盲人摸象的困境哎",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.2,
+     "endSeconds": 150.32,
+     "textPreview": "果然后你再把频率等于10带进去又得出一个结果数值变化可能会非常剧烈极其剧烈当频率",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.8,
+     "endSeconds": 175.88,
+     "textPreview": "这种逐点计算呃虽然在数学上绝对精确但他完全剥夺了你的宏观视野你只看到了树叶却根本",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.88,
+     "endSeconds": 201.16,
+     "textPreview": "茶的那种比那个还细然后你要透过这根吸管去欣赏达芬奇的蒙娜丽莎当你把吸管对着画布的",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 201.16,
+     "endSeconds": 226.64,
+     "textPreview": "是帮你把这根吸管给折断说的好我们要带大家跨越这个鸿沟从那种孤立的频率特性真正走向",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+       "matchedLabel": "频率特性",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.64,
+     "endSeconds": 251.76,
+     "textPreview": "就是复值代表系统把系放到了还是减了罪另一个是它的相角代表系统让信号拖后或者超前了",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 251.76,
+     "endSeconds": 277.08,
+     "textPreview": "疑因为如果我把他们拆开那个我难道不会失去他们在同一毫秒内如何相互作用的这种直观感",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 277.08,
+     "endSeconds": 302.12,
+     "textPreview": "感受确实是拆分带来的代价但你要知道这个代价换取的是极致的分析精度也就是把控制理论",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 302.12,
+     "endSeconds": 330.0,
+     "textPreview": "来那么先来看看包的图是怎么做这场外客手速的吧其实我看包的图的时候呃第一个让我抓狂",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.0,
+     "endSeconds": 355.2,
+     "textPreview": "数造标很烦人类太反人类了明明是一个频率轴为什么非得用对数正常的坐标系不都是零一二",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 355.2,
+     "endSeconds": 385.0,
+     "textPreview": "通的尺子去画代表低频的零点一到一这一段极其关键的区域啊我知道了它会被挤压成肉眼根",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.04,
+     "textPreview": "命的信息你绝对不能忽略它对对对低频看稳这个我记得更深层的原因在于系统对频率的感知",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.04,
+     "endSeconds": 440.0,
+     "textPreview": "上是在忠实的还原相对比例原来如此对数坐标本质上是一种能看清几何级数增长的相对缩放",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 465.2,
+     "textPreview": "的图的扶贫特性纵轴单位是分贝也就是db公式是20乘上烙10的负值我就想问这里的二",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.2,
+     "endSeconds": 495.32,
+     "textPreview": "发明分贝是为了衡量电信号的功率比值在所有工程领域里有一个铁律等等功率跟振幅有关系",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.64,
+     "endSeconds": 520.68,
+     "textPreview": "远与振幅A的平方成正比啊功率跟振幅的平方成正比这就好比电压的平方除以电阻等于电功",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.68,
+     "endSeconds": 550.0,
+     "textPreview": "方带入那个功率公式里所以原式就变成了10乘上log10的括号A2的平方除以A1的",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.28,
+     "textPreview": "直接提到对数符号外面当系数的偶做到盲点了哇那个平方的2被提到了面和人本的食相乘十",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.28,
+     "endSeconds": 605.32,
+     "textPreview": "DB就意味着不增不减非常透彻这就是包着图横轴用对数看倍率纵轴用db算增益一个非常",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.32,
+     "endSeconds": 630.44,
+     "textPreview": "生了一个更大的疑问哦什么疑问既然剥的图这么好用把复值和象角剖析得如此清晰哪里变强",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 630.44,
+     "endSeconds": 660.0,
+     "textPreview": "在根本不是为了替代bo的图的细节而是为了做一种极其宏观的生死判生死判听起来有点儿",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.0,
+     "endSeconds": 685.6,
+     "textPreview": "轨迹想象成时钟上的一根极其特殊的指针这根指针的根部固定在复平面的原点好我脑海里有",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 685.6,
+     "endSeconds": 715.0,
+     "textPreview": "就是实轴上的负一那个点复一在物理意义上它意味着信号不仅没有衰减幅值是1而且相位刚",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 715.0,
+     "endSeconds": 740.04,
+     "textPreview": "发了毁灭性的正反馈共振信号会被无限放大系统直接爆炸我懂了如果在报的图上我必须同时",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 740.04,
+     "endSeconds": 770.0,
+     "textPreview": "精彩了报的图是用来做精细手术的解剖刀Nec的图是用来规避悬崖的雷达地图总结得",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.0,
+     "endSeconds": 795.12,
+     "textPreview": "很到位那么不管是解剖还是扫雷我们都得认识系统里的基础组件吧也就是我们常说的标准典",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 795.12,
+     "endSeconds": 825.0,
+     "textPreview": "显然会越来越小也就是一条往下走的斜线拿的象角呢如果在复数域里看J分之一呃我",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 825.0,
+     "endSeconds": 850.2,
+     "textPreview": "还真得想想怎么化解你还记得复数除法怎么做吗呃复数除法有点久远了直接倒过来算不就行",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 850.2,
+     "endSeconds": 880.1,
+     "textPreview": "拖后九十度他就是一个永久延迟惩罚永久延迟惩罚这词太贴切了那我们再来看看真正的大轴",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 880.12,
+     "endSeconds": 905.28,
+     "textPreview": "之不要光看公式我们给他赋予一个物理灵魂你觉得它究竟是个什么东西惯我猜他就是一个反",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 905.28,
+     "endSeconds": 935.0,
+     "textPreview": "上呢这就变成高频输入了房间的温度会发生变化吗呃完全不会加热器里的电子词还没来得及",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 935.0,
+     "endSeconds": 960.04,
+     "textPreview": "直线没错输出完全跟不上输入这就是易接惯性环节的真面目啊在低频时它表现得像一条平坦",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 36,
+     "startSeconds": 960.04,
+     "endSeconds": 990.08,
+     "textPreview": "系统阻尼比就是你的减震器如果阻尼比很小呢那就说明减震器坏了当汽车压过减速带的频率",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 24,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 37,
+     "startSeconds": 990.08,
+     "endSeconds": 1015.2,
+     "textPreview": "在系统里疯狂累积哇物理学上的共振那反用在褒的浮频弧上原来平划的曲点似就会在转折频",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-9c541f3aa2bc9db1fe6a6c02",
+       "matchedLabel": "阻尼比",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 38,
+     "startSeconds": 1015.2,
+     "endSeconds": 1045.0,
+     "textPreview": "代码定欲传递函数再敲个board零点一秒一张带有网格线的完毕图表就弹",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1045.0,
+     "endSeconds": 1070.12,
+     "textPreview": "出来了是很爽既然如此老师为什么还要按着我们的头去死记硬背什么低频看斜率中间找转折",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1070.12,
+     "endSeconds": 1100.0,
+     "textPreview": "准那是为了什么而",
+     "canonical": []
+    },
+    {
+     "index": 41,
+     "startSeconds": 1100.16,
+     "endSeconds": 1125.26,
+     "textPreview": "是在你的脑神经里强制建立一套粗力度的识别止决当你在纸上画过无数次之后你的大脑就会",
+     "canonical": []
+    },
+    {
+     "index": 42,
+     "startSeconds": 1125.41,
+     "endSeconds": 1151.28,
+     "textPreview": "常曲线时我一秒钟就能反应过来不对劲儿我喂给软件的数据绝对是垃圾手绘图其实是我用来",
+     "canonical": []
+    },
+    {
+     "index": 43,
+     "startSeconds": 1151.28,
+     "endSeconds": 1176.6,
+     "textPreview": "醐灌顶的暴击啊好了让我们来收紧今天聊过的所有线索吧其实说白了不管GJW的公式看起",
+     "canonical": []
+    },
+    {
+     "index": 44,
+     "startSeconds": 1176.6,
+     "endSeconds": 1201.64,
+     "textPreview": "边旋转一边伸缩的指针画出极限轨迹防止系统坠入负一那个深渊而我们在节目最后拆解的比",
+     "canonical": []
+    },
+    {
+     "index": 45,
+     "startSeconds": 1201.64,
+     "endSeconds": 1222.48,
+     "textPreview": "时今天我们拆解这些积木的时候他们都是孤立的干干净净的一个单纯的加热器或者一个孤都",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "74631dfb24a9d4fdd4e6ce671ced97f9f7f10814297f029bafa7140c90398bcd",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "2-4-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/2-4/media/2-4-intro-video.mp4",
+   "sha256": "a418709fff13c2701f127add5b2d4668f760666d9fe8bc9e3eb818f2dd098903",
+   "durationSeconds": 325.994667,
+   "transcriptSource": "videos-project:lesson-2-4/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 303.933,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 325.933,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 80,
+   "segments": [],
+   "activeReleaseSha256": "c154868418030c00533fdf84ac821185c214884e09be2c1166b067a471f29af9",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "2-4-course",
+   "kind": "video",
+   "runtimePath": "lessons/2-4/media/2-4-course.mp4",
+   "sha256": "76a9f7fcbdd6188d8b9c209e96ed72b098b96b17d54048c78ba3464596771305",
+   "durationSeconds": 369.661678,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/2-4.json",
+   "transcriptSourceSha256": "76a9f7fcbdd6188d8b9c209e96ed72b098b96b17d54048c78ba3464596771305",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.24,
+     "endSeconds": 10.88,
+     "textPreview": "嘿，各位同学，今天咱们来聊一个控制理论里头特别有意思的话题。怎么能一眼就看明白一",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 10.88,
+     "endSeconds": 31.36,
+     "textPreview": "我们马上开始。你是不是也有过这种感觉？就是算那个频率响的时候啊，先算欧米伽等于0",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 31.36,
+     "endSeconds": 39.84,
+     "textPreview": "没错，光盯着一堆零散的数据点，咱们是真看不出这个系统到底是个什么脾气。那问题就来",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 39.84,
+     "endSeconds": 52.25,
+     "textPreview": "我们人怎么才能跳出来，从一个更高的视角直观的看到系统响应的完整趋势呢？答案就是我",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 52.25,
+     "endSeconds": 63.77,
+     "textPreview": "来，我们看第一个方案——博德图，你可以把它想成是一个分析大师，特别擅长帮我们把一",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 63.77,
+     "endSeconds": 79.37,
+     "textPreview": "博的图最巧妙的地方在哪儿呢？就是它把一个复杂的频率响应分解成了两个更简单的故事。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 79.37,
+     "endSeconds": 91.83,
+     "textPreview": "第二个呢叫相频图，它显示的是信号通过这个系统之后会慢多少拍，也就是延时了多少。你",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 91.83,
+     "endSeconds": 101.91,
+     "textPreview": "在浮平图里头啊，我们用一个特别的单位叫分贝，也就是db。它的算法呢，就是幅值取个",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 101.91,
+     "endSeconds": 112.22,
+     "textPreview": "哎，为啥要搞这么复杂？非要用对数呢？因为这简直就是个超级金手指，它能把复杂的乘法",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 112.22,
+     "endSeconds": 120.7,
+     "textPreview": "也就是说，我们只需要把各个基本小零件的波德图画出来，然后直接一张一张加起来，就能",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 120.7,
+     "endSeconds": 130.94,
+     "textPreview": "是不是很方便？其实啊，不管一个控制系统看起来有多复杂，它都可以看作是由一些最基本",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 130.94,
+     "endSeconds": 140.42,
+     "textPreview": "这些积木呢，就是我们常说的比例、积分、微分，还有一阶和二阶环节，它们就是构成所有",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 140.42,
+     "endSeconds": 152.74,
+     "textPreview": "所以说，博德图真正的魔力就在这儿了。只要你掌握了每一块乐高积木自己的图怎么画，那",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 152.74,
+     "endSeconds": 166.1,
+     "textPreview": "这就是为什么博德图这么强大又这么好用的秘密。好了，博德图给了我们一份超级详细的零",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 166.1,
+     "endSeconds": 174.42,
+     "textPreview": "诶，这就需要我们第二个工具登场了。它就是奈奎斯图，奈奎斯特图的画风就完全不一样了",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "奈奎斯特图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 15,
+     "startSeconds": 174.42,
+     "endSeconds": 192.39,
+     "textPreview": "它把幅度和相位这两个信息完美地融合到了一条曲线上。你可以这么想：JAJOmega",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "奈奎斯特图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 192.39,
+     "endSeconds": 204.07,
+     "textPreview": "它产现的是一段完整的旅程。你看这张图，简直就是上帝视角的完本诠释。我们只要看一眼",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 204.07,
+     "endSeconds": 215.75,
+     "textPreview": "这段旅程是从哪儿开始的，也就是频率为零的时候，它又是在哪儿结束的，也就是频率无穷",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 215.75,
+     "endSeconds": 225.94,
+     "textPreview": "一条曲线就把整个故事给讲完了。好的。那现在我们手里就有两个工具了，一个博德图，一",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 225.94,
+     "endSeconds": 244.02,
+     "textPreview": "那么最激动人心的那个啊哈时刻就要来了，他们之间到底有什么神秘的联系呢？大家一定要",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 244.02,
+     "endSeconds": 257.18,
+     "textPreview": "就像这张图展示的这个核心思想就特别清楚了。你看啊，左边的博德图就是拆开看，它把系",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 257.18,
+     "endSeconds": 266.38,
+     "textPreview": "而右边的奈奎斯特图呢，就是合起来看，它把所有信息都整合到一条轨迹上，给你一个完整",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "奈奎斯特图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 266.38,
+     "endSeconds": 281.88,
+     "textPreview": "两种视角描述的是同一个真相。来，咱们放一块总结一下就更清楚了。博德图是两张独立的",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 281.88,
+     "endSeconds": 295.32,
+     "textPreview": "而奈奎斯特图呢，是一张极坐标图，它的杀手卷是用来分析系统的稳定性，特别好用。所以",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "奈奎斯特图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-9acaab765d45527c6988c564",
+       "matchedLabel": "极坐标图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 295.32,
+     "endSeconds": 304.45,
+     "textPreview": "好了好了，理论咱们聊的差不多了。但最关键的问题是，我们费这么大劲儿学这些图，到底",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 304.45,
+     "endSeconds": 319.49,
+     "textPreview": "他们在现实世界里到底有啥用啊？答案其实就两个字：稳定。我们用这些工具，最终的目的",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 319.49,
+     "endSeconds": 332.62,
+     "textPreview": "我们的目标就是设计出稳定、可靠、听话的好系统。而且你可别以为这只是课本上的东西哦",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 332.62,
+     "endSeconds": 343.42,
+     "textPreview": "在航空航天领域，稳定能让火箭和卫星能老老实实地待在预定轨道上；在电子学里，稳定性",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 343.42,
+     "endSeconds": 352.42,
+     "textPreview": "可以说它的应用无处不在。好了，今天的内容就到这里。两种强大的工具帮你彻底看懂一个",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 352.42,
+     "endSeconds": 362.34,
+     "textPreview": "现在你已经掌握了读懂一个系统故事的两种方法，不管是通过详细的章节，也就是博得图，",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "奈奎斯特图",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 20,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 30,
+     "startSeconds": 362.34,
+     "endSeconds": 369.66,
+     "textPreview": "那么留给你的问题就是：你第一个想动手分析的系统会是什么呢？",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "76a9f7fcbdd6188d8b9c209e96ed72b098b96b17d54048c78ba3464596771305",
+   "status": "anchored"
+  }
+ ]
+}

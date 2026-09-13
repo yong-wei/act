@@ -9,6 +9,10 @@
  * 1. explicit layeredGraphPayload from a trusted server caller
  * 2. ACT_AUTHORITY_STORE_ROOT / ACT_TEACHING_PROJECTION_STORE_ROOT env mounts
  * 3. image-packaged defaults under course-content/... (activation-gate output)
+ *
+ * Resource candidates for Konling path generation come from
+ * `tryLoadGoalPlanningRegistry` (binding release). Layered-graph teaching
+ * bindings overlay `resource-bindings/current.json` when that pointer exists.
  */
 
 import { existsSync } from 'node:fs';

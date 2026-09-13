@@ -1,0 +1,24 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "5-5",
+ "canonicalIds": [
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117",
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68"
+ ],
+ "sources": {
+  "ctkg:domainconcept:4eaa0995db3f87d3b7e0f117": [
+   "topic:uncertainty"
+  ],
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68": [
+   "topic:saturation"
+  ]
+ }
+}

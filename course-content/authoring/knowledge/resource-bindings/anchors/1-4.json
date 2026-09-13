@@ -1,0 +1,1408 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "1-4",
+ "unitIndex": 3,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/1-4/1-4-handout.md",
+  "sha256": "578dc70c4a43675c53d17ecf73a47a8138faa8b92d011e3a8fc9c505d85e259a"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "船舶航向中的过程与节律",
+   "groupName": null,
+   "textChars": 225,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "课程目标",
+   "groupName": null,
+   "textChars": 214,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "复平面、正弦信号与反馈结构前测",
+   "groupName": null,
+   "textChars": 93,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8bf044c43e3936166dff5b1c",
+     "matchedLabel": "负反馈结构",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "观察域与输入输出通道",
+   "groupName": "区分观察域与输入输出通道",
+   "textChars": 333,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-89a95ab28be324dc6d7040c5",
+     "matchedLabel": "扰动抑制",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-ee34b938a6fb68864ccf4aa7",
+     "matchedLabel": "指令跟随",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "闭环极点与阶跃响应的时域参照",
+   "groupName": "建立时域响应参照",
+   "textChars": 593,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 20,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "闭环 Bode 图、带宽与环路穿越频率",
+   "groupName": "读取闭环带宽与频率响应",
+   "textChars": 1182,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-3bf89181c7be53ac268d5785",
+     "matchedLabel": "bandwidth",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 27.0,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 112,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "Bode 与 Nyquist 的同频点表达",
+   "groupName": "联读 Bode 与 Nyquist",
+   "textChars": 818,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "闭环时域与环路频域的四图联读",
+   "groupName": "完成多表征联读",
+   "textChars": 670,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "多域数据与双图互译例题",
+   "groupName": null,
+   "textChars": 1243,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "船舶航向闭环的三域证据",
+   "groupName": null,
+   "textChars": 934,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "通道、双图与多域联读后测",
+   "groupName": null,
+   "textChars": 105,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "先标通道、再读图、最后联读",
+   "groupName": "完成多表征联读",
+   "textChars": 514,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-模块1-导论串讲-控制系统的完整图像",
+   "order": 1,
+   "level": 2,
+   "title": "模块1 导论串讲——控制系统的完整图像",
+   "startLine": 7,
+   "endLine": 23,
+   "bodyChars": 526,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-同样的系统-不同的视角",
+   "order": 2,
+   "level": 2,
+   "title": "一、同样的系统，不同的视角",
+   "startLine": 24,
+   "endLine": 44,
+   "bodyChars": 600,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-时域表征-看过程怎样展开",
+   "order": 3,
+   "level": 2,
+   "title": "二、时域表征：看过程怎样展开",
+   "startLine": 45,
+   "endLine": 46,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h4-时域回答什么",
+   "order": 4,
+   "level": 3,
+   "title": "2.1 时域回答什么",
+   "startLine": 47,
+   "endLine": 52,
+   "bodyChars": 182,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-用同一条船重温时域",
+   "order": 5,
+   "level": 3,
+   "title": "2.2 用同一条船重温时域",
+   "startLine": 53,
+   "endLine": 81,
+   "bodyChars": 751,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-e2066e5e888d36826fd01d4d",
+     "matchedLabel": "衰减振荡",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-频域表征-看系统如何对待不同节律",
+   "order": 6,
+   "level": 2,
+   "title": "三、频域表征：看系统如何对待不同节律",
+   "startLine": 82,
+   "endLine": 83,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-频域回答什么",
+   "order": 7,
+   "level": 3,
+   "title": "3.1 频域回答什么",
+   "startLine": 84,
+   "endLine": 96,
+   "bodyChars": 415,
+   "canonical": []
+  },
+  {
+   "headingId": "h8-频域信息在工程上意味着什么",
+   "order": 8,
+   "level": 3,
+   "title": "3.2 频域信息在工程上意味着什么",
+   "startLine": 97,
+   "endLine": 104,
+   "bodyChars": 250,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 曲线",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 14,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-Bode-图-频域的第一张可视化地图",
+   "order": 9,
+   "level": 2,
+   "title": "四、Bode 图：频域的第一张可视化地图",
+   "startLine": 105,
+   "endLine": 106,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h10-Bode-图长什么样",
+   "order": 10,
+   "level": 3,
+   "title": "4.1 Bode 图长什么样",
+   "startLine": 107,
+   "endLine": 122,
+   "bodyChars": 639,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+     "matchedLabel": "闭环带宽",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-怎样\"读\"Bode-图-不画",
+   "order": 11,
+   "level": 3,
+   "title": "4.2 怎样\"读\"Bode 图（不画）",
+   "startLine": 123,
+   "endLine": 130,
+   "bodyChars": 350,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-用代码看一眼-Bode-图",
+   "order": 12,
+   "level": 3,
+   "title": "4.3 用代码看一眼 Bode 图",
+   "startLine": 131,
+   "endLine": 160,
+   "bodyChars": 791,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 72,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-Nyquist-图-频域的另一种视角",
+   "order": 13,
+   "level": 2,
+   "title": "五、Nyquist 图：频域的另一种视角",
+   "startLine": 161,
+   "endLine": 162,
+   "bodyChars": 0,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-Nyquist-图与-Bode-图有什么不同",
+   "order": 14,
+   "level": 3,
+   "title": "5.1 Nyquist 图与 Bode 图有什么不同",
+   "startLine": 163,
+   "endLine": 173,
+   "bodyChars": 459,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 90,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-怎样\"读\"Nyquist-图-不画",
+   "order": 15,
+   "level": 3,
+   "title": "5.2 怎样\"读\"Nyquist 图（不画）",
+   "startLine": 174,
+   "endLine": 190,
+   "bodyChars": 663,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-785280d429b7e1a5f2f5db53",
+     "matchedLabel": "Nyquist 判据",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-用代码生成-Nyquist-图",
+   "order": 16,
+   "level": 3,
+   "title": "5.3 用代码生成 Nyquist 图",
+   "startLine": 191,
+   "endLine": 211,
+   "bodyChars": 296,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 54,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-四图并置-同一系统的四种阅读方式",
+   "order": 17,
+   "level": 2,
+   "title": "六、四图并置：同一系统的四种阅读方式",
+   "startLine": 212,
+   "endLine": 263,
+   "bodyChars": 1649,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-例题-从多域数据中还原系统的完整画像",
+   "order": 18,
+   "level": 2,
+   "title": "七、例题：从多域数据中还原系统的完整画像",
+   "startLine": 264,
+   "endLine": 265,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-例题-1-4-1-从三域证据拼出系统特征",
+   "order": 19,
+   "level": 3,
+   "title": "例题 1-4-1 从三域证据拼出系统特征",
+   "startLine": 266,
+   "endLine": 309,
+   "bodyChars": 1139,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-303314b2f1d601cdba5e3f99",
+     "matchedLabel": "阶跃输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-例题-1-4-2-Bode-图与-Nyquist-图的\"翻译\"",
+   "order": 20,
+   "level": 3,
+   "title": "例题 1-4-2 Bode 图与 Nyquist 图的\"翻译\"",
+   "startLine": 310,
+   "endLine": 323,
+   "bodyChars": 608,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 54,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-案例-船舶航向控制的三域联读",
+   "order": 21,
+   "level": 2,
+   "title": "八、案例：船舶航向控制的三域联读",
+   "startLine": 324,
+   "endLine": 351,
+   "bodyChars": 1087,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+     "matchedLabel": "单位反馈",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-分层练习",
+   "order": 22,
+   "level": 2,
+   "title": "九、分层练习",
+   "startLine": 352,
+   "endLine": 353,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-基础题-•",
+   "order": 23,
+   "level": 3,
+   "title": "基础题 •",
+   "startLine": 354,
+   "endLine": 372,
+   "bodyChars": 593,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 18,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-进阶题-••",
+   "order": 24,
+   "level": 3,
+   "title": "进阶题 ••",
+   "startLine": 373,
+   "endLine": 382,
+   "bodyChars": 424,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:fef4835248def04a043183ee",
+     "matchedLabel": "闭环系统",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-挑战题-•••",
+   "order": 25,
+   "level": 3,
+   "title": "挑战题 •••",
+   "startLine": 383,
+   "endLine": 395,
+   "bodyChars": 578,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h26-总结与扩展思考",
+   "order": 26,
+   "level": 2,
+   "title": "十、总结与扩展思考",
+   "startLine": 396,
+   "endLine": 411,
+   "bodyChars": 672,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-9dfc90c240d6bf3ebc285faf",
+     "matchedLabel": "振荡频率",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m1s-object-a2c468e1df5f66c448733f33",
+     "matchedLabel": "系统参数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-16ddaebf2fe19d65ecc35886",
+     "matchedLabel": "自然响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-附录-习题简答",
+   "order": 27,
+   "level": 2,
+   "title": "附录：习题简答",
+   "startLine": 412,
+   "endLine": 430,
+   "bodyChars": 1697,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+     "matchedLabel": "Nyquist 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 28,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "1-4-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/1-4/media/1-4-intro-video.mp4",
+   "sha256": "77e96afaaa06aaf3245987bf6408fd1223851d0153279a28b173cb7f879965ff",
+   "durationSeconds": 303.786667,
+   "transcriptSource": "videos-project:lesson-1-4/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 283.733,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 303.733,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 72,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 18.41,
+     "textPreview": "大家好，欢迎来到闲聊自控。今天看同一个系统的两双眼睛。还是那条船。驾驶员下令右转",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 18.41,
+     "endSeconds": 29.3,
+     "textPreview": "航向角平稳到位，还是冲过头再回来？前者关心过程——输出怎样随时间展开。几分钟后，",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 29.3,
+     "endSeconds": 38.17,
+     "textPreview": "慢浪快浪，船都跟着晃，还是只挑一类晃？后者关心节律——系统对不同频率的态度。",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 38.17,
+     "endSeconds": 49.57,
+     "textPreview": "同一条船，两类问题，要用两把尺子来量。第一把尺子是老朋友：时域。对象还是那套船舶",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 49.57,
+     "endSeconds": 61.29,
+     "textPreview": "K 取 1，响应慢吞吞地单调爬升。K 取 4，临界阻尼，最快的单调到位。K 取 ",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 61.71,
+     "endSeconds": 73.13,
+     "textPreview": "一条曲线，看清每一秒系统在做什么。这就是时域：全过程的可视化。但它答不上来：固定",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 73.13,
+     "endSeconds": 81.72,
+     "textPreview": "要回答这个，得换第二把尺子。如果输入不是跳一下，而是一直摆呢？",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 81.72,
+     "endSeconds": 90.9,
+     "textPreview": "正弦进去，稳态之后，还是同频率的正弦出来。变的只有两样：幅度缩了多少，节拍慢了多",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 90.9,
+     "endSeconds": 99.4,
+     "textPreview": "慢慢摆，系统跟得很完整；催得急，就跟不上。幅度缩水，滞后加重——这就是频率响应。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 9,
+     "startSeconds": 99.4,
+     "endSeconds": 110.53,
+     "textPreview": "这台弹簧装置，正在演示这种差别。激励节奏逼近固有频率，振幅会被明显放大。对不同节",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 112.53,
+     "endSeconds": 124.02,
+     "textPreview": "这张地图叫 Bode 图，上下两条曲线。横轴是频率，对数刻度，从慢排到快。上图读",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "Bode 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 124.02,
+     "endSeconds": 135.51,
+     "textPreview": "下图读相位：输出滞后了多少度。读图先认通道：这条是闭环指令传递。低频贴着零分贝：",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 135.51,
+     "endSeconds": 144.45,
+     "textPreview": "频率升高，曲线掉头向下：快指令跟不上。从低频水平掉 3 分贝的位置，叫闭环带宽。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-69488c745082536d87afd1a7",
+       "matchedLabel": "闭环带宽",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 144.45,
+     "endSeconds": 154.79,
+     "textPreview": "本例大约 2.83 弧度每秒。换一张：环路开环的 Bode 图。它与零分贝线的交",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+       "matchedLabel": "穿越频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "Bode 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 154.79,
+     "endSeconds": 163.1,
+     "textPreview": "本例约 1.82 弧度每秒。两个数字接近，但定义完全不同。一个管闭环跟随，一个管",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 165.1,
+     "endSeconds": 177.25,
+     "textPreview": "Bode 图把幅值相位拆成两张。Nyquist 图把它们画进复平面。每个频率是一",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "Nyquist 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 18,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "Bode 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 177.25,
+     "endSeconds": 186.33,
+     "textPreview": "频率从低到高，这些点连成轨迹。读三件事：起点在哪，终点收在哪，还有曲线离临界点 ",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 186.33,
+     "endSeconds": 198.9,
+     "textPreview": "它和 Bode 图是同一套信息的两种摆法。不信就来翻译一次：频率取 2。Bode",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "Bode 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 24,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 18,
+     "startSeconds": 198.9,
+     "endSeconds": 207.96,
+     "textPreview": "Nyquist 图上：离原点 0.112，角度 -117 度。一模一样——这就是",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "Nyquist 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 18,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 19,
+     "startSeconds": 210.1,
+     "endSeconds": 218.43,
+     "textPreview": "现在，把同一个系统放进四个窗口。复平面窗口：闭环极点在 -2 加减 2j。",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 218.43,
+     "endSeconds": 229.77,
+     "textPreview": "时域窗口：超调百分之四出头，一秒多收敛。两张频域窗口，画的是环路开环。注意分工：",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 229.77,
+     "endSeconds": 239.21,
+     "textPreview": "极点离开实轴，正好解释阶跃响应的摆动。四张图被同一组参数驱动，互相印证。但别指望",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 241.2,
+     "endSeconds": 253.73,
+     "textPreview": "回到船上，把证据链补齐。极点说：有振荡模态，但会收敛。阶跃说：超调 4.32%，",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 254.15,
+     "endSeconds": 263.22,
+     "textPreview": "频域说：慢指令几乎全额通过，到了每秒 3 弧度，幅度只剩三分之二。可靠的判断，从",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 263.22,
+     "endSeconds": 274.96,
+     "textPreview": "先标通道，再多图联读——本讲的硬习惯。时域看过程，频域看节律。复平面上的极点，把",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 274.96,
+     "endSeconds": 284.92,
+     "textPreview": "Bode 图和 Nyquist 图，同源，只是摆法不同。下一讲，把这三张图搬进平",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "Nyquist 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 18,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+       "matchedLabel": "Bode 图",
+       "labelKind": "alias",
+       "inScope": true,
+       "score": 12,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 26,
+     "startSeconds": 284.92,
+     "endSeconds": 292.21,
+     "textPreview": "两套系统阶跃响应都能用，抗扰本领不同，算不算一样好？带着这个问题下课。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    }
+   ],
+   "activeReleaseSha256": "77e96afaaa06aaf3245987bf6408fd1223851d0153279a28b173cb7f879965ff",
+   "status": "anchored"
+  }
+ ]
+}

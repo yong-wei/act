@@ -235,6 +235,11 @@ export function mapTeachingProjectionBindingsToRegistryInput(
   return { extraInput, skipCounts, patchCount };
 }
 
+/**
+ * Retired B′ spray loader. Live Konling / path / RAG candidates come from
+ * `tryLoadGoalPlanningRegistry` and `overlayTeachingBindingsFromLiveRelease`.
+ * This helper remains only for historical fixture mapping.
+ */
 export async function loadTeachingProjectionBindingFamily(): Promise<{
   extraInput: ResourceNodeRegistryInput;
   status: ResourceCandidatePoolSourceStatus;

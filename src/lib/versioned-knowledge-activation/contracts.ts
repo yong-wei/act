@@ -90,6 +90,13 @@ export interface ConsumerVersionCombination {
   /** Optional scope pin (course package / lesson). */
   scopeId: string | null;
   captureRevision: string | null;
+  /**
+   * Anchored resource binding release pinned by resource-consuming teaching
+   * consumers. Absent (undefined) on activations sealed before the binding
+   * release family existed; null when a combination explicitly has none.
+   */
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
 }
 
 export interface ConsumerActivationRecord {
@@ -260,5 +267,7 @@ export function combinationEqual(
     && a.projectionHash === b.projectionHash
     && a.scopeId === b.scopeId
     && a.captureRevision === b.captureRevision
+    && (a.bindingReleaseId ?? null) === (b.bindingReleaseId ?? null)
+    && (a.bindingHash ?? null) === (b.bindingHash ?? null)
   );
 }

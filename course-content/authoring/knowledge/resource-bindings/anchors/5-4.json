@@ -1,0 +1,1404 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "5-4",
+ "unitIndex": 28,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/5-4/5-4-handout.md",
+  "sha256": "4a261e014bddc2dad2f3331e05bd2e3c679ead52c6f453cffbcb5d918c29e487"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "模型预测偏离真实对象的导入场景",
+   "groupName": null,
+   "textChars": 252,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": null,
+   "textChars": 167,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前置基础快测",
+   "groupName": null,
+   "textChars": 71,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "模型驱动控制的可解释关系",
+   "groupName": null,
+   "textChars": 216,
+   "canonical": []
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "单一模型在复杂链路中的压力",
+   "groupName": null,
+   "textChars": 207,
+   "canonical": []
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "名义航向模型预测偏差读图",
+   "groupName": null,
+   "textChars": 388,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "MPC 的滚动预测与约束优化结构",
+   "groupName": null,
+   "textChars": 463,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "MPC 对模型质量和在线计算的依赖",
+   "groupName": null,
+   "textChars": 179,
+   "canonical": []
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "数据驱动控制的信息来源变化",
+   "groupName": null,
+   "textChars": 342,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+     "matchedLabel": "状态空间",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "在线辨识与数据驱动 MPC 局部责任",
+   "groupName": null,
+   "textChars": 638,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+     "matchedLabel": "离散模型",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "数据驱动进入闭环的四项条件",
+   "groupName": null,
+   "textChars": 267,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "复杂航行任务中的数据驱动进入点",
+   "groupName": null,
+   "textChars": 271,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "长时漂移任务中的三路线设定",
+   "groupName": null,
+   "textChars": 529,
+   "canonical": []
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "三路线仿真结果与指标比较",
+   "groupName": null,
+   "textChars": 454,
+   "canonical": []
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "模型数据责任分配与边界情况",
+   "groupName": null,
+   "textChars": 370,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "后测：迁移条件与责任判断",
+   "groupName": null,
+   "textChars": 115,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "总结：数据驱动方法的收益与代价",
+   "groupName": null,
+   "textChars": 440,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-本次课程目标",
+   "order": 1,
+   "level": 2,
+   "title": "本次课程目标",
+   "startLine": 13,
+   "endLine": 21,
+   "bodyChars": 174,
+   "canonical": []
+  },
+  {
+   "headingId": "h2-模型依赖松动来自对象关系的压力",
+   "order": 2,
+   "level": 2,
+   "title": "一、模型依赖松动来自对象关系的压力",
+   "startLine": 22,
+   "endLine": 25,
+   "bodyChars": 160,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+     "matchedLabel": "参考输入",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-模型驱动控制的优势来自可解释关系",
+   "order": 3,
+   "level": 3,
+   "title": "1.1 模型驱动控制的优势来自可解释关系",
+   "startLine": 26,
+   "endLine": 37,
+   "bodyChars": 368,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+     "matchedLabel": "状态空间",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-模型压力来自参数-约束和链路输入",
+   "order": 4,
+   "level": 3,
+   "title": "1.2 模型压力来自参数、约束和链路输入",
+   "startLine": 38,
+   "endLine": 51,
+   "bodyChars": 425,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-辨析例子-名义航向模型预测偏快",
+   "order": 5,
+   "level": 3,
+   "title": "1.3 辨析例子：名义航向模型预测偏快",
+   "startLine": 52,
+   "endLine": 59,
+   "bodyChars": 472,
+   "canonical": []
+  },
+  {
+   "headingId": "h6-MPC-连接模型-预测和约束",
+   "order": 6,
+   "level": 2,
+   "title": "二、MPC 连接模型、预测和约束",
+   "startLine": 60,
+   "endLine": 61,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-MPC-仍以模型为预测基础",
+   "order": 7,
+   "level": 3,
+   "title": "2.1 MPC 仍以模型为预测基础",
+   "startLine": 62,
+   "endLine": 86,
+   "bodyChars": 684,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+     "matchedLabel": "跟踪误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-MPC-的难点集中在模型质量和在线计算",
+   "order": 8,
+   "level": 3,
+   "title": "2.2 MPC 的难点集中在模型质量和在线计算",
+   "startLine": 87,
+   "endLine": 92,
+   "bodyChars": 292,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-辨析例子-预测窗口里的舵角约束",
+   "order": 9,
+   "level": 3,
+   "title": "2.3 辨析例子：预测窗口里的舵角约束",
+   "startLine": 93,
+   "endLine": 98,
+   "bodyChars": 306,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-数据驱动控制改变信息来源和责任分配",
+   "order": 10,
+   "level": 2,
+   "title": "三、数据驱动控制改变信息来源和责任分配",
+   "startLine": 99,
+   "endLine": 100,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-数据驱动的核心变化是从样本中补足对象规律",
+   "order": 11,
+   "level": 3,
+   "title": "3.1 数据驱动的核心变化是从样本中补足对象规律",
+   "startLine": 101,
+   "endLine": 118,
+   "bodyChars": 598,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+     "matchedLabel": "状态空间",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-数据可以补足模型-但会带来验证成本",
+   "order": 12,
+   "level": 3,
+   "title": "3.2 数据可以补足模型，但会带来验证成本",
+   "startLine": 119,
+   "endLine": 142,
+   "bodyChars": 879,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:a183d0a0001c3553cc638558",
+     "matchedLabel": "离散模型",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h13-辨析例子-数据补偿适合承担局部责任",
+   "order": 13,
+   "level": 3,
+   "title": "3.3 辨析例子：数据补偿适合承担局部责任",
+   "startLine": 143,
+   "endLine": 148,
+   "bodyChars": 238,
+   "canonical": []
+  },
+  {
+   "headingId": "h14-数据驱动进入条件与复杂航行案例",
+   "order": 14,
+   "level": 2,
+   "title": "四、数据驱动进入条件与复杂航行案例",
+   "startLine": 149,
+   "endLine": 150,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-四个条件决定数据驱动能否进入闭环",
+   "order": 15,
+   "level": 3,
+   "title": "4.1 四个条件决定数据驱动能否进入闭环",
+   "startLine": 151,
+   "endLine": 165,
+   "bodyChars": 426,
+   "canonical": []
+  },
+  {
+   "headingId": "h16-辨析例子-四个条件缺一项时的误判",
+   "order": 16,
+   "level": 3,
+   "title": "4.2 辨析例子：四个条件缺一项时的误判",
+   "startLine": 166,
+   "endLine": 171,
+   "bodyChars": 253,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-复杂航行任务中的数据驱动进入点",
+   "order": 17,
+   "level": 3,
+   "title": "4.3 复杂航行任务中的数据驱动进入点",
+   "startLine": 172,
+   "endLine": 181,
+   "bodyChars": 499,
+   "canonical": []
+  },
+  {
+   "headingId": "h18-环境变化下的三种控制路线对比",
+   "order": 18,
+   "level": 2,
+   "title": "五、环境变化下的三种控制路线对比",
+   "startLine": 182,
+   "endLine": 183,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-案例任务与对比对象",
+   "order": 19,
+   "level": 3,
+   "title": "5.1 案例任务与对比对象",
+   "startLine": 184,
+   "endLine": 211,
+   "bodyChars": 954,
+   "canonical": []
+  },
+  {
+   "headingId": "h20-仿真结果与指标比较",
+   "order": 20,
+   "level": 3,
+   "title": "5.2 仿真结果与指标比较",
+   "startLine": 212,
+   "endLine": 235,
+   "bodyChars": 1566,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-从仿真比较得到的判断",
+   "order": 21,
+   "level": 3,
+   "title": "5.3 从仿真比较得到的判断",
+   "startLine": 236,
+   "endLine": 241,
+   "bodyChars": 283,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-复杂航行任务的数据驱动方法选择",
+   "order": 22,
+   "level": 2,
+   "title": "六、复杂航行任务的数据驱动方法选择",
+   "startLine": 242,
+   "endLine": 261,
+   "bodyChars": 792,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-分层练习",
+   "order": 23,
+   "level": 2,
+   "title": "七、分层练习",
+   "startLine": 262,
+   "endLine": 263,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-基础辨析-模型驱动与数据驱动",
+   "order": 24,
+   "level": 3,
+   "title": "7.1 基础辨析：模型驱动与数据驱动",
+   "startLine": 264,
+   "endLine": 273,
+   "bodyChars": 246,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-定量判断-预测误差改善是否足够",
+   "order": 25,
+   "level": 3,
+   "title": "7.2 定量判断：预测误差改善是否足够",
+   "startLine": 274,
+   "endLine": 285,
+   "bodyChars": 178,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-方法迁移判断-MPC-是否适合",
+   "order": 26,
+   "level": 3,
+   "title": "7.3 方法迁移判断：MPC 是否适合",
+   "startLine": 286,
+   "endLine": 291,
+   "bodyChars": 251,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-迁移应用-数据驱动的局部职责",
+   "order": 27,
+   "level": 3,
+   "title": "7.4 迁移应用：数据驱动的局部职责",
+   "startLine": 292,
+   "endLine": 297,
+   "bodyChars": 161,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-数据驱动控制的边界情况",
+   "order": 28,
+   "level": 2,
+   "title": "八、数据驱动控制的边界情况",
+   "startLine": 298,
+   "endLine": 299,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-数据量大但覆盖不足",
+   "order": 29,
+   "level": 3,
+   "title": "8.1 数据量大但覆盖不足",
+   "startLine": 300,
+   "endLine": 303,
+   "bodyChars": 123,
+   "canonical": []
+  },
+  {
+   "headingId": "h30-模型很粗但责任仍要保留",
+   "order": 30,
+   "level": 3,
+   "title": "8.2 模型很粗但责任仍要保留",
+   "startLine": 304,
+   "endLine": 307,
+   "bodyChars": 112,
+   "canonical": []
+  },
+  {
+   "headingId": "h31-在线计算无法满足采样周期",
+   "order": 31,
+   "level": 3,
+   "title": "8.3 在线计算无法满足采样周期",
+   "startLine": 308,
+   "endLine": 311,
+   "bodyChars": 123,
+   "canonical": []
+  },
+  {
+   "headingId": "h32-仿真数据仍需真实验证",
+   "order": 32,
+   "level": 3,
+   "title": "8.4 仿真数据仍需真实验证",
+   "startLine": 312,
+   "endLine": 315,
+   "bodyChars": 128,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h33-总结与扩展思考",
+   "order": 33,
+   "level": 2,
+   "title": "九、总结与扩展思考",
+   "startLine": 316,
+   "endLine": 329,
+   "bodyChars": 452,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v2k:canonical-object:ecde3cc6396e9e702ea8b051",
+     "matchedLabel": "控制目标",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h34-附录-A-参考文献",
+   "order": 34,
+   "level": 2,
+   "title": "附录 A 参考文献",
+   "startLine": 330,
+   "endLine": 337,
+   "bodyChars": 1348,
+   "canonical": [
+    {
+     "canonicalId": "m1r-v1d:object:608d47a12a8256a1112eb48a",
+     "matchedLabel": "robustness",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10.0,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-ec8dceb901656a3a0a32d12b",
+     "matchedLabel": "stability",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 9.0,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+     "matchedLabel": "system",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 6.0,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "5-4-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/5-4/media/5-4-audio.m4a",
+   "sha256": "a9023905ea77a247aa40496861a2d6b8378b5af2657a991e14e6cd668a31003e",
+   "durationSeconds": 984.967256,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/5-4.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 25.04,
+     "textPreview": "葛仲儿你想象一下这样一个个这个场景啊嗯就是你现在正驾驶着一艘那种几万吨级的远洋巨",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.04,
+     "endSeconds": 50.48,
+     "textPreview": "致命的是这艘巨轮呢它已经服役了很多年了机械结构够老化的非常严重呃就是为了稳住航向",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.48,
+     "endSeconds": 75.56,
+     "textPreview": "深度拆解你们自动控制原理课程里非常硬核的一个内容大家好我是思稳欢迎来到我们这次的",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.56,
+     "endSeconds": 100.68,
+     "textPreview": "迟滞惯性极大而且物理特性还在随着时间不断恶化的被控对象时如果你底层用的还是传统的",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.68,
+     "endSeconds": 125.68,
+     "textPreview": "轮这种级别的严重滞后等你看到误差再去补救一切都太晚了原来是这样所以我们这期节目的",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.68,
+     "endSeconds": 150.8,
+     "textPreview": "疼的数学吹导直接看它的核心哲学没问题呃其实自动化专业的同学对状态空间模型肯定都不",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-3d5825588c001e4faf3af7bc",
+       "matchedLabel": "输出方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+       "matchedLabel": "状态空间",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-ef0228881c8874509244b517",
+       "matchedLabel": "状态方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.8,
+     "endSeconds": 175.88,
+     "textPreview": "在于它怎么去用这个模型它最核心的思想就是不仅看眼前的误差还要把这个模型当做一台时",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.88,
+     "endSeconds": 200.92,
+     "textPreview": "现车头往左偏了你才赶紧往右打方向盘嘛那相比底下NPC就更像是一个正在下国际象棋的",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 200.92,
+     "endSeconds": 226.88,
+     "textPreview": "种可能的情况最终得到一条通向胜利的路径但是呢呃这里有个极其反直觉的地方也是很多刚",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 226.88,
+     "endSeconds": 252.08,
+     "textPreview": "说说看就是虽然大师在脑海里已经算好了未来十步的完美计划但在现实中落子的时候他居然",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 252.08,
+     "endSeconds": 280.6,
+     "textPreview": "就是讲义上提到的那个控制理论里极其关键的概念滚动优化对吧是的这就叫滚动油画那这里",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 280.6,
+     "endSeconds": 305.64,
+     "textPreview": "是在一个绝对纯净的没有任何干扰的理想数学世界里你确实可以一口气走完但现实世界不是",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 305.64,
+     "endSeconds": 330.96,
+     "textPreview": "你闭着眼睛执拗地把脑海中规划好的连续指令全部执行完现实中累积的偏差早就让这艘巨轮",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.96,
+     "endSeconds": 356.08,
+     "textPreview": "测而现实总会用各种意外给你一巴掌总结得很到位所以只行第一步并在下一步立刻通过闭环",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 356.08,
+     "endSeconds": 385.08,
+     "textPreview": "哪一种走法才是真正的最优呢呃这就不得不扒开NPC的数学引擎了吧就是讲义里的那个代",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.08,
+     "endSeconds": 410.28,
+     "textPreview": "个R矩阵的那个这两个矩振到底是什么物理意义啊每次看到就头大其实你不用被数学符号吓",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.28,
+     "endSeconds": 440.64,
+     "textPreview": "平的另一端放着的就是对控制能量的惩罚也就是R矩阵控制能量的乘法这怎么理解这就好比",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.88,
+     "endSeconds": 465.92,
+     "textPreview": "自动控制的终极目的不就是让误差越小越好吗为什么还要加个二局阵去限制控制量啊这是个",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.92,
+     "endSeconds": 495.0,
+     "textPreview": "实的物理世界中任何设备都是有极限的这就是硬约束哦我懂了就像讲义上解出的那个输入约",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "于等于12度也就是说你如果只追求消除误差你的算法给出的指定可能是瞬间打剁50度但",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.6,
+     "endSeconds": 550.0,
+     "textPreview": "对于巨人来说这个偏航角度已经非常危险了天哪所以我可以这么理解吗NPC最强大的地方",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.04,
+     "textPreview": "结的非常精准但是呢我们刚才讨论的这一切其实都建立在一个巨大的前提之下什么前提那就",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.04,
+     "endSeconds": 605.0,
+     "textPreview": "是你玩赛车游技车子突然被系统强行加了一个转向迟缓的负面buff那个dbuff没错",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.24,
+     "endSeconds": 630.36,
+     "textPreview": "代表这艘船还算灵活稍微打一点舵很快就能有响应但是呢在28秒到108秒的测试期间由",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 630.36,
+     "endSeconds": 660.0,
+     "textPreview": "果控制器还傻乎乎的用那个增益018的旧说明书去预测未来会发生什么惨剧呃控制器肯定",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.0,
+     "endSeconds": 685.52,
+     "textPreview": "不动完全正确因为过度自信于那个旧的名义模型预测偏差就会越拉越大讲义上给出了实测的",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 685.52,
+     "endSeconds": 715.0,
+     "textPreview": "何在不停机的情况下修好这艘船呢呃总不能把巨轮开回船坞让工程师重新测一遍参数再开出",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 715.0,
+     "endSeconds": 740.28,
+     "textPreview": "化能力但是他怎么知道参数变了呢它靠的是运行数据缓冲期里的近期数据比如刚过去的参考",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 740.28,
+     "endSeconds": 770.0,
+     "textPreview": "plusBDeltaJplusC唉看到了控制器不断吃进数据提取出ABC的估计值然",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.56,
+     "endSeconds": 795.84,
+     "textPreview": "纯粹的数据点反向推导出了这艘船此时此刻的真实状况然后把更新后的参数喂给预测模型没",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 796.32,
+     "endSeconds": 825.0,
+     "textPreview": "度直接被压制到了1219度哇硬生生拉回了安全线以内对而且跟踪误差也从1931大幅",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+       "matchedLabel": "跟踪误差",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 31,
+     "startSeconds": 825.0,
+     "endSeconds": 850.04,
+     "textPreview": "数据搞拟合又要算预测系统回归卡顿呢完全不会讲义里提到比如早段的耗时基本控制在00",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 850.04,
+     "endSeconds": 880.0,
+     "textPreview": "纠正现在对而传统的静态NPC是在看未来基于固定的模型去推演到了今天讲的数据驱动N",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 880.0,
+     "endSeconds": 905.2,
+     "textPreview": "想给大家抛出一个开放性的思考题结合了讲义最后的参考文件的内容统计吗前方高能预警啊",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 905.2,
+     "endSeconds": 935.16,
+     "textPreview": "噪声的甚至是被恶意感绕的呢你是说数据本身就是假的或者是垃圾数据对在文献中讨论过一",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 935.16,
+     "endSeconds": 960.36,
+     "textPreview": "那这种情况下吃进去的数据就是没有营养的是的更极端的情况当数据不可信被黑客篡改了数",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 960.36,
+     "endSeconds": 984.84,
+     "textPreview": "度了希望自动化专业的同学们在课后一定要去翻阅讲义最后的那些ＨＴe旗看文系保持对控",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "a9023905ea77a247aa40496861a2d6b8378b5af2657a991e14e6cd668a31003e",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-4-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/5-4/media/5-4-intro-video.mp4",
+   "sha256": "97f96a7bb05973b63b6df8abca29d329e28f757c1c4cdbf96e64b09ff33e0b4d",
+   "durationSeconds": 192.021333,
+   "transcriptSource": "videos-project:lesson-5-4/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 169.967,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 191.967,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 53,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.0,
+     "endSeconds": 23.88,
+     "textPreview": "大家好，欢迎来到闲聊自控。今天问一个更难的问题。精确模型撑不住全部设计时，控制方",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 23.88,
+     "endSeconds": 32.13,
+     "textPreview": "名义模型说船转得快，真实对象却更慢、更钝。模型没失效，只是独自扛太多。",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 34.13,
+     "endSeconds": 43.49,
+     "textPreview": "单一模型会碰到三类压力。参数难固定：载荷一变，表现就漂。约束总进闭环：舵角碰到上",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 43.49,
+     "endSeconds": 53.02,
+     "textPreview": "链路输入也在变：感知一偏，参考就偏。方法迁移，不是模型没价值，而是它独自承担的任",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 53.02,
+     "endSeconds": 63.3,
+     "textPreview": "哪些关系仍该由模型解释？哪些规律可以交给数据补足？模型预测控制，也就是 MPC。",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 63.3,
+     "endSeconds": 72.05,
+     "textPreview": "它每个时刻都先预测一段未来，再解一个带约束的优化问题。只执行第一步，然后重新测量",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 72.47,
+     "endSeconds": 81.55,
+     "textPreview": "预测、优化、约束，三件事同时在。模型偏了，优化结果就会跟着偏。约束越多、窗口越长",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 81.55,
+     "endSeconds": 90.4,
+     "textPreview": "它处在固定控制与数据驱动中间。同一条漂移航向任务，比三条路。",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 90.4,
+     "endSeconds": 102.46,
+     "textPreview": "固定控制只看当前误差，预测和约束都没有显式位置。名义模型 MPC 会滚动预测，也",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 102.46,
+     "endSeconds": 113.68,
+     "textPreview": "但它预测的还是旧对象。数据驱动 MPC 用运行数据改模型，误差更小，触边却更频繁",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 115.67,
+     "endSeconds": 125.43,
+     "textPreview": "数据驱动进闭环，要过四道门。数据：有没有覆盖边界工况？算力：训练、预测、优化赶不",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 125.43,
+     "endSeconds": 134.58,
+     "textPreview": "验证：独立测试和故障注入做了吗？泛化：换个相邻场景还可信吗？数据多，不等于覆盖够",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 134.58,
+     "endSeconds": 143.04,
+     "textPreview": "缺一项，部署风险就会露出来。复杂航行里，先分责任再选方法。",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 143.04,
+     "endSeconds": 152.28,
+     "textPreview": "船体动态仍优先交给模型。舵角和功率必须是硬约束。风浪流扰动，适合数据补偿。",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 152.7,
+     "endSeconds": 161.64,
+     "textPreview": "感知误差，适合统计和监控。模型给结构，数据补难写清的规律，安全层把动作关在可执行",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 163.63,
+     "endSeconds": 172.6,
+     "textPreview": "这一讲不把数据驱动写成升级包。模型主干还在，MPC 约束还在。数据只修正会漂的那",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 172.6,
+     "endSeconds": 177.97,
+     "textPreview": "策略学习会接着问：结构写不清时，还该不该学策略？",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "97f96a7bb05973b63b6df8abca29d329e28f757c1c4cdbf96e64b09ff33e0b4d",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "5-4-course",
+   "kind": "video",
+   "runtimePath": "lessons/5-4/media/5-4-course.mp4",
+   "sha256": "d08b19a869ebecdc48bbaf2517b2f3599aadc424384f5c62b5d462d914cc18b7",
+   "durationSeconds": 481.07102,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/5-4.json",
+   "transcriptSourceSha256": "d08b19a869ebecdc48bbaf2517b2f3599aadc424384f5c62b5d462d914cc18b7",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 10.64,
+     "textPreview": "哈喽，学弟学妹们大家好，欢迎来到咱们这期的深度解析。说真的，作为你们的学长，我太",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 10.64,
+     "endSeconds": 23.2,
+     "textPreview": "看着满黑板的公式，是不是感觉简直像在看天书？别怕，今天咱们的目标非常直接，就是要",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 23.2,
+     "endSeconds": 33.84,
+     "textPreview": "从冷冰冰的数学推导翻译成一听就懂、一看就明白的现实大白话，把这块硬核骨头啃下来，",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 33.84,
+     "endSeconds": 47.61,
+     "textPreview": "在咱们一头扎进理论之前啊，我想先问大家一个听起来有点科幻但极机器核心的问题，如果",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 47.61,
+     "endSeconds": 56.57,
+     "textPreview": "你仔细想想对吧？如果你做决定的时候已经提前看穿了接下来会发生什么，那你现在的行动",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 56.57,
+     "endSeconds": 72.01,
+     "textPreview": "这就是预测赋予自动化系统的超能力，也是咱们今天彻底搞懂NPC的起点。好了，第一部",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7eda83cdbc9e753480c9189c",
+       "matchedLabel": "状态空间",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 6,
+     "startSeconds": 72.01,
+     "endSeconds": 82.09,
+     "textPreview": "其实说白了，系统的下一步状态就是由当前状态和当前的控制输入决定的。有了它，我们就",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 82.09,
+     "endSeconds": 95.18,
+     "textPreview": "接下来是第二部分解码系统框图。千万别被那些复杂的微积分和矩阵给吓退了啊。NPC真",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 95.18,
+     "endSeconds": 106.38,
+     "textPreview": "咱们直接来看这个，这可是NPC最最核心的工作循环框图。一眼看过去，满屏幕的方块和",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 106.38,
+     "endSeconds": 119.46,
+     "textPreview": "但其实你完全可以把它想象成咱们平时开车用的智能导航。系统先定位你现在的测量位置，",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 119.46,
+     "endSeconds": 132.18,
+     "textPreview": "最后你踩一下油门，就这么顺理成章。咱们把这个循环掰开揉碎，其实就是四个非常干脆的",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 132.18,
+     "endSeconds": 142.66,
+     "textPreview": "第二步，用数学模型去预测未来的轨迹；第三步，在各种物理条条框框的约束下。算出一个",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 12,
+     "startSeconds": 142.66,
+     "endSeconds": 151.3,
+     "textPreview": "最不可思议的是第四步，不管你在第三步把未来几百步规划得多么完美，我们永远只执行第",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 151.3,
+     "endSeconds": 160.58,
+     "textPreview": "这就好比你蒙着眼睛往前试探性地走了一小步，然后马上睁开眼确认一下位置，接着再次重",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 160.58,
+     "endSeconds": 170.05,
+     "textPreview": "这在控制界有个大名鼎鼎的名字，叫滚动时域控制。永远在计划未来，但也永远只立足于当",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 170.05,
+     "endSeconds": 184.45,
+     "textPreview": "那我们进入第三部分优化与滚动时域。接下来咱们得碰一点点优化模块的数学逻辑了，但我",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 184.45,
+     "endSeconds": 193.55,
+     "textPreview": "你看眼前这个乍一看有点唬人的代价函数G。其实它就是系统拼了老命要去优化的终极目标",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 193.55,
+     "endSeconds": 204.11,
+     "textPreview": "这里的E代表误差，U呢就是控制动作，而且还要受到最大最小控制量的限制。你就把它当",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 204.11,
+     "endSeconds": 214.27,
+     "textPreview": "咱们的MPC系统就像是一个有强迫症的高阶玩家，他唯一的念头就是千方百计把这个总惩",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 214.27,
+     "endSeconds": 223.47,
+     "textPreview": "那系统自己在里头是怎么权衡的呢？这个函数里有两个成天打架的大佬，矩阵Q和矩阵R。",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 223.47,
+     "endSeconds": 234.27,
+     "textPreview": "Q负责干嘛呢？它负责惩罚跟踪误差，也就是说车头一旦偏离路线，它就疯狂扣分，逼着系",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-224a99f37dc359e50c070e54",
+       "matchedLabel": "跟踪误差",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 21,
+     "startSeconds": 234.27,
+     "endSeconds": 250.72,
+     "textPreview": "但是R负责惩罚控制代价，要是你方向盘打得太猛，操作太费能。它也会狠狠扣你的分儿。",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 250.72,
+     "endSeconds": 262.96,
+     "textPreview": "到了第四部分，当模型遭遇现实，咱们得面对一个工程界最残酷的反转了。电脑里推导的再",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 262.96,
+     "endSeconds": 276.35,
+     "textPreview": "比如说一艘船的航向控制系统。纸面上假设它的名义时间长数是80秒，但在狂风巨浪的真",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 276.35,
+     "endSeconds": 294.07,
+     "textPreview": "这种参数漂移的带撒，那可是相当惨痛的。真正有意思的是，你看这里红色的虚线是我们以",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 294.07,
+     "endSeconds": 305.75,
+     "textPreview": "这两条线之间这么大的一道鸿沟，就是典型的纸上谈兵，在现实面前摔得粉碎。参数只要一",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 305.75,
+     "endSeconds": 318.63,
+     "textPreview": "那这是无解了吗？这时候数据像超级英雄一样登场了。你看，当真实系统偏离模型时，红线",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 318.63,
+     "endSeconds": 332.44,
+     "textPreview": "但是一旦我们引入了基于早期数据修正的这条蓝线，诶，系统硬生生的就把狂飙的误差给拉",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 332.44,
+     "endSeconds": 346.1,
+     "textPreview": "朋友们，这就是咱们工程界常说的大力出奇迹，数据驱动硬生生拯救了系统。这种让人惊叹",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 346.1,
+     "endSeconds": 362.9,
+     "textPreview": "迈入数据驱动时代，当越来越复杂的系统让传统的激励建模变得极其困难时，这种巨大的模",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 362.9,
+     "endSeconds": 376.08,
+     "textPreview": "咱们顺着时间轴快速理一下啊，在2000年以前，基本是令的经典系统便是理论一统天下",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 376.08,
+     "endSeconds": 392.24,
+     "textPreview": "到了2005年，Williams提出了激励持续性，然后真正属于你们这个时代的爆发",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 392.24,
+     "endSeconds": 404.68,
+     "textPreview": "紧接着2021年，Burberry又搞出了有严密理论保证的数据驱动MPC。可以说",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 404.68,
+     "endSeconds": 429.84,
+     "textPreview": "学弟学妹们，如果说你们想在接下来的专业学习里抓住点能脱颖而出的核心密码，请务必一",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 429.84,
+     "endSeconds": 441.76,
+     "textPreview": "节了。这就是摆在你们这代工程师面前的星辰大海。可以这么说，谁玩转了数据跟控制的融",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 441.76,
+     "endSeconds": 452.43,
+     "textPreview": "好了，今天关于MPC的硬核剖析就先聊到这儿。在咱们结束这期解析之前，我想把这个极",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 452.43,
+     "endSeconds": 462.19,
+     "textPreview": "在看得见的未来，狂飙突进的机器学习，加上无处不在的实时数据，到底会怎么把传统自动",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 462.19,
+     "endSeconds": 473.63,
+     "textPreview": "我真心建议大家别只盯着书本上那些四平八稳的推导公式了，去实验室里敲敲代码，去握握",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 473.63,
+     "endSeconds": 481.07,
+     "textPreview": "希望今天的分享能给大家带来一点灵感，咱们下期深度解析不见不散。",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "d08b19a869ebecdc48bbaf2517b2f3599aadc424384f5c62b5d462d914cc18b7",
+   "status": "anchored"
+  }
+ ]
+}

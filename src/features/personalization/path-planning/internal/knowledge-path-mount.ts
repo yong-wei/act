@@ -21,6 +21,7 @@ import {
   scoreFilledPath,
   selectPriorityKnowledgeSkeleton,
 } from '../knowledge-path-assembly';
+import { knowledgeResourceAdmission } from '../application/mastery-thresholds';
 import {
   resolveKnowledgePathPolicy,
   type KnowledgePathPolicy,
@@ -117,6 +118,8 @@ export function assembleKnowledgePathPlan(
   const hasPortrait = preferredTypes.length > 0;
   const masteryById = masteryByCanonicalId(input.learnerState?.knowledgeMastery?.tags);
   const deadline = Date.now() + (options.heuristicTimeoutMs ?? policy.heuristicTimeoutMs);
+  const masteryTags = input.learnerState?.knowledgeMastery?.tags ?? {};
+  const admissionOf = (canonicalId: string) => knowledgeResourceAdmission(masteryTags[canonicalId]);
   const byKnowledge = indexResourcesByKnowledge([...feasibleKnowledge], candidates, scopedIds);
   const expandedIds = buildKnowledgeSkeleton(targets, edges, 'required')
     .knowledgeIds
@@ -137,6 +140,7 @@ export function assembleKnowledgePathPlan(
     !targets.includes(id)
     && isAssertionLikeKnowledge(id, { label: labels.get(id), assertionIds }),
   );
+  const skippedMastered = [...feasibleKnowledge].filter((id) => admissionOf(id) === 'skip');
   const styles = STYLE_META.map((style) => {
     const kinds = style.family === 'preference-matched' && preferredTypes.length
       ? preferredTypes
@@ -152,6 +156,7 @@ export function assembleKnowledgePathPlan(
       masteryById,
       deadline,
       policy,
+      admissionOf,
     });
     return {
       style,
@@ -187,7 +192,9 @@ export function assembleKnowledgePathPlan(
     ...(preferredTypes.length === 0 ? ['trusted-portrait-unavailable'] : []),
     ...(nonEmpty.fill.method === 'deterministic-timeout' ? ['heuristic-timeout'] : []),
     ...(styles.some((entry) => entry.clipped) ? ['path-length-capped'] : []),
-    ...(styles.some((entry) => entry.masteredDropped) ? ['mastered-knowledge-skipped'] : []),
+    ...(styles.some((entry) => entry.masteredDropped) || skippedMastered.length > 0
+      ? ['mastered-knowledge-skipped']
+      : []),
     ...(droppedAssertions ? ['assertion-knowledge-skipped'] : []),
   ];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
@@ -231,6 +238,7 @@ export function assembleKnowledgePathPlan(
         'goal-knowledge-path',
         'knowledge-skeleton',
         'bound-resource-fill',
+        'first-appearance-preferred',
         `fill:${nonEmpty.fill.method}`,
       ],
       rejectedAlternatives: [],
@@ -511,6 +519,8 @@ function toPlanNodes(
       terminalConstraints: node.planningMetadata.terminalConstraints,
       score: 1,
       reasonCodes: ['knowledge-path-mount', `knowledge:${entry.canonicalId}`],
+      appearance: published?.appearance ?? null,
+      anchorLabel: published?.anchorLabel ?? null,
       status: isCompleted ? 'completed' : node.id === currentNodeId || index === 0 ? 'current' : 'next',
       readiness: {
         state: 'ready',

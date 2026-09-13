@@ -1,0 +1,1563 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "2-3",
+ "unitIndex": 7,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/2-3/2-3-handout.md",
+  "sha256": "7d1abcafcd8a519364c4276916bc6564e4065c8b81d5af908ce1cc089bd52d42"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "回到地图——从时域对象走向频域对象",
+   "groupName": "引入与频域入口",
+   "textChars": 99,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-6280f0cd5c8f281d399cb327",
+     "matchedLabel": "时间响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "情境引入——系统为什么会挑节奏",
+   "groupName": "引入与频域入口",
+   "textChars": 204,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "学习目标——这节课要建立哪套频域语言",
+   "groupName": "引入与频域入口",
+   "textChars": 101,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+     "matchedLabel": "稳态响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "matchedLabel": "正弦稳态响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "前测——低频、高频与正弦输入判断",
+   "groupName": "引入与频域入口",
+   "textChars": 211,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "从时域问题走向频域问题",
+   "groupName": "引入与频域入口",
+   "textChars": 187,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "方波、频率分量与重构直觉",
+   "groupName": "频率分量与正弦稳态",
+   "textChars": 224,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "正弦函数_1_98499ac0"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "正弦稳态响应_5_b6dc1100"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "正弦输入为什么会导向同频输出",
+   "groupName": "频率分量与正弦稳态",
+   "textChars": 202,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "正弦函数_1_98499ac0"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "正弦稳态响应_5_b6dc1100"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "幅值变化与相位变化的物理意义",
+   "groupName": "频率分量与正弦稳态",
+   "textChars": 208,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-0e5d22ed0afee37f65584d36",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "正弦函数_1_98499ac0"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "正弦稳态响应_5_b6dc1100"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "频率特性：G(jω)、幅频与相频",
+   "groupName": "G(jω) 与幅相语言",
+   "textChars": 206,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相频特性_5_abda14da"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "幅频特性_5_4e8408d2"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "为什么可以令 s=jω",
+   "groupName": "G(jω) 与幅相语言",
+   "textChars": 194,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctc:modeling-aa10e4daa1e969c557f6ef83",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "传递函数_1_5b0faf8b"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "频率特性_5_404adfdd"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "相频特性_5_abda14da"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "幅频特性_5_4e8408d2"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "为什么要画 Bode 图",
+   "groupName": "Bode 表示与首轮判断",
+   "textChars": 204,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 36,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "对数频率特性曲线_5_75c6945f"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "典型环节 Bode 第一判断",
+   "groupName": "Bode 表示与首轮判断",
+   "textChars": 207,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "对数频率特性曲线_5_75c6945f"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "基础手绘骨架：标准型、转折频率与趋势",
+   "groupName": "Bode 表示与首轮判断",
+   "textChars": 240,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "对数频率特性曲线_5_75c6945f"
+    }
+   ]
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "例题一——单一正弦输入下的稳态输出",
+   "groupName": "Bode 表示与首轮判断",
+   "textChars": 227,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "对数频率特性曲线_5_75c6945f"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "例题二——多频输入的重塑过程与 AI 对照",
+   "groupName": "Bode 表示与首轮判断",
+   "textChars": 243,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-be9c82d423b46b7fc6937236",
+     "provenance": "sequence-crosswalk",
+     "courseNodeId": "对数频率特性曲线_5_75c6945f"
+    }
+   ]
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "后测——对象会读，更要会画",
+   "groupName": "后测与收束",
+   "textChars": 200,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "总结与后续预告——走向 Nyquist 与频域指标",
+   "groupName": "后测与收束",
+   "textChars": 123,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-引入-系统为何具有频率选择性",
+   "order": 1,
+   "level": 2,
+   "title": "一、引入：系统为何具有频率选择性",
+   "startLine": 15,
+   "endLine": 42,
+   "bodyChars": 899,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "matchedLabel": "正弦稳态响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": true,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-核心内容",
+   "order": 2,
+   "level": 2,
+   "title": "二、核心内容",
+   "startLine": 43,
+   "endLine": 44,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-从时域问题到频域问题的过渡",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 从时域问题到频域问题的过渡",
+   "startLine": 45,
+   "endLine": 74,
+   "bodyChars": 800,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "matchedLabel": "正弦稳态响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+     "matchedLabel": "稳定时间",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+     "matchedLabel": "稳态响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-为何需要基于傅里叶思想展开",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 为何需要基于傅里叶思想展开",
+   "startLine": 75,
+   "endLine": 106,
+   "bodyChars": 960,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-正弦输入为何导出“同频输出”",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 正弦输入为何导出“同频输出”",
+   "startLine": 107,
+   "endLine": 150,
+   "bodyChars": 974,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-频率特性-幅频特性与相频特性",
+   "order": 6,
+   "level": 3,
+   "title": "2.4 频率特性、幅频特性与相频特性",
+   "startLine": 151,
+   "endLine": 261,
+   "bodyChars": 2398,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 144,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+     "matchedLabel": "相频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+     "matchedLabel": "幅频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h7-从-$G-s-$-到-$G-j\\omega-$-为何允许-$s=",
+   "order": 7,
+   "level": 3,
+   "title": "2.5 从 $G(s)$ 到 $G(j\\omega)$：为何允许 $s=j\\omega$ 的替换",
+   "startLine": 262,
+   "endLine": 296,
+   "bodyChars": 599,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-ee4c217b305b05786c0b89a9",
+     "matchedLabel": "正弦稳态响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-9ba52fe3ff16aed315b747c8",
+     "matchedLabel": "拉普拉斯变换",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+     "matchedLabel": "稳态响应",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-频率分量重构-为何频域分析能解释阶跃响应",
+   "order": 8,
+   "level": 3,
+   "title": "2.6 频率分量重构：为何频域分析能解释阶跃响应",
+   "startLine": 297,
+   "endLine": 326,
+   "bodyChars": 712,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-例题精解",
+   "order": 9,
+   "level": 2,
+   "title": "三、例题精解",
+   "startLine": 327,
+   "endLine": 328,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-例题一-单一正弦输入下的稳态输出",
+   "order": 10,
+   "level": 3,
+   "title": "3.1 例题一：单一正弦输入下的稳态输出",
+   "startLine": 329,
+   "endLine": 403,
+   "bodyChars": 884,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-例题二-多频输入的“重塑”过程",
+   "order": 11,
+   "level": 3,
+   "title": "3.2 例题二：多频输入的“重塑”过程",
+   "startLine": 404,
+   "endLine": 495,
+   "bodyChars": 1104,
+   "canonical": []
+  },
+  {
+   "headingId": "h12-例题总结与方法归纳",
+   "order": 12,
+   "level": 3,
+   "title": "3.3 例题总结与方法归纳",
+   "startLine": 496,
+   "endLine": 509,
+   "bodyChars": 259,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-工程视角-控制系统为何不宜盲目追踪高频扰动",
+   "order": 13,
+   "level": 2,
+   "title": "四、工程视角：控制系统为何不宜盲目追踪高频扰动",
+   "startLine": 510,
+   "endLine": 518,
+   "bodyChars": 337,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-章节小结与课程衔接",
+   "order": 14,
+   "level": 2,
+   "title": "五、章节小结与课程衔接",
+   "startLine": 519,
+   "endLine": 520,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h15-核心结论整理",
+   "order": 15,
+   "level": 3,
+   "title": "5.1 核心结论整理",
+   "startLine": 521,
+   "endLine": 528,
+   "bodyChars": 292,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+     "matchedLabel": "相频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+     "matchedLabel": "幅频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-课程体系衔接",
+   "order": 16,
+   "level": 3,
+   "title": "5.2 课程体系衔接",
+   "startLine": 529,
+   "endLine": 545,
+   "bodyChars": 407,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h17-附录-A-|-为何正弦输入的稳态输出仍为同频正弦",
+   "order": 17,
+   "level": 2,
+   "title": "附录 A | 为何正弦输入的稳态输出仍为同频正弦",
+   "startLine": 546,
+   "endLine": 591,
+   "bodyChars": 638,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+     "matchedLabel": "频率响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-附录-B-|-典型环节频率特性速查表与简要计算",
+   "order": 18,
+   "level": 2,
+   "title": "附录 B | 典型环节频率特性速查表与简要计算",
+   "startLine": 592,
+   "endLine": 597,
+   "bodyChars": 107,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-B-1-速查表",
+   "order": 19,
+   "level": 3,
+   "title": "B.1 速查表",
+   "startLine": 598,
+   "endLine": 609,
+   "bodyChars": 950,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+     "matchedLabel": "频率特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+     "matchedLabel": "相频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+     "matchedLabel": "幅频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-B-2-比例环节",
+   "order": 20,
+   "level": 3,
+   "title": "B.2 比例环节",
+   "startLine": 610,
+   "endLine": 637,
+   "bodyChars": 198,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-B-3-积分环节",
+   "order": 21,
+   "level": 3,
+   "title": "B.3 积分环节",
+   "startLine": 638,
+   "endLine": 671,
+   "bodyChars": 278,
+   "canonical": [
+    {
+     "canonicalId": "m1r-v1d:formula:b17852cfb0df6eb9a9f6dd2f",
+     "matchedLabel": "G(s)=\\frac{1}{s}",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-B-4-微分环节",
+   "order": 22,
+   "level": 3,
+   "title": "B.4 微分环节",
+   "startLine": 672,
+   "endLine": 699,
+   "bodyChars": 194,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-B-5-一阶惯性环节",
+   "order": 23,
+   "level": 3,
+   "title": "B.5 一阶惯性环节",
+   "startLine": 700,
+   "endLine": 738,
+   "bodyChars": 397,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+     "matchedLabel": "传递函数",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-B-6-振荡环节",
+   "order": 24,
+   "level": 3,
+   "title": "B.6 振荡环节",
+   "startLine": 739,
+   "endLine": 781,
+   "bodyChars": 801,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-附录-C-|-MATLAB-Octave-复现代码",
+   "order": 25,
+   "level": 2,
+   "title": "附录 C | MATLAB/Octave 复现代码",
+   "startLine": 782,
+   "endLine": 785,
+   "bodyChars": 75,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-C-1-`-2-1-1-command-vs-disturban",
+   "order": 26,
+   "level": 3,
+   "title": "C.1 `(2.1.1.command-vs-disturbance.m)`",
+   "startLine": 786,
+   "endLine": 819,
+   "bodyChars": 700,
+   "canonical": []
+  },
+  {
+   "headingId": "h27-C-2-`-2-2-1-square-wave-harmonic",
+   "order": 27,
+   "level": 3,
+   "title": "C.2 `(2.2.1.square-wave-harmonics.m)`",
+   "startLine": 820,
+   "endLine": 834,
+   "bodyChars": 585,
+   "canonical": []
+  },
+  {
+   "headingId": "h28-C-3-`-2-3-1-sine-steady-response",
+   "order": 28,
+   "level": 3,
+   "title": "C.3 `(2.3.1.sine-steady-response.m)`",
+   "startLine": 835,
+   "endLine": 853,
+   "bodyChars": 294,
+   "canonical": []
+  },
+  {
+   "headingId": "h29-C-4-`-B-1-typical-frequency-char",
+   "order": 29,
+   "level": 3,
+   "title": "C.4 `(B.1.typical-frequency-characteristics.m)`",
+   "startLine": 854,
+   "endLine": 887,
+   "bodyChars": 990,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-9967c0867249bf4c1a625dab",
+     "matchedLabel": "相频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-de873c97a924107857f79242",
+     "matchedLabel": "幅频特性",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "2-3-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/2-3/media/2-3-audio.m4a",
+   "sha256": "52b8a246c143cb1f990dc179b97a2151e3b8bb33411f817f31dfd0f416b44a10",
+   "durationSeconds": 872.141497,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/2-3.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.12,
+     "textPreview": "深夜了呃你可能正坐在书桌前是一名正在死磕自动控制原理的自动化专业大学生面前大概还",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.24,
+     "textPreview": "课非要和满黑板的正弦波复数过不去物理世界里哪有那么完美的正弦波呀其实这也是很多初",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.24,
+     "endSeconds": 76.76,
+     "textPreview": "极其挑剔的眼光在审视这个世界的那个其实如果我们拨开那些复杂的数学外衣任何一个控制",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 77.24,
+     "endSeconds": 102.28,
+     "textPreview": "其实就是这个守门员手里拿着的通行证审查标准哇哦这个视角有点绝了就是说系统自己会挑",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 102.36,
+     "endSeconds": 127.36,
+     "textPreview": "的嗯就像影子一样对最多只是稍微慢了半拍但如果闯进来的是一个剧烈上下震荡的高频扰动",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 127.36,
+     "endSeconds": 152.48,
+     "textPreview": "日常生活中开车的场景哦开车过路障那个比喻对吧对低频信号的就像是你握着方向盘正在平",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 165.0,
+     "endSeconds": 190.12,
+     "textPreview": "以极高的频率方狂振动这时候汽车的悬挂系统就介入了就是弹簧和矩泥器发挥作用了是的悬",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 190.52,
+     "endSeconds": 220.08,
+     "textPreview": "绝大多数控制系统在本质上都具有低通滤波的特性为什么会这样呢因为在真实的工程环境中",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 220.08,
+     "endSeconds": 245.28,
+     "textPreview": "以物理世界的质量和惯性天然的就在拒绝这种瞬间的高频的剧烈改变完全正确系统对低频畅",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 245.28,
+     "endSeconds": 275.0,
+     "textPreview": "弦稳态响应存在的意义了吧是的当我们尝试用数学去描述这种态度时会发现一个极其优雅的",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-0fa44601675cb175f5df9562",
+       "matchedLabel": "稳态响应",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 275.0,
+     "endSeconds": 300.2,
+     "textPreview": "入一个完美的正弦波等系统最初的那阵惊慌失措也就是瞬态过程结束之后进入稳定状态你会",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-26ca57c1d48b4588cb72f6a0",
+       "matchedLabel": "线性时不变系统",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 14,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 300.2,
+     "endSeconds": 330.0,
+     "textPreview": "绝对不改变就像一个特别固执的翻唱歌手对节奏绝对跟着原唱走他能做的事情只有两件第一",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 330.0,
+     "endSeconds": 355.36,
+     "textPreview": "二件呢第二就是在时间上把这个波往后推迟一点也就是禁拍慢了一点儿这就是相位的滞后哇",
+     "canonical": [
+      {
+       "canonicalId": "ctc:90af7a0497e616bbe6249c30",
+       "matchedLabel": "微分方程",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 355.68,
+     "endSeconds": 385.0,
+     "textPreview": "正弦波进去出来的必定还是同频率的正弦波变数仅仅是幅值的缩放和相位的偏移那么我们只",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 385.0,
+     "endSeconds": 410.2,
+     "textPreview": "么简单直接JOmega本质上就是打开这扇大门的钥匙但是这就让我产生了一个新的疑问",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 410.52,
+     "endSeconds": 440.0,
+     "textPreview": "我们就得看看讲义里的方波谐波拆解图了在傅离夜的视角下这个世界上根本不存在什么至上",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 440.0,
+     "endSeconds": 465.04,
+     "textPreview": "伏平缓的基波加上无数个高频谐波堆叠成的对你把三次五次七次血波像搭积木一样叠上去高",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 465.04,
+     "endSeconds": 495.0,
+     "textPreview": "统变迟钝是个设计缺失对吧难道不是吗我推下电闸我当然希望电机瞬间达到额定转速越快越",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "机如果你要求他再零点零零零一秒内转速从零瞬间跳变到三千转每分你知道这意味的什么吗",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 520.12,
+     "endSeconds": 550.0,
+     "textPreview": "迟钝其实是物理惯性在保护这台机器不被瞬间巨大的能量撕裂绝了高频胁迫原来是带着毁灭",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 550.0,
+     "endSeconds": 575.04,
+     "textPreview": "一点呢怎么复杂法在真实环境里系统往往要同时面对混合信号比如讲义里三点二章节那个经",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 575.04,
+     "endSeconds": 605.0,
+     "textPreview": "米根等于零点二的值令经过计算它的幅值乘数高达0981也就是说几乎百分之百完好无损",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 605.0,
+     "endSeconds": 660.0,
+     "textPreview": "滞后了113度但对于高品分量那个欧米根等于五的噪音他的命运就悲惨了是的幅值乘数骤",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 660.0,
+     "endSeconds": 687.2,
+     "textPreview": "么这一切究竟意味着什么呢我们学了这么多系统的态其实归根结底都要落实到搭建世界的基",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 687.2,
+     "endSeconds": 715.0,
+     "textPreview": "远小于一时意思是外界的变化极慢系统游刃有余是的此时幅值接近一相位接近零度也就",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 715.96,
+     "endSeconds": 741.32,
+     "textPreview": "是大摇大摆的走VIP通道那第二个频段当OMEGAT刚好等于一的时候呢这是一个关键",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 741.32,
+     "endSeconds": 770.0,
+     "textPreview": "如比例环节永远零度积分永远负90度微分永远正90度是的所以你甚至不需要计算复杂的",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 770.0,
+     "endSeconds": 795.12,
+     "textPreview": "的边界找到转折点左边平直右边向下俯冲对你就能徒手画出系统的BOLD图了也是后续章",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 28,
+     "startSeconds": 795.12,
+     "endSeconds": 825.0,
+     "textPreview": "存没错不过在节目的最后我脑子里突然冒出了一个极其矛盾极端的想法想留给各位去思考什",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 825.0,
+     "endSeconds": 850.28,
+     "textPreview": "它过滤了噪音保护了系统免受冲击对啊这是常事但是你们有没有想过一种生死存亡的极端情",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 850.28,
+     "endSeconds": 871.96,
+     "textPreview": "真的是个直击灵魂的难题所以作为未来的控制工程师您应该如何设计一个技能过滤高频噪音",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "52b8a246c143cb1f990dc179b97a2151e3b8bb33411f817f31dfd0f416b44a10",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "2-3-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/2-3/media/2-3-intro-video.mp4",
+   "sha256": "85fbea586946fc5adfb459a57885a11ba2202660e4aa295069f681cdc84b066f",
+   "durationSeconds": 300.629333,
+   "transcriptSource": "videos-project:lesson-2-3/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 278.567,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 300.567,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 77,
+   "segments": [],
+   "activeReleaseSha256": "14d2f6e5ac4f051dcec7e3e990f228ee3950636df3159c88037188cd1527d506",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "2-3-course",
+   "kind": "video",
+   "runtimePath": "lessons/2-3/media/2-3-course.mp4",
+   "sha256": "b63304a0a6b9367f14f23f5d1f26557c14da23ecfd17ec8101a02d576ab11437",
+   "durationSeconds": 285.698322,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/2-3.json",
+   "transcriptSourceSha256": "b63304a0a6b9367f14f23f5d1f26557c14da23ecfd17ec8101a02d576ab11437",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 13.52,
+     "textPreview": "哈喽，同学们，今天咱们来聊一个工程学历超重要的概念，就是这个频率响应。咱们先来想",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 13.52,
+     "endSeconds": 24.8,
+     "textPreview": "有的信号能大摇大摆的进去，有的信号呢，却被无情的拒之门外，特挑剔。对吧，诺，你看",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 24.8,
+     "endSeconds": 35.36,
+     "textPreview": "上面这个呢，是个慢悠悠的低频型号，也就是慢节奏的节开。你看它过去之后，基本上没啥",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 35.36,
+     "endSeconds": 44.65,
+     "textPreview": "但下面这个呢，是个快节奏的高频型号，结果怎么样？唉，直接被系统给削了一大截，振幅",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 44.65,
+     "endSeconds": 57.45,
+     "textPreview": "所以说系统这种挑剔的性格到底是怎么回事呢？嗯，要搞懂这个，咱们就得从所有信号的可",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 57.45,
+     "endSeconds": 70.09,
+     "textPreview": "这里有个特别有意思的点就是不管多复杂的信号，你比如说方波吧，它其实啊就是一堆普普",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 70.09,
+     "endSeconds": 82.19,
+     "textPreview": "不信咱们现场来搭个方波看看。好，第一步咱们先拿出最基础的那一块基木，也就是基波，",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 82.19,
+     "endSeconds": 93.95,
+     "textPreview": "然后呢，咱们再往上加点料，叠上几个频率更高的正弦波。我们管这个叫谐波，你看这么一",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 93.95,
+     "endSeconds": 102.99,
+     "textPreview": "我们加的这种高频积木越多呢，这个方波的边边角角啊就越锋利，越接近一个完美的方块。",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 102.99,
+     "endSeconds": 112.96,
+     "textPreview": "好，关键的地方来了，咱们前面说的那个挑剔的系统，它干了什么呢？它其实就像一个筛子",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 112.96,
+     "endSeconds": 125.84,
+     "textPreview": "它把那些高频的成分全都给筛掉了，所以你那个棱角分明的方波一进去，出来就又变得圆滑",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 125.84,
+     "endSeconds": 136.99,
+     "textPreview": "所以啊，这下就通了。核心思想就是，只要咱们能搞明白一个系统是怎么对待一个最简单的",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 136.99,
+     "endSeconds": 153.47,
+     "textPreview": "怎么都能算出来。那么有没有什么工具能帮我们做到这一点呢？当然有，我喜欢把它叫做一",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-8496155b16d82318d90949d0",
+       "matchedLabel": "频率响应",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 153.47,
+     "endSeconds": 168.06,
+     "textPreview": "我知道看到这个公式可能有点头大，但别怕，它真没那么复杂。说白了，它就告诉我们两件",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 168.06,
+     "endSeconds": 180.35,
+     "textPreview": "第二呢，是相位，也就是这个系统会让信号延迟多久再出来。就这么简单，行。那咱们现在",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 180.35,
+     "endSeconds": 190.19,
+     "textPreview": "你看，结果就摆在眼前了。蓝色的线是咱们输进去的正弦波，橙色的线呢，就是系统处理完",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 190.19,
+     "endSeconds": 200.03,
+     "textPreview": "很明显吧，输出信号的个头变小了，而且还往右边挪了挪，这就是幅值变小，相位延迟了。",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 200.03,
+     "endSeconds": 209.39,
+     "textPreview": "边这个柱状图就是把变化用数字给你标出来了。你看，幅值从一降到了058，差不多砍了",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 209.39,
+     "endSeconds": 220.52,
+     "textPreview": "相位呢，延迟了差不多54度，跟咱们看到的一模一样。咱们甚至可以跟着算一下第一步，",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 220.52,
+     "endSeconds": 233.64,
+     "textPreview": "第二步，把它带进那个GOGOGO的公式里。然后呢，噼里啪啦一通计算，就得出了第三",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 233.64,
+     "endSeconds": 245.24,
+     "textPreview": "意思就是说，输出信号的个头会变成输入的0447倍，并且会慢634度才出来。当然了",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 245.24,
+     "endSeconds": 257.48,
+     "textPreview": "所以工程师们就想了个特别聪明的办法，一个快捷方式。这时候啊，就轮到像博德图啊、奈",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-763fd65e573e7a65dfc4b79c",
+       "matchedLabel": "奈奎斯特图",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 10,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 257.48,
+     "endSeconds": 274.78,
+     "textPreview": "他们能干嘛呢？他们能把系统对所有频率的反应一次性画在一张图上，让你一目了然。所以",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 274.78,
+     "endSeconds": 285.7,
+     "textPreview": "它到底对哪些节奏的信号会亮绿灯，又会对哪些节奏的信号说不好意思，你不能进，是不是",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "b63304a0a6b9367f14f23f5d1f26557c14da23ecfd17ec8101a02d576ab11437",
+   "status": "anchored"
+  }
+ ]
+}

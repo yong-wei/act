@@ -1,0 +1,1239 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "4-3",
+ "unitIndex": 20,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/4-3/4-3-handout.md",
+  "sha256": "2936f4cd5b8bb20d1e85c0895d594cf2701688111993e6971a3b1c29f08faa35"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "单结构候选走向工程复合方案",
+   "groupName": null,
+   "textChars": 126,
+   "canonical": []
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "本次课程目标",
+   "groupName": null,
+   "textChars": 123,
+   "canonical": []
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "前置基础读图与信号判断",
+   "groupName": null,
+   "textChars": 104,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "单结构候选留下的设计缺口",
+   "groupName": "单结构候选缺口",
+   "textChars": 366,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+     "matchedLabel": "补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "狭义复合控制与广义复合控制边界",
+   "groupName": "复合控制边界",
+   "textChars": 221,
+   "canonical": []
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "反馈主结构与复合控制总表达",
+   "groupName": "复合控制边界",
+   "textChars": 264,
+   "canonical": []
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "扰动前馈与反馈的分工关系",
+   "groupName": "扰动前馈与反馈保底",
+   "textChars": 283,
+   "canonical": []
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "参考前馈与给定通道塑形",
+   "groupName": "参考通道与给定滤波",
+   "textChars": 308,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+     "matchedLabel": "前馈控制",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "Bode 主环路分析的适用边界",
+   "groupName": "Bode 边界与首轮读数",
+   "textChars": 293,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+     "matchedLabel": "量化误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "微分滤波与输出微分实现",
+   "groupName": "实现层复合保护",
+   "textChars": 177,
+   "canonical": []
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "给定滤波与二自由度结构",
+   "groupName": "参考通道与给定滤波",
+   "textChars": 173,
+   "canonical": []
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "限幅斜率限制与抗积分饱和",
+   "groupName": "实现层复合保护",
+   "textChars": 372,
+   "canonical": []
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "客船对象扰动加入点与反馈主结构",
+   "groupName": "客船通道题面",
+   "textChars": 342,
+   "canonical": []
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "客船扰动前馈的参数补偿",
+   "groupName": "扰动前馈与反馈保底",
+   "textChars": 367,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+     "matchedLabel": "补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-15",
+   "index": 14,
+   "title": "客船参考前馈的参数补偿",
+   "groupName": "参考通道与给定滤波",
+   "textChars": 310,
+   "canonical": []
+  },
+  {
+   "stepId": "step-16",
+   "index": 15,
+   "title": "客船给定滤波的平顺性权衡",
+   "groupName": "参考通道与给定滤波",
+   "textChars": 339,
+   "canonical": []
+  },
+  {
+   "stepId": "step-17",
+   "index": 16,
+   "title": "客船执行器保护与抗饱和验证",
+   "groupName": "首轮验证与问题清单",
+   "textChars": 648,
+   "canonical": []
+  },
+  {
+   "stepId": "step-18",
+   "index": 17,
+   "title": "复合控制初始方案后测",
+   "groupName": "后测概念回看",
+   "textChars": 110,
+   "canonical": []
+  },
+  {
+   "stepId": "step-19",
+   "index": 18,
+   "title": "经典复合控制方案总结",
+   "groupName": "首轮验证与问题清单",
+   "textChars": 252,
+   "canonical": []
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-从单结构候选进入复合控制问题",
+   "order": 1,
+   "level": 2,
+   "title": "一、从单结构候选进入复合控制问题",
+   "startLine": 12,
+   "endLine": 37,
+   "bodyChars": 833,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+     "matchedLabel": "补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+     "matchedLabel": "串联校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-狭义复合控制与广义复合控制",
+   "order": 2,
+   "level": 2,
+   "title": "二、狭义复合控制与广义复合控制",
+   "startLine": 38,
+   "endLine": 58,
+   "bodyChars": 594,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:9e92915575b3e20ce84b58ab",
+     "matchedLabel": "前馈补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+     "matchedLabel": "串联校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+     "matchedLabel": "补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h3-基本串联结构作为反馈主结构",
+   "order": 3,
+   "level": 2,
+   "title": "三、基本串联结构作为反馈主结构",
+   "startLine": 59,
+   "endLine": 90,
+   "bodyChars": 810,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+     "matchedLabel": "串联校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-c7228e5d5d171b0633b246e3",
+     "matchedLabel": "单位反馈",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-前馈与反馈的经典复合",
+   "order": 4,
+   "level": 2,
+   "title": "四、前馈与反馈的经典复合",
+   "startLine": 91,
+   "endLine": 92,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h5-扰动前馈与反馈的分工",
+   "order": 5,
+   "level": 3,
+   "title": "4.1 扰动前馈与反馈的分工",
+   "startLine": 93,
+   "endLine": 127,
+   "bodyChars": 380,
+   "canonical": []
+  },
+  {
+   "headingId": "h6-参考前馈与给定通道塑形",
+   "order": 6,
+   "level": 3,
+   "title": "4.2 参考前馈与给定通道塑形",
+   "startLine": 128,
+   "endLine": 157,
+   "bodyChars": 348,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-Bode-串联校正的局限",
+   "order": 7,
+   "level": 3,
+   "title": "4.3 Bode 串联校正的局限",
+   "startLine": 158,
+   "endLine": 173,
+   "bodyChars": 460,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-e1caec9f68da5c573be699d5",
+     "matchedLabel": "串联校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-c3d7e85e2b60c3320db8a44a",
+     "matchedLabel": "量化误差",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-实现层复合-让方案能在执行器上运行",
+   "order": 8,
+   "level": 2,
+   "title": "五、实现层复合：让方案能在执行器上运行",
+   "startLine": 174,
+   "endLine": 177,
+   "bodyChars": 85,
+   "canonical": []
+  },
+  {
+   "headingId": "h9-微分滤波与输出微分",
+   "order": 9,
+   "level": 3,
+   "title": "5.1 微分滤波与输出微分",
+   "startLine": 178,
+   "endLine": 195,
+   "bodyChars": 277,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-给定滤波与二自由度思想",
+   "order": 10,
+   "level": 3,
+   "title": "5.2 给定滤波与二自由度思想",
+   "startLine": 196,
+   "endLine": 211,
+   "bodyChars": 193,
+   "canonical": []
+  },
+  {
+   "headingId": "h11-限幅-斜率限制与抗积分饱和",
+   "order": 11,
+   "level": 3,
+   "title": "5.3 限幅、斜率限制与抗积分饱和",
+   "startLine": 212,
+   "endLine": 247,
+   "bodyChars": 841,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:domainconcept:e005a357d60eace63b3414ef",
+     "matchedLabel": "传感器噪声",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-锚点案例-客船航向控制的经典复合方案",
+   "order": 12,
+   "level": 2,
+   "title": "六、锚点案例：客船航向控制的经典复合方案",
+   "startLine": 248,
+   "endLine": 249,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-对象-扰动加入点与反馈主结构",
+   "order": 13,
+   "level": 3,
+   "title": "6.1 对象、扰动加入点与反馈主结构",
+   "startLine": 250,
+   "endLine": 294,
+   "bodyChars": 616,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-扰动前馈-先补偿可测扰动",
+   "order": 14,
+   "level": 3,
+   "title": "6.2 扰动前馈：先补偿可测扰动",
+   "startLine": 295,
+   "endLine": 335,
+   "bodyChars": 1026,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-c437a7c8ef65d5677ad5c387",
+     "matchedLabel": "补偿",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-参考前馈-在变化给定下减少反馈滞后",
+   "order": 15,
+   "level": 3,
+   "title": "6.3 参考前馈：在变化给定下减少反馈滞后",
+   "startLine": 336,
+   "endLine": 372,
+   "bodyChars": 984,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-a31f4a2e9bdbef014d44cfb8",
+     "matchedLabel": "反馈校正",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-90fe9648723adb7fc20557a7",
+     "matchedLabel": "稳态精度",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-给定滤波-让反馈通道看到更平滑的命令",
+   "order": 16,
+   "level": 3,
+   "title": "6.4 给定滤波：让反馈通道看到更平滑的命令",
+   "startLine": 373,
+   "endLine": 397,
+   "bodyChars": 542,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-限幅-斜率限制与抗积分饱和-处理真实执行器边界",
+   "order": 17,
+   "level": 3,
+   "title": "6.5 限幅、斜率限制与抗积分饱和：处理真实执行器边界",
+   "startLine": 398,
+   "endLine": 436,
+   "bodyChars": 990,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 6,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-首轮验证记录",
+   "order": 18,
+   "level": 3,
+   "title": "6.6 首轮验证记录",
+   "startLine": 437,
+   "endLine": 453,
+   "bodyChars": 602,
+   "canonical": []
+  },
+  {
+   "headingId": "h19-最小例题-给定滤波与前馈能解决什么",
+   "order": 19,
+   "level": 2,
+   "title": "七、最小例题：给定滤波与前馈能解决什么",
+   "startLine": 454,
+   "endLine": 461,
+   "bodyChars": 124,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h20-参考解答",
+   "order": 20,
+   "level": 3,
+   "title": "参考解答",
+   "startLine": 462,
+   "endLine": 471,
+   "bodyChars": 247,
+   "canonical": []
+  },
+  {
+   "headingId": "h21-实践任务与分层练习",
+   "order": 21,
+   "level": 2,
+   "title": "八、实践任务与分层练习",
+   "startLine": 472,
+   "endLine": 473,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h22-实践任务",
+   "order": 22,
+   "level": 3,
+   "title": "8.1 实践任务",
+   "startLine": 474,
+   "endLine": 484,
+   "bodyChars": 239,
+   "canonical": []
+  },
+  {
+   "headingId": "h23-分层练习",
+   "order": 23,
+   "level": 3,
+   "title": "8.2 分层练习",
+   "startLine": 485,
+   "endLine": 498,
+   "bodyChars": 340,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h24-小结",
+   "order": 24,
+   "level": 2,
+   "title": "九、小结",
+   "startLine": 499,
+   "endLine": 509,
+   "bodyChars": 341,
+   "canonical": []
+  },
+  {
+   "headingId": "h25-附录-A-经典复合控制初始方案记录项",
+   "order": 25,
+   "level": 2,
+   "title": "附录 A：经典复合控制初始方案记录项",
+   "startLine": 510,
+   "endLine": 524,
+   "bodyChars": 325,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-附录-B-参考文献",
+   "order": 26,
+   "level": 2,
+   "title": "附录 B：参考文献",
+   "startLine": 525,
+   "endLine": 531,
+   "bodyChars": 597,
+   "canonical": []
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "4-3-audio",
+   "kind": "audio",
+   "runtimePath": "lessons/4-3/media/4-3-audio.m4a",
+   "sha256": "499bbad1a1ff9335fafad21336abbffb822ebb1e800045c7e80f4fa21ada459b",
+   "durationSeconds": 1091.895147,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260823-asr-batch/audio-semantic-segments/4-3.json",
+   "transcriptSourceSha256": null,
+   "transcriptMatchesMedia": null,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 0,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.08,
+     "endSeconds": 25.12,
+     "textPreview": "凌晨两点你坐在实验室里对着屏幕上那个呃极其复杂的波的图发呆旁边可能还有一堆乱七八",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 1,
+     "startSeconds": 25.12,
+     "endSeconds": 50.16,
+     "textPreview": "那台破旧的实体电机上的时候硬件直接罢工了或者开始疯狂地鬼畜抖动对直接失控这时候你",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 50.16,
+     "endSeconds": 75.16,
+     "textPreview": "实验室里熬过大夜的你来说跨越这道鸿沟就是从一个只会解方程的学生真正蜕变为工程师的",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 75.16,
+     "endSeconds": 100.2,
+     "textPreview": "的生存指南是的在今天的原理深浅里我们不会再去嚼那些干瘪的闭环理论讲义直接把我们扔",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 100.2,
+     "endSeconds": 125.36,
+     "textPreview": "世界的巨浪笨重的机械舵机还有那些随时会把系统逼向喷毁的物理极限哇听起来就很刺激对",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctkg:domainconcept:c2edca0b60ba1ce87eb78146",
+       "matchedLabel": "前馈控制",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 5,
+     "startSeconds": 125.36,
+     "endSeconds": 150.4,
+     "textPreview": "的PID控制器说起啊呃在遇到现实的毒打之前大家总觉得闭环反馈能解决一切问题毕竟思",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 150.4,
+     "endSeconds": 175.48,
+     "textPreview": "动就是不进棺材不掉泪呗哈哈哈对也就是说无论发生了什么系统都必须先结实实的挨上一记",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 175.48,
+     "endSeconds": 200.52,
+     "textPreview": "向盘去补救但问题是如果我们明明已经透过挡风玻璃看到前面有一个巨大的浪头正朝着船头",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 200.52,
+     "endSeconds": 225.52,
+     "textPreview": "要说到钱汇了嗯为了解决你刚才提到的两种情况也就是看得见的波浪和已知的急转弯这份笔",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 225.52,
+     "endSeconds": 250.64,
+     "textPreview": "打过来有一个力对吧然后我们通过sensor或者模型预估到这个力的大小和方向那既然",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 250.64,
+     "endSeconds": 275.72,
+     "textPreview": "消本质上数学控是在这里做的事情就是拿波浪对传体的影响除以舵机对传体的影响然后再加",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 275.72,
+     "endSeconds": 300.84,
+     "textPreview": "界的海浪噪音一传进来系统根本不给他干扰航向的机会瞬间计算出反向波段直接在源头把干",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 300.84,
+     "endSeconds": 330.88,
+     "textPreview": "这种加速度转完系统就直接倒推回去算出舵必须立刻转10度然后一键执大根本不需要等反",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-44e603669ad0e6bf331b1511",
+       "matchedLabel": "反馈回路",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 330.88,
+     "endSeconds": 356.08,
+     "textPreview": "图让输入和输出之间形成一条毫无阻碍的高速公路那我就要抬杠了你说如果求你这么管用逆",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 356.08,
+     "endSeconds": 385.0,
+     "textPreview": "号而不是绝对等于哦因为物理世界不允许完美的逆存在没错因为有模型不确定性是因为我们",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 385.0,
+     "endSeconds": 410.12,
+     "textPreview": "频噪声你仔细想一想如果一个系统是纯管性的你要想让他的位置发生瞬间的阶跃改变它的速",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-7734a0845c335f160395bac0",
+       "matchedLabel": "数学模型",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 410.12,
+     "endSeconds": 440.0,
+     "textPreview": "机的电机被瞬间烧毁或者是机械齿轮直接崩断确实如此所以在讲义的实际操作中为了物理可",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 440.0,
+     "endSeconds": 465.12,
+     "textPreview": "上了一个惯性环节来进行近似处理强行把高频部分的增益给压了下来我明白了这就像是钱匮",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 465.2,
+     "endSeconds": 495.0,
+     "textPreview": "也就是twoDOF钱亏负责快反馈负责准通过这种组合系统不仅响应迅速而且非常稳健自",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 495.0,
+     "endSeconds": 520.12,
+     "textPreview": "分成分时我们实际上打开了潘多拉的魔盒唤醒了硬件最害怕的东西我猜你知道这个魔盒里装",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 520.2,
+     "endSeconds": 550.0,
+     "textPreview": "间的爆发力而断我们必须在指令到到硬件之前给他狠狠的踩一脚刹车这就是讲义里引入的下",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 550.0,
+     "endSeconds": 575.12,
+     "textPreview": "referencefiltering在资料里它被表达为一个一阶惯性滤波它的作用机",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-12baf451eabe4bb9e3a7eb0f",
+       "matchedLabel": "参考输入",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 575.12,
+     "endSeconds": 605.0,
+     "textPreview": "这个平滑曲线现在的控值率变得更复杂也更完善了它实际上充当了一个巨大的缓冲垫它确保",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 605.0,
+     "endSeconds": 630.12,
+     "textPreview": "后续所有计算的基础其变化率严格限制在物理硬件能够承受的范围之内对这是系统架构向前",
+     "canonical": []
+    },
+    {
+     "index": 24,
+     "startSeconds": 630.12,
+     "endSeconds": 660.24,
+     "textPreview": "份生存指南就说明在这看似完美的重重铠甲之下现实的物理世界依然准备了",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 660.24,
+     "endSeconds": 685.28,
+     "textPreview": "更残酷的毒打在等着我们现实的毒打终于来了我就知道没那么简单这个毒打就在于你永远无",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 685.28,
+     "endSeconds": 715.0,
+     "textPreview": "喊它也只能卡在24的位置嗡嗡作响硬件尽力了其实很多刚进实验室的新手可能会觉得这没",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 715.0,
+     "endSeconds": 740.2,
+     "textPreview": "嘛硬件尽力了就行呗大不了船转的慢一点多花点时间总能转过去对吧为什么这份资料里花了",
+     "canonical": []
+    },
+    {
+     "index": 28,
+     "startSeconds": 740.2,
+     "endSeconds": 770.0,
+     "textPreview": "机死死卡在24的时候传的转向速度必然远远达不到预期这意味着系统的误差会在很长一段",
+     "canonical": []
+    },
+    {
+     "index": 29,
+     "startSeconds": 770.0,
+     "endSeconds": 795.04,
+     "textPreview": "你的硬件是不是已经拼尽全力了他只看到误差没消除于是就不停的把这些巨大的误差加进积",
+     "canonical": []
+    },
+    {
+     "index": 30,
+     "startSeconds": 795.04,
+     "endSeconds": 825.0,
+     "textPreview": "使当前的误差是零那位会计的账本里可是攒着刚才好几分钟的天量旧账啊是的这就导致整个",
+     "canonical": []
+    },
+    {
+     "index": 31,
+     "startSeconds": 825.0,
+     "endSeconds": 850.12,
+     "textPreview": "最大值所以哪怕船已经转到位了舵依然死死地打在最左边24的位置根本推不下来结果就是",
+     "canonical": []
+    },
+    {
+     "index": 32,
+     "startSeconds": 850.12,
+     "endSeconds": 880.0,
+     "textPreview": "续瞎累加最后全崩溃这就是教科书上的完美线性理论在遭遇非线性物理限制时发生的惨烈车",
+     "canonical": []
+    },
+    {
+     "index": 33,
+     "startSeconds": 880.0,
+     "endSeconds": 905.04,
+     "textPreview": "金告诉他停止累加讲义在这里抛出了它的终极武器反算抗饱和机制也就是antiwind",
+     "canonical": []
+    },
+    {
+     "index": 34,
+     "startSeconds": 905.04,
+     "endSeconds": 936.28,
+     "textPreview": "机真正能执行的动作叫做实际指令大部分时候只要系统没碰壁这两个值是完全相等的对比如",
+     "canonical": []
+    },
+    {
+     "index": 35,
+     "startSeconds": 936.28,
+     "endSeconds": 961.4,
+     "textPreview": "就出现了比如理想指令是五但实际指令卡在了二点四这时候数学方法是用实际指令减去理想",
+     "canonical": []
+    },
+    {
+     "index": 36,
+     "startSeconds": 961.4,
+     "endSeconds": 990.0,
+     "textPreview": "比我们在系统里偷偷装了一个泄压阀平时硬件游刃有余的时候现实与理想的落差是零解押阀",
+     "canonical": []
+    },
+    {
+     "index": 37,
+     "startSeconds": 990.08,
+     "endSeconds": 1015.12,
+     "textPreview": "压力放掉资料中的对比结论极其正看没有抗爆和机制的系统在遇到硬件限服时航向响应出现",
+     "canonical": []
+    },
+    {
+     "index": 38,
+     "startSeconds": 1015.12,
+     "endSeconds": 1045.08,
+     "textPreview": "想的PID加上钱会应对扰动套上费率保护硬件最后装上反算抗爆和机制去兜底物理极限这",
+     "canonical": []
+    },
+    {
+     "index": 39,
+     "startSeconds": 1045.08,
+     "endSeconds": 1070.2,
+     "textPreview": "其实这也正是自动化工程师的价值所在你知道数学家假设世界是完美的而控制工程师却要在",
+     "canonical": []
+    },
+    {
+     "index": 40,
+     "startSeconds": 1070.2,
+     "endSeconds": 1091.56,
+     "textPreview": "负24作为条件写进基因里那会是怎样的降维打击那将是一个完全不同的控制哲学绝对的降",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "499bbad1a1ff9335fafad21336abbffb822ebb1e800045c7e80f4fa21ada459b",
+   "status": "anchored"
+  },
+  {
+   "mediaId": "4-3-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/4-3/media/4-3-intro-video.mp4",
+   "sha256": "29e7088fcb7e9c6e3b6de6e42860022c873889552c289e6f6b6f49eca49910a3",
+   "durationSeconds": 117.312,
+   "transcriptSource": "videos-project:lesson-4-3/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 95.267,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 117.267,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 28,
+   "segments": [],
+   "activeReleaseSha256": "95514c76c6410c24cca005ba11cf32f78af0f02bc571cb39aae6f6bddbcf3016",
+   "status": "media-drift-vs-active-release"
+  },
+  {
+   "mediaId": "4-3-course",
+   "kind": "video",
+   "runtimePath": "lessons/4-3/media/4-3-course.mp4",
+   "sha256": "0e79b1b0362479a0c11acadaf81e2430502d1705502739fad76e9fe667d697dd",
+   "durationSeconds": 406.279546,
+   "transcriptSource": "course-content/authoring/knowledge/formal-resource-remediation/20260913-course-video-asr/segments/4-3.json",
+   "transcriptSourceSha256": "0e79b1b0362479a0c11acadaf81e2430502d1705502739fad76e9fe667d697dd",
+   "transcriptMatchesMedia": true,
+   "offsetSeconds": 0.0,
+   "offsetVerified": true,
+   "clampedSegments": 1,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 0.0,
+     "endSeconds": 17.12,
+     "textPreview": "欢迎来到这期的硬核拆解，咱们今天直接切入正题。这期内容呢，就是要带大家给控制理论",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 17.12,
+     "endSeconds": 28.48,
+     "textPreview": "准备好一起打怪升级了吗？走起，咱们们平时上课交作业，肯定都在纸上或者matlab",
+     "canonical": []
+    },
+    {
+     "index": 2,
+     "startSeconds": 28.48,
+     "endSeconds": 44.17,
+     "textPreview": "但问题来了，教科书上的pid在现实世界中真的够用吗？当这些在理想环境里大杀四方的",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 44.17,
+     "endSeconds": 60.01,
+     "textPreview": "咱们来看个具体的对比，一边是理论的完美，也就是纯粹的数学方程；另一边呢，是现实的",
+     "canonical": []
+    },
+    {
+     "index": 4,
+     "startSeconds": 60.01,
+     "endSeconds": 69.05,
+     "textPreview": "巨轮那样，当Pristine的教科书方程迎面撞上不可预测的远洋波浪，这才是真正考",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 69.05,
+     "endSeconds": 86.76,
+     "textPreview": "看到这张图，老熟人了吧？自动化学院的真实硬核课件，我知道满屏密密麻麻的推导看着挺",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 86.76,
+     "endSeconds": 97.4,
+     "textPreview": "直接带你抓最核心的逻辑。那么咱们直接进入第二关，预判未来。来聊聊钱会控制这个超能",
+     "canonical": []
+    },
+    {
+     "index": 7,
+     "startSeconds": 97.4,
+     "endSeconds": 106.52,
+     "textPreview": "所以钱会控制到底是个啥？简单来说就是提前规划参考信号和干扰，让系统在误差发生前就",
+     "canonical": []
+    },
+    {
+     "index": 8,
+     "startSeconds": 106.52,
+     "endSeconds": 124.37,
+     "textPreview": "你想啊，平时咱们用的普通反馈控制。那都是等海浪拍到船上航向偏了才拼命去打舵补救，",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 124.37,
+     "endSeconds": 133.89,
+     "textPreview": "来看这里，咱们其实完全可以把那些让人头秃的拉破拉斯可以倒变成一个无脑操作的三步实",
+     "canonical": []
+    },
+    {
+     "index": 10,
+     "startSeconds": 133.89,
+     "endSeconds": 145.57,
+     "textPreview": "第二步，直接暴力设定它们相加等于零。第三步，顺理成章解除这个理想的前控控制器公式",
+     "canonical": []
+    },
+    {
+     "index": 11,
+     "startSeconds": 145.57,
+     "endSeconds": 158.61,
+     "textPreview": "这思路是不是特别爽？而且呀，这套逻辑还能套用在别的地方。如果我们把相同的思路用在",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 158.61,
+     "endSeconds": 169.84,
+     "textPreview": "它的作用是什么呢？就是保证距轮的转向能精准丝滑地服从你的指挥。彻底告别那种让你抓",
+     "canonical": []
+    },
+    {
+     "index": 13,
+     "startSeconds": 169.84,
+     "endSeconds": 186.88,
+     "textPreview": "接下来就是重头戏了，boss战执行器上弦，这可是控制理论里突破物理极限的关键呢。",
+     "canonical": []
+    },
+    {
+     "index": 14,
+     "startSeconds": 186.88,
+     "endSeconds": 196.99,
+     "textPreview": "资料里就给出了非常真实的执行器物理极限。控的输入被死死限制在了负24到正24之间",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 196.99,
+     "endSeconds": 214.58,
+     "textPreview": "这可是硬邦邦的物理边界，哪怕你想多给一点点都是做不到的。那么最尴尬的情况就来了，",
+     "canonical": []
+    },
+    {
+     "index": 16,
+     "startSeconds": 214.58,
+     "endSeconds": 226.98,
+     "textPreview": "但另一边呢，可怜的执行器实际动作只能给到24。他表示我已经拉满了，真的臣妾做不到",
+     "canonical": []
+    },
+    {
+     "index": 17,
+     "startSeconds": 226.98,
+     "endSeconds": 241.46,
+     "textPreview": "这种指令跟现实脱节的情况就会引发控制界恶名昭彰的bug，也就是积分饱和。说白了，",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 241.46,
+     "endSeconds": 259.3,
+     "textPreview": "因为动作执行不下去，控制系统里的那个积分项就会疯狂累积误差，系统在里面憋出了内伤",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 259.3,
+     "endSeconds": 269.57,
+     "textPreview": "那么遇到这种boss该怎么干？别慌，来看看咱们的通关秘籍——抗积分饱和机制，也就",
+     "canonical": []
+    },
+    {
+     "index": 20,
+     "startSeconds": 269.57,
+     "endSeconds": 292.51,
+     "textPreview": "这个现实效验公式真的特别巧妙，你看它其实就是算了一笔账，把控制器脑子里异想天开的",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 292.51,
+     "endSeconds": 310.19,
+     "textPreview": "在咱们参考的原材料里，还专门给这个抗饱和公式配了一个特别精确的时间常数18。你可",
+     "canonical": []
+    },
+    {
+     "index": 22,
+     "startSeconds": 310.19,
+     "endSeconds": 329.93,
+     "textPreview": "好了，搞定了，抗饱和。咱们现在铺开终极地图——博德图，这可是纵观全局的诊断神器。",
+     "canonical": []
+    },
+    {
+     "index": 23,
+     "startSeconds": 329.93,
+     "endSeconds": 345.46,
+     "textPreview": "通过分析开环传递函数，评估闭环稳定性，我们能在品域中铁证如山地证明，咱们今天设计",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-865eb1c8824e157c2f05a903",
+       "matchedLabel": "传递函数",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "asr-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+       "matchedLabel": "开环传递函数",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 12,
+       "provenance": "asr-terminology"
+      }
+     ]
+    },
+    {
+     "index": 24,
+     "startSeconds": 345.46,
+     "endSeconds": 370.42,
+     "textPreview": "说到这里，顺便提一句，虽然咱们今天满嘴都是各种高级操作，但这其实都是站在巨人的肩",
+     "canonical": []
+    },
+    {
+     "index": 25,
+     "startSeconds": 370.42,
+     "endSeconds": 383.92,
+     "textPreview": "讲到这里，恭喜大家。你们现在已经掌握了怎么给现实世界里的PID打补丁，破除物理极",
+     "canonical": []
+    },
+    {
+     "index": 26,
+     "startSeconds": 383.92,
+     "endSeconds": 392.64,
+     "textPreview": "但如果未来你要面对的是一个同时叠加了数十个重叠物理约束的庞大系统，你还能靠这么简",
+     "canonical": []
+    },
+    {
+     "index": 27,
+     "startSeconds": 392.64,
+     "endSeconds": 406.28,
+     "textPreview": "这时候模型预测控制，也就是NPC，会不会成为你需要挑战的下一个隐藏boss呢？大",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "0e79b1b0362479a0c11acadaf81e2430502d1705502739fad76e9fe667d697dd",
+   "status": "anchored"
+  }
+ ]
+}

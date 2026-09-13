@@ -47,11 +47,15 @@ export function buildPlanningResourceSnapshot(index: PublishedResourceFeatureInd
     projectionId: index.projectionId,
     projectionHash: index.projectionHash,
     runtimeReleaseId: index.runtimeReleaseId,
+    bindingReleaseId: index.bindingReleaseId ?? null,
+    bindingHash: index.bindingHash ?? null,
     recommendable: index.resources.filter((resource) => resource.recommendable).map((resource) => ({
       resourceId: resource.identity.resourceId,
       resourceVersion: resource.identity.resourceVersion ?? resource.version,
       sourcePath: resource.sourcePath,
       type: resource.type,
+      appearance: resource.appearance ?? null,
+      anchorLabel: resource.anchorLabel ?? null,
     })),
   };
 }

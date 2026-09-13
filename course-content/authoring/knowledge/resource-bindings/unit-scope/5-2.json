@@ -1,0 +1,72 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "5-2",
+ "canonicalIds": [
+  "ctc:modeling-34de45f2470f6c09c7d96698",
+  "ctc:modeling-70629af71e754aac8b740638",
+  "ctkg:v3e-object-1107a657eb90b8264d4dac38",
+  "ctkg:v3e-object-1ee77aa2b862870735a63c50",
+  "ctkg:v3e-object-376c29d091d24239e88fc4c4",
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7",
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+  "ctkg:v3e-object-69aaaef625010f7755f253e8",
+  "ctkg:v3e-object-7b59e975b2aaa6100b970b52",
+  "ctkg:v3e-object-80b836e636775916830b5a21",
+  "ctkg:v3e-object-8496155b16d82318d90949d0",
+  "ctkg:v3e-object-953374e261302cfdff02144d",
+  "ctkg:v3e-object-a0e00fe181b9ba65bda1824c",
+  "ctkg:v3e-object-a24b53236c203ab7f9d5f504",
+  "ctkg:v3e-object-d1a6e648c1524a51f3c42346",
+  "ctkg:v3e-object-e90594bf67aa0149a800d9db"
+ ],
+ "sources": {
+  "ctc:modeling-34de45f2470f6c09c7d96698": [
+   "topic:linearization"
+  ],
+  "ctc:modeling-70629af71e754aac8b740638": [
+   "topic:linearization"
+  ],
+  "ctkg:v3e-object-1107a657eb90b8264d4dac38": [
+   "topic:nonlinear"
+  ],
+  "ctkg:v3e-object-1ee77aa2b862870735a63c50": [
+   "focus_node_ids:相平面图_8_bd606f51"
+  ],
+  "ctkg:v3e-object-376c29d091d24239e88fc4c4": [
+   "topic:limit-cycle"
+  ],
+  "ctkg:v3e-object-38d4679bf3335318b0f4afb7": [
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68": [
+   "topic:saturation"
+  ],
+  "ctkg:v3e-object-69aaaef625010f7755f253e8": [
+   "topic:dead-zone"
+  ],
+  "ctkg:v3e-object-7b59e975b2aaa6100b970b52": [
+   "topic:describing-function"
+  ],
+  "ctkg:v3e-object-80b836e636775916830b5a21": [
+   "topic:phase-trajectory"
+  ],
+  "ctkg:v3e-object-8496155b16d82318d90949d0": [
+   "topic:frequency-response"
+  ],
+  "ctkg:v3e-object-953374e261302cfdff02144d": [
+   "topic:phase-plane"
+  ],
+  "ctkg:v3e-object-a0e00fe181b9ba65bda1824c": [
+   "topic:phase-plane"
+  ],
+  "ctkg:v3e-object-a24b53236c203ab7f9d5f504": [
+   "topic:equilibrium"
+  ],
+  "ctkg:v3e-object-d1a6e648c1524a51f3c42346": [
+   "topic:describing-function"
+  ],
+  "ctkg:v3e-object-e90594bf67aa0149a800d9db": [
+   "focus_node_ids:负倒描述函数_8_159ff256"
+  ]
+ }
+}

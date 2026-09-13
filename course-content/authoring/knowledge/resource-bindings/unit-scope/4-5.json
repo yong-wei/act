@@ -1,0 +1,51 @@
+{
+ "contract": "act-resource-binding-unit-scope/v1",
+ "unit": "4-5",
+ "canonicalIds": [
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6",
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85",
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+  "ctkg:v3e-canonical-df3167f36376f526f6ec5562",
+  "ctkg:v3e-canonical-eaee7091900b796af8d937c1",
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086",
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837",
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68",
+  "m1r-v1d:object:5dc35d8a90ffc6cc5ca18c4e"
+ ],
+ "sources": {
+  "ctc:v11g-1c9f955b68fd25e1f4ad86f6": [
+   "reuse_node_ids:调节时间_10_fcbccf4e"
+  ],
+  "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c": [
+   "topic:phase-margin"
+  ],
+  "ctkg:m3-v2l:canonical-object:c1e442273a02c2474eb77f85": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609": [
+   "reuse_node_ids:调节时间_10_fcbccf4e"
+  ],
+  "ctkg:v3e-canonical-df3167f36376f526f6ec5562": [
+   "reuse_node_ids:超调量_3_fc3f5b17",
+   "topic:overshoot"
+  ],
+  "ctkg:v3e-canonical-eaee7091900b796af8d937c1": [
+   "reuse_node_ids:超调量_3_fc3f5b17",
+   "topic:overshoot"
+  ],
+  "ctkg:v3e-object-16f7c2fa5fc07204ca43c086": [
+   "topic:pid"
+  ],
+  "ctkg:v3e-object-1c159c9cc34ce696a62bf837": [
+   "reuse_node_ids:相角裕度_5_5a74b451",
+   "topic:phase-margin"
+  ],
+  "ctkg:v3e-object-63919e7aa7d3d49925074a68": [
+   "topic:saturation"
+  ],
+  "m1r-v1d:object:5dc35d8a90ffc6cc5ca18c4e": [
+   "topic:itae"
+  ]
+ }
+}

@@ -136,7 +136,17 @@ export function groupSystemResourceBindingsByKind(
     .map(([kind, grouped]) => ({
       kind,
       items: [...grouped].sort((left, right) =>
-        left.title.localeCompare(right.title, 'zh-CN')
+        appearanceRank(left) - appearanceRank(right)
+        || (left.unitId ?? '').localeCompare(right.unitId ?? '')
+        || left.title.localeCompare(right.title, 'zh-CN')
+        || (left.anchorLabel ?? '').localeCompare(right.anchorLabel ?? '', 'zh-CN')
         || left.bindingRole.localeCompare(right.bindingRole, 'zh-CN')),
     }));
+}
+
+/** First-appearance resources lead, revisits follow, unit-less reference material last. */
+function appearanceRank(item: ActiveResourceBinding): number {
+  if (item.appearance === 'first') return 0;
+  if (item.appearance === 'revisit') return 1;
+  return 2;
 }

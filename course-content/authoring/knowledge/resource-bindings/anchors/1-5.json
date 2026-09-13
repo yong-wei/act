@@ -1,0 +1,1877 @@
+{
+ "contract": "act-resource-anchors/v1",
+ "unit": "1-5",
+ "unitIndex": 4,
+ "activeRuntimeReleaseId": "runtime-6ed6cfe8a06d0202a5908f02fe7c7fbd1259f1698a24143187ec735",
+ "handout": {
+  "runtimePath": "lessons/1-5/1-5-handout.md",
+  "sha256": "5c369d346a34ea118e793b05738f2ae5a5b1dd0617023c04c652666873aeb2b3"
+ },
+ "steps": [
+  {
+   "stepId": "step-01",
+   "index": 0,
+   "title": "增益旋钮牵动的三组证据",
+   "groupName": null,
+   "textChars": 224,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-02",
+   "index": 1,
+   "title": "课程目标",
+   "groupName": null,
+   "textChars": 334,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+     "matchedLabel": "临界稳定",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 6,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-03",
+   "index": 2,
+   "title": "极点、反馈与读图基础前测",
+   "groupName": "极点与时域响应前置",
+   "textChars": 88,
+   "canonical": []
+  },
+  {
+   "stepId": "step-04",
+   "index": 3,
+   "title": "三域联动的共同对象与观察协议",
+   "groupName": "增益扫描稳定区间",
+   "textChars": 519,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-05",
+   "index": 4,
+   "title": "低增益区的稳定余量",
+   "groupName": "极点与时域响应前置",
+   "textChars": 988,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-06",
+   "index": 5,
+   "title": "中增益区的振荡与余量收缩",
+   "groupName": null,
+   "textChars": 1174,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-07",
+   "index": 6,
+   "title": "高增益区的缓慢衰减",
+   "groupName": "区分三种速度语言",
+   "textChars": 1065,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-08",
+   "index": 7,
+   "title": "临界增益与越界状态",
+   "groupName": "临界增益与虚轴极点",
+   "textChars": 1801,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+     "matchedLabel": "system",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 6.0,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+     "matchedLabel": "临界稳定",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-09",
+   "index": 8,
+   "title": "增益扫描的三域对照",
+   "groupName": "增益扫描稳定区间",
+   "textChars": 3996,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+     "matchedLabel": "system",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 48.0,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-7b077c33b2c8dde2b1980d10",
+     "matchedLabel": "超调量百分比",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-10",
+   "index": 9,
+   "title": "三域证据分工与三种速度",
+   "groupName": "区分三种速度语言",
+   "textChars": 485,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 80,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-11",
+   "index": 10,
+   "title": "两组增益的失稳距离比较",
+   "groupName": null,
+   "textChars": 986,
+   "canonical": [
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-12",
+   "index": 11,
+   "title": "临界边界与换对象迁移",
+   "groupName": "临界增益与虚轴极点",
+   "textChars": 659,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-8aa475ed6514adc11f9b5c8d",
+     "matchedLabel": "system",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 6.0,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  },
+  {
+   "stepId": "step-13",
+   "index": 12,
+   "title": "三域联动能力后测",
+   "groupName": null,
+   "textChars": 108,
+   "canonical": []
+  },
+  {
+   "stepId": "step-14",
+   "index": 13,
+   "title": "一个增益的完整证据链",
+   "groupName": "区分三种速度语言",
+   "textChars": 924,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-e2066e5e888d36826fd01d4d",
+     "matchedLabel": "衰减振荡",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "step-terminology"
+    }
+   ]
+  }
+ ],
+ "handoutSections": [
+  {
+   "headingId": "h1-一个增益为什么会牵动三张图",
+   "order": 1,
+   "level": 2,
+   "title": "一、一个增益为什么会牵动三张图",
+   "startLine": 7,
+   "endLine": 23,
+   "bodyChars": 518,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h2-实践准备-对象-工具与观察框架",
+   "order": 2,
+   "level": 2,
+   "title": "二、实践准备：对象、工具与观察框架",
+   "startLine": 24,
+   "endLine": 25,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h3-本次实践采用的对象",
+   "order": 3,
+   "level": 3,
+   "title": "2.1 本次实践采用的对象",
+   "startLine": 26,
+   "endLine": 45,
+   "bodyChars": 295,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-c5b0f0ad36036b531f6bcdec",
+     "matchedLabel": "开环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-69118dc66489d66b1732901b",
+     "matchedLabel": "闭环传递函数",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+     "matchedLabel": "临界稳定",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h4-复现方法",
+   "order": 4,
+   "level": 3,
+   "title": "2.2 复现方法",
+   "startLine": 46,
+   "endLine": 49,
+   "bodyChars": 137,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h5-观察框架-四个增益区段",
+   "order": 5,
+   "level": 3,
+   "title": "2.3 观察框架：四个增益区段",
+   "startLine": 50,
+   "endLine": 66,
+   "bodyChars": 495,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h6-区段-I-低增益-稳定余量充足",
+   "order": 6,
+   "level": 2,
+   "title": "三、区段 I：低增益——稳定余量充足",
+   "startLine": 67,
+   "endLine": 68,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h7-观察任务",
+   "order": 7,
+   "level": 3,
+   "title": "3.1 观察任务",
+   "startLine": 69,
+   "endLine": 76,
+   "bodyChars": 163,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-312d1dfa7e96b9cc6f46e253",
+     "matchedLabel": "单位阶跃响应",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h8-参考观察结果",
+   "order": 8,
+   "level": 3,
+   "title": "3.2 参考观察结果",
+   "startLine": 77,
+   "endLine": 121,
+   "bodyChars": 1242,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 18,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h9-区段-II-中增益-振荡浮现-余量收缩",
+   "order": 9,
+   "level": 2,
+   "title": "四、区段 II：中增益——振荡浮现，余量收缩",
+   "startLine": 122,
+   "endLine": 123,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h10-观察任务",
+   "order": 10,
+   "level": 3,
+   "title": "4.1 观察任务",
+   "startLine": 124,
+   "endLine": 127,
+   "bodyChars": 89,
+   "canonical": [
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 4,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h11-参考观察结果",
+   "order": 11,
+   "level": 3,
+   "title": "4.2 参考观察结果",
+   "startLine": 128,
+   "endLine": 168,
+   "bodyChars": 1323,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h12-区段-III-高增益-接近稳定边界",
+   "order": 12,
+   "level": 2,
+   "title": "五、区段 III：高增益——接近稳定边界",
+   "startLine": 169,
+   "endLine": 170,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h13-观察任务",
+   "order": 13,
+   "level": 3,
+   "title": "5.1 观察任务",
+   "startLine": 171,
+   "endLine": 177,
+   "bodyChars": 201,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h14-参考观察结果",
+   "order": 14,
+   "level": 3,
+   "title": "5.2 参考观察结果",
+   "startLine": 178,
+   "endLine": 202,
+   "bodyChars": 816,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h15-关键洞察-增益的回报递减",
+   "order": 15,
+   "level": 3,
+   "title": "5.3 关键洞察：增益的回报递减",
+   "startLine": 203,
+   "endLine": 208,
+   "bodyChars": 212,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h16-区段-IV-临界点与越界状态",
+   "order": 16,
+   "level": 2,
+   "title": "六、区段 IV：临界点与越界状态",
+   "startLine": 209,
+   "endLine": 210,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h17-观察任务",
+   "order": 17,
+   "level": 3,
+   "title": "6.1 观察任务",
+   "startLine": 211,
+   "endLine": 222,
+   "bodyChars": 325,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h18-参考观察结果",
+   "order": 18,
+   "level": 3,
+   "title": "6.2 参考观察结果",
+   "startLine": 223,
+   "endLine": 258,
+   "bodyChars": 894,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 12,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h19-跨区段汇总-三域对照表",
+   "order": 19,
+   "level": 2,
+   "title": "七、跨区段汇总：三域对照表",
+   "startLine": 259,
+   "endLine": 260,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h20-完成你的三域对照表",
+   "order": 20,
+   "level": 3,
+   "title": "7.1 完成你的三域对照表",
+   "startLine": 261,
+   "endLine": 274,
+   "bodyChars": 612,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-b9ec91385b0eff9dbbb78681",
+     "matchedLabel": "临界稳定",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h21-从表中读出两条主线",
+   "order": 21,
+   "level": 3,
+   "title": "7.2 从表中读出两条主线",
+   "startLine": 275,
+   "endLine": 287,
+   "bodyChars": 599,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h22-三域证据如何分工",
+   "order": 22,
+   "level": 2,
+   "title": "八、三域证据如何分工",
+   "startLine": 288,
+   "endLine": 297,
+   "bodyChars": 170,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-b0da8811ce5c0b404585f821",
+     "matchedLabel": "稳定性边界",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 10,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+     "matchedLabel": "阶跃响应",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-504581e399675b9792ab8502",
+     "matchedLabel": "Bode 图",
+     "labelKind": "alias",
+     "inScope": false,
+     "score": 6,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h23-例题-为什么-$K=36$-比-$K=12$-更接近失稳",
+   "order": 23,
+   "level": 2,
+   "title": "九、例题：为什么 $K=36$ 比 $K=12$ 更接近失稳",
+   "startLine": 298,
+   "endLine": 299,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h24-例题-1-5-1-三域证据链的一致性检查",
+   "order": 24,
+   "level": 3,
+   "title": "例题 1-5-1 三域证据链的一致性检查",
+   "startLine": 300,
+   "endLine": 317,
+   "bodyChars": 541,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h25-分层练习",
+   "order": 25,
+   "level": 2,
+   "title": "十、分层练习",
+   "startLine": 318,
+   "endLine": 319,
+   "bodyChars": 0,
+   "canonical": []
+  },
+  {
+   "headingId": "h26-基础题-•",
+   "order": 26,
+   "level": 3,
+   "title": "基础题 •",
+   "startLine": 320,
+   "endLine": 341,
+   "bodyChars": 603,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h27-进阶题-••",
+   "order": 27,
+   "level": 3,
+   "title": "进阶题 ••",
+   "startLine": 342,
+   "endLine": 349,
+   "bodyChars": 357,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h28-挑战题-•••",
+   "order": 28,
+   "level": 3,
+   "title": "挑战题 •••",
+   "startLine": 350,
+   "endLine": 363,
+   "bodyChars": 481,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+     "matchedLabel": "特征方程",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 8,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h29-总结与扩展思考",
+   "order": 29,
+   "level": 2,
+   "title": "十一、总结与扩展思考",
+   "startLine": 364,
+   "endLine": 377,
+   "bodyChars": 432,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 32,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:0aa3a61ec0920c38f4e34c4e",
+     "matchedLabel": "增益裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+     "matchedLabel": "上升时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  },
+  {
+   "headingId": "h30-附录-习题简答",
+   "order": 30,
+   "level": 2,
+   "title": "附录：习题简答",
+   "startLine": 378,
+   "endLine": 396,
+   "bodyChars": 1198,
+   "canonical": [
+    {
+     "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+     "matchedLabel": "相位裕度",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+     "matchedLabel": "调节时间",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 64,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+     "matchedLabel": "穿越频率",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 48,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+     "matchedLabel": "主导极点",
+     "labelKind": "preferred",
+     "inScope": false,
+     "score": 24,
+     "provenance": "heading-terminology"
+    },
+    {
+     "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+     "matchedLabel": "闭环极点",
+     "labelKind": "preferred",
+     "inScope": true,
+     "score": 16,
+     "provenance": "heading-terminology"
+    }
+   ]
+  }
+ ],
+ "media": [
+  {
+   "mediaId": "1-5-intro-video",
+   "kind": "video",
+   "runtimePath": "lessons/1-5/media/1-5-intro-video.mp4",
+   "sha256": "01c0bcee9b7cff6e77aa607eb68ad8aba0198fca134d38c3d0690cc2284c9ea5",
+   "durationSeconds": 267.946667,
+   "transcriptSource": "videos-project:lesson-1-5/assets/audio/captions.generated.ts",
+   "narrationDurationSeconds": 245.9,
+   "offsetSeconds": 10.0,
+   "expectedDurationSeconds": 267.9,
+   "offsetVerified": true,
+   "offsetStatus": "verified",
+   "cueCount": 63,
+   "segments": [
+    {
+     "index": 0,
+     "startSeconds": 10.4,
+     "endSeconds": 21.13,
+     "textPreview": "大家好，欢迎来到闲聊自控。今天只看一个动作：把增益 K 慢慢拧大。同一艘船、同一",
+     "canonical": []
+    },
+    {
+     "index": 1,
+     "startSeconds": 21.13,
+     "endSeconds": 35.11,
+     "textPreview": "有人说增益越大越快，这话只对了一半。快的是起步，慢的是收敛。我们把极点、阶跃响应",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 2,
+     "startSeconds": 37.4,
+     "endSeconds": 46.65,
+     "textPreview": "先看对象：一个三阶无零点系统。它串着一个积分环节和两个惯性环节。比例增益 K 与",
+     "canonical": []
+    },
+    {
+     "index": 3,
+     "startSeconds": 47.37,
+     "endSeconds": 55.51,
+     "textPreview": "闭环特征方程是 s 立方加七 s 平方加六 s 加 K。K 就藏在常数项里。",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 4,
+     "startSeconds": 55.51,
+     "endSeconds": 66.44,
+     "textPreview": "增益一变，极点就得重新求解。我们不随机拧，把增益分成四个区段。低增益、中增益、高",
+     "canonical": []
+    },
+    {
+     "index": 5,
+     "startSeconds": 66.44,
+     "endSeconds": 78.14,
+     "textPreview": "临界增益恰好等于四十二，记住这个数。现在把三张图摆上台：左边复平面，中间时域，右",
+     "canonical": []
+    },
+    {
+     "index": 6,
+     "startSeconds": 78.14,
+     "endSeconds": 88.71,
+     "textPreview": "它们共用同一个 K，一个动，三个一起动。先看 K 等于三。主导极点在负零点四五附",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-object-23ce934816d236fcc2836d27",
+       "matchedLabel": "主导极点",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 7,
+     "startSeconds": 88.71,
+     "endSeconds": 97.44,
+     "textPreview": "阶跃响应只有约百分之七的超调量，七点四秒收稳。伯德图上相位裕度六十一度，余量充足",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+       "matchedLabel": "相位裕度",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 8,
+     "startSeconds": 97.44,
+     "endSeconds": 107.67,
+     "textPreview": "三张图说的是同一句话：离稳定边界还很远。把 K 推到十二。极点向右上方爬，虚部变",
+     "canonical": []
+    },
+    {
+     "index": 9,
+     "startSeconds": 107.67,
+     "endSeconds": 116.24,
+     "textPreview": "超调量冲到约百分之四十六，摆动明显。但注意，上升时间从两点八秒缩到零点九秒。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 10,
+     "startSeconds": 116.24,
+     "endSeconds": 126.85,
+     "textPreview": "起步确实更快了，这一点不假。可是调节时间反而从七点四秒拖到八秒。相位裕度从六十一",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+       "matchedLabel": "相位裕度",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 11,
+     "startSeconds": 126.85,
+     "endSeconds": 137.63,
+     "textPreview": "第一次分裂出现了：起步的快，换不来收敛的快。继续拧。K 二十四，极点几乎贴上虚轴",
+     "canonical": []
+    },
+    {
+     "index": 12,
+     "startSeconds": 138.13,
+     "endSeconds": 150.26,
+     "textPreview": "超调七成，调节时间十五秒半。相位裕度只剩十二度。K 三十六，已经在边界门口。超调",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+       "matchedLabel": "相位裕度",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 13,
+     "startSeconds": 150.26,
+     "endSeconds": 158.54,
+     "textPreview": "调节时间五十二秒，相位裕度只剩三度。对比 K 十二：上升时间又缩短了一半。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:m3-v1i:canonical-object:44ba9f502d62725bda3f150c",
+       "matchedLabel": "相位裕度",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 14,
+     "startSeconds": 158.54,
+     "endSeconds": 168.48,
+     "textPreview": "但你愿意为这零点四秒，付出四十秒的收敛吗？这就是增益的回报递减。机械上你也见过这",
+     "canonical": []
+    },
+    {
+     "index": 15,
+     "startSeconds": 168.48,
+     "endSeconds": 181.7,
+     "textPreview": "阻尼越弱，振荡拖得越久，直到再也收不住。把 s 等于 j 欧米伽代入特征方程，实",
+     "canonical": [
+      {
+       "canonicalId": "ctc:v11g-40ac1517fc1bfb398dd75afe",
+       "matchedLabel": "特征方程",
+       "labelKind": "preferred",
+       "inScope": false,
+       "score": 8,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 16,
+     "startSeconds": 182.2,
+     "endSeconds": 192.64,
+     "textPreview": "K 等于四十二，极点正好落在虚轴上。阶跃响应不收不放，长期等幅振荡。增益穿越和相",
+     "canonical": [
+      {
+       "canonicalId": "ctc:modeling-a30f001ebd5a123a456a51da",
+       "matchedLabel": "阶跃响应",
+       "labelKind": "alias",
+       "inScope": false,
+       "score": 4,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 17,
+     "startSeconds": 192.64,
+     "endSeconds": 203.16,
+     "textPreview": "三个域在临界点上判决完全一致。再越过一步，K 大于四十二。共轭极点进入右半平面，",
+     "canonical": []
+    },
+    {
+     "index": 18,
+     "startSeconds": 203.16,
+     "endSeconds": 212.95,
+     "textPreview": "任何只在一张图上成立的临界，都不算数。把五个代表增益摆进同一张对照表。",
+     "canonical": []
+    },
+    {
+     "index": 19,
+     "startSeconds": 213.45,
+     "endSeconds": 223.36,
+     "textPreview": "主线一：快这个字，至少有三种意思。上升时间管第一次到达，调节时间管安稳留下。增益",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-9cd2a9dfb0f7f3d457247609",
+       "matchedLabel": "调节时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-canonical-a9f8ff29f0e4550a22bfcc67",
+       "matchedLabel": "上升时间",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      },
+      {
+       "canonicalId": "ctkg:v3e-object-7761615701fb4915a76924ff",
+       "matchedLabel": "穿越频率",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 20,
+     "startSeconds": 223.36,
+     "endSeconds": 235.46,
+     "textPreview": "K 从三到十二，一个缩短一个延长，方向相反。主线二：三个域的结论必须相容。指标不",
+     "canonical": []
+    },
+    {
+     "index": 21,
+     "startSeconds": 235.46,
+     "endSeconds": 244.44,
+     "textPreview": "稳定与否，只看闭环极点或等价判据。一个增益，三张图，一条证据链。",
+     "canonical": [
+      {
+       "canonicalId": "ctkg:v3e-canonical-47a2e3c44742b45c55ac902d",
+       "matchedLabel": "闭环极点",
+       "labelKind": "preferred",
+       "inScope": true,
+       "score": 16,
+       "provenance": "caption-terminology"
+      }
+     ]
+    },
+    {
+     "index": 22,
+     "startSeconds": 244.44,
+     "endSeconds": 253.91,
+     "textPreview": "极点到位、响应成型、裕度落定，同时成立。下次增益怎么调都不满意，还能动什么？我们",
+     "canonical": []
+    }
+   ],
+   "activeReleaseSha256": "01c0bcee9b7cff6e77aa607eb68ad8aba0198fca134d38c3d0690cc2284c9ea5",
+   "status": "anchored"
+  }
+ ]
+}

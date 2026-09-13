@@ -66,6 +66,9 @@ export interface PublishedResourceFeature {
   recommendable: boolean;
   limitation: string | null;
   backend: PublishedResourceBackend;
+  appearance?: 'first' | 'revisit' | 'reference';
+  teachingOrder?: { unitId: string; unitIndex: number; stepIndex: number | null } | null;
+  anchorLabel?: string | null;
 }
 
 export interface PublishedResourceFeatureIndex {
@@ -77,6 +80,8 @@ export interface PublishedResourceFeatureIndex {
   snapshotHash: string;
   runtimeReleaseId: string | null;
   authorityReleaseId: string;
+  bindingReleaseId?: string | null;
+  bindingHash?: string | null;
   generatedAt: string;
   resources: PublishedResourceFeature[];
   prerequisiteEdges: Array<{

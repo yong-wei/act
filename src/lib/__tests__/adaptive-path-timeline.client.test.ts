@@ -18,6 +18,8 @@ const nodes: AdaptivePathTimelineNode[] = [
     resourceLabel: '知识卡',
     status: 'completed',
     estimatedMinutes: 8,
+    appearance: 'first',
+    anchorLabel: '1:12–1:40',
   },
   {
     nodeId: 'simulation:two',
@@ -116,6 +118,8 @@ describe('AdaptivePathTimeline', () => {
     expect(currentNode?.getAttribute('data-adaptive-path-node-state')).toBe('current');
     expect(currentNode?.textContent).toContain('虚拟仿真');
     expect(currentNode?.textContent).toContain('当前节点');
+    expect(container.querySelector('[data-adaptive-path-node-appearance="first"]')?.textContent).toBe('首次');
+    expect(container.querySelector('[data-adaptive-path-node-anchor="1:12–1:40"]')?.textContent).toBe('1:12–1:40');
   });
 });
 
