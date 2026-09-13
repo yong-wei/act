@@ -257,6 +257,32 @@ describe('knowledge path mount', () => {
     expect(plan.mainPath.some((node) => node.title.includes('ctc '))).toBe(false);
   });
 
+  it('fails closed when the teaching projection pointer is missing', () => {
+    const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
+    const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([
+      feature(
+        'ctc-modeling-865eb1c8824e157c2f05a903',
+        [rootLocus],
+        'card',
+        true,
+        'ctc modeling-865eb1c8824e157c2f05a903',
+      ),
+    ]));
+    const plan = assembleKnowledgePathPlan({
+      studentId: 'student-1',
+      goal: { id: 'root-locus-analysis-foundations', title: '根轨迹分析基础', knowledgeTargets: [] },
+      learnerState: null,
+      registry,
+      constraints: { timeBudgetMinutes: 60, privacyScopes: ['student-visible'], device: 'desktop' },
+    }, {
+      prerequisiteEdges: [],
+      authorityReleaseSetId: null,
+    });
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath).toEqual([]);
+    expect(plan.explanations.fallbackReasons).toContain('authority-release-unavailable');
+  });
+
   it('resolves internal step titles from authoritative labels', () => {
     const rootLocus = 'ctc:v11g-5845390ded447e37f06ea222';
     const registry = attachPublishedResourcesToRegistry(buildResourceNodeRegistry({}), indexFor([

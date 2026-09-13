@@ -95,7 +95,7 @@ export function assembleKnowledgePathPlan(
   const authority = planningAuthorityReleaseStatus(process.cwd(), {
     authorityReleaseSetId: options.authorityReleaseSetId,
   });
-  if (authority.status === 'missing-release') {
+  if (authority.status !== 'ready') {
     return failClosedKnowledgePathPlan(input, now, targets, ['authority-release-unavailable']);
   }
   const edges = options.prerequisiteEdges
