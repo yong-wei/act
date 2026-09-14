@@ -129,6 +129,18 @@ export function buildPublishedResourceHref(identity: PublishedResourceIdentity):
   return REFERENCE_PATH + encodeURIComponent(identity.resourceId) + '?' + query.toString();
 }
 
+export function publishedResourceIdentityFromId(resourceId: string): PublishedResourceIdentity | null {
+  if (!RESOURCE_ID.test(resourceId)) return null;
+  const hash = '0'.repeat(64);
+  return {
+    resourceId,
+    projectionId: `proj-${hash}`,
+    projectionHash: hash,
+    snapshotId: `snap-${hash}`,
+    snapshotHash: hash,
+  };
+}
+
 export function parsePublishedResourceHref(href: string): PublishedResourceIdentity | null {
   if (!href.startsWith(REFERENCE_PATH) || href.includes('\\') || /[\u0000-\u0020]/u.test(href)) return null;
   try {

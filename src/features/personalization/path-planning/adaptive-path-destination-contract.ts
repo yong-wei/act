@@ -1,7 +1,6 @@
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 import { isManifestCourseRouteSegment } from '@/features/interactive/shared/manifest-course-route-segments';
 import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
-import { buildLivePublishedResourceHref } from '@/lib/teaching-projection/live-course-pointer';
 import { parsePublishedResourceHref, PUBLISHED_RESOURCE_LABELS, publishedResourcePathType } from '@/lib/published-resource-reference';
 import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
 
@@ -52,10 +51,11 @@ export function resolveAdaptivePathDestinationContract(
     && context.sourceKind === 'teaching_projection'
     && context.sourceRef === publishedNodeResourceId
   ) {
-    const liveHref = buildLivePublishedResourceHref(publishedNodeResourceId);
-    if (liveHref) {
-      return { disposition: 'destination-control', canonicalTarget: liveHref, reason: null };
-    }
+    return {
+      disposition: 'destination-control',
+      canonicalTarget: '/learning-resources/' + encodeURIComponent(publishedNodeResourceId),
+      reason: null,
+    };
   }
   const published = parsePublishedResourceHref(target);
   if (published) {
