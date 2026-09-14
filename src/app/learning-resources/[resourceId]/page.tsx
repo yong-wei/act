@@ -1,7 +1,12 @@
 import { notFound, redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
-import { buildPublishedResourceHref, parsePublishedResourceHref, PUBLISHED_RESOURCE_LABELS } from '@/lib/published-resource-reference';
+import {
+  buildPublishedResourceHref,
+  parsePublishedResourceHref,
+  publishedResourceIdentityFromId,
+  PUBLISHED_RESOURCE_LABELS,
+} from '@/lib/published-resource-reference';
 import { resolvePublishedResourceFeature } from '@/lib/published-resource-index';
 import {
   presentPublishedKnowledgeCard,
@@ -26,7 +31,8 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
   for (const [key, value] of Object.entries(query)) {
     for (const part of Array.isArray(value) ? value : value === undefined ? [] : [value]) search.append(key, part);
   }
-  const ref = parsePublishedResourceHref('/learning-resources/' + encodeURIComponent(resourceId) + '?' + search.toString());
+  const ref = parsePublishedResourceHref('/learning-resources/' + encodeURIComponent(resourceId) + '?' + search.toString())
+    ?? publishedResourceIdentityFromId(resourceId);
   if (!ref) notFound();
   let resolved;
   try { resolved = await resolvePublishedResourceFeature(ref); }
