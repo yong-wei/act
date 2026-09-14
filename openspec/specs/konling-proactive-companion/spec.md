@@ -89,10 +89,10 @@ TBD - created by archiving change issue-1966. Update Purpose after archive.
 
 ### Requirement: 降级与开关
 
-feature flag `KONLING_COMPANION_ENABLED` 关闭、服务端异常、评分不确定或上下文不可靠时 SHALL NOT 弹气泡；普通控灵与学习流程 SHALL 保持可用。
+feature flag `KONLING_COMPANION_ENABLED` 默认开启。显式设为 `false`/`0`/`off` 关闭、服务端异常、评分不确定或上下文不可靠时 SHALL NOT 弹气泡；普通控灵与学习流程 SHALL 保持可用。
 
 #### Scenario: flag 关闭
-- **WHEN** 环境未启用主动陪伴
+- **WHEN** 环境将 `KONLING_COMPANION_ENABLED` 设为 false
 - **THEN** 不出现气泡与陪伴请求，普通控灵会话不受影响
 
 ### Requirement: 陪伴数据隐私边界

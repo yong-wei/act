@@ -10,6 +10,7 @@ import {
   type CompanionEventType,
   type CompanionPageKind,
 } from '@/features/ai/companion/trigger-engine';
+import { isKonlingCompanionEnabled } from '@/lib/konling-companion-flag';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -20,10 +21,6 @@ const PAUSE_EVENT_TYPES: CompanionEventType[] = ['pause-candidate'];
 const DIRECT_EVENT_TYPES: CompanionEventType[] = ['wrong-answer', 'progress-milestone', 'resource-completed'];
 const MAX_REF_LENGTH = 256;
 
-function isCompanionEnabled() {
-  return process.env.KONLING_COMPANION_ENABLED === 'true';
-}
-
 /** 停顿候选/直发事件上报：服务端时间权威，冷却去重即刻判定。 */
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (!isCompanionEnabled()) {
+    if (!isKonlingCompanionEnabled()) {
       return NextResponse.json({ error: 'Companion disabled' }, { status: 404 });
     }
 
@@ -108,7 +105,7 @@ export async function PATCH(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (!isCompanionEnabled()) {
+    if (!isKonlingCompanionEnabled()) {
       return NextResponse.json({ error: 'Companion disabled' }, { status: 404 });
     }
 

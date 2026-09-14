@@ -358,6 +358,10 @@ ACT_LATEST_CUTOVER_CANDIDATE_ROOT="${ACT_LATEST_CUTOVER_CANDIDATE_ROOT:-/app/cou
 if [ "$RUNTIME_DELIVERY_MODE" = "ossfs-release" ] || [ "$RUNTIME_DELIVERY_MODE" = "ossfs-blob-view" ]; then
   TEACHING_PROJECTION_STORE_DIR="${RUNTIME_CONTENT_DIR}/knowledge/projection"
 fi
+HOT_INDEX_HOST_DIR="${HOT_INDEX_HOST_DIR:-${PROJECT_DIR}/data/runtime/hot-index}"
+HOT_INDEX_MOUNT_ARGS=()
+KONLING_COMPANION_ENABLED="${KONLING_COMPANION_ENABLED:-true}"
+KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS="${KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS:-250}"
 START_WRAPPER_PATH="${START_WRAPPER_PATH:-${PROJECT_DIR}/scripts/container-start-wrapper.sh}"
 if [ ! -f "$START_WRAPPER_PATH" ] && [ -f "${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh" ]; then
   START_WRAPPER_PATH="${PROJECT_DIR}/deploy/podman/container-start-wrapper.sh"
@@ -554,6 +558,44 @@ require_actkg_activation_store_pointers() {
   echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
   echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
   echo "- Latest-cutover candidate: ${LATEST_CUTOVER_CANDIDATE_DIR} -> ${ACT_LATEST_CUTOVER_CANDIDATE_ROOT}"
+}
+
+copy_hot_index_tree() {
+  local src="$1"
+  local dest="$2"
+  mkdir -p "$dest"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --copy-links --delete "$src/" "$dest/"
+  else
+    rm -rf "$dest"
+    mkdir -p "$dest"
+    cp -aL "$src/." "$dest/"
+  fi
+}
+
+# 高频规划索引落到 ECS 本地盘；OSS 只承担资源正文。请求路径不再经 FUSE 拉索引。
+materialize_hot_indexes() {
+  HOT_INDEX_MOUNT_ARGS=()
+  case "$RUNTIME_DELIVERY_MODE" in
+    ossfs-blob-view|ossfs-release) ;;
+    *) return 0 ;;
+  esac
+  echo "- 物化 ECS 本地高频索引: $HOT_INDEX_HOST_DIR"
+  mkdir -p "$HOT_INDEX_HOST_DIR"
+  local tree
+  for tree in knowledge/projection knowledge/resource-bindings knowledge/prerequisites knowledge/teaching-projection; do
+    if [ -d "${RUNTIME_CONTENT_DIR}/${tree}" ]; then
+      copy_hot_index_tree "${RUNTIME_CONTENT_DIR}/${tree}" "${HOT_INDEX_HOST_DIR}/${tree}"
+    fi
+  done
+  if [ -d "${HOT_INDEX_HOST_DIR}/knowledge/projection" ]; then
+    TEACHING_PROJECTION_STORE_DIR="${HOT_INDEX_HOST_DIR}/knowledge/projection"
+  fi
+  for tree in knowledge/resource-bindings knowledge/prerequisites knowledge/teaching-projection; do
+    if [ -d "${HOT_INDEX_HOST_DIR}/${tree}" ]; then
+      HOT_INDEX_MOUNT_ARGS+=(-v "${HOT_INDEX_HOST_DIR}/${tree}:/app/course-content/runtime/${tree}:ro")
+    fi
+  done
 }
 
 require_grading_audit_secret() {
@@ -1063,6 +1105,7 @@ fi
 if [ "$MODE" != "--db-only" ]; then
   # Application-only: do not block --db-only database recovery paths (#1274 P2).
   require_actkg_activation_store_pointers
+  materialize_hot_indexes
   require_konling_mode_context_secret
   if [[ "${MATH_DOCUMENT_GRADING_WORKER_REQUIRED:-true}" =~ ^(1|true|yes)$ ]]; then
     require_grading_audit_secret
@@ -1207,6 +1250,8 @@ SHARED_ENV_ARGS=(
   -e ACT_KNOWLEDGE_DEPLOYMENT_MODE="$ACT_KNOWLEDGE_DEPLOYMENT_MODE"
   -e MATH_DOCUMENT_GRADING_WORKER_REQUIRED="$MATH_DOCUMENT_GRADING_WORKER_REQUIRED"
   -e ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED="$ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED"
+  -e KONLING_COMPANION_ENABLED="$KONLING_COMPANION_ENABLED"
+  -e KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS="$KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS"
 )
 WOLFRAM_ENV_ARGS=(-e WOLFRAM_CLOUD_MCP_URL="$WOLFRAM_CLOUD_MCP_URL")
 if [ -n "${WOLFRAM_CLOUD_MCP_TOKEN:-}" ]; then
@@ -1390,6 +1435,7 @@ run_detached_container "$APP_CONTAINER" podman run -d \
   -p "${APP_PORT}:${APP_CONTAINER_PORT}" \
   -v "${RUNTIME_CONTENT_DIR}:/app/course-content/runtime:ro" \
   ${RUNTIME_HELPER_MOUNT_ARGS[@]+"${RUNTIME_HELPER_MOUNT_ARGS[@]}"} \
+  ${HOT_INDEX_MOUNT_ARGS[@]+"${HOT_INDEX_MOUNT_ARGS[@]}"} \
   -v "${RUNTIME_ACTIVE_RECEIPT_HOST_DIR}:/app/act-runtime-state:ro" \
   -v "${AUTHORITY_STORE_DIR}:${ACT_AUTHORITY_STORE_ROOT}:ro" \
   -v "${TEACHING_PROJECTION_STORE_DIR}:${ACT_TEACHING_PROJECTION_STORE_ROOT}:ro" \
@@ -1452,6 +1498,9 @@ echo "- 运行时资源目录: ${RUNTIME_CONTENT_DIR} -> /app/course-content/run
 echo "- Runtime delivery mode: ${RUNTIME_DELIVERY_MODE}"
 echo "- Authority store: ${AUTHORITY_STORE_DIR} -> ${ACT_AUTHORITY_STORE_ROOT}"
 echo "- Teaching Projection store: ${TEACHING_PROJECTION_STORE_DIR} -> ${ACT_TEACHING_PROJECTION_STORE_ROOT}"
+echo "- Hot index: ${HOT_INDEX_HOST_DIR}"
+echo "- Companion: KONLING_COMPANION_ENABLED=${KONLING_COMPANION_ENABLED}"
+echo "- Heuristic timeout: KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS=${KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS}"
 echo "- Latest-cutover candidate: ${LATEST_CUTOVER_CANDIDATE_DIR} -> ${ACT_LATEST_CUTOVER_CANDIDATE_ROOT}"
 echo
 podman ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}' | grep -E "NAMES|${APP_CONTAINER}|${DB_CONTAINER}|${REDIS_CONTAINER}|${WORKER_CONTAINER}|${SUBMISSION_SCANNER_CONTAINER}|${SUBMISSION_GC_CONTAINER}" || true

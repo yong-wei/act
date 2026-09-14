@@ -7,6 +7,7 @@ import { runCompanionProactiveTurn } from '@/features/ai/companion/proactive-tur
 import { isExpired, type CompanionResourceCardInput } from '@/features/ai/companion/trigger-engine';
 import { readAdaptiveAttemptContext, type AdaptiveAttemptContextDb } from '@/features/assessment/public-api';
 import { resolveGovernedRegistryCard } from '@/features/ai/companion/governed-registry-card';
+import { isKonlingCompanionEnabled } from '@/lib/konling-companion-flag';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (process.env.KONLING_COMPANION_ENABLED !== 'true') {
+    if (!isKonlingCompanionEnabled()) {
       return NextResponse.json({ error: 'Companion disabled' }, { status: 404 });
     }
 

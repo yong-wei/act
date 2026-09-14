@@ -114,12 +114,24 @@ describe('POST /api/ai/companion/events', () => {
   });
 
   it('returns 404 when the companion flag is off', async () => {
-    delete process.env.KONLING_COMPANION_ENABLED;
+    process.env.KONLING_COMPANION_ENABLED = 'false';
     const response = await postEvent(eventPost({
       pageKind: 'resource-textbook', pageRef: 'r-1', eventType: 'pause-candidate', signals: eligibleSignals,
     }));
     expect(response.status).toBe(404);
     expect(mocks.prisma.konlingCompanionEvent.create).not.toHaveBeenCalled();
+  });
+
+  it('stays enabled when the companion flag is unset', async () => {
+    delete process.env.KONLING_COMPANION_ENABLED;
+    mocks.prisma.konlingCompanionEvent.findFirst.mockResolvedValueOnce(null);
+    mocks.prisma.konlingCompanionEvent.create.mockResolvedValueOnce({
+      id: 'event-1', status: 'candidate',
+    });
+    const response = await postEvent(eventPost({
+      pageKind: 'resource-textbook', pageRef: 'r-1', eventType: 'pause-candidate', signals: eligibleSignals,
+    }));
+    expect(response.status).toBe(201);
   });
 
   it('suppresses pause candidates whose signals already fail', async () => {
