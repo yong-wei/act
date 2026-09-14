@@ -56,7 +56,7 @@ describe('planning resource titles', () => {
     const labels = loadPlanningKnowledgeLabels();
     expect(labels.size).toBeGreaterThan(1000);
     expect(resolvePlanningResourceTitle('ctc modeling-865eb1c8824e157c2f05a903')).toBe('传递函数');
-    expect(resolvePlanningResourceTitle('ctc modeling-8aa475ed6514adc11f9b5c8d')).toBe('系统');
+    expect(resolvePlanningResourceTitle('ctc modeling-8aa475ed6514adc11f9b5c8d')).toBe('动态控制系统');
     expect(resolvePlanningResourceTitle('ctc modeling-47e8eb68c1aa5cd068c72e54')).toBe('负反馈回路');
   });
 
@@ -76,7 +76,7 @@ describe('planning resource titles', () => {
   it('resolves labels from the live authority release set instead of a hardcoded r6 path', () => {
     resetPlanningKnowledgeLabelsForTest();
     const live = resolvePlanningAuthoringReleaseDir();
-    expect(live).toMatch(/control-theory-engineering-v0\.37-r6$/u);
+    expect(live).toMatch(/control-theory-engineering-v0\.48$/u);
     expect(loadPlanningKnowledgeLabels(process.cwd(), {
       authorityReleaseSetId: 'actkg-authoritative-candidate-control-theory-engineering-v9.99-r1',
     }).size).toBe(0);

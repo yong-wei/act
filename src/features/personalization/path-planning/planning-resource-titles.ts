@@ -113,7 +113,7 @@ export function resolvePlanningResourceTitle(
   return collapsed;
 }
 
-const AUTHORING_RELEASE_NAME = /control-theory-engineering-v\d+(?:\.\d+)*-r\d+/u;
+const AUTHORING_RELEASE_NAME = /control-theory-engineering-v\d+(?:\.\d+)*(?:-r\d+)?/u;
 const EMPTY_CACHE_KEY = 'none';
 
 type PlanningKnowledgeCache = {
