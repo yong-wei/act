@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-09-13
-摘要: 生产应用 `v0.7.17-f852a00`（`origin/main` `f852a0089…`，tar SHA256 `2e0ce4d6…`）已 `deploy:app --skip-build`。路径规划标题可读、课次作收官、控灵生成回路径页。现网 Runtime 身份仍是 `runtime-6ed6cfe8…`（app-only 未切换）。`origin/integration` 现为 `18e0b2238`（深链启动，晚于本次冻结，未进 main）。OpenSpec `simplify-runtime-cas-publish-activate` 尚未 archive。
+最后更新: 2026-09-14
+摘要: 生产已切到 ActKG v0.48。Runtime `runtime-32868ff…`（source `462fb743c7`）已 activate；应用 `v0.7.20-88ed58a`（`origin/main` `88ed58a360…`，tar SHA256 `df000ca7…`）已 `deploy:app --skip-build`。图谱 15 域、路径生成可落盘。不要 archive OpenSpec，不要关 #1033。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -16,7 +16,8 @@
 
 ## 最近最重要的稳定变化
 
-- 2026-09-13 生产应用 `v0.7.17-f852a00` 已 `deploy:app --skip-build`：冻结 `origin/main` `f852a0089ec7ac56e68451d28fc6d75cfb5011a5`，镜像 `localhost/act-obe-platform:0.7.17-f852a00`，tar SHA256 `2e0ce4d6f95a6670548a6ec3d579166e2fb0b757f9aa824c4b96ad8fec2116d7`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.17。路径质量：可读中文标题、课次/讲义作收官、掌握度对齐活骨架、方案去重、控灵 `generate_learning_path` 把 `batchId` 回路径页。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；知识图谱 838 节点 / 16571 关系。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 身份仍为 `runtime-6ed6cfe8…`。`origin/integration` 随后快进到 `18e0b2238`（锚定讲义/步骤/路径节点深链），不要追进本次已发布的 `main`。
+- 2026-09-14 生产已切到 ActKG `control-theory-engineering-v0.48`。Runtime `runtime-32868ff565c7968eefbf478dcfc7c01312a9102ef61d3a944032a45`（source `462fb743c7`，previous `runtime-6ed6cfe8…`）已 activate；应用 `v0.7.20-88ed58a`（冻结 `origin/main` `88ed58a36059cf2dca96901c96dcd8fee1ff5ad4`，tar SHA256 `df000ca7aabb56406094b5e1c3a1196147ea900a000b2b2d0afbfb8d9ea458f8`）已 `deploy:app --skip-build`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.20。活身份：snap-7f154910、adc-b04d7251、overlay A proj-0734e535、B′ proj-700a378f、prereq proj-d8e4ebf1、shards ads-30c0c98a、activation-496129c0、绑定 `control-theory-engineering-v0.48-b1` hash `550df627…`。公网 demo：`/knowledge` 15 域含鲁棒控制、时域 143 对象 / 155 教学关系；路径 `time-domain-response-analysis` 生成并落盘 2 条候选；课程 1-1 可开。发版中发现并热修：规划器不得因绑定写时 `activeRuntimeReleaseId` 拒绝已激活 Runtime（0.7.19）；作者态包名正则必须接受无 `-rN` 的 v0.48（0.7.20）。3.2G 镜像 SCP 可能被对端重置，先 rsync 再 `--skip-build`。不要 archive OpenSpec，不要关 #1033。
+- 2026-09-13 生产应用 `v0.7.17-f852a00` 已 `deploy:app --skip-build`：冻结 `origin/main` `f852a0089ec7ac56e68451d28fc6d75cfb5011a5`，镜像 `localhost/act-obe-platform:0.7.17-f852a00`，tar SHA256 `2e0ce4d6f95a6670548a6ec3d579166e2fb0b757f9aa824c4b96ad8fec2116d7`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.17。路径质量：可读中文标题、课次/讲义作收官、掌握度对齐活骨架、方案去重、控灵 `generate_learning_path` 把 `batchId` 回路径页。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；知识图谱 838 节点 / 16571 关系。当时未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 身份随后已切到 `runtime-32868ff…`。
 - 2026-09-12 生产应用 `v0.7.16-2e34c18` 已 `deploy:app --skip-build`：冻结 `origin/main` `2e34c18f32cd855b6e624358742363045d89e09a`，镜像 `localhost/act-obe-platform:0.7.16-2e34c18`，tar SHA256 `3e0d2dfeb795828ae62bda301516102f6223c22b56c4e7d6a9bcfbfa974a24ca`。GitHub Release https://github.com/yong-wei/act/releases/tag/v0.7.16。公网 `/`、`/knowledge`、`/api/auth/session`、`/api/readyz`（app/db/redis/runtime 均为 true）通过；Redis `noeviction`；知识图谱 838 节点 / 16571 关系。未执行 `runtime:publish` / `runtime:activate`。现网 Runtime 身份为 `runtime-6ed6cfe8…`。
 - 2026-09-12 生产应用 `v0.7.15-cf73522` 已 `deploy:app` 恢复运行。路径生成仍走旧混池，会 OOM。
 - 2026-09-12 路径规划质量裁决已写入 [ADR-2026-09-12-path-planning-quality.md](50-decisions/ADR-2026-09-12-path-planning-quality.md)：风格是倾向不是互斥；目标是远期目标，从头部截有限骨架；掌握度高的点不进骨架；课程作收官；冷启动补基础不是缺陷。
