@@ -591,7 +591,7 @@ materialize_hot_indexes() {
   if [ -d "${HOT_INDEX_HOST_DIR}/knowledge/projection" ]; then
     TEACHING_PROJECTION_STORE_DIR="${HOT_INDEX_HOST_DIR}/knowledge/projection"
   fi
-  for tree in knowledge/resource-bindings knowledge/prerequisites knowledge/teaching-projection; do
+  for tree in knowledge/resource-bindings knowledge/prerequisites knowledge/teaching-projection knowledge/composite-envelopes; do
     if [ -d "${HOT_INDEX_HOST_DIR}/${tree}" ]; then
       HOT_INDEX_MOUNT_ARGS+=(-v "${HOT_INDEX_HOST_DIR}/${tree}:/app/course-content/runtime/${tree}:ro")
     fi
