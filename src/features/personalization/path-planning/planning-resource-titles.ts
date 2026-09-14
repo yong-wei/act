@@ -118,6 +118,7 @@ const EMPTY_CACHE_KEY = 'none';
 
 type PlanningKnowledgeCache = {
   labels: Map<string, string>;
+  meanings: Map<string, string>;
   assertionIds: Set<string>;
 };
 
@@ -160,9 +161,10 @@ function ensurePlanningKnowledgeCaches(
   const hit = caches.get(cacheKey);
   if (hit) return hit;
   const labels = new Map<string, string>();
+  const meanings = new Map<string, string>();
   const assertionIds = new Set<string>();
   if (!release) {
-    const empty = { labels, assertionIds };
+    const empty = { labels, meanings, assertionIds };
     caches.set(cacheKey, empty);
     return empty;
   }
@@ -179,12 +181,13 @@ function ensurePlanningKnowledgeCaches(
     if (id && label) remember(id, label, true);
   });
   readJsonl(join(release, 'localized-content-index.jsonl'), (row) => {
-    if (row.locale !== 'zh-CN' || row.field_path !== 'name') return;
     const id = stringField(row.target_id);
-    const label = stringField(row.value);
-    if (id && label) remember(id, label, false);
+    const value = stringField(row.value);
+    if (row.locale !== 'zh-CN' || !id || !value) return;
+    if (row.field_path === 'name') remember(id, value, false);
+    if (row.field_path === 'meaning' && !meanings.has(id)) meanings.set(id, value);
   });
-  const loaded = { labels, assertionIds };
+  const loaded = { labels, meanings, assertionIds };
   caches.set(cacheKey, loaded);
   return loaded;
 }
@@ -194,6 +197,13 @@ export function loadPlanningKnowledgeLabels(
   options: { authorityReleaseSetId?: string | null } = {},
 ): Map<string, string> {
   return ensurePlanningKnowledgeCaches(repoRoot, options).labels;
+}
+
+export function loadPlanningKnowledgeMeanings(
+  repoRoot = process.cwd(),
+  options: { authorityReleaseSetId?: string | null } = {},
+): Map<string, string> {
+  return ensurePlanningKnowledgeCaches(repoRoot, options).meanings;
 }
 
 export function loadPlanningAssertionKnowledgeIds(

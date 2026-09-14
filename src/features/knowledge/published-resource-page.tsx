@@ -168,8 +168,13 @@ export function PublishedResourcePage({ resource }: { resource: PublishedResourc
           </div>
         )}
         {resource.kind === 'card' && resource.card ? (
-          <KnowledgeCard name={resource.title} description={resource.card.summary} nodeType="KnowledgeStatement"
-            metadata={{ type: 'rich-text', content: resource.card.explanation }} variant="full" />
+          <KnowledgeCard
+            name={resource.title}
+            description={resource.card.summary === resource.card.explanation ? '' : resource.card.summary}
+            nodeType="KnowledgeStatement"
+            metadata={{ type: 'rich-text', content: resource.card.explanation }}
+            variant="full"
+          />
         ) : resource.kind === 'infographic' && resource.imageSrc ? (
           <figure className="overflow-hidden rounded-xl border border-platform-border bg-white">
             <Image src={resource.imageSrc} alt={resource.title} width={1600} height={1000} unoptimized

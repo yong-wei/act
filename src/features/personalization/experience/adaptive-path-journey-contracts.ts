@@ -340,6 +340,7 @@ export function buildAuthorizedAdaptivePathJourney(
     nextAction: {
       state: 'ready',
       ...toNodeView(actionNode),
+      title: '学习下一个',
       href,
       reason: null,
       recovery: null,

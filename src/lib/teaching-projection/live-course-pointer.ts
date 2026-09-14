@@ -12,6 +12,7 @@ import {
   RESOURCE_BINDING_RELEASE_CURRENT_CONTRACT,
   RESOURCE_BINDING_RELEASE_FILES,
 } from '@/lib/resource-binding-release/contracts';
+import { buildPublishedResourceHref } from '@/lib/published-resource-reference';
 import { DEFAULT_TEACHING_PROJECTION_RUNTIME_RELATIVE } from './contracts';
 
 export interface AgreedLiveCourseProjection {
@@ -91,6 +92,35 @@ export function readAgreedLiveCourseProjection(
     projectionHash: current.projectionHash,
     authorityReleaseId: current.authorityReleaseId,
   };
+}
+
+export function buildLivePublishedResourceHref(
+  resourceId: string,
+  repoRoot = process.cwd(),
+): string | null {
+  const live = readAgreedLiveCourseProjection(repoRoot);
+  if (!live) return null;
+  const manifest = readJson<{
+    authoritySnapshotId?: string;
+    authoritySnapshotHash?: string;
+  }>(join(
+    resolveCourseProjectionRoot(repoRoot),
+    'releases',
+    live.projectionId,
+    'projection-manifest.json',
+  ));
+  if (!manifest?.authoritySnapshotId || !manifest.authoritySnapshotHash) return null;
+  try {
+    return buildPublishedResourceHref({
+      resourceId,
+      projectionId: live.projectionId,
+      projectionHash: live.projectionHash,
+      snapshotId: manifest.authoritySnapshotId,
+      snapshotHash: manifest.authoritySnapshotHash,
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function overlayLiveTeachingPins<T extends {

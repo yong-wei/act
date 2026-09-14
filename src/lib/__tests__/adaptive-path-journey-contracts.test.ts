@@ -39,7 +39,7 @@ describe('adaptive path journey contracts', () => {
       nextAction: {
         state: 'ready',
         nodeId: 'node-2',
-        title: '校正练习',
+        title: '学习下一个',
         type: 'adaptive_quiz',
         reason: null,
         recovery: null,

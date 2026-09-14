@@ -381,7 +381,7 @@ export function KnowledgeCard({
               <span className="truncate">{name}</span>
               {renderTypeBadge()}
             </CardTitle>
-            {!runtimeNodeCardPath ? (
+            {!runtimeNodeCardPath && description.trim() ? (
               <CardDescription className={`${descriptionClassName} ${isCompact ? 'line-clamp-2' : ''}`}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
