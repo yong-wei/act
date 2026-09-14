@@ -908,22 +908,21 @@ export async function resolvePublishedResourceFeature(ref: PublishedResourceIden
   current: boolean;
 } | null> {
   const live = await loadPublishedResourceFeatureIndex();
-  const current = publicationLocksMatchLive(live, ref);
   const liveResource = live.resources.find((entry) => entry.identity.resourceId === ref.resourceId);
-  if (current && ref.resourceVersion && liveResource?.version !== ref.resourceVersion) {
-    const reason = '该资源版本已更新。当前引用仅保留元数据，请返回学习路径重新选择。';
-    return liveResource ? { index: live, resource: asReferenceOnly(liveResource, reason), current: false } : null;
+  const liveRelease = join(resolveConfiguredTeachingProjectionRoot(), 'releases', live.projectionId, 'projection-manifest.json');
+  if (liveResource && existsSync(liveRelease)) {
+    return { index: live, resource: liveResource, current: true };
   }
-  const index = current ? live : readIndex(retainedIndexPath(ref));
+  const index = readIndex(retainedIndexPath(ref));
   if (!index || !publicationLocksMatchLive(index, ref)) return null;
   const release = join(resolveConfiguredTeachingProjectionRoot(), 'releases', ref.projectionId, 'projection-manifest.json');
   if (!existsSync(release)) return null;
   const resource = index.resources.find((entry) => entry.identity.resourceId === ref.resourceId);
-  if (!resource || (ref.resourceVersion && resource.version !== ref.resourceVersion)) return null;
+  if (!resource) return null;
   return {
     index,
-    resource: current ? resource : asReferenceOnly(resource, '该引用来自已保留版本，当前内容已更新。请返回路径重新选择。'),
-    current,
+    resource: asReferenceOnly(resource, '该引用来自已保留版本，当前内容已更新。请返回路径重新选择。'),
+    current: false,
   };
 }
 
