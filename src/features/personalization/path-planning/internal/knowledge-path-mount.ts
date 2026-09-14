@@ -120,7 +120,6 @@ export function assembleKnowledgePathPlan(
   const preferredTypes = preferredResourceTypes(input);
   const hasPortrait = preferredTypes.length > 0;
   const masteryById = masteryByCanonicalId(input.learnerState?.knowledgeMastery?.tags);
-  const deadline = Date.now() + (options.heuristicTimeoutMs ?? policy.heuristicTimeoutMs);
   const masteryTags = input.learnerState?.knowledgeMastery?.tags ?? {};
   const admissionOf = (canonicalId: string) => knowledgeResourceAdmission(masteryTags[canonicalId]);
   const byKnowledge = indexResourcesByKnowledge([...feasibleKnowledge], candidates, scopedIds);
@@ -139,6 +138,7 @@ export function assembleKnowledgePathPlan(
     assertionIds,
     keepIds: targets,
   });
+  const deadline = Date.now() + (options.heuristicTimeoutMs ?? policy.heuristicTimeoutMs);
   const droppedAssertions = expandedIds.some((id) =>
     !targets.includes(id)
     && isAssertionLikeKnowledge(id, { label: labels.get(id), assertionIds }),

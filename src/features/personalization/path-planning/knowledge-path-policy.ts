@@ -20,9 +20,23 @@ export interface KnowledgePathPolicy {
   pathCoursePlacementWeight: number;
 }
 
+const MIN_HEURISTIC_TIMEOUT_MS = 50;
+const MAX_HEURISTIC_TIMEOUT_MS = 10_000;
+/** 部署后按生产成功启发式 P95 再调。环境变量 `KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS` 可覆盖。 */
+export const DEFAULT_HEURISTIC_TIMEOUT_MS = 250;
+
+export function readHeuristicTimeoutMs(
+  raw = process.env.KNOWLEDGE_PATH_HEURISTIC_TIMEOUT_MS,
+): number {
+  if (raw == null || raw.trim() === '') return DEFAULT_HEURISTIC_TIMEOUT_MS;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return DEFAULT_HEURISTIC_TIMEOUT_MS;
+  return Math.min(MAX_HEURISTIC_TIMEOUT_MS, Math.max(MIN_HEURISTIC_TIMEOUT_MS, Math.round(parsed)));
+}
+
 export const DEFAULT_KNOWLEDGE_PATH_POLICY: KnowledgePathPolicy = {
   maxSteps: 12,
-  heuristicTimeoutMs: 50,
+  heuristicTimeoutMs: DEFAULT_HEURISTIC_TIMEOUT_MS,
   masterySkipThreshold: 0.65,
   styleKindBonus: 7,
   preferredTypeBonus: 5,
@@ -44,7 +58,11 @@ export const DEFAULT_KNOWLEDGE_PATH_POLICY: KnowledgePathPolicy = {
 export function resolveKnowledgePathPolicy(
   overrides: Partial<KnowledgePathPolicy> = {},
 ): KnowledgePathPolicy {
-  return { ...DEFAULT_KNOWLEDGE_PATH_POLICY, ...overrides };
+  return {
+    ...DEFAULT_KNOWLEDGE_PATH_POLICY,
+    heuristicTimeoutMs: readHeuristicTimeoutMs(),
+    ...overrides,
+  };
 }
 
 export const KNOWLEDGE_PATH_MAX_STEPS = DEFAULT_KNOWLEDGE_PATH_POLICY.maxSteps;

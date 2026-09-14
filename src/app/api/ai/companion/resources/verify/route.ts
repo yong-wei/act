@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
+import { isKonlingCompanionEnabled } from '@/lib/konling-companion-flag';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   resolveTeachingResourceTarget,
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (process.env.KONLING_COMPANION_ENABLED !== 'true') {
+    if (!isKonlingCompanionEnabled()) {
       return NextResponse.json({ error: 'Companion disabled' }, { status: 404 });
     }
 
