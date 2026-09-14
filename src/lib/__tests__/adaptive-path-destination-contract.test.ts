@@ -157,6 +157,23 @@ describe('adaptive path destination contract', () => {
     });
   });
 
+  it('launches a teaching-projection textbook node through the live published resource page', () => {
+    const resourceId = 'act:textbook-section:dorf-modern-control-systems.chapter-chapter-10.section-10.1';
+    const version = 'a'.repeat(64);
+    expect(resolveAdaptivePathDestinationContract(
+      'textbook_section',
+      '/textbooks/dorf-modern-control-systems/14th%20Global%20Edition/chapter-chapter-10/section-10.1',
+      {
+        nodeId: `published-resource:${version}:${resourceId}`,
+        sourceKind: 'teaching_projection',
+        sourceRef: resourceId,
+      },
+    )).toMatchObject({
+      disposition: 'destination-control',
+      reason: null,
+    });
+  });
+
   it('preserves path-center and external destination rules', () => {
     expect(resolveAdaptivePathDestinationContract(
       'textbook_section',

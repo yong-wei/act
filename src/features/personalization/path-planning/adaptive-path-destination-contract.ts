@@ -1,6 +1,7 @@
 import { ARENA_CHALLENGE_TASKS } from '@/features/arena/data/seed-challenges';
 import { isManifestCourseRouteSegment } from '@/features/interactive/shared/manifest-course-route-segments';
 import { isStudentVisiblePathTarget } from '@/lib/student-visible-path-target';
+import { buildLivePublishedResourceHref } from '@/lib/teaching-projection/live-course-pointer';
 import { parsePublishedResourceHref, PUBLISHED_RESOURCE_LABELS, publishedResourcePathType } from '@/lib/published-resource-reference';
 import type { TeachingResourceType } from '@/lib/teaching-projection/contracts';
 
@@ -45,6 +46,17 @@ export function resolveAdaptivePathDestinationContract(
   target: string,
   context: AdaptivePathDestinationContext = {},
 ): AdaptivePathDestinationContractResult {
+  const publishedNodeResourceId = /^published-resource:[a-f0-9]{64}:(act:.+)$/.exec(context.nodeId?.trim() ?? '')?.[1] ?? null;
+  if (
+    publishedNodeResourceId
+    && context.sourceKind === 'teaching_projection'
+    && context.sourceRef === publishedNodeResourceId
+  ) {
+    const liveHref = buildLivePublishedResourceHref(publishedNodeResourceId);
+    if (liveHref) {
+      return { disposition: 'destination-control', canonicalTarget: liveHref, reason: null };
+    }
+  }
   const published = parsePublishedResourceHref(target);
   if (published) {
     const type = published.resourceId.split(':')[1] as TeachingResourceType;
@@ -229,6 +241,7 @@ function hasIntegratedJourneyDestination(
   }
   if (['lesson_step', 'slides', 'handout', 'quiz', 'textbook_section'].includes(resourceType)) {
     return pathname.startsWith('/interactive-learning/resources/')
+      || (resourceType === 'textbook_section' && pathname.startsWith('/textbooks/'))
       || (resourceType === 'quiz' && pathname === '/assessment/adaptive-practice')
       || (resourceType === 'lesson_step' && isGovernedCourseStudentDemoStep(target))
       || (resourceType === 'handout' && isGovernedHandoutPrintTarget(target));

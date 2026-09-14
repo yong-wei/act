@@ -3,7 +3,10 @@ import { getServerAuthSession } from '@/lib/auth';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { buildPublishedResourceHref, parsePublishedResourceHref, PUBLISHED_RESOURCE_LABELS } from '@/lib/published-resource-reference';
 import { resolvePublishedResourceFeature } from '@/lib/published-resource-index';
-import { resolveBindingViewerContentForType } from '@/lib/authority-domain-shards/binding-viewer-content';
+import {
+  presentPublishedKnowledgeCard,
+  resolveBindingViewerContentForType,
+} from '@/lib/authority-domain-shards/binding-viewer-content';
 import { launchRowsForResource } from '@/lib/resource-binding-release/query';
 import { PublishedResourcePage, type PublishedResourcePageData } from '@/features/knowledge/published-resource-page';
 
@@ -55,7 +58,19 @@ export default async function PublishedResourceRoute({ params, searchParams }: {
   if (current && resource.backend.kind === 'card') {
     const card = resolveBindingViewerContentForType(resource.identity.resourceId, resource.type, resource.sourcePath);
     if (card?.summary && card.explanation) {
-      view.card = { summary: card.summary, insight: card.insight ?? null, explanation: card.explanation };
+      const presented = presentPublishedKnowledgeCard({
+        resourceId: resource.identity.resourceId,
+        title: resource.title,
+        canonicalIds: resource.canonicalIds,
+        card: {
+          summary: card.summary,
+          insight: card.insight ?? null,
+          explanation: card.explanation,
+        },
+      });
+      view.title = presented.title;
+      view.summary = presented.summary;
+      view.card = { summary: presented.summary, insight: card.insight ?? null, explanation: presented.explanation };
     } else {
       view.kind = 'reference-only';
       view.limitation = '知识卡内容未通过当前版本校验。';
