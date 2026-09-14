@@ -890,6 +890,17 @@ export async function loadPublishedResourceFeatureIndex(): Promise<PublishedReso
   return (await loadPublishedResourceFeatureIndexCapture()).index;
 }
 
+/** Projection + snapshot identify the publication. Runtime ID in the URL is write-time provenance. */
+export function publicationLocksMatchLive(
+  live: Pick<PublishedResourceFeatureIndex, 'projectionId' | 'projectionHash' | 'snapshotId' | 'snapshotHash'>,
+  ref: Pick<PublishedResourceIdentity, 'projectionId' | 'projectionHash' | 'snapshotId' | 'snapshotHash'>,
+): boolean {
+  return live.projectionId === ref.projectionId
+    && live.projectionHash === ref.projectionHash
+    && live.snapshotId === ref.snapshotId
+    && live.snapshotHash === ref.snapshotHash;
+}
+
 /** Retained entries are written only after observing an agreed active publication. */
 export async function resolvePublishedResourceFeature(ref: PublishedResourceIdentity): Promise<{
   index: PublishedResourceFeatureIndex;
@@ -897,18 +908,14 @@ export async function resolvePublishedResourceFeature(ref: PublishedResourceIden
   current: boolean;
 } | null> {
   const live = await loadPublishedResourceFeatureIndex();
-  const current = live.projectionId === ref.projectionId && live.projectionHash === ref.projectionHash
-    && live.snapshotId === ref.snapshotId && live.snapshotHash === ref.snapshotHash
-    && live.runtimeReleaseId === (ref.runtimeReleaseId ?? null);
+  const current = publicationLocksMatchLive(live, ref);
   const liveResource = live.resources.find((entry) => entry.identity.resourceId === ref.resourceId);
   if (current && ref.resourceVersion && liveResource?.version !== ref.resourceVersion) {
     const reason = '该资源版本已更新。当前引用仅保留元数据，请返回学习路径重新选择。';
     return liveResource ? { index: live, resource: asReferenceOnly(liveResource, reason), current: false } : null;
   }
   const index = current ? live : readIndex(retainedIndexPath(ref));
-  if (!index || index.projectionId !== ref.projectionId || index.projectionHash !== ref.projectionHash
-    || index.snapshotId !== ref.snapshotId || index.snapshotHash !== ref.snapshotHash
-    || index.runtimeReleaseId !== (ref.runtimeReleaseId ?? null)) return null;
+  if (!index || !publicationLocksMatchLive(index, ref)) return null;
   const release = join(resolveConfiguredTeachingProjectionRoot(), 'releases', ref.projectionId, 'projection-manifest.json');
   if (!existsSync(release)) return null;
   const resource = index.resources.find((entry) => entry.identity.resourceId === ref.resourceId);

@@ -10,6 +10,7 @@ import {
   buildControlCorrectionLearningCenterView,
   buildAdaptivePathLaunchContext,
   buildAdaptivePathCompletionRequest,
+  buildAdaptivePathUnavailableSkipRequest,
   buildLearnerDataRouteShell,
   buildPracticeEntryRouteNodes,
   buildRecommendedPathNodeView,
@@ -2148,6 +2149,22 @@ describe('adaptive learning center UI contracts', () => {
       body: {
         resourceType: 'simulation',
         simulationRef: { id: 'sim-run-1' },
+      },
+    });
+    expect(buildAdaptivePathUnavailableSkipRequest(launchContext)).toEqual({
+      href: '/api/learning-paths/path-1/deviations',
+      method: 'POST',
+      body: {
+        deviationType: 'skip',
+        priorNodeId: 'registry:lesson09-correction-precheck',
+        targetNodeId: 'registry:lesson09-correction-precheck',
+        evidenceConfidence: 'high',
+        idempotencyKey: 'resource-unavailable-skip:path-1:registry:lesson09-correction-precheck',
+        context: {
+          consequence: '该资源当前无法打开，已跳过并记录为路径偏离，可稍后返回。',
+          returnEligible: true,
+          reason: 'resource-unavailable',
+        },
       },
     });
   });
