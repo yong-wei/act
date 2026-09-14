@@ -1,6 +1,6 @@
 {
   "name": "ai-obe-platform",
-  "version": "0.7.21",
+  "version": "0.7.22",
   "private": true,
   "packageManager": "npm@11.12.1",
   "engines": {
