@@ -657,6 +657,40 @@ function readSimulationRefFromCompletion(
   return typeof id === 'string' ? { id } : undefined;
 }
 
+const RESOURCE_UNAVAILABLE_SKIP_TEXT = '该资源当前无法打开，已跳过并记录为路径偏离，可稍后返回。';
+
+export function buildAdaptivePathUnavailableSkipRequest(
+  launchContext: AdaptivePathLaunchContext,
+): {
+  href: string;
+  method: 'POST';
+  body: {
+    deviationType: 'skip';
+    priorNodeId: string;
+    targetNodeId: string;
+    evidenceConfidence: 'high';
+    idempotencyKey: string;
+    context: { consequence: string; returnEligible: true; reason: 'resource-unavailable' };
+  };
+} {
+  return {
+    href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/deviations`,
+    method: 'POST',
+    body: {
+      deviationType: 'skip',
+      priorNodeId: launchContext.nodeId,
+      targetNodeId: launchContext.nodeId,
+      evidenceConfidence: 'high',
+      idempotencyKey: `resource-unavailable-skip:${launchContext.pathId}:${launchContext.nodeId}`,
+      context: {
+        consequence: RESOURCE_UNAVAILABLE_SKIP_TEXT,
+        returnEligible: true,
+        reason: 'resource-unavailable',
+      },
+    },
+  };
+}
+
 export function buildAdaptivePathCompletionRequest(
   input: AdaptivePathCompletionRequestInput,
 ): AdaptivePathCompletionRequest | null {

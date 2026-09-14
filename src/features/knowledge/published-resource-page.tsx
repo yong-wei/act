@@ -4,10 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ArrowUpRight, CheckCircle2, Search } from 'lucide-react';
 import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
-import { buildAdaptivePathCompletionRequest, buildAdaptivePathLaunchHref, resolveAdaptivePathLaunchReturnContext } from '@/features/personalization/experience/adaptive-learning-center-contracts';
+import {
+  buildAdaptivePathCompletionRequest,
+  buildAdaptivePathLaunchHref,
+  buildAdaptivePathUnavailableSkipRequest,
+  resolveAdaptivePathLaunchReturnContext,
+} from '@/features/personalization/experience/adaptive-learning-center-contracts';
 import { publishAdaptivePathJourneyResponse } from '@/features/personalization/experience/adaptive-path-journey-control';
 import { KnowledgeCard } from './knowledge-card';
 
@@ -31,9 +36,11 @@ export interface PublishedResourcePageData {
 
 export function PublishedResourcePage({ resource }: { resource: PublishedResourcePageData }) {
   const search = useSearchParams();
+  const router = useRouter();
   const context = resolveAdaptivePathLaunchReturnContext(search);
   const [pending, setPending] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [skipping, setSkipping] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(24);
@@ -52,6 +59,28 @@ export function PublishedResourcePage({ resource }: { resource: PublishedResourc
     || resource.kind === 'infographic'
     || (resource.kind === 'media' && mediaReady)
   ));
+  const canSkipUnavailable = Boolean(context && resource.kind === 'reference-only');
+
+  async function skipUnavailableResource() {
+    if (!context || !canSkipUnavailable || skipping) return;
+    const request = buildAdaptivePathUnavailableSkipRequest(context);
+    setSkipping(true);
+    setError(null);
+    try {
+      const response = await fetch(request.href, {
+        method: request.method,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(request.body),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : '跳过资源失败，请返回路径重试。');
+      publishAdaptivePathJourneyResponse(result);
+      router.replace(context.returnHref);
+    } catch (skipError) {
+      setError(skipError instanceof Error ? skipError.message : '跳过资源失败，请返回路径重试。');
+      setSkipping(false);
+    }
+  }
 
   async function completeReading() {
     if (!context || !canCompleteReading) return;
@@ -122,7 +151,22 @@ export function PublishedResourcePage({ resource }: { resource: PublishedResourc
             ))}
           </ul>
         ) : null}
-        {resource.limitation && <p className="rounded-lg border border-platform-border bg-platform-canvas-muted p-4 text-sm text-platform-fg-secondary" role="status">{resource.limitation}</p>}
+        {resource.limitation && (
+          <div className="space-y-3 rounded-lg border border-platform-border bg-platform-canvas-muted p-4" role="status">
+            <p className="text-sm text-platform-fg-secondary">{resource.limitation}</p>
+            {canSkipUnavailable ? (
+              <button
+                type="button"
+                onClick={() => void skipUnavailableResource()}
+                disabled={skipping}
+                data-published-resource-skip="unavailable"
+                className="inline-flex items-center rounded-md bg-platform-action-primary px-4 py-2 text-sm text-white disabled:opacity-50"
+              >
+                {skipping ? '正在跳过…' : '跳过该资源，继续路径'}
+              </button>
+            ) : null}
+          </div>
+        )}
         {resource.kind === 'card' && resource.card ? (
           <KnowledgeCard name={resource.title} description={resource.card.summary} nodeType="KnowledgeStatement"
             metadata={{ type: 'rich-text', content: resource.card.explanation }} variant="full" />

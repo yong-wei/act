@@ -482,6 +482,8 @@ describe('adaptive path journey control', () => {
     expect(source).toContain('<InteractiveLearningShell');
     expect(source).not.toContain('<AdaptivePathJourneyControlFromRoute');
     expect(source).toContain('publishAdaptivePathJourneyResponse(result)');
+    expect(source).toContain('data-published-resource-skip="unavailable"');
+    expect(source).toContain('buildAdaptivePathUnavailableSkipRequest');
   });
 
   it('suppresses resource-page return actions when the shared path journey owns navigation', () => {
