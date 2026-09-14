@@ -23,6 +23,15 @@ describe('publicationLocksMatchLive', () => {
     })).toBe(true);
   });
 
+  it('treats a live resourceId as current even when the path still carries an old resourceVersion', () => {
+    expect(publicationLocksMatchLive(live, {
+      projectionId: live.projectionId,
+      projectionHash: live.projectionHash,
+      snapshotId: live.snapshotId,
+      snapshotHash: live.snapshotHash,
+    })).toBe(true);
+  });
+
   it('rejects a different projection', () => {
     const other = 'b'.repeat(64);
     expect(publicationLocksMatchLive(live, {
