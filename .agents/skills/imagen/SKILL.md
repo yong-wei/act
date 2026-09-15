@@ -1,13 +1,13 @@
 ---
 name: imagen
-description: 按指定用途生成或编辑图像，并保存图片与提示词。
+description: 使用 GPT Image 2.5 生成或编辑图像，保存图片与精确提示词。
 ---
 
 # Imagen
 
 ## Purpose
 
-Use GPT Image 2 / Codex-native image generation to create polished visual assets from user intent, then save both the generated image and the exact prompt used to create it.
+Use GPT Image 2.5 through Codex-native image generation or an explicitly selected API model to create polished visual assets from user intent, then save both the generated image and the exact prompt used to create it.
 
 This is a general image-production skill. For repository-specific knowledge-node infographics, prefer the `infograph` skill first; use `imagen` when the request is broader, such as posters, diagrams, product visuals, visual metaphors, UI mockups, editorial images, icons, story scenes, or generic high-quality graphics.
 
@@ -33,6 +33,10 @@ Naming rule:
 - If the user request is English, use an English summary filename, for example `ship-heading-overshoot-diagram.png`.
 - Keep names filesystem-safe: remove slashes, colons, quotes, and control characters.
 - If a filename already exists, append `-2`, `-3`, and so on.
+
+## Model and editing contract
+
+Read [GPT Image 2.5 generation and editing](references/gpt-image-2.5.md) when generating or editing. Keep the target model separate from any model actually reported by the tool. Do not silently use GPT Image 2 or rewrite historical provenance.
 
 ## Workflow
 
@@ -78,7 +82,7 @@ Read the selected reference file and produce an executable visual specification,
 - required technical details or labels
 - negative constraints
 
-Use the pattern learned from strong GPT Image 2 examples: make the model decide less about layout and more about rendering. State the object, view, panel geometry, label count, material/lighting style, and allowed text explicitly.
+State the learning or communication goal and essential visual relationships. Specify exact text and important placement; leave ordinary composition choices open instead of fixing every panel.
 
 ### 4. Generate
 
@@ -88,7 +92,7 @@ Call the built-in image generation tool with exactly the final prompt:
 image_gen.imagegen({ "prompt": "<final prompt>" })
 ```
 
-The current Codex tool accepts only `prompt`; do not pass unsupported parameters such as model, size, quality, or output format. Put quality and layout requirements inside the prompt.
+For a new image, omit reference arguments. For an edit, inspect the original, then pass `referenced_image_paths` or the smallest necessary `num_last_images_to_include`, never both. The current tool does not expose model, size, quality or output format parameters; prompt wording does not set those API parameters.
 
 ### 5. Save Image And Prompt
 
@@ -97,6 +101,7 @@ After generation, run:
 ```bash
 python3 .agents/skills/imagen/scripts/save_latest_image.py \
   --summary "<content summary>" \
+  --image /absolute/path/returned-by-this-call.png \
   --prompt-text "<exact final prompt>"
 ```
 
@@ -105,13 +110,14 @@ For long prompts or prompts containing formulas, quotes, or many line breaks, sa
 ```bash
 python3 .agents/skills/imagen/scripts/save_latest_image.py \
   --summary "<content summary>" \
+  --image /absolute/path/returned-by-this-call.png \
   --prompt-file /path/to/final-prompt.md
 ```
 
 Use `--output-dir <path>` if the user specified a target directory.
 Use `--language zh` or `--language en` when the language is not obvious.
 
-The script copies the newest image from `~/.codex/generated_images`, saves it to the output directory, and writes the exact prompt to the matching `.prompt.md` file.
+Use `--image` with the exact output from this call, particularly during concurrent work and edits. The script retains newest-image discovery for compatibility; use it only after verifying which file belongs to this task. It copies the image and saves the exact prompt without overwriting the original.
 
 ### 6. Review
 
@@ -124,7 +130,7 @@ Open the saved image and check:
 - no unsupported facts, logos, people, or claims were added
 - the output file and prompt file are both present
 
-Regenerate only when the issue is material. If the user asked for a fast draft, report the limitation instead of iterating silently.
+Prefer a targeted edit for a material local defect; regenerate when the whole composition or scientific representation is wrong. If the user asked for a fast draft, report the limitation instead of iterating silently.
 
 ## Common Mistakes
 

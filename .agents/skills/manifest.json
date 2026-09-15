@@ -92,7 +92,7 @@
       "name": "imagen",
       "path": "imagen/SKILL.md",
       "category": "image-generation",
-      "description": "按指定用途生成或编辑图像，并保存图片与提示词。"
+      "description": "使用 GPT Image 2.5 生成或编辑图像，保存图片与精确提示词。"
     },
     {
       "name": "industrial-brutalist-ui",
@@ -104,7 +104,7 @@
       "name": "infograph",
       "path": "infograph/SKILL.md",
       "category": "course-content",
-      "description": "生成、审核、注册或导出本项目知识节点的信息图。"
+      "description": "使用 GPT Image 2.5 制作或修订知识节点信息图，并审核、注册与导出。"
     },
     {
       "name": "interactive-design",

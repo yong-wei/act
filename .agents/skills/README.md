@@ -54,7 +54,7 @@
 | 技能 | 用途 |
 | --- | --- |
 | [homework](homework/SKILL.md) | 生成、检查、修订或汇编指定题号的课程作业与考试题。 |
-| [infograph](infograph/SKILL.md) | 生成、审核、注册或导出本项目知识节点的信息图。 |
+| [infograph](infograph/SKILL.md) | 使用 GPT Image 2.5 制作或修订知识节点信息图，并审核、注册与导出。 |
 | [interactive-design](interactive-design/SKILL.md) | 设计或修订课程互动页面蓝图及其机读契约。 |
 | [lesson](lesson/SKILL.md) | 创作或修订自动控制原理讲义、教案、知识节点及课程媒体。 |
 | [lesson-content-review](lesson-content-review/SKILL.md) | 审查指定课次或指定内容的教学、科学与作者态/runtime 一致性。 |
@@ -66,7 +66,7 @@
 | --- | --- |
 | [imagegen-frontend-mobile](imagegen-frontend-mobile/SKILL.md) | 生成移动应用屏幕概念图或指定流程的视觉参考，不编写应用代码。 |
 | [imagegen-frontend-web](imagegen-frontend-web/SKILL.md) | 生成网页视觉概念或分区参考图，不承担网页代码实现。 |
-| [imagen](imagen/SKILL.md) | 按指定用途生成或编辑图像，并保存图片与提示词。 |
+| [imagen](imagen/SKILL.md) | 使用 GPT Image 2.5 生成或编辑图像，保存图片与精确提示词。 |
 
 ## course-implementation
 

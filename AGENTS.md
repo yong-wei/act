@@ -58,6 +58,10 @@
 - 新 DB/BOPPPS 渲染主线使用 `src/features/lesson-engine/resource-renderer.tsx`；旧式大写 `ResourceRenderer.tsx` 仅按遗留路径维护。
 - 新互动课实现优先落在 `src/features/interactive/`；只有可跨课复用的资源、仿真或 widget 才下沉到 `src/resources/`。
 
+## 图像制作
+
+- 新图和图像编辑以 GPT Image 2.5 为目标；生成时按 `.agents/skills/imagen/references/gpt-image-2.5.md` 选择可用接口并记录真实模型信息。提示词不能切换后端，不静默使用旧模型；已接受历史资产不因默认型号变化重新生成或改写来源。
+
 ## 仿真与数值模型
 
 - 新增或改造仿真必须遵循 `docs/Simulation_Guidelines.md`。

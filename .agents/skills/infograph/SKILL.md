@@ -1,6 +1,6 @@
 ---
 name: infograph
-description: 生成、审核、注册或导出本项目知识节点的信息图。
+description: 使用 GPT Image 2.5 制作或修订知识节点信息图，并审核、注册与导出。
 ---
 
 # Infograph
@@ -58,42 +58,13 @@ but runtime export must mount only one selected asset per canonical node.
 
 Only export nodes whose `review.json` has `status: "accepted"`.
 
-## Current Codex Image Generation Facts
+## GPT Image 2.5
 
-Infographics must be generated image assets. Use Codex-native image generation
-first.
+New generation and edits target GPT Image 2.5. Read [model, reference-image and edit guidance](../imagen/references/gpt-image-2.5.md). The current Codex tool supports reference-image editing but does not expose model selection; do not confuse the requested family with a reported model.
 
-Hard constraint:
+Final infographic assets must come from image generation or image editing, not programmatic drawing. Scripts may prepare source, prompts, metadata and exports. Scientific computation may supply validated reference geometry; it does not replace generation of the final asset. Leave failed images unaccepted.
 
-- `infograph.png` must come from Codex-native image generation or an explicit
-  image-generation API such as GPT Image 2.
-- Do not satisfy an infographic request by drawing the final image with
-  deterministic code, SVG, Pillow, matplotlib, canvas, Mermaid, TikZ, or other
-  programmatic rendering.
-- Programmatic scripts may prepare `source.json`, `prompt.md`, review metadata,
-  manifests, thumbnails, or exports, but they must not create the final
-  `infograph.png`.
-- If image generation repeatedly fails, produces unacceptable Chinese text,
-  malformed formulas, prompt metadata leakage, or unsupported visual facts,
-  report the failed node and reason. Leave the node unaccepted instead of using
-  a drawn fallback.
-
-Verified local facts:
-
-- `codex features list` exposes `image_generation` as `stable true`.
-- The active session exposes the built-in `image_gen` tool.
-- The built-in tool accepts only a `prompt` field in this environment.
-- The built-in tool does not expose direct `model`, `quality`, `size`, `reasoning_effort`, or `output_format` parameters.
-- Codex-native image generation may save images under `~/.codex/generated_images/<thread_id>/ig_*.png`; if no file appears, use the image returned in the session and register the saved image path manually.
-
-Verified OpenAI API facts:
-
-- Official model docs list `gpt-image-2` and snapshot `gpt-image-2-2026-04-21`.
-- API usage can call `model="gpt-image-2"` for image generation/edit.
-- API parameters are more explicit than Codex-native generation, including size, quality, background, and output format.
-- Image generation does not expose a separate reasoning-depth parameter. Reasoning effort belongs to text/reasoning models; for image generation, express planning and quality requirements in the prompt.
-
-If `OPENAI_API_KEY` is missing, do not attempt API generation. Use Codex-native image generation.
+Historical accepted assets remain reusable. Do not relabel their original model or regenerate them merely because the project default changed. For explicitly requested revisions of an accepted canonical asset, save a separate candidate and preserve the selected original; the existing registration guard does not authorize overwriting it.
 
 ## Workflow
 
@@ -126,37 +97,17 @@ If graph node JSON is missing but the knowledge card exists, proceed from the ca
 For card-only fallback, extract clean fields from `**一句话定义**`, `**核心直觉**`, and the first display formula; do not put the whole `## 首页` section into the definition.
 Do not let the image model invent facts, formulas, examples, or relations.
 
-### 3. Generate With Codex-Native GPT Image 2
+### 3. Generate or edit with GPT Image 2.5
 
-Open `prompt.md`, then call the built-in image generation tool with exactly that prompt content.
+Read `prompt.md` and check its facts against `source.json`. Choose the composition from the learning goal; use [teaching composition guidance](../imagen/references/infographic.md) when needed. A mathematical concept may use a pure diagram; physical scenes and technical insets are optional when they aid understanding.
 
-In this Codex environment, the direct tool call is:
+For a new image call `image_gen.imagegen({ "prompt": "<exact prompt>" })`. For a local correction, view the original and supply its path in `referenced_image_paths`; specify the correction and details to preserve. Never pass unsupported model/quality/size fields. Save each candidate and its exact prompt before accepting it.
 
-```text
-image_gen.imagegen({ "prompt": "<prompt.md content>" })
-```
-
-Because the tool schema only accepts `prompt`, model selection and quality controls are not set as formal parameters. Include these constraints inside the prompt:
-
-- use GPT Image 2 / latest Codex-native image generation
-- landscape infographic
-- treat the output as a visual teaching asset, not a flat electronic knowledge card
-- combine at least one concrete visual object with one abstract control diagram when the source supports it, for example ship heading, water tank, compass, dashboard, Bode plot, root locus, Nyquist curve, step response, or frequency-band panel
-- use layered composition: a main visual scene or metaphor, small technical insets, concise formula anchors, and a boundary or judgment panel
-- clean Chinese typography
-- render concise formula anchors when they are central to the node; GPT Image 2 has been locally verified to render typical control formulas such as `G(s)=1/s`, `G_{PI}(s)=K\frac{T_i s+1}{T_i s}`, `G_{lag}(s)=K\frac{Ts+1}{\beta Ts+1}`, and `M_p=e^{-\frac{\zeta\pi}{\sqrt{1-\zeta^2}}}\times100\%` accurately enough for infographic use
-- do not render prompt metadata such as lesson id, group name, knowledge type, source-truth labels, or instruction labels into the image
-- do not render source labels such as `关键公式锚点` or `公式锚点`; render only the formula itself and nearby short meaning labels
-- convert definitions into short labels instead of copying long source sentences into the artwork
-- keep visible text compact: no more than about 12 labels, each preferably under 10 Chinese characters, with no explanatory paragraphs
-- translate relation labels to Chinese before generation
-- no invented labels
-- no decorative text or imagery unrelated to the source; visual richness must explain mechanism, evidence, or boundary
-- no hard-coded visual requirement from a previous node; the visual skeleton must match the current node name and lesson group
+Render exact concise labels, formulas and units from the source. Do not render lesson ids, source field names, prompt headings or relation identifiers as visible text. Text density follows legibility and instructional need, not a mandatory count of panels or labels.
 
 ### 4. Register The Image
 
-If the image is saved under `~/.codex/generated_images`, run:
+Prefer `--image` with the exact output path. Only after identifying the current call’s image may legacy newest-image discovery be used:
 
 ```bash
 python3 .agents/skills/infograph/scripts/register_infograph.py --lesson <lesson> --node <node_id> --latest-codex-image
@@ -168,6 +119,8 @@ If the image was saved elsewhere, run:
 python3 .agents/skills/infograph/scripts/register_infograph.py --lesson <lesson> --node <node_id> --image /absolute/path/to/image.png
 ```
 
+Registration records `requested_model` as the project target and leaves `model` null unless `--reported-model` is supplied from actual tool/API response evidence. `--reported-model` records provenance; it does not select a model. For an API-produced image use `--generation-path openai-image-api`.
+
 Use `--accept` only after visual review confirms that:
 
 - all visible Chinese text is correct
@@ -176,7 +129,7 @@ Use `--accept` only after visual review confirms that:
 - no unsupported factual claim was added
 - the image contains concrete visual evidence or a meaningful visual metaphor, not only text boxes and arrows
 - technical insets such as plots, instruments, or physical examples help explain the mechanism rather than serving as decoration
-- the graphic is readable at lesson-entry card size
+- the thumbnail communicates the topic, and exact text/formulas are readable in the actual expanded preview; do not claim all detail is readable in a small thumbnail
 - `generation.json` records an actual image-generation path, not a
   programmatic drawing fallback
 
@@ -202,10 +155,10 @@ Every generated `prompt.md` must describe the image as an executable visual spec
 - `visual_archetype`: choose one of `科普百科图鉴`, `机制剖面图`, `流程板`, `对比板`, `频域仪表盘`, `s 平面机理板`, or `工程评审板`.
 - `layout_contract`: specify canvas ratio, panel count, main visual position, technical inset positions, and reading order.
 - `text_contract`: list the exact short labels and formula anchors that may appear; keep visible labels to about 8-12 and prohibit body paragraphs.
-- `technical_insets_contract`: require 1-3 insets, each serving mechanism explanation, readback, or boundary judgment rather than decoration.
+- `technical_insets_contract`: add only the insets needed for mechanism, readback or boundary judgment; zero is valid when the main diagram suffices.
 - `negative_constraints`: prohibit electronic handout screenshots, generic icon-card layouts, long copied definitions, prompt metadata, and unrelated decoration.
 
-Use the prompt pattern learned from strong GPT Image 2 examples: make the image model decide less about layout and more about rendering. State the object, view, panel geometry, label count, material/lighting style, and allowed text explicitly.
+Describe what the learner should understand and the essential geometry, labels and relationships. Panel counts are composition suggestions, not a requirement to add unnecessary content.
 
 ### Visual Archetypes
 
@@ -228,7 +181,7 @@ For concept nodes, prefer a visual teaching-asset composition:
 
 Avoid generating images that look like an electronic note card with icons. The advantage of image generation is the ability to combine scene, object, diagram, material, and art direction in one frame. Use that ability deliberately.
 
-For formula-heavy nodes, let GPT Image 2 render the exact key formula anchors when the formula is central to the concept. Keep the formula count small, usually one or two equations, and place formulas in uncluttered white space. Do not preemptively suppress formulas just because they contain fractions, subscripts, Greek letters, integrals, or exponentials; the local 2026-04-28 test showed these render acceptably. Still reject or regenerate any image whose formula is malformed, truncated, or semantically changed.
+For formula-heavy nodes, let GPT Image 2.5 render the exact key formula anchors when the formula is central to the concept. Keep the formula count small, usually one or two equations, and place formulas in uncluttered white space. Do not preemptively suppress formulas just because they contain fractions, subscripts, Greek letters, integrals, or exponentials; the historical 2026-04-28 GPT Image 2 test is not evidence of GPT Image 2.5 accuracy. Still reject or regenerate any image whose formula is malformed, truncated, or semantically changed.
 
 For reused nodes from older lessons, explain the current lesson usage in `source.json`, but do not overwrite the node's original lesson truth.
 When a lesson card supplies its own display formula, use that formula as the primary visible formula in the infographic prompt. Do not add secondary global formulas unless they are needed for the current lesson-specific visual explanation.

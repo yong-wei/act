@@ -895,7 +895,7 @@ def visual_architecture_for_node(node_name: str, groups: list[str], keywords: li
         'visual_archetype': archetype,
         'layout_contract': layout_contract_for_archetype(archetype['id']),
         'text_contract': text_contract_for_node(node_name, keywords, formulas),
-        'technical_insets_contract': '1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。',
+        'technical_insets_contract': '按学习目标选择是否添加局部图；只为机理、读图或边界判断补充小窗，不为凑数添加。',
         'negative_constraints': [
             '不要生成电子讲义截图或白底多卡片堆叠。',
             '不要把长定义、长例题或整段说明塞进图面。',
@@ -959,7 +959,7 @@ def build_prompt(source: dict[str, Any]) -> str:
     text_contract = visual_architecture['text_contract']
     text_allowlist = [str(item) for item in text_contract.get('allowed_labels') or [node['name']]]
 
-    return f"""请使用 GPT Image 2 / Codex 最新图片生成能力，制作一张横版中文教学信息图。
+    return f"""制作一张横版中文教学信息图，帮助学生解释“{node['name']}”的机理并作出有依据的判断。
 
 主题：{node['name']}
 
@@ -994,14 +994,15 @@ def build_prompt(source: dict[str, Any]) -> str:
 
 图像要求：
 - 横版信息图，适合放在互动课程入口的知识点详情中；画面应像一张教学视觉资产，而不是电子知识卡片截图。
-- 必须包含一个具体主视觉对象或工程场景，并包含一个数学/工程图示嵌图；不要只画卡片、图标和箭头。
+- 主图选能直接解释本概念的对象、数学结构或曲线；抽象概念可用纯数学图解，不强行加入工程场景或小窗。
+- 局部放大图必须来自同一对象和参数，标明坐标、单位与放大范围；不要把示意曲线当作精确计算结果。
 - 主视觉对象、示意图、公式和短标签要共同解释机制；不要用无关装饰填充画面。
 - 中文为主，不使用英文大标题；英文只允许作为小号副标题。
 - 不要把“课程单元、所属分组、知识类型、事实边界、可用公式、图像要求、版式约束、文字范围”等提示词说明画进图面；公式区域如需标题，只能写“公式”。
 - 不要整句复刻“一句话定义”；把定义压缩成 3-5 个短标签或短判断。
 - 全图可见中文标签控制在 12 个以内；单个标签尽量不超过 10 个汉字，不放解释段落。
 - 图中的关系标签统一使用中文，不要显示 contains、leads_to、cross_domain 等英文关系类型。
-- 采用“核心直觉 -> 机理路径 -> 边界提醒”的三段式视觉结构。
+- 阅读顺序服务当前概念的理解与判断；上述布局数量是建议，不必凑齐固定模块。
 - 只使用少量短中文标签，优先使用这些词：{'、'.join(text_allowlist[:10]) if text_allowlist else node['name']}。
 - 右侧用简洁小面板表达判断结果或边界，不写长段落。
 - {formula_instruction}
