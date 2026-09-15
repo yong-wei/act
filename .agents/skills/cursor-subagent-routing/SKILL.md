@@ -1,6 +1,6 @@
 ---
 name: cursor-subagent-routing
-description: Route Cursor Task subagents to non-Composer models by task type. Use when dispatching Cursor subagents, choosing Task model slugs, or when AGENTS.md Codex TOML routing does not apply in Cursor.
+description: 在 Cursor 中选择已授权子代理的模型与任务角色。
 ---
 
 # Cursor 子代理路由

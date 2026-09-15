@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-15",
+  "scope": "project skill templates, not global CLI or hooks",
+  "sources": [
+    {
+      "path": ".agents/skills/brandkit/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/brandkit/SKILL.md",
+      "upstreamSha256": "b0c4837e1bd140ca816ae54948754ddd2ac1e2a4d3619363777a80caf00b2ede",
+      "changedFromInstalled": true,
+      "installedSha256": "c7202c4f3f8ba7acc7f7235016f6c1b8a33bcafba3bbf314e289a6ef6ea8c22d",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/design-taste-frontend/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/taste-skill/SKILL.md",
+      "upstreamSha256": "aa194351b246b8b4799099d4ed7b033d29eab6e6e3d58d8d2172978be7b3ec89",
+      "changedFromInstalled": false,
+      "installedSha256": "d51f5c5be1d8316c250c42e749b072dbf95f2ec3449e9cda62b36580531e441e",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/full-output-enforcement/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/output-skill/SKILL.md",
+      "upstreamSha256": "e5bf48b1ae561511439cf71672209a10a88cee0968cc925909ff861dfa0a96a7",
+      "changedFromInstalled": false,
+      "installedSha256": "cba1565f0c15ac6ba2ad3370c4297de2f573dbcd5264c1bf21ebd7641575d845",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/gpt-taste/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/gpt-tasteskill/SKILL.md",
+      "upstreamSha256": "2e64c269953f2656c21bf5a0fa6b4568e82fe0c72b36e8f84758e090349966a5",
+      "changedFromInstalled": true,
+      "installedSha256": "04462670d20adeb56c016a135250e7bfbf36153af8ce16f41847d4d8b25008e1",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/high-end-visual-design/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/soft-skill/SKILL.md",
+      "upstreamSha256": "e1e32f5e2d420872c6c7332b53d5ff7721946766b78c4822b424c2d512c8fdbc",
+      "changedFromInstalled": true,
+      "installedSha256": "89feb337ab488201b8154085e02c5bef77686fb3a915ca8ac975074c8488f8ac",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/image-to-code/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/image-to-code-skill/SKILL.md",
+      "upstreamSha256": "4c060a8064a8b13380bc2ef3d6e6a1d0b1e316aa093cd9807d0ce9e4eeb037fa",
+      "changedFromInstalled": true,
+      "installedSha256": "fa37c883420d019ada088d369bc14a2ccddcfbb1da04aa620f9166d7521aef56",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/imagegen-frontend-mobile/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/imagegen-frontend-mobile/SKILL.md",
+      "upstreamSha256": "8a33389979f3074fa0926678e266ad2eb9234624472254469fc1ad916b9caa24",
+      "changedFromInstalled": true,
+      "installedSha256": "ef93e0c88ce3eb613b82ee7cd02adb8d6b54de18885aab619c0f928e5386dca8",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/imagegen-frontend-web/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/imagegen-frontend-web/SKILL.md",
+      "upstreamSha256": "6b5c2256522fdba1e3313eafa3d743b960a7b13ec029d3e6586e04b23327c1f8",
+      "changedFromInstalled": false,
+      "installedSha256": "f9ea3a22157e1446ab74e00f664f97aef6d31f9da2c9ed9f12028e499396ba0b",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/industrial-brutalist-ui/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/brutalist-skill/SKILL.md",
+      "upstreamSha256": "fffbaac8597f07679e9d87145533567658aedba3b5eca6f16a7075a333048caa",
+      "changedFromInstalled": false,
+      "installedSha256": "d97d2113897ef681db4ac33af5c6cae08f4d78047d36978cc15b172324b00806",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/minimalist-ui/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/minimalist-skill/SKILL.md",
+      "upstreamSha256": "36bc7328f085405f43b476938e62460fa573bf7e984e949e072bcf014831a44c",
+      "changedFromInstalled": true,
+      "installedSha256": "cf071a8f7fc153e02c5b5b5c79e8c386f00d5d29ee76eb32ca22020e13dc7411",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/redesign-existing-projects/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/redesign-skill/SKILL.md",
+      "upstreamSha256": "98ad3e5b051bfb71b2795f7e8a6aa0d32b51ee095606c098a4b2822ac07926c9",
+      "changedFromInstalled": false,
+      "installedSha256": "de41200b760348090bcf95c4ab8f51a70d10efd0d1534c1ebea60f38936ec64a",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/stitch-design-taste/SKILL.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/stitch-skill/SKILL.md",
+      "upstreamSha256": "46bdb08fee2dded38b6ba0a051230a502d6ac6e4044afd47592cb40c256028b5",
+      "changedFromInstalled": true,
+      "installedSha256": "25d2f0403a6d835260ec8ed4644b43755bfcf817b9f189b3838fe8e2eaf2c1d8",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/stitch-design-taste/DESIGN.md",
+      "source": "Leonxlnx/taste-skill",
+      "revision": "ccbc15639c97057cbfcf32ecebc38ef716e4bb37",
+      "sourcePath": "skills/stitch-skill/DESIGN.md",
+      "upstreamSha256": "0ab6740c4ebb1966dbceddb823a66d4bf027e960efbd73faca56cbf8370ae2ad",
+      "changedFromInstalled": false,
+      "installedSha256": "0ab6740c4ebb1966dbceddb823a66d4bf027e960efbd73faca56cbf8370ae2ad",
+      "projectAdapted": false
+    },
+    {
+      "path": ".agents/skills/explore-codebase/SKILL.md",
+      "source": "tirth8205/code-review-graph",
+      "revision": "b58668751ab0c7670c078cf7cbd4d1f5b8e54f81",
+      "sourcePath": "skills/explore-codebase/SKILL.md",
+      "upstreamSha256": "0a42486619eb653e76c83d8033a0fcadfb30b201add263d394e94fcb95061614",
+      "changedFromInstalled": true,
+      "installedSha256": "f5892b5f8acfb612b226200e1db1af53d11f6860961dce1c625cb7c06eccf9b6",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/debug-issue/SKILL.md",
+      "source": "tirth8205/code-review-graph",
+      "revision": "b58668751ab0c7670c078cf7cbd4d1f5b8e54f81",
+      "sourcePath": "skills/debug-issue/SKILL.md",
+      "upstreamSha256": "68dd9bd6810e6c41eb1361a5015d204b9a018cb3329c2d0e1d7d9606002446c1",
+      "changedFromInstalled": true,
+      "installedSha256": "1921f11a22ae3a4903ff1d826d8dea98ab99f815877ea2563b5f2c2e8885f9ed",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/refactor-safely/SKILL.md",
+      "source": "tirth8205/code-review-graph",
+      "revision": "b58668751ab0c7670c078cf7cbd4d1f5b8e54f81",
+      "sourcePath": "skills/refactor-safely/SKILL.md",
+      "upstreamSha256": "95e60c797d62f7f48b2d0b535863fdad1af2288ab4d31c1d451b8797adc6b361",
+      "changedFromInstalled": true,
+      "installedSha256": "e6bbdbc39668077b8e699643749e943a178f011c25c137259d5f07a147c46d0d",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/review-changes/SKILL.md",
+      "source": "tirth8205/code-review-graph",
+      "revision": "b58668751ab0c7670c078cf7cbd4d1f5b8e54f81",
+      "sourcePath": "skills/review-changes/SKILL.md",
+      "upstreamSha256": "05a8a4b3e928fbe8005184a835e143792e2d072c9f878dbfbada0bd36640984b",
+      "changedFromInstalled": true,
+      "installedSha256": "106257f93252f9fbbd49b26ba0f3053af2a9864d1889858f6ab591077322933b",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/openspec-apply-change/SKILL.md",
+      "source": "@fission-ai/openspec",
+      "revision": "1.13.0",
+      "sourcePath": "dist/core/templates/workflows",
+      "upstreamSha256": "aa0ff6db53c670a33df77456beb9d7d924a5c7b30d2b70579ba1ca7e98e3b202",
+      "changedFromInstalled": true,
+      "installedSha256": "06d35259f868a18b75a9ef69e61ff27740c7d5f8d6f0c30ec3ba90a0aee739c9",
+      "projectAdapted": true,
+      "workflow": {
+        "path": ".agents/skills/openspec-apply-change/references/workflow.md",
+        "sha256": "e3e1bd1e2c80a0070ce242f2d049d3e2bede14de4ecbe763950a1b2492332f49"
+      }
+    },
+    {
+      "path": ".agents/skills/openspec-explore/SKILL.md",
+      "source": "@fission-ai/openspec",
+      "revision": "1.13.0",
+      "sourcePath": "dist/core/templates/workflows",
+      "upstreamSha256": "7b44fc013ea3a044d305d4a068026a1a0f0201d63879f8feca85c268772f8a8b",
+      "changedFromInstalled": true,
+      "installedSha256": "59dec2c3feea5532a09b8eb78f4f78b05d12ffc2019d78768083f7d415037f69",
+      "projectAdapted": true,
+      "workflow": {
+        "path": ".agents/skills/openspec-explore/references/workflow.md",
+        "sha256": "c6de7bbe71e60da4d0466e7cfbe9b3e42f8b3cfa69e3f434f3566698dc44f420"
+      }
+    },
+    {
+      "path": ".agents/skills/openspec-update-change/SKILL.md",
+      "source": "@fission-ai/openspec",
+      "revision": "1.13.0",
+      "sourcePath": "dist/core/templates/workflows",
+      "upstreamSha256": "9ee8a317cde25c1d829a730a253df3064f2e3b76c6b93746ab5304c7267cdded",
+      "changedFromInstalled": true,
+      "installedSha256": "7011333b79e9f08707c2a0bbb7ab874403782bb7292c019ddd7f1be99e86b192",
+      "projectAdapted": true,
+      "workflow": {
+        "path": ".agents/skills/openspec-update-change/references/workflow.md",
+        "sha256": "37ae76b70de05e0df14e7e26a0e4dd448af89c17293e071921a2b180f92fbf03"
+      }
+    },
+    {
+      "path": ".agents/skills/openspec-archive-change/SKILL.md",
+      "source": "@fission-ai/openspec",
+      "revision": "1.13.0",
+      "sourcePath": "dist/core/templates/workflows",
+      "upstreamSha256": "fa48b6859f4bc78f8a7d7d546a1edac0f71daa8bf2fa52837f60c2a598fbf25c",
+      "changedFromInstalled": true,
+      "installedSha256": "76e8a3dd8a9b99721b90ee39596ebf99b41ccfef4889888ebd83a12ffdcba995",
+      "projectAdapted": true,
+      "workflow": {
+        "path": ".agents/skills/openspec-archive-change/references/workflow.md",
+        "sha256": "4ab425a34d54ee0d74e82fcb4570251b1ac8b5cfcc9ff2a5602a816cac481f55"
+      }
+    },
+    {
+      "path": ".agents/skills/openspec-propose/SKILL.md",
+      "source": "@fission-ai/openspec",
+      "revision": "1.13.0",
+      "sourcePath": "dist/core/templates/workflows",
+      "upstreamSha256": "5060f490a1ed0b27cc1f440ae26a7da480227a17b382e9fe8fac2b47e0536ac0",
+      "changedFromInstalled": true,
+      "installedSha256": "589c16ef8b127cfd25139fac18d3a72d83521ee34853012976d057b24644e1ad",
+      "projectAdapted": true,
+      "workflow": {
+        "path": ".agents/skills/openspec-propose/references/workflow.md",
+        "sha256": "33c67315f7118d139ee10582d5f12df9fb0ea83f0f786c78ca03c74ca9ec9990"
+      }
+    },
+    {
+      "path": ".agents/skills/openspec-sync-specs/SKILL.md",
+      "source": "@fission-ai/openspec",
+      "revision": "1.13.0",
+      "sourcePath": "dist/core/templates/workflows",
+      "upstreamSha256": "32f9c025ba00ace8751f05a6ffb05e6ad5481f55dad027863cb45ca187c58535",
+      "changedFromInstalled": true,
+      "installedSha256": "00d4bb98b7d2bd025f772937e0c306ffce690efe460611ae681b4d164982e0a7",
+      "projectAdapted": true,
+      "workflow": {
+        "path": ".agents/skills/openspec-sync-specs/references/workflow.md",
+        "sha256": "4f903d115410ff4c3908e3cd2d69046d0982f7405f2a9cd952bb7d2ca62d5cf6"
+      }
+    },
+    {
+      "path": ".wolf/OPENWOLF.md",
+      "source": "openwolf",
+      "revision": "2.5.1",
+      "sourcePath": "src/templates/OPENWOLF.md",
+      "upstreamSha256": "274732f66d9ad08ba71e4d3ce071867bb5489c2f2b3660bf71fc850667b45b94",
+      "changedFromInstalled": true,
+      "installedSha256": "17a150ed6fb5aa398c8fe1c437c0385146520ba937330fd079d9835103f395e3",
+      "projectAdapted": true
+    },
+    {
+      "path": ".agents/skills/openwolf/SKILL.md",
+      "source": "openwolf",
+      "revision": "2.5.1",
+      "sourcePath": "src/templates/skills/openwolf-protocol.md",
+      "upstreamSha256": "dbd292fb1e299898bb2f214a7addea8ee551d9680c8719c76df0ccfe4cbe57c3",
+      "changedFromInstalled": false,
+      "installedSha256": "ebd5684409c426b12e43bfc897b409d2cda500dabdf382658059d0e537fdaffb",
+      "projectAdapted": true
+    }
+  ]
+}

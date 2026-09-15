@@ -1,6 +1,6 @@
 ---
 name: infograph
-description: Use when generating, reviewing, or registering per-knowledge-node infographics for this repository, especially when the user names a lesson such as 3-8 and asks which knowledge nodes still lack infographics, asks to generate selected node infographics with Codex-native GPT Image 2, or wants node infographics exported to runtime and mounted in the interactive lesson entry knowledge graph.
+description: 生成、审核、注册或导出本项目知识节点的信息图。
 ---
 
 # Infograph

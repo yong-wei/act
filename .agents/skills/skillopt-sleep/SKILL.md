@@ -1,6 +1,6 @@
 ---
 name: skillopt-sleep
-description: Use when the user asks to learn from Codex sessions, optimize the project-local openspec-buddy-auto skill, run a SkillOpt-Sleep status/dry-run/harvest/run/adopt cycle, or stage validation-gated improvements to Buddy automation.
+description: 按用户要求从会话提取 Buddy 技能改进候选并验证，不自动采用。
 ---
 
 # SkillOpt-Sleep：ACT 项目 Buddy Auto 优化

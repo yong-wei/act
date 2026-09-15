@@ -1,47 +1,15 @@
 ---
 name: openwolf
-description: OpenWolf operating protocol for this project. Load when starting multi-file work, resuming a session, wrapping up a session, or when unsure how to use .wolf/ state files (anatomy, cerebrum, memory, buglog, STATUS).
+description: 恢复任务上下文、查询项目历史或维护 OpenWolf 交接记录时使用。
 ---
 
-# OpenWolf Operating Protocol
+# OpenWolf
 
-You are working in an OpenWolf-managed project. The hooks handle bookkeeping automatically: they maintain `.wolf/anatomy.md` and `.wolf/memory.md` after writes, track reads, and surface anatomy hints when you read files. Do not update those two files manually unless your agent has no OpenWolf hooks installed.
+项目协议以 [.wolf/OPENWOLF.md](../../../.wolf/OPENWOLF.md) 为准，按当前任务需要读取。
 
-## Session resume
+- 续接已有工作：读取 `.wolf/STATUS.md` 的相关任务，核验其中会变化的 Git、部署和任务状态。
+- 查询历史原因：定向检索 `.wolf/cerebrum.md` 或 `.wolf/buglog.json`，用当前规范、代码与日志验证适用性。
+- 定位未知模块：可用索引辅助导航；已知文件直接读取，无需先遍历 anatomy。
+- 显式交接或完成跨会话任务：在现有任务记录中写清结果、证据、未完成事项和下一步，不创建第二套状态真源。
 
-`.wolf/STATUS.md` is the handoff document. Read it first when resuming; it replaces re-reading memory, plans, and code to reconstruct context. Regenerate it on demand with `/handoff` when a quest finishes or before suggesting `/clear`.
-
-## File navigation
-
-1. To locate a symbol or file by name, run `openwolf find <query>` first: a ranked shortlist from the index (~1k tokens max), cheaper than grepping the world. For one file's description, size, and symbol line ranges: `openwolf find --file <path>`.
-2. If the description answers your question, skip the full read. For large files, prefer Read with offset/limit; the pre-read hook surfaces the largest sections with line ranges, and `openwolf map` prints a token-budgeted overview of the most important files.
-3. Never read `.wolf/anatomy.md` whole; it is an index. Grep it only for a single path's line when `find` is unavailable.
-4. If a file is not indexed, search with Grep/Glob. Regenerate the index with `openwolf scan`.
-
-## Code generation and learning
-
-1. Before generating code, check `.wolf/cerebrum.md`: respect `## Do-Not-Repeat` (past mistakes), `## Key Learnings`, and `## User Preferences`.
-2. Update cerebrum.md whenever you learn something: a user correction or preference, a project convention not obvious from code, an API surprise, a gotcha that would trip a fresh session. The bar is LOW; a missing entry repeats the discovery next session.
-
-## Bug logging
-
-Before fixing any bug: grep `.wolf/buglog.json` for the error message or filename; the fix may already be known.
-
-After fixing any bug, failed test, failed build, or user-reported problem: append an entry with `id`, `timestamp`, `error_message`, `file`, `root_cause`, `fix`, `tags`, `occurrences`, `last_seen`. Also log when you edit a file more than twice to get it right.
-
-## Token discipline
-
-- Never re-read a file already read this session unless it changed since.
-- Prefer anatomy descriptions and targeted Grep over full file reads.
-- If appending to a file, do not read the entire file first.
-
-## Session end
-
-Before wrapping up: run `/handoff` (or update `.wolf/STATUS.md` by hand), write a one-line session summary to `.wolf/memory.md` (`| HH:MM | description | file(s) | outcome | ~tokens |`), and record any learnings or bugs in cerebrum.md / buglog.json.
-
-## On-demand skills
-
-- `/handoff`: regenerate .wolf/STATUS.md from the session's actual state.
-- `/designqc`: screenshot-based design review of the running app.
-- `/reframe`: UI framework selection, migration, and anti-generic design audits.
-- `/security-audit`: security review of the project.
+技能、命令和 hooks 的可用性以当前环境为准。上游模板提到的 `openwolf find`、`map`、`designqc` 或 `/handoff` 不一定存在；先查帮助或可用工具，缺失时使用文件搜索、现有浏览器或手工交接。不要为完成普通任务隐式升级全局工具。

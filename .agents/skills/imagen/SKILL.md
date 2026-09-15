@@ -1,6 +1,6 @@
 ---
 name: imagen
-description: Use when creating high-quality images, graphics, illustrations, posters, diagrams, visual assets, image prompts, or GPT Image 2 generations, especially when the user wants the final image and prompt saved to a project path.
+description: 按指定用途生成或编辑图像，并保存图片与提示词。
 ---
 
 # Imagen

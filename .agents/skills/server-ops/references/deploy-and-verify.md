@@ -83,7 +83,7 @@ rtk npm run runtime:publish
 rtk npm run runtime:activate -- --store-dir <store> --state-dir <state> --release-id <release-id>
 ```
 
-两者都变时先完成 Runtime 发布与激活，再部署应用；已删除 `deploy:all`。回滚只交换指针：
+两者都变时分别确认本次应用发布、Runtime 发布及激活授权，并按当前兼容要求确定顺序；不从旧事故记录推导固定激活顺序，不把应用部署当作 Runtime 激活授权。已删除 `deploy:all`。仅在已授权回滚时交换指针：
 
 ```bash
 rtk npm run runtime:rollback -- --store-dir <store> --state-dir <state>
