@@ -1365,6 +1365,13 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("return '仅作参考'");
     expect(source).not.toContain("node.resourceLabel === '知识卡' ? '互动课程'");
     expect(source).toContain("'continued-interaction'");
+    expect(source).toContain("launchExecutionNode(node, 'review')");
+    expect(source).toContain("launchExecutionNode(node, 'continued-interaction')");
+    expect(source).not.toContain("writePathNodeActivity(node, 'review', 'started')");
+    expect(source).not.toContain("writePathNodeActivity(node, 'continued-interaction', 'started')");
+    expect(source).toContain('presentCollectedLearningEvidence');
+    expect(source).not.toContain("knowledgeCoverage.join('、')");
+    expect(source).toContain('presentStudentVisibleEvidenceSource');
     expect(source).toContain("pathActivityKind: activityKind");
     expect(source).toContain("deviationType: 'skip'");
     expect(source).toContain('function formatPathNodeReason');
@@ -1375,6 +1382,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('reason: formatPathNodeReason(reasonCodes)');
     expect(source).not.toContain("reasonCodes.length > 0 ? reasonCodes.join('、')");
     expect(source).toContain('): Promise<boolean> =>');
+    expect(source).toContain('const pathActivityKind = activityKind');
+    expect(source).toContain('const launchTarget = targetContract.canonicalTarget');
+    expect(source).toContain('pathNodeContextHref(launchNode');
     expect(source).toContain('const activityWritten = await writePathNodeActivity');
     expect(source).toContain('if (!activityWritten) return;');
     expect(source).toContain('window.location.assign(withFeedbackTaskHref(pathNodeContextHref');
@@ -1391,6 +1401,10 @@ describe('adaptive learning center UI contracts', () => {
 
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
     const source = readFileSync(join(repoRoot, 'src/app/(main)/profile/growth/page.tsx'), 'utf8');
+    const evidenceBrowserSource = readFileSync(
+      join(repoRoot, 'src/features/data-governance/evidence-timeline-browser.tsx'),
+      'utf8',
+    );
 
     expect(source).toContain("fetch('/api/student/competency-snapshot')");
     expect(source).not.toContain('timeRange');
@@ -1407,6 +1421,11 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('累计画像生成时间');
     expect(source).toContain('累计证据截止');
     expect(source).toContain("if (outcome === 'cumulative') return '累计'");
+    expect(source).toContain('presentStudentVisibleEvidenceTitle');
+    expect(source).not.toContain('return item.factType');
+    expect(evidenceBrowserSource).toContain('presentStudentVisibleEvidenceTitle');
+    expect(evidenceBrowserSource).toContain('presentStudentVisibleContextFragment');
+    expect(evidenceBrowserSource).not.toContain('return item.factType');
     expect(source).toContain('data-portrait-evidence-as-of');
     expect(source).toContain('currentSnapshot.evidenceAsOf');
     expect(source).toContain('最后能力趋势');

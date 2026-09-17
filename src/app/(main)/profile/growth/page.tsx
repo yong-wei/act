@@ -35,6 +35,11 @@ import { DiagnosisSurfacePanel } from '@/features/personalization/experience/dia
 import { buildFeedbackTaskContext } from '@/lib/student-feedback-task-contract';
 import type { PortraitV2ConsumerSummary } from '@/lib/data-governance/portrait-v2-consumer';
 import type { RoleBasedLearningDiagnosis } from '@/features/personalization/diagnosis/role-based-learning-diagnosis';
+import {
+  presentStudentVisibleEvidenceTitle,
+  presentStudentVisibleQuestionPrompt,
+  presentStudentVisibleText,
+} from '@/lib/student-visible-text';
 
 interface EvidenceSummaryItem {
   factType: string;
@@ -943,7 +948,7 @@ export default function GrowthPage() {
                         )}
                         {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
                           <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
-                            {question.prompt ?? question.questionId ?? '题目'}：{question.studentAnswerRedacted ? '作答已脱敏' : '未记录作答'}
+                            {presentStudentVisibleQuestionPrompt(question.prompt, question.questionId)}：{question.studentAnswerRedacted ? '作答已脱敏' : '未记录作答'}
                             {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
                             {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
                           </p>
@@ -1054,14 +1059,7 @@ function formatPortraitAvailabilityDescription(
 }
 
 function formatEvidenceTitle(item: EvidenceSummaryItem): string {
-  if (item.evidenceTitle) {
-    return item.evidenceTitle;
-  }
-  if (item.factType === 'simulation') return '仿真操作证据';
-  if (item.factType === 'question') return item.stepId ? `课堂作答 ${item.stepId}` : '课堂作答证据';
-  if (item.factType === 'ai_intervention') return 'AI 交互证据';
-  if (item.factType === 'ethical') return '工程伦理证据';
-  return item.factType;
+  return presentStudentVisibleEvidenceTitle(item);
 }
 
 function formatOutcome(outcome: string): string {
@@ -1069,7 +1067,7 @@ function formatOutcome(outcome: string): string {
   if (outcome === 'success') return '成功';
   if (outcome === 'failure') return '失败';
   if (outcome === 'partial') return '部分';
-  return '进行中';
+  return presentStudentVisibleText(outcome, '进行中');
 }
 
 function getOutcomeBadgeClass(outcome: string): string {

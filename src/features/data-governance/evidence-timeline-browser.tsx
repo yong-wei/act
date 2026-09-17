@@ -6,6 +6,12 @@ import { ArrowLeft, ChevronRight, Filter, RefreshCw } from 'lucide-react';
 
 import { PORTRAIT_V2_DIMENSIONS } from '@/lib/data-governance/kaq-objective-taxonomy';
 import type { EvidenceTimelineItem } from '@/lib/data-governance/evidence-timeline';
+import {
+  presentStudentVisibleContextFragment,
+  presentStudentVisibleEvidenceTitle,
+  presentStudentVisibleQuestionPrompt,
+  presentStudentVisibleText,
+} from '@/lib/student-visible-text';
 
 const EVIDENCE_FILTER_SELECT_CLASS_NAME = 'mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-foreground [&>option]:bg-background [&>option]:text-foreground';
 
@@ -327,9 +333,11 @@ export function EvidenceTimelineBrowser({
                     )}
                   </div>
                   <p className="mt-2 text-sm text-subtle">
-                    {formatDateTime(item.startedAt)}
-                    {item.lessonId ? ` · ${item.lessonId}` : ''}
-                    {item.stepId ? ` · ${item.stepId}` : ''}
+                    {[
+                      formatDateTime(item.startedAt),
+                      presentStudentVisibleContextFragment(item.lessonId),
+                      presentStudentVisibleContextFragment(item.stepId),
+                    ].filter(Boolean).join(' · ')}
                   </p>
                 </div>
                 <div className="text-left md:text-right">
@@ -344,7 +352,9 @@ export function EvidenceTimelineBrowser({
                 <div className="mt-4 space-y-2">
                   {item.questionSummaries.map((question, index) => (
                     <div key={`${item.id}-${question.questionId ?? index}`} className="rounded-lg border border-border/70 bg-card/70 p-3 text-sm">
-                      <p className="font-medium text-foreground">{question.prompt ?? question.questionId ?? '题目'}</p>
+                      <p className="font-medium text-foreground">
+                        {presentStudentVisibleQuestionPrompt(question.prompt, question.questionId)}
+                      </p>
                       <p className="mt-1 text-subtle">
                         作答 {question.studentAnswerRedacted ? '已脱敏' : question.studentAnswer ?? '未作答'}
                         {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
@@ -409,12 +419,7 @@ function EvidenceMeta({ label, value }: { label: string; value: string }) {
 }
 
 function formatEvidenceTitle(item: EvidenceTimelineItem): string {
-  if (item.evidenceTitle) return item.evidenceTitle;
-  if (item.factType === 'simulation') return '仿真操作证据';
-  if (item.factType === 'question') return item.stepId ? `课堂作答 ${item.stepId}` : '课堂作答证据';
-  if (item.factType === 'ai_intervention') return 'AI 交互证据';
-  if (item.factType === 'ethical') return '工程伦理证据';
-  return item.factType;
+  return presentStudentVisibleEvidenceTitle(item);
 }
 
 function formatOutcome(outcome: string): string {
@@ -422,7 +427,7 @@ function formatOutcome(outcome: string): string {
   if (outcome === 'failure') return '失败';
   if (outcome === 'partial') return '部分';
   if (outcome === 'abandoned') return '中止';
-  return outcome;
+  return presentStudentVisibleText(outcome, '学习结果');
 }
 
 function formatQuality(quality: string): string {
@@ -430,7 +435,7 @@ function formatQuality(quality: string): string {
   if (quality === 'partial') return '部分证据';
   if (quality === 'legacy') return '旧证据';
   if (quality === 'missing') return '缺少证据';
-  return quality;
+  return presentStudentVisibleText(quality, '证据');
 }
 
 function formatLearnerRecordSourceScope(scope: string): string {
@@ -439,7 +444,7 @@ function formatLearnerRecordSourceScope(scope: string): string {
   if (scope === 'arena-preview-result') return 'Arena 预览结果';
   if (scope === 'simulation-workbench-completion') return '仿真/工作台完成';
   if (scope === 'adaptive-practice-submission') return '自适应练习提交';
-  return scope;
+  return presentStudentVisibleText(scope, '学习记录');
 }
 
 function formatLearnerRecordFreshness(freshness: string): string {
@@ -463,7 +468,7 @@ function formatLearnerRecordMissingSource(state: string): string {
   if (state === 'partial') return '来源不完整';
   if (state === 'restricted') return '受限详情已隐藏';
   if (state === 'missing-evidence') return '缺少学习证据';
-  return state;
+  return presentStudentVisibleText(state, '来源状态未知');
 }
 
 function getOutcomeBadgeClass(outcome: string): string {

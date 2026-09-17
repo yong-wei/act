@@ -2,6 +2,7 @@ import { generateText } from 'ai';
 import { createHash } from 'node:crypto';
 
 import { getConfiguredAIProviderRuntime } from '@/lib/ai/provider-runtime';
+import { presentStudentVisibleEvidenceTitle } from '@/lib/student-visible-text';
 import {
   COMPETENCY_DIMENSIONS,
   getCompetencyLabel,
@@ -136,7 +137,10 @@ function compactEvidence(evidenceSummary: unknown) {
     const items = Array.isArray(summary[dimension]) ? summary[dimension] as Array<Record<string, unknown>> : [];
     return items.slice(0, 2).map((item) => ({
       dimension: getCompetencyLabel(dimension),
-      title: typeof item.factType === 'string' ? item.factType.slice(0, 48) : '学习证据',
+      title: presentStudentVisibleEvidenceTitle({
+        evidenceTitle: typeof item.evidenceTitle === 'string' ? item.evidenceTitle : null,
+        factType: typeof item.factType === 'string' ? item.factType : null,
+      }),
       outcome: typeof item.outcome === 'string' ? item.outcome : 'unknown',
       score: typeof item.score === 'number' ? item.score : null,
     }));

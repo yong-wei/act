@@ -222,6 +222,27 @@ describe('refreshStudentGrowthEvaluation', () => {
     expect(prompt).toContain('未覆盖维度：探究反思与提示词');
     expect(prompt).toContain('不能写成能力薄弱');
     expect(prompt).toContain('改进方向只能来自已有证据维度');
+    expect(prompt).toContain('4-1 后测：任务表达出口判断');
+  });
+
+  it('keeps growth evaluation prompt free of internal evidence identities', () => {
+    const prompt = buildGrowthEvaluationPrompt({
+      studentName: '杨帆',
+      snapshot: {
+        ...snapshot,
+        evidenceSummary: {
+          engineeringDecision: [{
+            evidenceTitle: 'yangfan-diagnostic-fixture',
+            factType: 'control_correction_path.selection_recorded',
+            outcome: 'success',
+            score: 100,
+          }],
+        },
+      },
+    });
+
+    expect(prompt).toContain('路径方案选择记录');
+    expect(prompt).not.toMatch(/yangfan-diagnostic-fixture|control_correction_path|ctc:/u);
   });
 
   it('prepares slow qualitative model output without persisting a growth record', async () => {
