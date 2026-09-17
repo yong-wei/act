@@ -65,6 +65,16 @@ import {
   gerstnerWaterMeshSpecForTier,
   sampleVisibleWaterHeight,
 } from '../scene/water';
+import {
+  computeVisualWaterPose,
+  resolveMarineVisualPose,
+  type MarineFrameInputs,
+  type MarinePoseOwnership,
+} from '../scene/frame/marine-frame';
+import {
+  MarineFrameProvider,
+  useMarineFrameRunner,
+} from '../scene/frame/marine-frame-provider';
 import { WakeTrail } from '../scene/wake';
 import {
   EnvironmentScene,
@@ -309,6 +319,80 @@ const getCrossTrackError = (position: THREE.Vector3, guidePath: THREE.Vector3[])
 };
 
 // ============ 3D 组件 ============
+
+/**
+ * 055 姿态所有权（#2097）：垂荡/纵摇/横摇均为共享波场视觉响应——数值模型
+ * （Rust/WASM 航向/航速链）不产出这三个自由度的遥测，视觉按声明采样且不可
+ * 叠加第二条响应；质量与预设切换不改变本声明。
+ */
+const DESTROYER_055_POSE_OWNERSHIP: MarinePoseOwnership = {
+  heave: 'visual-water',
+  pitch: 'visual-water',
+  roll: 'visual-water',
+};
+
+/** epoch 重置：resetToken 变化把共享视觉时钟归零（与尾迹 key 重挂载同一重置源）。 */
+function MarineEpochReset({ resetToken }: { resetToken: number }) {
+  const runner = useMarineFrameRunner();
+  useEffect(() => {
+    runner?.clock.reset();
+  }, [resetToken, runner]);
+  return null;
+}
+
+/** 统一海洋帧基座（#2097 垂直切片）：快照输入取自 simRef/simTimeRef，波场与水面网格同参数。 */
+function MarineFrameRuntime({
+  simRef,
+  simTimeRef,
+  resetToken,
+  children,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+  simTimeRef: React.MutableRefObject<number>;
+  resetToken: number;
+  children: React.ReactNode;
+}) {
+  const { params } = useSceneQuality();
+  const { presetId } = useSceneEnvironment();
+  const qualityRef = useRef(params);
+  qualityRef.current = params;
+  const inputs = useMemo<MarineFrameInputs>(
+    () => ({
+      worldPoseSampler: () => ({
+        x: simRef.current.position.x,
+        z: simRef.current.position.z,
+        headingRad: simRef.current.headingRad,
+      }),
+      // 渲染原点 = 水面网格跟随的舰位（世界坐标波相位补偿在采样器内完成）。
+      renderOriginSampler: () => ({ x: simRef.current.position.x, z: simRef.current.position.z }),
+      simulationTimeSampler: () => simTimeRef.current,
+      advancingSampler: () => simRef.current.advancing,
+      waterSampler: (worldX, worldZ, timeSeconds) => {
+        const tier = qualityRef.current.waterTier;
+        return sampleVisibleWaterHeight(
+          GERSTNER_WAVE_SETS[tier],
+          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
+          gerstnerWaterMeshSpecForTier(tier),
+          simRef.current.position.x,
+          simRef.current.position.z,
+          worldX,
+          worldZ,
+          timeSeconds,
+        );
+      },
+      ownership: DESTROYER_055_POSE_OWNERSHIP,
+      environmentPresetIdSampler: () => presetId,
+      qualityTierSampler: () => qualityRef.current.waterTier,
+    }),
+    [simRef, simTimeRef, presetId]
+  );
+  return (
+    <MarineFrameProvider inputs={inputs}>
+      <MarineEpochReset resetToken={resetToken} />
+      {children}
+    </MarineFrameProvider>
+  );
+}
 
 /** 海面颜色随环境预设驱动、水面细分随质量档位驱动的桥接组件（Canvas 内消费 provider 状态）。 */
 function PresetWater({ simRef }: { simRef: React.MutableRefObject<SimulationState> }) {
@@ -719,6 +803,7 @@ function DestroyerModelScene({
 function SimulationEngine({
   simRef,
   shipRef,
+  simTimeRef,
   isRunning,
   controlMode,
   pidGains,
@@ -734,6 +819,7 @@ function SimulationEngine({
 }: {
   simRef: React.MutableRefObject<SimulationState>;
   shipRef: React.MutableRefObject<THREE.Group | null>;
+  simTimeRef: React.MutableRefObject<number>;
   isRunning: boolean;
   controlMode: ControlMode;
   pidGains: PIDGains;
@@ -749,9 +835,8 @@ function SimulationEngine({
   onHudUpdate: (state: HudState) => void;
   onChartDataUpdate: (time: number, desired: number, actual: number, speed: number, rudder: number) => void;
 }) {
-  const { params } = useSceneQuality();
+  const marineFrame = useMarineFrameRunner();
   const lastFrameTimeRef = useRef(0);
-  const simTimeRef = useRef(0);
   const clockRef = useRef(
     new SimulationClock({
       dt: SIMULATION_FIXED_STEP_SECONDS,
@@ -817,9 +902,11 @@ function SimulationEngine({
     [headingPoints]
   );
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     // 视觉推进门控每帧重算：暂停、未就绪、播完均为不推进（桨停转、尾迹停发）。
     simRef.current.advancing = isRunning && runtimeReady && !finishedRef.current;
+    // 帧快照（#2097）：本帧首个消费者推进共享视觉时钟并冻结快照；暂停下环境仍推进。
+    const frame = marineFrame?.consumeFrame(state.clock.elapsedTime, delta) ?? null;
     if (!isRunning || !runtimeReady) {
       lastFrameTimeRef.current = state.clock.getElapsedTime();
       return;
@@ -884,44 +971,6 @@ function SimulationEngine({
       sim.integralDegS = stepResult.integralDegS ?? 0;
       sim.prevErrorDeg = stepResult.prevErrorDeg ?? 0;
 
-      // 波浪运动：与可视水面同一坐标基准、同一细分曲面（水面网格跟随舰位，
-      // 采样先减舰位原点，再按位移后三角网格重心插值），船随可见波浪起伏。
-      const posX = sim.position.x;
-      const posZ = sim.position.z;
-      const waterMeshSpec = gerstnerWaterMeshSpecForTier(params.waterTier);
-      const sampleWater = (x: number, z: number) =>
-        sampleVisibleWaterHeight(
-          GERSTNER_WAVE_SETS[params.waterTier],
-          gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-          waterMeshSpec,
-          posX,
-          posZ,
-          x,
-          z,
-          elapsedTime,
-        );
-      const heading = sim.headingRad;
-      const halfLength = shipDimensions.length / 2;
-      const halfWidth = shipDimensions.width / 2;
-      const cosH = Math.cos(heading);
-      const sinH = Math.sin(heading);
-
-      const centerY = sampleWater(posX, posZ);
-      const bowY = sampleWater(posX + cosH * halfLength, posZ + sinH * halfLength);
-      const sternY = sampleWater(posX - cosH * halfLength, posZ - sinH * halfLength);
-      const portY = sampleWater(posX - sinH * halfWidth, posZ + cosH * halfWidth);
-      const starboardY = sampleWater(posX + sinH * halfWidth, posZ - cosH * halfWidth);
-
-      const targetPitch = Math.atan2(bowY - sternY, shipDimensions.length);
-      const targetRoll = Math.atan2(portY - starboardY, shipDimensions.width);
-
-      const heaveLerp = 0.02;
-      const rotLerp = 0.02;
-
-      sim.waveY = THREE.MathUtils.lerp(sim.waveY, centerY, heaveLerp);
-      sim.wavePitch = THREE.MathUtils.lerp(sim.wavePitch, targetPitch, rotLerp);
-      sim.waveRoll = THREE.MathUtils.lerp(sim.waveRoll, targetRoll, rotLerp);
-
       // 彩蛋达标判定（视觉层只读计数）：进入机动段后误差收敛记达标，见 advanceAttainment。
       const headingErrorDeg = Math.abs(normalizeSignedHeading(targetHeading - toDegrees(sim.headingRad)));
       if (advanceAttainment(attainmentRef.current, targetHeading, headingErrorDeg, maxErrorDeg, dt, maxSettlingTimeSec)) {
@@ -962,6 +1011,27 @@ function SimulationEngine({
     };
 
     clockRef.current.advance(frameDt, stepSimulation);
+
+    // 视觉姿态（#2097）：数值推进后按共享波场快照与声明所有权解析——纯函数，
+    // 同一世界姿态/时间结果确定；telemetry 自由度（本船无）不会被覆盖。
+    if (frame) {
+      const visualWater = computeVisualWaterPose(
+        frame.sampleWaterHeight,
+        {
+          x: simRef.current.position.x,
+          z: simRef.current.position.z,
+          headingRad: simRef.current.headingRad,
+        },
+        shipDimensions,
+      );
+      const pose = resolveMarineVisualPose({
+        ownership: frame.ownership,
+        visualWater,
+      });
+      simRef.current.waveY = pose.heave;
+      simRef.current.wavePitch = pose.pitch;
+      simRef.current.waveRoll = pose.roll;
+    }
   });
 
   return null;
@@ -1390,6 +1460,8 @@ export default function DestroyerSimulation() {
     advancing: false,
   });
   const shipRef = useRef<THREE.Group | null>(null);
+  // 数值仿真时间（#2097 提升）：引擎逐 fixed-step 写入，帧快照 simulationTime 只读消费。
+  const simTimeRef = useRef(0);
   // 双桨尾迹发射锚点：模型侧逐帧写入桨节点世界位置，尾迹侧逐帧读取。
   const propWakeRef = useRef<{ port: THREE.Vector3 | null; starboard: THREE.Vector3 | null }>({
     port: null,
@@ -1478,7 +1550,7 @@ export default function DestroyerSimulation() {
       <SceneQualityAttributes />
       <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
-
+        <MarineFrameRuntime simRef={simRef} simTimeRef={simTimeRef} resetToken={resetToken}>
         <Suspense fallback={null}>
           <EnvironmentScene />
         </Suspense>
@@ -1527,6 +1599,7 @@ export default function DestroyerSimulation() {
         <SimulationEngine
           simRef={simRef}
           shipRef={shipRef}
+          simTimeRef={simTimeRef}
           isRunning={isRunning}
           controlMode={controlMode}
           pidGains={pidGains}
@@ -1547,6 +1620,7 @@ export default function DestroyerSimulation() {
           onChartDataUpdate={handleChartDataUpdate}
         />
         <ScenePostEffects />
+        </MarineFrameRuntime>
       </Canvas>
 
       <SimulationDock

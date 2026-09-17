@@ -7,6 +7,7 @@ import { useTexture } from '@react-three/drei';
 
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, type GerstnerWave } from './gerstner-waves';
 import { createGerstnerWaterMaterial } from './gerstner-water-material';
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { DEFAULT_ENVIRONMENT_PRESET_ID, getEnvironmentPreset } from '../environment/environment-presets';
 import { simulationScenePalette } from '../../components/simulation-theme';
 
@@ -199,6 +200,8 @@ export function GerstnerWater({
 }: GerstnerWaterProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const foamTexture = useTexture('/assets/simulation-scene/textures/ocean-foam-noise-alpha.png');
+  // 共享视觉时间：Provider 场景同帧唯一（暂停/倍速政策一致）；未接入场景回退 R3F 时钟。
+  const marineVisualTime = useMarineVisualTime();
 
   foamTexture.wrapS = THREE.RepeatWrapping;
   foamTexture.wrapT = THREE.RepeatWrapping;
@@ -224,8 +227,8 @@ export function GerstnerWater({
     [tier, waterColor, deepColor, horizonColor, foamColor, sunDirection, foamTexture, amplitudeScale]
   );
 
-  useFrame((state) => {
-    material.uniforms.uTime.value = state.clock.getElapsedTime();
+  useFrame((state, delta) => {
+    material.uniforms.uTime.value = marineVisualTime(state, delta);
     const sampled = positionSampler?.() ?? shipPosition;
     if (meshRef.current && sampled) {
       meshRef.current.position.x = sampled.x;

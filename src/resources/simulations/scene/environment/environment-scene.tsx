@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 
 import { useSceneEnvironment } from './environment-state';
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { useSceneQuality } from '../quality/quality-state';
 
 /** 平台尺度的环境组成（天空球体/地平线剪影带/云层/光照/雾），全部由当前环境预设驱动。 */
@@ -30,11 +31,10 @@ export function EnvironmentScene() {
     cloudTexture.repeat.set(2.2 * preset.scale, 1);
   }, [skyTexture, horizonTexture, cloudTexture, preset.scale]);
 
-  const cloudDriftRef = useRef(0);
+  const marineVisualTime = useMarineVisualTime();
   useFrame((state, delta) => {
-    cloudDriftRef.current = (cloudDriftRef.current + delta * 0.004) % 1;
-    cloudTexture.offset.set(cloudDriftRef.current, 0);
-    void state;
+    // 云漂移是共享视觉时间的纯函数：同帧唯一、可注入重放（不再自累加独立时钟）。
+    cloudTexture.offset.set((marineVisualTime(state, delta) * 0.004) % 1, 0);
   });
 
   const sunPosition = useMemo(

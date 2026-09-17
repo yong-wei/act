@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
 import type { SceneShipVisualProfile } from '../types';
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { createWakeTrailBuffer, type WakeAnchorSnapshot } from './wake-buffer';
 import { createWakeTrailGeometry, updateWakeTrailGeometry } from './wake-geometry';
 import { computeWakeSpeedActivity, type WakeTrailStyle } from './wake-physics';
@@ -235,13 +236,16 @@ export function WakeTrail({
     }
   }, [debugId]);
 
-  useFrame((_, delta) => {
+  const marineVisualTime = useMarineVisualTime();
+
+  useFrame((frameStateArg, delta) => {
     if (!buffer.style.enabled) {
       return;
     }
     const state = frameState.current;
     const dt = Math.max(0, delta);
-    state.simTime += dt;
+    // 尾迹时间源 = 共享视觉时钟（同帧唯一；暂停下环境继续推进，存量粒子按政策走完生命周期）。
+    state.simTime = marineVisualTime(frameStateArg, delta);
 
     if (playing) {
       const { position, heading } = shipTransform;

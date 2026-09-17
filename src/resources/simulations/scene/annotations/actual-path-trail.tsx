@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { WaterHuggingLine } from '../lines';
 import {
   ANNOTATION_STYLE,
@@ -24,13 +25,15 @@ export function ActualPathTrail({ positionSampler, resetToken }: ActualPathTrail
   const lastRecordRef = useRef(0);
   const lastResetRef = useRef(resetToken);
 
-  useFrame((state) => {
+  const marineVisualTime = useMarineVisualTime();
+
+  useFrame((state, delta) => {
     if (lastResetRef.current !== resetToken) {
       lastResetRef.current = resetToken;
       setPoints([]);
       return;
     }
-    const now = state.clock.getElapsedTime();
+    const now = marineVisualTime(state, delta);
     if (!shouldRecordTrailPoint(lastRecordRef.current, now)) return;
     lastRecordRef.current = now;
     const position = positionSampler();

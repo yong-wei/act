@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
 
+import { useMarineVisualTime } from '../frame/marine-frame-provider';
 import { ANNOTATION_STYLE } from './annotation-logic';
 
 const RIG_SAMPLE_INTERVAL_SECONDS = 1 / 15;
@@ -165,8 +166,10 @@ export function TeachingAnnotations({
   const [snapshot, setSnapshot] = useState<AnnotationSnapshot | null>(null);
   const lastSampleRef = useRef(0);
 
-  useFrame((state) => {
-    const now = state.clock.getElapsedTime();
+  const marineVisualTime = useMarineVisualTime();
+
+  useFrame((state, delta) => {
+    const now = marineVisualTime(state, delta);
     if (now - lastSampleRef.current < RIG_SAMPLE_INTERVAL_SECONDS) return;
     lastSampleRef.current = now;
     const position = positionSampler();
