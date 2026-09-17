@@ -74,7 +74,9 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
     const source: MarinePmremSource = {
       fromSkyScene: (skyScene) => {
         // generator 按 renderer 复用；缓存条目持完整 RenderTarget（dispose 释放 framebuffer/depth/GPU 纹理）。
-        return pmremGeneratorFor(gl).fromScene(skyScene, 0, 1, 10000);
+        const target = pmremGeneratorFor(gl).fromScene(skyScene, 0, 1, 10000);
+        (skyScene.userData.disposeSkyScene as (() => void) | undefined)?.();
+        return target;
       },
     };
     const skySceneFactory = () => {
@@ -84,6 +86,12 @@ export function EnvironmentScene({ subjectPositionSampler }: EnvironmentScenePro
         new THREE.MeshBasicMaterial({ map: skyTexture, side: THREE.BackSide, toneMapped: false }),
       );
       skyScene.add(sphere);
+      // fromScene 为同步消费：离屏天空几何体与材质生成后立即释放（四轮复审，
+      // Three 不代为释放输入场景资源，逐预设滞留会累积 GPU 占用）。
+      skyScene.userData.disposeSkyScene = () => {
+        sphere.geometry.dispose();
+        (sphere.material as THREE.Material).dispose();
+      };
       return skyScene;
     };
     // PMREM render-target 属于生成它的 renderer：缓存按 renderer 隔离。
