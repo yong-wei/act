@@ -718,6 +718,7 @@ function DrillingWater({
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
     />
   );
 }
@@ -1119,7 +1120,7 @@ export function DrillingSimulation() {
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         <Suspense fallback={null}>
-          <EnvironmentScene />
+          <EnvironmentScene subjectPositionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })} />
         </Suspense>
         <SoundscapeAmbienceDriver />
         <SceneQualityDriver />

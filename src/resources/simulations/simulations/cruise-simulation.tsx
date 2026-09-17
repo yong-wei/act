@@ -1332,6 +1332,7 @@ function CruiseWater({ state }: { state: CruiseSimulationState }) {
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
       foamColor={simulationScenePalette.waterFoam}
+      sunDirection={water.sunDirection}
     />
   );
 }
@@ -1421,7 +1422,7 @@ function VisualizationLayer({
   return (
     <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
       <Suspense fallback={null}>
-        <EnvironmentScene />
+        <EnvironmentScene subjectPositionSampler={() => ({ x: state.position.x, z: state.position.z })} />
       </Suspense>
       <SoundscapeAmbienceDriver />
       <SceneQualityDriver />
