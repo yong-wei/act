@@ -34,6 +34,8 @@ export function ActualPathTrail({ positionSampler, resetToken }: ActualPathTrail
       return;
     }
     const now = marineVisualTime(state, delta);
+    // 共享视觉时钟回退（epoch 重置/QA seek）时同步归零采样时间戳，航迹恢复记录。
+    if (now < lastRecordRef.current) lastRecordRef.current = 0;
     if (!shouldRecordTrailPoint(lastRecordRef.current, now)) return;
     lastRecordRef.current = now;
     const position = positionSampler();

@@ -44,6 +44,8 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
     side: THREE.DoubleSide,
     uniforms: {
       uTime: { value: 0 },
+      // 网格世界原点（跟船平移）：相位取世界坐标，波场不随原点移动漂移（#2097）。
+      uWorldOrigin: { value: new THREE.Vector2(0, 0) },
       uWaves: { value: waveData },
       uWaveCount: { value: Math.min(options.waves.length, GERSTNER_MAX_WAVES) },
       uAmplitudeScale: { value: options.amplitudeScale ?? 1 },
@@ -59,6 +61,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       #define FLOATS_PER_WAVE ${FLOATS_PER_WAVE}
 
       uniform float uTime;
+      uniform vec2 uWorldOrigin;
       uniform float uWaves[MAX_WAVES * FLOATS_PER_WAVE];
       uniform int uWaveCount;
       uniform float uAmplitudeScale;
@@ -74,6 +77,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         // 相位必须使用未位移的原始坐标：Gerstner 场是 (x,z,t) 的确定函数，
         // 若逐波用已水平位移的 pos.xz 取相位，波序依赖且与 CPU 参照不再同公式。
         vec3 basePos = position;
+        vec2 worldXZ = basePos.xz + uWorldOrigin;
         float dYdx = 0.0;
         float dYdz = 0.0;
         float crestRaw = 0.0;
@@ -91,7 +95,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
 
           float k = 6.28318530718 / wavelength;
           float c = speed * sqrt(9.8 / k);
-          float phase = k * (dx * basePos.x + dz * basePos.z) - c * k * uTime;
+          float phase = k * (dx * worldXZ.x + dz * worldXZ.y) - c * k * uTime;
           float s = sin(phase);
           float co = cos(phase);
 

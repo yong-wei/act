@@ -170,6 +170,8 @@ export function TeachingAnnotations({
 
   useFrame((state, delta) => {
     const now = marineVisualTime(state, delta);
+    // 共享视觉时钟回退（epoch 重置/QA seek）时同步归零采样节拍。
+    if (now < lastSampleRef.current) lastSampleRef.current = 0;
     if (now - lastSampleRef.current < RIG_SAMPLE_INTERVAL_SECONDS) return;
     lastSampleRef.current = now;
     const position = positionSampler();

@@ -63,6 +63,8 @@ import {
   GERSTNER_WAVE_SETS,
   GerstnerWater,
   gerstnerWaterMeshSpecForTier,
+  MARINE_BASE_INTERACTION_MESH_SPEC,
+  MARINE_BASE_INTERACTION_WAVES,
   sampleVisibleWaterHeight,
 } from '../scene/water';
 import {
@@ -367,19 +369,18 @@ function MarineFrameRuntime({
       renderOriginSampler: () => ({ x: simRef.current.position.x, z: simRef.current.position.z }),
       simulationTimeSampler: () => simTimeRef.current,
       advancingSampler: () => simRef.current.advancing,
-      waterSampler: (worldX, worldZ, timeSeconds) => {
-        const tier = qualityRef.current.waterTier;
-        return sampleVisibleWaterHeight(
-          GERSTNER_WAVE_SETS[tier],
+      waterSampler: (worldX, worldZ, timeSeconds) =>
+        // 基础交互波场（档位无关）：画质只裁剪渲染细节，不改变姿态采样基准（#2097）。
+        sampleVisibleWaterHeight(
+          MARINE_BASE_INTERACTION_WAVES,
           gerstnerAmplitudeScale(DEFAULT_GERSTNER_SEA_STATE),
-          gerstnerWaterMeshSpecForTier(tier),
+          MARINE_BASE_INTERACTION_MESH_SPEC,
           simRef.current.position.x,
           simRef.current.position.z,
           worldX,
           worldZ,
           timeSeconds,
-        );
-      },
+        ),
       ownership: DESTROYER_055_POSE_OWNERSHIP,
       environmentPresetIdSampler: () => presetId,
       qualityTierSampler: () => qualityRef.current.waterTier,
