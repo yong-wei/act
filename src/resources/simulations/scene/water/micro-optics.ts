@@ -121,6 +121,7 @@ export function ggxWaterSpecular(
   nDotV: number,
   nDotL: number,
   roughness: number,
+  vDotH: number,
   f0: number = WATER_F0,
 ): number {
   const a = Math.max(roughness * roughness, 1e-4);
@@ -128,7 +129,8 @@ export function ggxWaterSpecular(
   const nh = Math.min(Math.max(nDotH, 0), 1);
   const d = (nh * nh) * (a2 - 1) + 1;
   const distribution = a2 / (Math.PI * d * d);
-  const fresnel = waterFresnelSchlick(nDotL, f0);
+  // 微表面 Schlick 项取视线与半角向量夹角（V·H），非入射余弦（三轮复审）。
+  const fresnel = waterFresnelSchlick(vDotH, f0);
   const k = a / 2;
   const gV = nDotV / (nDotV * (1 - k) + k);
   const gL = nDotL / (nDotL * (1 - k) + k);

@@ -101,14 +101,14 @@ describe('water medium optics (#2100: Fresnel-Schlick + GGX)', () => {
   });
 
   it('GGX specular peaks near the mirror direction and smooths with roughness', () => {
-    const sharp = ggxWaterSpecular(1.0, 0.9, 0.9, 0.06);
-    const offPeak = ggxWaterSpecular(0.8, 0.9, 0.9, 0.06);
+    const sharp = ggxWaterSpecular(1.0, 0.9, 0.9, 0.06, 1.0);
+    const offPeak = ggxWaterSpecular(0.8, 0.9, 0.9, 0.06, 0.95);
     expect(sharp).toBeGreaterThan(offPeak);
     // 泡沫粗糙度提升：镜向峰值降低、能量更分散。
-    const roughPeak = ggxWaterSpecular(1.0, 0.9, 0.9, 0.6);
+    const roughPeak = ggxWaterSpecular(1.0, 0.9, 0.9, 0.6, 1.0);
     expect(roughPeak).toBeLessThan(sharp);
     // 永不为负。
-    expect(ggxWaterSpecular(0.2, 0.5, 0.4, 0.3)).toBeGreaterThanOrEqual(0);
+    expect(ggxWaterSpecular(0.2, 0.5, 0.4, 0.3, 0.7)).toBeGreaterThanOrEqual(0);
   });
 
   it('uses the same formulas in the fragment source (world-space lighting)', () => {
@@ -124,6 +124,7 @@ describe('water medium optics (#2100: Fresnel-Schlick + GGX)', () => {
     expect(source).toContain('0.02 + 0.98 * pow(1.0 - nDotV, 5.0)');
     expect(source).toContain('float roughness = mix(0.06, 0.6, foam);');
     expect(source).toContain('float distribution = a2 / (3.14159265 * dTerm * dTerm);');
+    expect(source).toContain('float vDotH = max(dot(viewDirection, halfVector), 0.0);');
     // 旧固定指数高光已移除。
     expect(source).not.toContain('pow(max(dot(reflect(-uSunDirection');
   });

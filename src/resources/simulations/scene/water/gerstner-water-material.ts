@@ -121,6 +121,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
       uniform float uNearCutoutHalfSize;
 
       varying vec3 vNormal;
+      varying vec3 vWorldNormal;
       varying vec3 vViewPosition;
       varying vec3 vWorldPos;
       varying float vCrest;
@@ -301,7 +302,8 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
         float a2 = a * a;
         float dTerm = (nDotH * nDotH) * (a2 - 1.0) + 1.0;
         float distribution = a2 / (3.14159265 * dTerm * dTerm);
-        float fresnel = 0.02 + 0.98 * pow(1.0 - nDotL, 5.0);
+        float vDotH = max(dot(viewDirection, halfVector), 0.0);
+        float fresnel = 0.02 + 0.98 * pow(1.0 - vDotH, 5.0);
         float k = a / 2.0;
         float gV = nDotV / (nDotV * (1.0 - k) + k);
         float gL = max(nDotL, 1e-4) / (max(nDotL, 1e-4) * (1.0 - k) + k);
