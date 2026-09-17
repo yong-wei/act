@@ -233,6 +233,7 @@ export function createGerstnerWaterMaterial(options: GerstnerWaterMaterialOption
     `,
     fragmentShader: /* glsl */ `
       uniform float uTime;
+      uniform vec2 uWorldOrigin;
       uniform vec3 uWaterColor;
       uniform vec3 uDeepColor;
       uniform vec3 uHorizonColor;
