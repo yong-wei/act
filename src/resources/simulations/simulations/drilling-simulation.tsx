@@ -33,6 +33,8 @@ import {
 } from '../scene/environment';
 import { computeGerstnerDisplacement, GERSTNER_WAVE_SETS, GerstnerWater } from '../scene/water';
 import { WakeTrail } from '../scene/wake';
+import { computeThrusterWashActivity } from '../scene/wake/wake-physics';
+import type { HullExclusionBox } from '../scene/water/hull-exclusion';
 import {
   SceneSoundscapeProvider,
   SoundscapeAmbienceDriver,
@@ -702,6 +704,17 @@ function SceneQualityAttributes() {
   );
 }
 
+/** 半潜平台排水排除框（#2101，船体局部坐标）：两根浮筒 + 四立柱独立声明——
+ * 框间与立柱之间的开口区域保留海水（从上往下看可见海水），实心结构内不显示穿水面板。 */
+const DRILLING_HULL_EXCLUSION: readonly HullExclusionBox[] = [
+  { centerX: -35, centerZ: 0, halfX: 30, halfZ: 8 },
+  { centerX: 35, centerZ: 0, halfX: 30, halfZ: 8 },
+  { centerX: -35, centerZ: -28, halfX: 6, halfZ: 6 },
+  { centerX: -35, centerZ: 28, halfX: 6, halfZ: 6 },
+  { centerX: 35, centerZ: -28, halfX: 6, halfZ: 6 },
+  { centerX: 35, centerZ: 28, halfX: 6, halfZ: 6 },
+];
+
 /** 海面颜色随环境预设、细分随质量档位的桥接组件（DP 平台位置直读 ref）。 */
 function DrillingWater({
   platformStateRef,
@@ -714,6 +727,8 @@ function DrillingWater({
     <GerstnerWater
       tier={params.waterTier}
       positionSampler={() => ({ x: platformStateRef.current.x, z: platformStateRef.current.y })}
+      hullExclusionSampler={() => DRILLING_HULL_EXCLUSION}
+      shipHeadingSampler={() => platformStateRef.current.psi}
       waterColor={water.waterColor}
       deepColor={water.deepColor}
       horizonColor={water.horizonColor}
@@ -747,6 +762,7 @@ function WakeTrailRig({
 
   if (!wakeVisible) return null;
   return (
+    <>
     <WakeTrail
       key={resetToken}
       profile={drillingHysy981SceneVisual}
@@ -756,6 +772,41 @@ function WakeTrailRig({
       waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
       worldSpeedSampler={() => Math.hypot(platformStateRef.current.u, platformStateRef.current.v)}
     />
+    {/* 逐推进器局部洗流（#2101 复审）：按 HYSY981_THRUSTER_LAYOUT 世界位置与各推进器
+        azimuth 方位发射，不同推力分配得到不同局部形态；全场预算按 1/8 × 份额共享。 */}
+    {platformStateRef.current.thrusters.map((thruster) => {
+      const layout = HYSY981_THRUSTER_LAYOUT.find((item) => item.id === thruster.id);
+      if (!layout || !thruster.enabled || thruster.failed || Math.abs(thruster.power) < 1) return null;
+      const psi = platformStateRef.current.psi;
+      const cos = Math.cos(psi);
+      const sin = Math.sin(psi);
+      const worldX = platformStateRef.current.x + layout.positionX * cos - layout.positionY * sin;
+      const worldZ = platformStateRef.current.y + layout.positionX * sin + layout.positionY * cos;
+      // 推进器方位为平台局部（0=前）：世界方位 = psi + azimuth，再转场景视觉约定。
+      const washHeadingRad = platformHeadingToSceneRad(toDegrees(psi) + thruster.azimuth);
+      return (
+        <WakeTrail
+          key={`${resetToken}-wash-${thruster.id}`}
+          profile={drillingHysy981SceneVisual}
+          shipTransform={{ position: transformRef.current.position, heading: washHeadingRad }}
+          qualityTier={tier}
+          playing={playing}
+          includeKelvin={false}
+          localWashOnly
+          budgetShare={1 / HYSY981_THRUSTER_LAYOUT.length}
+          // 世界空间发射器（二轮复审）：避免 resolveEmitterAnchors 对世界坐标二次旋转平移。
+          emitterWorldSampler={() => [worldX, 0, worldZ]}
+          waterYSampler={(x, z) => -1 + computeGerstnerDisplacement(GERSTNER_WAVE_SETS[params.waterTier], x ?? 0, z ?? 0, timeRef.current).y}
+          worldSpeedSampler={() => 0}
+          washActivitySampler={() => computeThrusterWashActivity({
+            totalThrustPower: Math.abs(thruster.power),
+            ratedPowerPerThruster: 4500,
+            thrusterCount: 1,
+          }).washFoamActivity}
+        />
+      );
+    })}
+    </>
   );
 }
 

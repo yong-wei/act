@@ -107,6 +107,8 @@ export interface WakeParticleSlot {
   wakeActivity: number;
   foamActivity: number;
   kelvinActivity: number;
+  /** 远场泡沫份额缩放（#2101 二轮复审）：随粒子持久化，几何重算同口径。 */
+  farFoamScale: number;
   emissionRate: number;
   emissionOpacity: number;
   includeKelvin: boolean;
@@ -131,6 +133,7 @@ const createEmptySlot = (): WakeParticleSlot => ({
   wakeActivity: 0,
   foamActivity: 0,
   kelvinActivity: 0,
+  farFoamScale: 1,
   emissionRate: 1,
   emissionOpacity: 1,
   includeKelvin: true,
@@ -156,6 +159,8 @@ export interface WakeTrailBuffer {
     includeKelvin: boolean;
     emissionRate?: number;
     emissionOpacity?: number;
+    /** 局部洗流（#2101）：farFoam 份额缩放（0 = 不产生中远龄远场泡沫）。 */
+    farFoamScale?: number;
   }): number;
   /** 按寿命与累计航程淘汰粒子。 */
   update(now: number, pathLength: number): void;
@@ -183,18 +188,21 @@ export const createWakeTrailBuffer = ({
   const batchSizeFor = (
     activity: WakeSpeedActivity,
     emissionRate: number,
-    includeKelvin: boolean
+    includeKelvin: boolean,
+    farFoamScale = 1
   ) => {
     let peak = 0;
     for (let step = 0; step <= BATCH_SCAN_STEPS; step += 1) {
       const age01 = step / BATCH_SCAN_STEPS;
-      const budget = computeWakeFamilyBudget({
+      const rawBudget = computeWakeFamilyBudget({
         age01,
         activity,
         style: resolvedStyle,
         emissionRate,
         includeKelvin,
       });
+      // 局部洗流（#2101 二轮复审）：farFoam 份额可缩放（洗流不产生中远龄远场泡沫）。
+      const budget = farFoamScale === 1 ? rawBudget : { ...rawBudget, farFoam: rawBudget.farFoam * farFoamScale };
       peak = Math.max(peak, countWakeFamilyTotal(computeWakeFamilyCounts(budget, resolvedStyle.seed, emitOrdinal)));
     }
     return Math.min(peak, resolvedCapacity);
@@ -210,11 +218,11 @@ export const createWakeTrailBuffer = ({
     nextEmitOrdinal() {
       return emitOrdinal;
     },
-    emit({ now, activity, anchors, includeKelvin, emissionRate = 1, emissionOpacity = 1 }) {
+    emit({ now, activity, anchors, includeKelvin, emissionRate = 1, emissionOpacity = 1, farFoamScale = 1 }) {
       if (!resolvedStyle.enabled) {
         return 0;
       }
-      const batchSize = batchSizeFor(activity, emissionRate, includeKelvin);
+      const batchSize = batchSizeFor(activity, emissionRate, includeKelvin, farFoamScale);
       if (batchSize <= 0) {
         return 0;
       }
@@ -246,6 +254,7 @@ export const createWakeTrailBuffer = ({
         slot.emissionRate = emissionRate;
         slot.emissionOpacity = emissionOpacity;
         slot.includeKelvin = includeKelvin;
+        slot.farFoamScale = farFoamScale;
         head = (head + 1) % resolvedCapacity;
       }
       emitOrdinal += 1;

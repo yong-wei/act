@@ -93,13 +93,17 @@ export const resolveWakeParticleVisual = (
   const age01 = clamp01(age / slot.lifetime);
   const freshness = 1 - age01;
 
-  const budget = computeWakeFamilyBudget({
+  const rawBudget = computeWakeFamilyBudget({
     age01,
     activity: slot,
     style,
     emissionRate: slot.emissionRate,
     includeKelvin: slot.includeKelvin,
   });
+  // 远场泡沫份额随槽位持久化缩放（#2101 二轮复审）：局部洗流不产生中远龄远场泡沫。
+  const budget = slot.farFoamScale === 1
+    ? rawBudget
+    : { ...rawBudget, farFoam: rawBudget.farFoam * slot.farFoamScale };
   const counts = computeWakeFamilyCounts(budget, style.seed, slot.emitOrdinal);
   const family = familyAtPlanIndex(counts, slot.planIndex);
   if (family === null) {
